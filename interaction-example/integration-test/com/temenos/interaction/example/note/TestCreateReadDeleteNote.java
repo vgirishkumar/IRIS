@@ -33,7 +33,7 @@ public class TestCreateReadDeleteNote extends JerseyTest {
 	public void testOptions() {
         String noteUri = NOTES_RESOURCE + "/1";
         ClientResponse response = webResource.path(noteUri).options(ClientResponse.class);
-        assertEquals(204, response.getStatus());
+        assertEquals(200, response.getStatus());
 	}
 
     @Test
