@@ -2,6 +2,8 @@ package com.temenos.interaction.example.integtest.note;
 
 import static org.junit.Assert.assertEquals;
 
+import javax.ws.rs.core.Response;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
