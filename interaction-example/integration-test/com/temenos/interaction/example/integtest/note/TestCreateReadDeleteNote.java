@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.note;
+package com.temenos.interaction.example.integtest.note;
 
 import static org.junit.Assert.assertEquals;
 
@@ -8,7 +8,8 @@ import org.junit.Test;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.core.decorator.hal.MediaType;
-import com.temenos.interaction.example.utils.TestDBUtils;
+import com.temenos.interaction.example.integtest.utils.TestDBUtils;
+import com.temenos.interaction.example.note.NoteProducerFactory;
 
 public class TestCreateReadDeleteNote extends JerseyTest {
 
@@ -40,18 +41,20 @@ public class TestCreateReadDeleteNote extends JerseyTest {
 		// not created yet
         ClientResponse response = webResource.path(noteUri).accept(MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         assertEquals(404, response.getStatus());
-        // create resource
+        
+        // create (PUT) resource
         ClientResponse putResponse = webResource.path(noteUri).type(MediaType.APPLICATION_HAL_XML).accept(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, new NoteRepresentation("test note"));
         // now created
         assertEquals(200, putResponse.getStatus());
-		// GET new resource
+		
+        // GET new resource
         ClientResponse getResponse = webResource.path(noteUri).accept(MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         assertEquals(200, getResponse.getStatus());
-        
         String noteHALRepresentation = getResponse.getEntity(String.class);
-//        NoteRepresentation nr = getResponse.getEntity(NoteRepresentation.class);
+//      NoteRepresentation nr = getResponse.getEntity(NoteRepresentation.class);
         NoteRepresentation nr = NoteRepresentation.fromXmlString(noteHALRepresentation);
         assertEquals("test note", nr.getBody());
+
 	}
-	
+
 }

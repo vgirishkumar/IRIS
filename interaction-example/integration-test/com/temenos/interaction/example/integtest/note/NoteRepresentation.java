@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.note;
+package com.temenos.interaction.example.integtest.note;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;

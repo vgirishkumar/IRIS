@@ -1,4 +1,4 @@
-package com.temenos.interaction.example;
+package com.temenos.interaction.example.integtest.country;
 
 import static org.junit.Assert.*;
 

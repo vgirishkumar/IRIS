@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.utils;
+package com.temenos.interaction.example.integtest.utils;
 
 import org.junit.Test;
 import org.odata4j.producer.ODataProducer;
