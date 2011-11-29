@@ -6,5 +6,5 @@ package com.temenos.interaction.core.command;
  * @author aphethean
  */
 public interface ResourceCommand {
-
+	
 }

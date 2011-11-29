@@ -6,7 +6,8 @@ import java.util.Set;
 import javax.ws.rs.core.Application;
 
 import com.temenos.interaction.example.country.CountryResource;
-import com.temenos.interaction.example.note.NoteResource;
+import com.temenos.interaction.example.note.NewNoteRIM;
+import com.temenos.interaction.example.note.NoteRIM;
 
 
 public class ExampleApplication extends Application {
@@ -15,7 +16,8 @@ public class ExampleApplication extends Application {
 
     public ExampleApplication() {
         classes.add(CountryResource.class);
-        classes.add(NoteResource.class);
+        classes.add(NoteRIM.class);
+        classes.add(NewNoteRIM.class);
     }
     
 	@Override

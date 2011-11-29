@@ -10,10 +10,10 @@ import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
 
 import com.temenos.interaction.core.EntityResource;
-import com.temenos.interaction.core.state.SHARDIResource;
+import com.temenos.interaction.core.state.SHARDIResourceInteractionModel;
 
 @Path("/countries/{id}")
-public class CountryResource extends SHARDIResource implements EntityResource {
+public class CountryResource extends SHARDIResourceInteractionModel implements EntityResource {
 
 	private final static String RESOURCE_PATH = "/countries/{id}";
 	private final GetCountryCommand getCommand = new GetCountryCommand();

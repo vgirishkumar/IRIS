@@ -12,6 +12,7 @@ import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
 public class GetCountryCommand implements ResourceGetCommand {
@@ -32,7 +33,7 @@ public class GetCountryCommand implements ResourceGetCommand {
 	 * @invariant none
 	 * @see com.temenos.interaction.core.command.ResourceGetCommand#execute(java.lang.String)
 	 */
-	public Response.Status get(String id) {
+	public RESTResponse get(String id) {
 		assert(producer != null);
 		assert(id != null);
 		EntityResponse entityResponse = producer.getEntity(ENTITY_NAME, OEntityKey.create(id), null);
@@ -41,7 +42,7 @@ public class GetCountryCommand implements ResourceGetCommand {
 			OEntity entity = entityResponse.getEntity();
 			resource = new CountryResource(entity);
 		}
-		return (resource == null ? Response.Status.NOT_FOUND : Response.Status.OK);
+		return new RESTResponse(resource == null ? Response.Status.NOT_FOUND : Response.Status.OK, resource, null);
 	}
 
 	public void setProducer(ODataProducer producer) {

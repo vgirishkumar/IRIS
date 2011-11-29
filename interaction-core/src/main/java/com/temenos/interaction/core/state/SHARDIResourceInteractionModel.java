@@ -25,11 +25,9 @@ import com.temenos.interaction.core.decorator.Decorator;
 import com.temenos.interaction.core.decorator.JSONStreamingDecorator;
 import com.temenos.interaction.core.decorator.PDFDecorator;
 import com.temenos.interaction.core.decorator.XMLDecorator;
-import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
 
 /**
- * The SHARDIResource defines a method of dealing with resource according to
- * the T24 'SHARDI' interaction model.
+ * Define the T24 SEE, HISTORY, AUTHORISE, REVERSE, DELETE, INPUT 'SHARDI' Resource Interaction Model.
  * 'S' - See
  * 'H' - History
  * 'A' - Authorise
@@ -38,7 +36,7 @@ import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
  * 'I' - Input
  * @author aphethean
  */
-public abstract class SHARDIResource implements ResourceStateTransition {
+public abstract class SHARDIResourceInteractionModel implements ResourceStateTransition {
 
 	/**
 	 * Indicates that the annotated method responds to HTTP AUTHORISE requests
@@ -55,9 +53,9 @@ public abstract class SHARDIResource implements ResourceStateTransition {
 	private String resourcePath = null;
 	
 	/* Keep JAXB happy */
-	public SHARDIResource() {}
+	public SHARDIResourceInteractionModel() {}
 
-	public SHARDIResource(String resourcePath) {
+	public SHARDIResourceInteractionModel(String resourcePath) {
 		this.resourcePath = resourcePath;
 	}
 	
@@ -74,10 +72,13 @@ public abstract class SHARDIResource implements ResourceStateTransition {
     @Produces({MediaType.APPLICATION_XML})
     public Response getXML( @PathParam("id") String id ) {
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
-    	Response.Status status = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id);
+    	assert (rResponse != null);
+    	Response.Status status = rResponse.getStatus();
+		assert (status != null);  // not a valid get command
     	Decorator<Response> d = new XMLDecorator();
-    	Response xml = d.decorateRESTResponse(new RESTResponse(status, getCommand.getResource()));
-    	return HeaderHelper.allowHeader(Response.fromResponse(xml), getCommand).build();
+    	Response xml = d.decorateRESTResponse(rResponse);
+    	return HeaderHelper.allowHeader(Response.fromResponse(xml), rResponse).build();
 }
 	
 	
@@ -85,10 +86,13 @@ public abstract class SHARDIResource implements ResourceStateTransition {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJson( @PathParam("id") String id ) {
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
-    	Response.Status status = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id);
+    	assert (rResponse != null);
+    	Response.Status status = rResponse.getStatus();
+		assert (status != null);  // not a valid get command
     	Decorator<StreamingOutput> d = new JSONStreamingDecorator();
-    	StreamingOutput so = d.decorateRESTResponse(new RESTResponse(status, getCommand.getResource()));
-    	return HeaderHelper.allowHeader(Response.ok(so), getCommand).build();
+    	StreamingOutput so = d.decorateRESTResponse(rResponse);
+    	return HeaderHelper.allowHeader(Response.ok(so), rResponse).build();
     }
 
     /*
@@ -113,9 +117,12 @@ public abstract class SHARDIResource implements ResourceStateTransition {
     @Produces(ExtendedMediaTypes.APPLICATION_PDF)
     public StreamingOutput getPDF( @PathParam("id") String id ) {
    		ResourceGetCommand getCommand = (ResourceGetCommand) commandController.fetchGetCommand(getResourcePath());
-       	Response.Status status = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id);
+    	assert (rResponse != null);
+    	Response.Status status = rResponse.getStatus();
+		assert (status != null);  // not a valid get command
        	Decorator<StreamingOutput> d = new PDFDecorator();
-       	return d.decorateRESTResponse(new RESTResponse(status, getCommand.getResource()));
+       	return d.decorateRESTResponse(rResponse);
     }
 
     @AUTHORISE
@@ -127,9 +134,12 @@ public abstract class SHARDIResource implements ResourceStateTransition {
     public Response options(String id ) {
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
     	ResponseBuilder response = Response.ok();
-    	Response.Status status = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id);
+    	assert (rResponse != null);
+    	Response.Status status = rResponse.getStatus();
+		assert (status != null);  // not a valid get command
     	if (status == Response.Status.OK) {
-        	response = HeaderHelper.allowHeader(response, getCommand);
+        	response = HeaderHelper.allowHeader(response, rResponse);
     	}
     	return response.build();
     }

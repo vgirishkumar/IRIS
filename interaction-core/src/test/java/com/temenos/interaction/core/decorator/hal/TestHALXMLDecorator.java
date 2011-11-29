@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
@@ -33,16 +34,14 @@ import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
 import org.custommonkey.xmlunit.XMLAssert;
 public class TestHALXMLDecorator {
 
-	@Test
-	public void testNotEntityResponse() {
+	@Test(expected = WebApplicationException.class)
+	public void testAttemptToDecorateNonEntityResponse() {
 		RESTResponse restResponse = mock(RESTResponse.class);
 		MetaDataResource mdr = mock(MetaDataResource.class);
 		when(restResponse.getResource()).thenReturn(mdr);
 
 		HALXMLDecorator halDecorator = new HALXMLDecorator();
-// TODO is test relevant
-		//		Response response = halDecorator.decorateRESTResponse(restResponse);
-//		assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+		halDecorator.decorateRESTResponse(restResponse);
 	}
 	
 	@Test

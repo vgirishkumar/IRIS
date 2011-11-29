@@ -1,8 +1,6 @@
 package com.temenos.interaction.core.state;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 import java.util.HashSet;
 import java.util.SortedSet;
@@ -12,7 +10,7 @@ import javax.ws.rs.core.Response;
 
 import org.junit.Test;
 
-import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.RESTResponse;
 
 public class TestHeaderHelper {
 
@@ -29,28 +27,23 @@ public class TestHeaderHelper {
 		validNextStates.add("HEAD");
 		validNextStates.add("OPTIONS");
 		
-		ResourceGetCommand getCommand = mock(ResourceGetCommand.class);
-		doReturn(validNextStates).when(getCommand).getValidNextStates();
+		RESTResponse rr = new RESTResponse(Response.Status.OK, null, validNextStates);
 
-		Response r = HeaderHelper.allowHeader(Response.ok(), getCommand).build();
+		Response r = HeaderHelper.allowHeader(Response.ok(), rr).build();
 		assertEquals("AUTHORISE, DELETE, GET, HEAD, HISTORY, INPUT, OPTIONS, REVERSE, SEE", r.getMetadata().getFirst("Allow"));
 	}
 
 	@Test
 	public void testOptionsNoAllowHeader() {
-		ResourceGetCommand getCommand = mock(ResourceGetCommand.class);
-		doReturn(null).when(getCommand).getValidNextStates();
-		
-		Response r = HeaderHelper.allowHeader(Response.ok(), getCommand).build();
+		RESTResponse rr = new RESTResponse(Response.Status.OK, null, null);
+		Response r = HeaderHelper.allowHeader(Response.ok(), rr).build();
 		assertNull(r.getMetadata().getFirst("Allow"));
 	}
 
 	@Test
 	public void testOptionsNoValidStates() {
-		ResourceGetCommand getCommand = mock(ResourceGetCommand.class);
-		doReturn(new HashSet<String>()).when(getCommand).getValidNextStates();
-
-		Response r = HeaderHelper.allowHeader(Response.ok(), getCommand).build();
+		RESTResponse rr = new RESTResponse(Response.Status.OK, null, new HashSet<String>());
+		Response r = HeaderHelper.allowHeader(Response.ok(), rr).build();
 		assertEquals("", r.getMetadata().getFirst("Allow"));
 	}
 

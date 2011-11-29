@@ -19,7 +19,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.odata4j.core.OEntity;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OProperty;
 import org.slf4j.Logger;
@@ -56,7 +55,6 @@ public class HALXMLDecorator implements Decorator<StreamingOutput> {
 			try {
 
 				EntityResource resource = (EntityResource) r.getResource();
-				OEntity entity = resource.getEntity();
 
 				DocumentBuilderFactory dbfac = DocumentBuilderFactory
 						.newInstance();
@@ -139,8 +137,7 @@ public class HALXMLDecorator implements Decorator<StreamingOutput> {
 //			return Response.ok(xmlString, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).build();
 		}
 
-//		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-		return null;
+		throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 	}
 
 }

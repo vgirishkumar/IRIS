@@ -4,12 +4,12 @@ import java.util.Set;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.RESTResponse;
 
 public class HeaderHelper {
 
-    protected static ResponseBuilder allowHeader(ResponseBuilder rb, ResourceGetCommand c) {
-    	Set<String> httpMethods = c.getValidNextStates();
+    protected static ResponseBuilder allowHeader(ResponseBuilder rb, RESTResponse rResponse) {
+    	Set<String> httpMethods = rResponse.getValidNextStates();
     	if (httpMethods != null) {
         	StringBuilder result = new StringBuilder();
         	for (String method : httpMethods) {

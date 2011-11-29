@@ -40,7 +40,7 @@ public class TestJSONStreamingDecorator {
 		EntityResource resource = mock(EntityResource.class);
 		when(resource.getEntity()).thenReturn(entity);
 
-		RESTResponse rr = new RESTResponse(Response.Status.OK, resource);
+		RESTResponse rr = new RESTResponse(Response.Status.OK, resource, null);
 		StreamingOutput so = decorator.decorateRESTResponse(rr);
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

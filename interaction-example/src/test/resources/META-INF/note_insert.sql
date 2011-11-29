@@ -1,3 +1,5 @@
+INSERT INTO `ID`(`DomainObjectName`, `ID`) VALUES('NOTE', 1);
+
 INSERT INTO `Note`(`NoteID`,`Body`) VALUES(1,'Beverages');
 INSERT INTO `Note`(`NoteID`,`Body`) VALUES(2,'Condiments');
 INSERT INTO `Note`(`NoteID`,`Body`) VALUES(3,'Confections');

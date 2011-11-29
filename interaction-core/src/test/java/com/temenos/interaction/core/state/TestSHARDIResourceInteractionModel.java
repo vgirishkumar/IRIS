@@ -2,7 +2,7 @@ package com.temenos.interaction.core.state;
 
 import junit.framework.TestCase;
 
-public class TestSHARDIStateTransition extends TestCase {
+public class TestSHARDIResourceInteractionModel extends TestCase {
 
 	public void testInputCountry() {
 		// navigate to root url
