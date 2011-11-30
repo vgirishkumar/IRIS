@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
 
   <name>interaction-core</name>
-  <url>http://maven.apache.org</url>
+  <url>http://www.temenos.com</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
