@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+
+<!-- ================================================================================ -->
+<!--                                                                                  -->
+<!--  JBoss Server Configuration                                                      -->
+<!--                                                                                  -->
+<!--  jRemote resource adapter deployment for JBoss, configured for local connection  -->
+<!--                                                                                  -->
+<!-- ================================================================================ -->
+
+<connection-factories> 
+
+  <!--
+ ================================================================================= 
+-->
+-
+<!--
+                                                                                   
+-->
+-
+<!--
+  JBoss Server Configuration                                                       
+-->
+-
+<!--
+                                                                                   
+-->
+-
+<!--
+  TOCF T24 Resource Adapter deployment for JBoss, configured for local connection  
+-->
+-
+<!--
+                                                                                   
+-->
+-
+<!--
+ ================================================================================= 
+-->
+-
+-
+<tx-connection-factory>
+	<jndi-name>jca/t24ConnectionFactory</jndi-name>
+	<rar-name>tocfT24ra-ra.rar</rar-name>
+	<connection-definition>com.temenos.tocf.t24ra.T24ConnectionFactory</connection-definition>
+	<config-property name="hosts" type="java.lang.String">localhost</config-property>
+	<config-property name="ports" type="java.lang.String">2672</config-property>
+	<config-property name="loadBalancing" type="java.lang.Boolean">true</config-property>
+	<config-property name="allowInput" type="java.lang.Boolean">true</config-property>
+	<config-property name="compression" type="java.lang.Boolean">true</config-property>
+	<config-property name="compressionThreshold" type="java.lang.Integer">2048</config-property>
+	<config-property name="envVariables" type="java.lang.String">OFS_SOURCE=ARCIB.SELF.REG</config-property>
+	<config-property name="actionTimeout" type="java.lang.Integer">90</config-property>
+	<config-property name="charset" type="java.lang.String">ISO-8859-1</config-property>
+	<min-pool-size>4</min-pool-size>
+	<max-pool-size>10</max-pool-size>
+	<idle-timeout-minutes>15</idle-timeout-minutes>
+-
+	<!--
+
+		<config-property name="debugPort" type="java.lang.Integer">30097</config-property>
+
+		<config-property name="SSL" type="java.lang.Boolean">true</config-property>
+		<config-property name="NaiveTrustManager" type="java.lang.Boolean">true</config-property> 
+
+		<config-property name="account" type="java.lang.String">MYACCOUNT</config-property> 
+		<config-property name="user" type="java.lang.String">test</config-property> 
+		<config-property name="password" type="java.lang.String">account_password</config-property> 
+	-->
+</tx-connection-factory>
+<tx-connection-factory>
+	<jndi-name>jca/t24ConnectionFactoryAcquisition</jndi-name>
+	<rar-name>tocfT24ra-ra.rar</rar-name>
+	<connection-definition>com.temenos.tocf.t24ra.T24ConnectionFactory</connection-definition>
+	<config-property name="hosts" type="java.lang.String">localhost</config-property>
+	<config-property name="ports" type="java.lang.String">2673</config-property>
+	<config-property name="loadBalancing" type="java.lang.Boolean">true</config-property>
+	<config-property name="allowInput" type="java.lang.Boolean">true</config-property>
+	<config-property name="compression" type="java.lang.Boolean">true</config-property>
+	<config-property name="compressionThreshold" type="java.lang.Integer">2048</config-property>
+	<config-property name="envVariables" type="java.lang.String">OFS_SOURCE=CUST.AQUISITION</config-property>
+	<config-property name="actionTimeout" type="java.lang.Integer">90</config-property>
+	<config-property name="charset" type="java.lang.String">ISO-8859-1</config-property>
+	<min-pool-size>4</min-pool-size>
+	<max-pool-size>10</max-pool-size>
+	<idle-timeout-minutes>15</idle-timeout-minutes>
+-
+	<!--
+
+		<config-property name="debugPort" type="java.lang.Integer">30097</config-property>
+
+		<config-property name="SSL" type="java.lang.Boolean">true</config-property>
+		<config-property name="NaiveTrustManager" type="java.lang.Boolean">true</config-property> 
+
+		<config-property name="account" type="java.lang.String">MYACCOUNT</config-property> 
+		<config-property name="user" type="java.lang.String">test</config-property> 
+		<config-property name="password" type="java.lang.String">account_password</config-property> 
+	-->
+</tx-connection-factory>
+
+<tx-connection-factory>
+	<jndi-name>jca/t24ConnectionFactoryARCIB</jndi-name>
+	<rar-name>tocfT24ra-ra.rar</rar-name>
+	<connection-definition>com.temenos.tocf.t24ra.T24ConnectionFactory</connection-definition>
+	<config-property name="hosts" type="java.lang.String">127.0.0.1, 127.0.0.1</config-property>
+	<config-property name="ports" type="java.lang.String">20002, 20003</config-property>
+	<config-property name="loadBalancing" type="java.lang.Boolean">true</config-property>
+	<config-property name="allowInput" type="java.lang.Boolean">true</config-property>
+	<config-property name="compression" type="java.lang.Boolean">true</config-property>
+	<config-property name="compressionThreshold" type="java.lang.Integer">2048</config-property>
+	<config-property name="envVariables" type="java.lang.String">OFS_SOURCE=GCS</config-property>
+	<config-property name="actionTimeout" type="java.lang.Integer">90</config-property>
+	<config-property name="charset" type="java.lang.String">ISO-8859-1</config-property>
+	<min-pool-size>4</min-pool-size>
+	<max-pool-size>10</max-pool-size>
+	<idle-timeout-minutes>15</idle-timeout-minutes>
+-
+	<!--
+
+		<config-property name="debugPort" type="java.lang.Integer">30097</config-property>
+
+		<config-property name="SSL" type="java.lang.Boolean">true</config-property>
+		<config-property name="NaiveTrustManager" type="java.lang.Boolean">true</config-property> 
+
+		<config-property name="account" type="java.lang.String">MYACCOUNT</config-property> 
+		<config-property name="user" type="java.lang.String">test</config-property> 
+		<config-property name="password" type="java.lang.String">account_password</config-property> 
+	-->
+</tx-connection-factory>
+
+
+</connection-factories>
+
+

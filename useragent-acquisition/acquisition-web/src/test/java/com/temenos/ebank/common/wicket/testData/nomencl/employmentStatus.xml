@@ -1,0 +1,39 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>39</id>
+    <language>en</language>
+    <groupCode>employmentStatus</groupCode>
+    <code>EMPLOYED</code>
+    <label>Employed</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>42</id>
+    <language>en</language>
+    <groupCode>employmentStatus</groupCode>
+    <code>HOUSE</code>
+    <label>Housewife / Husband</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>43</id>
+    <language>en</language>
+    <groupCode>employmentStatus</groupCode>
+    <code>OTHER</code>
+    <label>Other</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>41</id>
+    <language>en</language>
+    <groupCode>employmentStatus</groupCode>
+    <code>RETIRED</code>
+    <label>Retired</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>40</id>
+    <language>en</language>
+    <groupCode>employmentStatus</groupCode>
+    <code>SELF</code>
+    <label>Self-employed</label>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

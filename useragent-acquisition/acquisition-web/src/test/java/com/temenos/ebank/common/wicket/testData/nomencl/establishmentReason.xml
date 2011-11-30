@@ -1,0 +1,39 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>46</id>
+    <language>en</language>
+    <groupCode>establishmentReason</groupCode>
+    <code>BANKING</code>
+    <label>Day-to-day Banking</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>48</id>
+    <language>en</language>
+    <groupCode>establishmentReason</groupCode>
+    <code>OTHER</code>
+    <label>Other</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>45</id>
+    <language>en</language>
+    <groupCode>establishmentReason</groupCode>
+    <code>PAYMENTS</code>
+    <label>Payments</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>44</id>
+    <language>en</language>
+    <groupCode>establishmentReason</groupCode>
+    <code>SALARY</code>
+    <label>Salary</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>47</id>
+    <language>en</language>
+    <groupCode>establishmentReason</groupCode>
+    <code>TRAVELLING</code>
+    <label>Travelling on business</label>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

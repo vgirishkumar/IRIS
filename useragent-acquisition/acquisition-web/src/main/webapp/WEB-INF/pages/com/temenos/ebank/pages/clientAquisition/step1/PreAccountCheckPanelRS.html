@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:panel>
+	<h3><wicket:message key="sectionTitle">Pre-account check</wicket:message></h3>
+	<dl wicket:id="accountCurrencyBorder">       
+		<dt>
+			<label for="accountCurrency" wicket:id="accountCurrencyLabel">Select currency</label>
+		</dt>
+		<dd class="compact" wicket:id="accountCurrency">
+		</dd>
+	</dl>
+	<div class="info">
+		<div>
+			<span class="infoTitle">
+				<wicket:message key="infoInitialDepositRequiredTitle">Initial deposit required.</wicket:message>
+			</span>
+			<br/>
+			<span>
+				<wicket:message key="infoInitialDepositRequired1">(1) If you already have a same currency Current account (C/A) with us. For each account the minimum deposit balance is greater or equal to \u00A3 500 currency equivalent and lesser or equal to \u00A3 2000 currency equivalent. Payment to RS is through Standing order.</wicket:message>
+			</span>
+			<br/>
+			<span>
+				<wicket:message key="infoInitialDepositRequired2">(2) If you are opening current account then there should be a minimum balance of \u00A32500 to be maintained in the account all the time.</wicket:message>
+			</span>
+		</div>
+	</div>
+</wicket:panel>
+</body>
+</html>

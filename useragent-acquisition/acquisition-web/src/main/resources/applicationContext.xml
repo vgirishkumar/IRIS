@@ -1,0 +1,136 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd"
+			>
+	
+	
+	<import resource="servicesContextOracle.xml"/>
+<!-- 	<import resource="servicesContext.xml"/>  -->
+	 
+	<context:property-placeholder location="classpath:application.properties"/>
+
+	<bean id="configParamDaoXml" class="com.temenos.ebank.dao.impl.acquisition.ConfigParamXml" >
+	   		<property name="configParamTableXml" value = "classpath:configParam/configParamTable.xml"/>
+	</bean>
+	
+	<!--
+		Activates various annotations to be detected in bean classes:
+		Spring's @Required and @Autowired, as well as JSR 250's @Resource.
+	-->
+	<context:annotation-config/>
+
+	<bean id="wicketApplication"
+		class="com.temenos.ebank.wicket.EbankWicketApplication">
+	</bean>
+
+	<!-- services, in alphabetical order --> 
+	
+
+ 	<bean id="serviceConfigParam"
+		class="com.temenos.ebank.services.impl.clientAquisition.ServiceConfigParamImpl">
+		<property name="configParamDao" ref="configParamDaoXml" />
+	</bean>
+	
+	<bean id="step1DomainToWicketMapper" class="com.temenos.ebank.wicketmodel.mappers.ApplicationDomainToWicketMapper">
+		<property name="includeCustomer" value="true"/>
+	</bean>
+
+	<bean id="step2DomainToWicketMapper" class="com.temenos.ebank.wicketmodel.mappers.ApplicationDomainToWicketMapper">
+		<property name="includeCustomer" value="true"/>
+		<property name="includeContactDetails" value="true"/>
+	</bean>
+
+	<bean id="step3DomainToWicketMapper" class="com.temenos.ebank.wicketmodel.mappers.ApplicationDomainToWicketMapper">
+		<property name="includeCustomer" value="true"/>
+		<property name="includeEmployerAddress" value="true"/>
+	</bean>
+
+	<bean id="step45DomainToWicketMapper" class="com.temenos.ebank.wicketmodel.mappers.ApplicationDomainToWicketMapper">
+		<property name="includeCustomer" value="true"/>
+	</bean>
+
+	<bean id="step6DomainToWicketMapper" class="com.temenos.ebank.wicketmodel.mappers.ApplicationDomainToWicketMapper">
+		<property name="includeCustomer" value="true"/>
+		<property name="includeEmployerAddress" value="true"/>
+		<property name="includeContactDetails" value="true"/>
+	</bean>
+
+	<bean id="addressDomainToWicketMapper" class="com.temenos.ebank.wicketmodel.mappers.AddressDomainToWicketMapper">
+	</bean>
+
+	<!-- jCaptcha configuration. See http://jcaptcha.octo.com/confluence/display/general/JCaptcha+and+the+SpringFramework -->	
+	<bean id="imageCaptchaService" class="com.octo.captcha.service.image.DefaultManageableImageCaptchaService" scope="singleton"/>
+
+	<!-- ==============================   ebank CACHE   ============================= -->
+	<bean id="ebankCacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+	  <property name="configLocation" value="classpath:ehcacheEBank.xml" />
+	</bean>
+	
+	<bean id="ebankMethodCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+	  <property name="cacheManager" ref="ebankCacheManager" />
+	  <property name="cacheName" value="com.temenos.ebank.METHOD_CACHE" />
+	</bean>
+
+	<bean id="methodCacheInterceptor" class="com.temenos.ebank.common.MethodCacheInterceptor">
+	  <property name="cache" ref="ebankMethodCache" />
+	</bean>
+	
+	<bean id="methodCachePointCut" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+	  <property name="advice" ref="methodCacheInterceptor" />
+	  <property name="patterns">
+	    <list>
+	      <value>.*getNomencl</value>
+	      <value>.*getConfigParamTable</value>	      
+	    </list>
+	  </property>
+	</bean>
+
+	<bean id="ebankCacheableAutoProxyCreator" class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<description>Adds caching behaviour for calls to T24.</description>
+		<property name="interceptorNames">
+			<list>
+				<idref local="methodCachePointCut"/>
+			</list>
+		</property>
+		<property name="beanNames">
+			<list>
+				<value>serviceNomencl</value>
+				<value>serviceConfigParam</value>
+<!-- 				<value>mappingFactory</value> --><!-- mappingFactory is not cacheable because the JAXB classes generated in the messaging layer are not Serializable. -->
+			</list>
+		</property>
+	</bean>
+
+	<!-- ==============================   END ebank CACHE   ============================= -->
+
+	<!-- log execution times using interceptors -->
+	<bean id="ebankAutoProxyCreator"
+		class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<property name="interceptorNames">
+			<list>
+				<idref local="timeInterceptor" />
+			</list>
+		</property>
+		<property name="beanNames">
+			<list>
+				<idref bean="serviceClientAcquisition" />
+				<idref bean="serviceNomencl" />
+				<idref bean="serviceCrossSell" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="timeInterceptor" class="com.temenos.ebank.common.ServiceTimeInterceptor">
+		<description>On method invocation, this interceptor logs time spent
+			during execution of intercepted method.</description>
+	</bean>
+	<!-- end log execution times -->
+		
+</beans>

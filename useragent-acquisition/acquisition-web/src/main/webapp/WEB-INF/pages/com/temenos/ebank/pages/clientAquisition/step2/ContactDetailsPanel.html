@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<wicket:panel>
+
+	<wicket:container wicket:id="jointContactSpacer">
+		<br/>
+		<hr/>
+	</wicket:container>	
+
+	<h3>
+		<wicket:message key="contactDetailsHeading">Your Details</wicket:message>
+	</h3>
+
+	<!-- 	NOT PRESENT IN NEW LAYOUT: commented for now -->
+	<!-- 	<wicket:message key="giveUsPhoneNumber">[Please give us at least one phone number]</wicket:message> -->
+
+	<!-- 	TODO: enhance PhoneAndPrefix component to support labels for both prefix and phone -->
+	<dl wicket:id="homePhoneBorder">
+		<dt>
+			<label wicket:id="homePhoneLabel">Home phone number</label> <label
+				for="phonehomeareacode">(including international dialling
+				code)</label>&nbsp;
+		</dt>
+		<dd>
+			<wicket:container wicket:id="homePhone" />
+		</dd>
+		<dd class="info">
+			<div>
+				<div>
+					<p>Enter the international dialing code and then your number e.g.</p>
+					<p>+<code>44</code><code>1234 567890</code></p>
+				</div>
+			</div>
+		</dd>
+	</dl>
+
+	<dl wicket:id="workPhoneBorder">
+		<dt>
+			<label wicket:id="workPhoneLabel">Work Telephone Number</label> 
+			<label for="phoneworkareacode">(including international dialling code)</label>&nbsp;
+		</dt>
+		<dd>
+			<wicket:container wicket:id="workPhone"/>
+		</dd>
+	</dl>
+
+	<dl wicket:id="faxNumberBorder">
+		<dt>
+			<label wicket:id="faxNumberLabel">Work Telephone Number</label> 
+			<label for="phoneworkareacode">(including international dialling code)</label>&nbsp;
+		</dt>
+		<dd>
+			<wicket:container wicket:id="faxNumber"/>
+		</dd>
+	</dl>
+
+	<dl wicket:id="mobilePhoneBorder">
+		<dt>
+			<label wicket:id="mobilePhoneLabel">Mobile Number</label> &nbsp;
+		</dt>
+		<dd>
+			<wicket:container wicket:id="mobilePhone"/>
+		</dd>
+		<dd class="info">
+			<div>
+				<div>
+					<ul>
+						<li><wicket:message key="changeMobile">You need to go to previous step if you want to change the mobile number</wicket:message>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</dd>
+	</dl>
+
+	<!-- E-mail -->
+	<dl wicket:id="emailAddressBorder">
+		<dt>
+			<label wicket:id="emailAddressLabel">Email address</label>
+		</dt>
+		<dd class="action">
+			<input wicket:id="emailAddress" type="text" value="example@example.com" />
+		</dd>
+		<dd class="info">
+			<div>
+				<div>
+					<ul>
+						<li><wicket:message key="changeEmail">You need to go to previous step if you want to change the email address</wicket:message>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</dd>
+	</dl>
+
+	<dl wicket:id="preferredContactMethodBorder">
+		<dt>
+			<label wicket:id="preferredContactMethodLabel" >How would you prefer us to contact you
+				about servicing your account?</label>&nbsp;
+		</dt>
+		<dd>
+			<select wicket:id="preferredContactMethod" >
+				<option value="">Please select</option>
+				<option value="nopreference">No preference</option>
+				<option value="mobile">Mobile phone</option>
+			</select>
+		</dd>
+	</dl>
+
+	<hr/>
+
+	<!-- Address -->
+	<h3><wicket:message key="addressDetailsHeading">Residential Address</wicket:message></h3>
+			
+	<!-- 	NOT PRESENT IN NEW LAYOUT: commented for now -->
+	<!-- <wicket:message key="provideFullAddress"></wicket:message> -->
+
+	<dl wicket:id="residentialStatusBorder">
+		<dt>
+			<label wicket:id="residentialStatusLabel">What are your current living arrangements?</label>
+		</dt>
+		<dd>
+			<select wicket:id="residentialStatus" >
+				<option value="">Please select</option>
+				<option value="ownernomortgage">Owner - no mortgage</option>
+			</select>
+		</dd>
+	</dl>
+	
+	<dl wicket:id="otherResidentialStatusBorder">
+		<dt>
+			<label wicket:id="otherResidentialStatusLabel">Other residential status</label>
+		</dt>
+		<dd>
+			<input wicket:id="otherResidentialStatus"
+					type="text" maxlength="35" value="" />
+		</dd>
+	</dl>
+
+	<div wicket:id="secondResidentialSameAsFirstResidentialContainer">
+		<dl wicket:id="secondResidentialSameAsFirstResidentialBorder">
+			<dt>
+				<label wicket:id="secondResidentialSameAsFirstResidentialLabel">Does the second applicant live at the same address as you?</label>
+			</dt>
+			<dd class="compact" wicket:id="secondResidentialSameAsFirstResidential">
+				<input type="radio" wicket:id="secondResidentialSameAsFirstResidentialYes"/> 
+				<label wicket:id="secondResidentialSameAsFirstResidentialYesLabel">Yes</label> 
+				<input type="radio" wicket:id="secondResidentialSameAsFirstResidentialNo"/>
+				<label wicket:id="secondResidentialSameAsFirstResidentialNoLabel">No</label>
+			</dd>
+		</dl>
+	</div>
+
+	<div wicket:id="addressContainer">
+		<span wicket:id="address"></span>
+	</div>
+
+	<dl wicket:id="yearsAndMonthsWithAddressBorder">
+		<dt>
+			<label wicket:id="yearsAndMonthsWithAddressLabel">How long did you live at this address?</label>&nbsp;
+			<wicket:container wicket:id="hintPanel"/>
+		</dt>
+		<dd class="compact"  wicket:id="yearsAndMonthsWithAddress">
+		</dd>
+	</dl>
+
+
+	<div wicket:id="previousAddressContainer">
+		<span><wicket:message key="lessThanThreeYears">If you have lived at your current address for less than 3 years please enter your previous address.</wicket:message>
+		</span><br/><br/>
+
+		<div wicket:id="previousAddresses">
+			<h3>
+				<wicket:message key="previousAddressHeading">Previous Address</wicket:message>
+			</h3>
+
+			<div wicket:id="previousAddressRepeated"></div>
+
+			<dl wicket:id="durationBorder">
+				<dt>
+					<label wicket:id="durationLabel">How long
+						did you live at this address?</label>&nbsp;
+					<wicket:container wicket:id="hintPanel" />
+				</dt>
+				<dd class="compact" wicket:id="duration"></dd>
+			</dl>
+
+		</div>
+	</div>
+
+	<!-- Correspondence -->
+	<hr />
+	<h3><wicket:message key="correspondenceAddressHeading">Different Correspondence Address?</wicket:message></h3>
+
+	<dl wicket:id="isCorrespondenceAddressSameAsResidentialBorder">
+		<dt>
+			<label wicket:id="isCorrespondenceAddressSameAsResidentialLabel">Would you like to use your residential address for correspondence?</label>
+		</dt>
+		<dd class="compact" wicket:id="isCorrespondenceAddressSameAsResidential">
+			<input type="radio" wicket:id="residentialSameAsCorrespondenceYes" value="True"/> 
+			<label wicket:id="residentialSameAsCorrespondenceYesLabel"> Yes</label>
+			<input type="radio" wicket:id="residentialSameAsCorrespondenceNo" value="False"/>
+			<label wicket:id="residentialSameAsCorrespondenceNoLabel">No</label>
+		</dd>
+	</dl>
+
+	<div wicket:id="correspondenceContainer">
+		<div wicket:id="secondCorrespondenceSameAsFirstCorrespondenceContainer">
+			<dl wicket:id="secondCorrespondenceSameAsFirstBorder">
+				<dt>
+					<label wicket:id="secondCorrespondenceSameAsFirstLabel">Is this the same address you provided for receiving correspondence?</label>
+				</dt>
+				<dd class="compact" wicket:id="secondCorrespondenceSameAsFirst">
+					<input type="radio" wicket:id="secondCorrespondenceSameAsFirstYes" value="True" checked="checked"/>  
+					<label wicket:id="secondCorrespondenceSameAsFirstYesLabel">Yes</label>
+					<input type="radio" wicket:id="secondCorrespondenceSameAsFirstNo" value="False"/> 
+					<label wicket:id="secondCorrespondenceSameAsFirstNoLabel">No</label>
+				</dd>
+			</dl>
+		</div>
+
+		<div wicket:id="correspondenceAddressContainer">
+			<p wicket:id="debitCardToCorrespondence"></p>
+			<span wicket:id="correspondenceAddress" />
+		</div>
+	</div>
+
+</wicket:panel>
+</html>

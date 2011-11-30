@@ -1,0 +1,29 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+	<wicket:panel>
+		<dl wicket:id="isSoleBorder">
+			<dt>
+				<label for="isSole" wicket:id="isSoleLabel">Are you a sole or joint account applicant?</label>
+				<wicket:container wicket:id="hintPanel"/>
+			</dt>
+			<dd class="compact" wicket:id="isSole">
+				<input type="radio" wicket:id="sole" /> 
+				<label for="sole" wicket:id="soleLabel">Sole</label>
+				<input type="radio" wicket:id="joint" />
+			 	<label for="joint" wicket:id="jointLabel">Joint</label>
+			</dd>
+		</dl>
+		<div class="info">
+			<div>
+				<span class="infoTitle"> <wicket:message
+						key="infoDeclarationTitle">Declaration sign-off required by Joint applicant </wicket:message>
+				</span> <br /> <span> <wicket:message key="infoDeclaration">If joint account is selected, declaration by joint account mandatory.</wicket:message>
+				</span>
+			</div>
+		</div>
+	</wicket:panel>
+</body>
+</html>

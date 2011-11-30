@@ -1,0 +1,51 @@
+<classpath>
+  <classpathentry kind="src" path="src/test/java" output="target/test-classes"/>
+  <classpathentry kind="src" path="src/main/java"/>
+  <classpathentry kind="output" path="target/classes"/>
+  <classpathentry kind="var" path="M2_REPO/javax/activation/activation/1.1/activation-1.1.jar" sourcepath="M2_REPO/javax/activation/activation/1.1/activation-1.1-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/javax/xml/bind/jaxb-api/2.0/jaxb-api-2.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/javax/xml/bind/jsr173_api/1.0/jsr173_api-1.0.jar"/>
+  <classpathentry kind="src" path="/acquisition-interfaces"/>
+  <classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.5/commons-lang-2.5.jar" sourcepath="M2_REPO/commons-lang/commons-lang/2.5/commons-lang-2.5-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/D:/java/tools/maven/maven-repo/commons-lang/commons-lang/2.5/commons-lang-2.5-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar" sourcepath="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/D:/java/tools/maven/maven-repo/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-jms_1.1_spec/1.1.1/geronimo-jms_1.1_spec-1.1.1.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-jms_1.1_spec/1.1.1/geronimo-jms_1.1_spec-1.1.1-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/D:/java/tools/maven/maven-repo/org/apache/geronimo/specs/geronimo-jms_1.1_spec/1.1.1/geronimo-jms_1.1_spec-1.1.1-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/com/sun/xml/bind/jaxb-impl/2.0/jaxb-impl-2.0.jar" sourcepath="M2_REPO/com/sun/xml/bind/jaxb-impl/2.0/jaxb-impl-2.0-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/sun/xml/bind/jaxb-xjc/2.0/jaxb-xjc-2.0.jar" sourcepath="M2_REPO/com/sun/xml/bind/jaxb-xjc/2.0/jaxb-xjc-2.0-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/temenos/jremote/1.0/jremote-1.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/junit/junit/4.8.2/junit-4.8.2.jar" sourcepath="M2_REPO/junit/junit/4.8.2/junit-4.8.2-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/D:/java/tools/maven/maven-repo/junit/junit/4.8.2/junit-4.8.2-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.16/log4j-1.2.16.jar" sourcepath="M2_REPO/log4j/log4j/1.2.16/log4j-1.2.16-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/D:/java/tools/maven/maven-repo/log4j/log4j/1.2.16/log4j-1.2.16-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.6.1/slf4j-api-1.6.1.jar" sourcepath="M2_REPO/org/slf4j/slf4j-api/1.6.1/slf4j-api-1.6.1-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/D:/java/tools/maven/maven-repo/org/slf4j/slf4j-api/1.6.1/slf4j-api-1.6.1-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-log4j12/1.6.1/slf4j-log4j12-1.6.1.jar" sourcepath="M2_REPO/org/slf4j/slf4j-log4j12/1.6.1/slf4j-log4j12-1.6.1-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/D:/java/tools/maven/maven-repo/org/slf4j/slf4j-log4j12/1.6.1/slf4j-log4j12-1.6.1-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-asm/3.0.5.RELEASE/spring-asm-3.0.5.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-asm/3.0.5.RELEASE/spring-asm-3.0.5.RELEASE-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-core/3.0.5.RELEASE/spring-core-3.0.5.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-core/3.0.5.RELEASE/spring-core-3.0.5.RELEASE-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/temenos/tocfT24ra/1.0/tocfT24ra-1.0.jar"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
+</classpath>

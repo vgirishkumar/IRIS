@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+	<wicket:panel>
+		<p>
+			<wicket:message key="sectionSummary">To make sure that you're eligible for an account, we need to find out a bit more about you.</wicket:message>
+			<br /> <em class="error">*</em>
+			<wicket:message key="requiredExplanation"> indicates required information</wicket:message>
+		</p>
+
+		<dl wicket:id="countryResidenceBorder">
+			<dt>
+				<label for="countryResidence" wicket:id="countryResidenceLabel">Country of residence</label>
+				<wicket:container wicket:id="hintPanel"/>
+			</dt>
+			<dd>
+				<select wicket:id="countryResidence">
+					<option selected="selected" value="Please select">Please select</option>
+					<option value="United Kingdom">United Kingdom</option>
+					<option value="Afghanistan">Afghanistan</option>
+					<option value="Aland Islands">Aland Islands</option>
+				</select>
+			</dd>
+		</dl>
+
+		<dl wicket:id="countryMovingBorder">
+			<dt>
+				<label for="countryMoving" wicket:id="countryMovingLabel">Country moving to (if applicable)</label>
+			</dt>
+			<dd>
+				<select wicket:id="countryMoving">
+					<option selected="selected" value="Please select">Please select</option>
+					<option value="United Kingdom">United Kingdom</option>
+					<option value="Afghanistan">Afghanistan</option>
+					<option value="Aland Islands">Aland Islands</option>
+				</select>
+			</dd>
+		</dl>
+	</wicket:panel>
+</body>
+</html>

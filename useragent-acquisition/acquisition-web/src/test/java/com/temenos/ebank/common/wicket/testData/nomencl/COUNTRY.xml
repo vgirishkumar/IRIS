@@ -1,0 +1,36 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>1</id>
+    <language>en</language>
+    <groupCode>COUNTRY</groupCode>
+    <code>GB</code>
+    <label>United Kingdom</label>
+    <sortOrder>1</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>5</id>
+    <language>en</language>
+    <groupCode>COUNTRY</groupCode>
+    <code>UAE</code>
+    <label>United Arab Emirates</label>
+    <sortOrder>2</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>2</id>
+    <language>en</language>
+    <groupCode>COUNTRY</groupCode>
+    <code>US</code>
+    <label>United States</label>
+    <sortOrder>3</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>6</id>
+    <language>en</language>
+    <groupCode>COUNTRY</groupCode>
+    <code>JP</code>
+    <label>Japan</label>
+    <sortOrder>4</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

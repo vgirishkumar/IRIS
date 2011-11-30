@@ -1,0 +1,658 @@
+body {
+	text-align: center;
+	color: #333;
+	background: white;
+	margin: 0;
+	padding: 0;
+	font-family: Arial, Helvetica, Tahoma, Verdana, sans-serif; 
+	font-size: 80%;
+}
+
+/* self clearing rules */
+div, dl, ul, ol, p.action {overflow: hidden;}
+* html div, * html dl, * html ul, * html ol, * html li, * html p.action {height: 1%;}
+
+#wai, .wai, legend span {
+	position: absolute;
+	display: block;
+	top: -1px;
+	left: -1px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+iframe, fieldset, legend, dl, dt, dd, ul, ul li {
+	padding: 0;
+	margin: 0;
+	border: none;
+	list-style-type: none;
+}
+
+/* The width of the site (with drop-shadows) */
+form {
+	width: 996px;
+	margin: 0 auto;
+	text-align: left;
+	/* Middle of the drop-shadow box */
+	background: url(../img/sprite-main.png) -996px 0 repeat-y;
+}
+	div#main {
+		padding: 0 28px 0 46px;
+	}
+		h1, h2, caption {
+			font-weight: normal;
+			color: #00864f;
+		}
+		h1 {
+			margin: 0 0 0.4em 0;
+			font-size: 180%;
+		}
+		h2, caption {
+			font-size: 140%;
+			margin: 0 0 1.5em 0;
+			line-height: 1;
+		}
+			h2 strong {
+				color: white;
+				background: #55476e url(../img/bg-h2-strong.gif) 0 0 no-repeat;
+				float: left;
+				width: 23px;
+				height: 17px;
+				text-align: center;
+				padding: 6px 0 0 0;
+				margin: 0 0.8em 0 0;
+				font-size: 60%;
+			}
+			div[id] h2 strong {
+				height: auto;
+				min-height: 17px;
+			}
+		caption {text-align: left;}
+
+		h3 {
+			font-size: 120%;
+			margin: 0 0 1.1em 0;
+		}
+			h3 em {
+				font-style: normal;
+				color: #00864f;
+			}
+		h4, h5, h6 {margin: 0;}
+		p, dl {margin: 0 0 1em 0;}
+		/* This is used during the application process */
+		p.name {
+			text-transform: uppercase;
+			color: #00864f;
+			font-size: 80%;
+			margin: 0 0 0.5em 0;
+		}
+		
+		/* Fieldsets have strokes, gradients and drop-shadows! */
+		fieldset {
+			/* Middle */
+			background: url(../img/sprite-fieldset.png) -2314px 0 repeat-y;
+			margin: 0 18px 1.9em 0;
+		}
+		.twocol fieldset {
+			background-position: -470px 0;
+			margin-right: 0;
+		}
+			fieldset div {
+				/* Top */
+				background: url(../img/sprite-fieldset.png) -1410px 0 no-repeat;
+			}
+			.twocol fieldset div {
+				/* Top */
+				background-position: 0 0;
+			}
+				fieldset div div {
+					/* Bottom */
+					background-position: -3218px 100%;
+					padding: 2.6em 26px 27px 23px;
+				}
+				.twocol fieldset div div {
+					/* Bottom */
+					background-position: -940px 100%;
+				}
+					fieldset div div div, .twocol fieldset div div div {
+						background: none;
+						padding: 0;
+					}
+					p.compact {
+						font-size: 90%;
+					}
+					fieldset dl {
+						font-size: 90%;
+						/* Extra top padding required to accomodate .info */
+						padding: 1.2em 0 0 0;
+						margin: 0;
+					}
+					.twocol fieldset dl {
+						padding: 0 0 0.5em 0;
+					}
+						fieldset dt {
+							float: left;
+							width: 240px;
+							margin: 0 20px 0 0;
+						}
+						.twocol fieldset dt {
+							width: 150px;
+						}
+							/* The information icon */
+							fieldset dt img {
+								vertical-align: middle;
+								margin: 0 0 0 8px;
+								cursor: help;
+							}
+							fieldset dt em {font-style: normal;}
+
+						fieldset dd {
+							float: left;
+							width: 195px;
+							width: 260px;
+							position: relative;
+						}
+							/* This is used to position the + before telephone numbers outside the container, in the gutter */
+							fieldset dd code {
+								font-family: Arial, Helvetica, Tahoma, Verdana, sans-serif;
+								position: absolute;
+								left: -15px;
+								width: 20px;
+							}
+							/* Somtetimes, the links here need to go right */
+							fieldset dd a.r {
+								float: right;
+							}
+							fieldset dd a.r, a.chev {
+								float: right;
+								background: url(../img/bullet-default.gif) 0 3px no-repeat;
+								padding: 0 0 0 10px;
+							}
+
+						/* This is a sort of speech bubble, giving the user information */
+						fieldset dd.info, fieldset dd.error {
+							width: 400px;
+							width: 335px;
+							font-size: 110%;
+							position: relative;
+							top: -1.0em;
+							float: right;
+							clear: right;
+							/* Middle */
+							background: #f2f7f5 url(../img/sprite-info.png) -335px 0 repeat-y;
+						}
+						/* As above, but for error states */
+						fieldset dd.error {
+							/* Middle */
+							background-color: #fff3f2;
+							background-position: -1340px 0;
+						}
+							dd.info div {
+								/* Bottom */
+								background: url(../img/sprite-info.png) -670px 100% no-repeat;
+							}
+							dd.error div {
+								/* Bottom */
+								background: url(../img/sprite-info.png) -1675px 100% no-repeat;
+							}
+								dd.info div div, dd.error div div {
+									/* Top */
+									background: url(../img/sprite-info.png) 0 0 no-repeat;
+									padding: 1.2em 37px 13px 43px;
+								}
+								dd.error div div {
+									/* Top */
+									background-position: -1005px 0;
+								}
+									/* Within .info bubbles, an example field is sometimes used */
+									dd.info code, dd.error code {
+										background: white;
+										border: solid 1px #c2c6c4;
+										padding: 0.3em 0.6em;
+										position: static;
+									}
+
+						.twocol fieldset dd {
+							width: 270px;
+							width: 250px;
+						}
+							fieldset dd input, fieldset dd textarea, fieldset dd select {
+								width: 175px;
+								width: 240px;
+							}
+							#legalBox dt{
+								width: 0px;
+							}
+							/* especially for the special ones with special needs: IE6 */
+							.legaBoxCheckBox{
+								width: 12px;
+							}
+							#legalBox dd [type=checkbox]{
+								width: 12px;
+							}
+							#legalBox dd.error{
+								width: 335px;
+							}
+							#legalBox dd{
+								width: 500px;
+							}
+							fieldset dd input.btn {
+								width: auto;
+							}
+							/* fieldset dd select {
+								width: 188px;
+							} */
+							fieldset dd input.short {
+								width: 70px;
+							}
+							fieldset dd input.intphonecode {
+								width: 25px;
+							}
+							fieldset dd input.phonenumber {
+								width: 200px;
+							}
+							fieldset dd input.mid {
+								width: 90px;
+								width: 155px;
+							}
+							/* Radio buttons and checkboxes */
+							fieldset dd.compact input {
+								width: auto;
+								background: none;
+								border: none;
+							}
+							fieldset dd.compact select {
+								width: auto;
+							}
+
+/* This makes a checkbox or radio button act like a bullet point */
+p.checkbullets {
+	margin-left: 23px;
+	position: relative;
+}
+	.checkbullets input {
+		position: absolute;
+		top: 0;
+		left: -23px;
+		border: none;
+		background: none;
+	}
+
+ul.note {font-size: 85%;}
+
+/* Two-column layout, asymetric */
+	.twocol div {
+		float: left;
+		width: 470px;
+	}
+	.twocol div.last {
+		width: 434px;
+	}
+	fieldset .twocol div {
+		width: 421px;
+	}
+	fieldset .twocol div.last {
+		width: 434px;
+		padding: 0;
+	}
+		.twocol div div {
+			float: none;
+			width: auto;
+		}
+		/* Gutter */
+		.twocol .last h1, .twocol .last h2, .twocol .last h3, .twocol .last h4,
+		.twocol .last h5, .twocol .last h6, .twocol .last p, .twocol .last ul,
+		.twocol .last ol, .twocol .last dl {
+			/* To be equal with left gutter */
+			margin-left: 13px;
+		}
+			/* Recursive! */
+			.twocol .twocol div {
+				float: left;
+				width: 322px;
+			}
+			.twocol .twocol div.last {
+				width: 148px;
+			}
+
+/* Three-column layout */
+.threecol div {
+	float: left;
+	width: 301px;
+}
+.threecol div.last {
+	width: 302px;
+}
+.threecol div.span2 {
+	width: 603px;
+}
+/* This can also be used inside .legalbox, a blue box */
+.legalbox .threecol div {
+	width: 130px;
+}
+.legalbox .threecol div.span2 {
+	width: 418px;
+	border-right: solid 1px #d5d2ca;
+	padding-right: 17px;
+	margin: 0 17px 1em 0;
+}
+	.threecol div div {
+		width: auto;
+		float: none;
+	}
+		.legalbox .action a, .threecol .action a, .threecol .btn {
+			margin: 0;
+		}
+
+/* Pagination */
+ul.pagination {
+	text-align: center;
+	line-height: 1.3;
+}
+	ul.pagination li {
+		background: none;
+		padding: 0;
+		display: inline;
+		font-size: 80%;
+		vertical-align: middle;
+	}
+	ul.pagination li.btn {
+		font-size: 140%;
+	}
+		.pagination li a {
+			border: solid 1px white;
+			padding: 0.4em 0.2em;
+		}
+		.pagination li.btn a {
+			/* Cheeky reuse of main sprite */
+			background: #ededeb url(../img/sprite-main.png) -2988px 0 no-repeat;
+			border: solid 1px #e2e2dd;
+			padding: 0 0.4em;
+		}
+
+/* 
+[ Next > ] - default styling
+*/
+.action a, .action em {
+	/* Medium size */
+	width: 130px;
+	float: right;
+	color: white;
+	/* Middle */
+	background: #594a73 url(../img/sprite-action.png) -130px 0 repeat-y;
+	text-transform: uppercase;
+	font-size: 80%;
+	font-style: normal;
+	/* Multiple buttons may be stacked */
+	margin: 0 0 0 12px;
+}
+/* In a nested two-column layout, there is only room for one button, in the last div */
+.twocol .twocol .last .action a, .twocol .twocol .last .action em {
+	margin: 0;
+}
+/* Emphasis is used where the button is to be disabled.
+Title text is recommended, to inform the user why they cannot proceed. */
+.action em {
+	opacity: 0.5;
+	cursor: progress;
+}
+	.action a span, .action em span {
+		display: block;
+		/* Bottom */
+		background: url(../img/sprite-action.png) -260px 100% no-repeat;
+	}
+		.action a span span, .action em span span {
+			/* top */
+			background-position: 0 0;
+			padding: 0.6em 26px 0.6em 10px;
+		}
+		/* Print buttons have a unique icon */
+		.action a.printbtn span span, .action em.printbtn span span {
+			/* top */
+			background-position: -1438px 0;
+		}
+
+/*
+[ < Back ] [ Cancel (x) ]
+*/
+.action a.back, .action a.cancel,
+.action em.back, .action em.cancel {
+	float: left;
+	background-color: #2f2f2f;
+	/* Middle */
+	background-position: -650px 0;
+	margin: 0 12px 0 0;
+}
+.action a.cancel, .action em.cancel { text-align: left;}
+.action a.back, .action em.back {text-align: right;}
+
+/* To override the default float behaviours */
+.action a.l, .action em.l, .action .l a, .action .l a {
+	float: left;
+	margin: 0 12px 0 0;
+}
+.action a.r, .action em.r, .action .r a, .action .r em {
+	float: right;
+	margin: 0 0 0 12px;
+}
+	/* Bottom */
+	.action a.back span, .action a.cancel span,
+	.action em.back span, .action em.cancel span {
+		background-position: -780px 100%;
+	}
+		/* Top - back */
+		.action a.back span span, .action em.back span span {background-position: -390px 0;}
+		/* Top - cancel */
+		.action a.cancel span span, .action em.cancel span span {background-position: -520px 0;}
+		/* Because "back" is aligned to the right, the padding needs to be switched */
+		.action a.back span span, .action em.back span span {
+			padding-right: 10px;
+			padding-left: 26px;
+		}
+
+/* Default bullets */
+ul {margin: 0 0 0.8em 0;}
+	ul li {
+		background: url(../img/bullet-default.gif) 0 3px no-repeat;
+		padding: 0 0 0.5em 10px;
+	}
+	/* For a list of features */
+	ul.feature li {
+		background: url(../img/bullet-feature.gif) 0 3px no-repeat;
+		padding-left: 16px;
+	}
+
+/* Table rules */
+table, tr, th, td {
+	margin: 0;
+	border: solid 1px #dfdfdf;
+	padding: 0;
+	border-collapse: collapse;
+}
+table {
+	width: 904px;
+	margin: 0 0 1em 0;
+}
+	td, th {
+		background: white;
+		padding: 0.5em 16px 0 16px;
+	}
+	thead th, thead td, .odd th, .odd td {
+		background: #f2f7f5;
+	}
+		table p {
+			margin-bottom: 0.5em;
+		}
+
+/* A box for Important Legal Information. It looks a lot like the .info speech bubbles. */
+div.legalbox {
+	/* Middle */
+	background: #f2f7f5 url(../img/sprite-legalbox.png) -630px 0 repeat-y;
+	width: 630px;
+	margin: 0 0 1em 0;
+}
+	.legalbox div {
+		/* Bottom */
+		background: url(../img/sprite-legalbox.png) -1260px 100% no-repeat;
+	}
+		.legalbox div div {
+			/* Top */
+			background-position: 0 0;
+			padding: 1em 20px 12px 20px;
+		}
+			.legalbox div div div {
+				background: none;
+				padding: 0;
+			}
+
+/* Generic rules */
+input, select, textarea, img.ui-datepicker-trigger {
+	font-family: Arial, Helvetica, Tahoma, Verdana, sans-serif;
+	font-size: 100%;
+	border: solid 1px #e2e2dd;
+	color: #666;
+	background: #ededeb url(../img/sprite-main.png) -2988px 0 no-repeat;
+	padding: 3px 5px;
+}
+/* Used to spawn a jQuery datepicker. Rules for table in servicing.css. */
+img.ui-datepicker-trigger {
+	padding: 0 3px;
+	margin: 0 0 0 10px;
+	cursor: pointer;
+}
+label input, img.ui-datepicker-trigger {
+	vertical-align: bottom;
+}
+input.error, select.error, textarea.error,
+.error input, .error select, .error textarea {
+	border: solid 1px #e97f7f;
+	background: #fbe5e5;
+}
+select {padding: 0;}
+/* This is used for checkboxes and radio buttons. */
+.compact input, input.compact, .btn {
+	border: none;
+	padding: 0;
+	background: none;
+}
+input.btn {
+	float: right;
+	margin: 0 0 0 12px;
+}
+input.l {
+	float: left;
+	margin: 0 12px 0 0;
+}
+label, fieldset dt span {font-weight: bold;}
+.print {display: none;}
+/* This might need to be revisited - depends on designs in the future */
+#main p {margin-right: 18px;}
+#main * p {margin-right: 0;}
+a, .help {
+	color: #063;
+	text-decoration: none;
+}
+/* This perhaps should be a proper pop-up */
+.help {cursor: help;}
+.r {text-align: right;}
+.c {text-align: center;}
+.phone {white-space: nowrap;}
+img.l {
+	float: left;
+	margin: 0 10px 10px 0;
+}
+img.r {
+	float: right;
+	margin: 0 0 10px 10px;
+}
+.nowrap {white-space: nowrap;}
+/* To indicate content which is omitted */
+ins {
+	text-decoration: none;
+	color: black;
+	background-color: #fcf;
+	border: solid 1px #969;
+	padding: 1px 3px;
+}
+a img {border: none;}
+/* Generic error / mandatory class */
+.error, fieldset dt em, .checkbullets em {color: #d30000;}
+.important {font-size: 120%;}
+.legal {font-size: 85%;}
+abbr, acronym {cursor: help;}
+hr {
+	margin: 0 0 2em 0;
+	padding: 0;
+	border: none;
+	border-top: solid 1px #d5d2ca;
+	height: 1px;
+}
+fieldset hr {
+	margin: 2em 0;
+}
+
+/* Tooltip */
+#tooltip {
+	position: absolute;
+	z-index: 99;
+	border: 1px solid #e9e7e4;
+	background: white url(../img/bg-tooltip.png) 0 100% repeat-x;
+	text-align: left;
+	font-size: 85%;
+	width: 21em;
+}
+	#tooltip h3, #tooltip div {
+		margin: 0;
+		border: solid 4px white;
+		padding: 0.8em;
+		font-weight: normal;
+	}
+	/* This isn't used */
+	#tooltip div {
+		border-top: none;
+		padding-top: 0;
+	}
+
+/* The footer, bottom */
+div#disclaimer {
+	/* Bottom of the drop-shadow box */
+	background: white url(../img/sprite-main.png) -1992px 0 no-repeat;
+	padding: 123px 0 0 28px;
+	font-size: 75%;
+}
+	#disclaimer ul, #disclaimer p {
+		float: left;
+		width: 470px;
+		border-bottom: solid 1px #d5d2ca;
+		margin: 0;
+		padding: 0 0 0.7em 0;
+	}
+	#disclaimer ul {
+		text-transform: uppercase;
+	}
+		#disclaimer ul li {
+			background: none;
+			padding: 0;
+			float: left;
+		}
+			#disclaimer ul a {
+				display: block;
+				color: #333;
+				border-right: solid 1px #333;
+				padding: 0 1em 0 0;
+				margin: 0 1em 0 0;
+			}
+			#disclaimer ul .last a {
+				border: none;
+			}
+
+	#disclaimer p {
+		text-align: right;
+	}
+
+/* For FancyBox */
+.fbox {
+	display: none;
+}
+	#fancybox-wrap, #fancybox-wrap * {overflow: visible;}

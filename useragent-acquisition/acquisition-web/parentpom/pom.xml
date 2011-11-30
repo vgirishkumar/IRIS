@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>temenos</groupId>
+	<artifactId>acquisition</artifactId>
+	<packaging>pom</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>Acquisition</name>
+	<description>
+		Temenos Acquisition front end
+	</description>
+	<url>http://www.temenos.com</url>
+	<inceptionYear>2011</inceptionYear>
+	<organization>
+		<name>Temenos</name>
+		<url>http://www.temenos.com</url>
+	</organization>
+	<repositories>
+<!--
+		<repository>
+			<id>ebank-artifact-repos</id>
+			<name>Maven central repo Viveo</name>
+			<url>file:////10.140.5.226/maven/artifact-repos</url>
+		</repository>
+-->
+		<repository>
+			<id>jboss-maven-repo</id>
+			<name>JBoss Maven repository</name>
+			<url>https://repository.jboss.org/nexus/content/groups/public</url>
+		</repository>
+		<repository>
+			<id>my-internal-site</id>
+			<url>file:///Documents and Settings/aphethean/repo</url>
+		</repository>
+	</repositories>
+<!--
+	<distributionManagement>
+		<repository>
+			<id>vbol-repository</id>
+			<name>Acquisition Repository</name>
+			<url>file:////micro3d21/maven/artifact-repos</url>
+		</repository>
+		<snapshotRepository>
+			<id>vbol-repository</id>
+			<name>Acquisition Snapshot Repository</name>
+			<url>file:////micro3d21/maven/snapshot-repos</url>
+		</snapshotRepository>
+		<site>
+			<id>website</id>
+			<url>file:////micro3d21/maven/doc-repos/${artifactId}</url>
+		</site>
+	</distributionManagement>
+-->
+	<dependencies>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+	</dependencies>
+
+	<properties>
+		<company.name>Temenos</company.name>
+		<company.url>http://www.temenos.com</company.url>
+		<company.id>com.temenos</company.id>
+		<customerAppName>acquisition</customerAppName>
+		<customerVersion>1</customerVersion>
+
+		<j2ee.version>1.4</j2ee.version>
+		<j2se.version>1.5</j2se.version>
+		<slf4j.version>1.6.1</slf4j.version>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${j2se.version}</source>
+					<target>${j2se.version}</target>
+					<meminitial>128m</meminitial>
+					<maxmem>512m</maxmem>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.8</version>
+				<configuration>
+					<additionalProjectnatures>
+						<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+					</additionalProjectnatures>
+				    <additionalBuildcommands>
+						<buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
+				    </additionalBuildcommands>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+					<wtpversion>1.5</wtpversion>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<addExtensions />
+							<classpathPrefix />
+						</manifest>
+						<manifestEntries>
+							<Implementation-Vendor-Id>${company.id}</Implementation-Vendor-Id>
+							<Implementation-Vendor>${company.name}</Implementation-Vendor>
+							<Specification-Vendor>${company.name}</Specification-Vendor>
+							<url>${company.url}</url>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>ml</id>
+			<modules>
+				<module>../../acquisition-interfaces</module>
+				<module>../../acquisition-messaging</module>
+			</modules>
+		</profile>
+
+		<profile>
+			<id>web</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<modules>
+				<module>..</module>
+				<module>../../acquisition-interfaces</module>
+				<module>../../acquisition-messaging</module>
+			</modules>
+		</profile>
+	</profiles>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<aggregate>true</aggregate>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+</project>
