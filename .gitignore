@@ -1,3 +1,9 @@
 
 /interaction-core/target
 /interaction-example/target
+/useragent-acquisition/acquisition-web/report
+/useragent-acquisition/acquisition-web/target
+/useragent-acquisition/acquisition-messaging/target
+/useragent-acquisition/acquisition-messaging/report
+/useragent-acquisition/acquisition-interfaces/target
+/useragent-acquisition/acquisition-interfaces/report
