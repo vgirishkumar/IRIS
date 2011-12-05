@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,7 +39,7 @@ public class XMLDecorator implements Decorator<Response> {
 		if (r == null)
 			throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-		Response.Status status = r.getStatus();
+		StatusType status = r.getStatus();
 		if (status == Response.Status.OK) {
 			String xmlString = null;
     		try {

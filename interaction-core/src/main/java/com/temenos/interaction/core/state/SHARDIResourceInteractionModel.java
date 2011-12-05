@@ -14,6 +14,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
@@ -74,7 +75,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceStateTra
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
     	RESTResponse rResponse = getCommand.get(id);
     	assert (rResponse != null);
-    	Response.Status status = rResponse.getStatus();
+    	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
     	Decorator<Response> d = new XMLDecorator();
     	Response xml = d.decorateRESTResponse(rResponse);
@@ -88,7 +89,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceStateTra
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
     	RESTResponse rResponse = getCommand.get(id);
     	assert (rResponse != null);
-    	Response.Status status = rResponse.getStatus();
+    	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
     	Decorator<StreamingOutput> d = new JSONStreamingDecorator();
     	StreamingOutput so = d.decorateRESTResponse(rResponse);
@@ -119,7 +120,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceStateTra
    		ResourceGetCommand getCommand = (ResourceGetCommand) commandController.fetchGetCommand(getResourcePath());
     	RESTResponse rResponse = getCommand.get(id);
     	assert (rResponse != null);
-    	Response.Status status = rResponse.getStatus();
+    	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
        	Decorator<StreamingOutput> d = new PDFDecorator();
        	return d.decorateRESTResponse(rResponse);
@@ -136,7 +137,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceStateTra
     	ResponseBuilder response = Response.ok();
     	RESTResponse rResponse = getCommand.get(id);
     	assert (rResponse != null);
-    	Response.Status status = rResponse.getStatus();
+    	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
     	if (status == Response.Status.OK) {
         	response = HeaderHelper.allowHeader(response, rResponse);

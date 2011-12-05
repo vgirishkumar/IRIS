@@ -18,6 +18,7 @@ import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
+import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.example.country.CountryResource;
 import com.temenos.interaction.example.country.GetCountryCommand;
 
@@ -35,7 +36,9 @@ public class TestGetCountryCommand {
 		ODataProducer mockP = mock(ODataProducer.class);
 		when(mockP.getEntity(anyString(), (OEntityKey) isNull(), (QueryInfo) isNull())).thenReturn(null);
 		command.setProducer(mockP);
-		assertEquals(Response.Status.NOT_FOUND, command.get("123"));
+		RESTResponse resp = command.get("123");
+		assertNotNull(resp);
+		assertEquals(Response.Status.NOT_FOUND, resp.getStatus());
 	}
 
 	@Test
@@ -46,7 +49,9 @@ public class TestGetCountryCommand {
 		EntityResponse response = Responses.entity(mockEntity);
 		when(mockP.getEntity(anyString(), any(OEntityKey.class), (QueryInfo) isNull())).thenReturn(response);
 		command.setProducer(mockP);
-		assertEquals(Response.Status.OK, command.get("123"));
+		RESTResponse resp = command.get("123");
+		assertNotNull(resp);
+		assertEquals(Response.Status.OK, resp.getStatus());
 		assertNotNull(command.getResource());
 		assertEquals(CountryResource.class, command.getResource().getClass());
 		assertEquals(mockEntity, ((CountryResource)command.getResource()).getEntity());

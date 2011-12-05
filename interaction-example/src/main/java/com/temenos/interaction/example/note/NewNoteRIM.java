@@ -1,29 +1,40 @@
 package com.temenos.interaction.example.note;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 
+import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OFunctionParameter;
-import org.odata4j.edm.EdmComplexType;
+import org.odata4j.core.OFunctionParameters;
+import org.odata4j.core.OLink;
+import org.odata4j.core.OLinks;
+import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
-import org.odata4j.edm.EdmEntityContainer;
+import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmFunctionImport;
-import org.odata4j.edm.EdmSchema;
-import org.odata4j.producer.EntityResponse;
+import org.odata4j.edm.EdmType;
+import org.odata4j.producer.BaseResponse;
 import org.odata4j.producer.ODataProducer;
+import org.odata4j.producer.PropertyResponse;
 
+import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.PutNotSupportedCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
@@ -46,9 +57,13 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 	public NewNoteRIM() {
 		super(RESOURCE_PATH);
 		NoteProducerFactory npf = new NoteProducerFactory();
-		producer = npf.getProducer();
-		edmDataServices = npf.getEdmDataServices();
+		producer = npf.getFunctionsProducer();
+		edmDataServices = producer.getMetadata();
+		/*
+		 * Configure the dynamic RIM
+		 */
 		CommandController commandController = getCommandController();
+		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand<StringResource>());
 		commandController.addGetCommand(RESOURCE_PATH, new ResourceGetCommand() {
 			public RESTResponse get(String id) {
 				Set<String> validMethods = getValidNextStates();
@@ -66,33 +81,41 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 		return validMethods;
 	}
 	
-    @POST
+	@PUT
     @Consumes(MediaType.TEXT_PLAIN)
-	public RESTResponse post(String id, String resource) {
-		assert(id == null);
-		/*
-        EdmSchema schema = edmDataServices.findSchema("NorthwindContainer");
-        EdmEntityContainer container = schema.findEntityContainer("NorthwindEntities");
-        EdmComplexType ct = edmDataServices.findEdmEntityType("Long");
-
-		Map<String, OFunctionParameter> params = new HashMap<String, OFunctionParameter>();
-		params.put("DOMAIN_OBJECT_NAME", "NOTE");
-		EdmFunctionImport functionName = new EdmFunctionImport(name, null, returnType, "POST", parameters);
-		producer.callFunction(functionName, params, null);
-		
-		
-		OEntityKey key = OEntityKey.create(DOMAIN_OBJECT_NAME);
-		EntityResponse er = producer.getEntity(ENTITY_NAME, key, null);
-		OEntity oEntity = er.getEntity();
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new NoteResource(oEntity, null), getValidNextStates());
-		return rr;
-		*/
-		return null;
+	public RESTResponse put(String id, String resource) {
+	    throw new WebApplicationException(Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).entity(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED_MSG).build());
 	}
+	
+	public StatusType put(String id, StringResource resource) {
+    	return new PutNotSupportedCommand<StringResource>().put(id, resource);
+    }
 
 	public RESTResponse post(String id, StringResource resource) {
-		assert(id == null);
-		return null;
+		assert(id == null || "".equals(id));
+
+        // find the function that creates us new things
+        EdmFunctionImport functionName = edmDataServices.findEdmFunctionImport("NEW");
+        
+		Map<String, OFunctionParameter> params = new HashMap<String, OFunctionParameter>();
+		params.put("PARAM1", OFunctionParameters.create("DOMAIN_OBJECT_NAME", "NOTE"));
+		//EdmFunctionImport functionName = new EdmFunctionImport("NEW", null, returnType, "POST", params);
+		BaseResponse fr = producer.callFunction(functionName, params, null);
+		assert(functionName.returnType == EdmType.INT64);
+		
+		// TODO this could either be the type we are creating and ID for, or it could just be a transient type
+		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet("Note");
+		OEntityKey entityKey = OEntityKey.create("new");
+		List<OLink> links = new ArrayList<OLink>();
+		String replacement = ((PropertyResponse)fr).getProperty().getValue().toString();
+		links.add(OLinks.link("_new", "NewNote", NoteRIM.RESOURCE_PATH.replaceFirst("\\{id\\}", replacement)));
+		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
+		EntityResource er = new EntityResource() {
+			public OEntity getEntity() {
+				return entity;
+			}
+		};
+		return new RESTResponse(Response.Status.OK, er, getValidNextStates());
 	}
 
 }

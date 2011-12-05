@@ -13,6 +13,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -73,10 +74,11 @@ public abstract class CRUDResourceInteractionModel<RESOURCE extends RESTResource
     @GET
     @Produces({MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
+    	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
     	RESTResponse response = getCommand.get(id);
     	assert (response != null);
-    	Response.Status status = response.getStatus();
+    	StatusType status = response.getStatus();
 		assert (status != null);  // not a valid get command
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
@@ -103,24 +105,20 @@ public abstract class CRUDResourceInteractionModel<RESOURCE extends RESTResource
     	return HeaderHelper.allowHeader(Response.status(response.getStatus()).entity(so), response).build();
     }
     
-    @PUT
-    @Consumes(MediaType.TEXT_PLAIN)
-    public Response putText( @PathParam("id") String id, String resource ) {
-    	return null;
-    }
-
 	/**
 	 * POST a document to a resource.
 	 * @precondition a valid POST command for this resourcePath + id must be registered with the command controller
 	 * @invariant resourcePath not null
 	 */
     @POST
-//    @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
+// TODO not used in CRUD
+    @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, RESOURCE resource ) {
+    	assert(resourcePath != null);
 		ResourcePostCommand<RESOURCE> postCommand = (ResourcePostCommand<RESOURCE>) commandController.fetchStateTransitionCommand("POST", getResourcePath());
     	RESTResponse response = postCommand.post(id, resource);
     	assert (response != null);
-    	Response.Status status = response.getStatus();
+    	StatusType status = response.getStatus();
     	assert (status != null);  // not a valid post command
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
@@ -138,8 +136,9 @@ public abstract class CRUDResourceInteractionModel<RESOURCE extends RESTResource
     @PUT
     @Consumes({MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, RESOURCE resource ) {
+    	assert(resourcePath != null);
 		ResourcePutCommand<RESOURCE> putCommand = (ResourcePutCommand<RESOURCE>) commandController.fetchStateTransitionCommand("PUT", getResourcePath());
-    	Response.Status status = putCommand.put(id, resource);
+		StatusType status = putCommand.put(id, resource);
 		assert (status != null);  // not a valid put command
     	if (status == Response.Status.OK) {
         	return get(headers, id);
@@ -148,12 +147,19 @@ public abstract class CRUDResourceInteractionModel<RESOURCE extends RESTResource
     	}
     }
 
+	/**
+	 * OPTIONS for a resource.
+	 * @precondition a valid GET command for this resourcePath + id must be registered with the command controller
+	 * @invariant resourcePath not null
+	 */
+    @Override
     public Response options(String id ) {
+    	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
     	ResponseBuilder response = Response.ok();
     	RESTResponse rResponse = getCommand.get(id);
     	assert (rResponse != null);
-    	Response.Status status = rResponse.getStatus();
+    	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
     	if (status == Response.Status.OK) {
         	response = HeaderHelper.allowHeader(response, rResponse);

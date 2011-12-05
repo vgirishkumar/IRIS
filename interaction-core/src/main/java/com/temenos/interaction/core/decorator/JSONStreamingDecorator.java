@@ -22,7 +22,7 @@ public class JSONStreamingDecorator implements Decorator<StreamingOutput> {
         		JsonFactory jsonFactory = new JsonFactory();
         		JsonGenerator g = jsonFactory.createJsonGenerator(output, JsonEncoding.UTF8);
         		g.writeStartObject();
-        		if (r.getResource() instanceof EntityResource) {
+        		if (r.getResource() != null && r.getResource() instanceof EntityResource) {
             		EntityResource resource = (EntityResource) r.getResource();
             		for (OProperty<?> property : resource.getEntity().getProperties()) {
                    		g.writeFieldName(property.getName());

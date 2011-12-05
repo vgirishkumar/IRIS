@@ -2,22 +2,21 @@ package com.temenos.interaction.core;
 
 import java.util.Set;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 public class RESTResponse {
 
-	public Response.Status status;
+	public StatusType status;
 	public RESTResource resource;
 	public Set<String> validNextStates;
 	
-	public RESTResponse(Response.Status status, RESTResource resource, Set<String> nextStates) {
+	public RESTResponse(StatusType status, RESTResource resource, Set<String> nextStates) {
 		this.status = status;
 		this.resource = resource;
 		this.validNextStates = nextStates;
 	}
 	
-	public Status getStatus() {
+	public StatusType getStatus() {
 		return status;
 	}
 	

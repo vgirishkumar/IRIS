@@ -3,9 +3,6 @@ package com.temenos.interaction.example.note;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
-import org.odata4j.edm.EdmDataServices;
-import org.odata4j.producer.ODataProducer;
-import org.odata4j.producer.jpa.JPAEdmGenerator;
 import org.odata4j.producer.jpa.JPAProducer;
 
 public class NoteProducerFactory {
@@ -22,13 +19,12 @@ public class NoteProducerFactory {
 			emf = Persistence.createEntityManagerFactory(persistenceUnitName);
 	}
 	
-	public ODataProducer getProducer() {
-		ODataProducer producer = new JPAProducer(emf, JPA_NAMESPACE, MAX_RESULTS);
-		return producer;
+	public JPAProducer getJPAProducer() {
+		return new JPAProducer(emf, JPA_NAMESPACE, MAX_RESULTS);
 	}
-	
-	public EdmDataServices getEdmDataServices() {
-		return new JPAEdmGenerator().buildEdm(emf, JPA_NAMESPACE);
+
+	public NewFunctionProducer getFunctionsProducer() {
+		return new NewFunctionProducer(emf, JPA_NAMESPACE, new JPAProducer(emf, JPA_NAMESPACE, MAX_RESULTS));
 	}
 
 	public void close() {

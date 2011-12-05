@@ -3,6 +3,7 @@ package com.temenos.interaction.core.decorator;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.temenos.interaction.core.RESTResponse;
 
@@ -15,7 +16,7 @@ public class JSONDecorator implements Decorator<Response> {
 		if (r == null)
 			throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
-		Response.Status status = r.getStatus();
+		StatusType status = r.getStatus();
 		if (status == Response.Status.OK) {
 
 			

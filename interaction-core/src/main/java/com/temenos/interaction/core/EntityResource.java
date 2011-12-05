@@ -16,6 +16,6 @@ import org.odata4j.core.OLink;
 public interface EntityResource extends RESTResource {
 
 	public OEntity getEntity();
-	public Set<OLink> getLinks();
+// not used?, see OEntity.getLinks	public Set<OLink> getLinks();
 
 }

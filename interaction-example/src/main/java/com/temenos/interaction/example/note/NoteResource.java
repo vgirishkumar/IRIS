@@ -1,12 +1,9 @@
 package com.temenos.interaction.example.note;
 
-import java.util.Set;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OLink;
 
 import com.temenos.interaction.core.EntityResource;
 
@@ -17,14 +14,12 @@ public class NoteResource implements EntityResource {
     private String body;
 
 	private OEntity entity;
-	private Set<OLink> links;
 	
     /* Keep jaxb happy */
     public NoteResource() {}
 	
-	public NoteResource(OEntity entity, Set<OLink> links) {
+	public NoteResource(OEntity entity) {
 		this.entity = entity;
-		this.links = links;
 	}
 	
 	public Note getNote() {
@@ -33,10 +28,6 @@ public class NoteResource implements EntityResource {
 	
 	public OEntity getEntity() {
 		return entity;
-	}
-
-	public Set<OLink> getLinks() {
-		return links;
 	}
 
 }

@@ -15,7 +15,7 @@ public class TestJPAProducerExample {
 		NoteProducerFactory factory = new NoteProducerFactory();
 		TestDBUtils.fillNoteDatabase();
 
-		ODataProducer producer = factory.getProducer();
+		ODataProducer producer = factory.getJPAProducer();
 		ODataProducerProvider.setInstance(producer);
 		JerseyServerUtil.hostODataServer(endpointUri);
 	}

@@ -1,11 +1,17 @@
 package com.temenos.interaction.example.integtest.note;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
+import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,7 +50,7 @@ public class TestNewNote extends JerseyTest {
 
     @Test
 	public void testPUTShouldFail() {
-		String fabricatedNewNoteUri = NEW_NOTE_RESOURCE + "/10";
+		String fabricatedNewNoteUri = NEW_NOTE_RESOURCE;
         // PUT to 'new' note resource
         ClientResponse putResponse = webResource.path(fabricatedNewNoteUri).put(ClientResponse.class, "blah");
         // PUT should return not implemented
@@ -55,31 +61,47 @@ public class TestNewNote extends JerseyTest {
 	public void testPOSTWithIdShouldFail() {
 		String fabricatedNewNoteUri = NEW_NOTE_RESOURCE + "/10";
         // POST with an ID to 'new' note resource
-        ClientResponse postResponse = webResource.path(fabricatedNewNoteUri).post(ClientResponse.class, "blah");
+        ClientResponse postResponse = webResource.path(fabricatedNewNoteUri).type(MediaType.TEXT_PLAIN).post(ClientResponse.class, "blah");
         // POST should return error as id not supported
-        assertEquals(500, postResponse.getStatus());
+        assertEquals(404, postResponse.getStatus());
 	}
 
+    /* TODO disabled
     @Test
 	public void testPOSTNextNoteIDString() {
 		String newNoteUri = NEW_NOTE_RESOURCE;
         // POST to 'new' note resource
         ClientResponse postResponse = webResource.path(newNoteUri).type(MediaType.TEXT_PLAIN).post(ClientResponse.class);
         // POST should return not implemented
-        assertEquals(Response.Status.OK, postResponse.getStatus());
+        assertEquals(Response.Status.OK.getStatusCode(), postResponse.getStatus());
 		// next ID should be 2
         assertEquals("2", postResponse.getEntity(String.class));
 	}
-
+*/
     @Test
-	public void testPOSTNextNoteIDXML() {
+	public void testPOSTNextNoteIDXML() throws Exception {
 		String newNoteUri = NEW_NOTE_RESOURCE;
         // POST to 'new' note resource
-        ClientResponse postResponse = webResource.path(newNoteUri).type(MediaType.TEXT_XML).post(ClientResponse.class, "<resource/>");
+        ClientResponse postResponse = webResource.path(newNoteUri).type(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).accept(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).post(ClientResponse.class, "<resource/>");
         // POST should return not implemented
-        assertEquals(Response.Status.OK, postResponse.getStatus());
+        assertEquals(200, postResponse.getStatus());
+		// next note ID should be 2
+        String actualXML = postResponse.getEntity(String.class);
+		String expectedXML = "<resource><links><link href=\"/notes/2\" rel=\"_new\" title=\"NewNote\"/></links></resource>";
+		XMLAssert.assertXMLEqual(expectedXML, actualXML);
+	}
+
+    /*
+    @Test
+	public void testPOSTNextNoteIDJSON() {
+		String newNoteUri = NEW_NOTE_RESOURCE;
+        // POST to 'new' note resource
+		// TODO change type to JSON, default accept type is JSON already
+        ClientResponse postResponse = webResource.path(newNoteUri).type(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).post(ClientResponse.class, "<resource/>");
+        // POST should return not implemented
+        assertEquals(200, postResponse.getStatus());
 		// next ID should be 2
         assertEquals("2", postResponse.getEntity(String.class));
 	}
-
+*/
 }

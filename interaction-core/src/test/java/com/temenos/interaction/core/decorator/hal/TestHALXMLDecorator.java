@@ -81,6 +81,24 @@ public class TestHALXMLDecorator {
 	}
 
 	@Test
+	public void testResourceNoEntity() throws Exception {
+		RESTResponse restResponse = mock(RESTResponse.class);
+		EntityResource er = mock(EntityResource.class);
+		when(restResponse.getStatus()).thenReturn(Response.Status.OK);
+		when(restResponse.getResource()).thenReturn(er);
+		when(er.getEntity()).thenReturn(null);
+		
+		HALXMLDecorator halDecorator = new HALXMLDecorator();
+		String expectedXML = "<resource></resource>";
+		StreamingOutput response = halDecorator.decorateRESTResponse(restResponse);
+		assertNotNull(response);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		response.write(bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		XMLAssert.assertXMLEqual(expectedXML, responseString);		
+	}
+
+	@Test
 	public void testResourceWithLinks() throws Exception {
 		RESTResponse restResponse = mock(RESTResponse.class);
 		EntityResource er = mock(EntityResource.class);

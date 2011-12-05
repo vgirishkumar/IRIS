@@ -34,7 +34,7 @@ import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
 @Path("/notes/{id}")
 public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implements ResourcePutCommand<NoteResource>, ResourceGetCommand {
 
-	private final static String RESOURCE_PATH = "/notes/{id}";
+	public final static String RESOURCE_PATH = "/notes/{id}";
 	private final static String ENTITY_NAME = "Note";
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
@@ -42,8 +42,8 @@ public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implemen
 	public NoteRIM() {
 		super(RESOURCE_PATH);
 		NoteProducerFactory npf = new NoteProducerFactory();
-		producer = npf.getProducer();
-		edmDataServices = npf.getEdmDataServices();
+		producer = npf.getJPAProducer();
+		edmDataServices = producer.getMetadata();
 		CommandController commandController = getCommandController();
 		commandController.addGetCommand(RESOURCE_PATH, this);
 		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, this);
@@ -77,7 +77,7 @@ public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implemen
 		EntityResponse er = producer.getEntity(ENTITY_NAME, key, null);
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new NoteResource(oEntity, null), getValidNextStates());
+		RESTResponse rr = new RESTResponse(Response.Status.OK, new NoteResource(oEntity), getValidNextStates());
 		return rr;
 	}
 

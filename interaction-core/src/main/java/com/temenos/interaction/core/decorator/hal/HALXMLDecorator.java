@@ -41,11 +41,12 @@ public class HALXMLDecorator implements Decorator<StreamingOutput> {
 	 * Return a Hypertext Application Language (HAL) representation of
 	 * com.temenos.interaction.core.RESTResponse.
 	 * 
-	 * @precondition RESTResponse must extend an EntityResponse, this class only
-	 * supports the decoration of Entities (EntityResponse)
-	 * @precondition RESTResponse#getStatus is OK
+	 * @precondition {@link RESTResponse} is an instanceof {@link EntityResponse}, this class only
+	 * supports the decoration of Entities {@link EntityResponse}
+	 * @precondition {@link RESTResponse#getStatus()} is OK
+	 * @precondition {@link RESTResponse#getEntity()} is not null
 	 * @postcondition non null HAL XML decorated Response
-	 * @invariant RESTResponse is not null
+	 * @invariant {@link RESTResponse} is not null
 	 */
 	public StreamingOutput decorateRESTResponse(final RESTResponse r) {
 		assert (r != null);
@@ -68,27 +69,29 @@ public class HALXMLDecorator implements Decorator<StreamingOutput> {
 				Element root = doc.createElement("resource");
 				doc.appendChild(root);
 
-				// create child element for data, and add to root
-//				Element dataObject = doc.createElement(entity.getEntitySet().name);
-				for (OProperty<?> property : resource.getEntity()
-						.getProperties()) {
-					Element dataElement = doc.createElement(property.getName());
-					dataElement.setTextContent(property.getValue().toString());
-					root.appendChild(dataElement);
-				}
+				if (resource.getEntity() != null) {
+					// create child element for data, and add to root
+//					Element dataObject = doc.createElement(entity.getEntitySet().name);
+					for (OProperty<?> property : resource.getEntity()
+							.getProperties()) {
+						Element dataElement = doc.createElement(property.getName());
+						dataElement.setTextContent(property.getValue().toString());
+						root.appendChild(dataElement);
+					}
 
-				//root.appendChild(dataObject);
+					//root.appendChild(dataObject);
 
-				// create child element for links, and add to root
-				Element links = doc.createElement("links");
-				for (OLink link : resource.getEntity().getLinks()) {
-					Element linkElement = doc.createElement("link");
-					linkElement.setAttribute("href", link.getHref());
-					linkElement.setAttribute("rel", link.getRelation());
-					linkElement.setAttribute("title", link.getTitle());
-					links.appendChild(linkElement);
+					// create child element for links, and add to root
+					Element links = doc.createElement("links");
+					for (OLink link : resource.getEntity().getLinks()) {
+						Element linkElement = doc.createElement("link");
+						linkElement.setAttribute("href", link.getHref());
+						linkElement.setAttribute("rel", link.getRelation());
+						linkElement.setAttribute("title", link.getTitle());
+						links.appendChild(linkElement);
+					}
+					root.appendChild(links);
 				}
-				root.appendChild(links);
 
 				// ///////////////
 				// Output the XML
