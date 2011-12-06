@@ -38,14 +38,10 @@ public class TestNewNote extends JerseyTest {
     }
 
     @Test
-	public void testOptions() {
+	public void testOptionsNotFound() {
         String noteUri = NEW_NOTE_RESOURCE;
         ClientResponse response = webResource.path(noteUri).options(ClientResponse.class);
-        assertEquals(200, response.getStatus());
-        assertEquals(3, response.getAllow().size());
-        assertTrue(response.getAllow().contains("POST"));
-        assertTrue(response.getAllow().contains("OPTIONS"));
-        assertTrue(response.getAllow().contains("HEAD"));
+        assertEquals(404, response.getStatus());
 	}
 
     @Test

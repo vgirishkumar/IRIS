@@ -84,6 +84,10 @@ public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implemen
 	public Set<String> getValidNextStates() {
 		Set<String> states = new HashSet<String>();
 		states.add("GET");
+		states.add("PUT");
+		states.add("DELETE");
+		states.add("OPTIONS");
+		states.add("HEAD");
 		return states;
 	}
 

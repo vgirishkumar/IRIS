@@ -1,6 +1,7 @@
 package com.temenos.interaction.example.integtest.note;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,6 +34,12 @@ public class TestCreateReadDeleteNote extends JerseyTest {
         String noteUri = NOTES_RESOURCE + "/1";
         ClientResponse response = webResource.path(noteUri).options(ClientResponse.class);
         assertEquals(200, response.getStatus());
+        assertEquals(5, response.getAllow().size());
+        assertTrue(response.getAllow().contains("GET"));
+        assertTrue(response.getAllow().contains("PUT"));
+        assertTrue(response.getAllow().contains("DELETE"));
+        assertTrue(response.getAllow().contains("OPTIONS"));
+        assertTrue(response.getAllow().contains("HEAD"));
 	}
 
     @Test

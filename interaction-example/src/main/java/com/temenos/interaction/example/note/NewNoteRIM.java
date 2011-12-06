@@ -35,7 +35,6 @@ import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.PutNotSupportedCommand;
-import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
 
@@ -64,12 +63,6 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 		 */
 		CommandController commandController = getCommandController();
 		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand<StringResource>());
-		commandController.addGetCommand(RESOURCE_PATH, new ResourceGetCommand() {
-			public RESTResponse get(String id) {
-				Set<String> validMethods = getValidNextStates();
-				return new RESTResponse(Response.Status.OK, null, validMethods);
-			}
-		});
 		commandController.addStateTransitionCommand("POST", RESOURCE_PATH, this);
 	}
 
