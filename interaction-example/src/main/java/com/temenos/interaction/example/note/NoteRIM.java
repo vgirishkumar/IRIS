@@ -41,14 +41,34 @@ public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implemen
 	
 	public NoteRIM() {
 		super(RESOURCE_PATH);
-		NoteProducerFactory npf = new NoteProducerFactory();
-		producer = npf.getJPAProducer();
-		edmDataServices = producer.getMetadata();
+
+		/*
+		 * Not required when wired with Spring
+		 */
+		  		NoteProducerFactory npf = new NoteProducerFactory();
+		  		producer = npf.getFunctionsProducer();
+		  		edmDataServices = producer.getMetadata();
+		/*
+		 * Not required when wired with Spring
+		 * 		NoteProducerFactory npf = new NoteProducerFactory();
+		 * 		producer = npf.getFunctionsProducer();
+		 * 		edmDataServices = producer.getMetadata();
+		 */
+
 		CommandController commandController = getCommandController();
 		commandController.addGetCommand(RESOURCE_PATH, this);
 		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, this);
 	}
-	
+
+	public ODataProducer getProducer() {
+		return producer;
+	}
+
+	public void setProducer(ODataProducer producer) {
+		this.producer = producer;
+		edmDataServices = producer.getMetadata();
+	}
+
 	public Status put(String id, NoteResource resource) {
 		OEntityKey key = OEntityKey.create(new Long(id).toString());
 		try {

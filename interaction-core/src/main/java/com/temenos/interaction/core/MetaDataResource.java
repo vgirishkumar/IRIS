@@ -8,8 +8,8 @@ import org.odata4j.core.OProperty;
  * A MetaDataResource is resource that describes another resource.
  * @author aphethean
  */
-public interface MetaDataResource extends RESTResource {
+public abstract class MetaDataResource implements RESTResource {
 
-	public Set<OProperty<?>> getProperties();
+	public abstract Set<OProperty<?>> getProperties();
 
 }

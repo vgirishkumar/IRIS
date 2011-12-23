@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.integtest.utils;
+package com.temenos.interaction.example.utils;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;

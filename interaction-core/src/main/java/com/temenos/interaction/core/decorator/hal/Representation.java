@@ -2,7 +2,9 @@ package com.temenos.interaction.core.decorator.hal;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 public abstract class Representation {
 

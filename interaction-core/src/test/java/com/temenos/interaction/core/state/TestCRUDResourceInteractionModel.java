@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 
 import org.junit.Test;
 
+import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
@@ -23,7 +24,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test
 	public void testGetStatus() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<RESTResource> r = new CRUDResourceInteractionModel<RESTResource>(resourcePath) {
+		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -36,7 +37,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGetStatusNull() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<RESTResource> r = new CRUDResourceInteractionModel<RESTResource>(resourcePath) {
+		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		cc.addGetCommand(resourcePath, mock(ResourceGetCommand.class));
@@ -46,7 +47,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test
 	public void testGet500() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<RESTResource> r = new CRUDResourceInteractionModel<RESTResource>(resourcePath) {
+		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -58,7 +59,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGet200NoResource() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<RESTResource> r = new CRUDResourceInteractionModel<RESTResource>(resourcePath) {
+		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -72,7 +73,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testPOSTNoCommand() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<RESTResource> r = new CRUDResourceInteractionModel<RESTResource>(resourcePath) {
+		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
 		};
 		r.post(null, "123", null);
 	}
@@ -80,25 +81,25 @@ public class TestCRUDResourceInteractionModel {
 	@Test
 	public void testPOSTStatus() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<RESTResource> r = new CRUDResourceInteractionModel<RESTResource>(resourcePath) {
+		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand<RESTResource> rpc = mock(ResourcePostCommand.class);
 		// return ok, but getResource will return null
 		when(rpc.post(anyString(), any(RESTResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(RESTResource.class), null));
 		cc.addStateTransitionCommand("POST", resourcePath, rpc);
-		Response response = r.post(mock(HttpHeaders.class), "123", null);
+		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
 		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
 	}
 
 	@Test(expected = AssertionError.class)
 	public void testPOSTStatusNull() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<RESTResource> r = new CRUDResourceInteractionModel<RESTResource>(resourcePath) {
+		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		cc.addStateTransitionCommand("POST", resourcePath, mock(ResourcePostCommand.class));
-		r.post(null, "123", null);
+		r.post(null, "123", mock(EntityResource.class));
 	}
 
 	/* TODO

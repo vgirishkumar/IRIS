@@ -44,7 +44,7 @@ public class HALXMLDecorator implements Decorator<StreamingOutput> {
 	 * @precondition {@link RESTResponse} is an instanceof {@link EntityResponse}, this class only
 	 * supports the decoration of Entities {@link EntityResponse}
 	 * @precondition {@link RESTResponse#getStatus()} is OK
-	 * @precondition {@link RESTResponse#getEntity()} is not null
+	 * @precondition {@link RESTResponse#getOEntity()} is not null
 	 * @postcondition non null HAL XML decorated Response
 	 * @invariant {@link RESTResponse} is not null
 	 */
@@ -69,21 +69,21 @@ public class HALXMLDecorator implements Decorator<StreamingOutput> {
 				Element root = doc.createElement("resource");
 				doc.appendChild(root);
 
-				if (resource.getEntity() != null) {
+				if (resource.getOEntity() != null) {
 					// create child element for data, and add to root
-//					Element dataObject = doc.createElement(entity.getEntitySet().name);
-					for (OProperty<?> property : resource.getEntity()
+					Element dataObject = doc.createElement(resource.getOEntity().getEntitySet().name);
+					for (OProperty<?> property : resource.getOEntity()
 							.getProperties()) {
 						Element dataElement = doc.createElement(property.getName());
 						dataElement.setTextContent(property.getValue().toString());
-						root.appendChild(dataElement);
+						dataObject.appendChild(dataElement);
 					}
 
-					//root.appendChild(dataObject);
+					root.appendChild(dataObject);
 
 					// create child element for links, and add to root
 					Element links = doc.createElement("links");
-					for (OLink link : resource.getEntity().getLinks()) {
+					for (OLink link : resource.getOEntity().getLinks()) {
 						Element linkElement = doc.createElement("link");
 						linkElement.setAttribute("href", link.getHref());
 						linkElement.setAttribute("rel", link.getRelation());

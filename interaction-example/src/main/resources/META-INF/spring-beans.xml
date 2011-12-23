@@ -1,0 +1,66 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!-- Initialise JPA for MockResponder -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+			<property name="persistenceUnitName" value="NoteServiceHibernate" />		
+	</bean>
+	<!-- Create the MockResponder factory, at the moment this also initialises the Mock database -->
+	<bean id="MockResponderFactory" class="com.temenos.interaction.example.note.NoteProducerFactory" />
+	<!-- MockResponder Producer -->
+	<bean id="producer" factory-bean="MockResponderFactory" factory-method="getJPAProducer"/>
+	<bean id="functionsProducer" factory-bean="MockResponderFactory" factory-method="getFunctionsProducer"/>
+
+
+	<bean class="org.apache.wink.spring.Registrar">
+		<property name="singletons">
+        	<set>
+          	  <ref local="jacksonJaxbJsonProvider" />
+      	  </set>
+   		</property>
+   		<property name="classes">
+			<set value-type="java.lang.Class">
+<!--  
+				<value>com.temenos.interaction.example.note.NoteRIM</value>
+				<value>com.temenos.interaction.example.note.NewNoteRIM</value>
+-->
+			</set>
+		</property>
+		<property name="instances">
+			<set>
+				<ref bean="NOTE" />
+				<ref bean="NEW_NOTE" />
+			</set>
+		</property>
+<!--  
+		<property name="instances">
+			<set>
+				<ref bean="DYNA_NOTE" />
+				<ref bean="DYNA_NEW_NOTE" />
+			</set>
+		</property>
+-->
+	</bean>
+
+	<bean id="jacksonJaxbJsonProvider" class="org.apache.wink.providers.jackson.WinkJacksonJaxbJsonProvider" />
+
+    <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
+    	<constructor-arg name="path" value="/nnnnnotes/{id}" />
+    	<property name="producer" ref="producer" />
+    </bean>
+    <bean id="DYNA_NEW_NOTE" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
+    	<constructor-arg name="path" value="/nnnnnotes/new" />
+    	<property name="producer" ref="functionsProducer" />
+    </bean>
+
+    <bean id="NOTE" class="com.temenos.interaction.example.note.NoteRIM">
+    	<property name="producer" ref="producer" />
+    </bean>
+    <bean id="NEW_NOTE" class="com.temenos.interaction.example.note.NewNoteRIM">
+    	<property name="producer" ref="functionsProducer" />
+    </bean>
+
+</beans>

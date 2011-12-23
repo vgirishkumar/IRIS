@@ -67,11 +67,10 @@ public class TestHALXMLDecorator {
 		properties.add(OProperties.string("age", "2"));
 
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, new ArrayList<OLink>());
-		when(er.getEntity()).thenReturn(entity);
+		when(er.getOEntity()).thenReturn(entity);
 		
 		HALXMLDecorator halDecorator = new HALXMLDecorator();
-//		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links></links></resource>";
-		String expectedXML = "<resource><name>noah</name><age>2</age><links></links></resource>";
+		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links></links></resource>";
 		StreamingOutput response = halDecorator.decorateRESTResponse(restResponse);
 		assertNotNull(response);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -86,7 +85,7 @@ public class TestHALXMLDecorator {
 		EntityResource er = mock(EntityResource.class);
 		when(restResponse.getStatus()).thenReturn(Response.Status.OK);
 		when(restResponse.getResource()).thenReturn(er);
-		when(er.getEntity()).thenReturn(null);
+		when(er.getOEntity()).thenReturn(null);
 		
 		HALXMLDecorator halDecorator = new HALXMLDecorator();
 		String expectedXML = "<resource></resource>";
@@ -125,11 +124,10 @@ public class TestHALXMLDecorator {
 		links.add(OLinks.link("_person", "mother", "/humans/32"));
 		
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, links);
-		when(er.getEntity()).thenReturn(entity);
+		when(er.getOEntity()).thenReturn(entity);
 		
 		HALXMLDecorator halDecorator = new HALXMLDecorator();
-//		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
-		String expectedXML = "<resource><name>noah</name><age>2</age><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
+		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
 		StreamingOutput response = halDecorator.decorateRESTResponse(restResponse);
 		assertNotNull(response);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -170,11 +168,10 @@ public class TestHALXMLDecorator {
 		OLinks.relatedEntities("_family", "siblings", "/humans/phetheans");
 		
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, links);
-		when(er.getEntity()).thenReturn(entity);
+		when(er.getOEntity()).thenReturn(entity);
 		
 		HALXMLDecorator halDecorator = new HALXMLDecorator();
-//		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
-		String expectedXML = "<resource><name>noah</name><age>2</age><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
+		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
 		StreamingOutput response = halDecorator.decorateRESTResponse(restResponse);
 		assertNotNull(response);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();

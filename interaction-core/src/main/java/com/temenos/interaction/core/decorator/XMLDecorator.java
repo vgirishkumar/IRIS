@@ -45,7 +45,7 @@ public class XMLDecorator implements Decorator<Response> {
     		try {
 				if (r.getResource() instanceof EntityResource) {
 					EntityResource resource = (EntityResource) r.getResource();
-					OEntity entity = resource.getEntity();
+					OEntity entity = resource.getOEntity();
 
 					DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
 				    DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
@@ -60,7 +60,7 @@ public class XMLDecorator implements Decorator<Response> {
 
 				    //create child element for data, and add to root
 				    Element dataObject = doc.createElement(entity.getEntitySet().name);
-					for (OProperty<?> property : resource.getEntity().getProperties()) {
+					for (OProperty<?> property : resource.getOEntity().getProperties()) {
 				        Element dataElement = doc.createElement(property.getName());
 				        dataElement.setTextContent(property.getValue().toString());
 				        dataObject.appendChild(dataElement);
@@ -69,7 +69,7 @@ public class XMLDecorator implements Decorator<Response> {
 
 				    //create child element for links, and add to root
 				    Element links = doc.createElement("links");
-					for (OLink link : resource.getEntity().getLinks()) {
+					for (OLink link : resource.getOEntity().getLinks()) {
 				        Element linkElement = doc.createElement("link");
 				        linkElement.setAttribute("href", link.getHref());
 				        linkElement.setAttribute("rel", link.getRelation());

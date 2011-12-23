@@ -19,7 +19,7 @@ import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.example.country.CountryResource;
+import com.temenos.interaction.example.country.Country;
 import com.temenos.interaction.example.country.GetCountryCommand;
 
 public class TestGetCountryCommand {
@@ -52,9 +52,9 @@ public class TestGetCountryCommand {
 		RESTResponse resp = command.get("123");
 		assertNotNull(resp);
 		assertEquals(Response.Status.OK, resp.getStatus());
-		assertNotNull(command.getResource());
-		assertEquals(CountryResource.class, command.getResource().getClass());
-		assertEquals(mockEntity, ((CountryResource)command.getResource()).getEntity());
+		assertNotNull(resp.getResource());
+		assertEquals(Country.class, resp.getResource().getClass());
+		assertEquals(mockEntity, ((Country)resp.getResource()).getOEntity());
 	}
 
 }

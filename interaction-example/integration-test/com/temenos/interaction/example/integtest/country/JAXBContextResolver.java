@@ -10,8 +10,6 @@ import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 
-import com.temenos.interaction.example.country.Country;
-
 @Provider
 public final class JAXBContextResolver implements ContextResolver<JAXBContext> {
     
@@ -19,7 +17,7 @@ public final class JAXBContextResolver implements ContextResolver<JAXBContext> {
     
     private final Set<Class> types;
     
-    private final Class[] cTypes = {Country.class, CountryResource.class};
+    private final Class[] cTypes = {CountryResource.class};
     
     public JAXBContextResolver() throws Exception {
         this.types = new HashSet(Arrays.asList(cTypes));

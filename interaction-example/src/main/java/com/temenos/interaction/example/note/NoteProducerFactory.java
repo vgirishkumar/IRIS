@@ -5,6 +5,8 @@ import javax.persistence.Persistence;
 
 import org.odata4j.producer.jpa.JPAProducer;
 
+import com.temenos.interaction.example.utils.TestDBUtils;
+
 public class NoteProducerFactory {
 
 	private final static int MAX_RESULTS = 100;
@@ -15,8 +17,10 @@ public class NoteProducerFactory {
 	
 	public NoteProducerFactory() {
 		String persistenceUnitName = "NoteServiceHibernate";
-		if (emf == null)
+		if (emf == null) {
 			emf = Persistence.createEntityManagerFactory(persistenceUnitName);
+	    	TestDBUtils.fillNoteDatabase();
+		}
 	}
 	
 	public JPAProducer getJPAProducer() {

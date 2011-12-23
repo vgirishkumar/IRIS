@@ -1,18 +1,22 @@
 package com.temenos.interaction.example.note;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.odata4j.core.OEntity;
 
 import com.temenos.interaction.core.EntityResource;
 
 @XmlRootElement(name = "resource")
-public class NoteResource implements EntityResource {
+@XmlAccessorType(XmlAccessType.FIELD)
+public class NoteResource extends EntityResource {
 
-    @XmlElement(name = "body")
-    private String body;
-
+    @XmlElement(name = "Note")
+    private Note note;
+    @XmlTransient
 	private OEntity entity;
 	
     /* Keep jaxb happy */
@@ -23,10 +27,10 @@ public class NoteResource implements EntityResource {
 	}
 	
 	public Note getNote() {
-		return new Note(body);
+		return note;
 	}
 	
-	public OEntity getEntity() {
+	public OEntity getOEntity() {
 		return entity;
 	}
 

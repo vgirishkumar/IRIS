@@ -19,7 +19,6 @@ public class GetCountryCommand implements ResourceGetCommand {
 
 	private final static String ENTITY_NAME = "country";
 	
-	private RESTResource resource;
 	private ODataProducer producer;
 
 	
@@ -36,21 +35,18 @@ public class GetCountryCommand implements ResourceGetCommand {
 	public RESTResponse get(String id) {
 		assert(producer != null);
 		assert(id != null);
+		RESTResource resource = null;
 		EntityResponse entityResponse = producer.getEntity(ENTITY_NAME, OEntityKey.create(id), null);
 		//		MXEntity entity = entityManager.loadEntity(new MXEntityKey(id));
 		if (entityResponse != null && entityResponse.getEntity() != null) {
 			OEntity entity = entityResponse.getEntity();
-			resource = new CountryResource(entity);
+			resource = new Country(entity);
 		}
 		return new RESTResponse(resource == null ? Response.Status.NOT_FOUND : Response.Status.OK, resource, null);
 	}
 
 	public void setProducer(ODataProducer producer) {
 		this.producer = producer;
-	}
-	
-	public RESTResource getResource() {
-		return resource;
 	}
 	
 	public Set<String> getValidNextStates() {

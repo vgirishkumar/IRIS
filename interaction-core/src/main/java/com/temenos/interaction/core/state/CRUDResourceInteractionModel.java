@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
@@ -36,7 +37,7 @@ import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
  *
  * @param <RESOURCE>
  */
-public abstract class CRUDResourceInteractionModel<RESOURCE extends RESTResource> implements ResourceStateTransition {
+public abstract class CRUDResourceInteractionModel<RESOURCE> implements ResourceStateTransition {
 	private final Logger logger = LoggerFactory.getLogger(CRUDResourceInteractionModel.class);
 
 	// TODO inject decorators
@@ -112,7 +113,7 @@ public abstract class CRUDResourceInteractionModel<RESOURCE extends RESTResource
 	 */
     @POST
 // TODO not used in CRUD
-    @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, RESOURCE resource ) {
     	assert(resourcePath != null);
 		ResourcePostCommand<RESOURCE> postCommand = (ResourcePostCommand<RESOURCE>) commandController.fetchStateTransitionCommand("POST", getResourcePath());
@@ -134,7 +135,7 @@ public abstract class CRUDResourceInteractionModel<RESOURCE extends RESTResource
 	 * @invariant resourcePath not null
 	 */
     @PUT
-    @Consumes({MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, RESOURCE resource ) {
     	assert(resourcePath != null);
 		ResourcePutCommand<RESOURCE> putCommand = (ResourcePutCommand<RESOURCE>) commandController.fetchStateTransitionCommand("PUT", getResourcePath());
@@ -153,7 +154,7 @@ public abstract class CRUDResourceInteractionModel<RESOURCE extends RESTResource
 	 * @invariant resourcePath not null
 	 */
     @Override
-    public Response options(String id ) {
+    public Response options(String id) {
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
     	ResponseBuilder response = Response.ok();

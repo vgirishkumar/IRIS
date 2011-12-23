@@ -1,10 +1,13 @@
 package com.temenos.interaction.example.note;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.EntityResource;
 
 @XmlRootElement(name = "resource")
-public class StringResource implements RESTResource {
+@XmlAccessorType(XmlAccessType.FIELD)
+public class StringResource extends EntityResource {
 
 }

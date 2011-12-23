@@ -38,7 +38,7 @@ public class TestJSONStreamingDecorator {
 		OEntity entity = OEntities.create(entityMetaData, OEntityKey.create("123"), properties, links);
 		
 		EntityResource resource = mock(EntityResource.class);
-		when(resource.getEntity()).thenReturn(entity);
+		when(resource.getOEntity()).thenReturn(entity);
 
 		RESTResponse rr = new RESTResponse(Response.Status.OK, resource, null);
 		StreamingOutput so = decorator.decorateRESTResponse(rr);

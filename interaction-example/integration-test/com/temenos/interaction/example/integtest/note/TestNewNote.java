@@ -1,24 +1,20 @@
 package com.temenos.interaction.example.integtest.note;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 
 import org.custommonkey.xmlunit.XMLAssert;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.temenos.interaction.example.integtest.utils.TestDBUtils;
 import com.temenos.interaction.example.note.NoteProducerFactory;
+import com.temenos.interaction.example.utils.TestDBUtils;
 
 public class TestNewNote extends JerseyTest {
 
@@ -28,8 +24,19 @@ public class TestNewNote extends JerseyTest {
 	public static void initialiseTestDB() {
     	// bootstrap the NoteProducerFactory which creates the JPA entity manager (the CREATE TABLE)
     	new NoteProducerFactory();
-    	TestDBUtils.fillNoteDatabase();
 	}
+
+	/*
+	@Before
+	public void initTest() {
+		// TODO make this configurable
+		// test with external server 
+    	webResource = Client.create().resource("http://localhost:8080/example/rest"); 
+	}
+	
+	@After
+	public void tearDown() {}
+	*/
 	
     public TestNewNote() throws Exception {
     	super("example", "rest", "com.temenos.interaction.example");
@@ -49,6 +56,15 @@ public class TestNewNote extends JerseyTest {
 		String fabricatedNewNoteUri = NEW_NOTE_RESOURCE;
         // PUT to 'new' note resource
         ClientResponse putResponse = webResource.path(fabricatedNewNoteUri).put(ClientResponse.class, "blah");
+        // PUT should return not implemented
+        assertEquals(501, putResponse.getStatus());
+	}
+
+    @Test
+	public void testPUTShouldFailXML() {
+		String fabricatedNewNoteUri = NEW_NOTE_RESOURCE;
+        // PUT to 'new' note resource
+        ClientResponse putResponse = webResource.path(fabricatedNewNoteUri).type(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_XML).put(ClientResponse.class, "<resource></resource>");
         // PUT should return not implemented
         assertEquals(501, putResponse.getStatus());
 	}
@@ -83,21 +99,18 @@ public class TestNewNote extends JerseyTest {
         assertEquals(200, postResponse.getStatus());
 		// next note ID should be 2
         String actualXML = postResponse.getEntity(String.class);
-		String expectedXML = "<resource><links><link href=\"/notes/2\" rel=\"_new\" title=\"NewNote\"/></links></resource>";
+		String expectedXML = "<resource><Note/><links><link href=\"/notes/2\" rel=\"_new\" title=\"NewNote\"/></links></resource>";
 		XMLAssert.assertXMLEqual(expectedXML, actualXML);
 	}
 
-    /*
     @Test
 	public void testPOSTNextNoteIDJSON() {
 		String newNoteUri = NEW_NOTE_RESOURCE;
         // POST to 'new' note resource
-		// TODO change type to JSON, default accept type is JSON already
-        ClientResponse postResponse = webResource.path(newNoteUri).type(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).post(ClientResponse.class, "<resource/>");
+        ClientResponse postResponse = webResource.path(newNoteUri).type(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).post(ClientResponse.class, "{\"resource\":{}}");
         // POST should return not implemented
         assertEquals(200, postResponse.getStatus());
 		// next ID should be 2
         assertEquals("2", postResponse.getEntity(String.class));
 	}
-*/
 }

@@ -24,7 +24,7 @@ public class JSONStreamingDecorator implements Decorator<StreamingOutput> {
         		g.writeStartObject();
         		if (r.getResource() != null && r.getResource() instanceof EntityResource) {
             		EntityResource resource = (EntityResource) r.getResource();
-            		for (OProperty<?> property : resource.getEntity().getProperties()) {
+            		for (OProperty<?> property : resource.getOEntity().getProperties()) {
                    		g.writeFieldName(property.getName());
                    		g.writeString(property.getValue().toString());
             		}

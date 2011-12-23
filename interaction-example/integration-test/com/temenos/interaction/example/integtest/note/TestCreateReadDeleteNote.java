@@ -9,19 +9,23 @@ import org.junit.Test;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.core.decorator.hal.MediaType;
-import com.temenos.interaction.example.integtest.utils.TestDBUtils;
 import com.temenos.interaction.example.note.NoteProducerFactory;
+import com.temenos.interaction.example.note.client.NoteRepresentation;
+import com.temenos.interaction.example.utils.TestDBUtils;
 
 public class TestCreateReadDeleteNote extends JerseyTest {
 
 	public final static String NOTES_RESOURCE = "notes";
 
+	
+	/*
 	@BeforeClass
 	public static void initialiseTestDB() {
     	// bootstrap the NoteProducerFactory which creates the JPA entity manager (the CREATE TABLE)
     	new NoteProducerFactory();
     	TestDBUtils.fillNoteDatabase();
 	}
+	*/
 	
     public TestCreateReadDeleteNote() throws Exception {
     	super("example", "rest", "com.temenos.interaction.example");

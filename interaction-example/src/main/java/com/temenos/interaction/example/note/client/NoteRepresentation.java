@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.integtest.note;
+package com.temenos.interaction.example.note.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
@@ -11,28 +11,29 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.temenos.interaction.core.decorator.hal.Link;
 import com.temenos.interaction.core.decorator.hal.Representation;
+import com.temenos.interaction.example.integtest.note.InvalidNoteException;
 
 @XmlRootElement(name = "resource")
 public class NoteRepresentation extends Representation {
 
 	public static final String RELATIONS_URI = "http://relations.interactionexample.com/";
 
-    @XmlElement(name = "body")
-    private String body;
+    @XmlElement(name = "Note")
+    private Note note;
 
     /**
      * For JAXB :-(
      */
     NoteRepresentation() {}
     
-    public NoteRepresentation(String body) {
-    	this.body = body;
+    public NoteRepresentation(String note) {
+    	this.note = new Note(note);
     }
 
     
     public static NoteRepresentation fromXmlString(String xmlRepresentation) {
         try {
-            JAXBContext context = JAXBContext.newInstance(NoteRepresentation.class);
+            JAXBContext context = JAXBContext.newInstance(NoteRepresentation.class, Note.class);
             Unmarshaller unmarshaller = context.createUnmarshaller();
             return (NoteRepresentation) unmarshaller.unmarshal(new ByteArrayInputStream(xmlRepresentation.getBytes()));
         } catch (Exception e) {
@@ -64,6 +65,6 @@ public class NoteRepresentation extends Representation {
     }
     
     public String getBody() {
-        return body;
+        return note.getBody();
     }
 }

@@ -13,7 +13,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.StatusType;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -40,7 +39,7 @@ import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
 
 /**
  * Define the 'new' note Resource Interaction Model
- * Interaction with the 'new' note resource is quite simple.  You post to it and you get a 
+ * Interaction with the 'new' note resource is quite simple.  You post to it and you receive a 
  * note id that only you can use.
  * @author aphethean
  */
@@ -55,15 +54,36 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 
 	public NewNoteRIM() {
 		super(RESOURCE_PATH);
-		NoteProducerFactory npf = new NoteProducerFactory();
-		producer = npf.getFunctionsProducer();
-		edmDataServices = producer.getMetadata();
+
+		/*
+		 * Not required when wired with Spring
+		 */
+		  		NoteProducerFactory npf = new NoteProducerFactory();
+		  		producer = npf.getFunctionsProducer();
+		  		edmDataServices = producer.getMetadata();
+		/*
+		 * Not required when wired with Spring
+		 * 		NoteProducerFactory npf = new NoteProducerFactory();
+		 * 		producer = npf.getFunctionsProducer();
+		 * 		edmDataServices = producer.getMetadata();
+		 */
+
+		  		
 		/*
 		 * Configure the dynamic RIM
 		 */
 		CommandController commandController = getCommandController();
 		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand<StringResource>());
 		commandController.addStateTransitionCommand("POST", RESOURCE_PATH, this);
+	}
+
+	public ODataProducer getProducer() {
+		return producer;
+	}
+
+	public void setProducer(ODataProducer producer) {
+		this.producer = producer;
+		edmDataServices = producer.getMetadata();
 	}
 
 	private static Set<String> getValidNextStates() {
@@ -74,16 +94,14 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 		return validMethods;
 	}
 	
+	
 	@PUT
     @Consumes(MediaType.TEXT_PLAIN)
-	public RESTResponse put(String id, String resource) {
+	public RESTResponse put(String resource) {
 	    throw new WebApplicationException(Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).entity(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED_MSG).build());
 	}
 	
-	public StatusType put(String id, StringResource resource) {
-    	return new PutNotSupportedCommand<StringResource>().put(id, resource);
-    }
-
+	
 	public RESTResponse post(String id, StringResource resource) {
 		assert(id == null || "".equals(id));
 
@@ -104,7 +122,7 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 		links.add(OLinks.link("_new", "NewNote", NoteRIM.RESOURCE_PATH.replaceFirst("\\{id\\}", replacement)));
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
 		EntityResource er = new EntityResource() {
-			public OEntity getEntity() {
+			public OEntity getOEntity() {
 				return entity;
 			}
 		};

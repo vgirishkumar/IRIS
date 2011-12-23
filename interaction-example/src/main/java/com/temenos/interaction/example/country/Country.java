@@ -5,11 +5,18 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
-@XmlAccessorType(XmlAccessType.FIELD)
+import org.odata4j.core.OEntity;
+
+import com.temenos.interaction.core.EntityResource;
 
 @XmlRootElement
-public class Country {
+@XmlAccessorType(XmlAccessType.FIELD)
+public class Country extends EntityResource {
+
+	@XmlTransient
+	private OEntity entity;
 
     @XmlElement(name = "countryCode")
     protected String countryCode;
@@ -39,6 +46,11 @@ public class Country {
     @XmlAttribute
     protected String id;
 
+    public Country() {}
+	
+	public Country(OEntity entity) {
+		this.entity = entity;
+	}
 
 // Getters
 
@@ -148,4 +160,27 @@ public class Country {
     public void setId(String value) {
         this.id = value;
     }
+	
+    @Override
+	public OEntity getOEntity() {
+		return entity;
+	}
+
+	/*
+	public Set<OLink> getLinks() {
+		Set<OLink> links = new HashSet<OLink>();
+		// add the links that should be represented in the resource (embedded)
+		links.add(OLinks.relatedEntityInline("/metadata/currency", "currency", "/currency/" + entity.getProperty("currency"), loadCurrency()));
+		// add the links to related resources ('self' might be related, or it might be special)
+		links.add(OLinks.relatedEntity("/metadata/country", "_self", "/country/" + entity.getEntityKey()));
+		// add the links that can change this resources state
+		links.add(OLinks.link("/metadata/authorise", "AUTHORISE", "/country/" + entity.getEntityKey() + "/authorise"));
+
+		return links;
+	}
+
+	private OEntity loadCurrency() {
+		return null;
+	}
+*/
 }

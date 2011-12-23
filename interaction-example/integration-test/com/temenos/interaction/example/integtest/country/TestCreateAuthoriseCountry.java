@@ -25,8 +25,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.odata4j.producer.jpa.JPAProducer;
-import org.odata4j.producer.resources.ODataProducerProvider;
 
 public class TestCreateAuthoriseCountry extends JerseyTest {
 
@@ -45,24 +43,10 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
     
     @BeforeClass
     public static void initialise() throws Exception {
-      String persistenceUnitName = "EmailServiceHibernate";
-      String namespace = "Email";
-
-      emf = Persistence.createEntityManagerFactory(persistenceUnitName);
-
-      EntityManager em = emf.createEntityManager();
-      
-      Query q = em.createQuery("select e from Email e");
-		List<EmailMessage> emailList = q.getResultList();
-		for (EmailMessage email : emailList) {
-			System.out.println(email);
-		}
-		System.out.println("Size: " + emailList.size());
-      
       //JPAProducer producer = new JPAProducer(emf, namespace, 20);
-
       //ODataProducerProvider.setInstance(producer);
     }
+    
     @AfterClass
     public static void destroy() throws Exception {
     }
@@ -84,7 +68,7 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
     @Test
     public void testGetCountryTextFormat() {
         // get a string representation
-        String country = r1.path("country/123").
+        String country = r1.path("countries/123").
                 accept("application/json").get(String.class);
         assertEquals("{\"centralBankCode\":\"newCentralBankCode_123\",\"businessCentre\":\"newBusinessCentre_123\"}", country);
     }
@@ -95,7 +79,7 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
     @Test
     public void testGetCountryJSONFormat() {
         GenericType<Country> genericType = new GenericType<Country>() {};
-        Country country = r1.path("country/123").
+        Country country = r1.path("countries/123").
                 accept("application/json").get(genericType);
         assertEquals("newCentralBankCode_123", country.getCentralBankCode());
     }
@@ -106,7 +90,7 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
     @Test
     public void testGetCountryXMLFormat() {
         GenericType<CountryResource> genericType = new GenericType<CountryResource>() {};
-        CountryResource countryResource = r1.path("country/123").
+        CountryResource countryResource = r1.path("countries/123").
                 accept("application/xml").get(genericType);
         Country country = countryResource.getCountry();
         assertEquals("newCentralBankCode_123", country.getCentralBankCode());
@@ -127,13 +111,13 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
 
     	// get the country
         GenericType<CountryResource> genericType = new GenericType<CountryResource>() {};
-        CountryResource countryResource = r1.path("country/1").
+        CountryResource countryResource = r1.path("countries/1").
                 accept("application/xml").get(genericType);
         Country country = countryResource.getCountry();
         assertEquals("BOE", country.getCentralBankCode());
 
         // delete country '1'
-        r1.path("country/1").method("DELETE");
+        r1.path("countries/1").method("DELETE");
     }
     
 }
