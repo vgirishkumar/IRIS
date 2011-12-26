@@ -1,0 +1,26 @@
+Implement CRUD delete
+
+Fix intergration tests so they may be run multiple times
+
+Seems JAXBContext may have a sychronization issue as one time the tests failed with the 415 because the Note class could not be found
+
+Implement Providers to replace the decorators for an EntityResource.  This way we should be able to serialize / deserialize 
+	directly to the OEntity or the jaxb object depending on how the providers are configured for the chosen media type
+	
+Switch to using wink with Spring
+
+Implement a dynamic resource working with new EntityResource
+
+Implement a dynamic link with semantic model of link condition in spring.  First simple link condition will be a value of a
+	property in the same resource.
+
+Implement a dynamic link condition with internal resource OK / NOT_FOUND
+
+Implement a dynamic link condition with external resource OK / NOT_FOUND
+
+Implement a super simple generic user agent
+
+Implement a plain/text media type over OFS
+
+Change acquistion project to use a few dynamic resources in a new interaction project
+
