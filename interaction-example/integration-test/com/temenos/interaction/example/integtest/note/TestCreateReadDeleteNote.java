@@ -3,20 +3,19 @@ package com.temenos.interaction.example.integtest.note;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.core.decorator.hal.MediaType;
-import com.temenos.interaction.example.note.NoteProducerFactory;
 import com.temenos.interaction.example.note.client.NoteRepresentation;
-import com.temenos.interaction.example.utils.TestDBUtils;
 
 public class TestCreateReadDeleteNote extends JerseyTest {
 
 	public final static String NOTES_RESOURCE = "notes";
-
 	
 	/*
 	@BeforeClass
@@ -27,8 +26,18 @@ public class TestCreateReadDeleteNote extends JerseyTest {
 	}
 	*/
 	
+	@Before
+	public void initTest() {
+		// TODO make this configurable
+		// test with external server 
+    	webResource = Client.create().resource("http://localhost:8080/example/rest"); 
+	}
+	
+	@After
+	public void tearDown() {}
+
     public TestCreateReadDeleteNote() throws Exception {
-    	super("example", "rest", "com.temenos.interaction.example");
+    	//super("example", "rest", "com.temenos.interaction.example");
         // enable logging on base web resource
     	System.setProperty("enableLogging", "ya");
     }
@@ -49,7 +58,8 @@ public class TestCreateReadDeleteNote extends JerseyTest {
     @Test
 	public void testCreateReadDelete() {
 		String noteUri = NOTES_RESOURCE + "/10";
-		// not created yet
+		// not created yet (delete it to make sure as tests could be run multiple times)
+//        webResource.path(noteUri).delete();
         ClientResponse response = webResource.path(noteUri).accept(MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         assertEquals(404, response.getStatus());
         

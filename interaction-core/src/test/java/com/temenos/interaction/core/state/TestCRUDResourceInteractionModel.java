@@ -24,7 +24,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test
 	public void testGetStatus() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -37,7 +37,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGetStatusNull() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		cc.addGetCommand(resourcePath, mock(ResourceGetCommand.class));
@@ -47,7 +47,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test
 	public void testGet500() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -59,7 +59,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGet200NoResource() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -73,7 +73,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testPOSTNoCommand() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		r.post(null, "123", null);
 	}
@@ -81,12 +81,12 @@ public class TestCRUDResourceInteractionModel {
 	@Test
 	public void testPOSTStatus() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
-		ResourcePostCommand<RESTResource> rpc = mock(ResourcePostCommand.class);
+		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
 		// return ok, but getResource will return null
-		when(rpc.post(anyString(), any(RESTResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(RESTResource.class), null));
+		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(RESTResource.class), null));
 		cc.addStateTransitionCommand("POST", resourcePath, rpc);
 		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
 		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
@@ -95,7 +95,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testPOSTStatusNull() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel<EntityResource> r = new CRUDResourceInteractionModel<EntityResource>(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		cc.addStateTransitionCommand("POST", resourcePath, mock(ResourcePostCommand.class));

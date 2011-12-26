@@ -2,12 +2,14 @@ package com.temenos.interaction.core.command;
 
 import javax.ws.rs.core.Response.StatusType;
 
+import com.temenos.interaction.core.EntityResource;
+
 /**
  * A #ResourcePutCommand can be executed to replace a resource.
  * @author aphethean
  */
-public interface ResourcePutCommand<RESOURCE> extends ResourceStateTransitionCommand {
+public interface ResourcePutCommand extends ResourceStateTransitionCommand {
 
-	public StatusType put(String id, RESOURCE resource);
+	public StatusType put(String id, EntityResource resource);
 	
 }

@@ -1,12 +1,10 @@
 package com.temenos.interaction.example.note;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -18,7 +16,7 @@ import org.odata4j.edm.EdmEntityContainer;
 import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.edm.EdmFunctionParameter;
 import org.odata4j.edm.EdmSchema;
-import org.odata4j.edm.EdmType;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.BaseResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.ODataProducerDelegate;
@@ -90,13 +88,13 @@ public class NewFunctionProducer extends ODataProducerDelegate {
         List<EdmFunctionParameter> params = new ArrayList<EdmFunctionParameter>(1);
         params.add(new EdmFunctionParameter(
             "DOMAIN_OBJECT_NAME",   // String name, 
-            EdmType.STRING, // EdmBaseType type, 
+            EdmSimpleType.STRING, // EdmBaseType type, 
             "IN"));          //String mode);
         
         EdmFunctionImport f = new EdmFunctionImport(
             "NEW",			//String name, 
             null,			// EdmEntitySet entitySet, 
-            EdmType.INT64,	// EdmBaseType returnType,
+            EdmSimpleType.INT64,	// EdmBaseType returnType,
             "POST",			// String httpMethod, 
             params);		//List<EdmFunctionParameter> parameters)
         container.functionImports.add(f);

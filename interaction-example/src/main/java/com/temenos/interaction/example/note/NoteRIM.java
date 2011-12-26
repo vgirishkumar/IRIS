@@ -20,6 +20,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
@@ -32,7 +33,7 @@ import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
  * @author aphethean
  */
 @Path("/notes/{id}")
-public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implements ResourcePutCommand<NoteResource>, ResourceGetCommand {
+public class NoteRIM extends CRUDResourceInteractionModel implements ResourcePutCommand, ResourceGetCommand {
 
 	public final static String RESOURCE_PATH = "/notes/{id}";
 	private final static String ENTITY_NAME = "Note";
@@ -69,7 +70,7 @@ public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implemen
 		edmDataServices = producer.getMetadata();
 	}
 
-	public Status put(String id, NoteResource resource) {
+	public Status put(String id, EntityResource resource) {
 		OEntityKey key = OEntityKey.create(new Long(id).toString());
 		try {
 			producer.deleteEntity(ENTITY_NAME, key);
@@ -79,7 +80,7 @@ public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implemen
 		
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(ENTITY_NAME);
 		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
-		Note note = resource.getNote();
+		Note note = (Note) resource.getEntity();
 		if (note != null) {
 			properties.add(OProperties.int64("noteID", new Long(id)));
 			properties.add(OProperties.string("body", note.getBody()));
@@ -97,7 +98,7 @@ public class NoteRIM extends CRUDResourceInteractionModel<NoteResource> implemen
 		EntityResponse er = producer.getEntity(ENTITY_NAME, key, null);
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new NoteResource(oEntity), getValidNextStates());
+		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(oEntity), getValidNextStates());
 		return rr;
 	}
 

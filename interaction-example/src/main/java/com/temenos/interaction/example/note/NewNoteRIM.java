@@ -25,7 +25,7 @@ import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmFunctionImport;
-import org.odata4j.edm.EdmType;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.BaseResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.PropertyResponse;
@@ -44,7 +44,7 @@ import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
  * @author aphethean
  */
 @Path("/notes/new")
-public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> implements ResourcePostCommand<StringResource> {
+public class NewNoteRIM extends CRUDResourceInteractionModel implements ResourcePostCommand {
 
 	private final static String RESOURCE_PATH = "/notes/new";
 	private final static String ENTITY_NAME = "ID";
@@ -73,7 +73,7 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 		 * Configure the dynamic RIM
 		 */
 		CommandController commandController = getCommandController();
-		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand<StringResource>());
+		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand());
 		commandController.addStateTransitionCommand("POST", RESOURCE_PATH, this);
 	}
 
@@ -102,7 +102,7 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 	}
 	
 	
-	public RESTResponse post(String id, StringResource resource) {
+	public RESTResponse post(String id, EntityResource resource) {
 		assert(id == null || "".equals(id));
 
         // find the function that creates us new things
@@ -112,7 +112,7 @@ public class NewNoteRIM extends CRUDResourceInteractionModel<StringResource> imp
 		params.put("PARAM1", OFunctionParameters.create("DOMAIN_OBJECT_NAME", "NOTE"));
 		//EdmFunctionImport functionName = new EdmFunctionImport("NEW", null, returnType, "POST", params);
 		BaseResponse fr = producer.callFunction(functionName, params, null);
-		assert(functionName.returnType == EdmType.INT64);
+		assert(functionName.returnType == EdmSimpleType.INT64);
 		
 		// TODO this could either be the type we are creating and ID for, or it could just be a transient type
 		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet("Note");

@@ -14,7 +14,7 @@
   </logger>
 
   <logger name="org.apache.wink.common">
-    <level value="TRACE" />
+    <level value="WARN" />
     <appender-ref ref="STDOUT"/>
   </logger>
 

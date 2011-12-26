@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.command;
 
+import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 
 /**
@@ -13,8 +14,8 @@ import com.temenos.interaction.core.RESTResponse;
  * </p>
  * @author aphethean
  */
-public interface ResourcePostCommand<RESOURCE> extends ResourceStateTransitionCommand {
+public interface ResourcePostCommand extends ResourceStateTransitionCommand {
 
-	public RESTResponse post(String id, RESOURCE resource);
+	public RESTResponse post(String id, EntityResource resource);
 
 }

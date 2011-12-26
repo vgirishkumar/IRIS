@@ -24,7 +24,7 @@ import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
-import org.odata4j.edm.EdmType;
+import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.MetaDataResource;
@@ -54,7 +54,7 @@ public class TestHALXMLDecorator {
 		// mock a simple entity (Children entity set)
 		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
 		edmProperties.add(new EdmProperty("ID",
-				EdmType.STRING, false, null, null, null,
+				EdmSimpleType.STRING, false, null, null, null,
 				null, null, null, null, null, null));
 		EdmEntityType childrenEntityType = new EdmEntityType("InteractionTest", null,
 				"Children", null, Arrays.asList("ID"), edmProperties, null);
@@ -107,7 +107,7 @@ public class TestHALXMLDecorator {
 		// mock a simple entity (Children entity set)
 		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
 		edmProperties.add(new EdmProperty("ID",
-				EdmType.STRING, false, null, null, null,
+				EdmSimpleType.STRING, false, null, null, null,
 				null, null, null, null, null, null));
 		EdmEntityType childrenEntityType = new EdmEntityType("InteractionTest", null,
 				"Children", null, Arrays.asList("ID"), edmProperties, null);
@@ -146,7 +146,7 @@ public class TestHALXMLDecorator {
 		// mock a simple entity (Children entity set)
 		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
 		edmProperties.add(new EdmProperty("ID",
-				EdmType.STRING, false, null, null, null,
+				EdmSimpleType.STRING, false, null, null, null,
 				null, null, null, null, null, null));
 		EdmEntityType childrenEntityType = new EdmEntityType("InteractionTest", null,
 				"Children", null, Arrays.asList("ID"), edmProperties, null);

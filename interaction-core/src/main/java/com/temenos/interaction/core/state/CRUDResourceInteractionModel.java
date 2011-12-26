@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.EntityResource;
-import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
@@ -37,7 +36,7 @@ import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
  *
  * @param <RESOURCE>
  */
-public abstract class CRUDResourceInteractionModel<RESOURCE> implements ResourceStateTransition {
+public abstract class CRUDResourceInteractionModel implements ResourceStateTransition {
 	private final Logger logger = LoggerFactory.getLogger(CRUDResourceInteractionModel.class);
 
 	// TODO inject decorators
@@ -114,9 +113,9 @@ public abstract class CRUDResourceInteractionModel<RESOURCE> implements Resource
     @POST
 // TODO not used in CRUD
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
-    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, RESOURCE resource ) {
+    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
     	assert(resourcePath != null);
-		ResourcePostCommand<RESOURCE> postCommand = (ResourcePostCommand<RESOURCE>) commandController.fetchStateTransitionCommand("POST", getResourcePath());
+		ResourcePostCommand postCommand = (ResourcePostCommand) commandController.fetchStateTransitionCommand("POST", getResourcePath());
     	RESTResponse response = postCommand.post(id, resource);
     	assert (response != null);
     	StatusType status = response.getStatus();
@@ -136,9 +135,9 @@ public abstract class CRUDResourceInteractionModel<RESOURCE> implements Resource
 	 */
     @PUT
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
-    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, RESOURCE resource ) {
+    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
     	assert(resourcePath != null);
-		ResourcePutCommand<RESOURCE> putCommand = (ResourcePutCommand<RESOURCE>) commandController.fetchStateTransitionCommand("PUT", getResourcePath());
+		ResourcePutCommand putCommand = (ResourcePutCommand) commandController.fetchStateTransitionCommand("PUT", getResourcePath());
 		StatusType status = putCommand.put(id, resource);
 		assert (status != null);  // not a valid put command
     	if (status == Response.Status.OK) {

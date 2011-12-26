@@ -18,17 +18,27 @@ import org.slf4j.LoggerFactory;
  * linked to this resource.
  * @author aphethean
  */
-//@XmlRootElement(name = "resource")
-//@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "resource")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class EntityResource implements RESTResource {
 	@XmlTransient
 	private final Logger logger = LoggerFactory.getLogger(EntityResource.class);
 
 	@XmlAnyElement(lax=true)
 	private Object entity;
+	@XmlTransient
+	private OEntity oEntity;
 	
 	// keep JAXB happy
 	public EntityResource() {}
+	
+	public EntityResource(Object entity) {
+		this.entity = entity;
+	}
+
+	public EntityResource(OEntity oEntity) {
+		this.oEntity = oEntity;
+	}
 
 	// TODO use Generics here
 	public Object getEntity() {
@@ -36,6 +46,7 @@ public class EntityResource implements RESTResource {
 	}
 	
 	public OEntity getOEntity() {
+		if (oEntity != null) return oEntity;
 		if (entity != null) {
 			logger.debug("Discovered a jaxb / json deserialised object");
 		}

@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
 @Table(name="NOTE")
+@XmlRootElement(name = "Note")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Note {
 

@@ -12,7 +12,7 @@ import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
  * interactions
  * @author aphethean
  */
-public class DynaCRUDRIM extends CRUDResourceInteractionModel<DynaResource> implements DynamicResource {
+public class DynaCRUDRIM extends CRUDResourceInteractionModel implements DynamicResource {
 
 	private String beanName;
 	private String path;

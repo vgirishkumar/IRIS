@@ -8,6 +8,7 @@ import javax.ws.rs.core.Application;
 import com.temenos.interaction.example.country.CountryRIM;
 import com.temenos.interaction.example.note.NewNoteRIM;
 import com.temenos.interaction.example.note.NoteRIM;
+import com.temenos.interaction.example.sandbox.SandboxRIM;
 
 
 public class ExampleApplication extends Application {
@@ -19,6 +20,14 @@ public class ExampleApplication extends Application {
         classes.add(CountryRIM.class);
         classes.add(NoteRIM.class);
         classes.add(NewNoteRIM.class);
+        classes.add(SandboxRIM.class);
+        
+        try {
+            singletons.add(new com.temenos.interaction.example.note.JAXBContextResolver());
+//            singletons.add(new com.temenos.interaction.example.sandbox.JAXBContextResolver());
+        } catch (Exception e) {
+        	throw new RuntimeException(e);
+        }
     }
     
 	@Override
