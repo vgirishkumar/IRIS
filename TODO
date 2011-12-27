@@ -1,7 +1,4 @@
-Implement CRUD delete
-
-Fix intergration tests so they may be run multiple times
-
+TODO:
 Seems JAXBContext may have a sychronization issue as one time the tests failed with the 415 because the Note class could not be found
 
 Implement Providers to replace the decorators for an EntityResource.  This way we should be able to serialize / deserialize 
@@ -24,3 +21,8 @@ Implement a plain/text media type over OFS
 
 Change acquistion project to use a few dynamic resources in a new interaction project
 
+
+
+Done:
+- Implement CRUD delete
+- Fix intergration tests so they may be run multiple times

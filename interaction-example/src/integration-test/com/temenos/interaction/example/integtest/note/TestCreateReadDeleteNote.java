@@ -56,10 +56,28 @@ public class TestCreateReadDeleteNote extends JerseyTest {
 	}
 
     @Test
+	public void testDelete() {
+		// delete Note number 1 (which exists)
+		String noteUri = NOTES_RESOURCE + "/2";
+		ClientResponse response = webResource.path(noteUri).delete(ClientResponse.class);
+        assertEquals(200, response.getStatus());
+
+		// make sure Note number 1 is really gone
+		String deletedNoteUri = NOTES_RESOURCE + "/2";
+		ClientResponse deletedResponse = webResource.path(deletedNoteUri).get(ClientResponse.class);
+        assertEquals(404, deletedResponse.getStatus());
+
+		// delete Note number 56 (which does not exist)
+		String notFoundNoteUri = NOTES_RESOURCE + "/56";
+		ClientResponse nresponse = webResource.path(notFoundNoteUri).delete(ClientResponse.class);
+        assertEquals(200, nresponse.getStatus());
+    }
+
+    @Test
 	public void testCreateReadDelete() {
 		String noteUri = NOTES_RESOURCE + "/10";
 		// not created yet (delete it to make sure as tests could be run multiple times)
-//        webResource.path(noteUri).delete();
+        webResource.path(noteUri).delete();
         ClientResponse response = webResource.path(noteUri).accept(MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         assertEquals(404, response.getStatus());
         

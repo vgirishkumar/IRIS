@@ -11,7 +11,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.temenos.interaction.core.decorator.hal.Link;
 import com.temenos.interaction.core.decorator.hal.Representation;
-import com.temenos.interaction.example.integtest.note.InvalidNoteException;
 
 @XmlRootElement(name = "resource")
 public class NoteRepresentation extends Representation {

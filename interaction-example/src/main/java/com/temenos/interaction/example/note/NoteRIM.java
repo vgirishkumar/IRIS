@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -23,6 +24,7 @@ import org.odata4j.producer.ODataProducer;
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
@@ -33,7 +35,7 @@ import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
  * @author aphethean
  */
 @Path("/notes/{id}")
-public class NoteRIM extends CRUDResourceInteractionModel implements ResourcePutCommand, ResourceGetCommand {
+public class NoteRIM extends CRUDResourceInteractionModel implements ResourcePutCommand, ResourceDeleteCommand, ResourceGetCommand {
 
 	public final static String RESOURCE_PATH = "/notes/{id}";
 	private final static String ENTITY_NAME = "Note";
@@ -59,6 +61,7 @@ public class NoteRIM extends CRUDResourceInteractionModel implements ResourcePut
 		CommandController commandController = getCommandController();
 		commandController.addGetCommand(RESOURCE_PATH, this);
 		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, this);
+		commandController.addStateTransitionCommand("DELETE", RESOURCE_PATH, this);
 	}
 
 	public ODataProducer getProducer() {
@@ -70,8 +73,10 @@ public class NoteRIM extends CRUDResourceInteractionModel implements ResourcePut
 		edmDataServices = producer.getMetadata();
 	}
 
+
+	/* Implement ResourcePutCommand */
 	public Status put(String id, EntityResource resource) {
-		OEntityKey key = OEntityKey.create(new Long(id).toString());
+		OEntityKey key = OEntityKey.create(new Long(id));
 		try {
 			producer.deleteEntity(ENTITY_NAME, key);
 		} catch (Exception e) {
@@ -91,8 +96,19 @@ public class NoteRIM extends CRUDResourceInteractionModel implements ResourcePut
 	}
 
 	
-	/* Implement ResourceGetCommand */
+	/* Implement ResourceDeleteCommand */
+	public StatusType delete(String id) {
+		OEntityKey key = OEntityKey.create(new Long(id));
+		try {
+			producer.deleteEntity(ENTITY_NAME, key);
+		} catch (Exception e) {
+			// delete the entity if it exists;
+		}
+		return Response.Status.OK;
+	}
+
 	
+	/* Implement ResourceGetCommand */
 	public RESTResponse get(String id) {
 		OEntityKey key = OEntityKey.create(new Long(id));
 		EntityResponse er = producer.getEntity(ENTITY_NAME, key, null);

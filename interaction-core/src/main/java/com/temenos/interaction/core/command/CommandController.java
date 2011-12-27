@@ -35,6 +35,7 @@ public class CommandController {
 		logger.info("Looking up command using [" + resourcePath + "]");
 		ResourceCommand getCommand = commands.get(resourcePath);
 		if (getCommand == null) {
+			logger.warn("No command bound to [GET+" + resourcePath + "]");
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return (ResourceGetCommand) getCommand;
@@ -53,6 +54,7 @@ public class CommandController {
 		logger.info("Looking up command using [" + resourcePath + "]");
 		ResourceCommand command = commands.get(resourcePath);
 		if (command == null) {
+			logger.warn("No command bound to [" + httpMethod + "+" + resourcePath + "]");
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return command;

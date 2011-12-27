@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
@@ -69,10 +71,11 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	/**
 	 * GET a resource representation.
 	 * @precondition a valid GET command for this resourcePath + id must be registered with the command controller
+	 * @postcondition a Response with non null Status must be returned
 	 * @invariant resourcePath not null
 	 */
     @GET
-    @Produces({MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
@@ -108,6 +111,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	/**
 	 * POST a document to a resource.
 	 * @precondition a valid POST command for this resourcePath + id must be registered with the command controller
+	 * @postcondition a Response with non null Status must be returned
 	 * @invariant resourcePath not null
 	 */
     @POST
@@ -131,6 +135,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	/**
 	 * PUT a resource.
 	 * @precondition a valid PUT command for this resourcePath + id must be registered with the command controller
+	 * @postcondition a Response with non null Status must be returned
 	 * @invariant resourcePath not null
 	 */
     @PUT
@@ -148,8 +153,24 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
     }
 
 	/**
+	 * DELETE a resource.
+	 * @precondition a valid DELETE command for this resourcePath + id must be registered with the command controller
+	 * @postcondition a Response with non null Status must be returned
+	 * @invariant resourcePath not null
+	 */
+    @DELETE
+    public Response delete( @Context HttpHeaders headers, @PathParam("id") String id ) {
+    	assert(resourcePath != null);
+    	ResourceDeleteCommand deleteCommand = (ResourceDeleteCommand) commandController.fetchStateTransitionCommand("DELETE", getResourcePath());
+		StatusType status = deleteCommand.delete(id);
+		assert (status != null);  // not a valid put command
+   		return Response.status(status).build();
+    }
+
+	/**
 	 * OPTIONS for a resource.
 	 * @precondition a valid GET command for this resourcePath + id must be registered with the command controller
+	 * @postcondition a Response with non null Status must be returned
 	 * @invariant resourcePath not null
 	 */
     @Override
