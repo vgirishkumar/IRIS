@@ -6,6 +6,8 @@ import java.io.StringWriter;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -13,11 +15,12 @@ import com.temenos.interaction.core.decorator.hal.Link;
 import com.temenos.interaction.core.decorator.hal.Representation;
 
 @XmlRootElement(name = "resource")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class NoteRepresentation extends Representation {
 
 	public static final String RELATIONS_URI = "http://relations.interactionexample.com/";
 
-    @XmlElement(name = "Note")
+    @XmlElement
     private Note note;
 
     /**
