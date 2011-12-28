@@ -9,6 +9,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.odata4j.core.OEntity;
+
 @Entity
 @Table(name="NOTE")
 @XmlRootElement(name = "note")
@@ -21,9 +23,13 @@ public class Note {
 	private Long noteID;
     @XmlElement(name = "body")
     private String body;
-
+    
     /* Hibernate & JAXB */
     public Note() {}
+    
+    public Note(OEntity oEntity) {
+    	this.body = (String) oEntity.getProperty("body").getValue();
+    }
     
 	public Long getNoteID() {
 		return noteID;

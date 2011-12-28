@@ -84,11 +84,29 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 		assert (status != null);  // not a valid get command
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
-			return decoratedResponse(headers, response);
+			return Response.ok(response.getResource()).status(status).build();
 		}
 		return Response.status(status).build();
     }
 
+    /*
+    @GET
+    @Produces({com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
+    public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
+    	assert(resourcePath != null);
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
+    	RESTResponse response = getCommand.get(id);
+    	assert (response != null);
+    	StatusType status = response.getStatus();
+		assert (status != null);  // not a valid get command
+		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
+			assert(response.getResource() != null);
+			return decoratedResponse(headers, response);
+		}
+		return Response.status(status).build();
+    }
+    */
+    
     private Response decoratedResponse(HttpHeaders headers, RESTResponse response) {
 		assert(response != null);
 		assert(headers != null);

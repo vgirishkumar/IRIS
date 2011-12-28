@@ -114,7 +114,7 @@ public class NoteRIM extends CRUDResourceInteractionModel implements ResourcePut
 		EntityResponse er = producer.getEntity(ENTITY_NAME, key, null);
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(oEntity), getValidNextStates());
+		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(new Note(oEntity)), getValidNextStates());
 		return rr;
 	}
 
