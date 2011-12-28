@@ -1,9 +1,12 @@
 TODO:
-Seems JAXBContext may have a sychronization issue as one time the tests failed with the 415 because the Note class could not be found
+
+Implement the ability to bind a command to a combination of mediatype + http method
+
+Add to simple CRUD Note example and bind a GET command to application/xml and application/json to return JAXB EntityResource
 
 Implement Providers to replace the decorators for an EntityResource.  This way we should be able to serialize / deserialize 
 	directly to the OEntity or the jaxb object depending on how the providers are configured for the chosen media type
-	
+
 Switch to using wink with Spring
 
 Implement a dynamic resource working with new EntityResource
@@ -22,8 +25,3 @@ Implement a plain/text media type over OFS
 Change acquistion project to use a few dynamic resources in a new interaction project
 
 Create a integration test configuration to run in test JerseyTest or against external server.
-
-
-Done:
-- Implement CRUD delete
-- Fix intergration tests so they may be run multiple times
