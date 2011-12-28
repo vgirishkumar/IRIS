@@ -22,7 +22,7 @@ public class Note {
     @XmlElement(name = "body")
     private String body;
 
-    /* Hibernate */
+    /* Hibernate & JAXB */
     public Note() {}
     
 	public Long getNoteID() {
