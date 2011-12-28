@@ -19,7 +19,7 @@ public class CountryRIM extends SHARDIResourceInteractionModel {
 		 * Not required when wired with Spring and not a Country producer at the moment
 		 */
 		  		NoteProducerFactory npf = new NoteProducerFactory();
-		  		ODataProducer producer = npf.getFunctionsProducer();
+		  		ODataProducer producer = npf.getJPAProducer();
 		getCommand.setProducer(producer);
 		registerGetCommand(RESOURCE_PATH, getCommand);
 	}

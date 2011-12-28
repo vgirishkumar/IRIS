@@ -1,5 +1,9 @@
 package com.temenos.interaction.example.country;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -9,12 +13,13 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import org.odata4j.core.OEntity;
 
-import com.temenos.interaction.core.EntityResource;
-
+@Entity
+@Table(name="COUNTRY")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Country extends EntityResource {
+public class Country {
 
+	@Transient
 	@XmlTransient
 	private OEntity entity;
 
@@ -43,6 +48,7 @@ public class Country extends EntityResource {
     @XmlElement(name = "highRisk")
     protected String highRisk;
 
+	@Id
     @XmlAttribute
     protected String id;
 
@@ -50,6 +56,15 @@ public class Country extends EntityResource {
 	
 	public Country(OEntity entity) {
 		this.entity = entity;
+		
+		try {
+			this.centralBankCode = (String) entity.getProperty("centralBankCode").getValue();
+			this.businessCentre = (String) entity.getProperty("businessCentre").getValue();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 // Getters
@@ -161,11 +176,6 @@ public class Country extends EntityResource {
         this.id = value;
     }
 	
-    @Override
-	public OEntity getOEntity() {
-		return entity;
-	}
-
 	/*
 	public Set<OLink> getLinks() {
 		Set<OLink> links = new HashSet<OLink>();

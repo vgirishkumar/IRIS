@@ -28,47 +28,39 @@ import org.junit.BeforeClass;
 
 public class TestCreateAuthoriseCountry extends JerseyTest {
 
-    private WebResource r1;
-    private static EntityManagerFactory emf;
-    
-    @Before
-    public void setUp() throws Exception {
-    	super.setUp();
-    }
-    
-    @After
-    public void tearDown() throws Exception {
-    	super.tearDown();
-    }
-    
-    @BeforeClass
-    public static void initialise() throws Exception {
-      //JPAProducer producer = new JPAProducer(emf, namespace, 20);
-      //ODataProducerProvider.setInstance(producer);
-    }
-    
-    @AfterClass
-    public static void destroy() throws Exception {
-    }
-    
+	/* Allows standalone Jersey Test
+	@BeforeClass
+	public static void initialiseTestDB() {
+    	// bootstrap the NoteProducerFactory which creates the JPA entity manager (the CREATE TABLE)
+    	new NoteProducerFactory();
+	}
+	 */
+
+	@Before
+	public void initTest() {
+		// TODO make this configurable
+		// test with external server 
+    	webResource = Client.create().resource("http://localhost:8080/example/rest"); 
+	}
+	
+	@After
+	public void tearDown() {}
+      
     public TestCreateAuthoriseCountry() throws Exception {
-    	super("example", "rest", "com.temenos");
-        ClientConfig cc = new DefaultClientConfig();
-        // use the following jaxb context resolver
-        cc.getClasses().add(JAXBContextResolver.class);
-        Client c = Client.create(cc);
-        r1 = c.resource(CommonUtils.getBaseURI("example", "rest"));
-        r1.addFilter(new LoggingFilter());
-        
+    	/* Allows standalone Jersey Test
+    	super("example", "rest", "com.temenos.interaction.example");
+		*/
+        // enable logging on base web resource
+    	System.setProperty("enableLogging", "ya");
 	}
     
     /**
      * Test check GET on the "country" resource in "test/plain" format.
      */
-    @Test
+    //@Test
     public void testGetCountryTextFormat() {
         // get a string representation
-        String country = r1.path("countries/123").
+        String country = webResource.path("countries/123").
                 accept("application/json").get(String.class);
         assertEquals("{\"centralBankCode\":\"newCentralBankCode_123\",\"businessCentre\":\"newBusinessCentre_123\"}", country);
     }
@@ -76,10 +68,10 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
     /**
      * Test check GET on the "country" resource in "application/json" format.
      */
-    @Test
+    //@Test
     public void testGetCountryJSONFormat() {
         GenericType<Country> genericType = new GenericType<Country>() {};
-        Country country = r1.path("countries/123").
+        Country country = webResource.path("countries/123").
                 accept("application/json").get(genericType);
         assertEquals("newCentralBankCode_123", country.getCentralBankCode());
     }
@@ -90,7 +82,7 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
     @Test
     public void testGetCountryXMLFormat() {
         GenericType<CountryResource> genericType = new GenericType<CountryResource>() {};
-        CountryResource countryResource = r1.path("countries/123").
+        CountryResource countryResource = webResource.path("countries/123").
                 accept("application/xml").get(genericType);
         Country country = countryResource.getCountry();
         assertEquals("newCentralBankCode_123", country.getCentralBankCode());
@@ -99,7 +91,7 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
     /**
      * Create the country, get the country, delete the country
      */
-    @Test
+    //@Test
     public void testCGDCountry() {
     	Country c = new Country();
     	c.setBusinessCentre("London");
@@ -107,17 +99,17 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
     	c.setCentralBankCode("BOE");
     	
     	// create the country '1'
-    	r1.path("country/1").accept("application/json").method("INPUT", c);
+    	webResource.path("country/1").accept("application/json").method("INPUT", c);
 
     	// get the country
         GenericType<CountryResource> genericType = new GenericType<CountryResource>() {};
-        CountryResource countryResource = r1.path("countries/1").
+        CountryResource countryResource = webResource.path("countries/1").
                 accept("application/xml").get(genericType);
         Country country = countryResource.getCountry();
         assertEquals("BOE", country.getCentralBankCode());
 
         // delete country '1'
-        r1.path("countries/1").method("DELETE");
+        webResource.path("countries/1").method("DELETE");
     }
     
 }

@@ -77,8 +77,9 @@ public abstract class SHARDIResourceInteractionModel implements ResourceStateTra
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
-    	Decorator<Response> d = new XMLDecorator();
-    	Response xml = d.decorateRESTResponse(rResponse);
+   // 	Decorator<Response> d = new XMLDecorator();
+   // 	Response xml = d.decorateRESTResponse(rResponse);
+		Response xml = Response.ok(rResponse.getResource()).build();
     	return HeaderHelper.allowHeader(Response.fromResponse(xml), rResponse).build();
 }
 	
@@ -91,9 +92,10 @@ public abstract class SHARDIResourceInteractionModel implements ResourceStateTra
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
-    	Decorator<StreamingOutput> d = new JSONStreamingDecorator();
-    	StreamingOutput so = d.decorateRESTResponse(rResponse);
-    	return HeaderHelper.allowHeader(Response.ok(so), rResponse).build();
+//    	Decorator<StreamingOutput> d = new JSONStreamingDecorator();
+//    	StreamingOutput so = d.decorateRESTResponse(rResponse);
+		Response json = Response.ok(rResponse.getResource()).build();
+    	return HeaderHelper.allowHeader(Response.fromResponse(json), rResponse).build();
     }
 
     /*

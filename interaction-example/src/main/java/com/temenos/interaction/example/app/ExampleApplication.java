@@ -23,8 +23,7 @@ public class ExampleApplication extends Application {
         classes.add(SandboxRIM.class);
         
         try {
-            singletons.add(new com.temenos.interaction.example.note.JAXBContextResolver());
-//            singletons.add(new com.temenos.interaction.example.sandbox.JAXBContextResolver());
+            singletons.add(new JAXBContextResolver());
         } catch (Exception e) {
         	throw new RuntimeException(e);
         }

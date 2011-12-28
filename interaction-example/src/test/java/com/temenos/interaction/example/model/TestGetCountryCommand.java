@@ -13,11 +13,14 @@ import javax.ws.rs.core.Response;
 import org.junit.Test;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OProperties;
+import org.odata4j.core.OProperty;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
+import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.example.country.Country;
 import com.temenos.interaction.example.country.GetCountryCommand;
@@ -46,6 +49,11 @@ public class TestGetCountryCommand {
 		GetCountryCommand command = new GetCountryCommand();
 		ODataProducer mockP = mock(ODataProducer.class);
 		OEntity mockEntity = mock(OEntity.class);
+		OProperty busiProp = OProperties.string("businessCentre", "newbusinessCentre_123");
+		when(mockEntity.getProperty("businessCentre")).thenReturn(busiProp);
+		OProperty centralBankProp = OProperties.string("centralBankCode", "newcentralBankCode_123");
+		when(mockEntity.getProperty("centralBankCode")).thenReturn(centralBankProp);
+		
 		EntityResponse response = Responses.entity(mockEntity);
 		when(mockP.getEntity(anyString(), any(OEntityKey.class), (QueryInfo) isNull())).thenReturn(response);
 		command.setProducer(mockP);
@@ -53,8 +61,11 @@ public class TestGetCountryCommand {
 		assertNotNull(resp);
 		assertEquals(Response.Status.OK, resp.getStatus());
 		assertNotNull(resp.getResource());
-		assertEquals(Country.class, resp.getResource().getClass());
-		assertEquals(mockEntity, ((Country)resp.getResource()).getOEntity());
+		assertEquals(EntityResource.class, resp.getResource().getClass());
+		assertEquals(Country.class, ((EntityResource)resp.getResource()).getEntity().getClass());
+		Country c = (Country) ((EntityResource)resp.getResource()).getEntity();
+		assertEquals("newbusinessCentre_123", c.getBusinessCentre());
+		assertEquals("newcentralBankCode_123", c.getCentralBankCode());
 	}
 
 }

@@ -20,11 +20,13 @@ public class TestNewNote extends JerseyTest {
 
 	public final static String NEW_NOTE_RESOURCE = "notes/new";
 
+	/* Allows standalone Jersey Test
 	@BeforeClass
 	public static void initialiseTestDB() {
     	// bootstrap the NoteProducerFactory which creates the JPA entity manager (the CREATE TABLE)
     	new NoteProducerFactory();
 	}
+	 */
 
 	@Before
 	public void initTest() {
@@ -37,7 +39,9 @@ public class TestNewNote extends JerseyTest {
 	public void tearDown() {}
 	
     public TestNewNote() throws Exception {
-    	//super("example", "rest", "com.temenos.interaction.example");
+    	/* Allows standalone Jersey Test
+    	super("example", "rest", "com.temenos.interaction.example");
+		*/
         // enable logging on base web resource
     	System.setProperty("enableLogging", "ya");
     }
