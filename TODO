@@ -21,6 +21,7 @@ Implement a plain/text media type over OFS
 
 Change acquistion project to use a few dynamic resources in a new interaction project
 
+Create a integration test configuration to run in test JerseyTest or against external server.
 
 
 Done:
