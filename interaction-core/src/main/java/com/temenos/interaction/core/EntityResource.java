@@ -52,7 +52,7 @@ public class EntityResource implements RESTResource {
 		}
 		// TODO implement a generic jaxb to OEntity conversion for our 'entity'
 		throw new NotImplementedException();
-	};
+	}
 // not used?, see OEntity.getLinks	public Set<OLink> getLinks();
 
 }
