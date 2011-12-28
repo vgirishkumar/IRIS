@@ -36,7 +36,6 @@ import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
  * Define a Create Read Update Delete 'CRUD' Resource Interaction Model.
  * @author aphethean
  *
- * @param <RESOURCE>
  */
 public abstract class CRUDResourceInteractionModel implements ResourceStateTransition {
 	private final Logger logger = LoggerFactory.getLogger(CRUDResourceInteractionModel.class);
