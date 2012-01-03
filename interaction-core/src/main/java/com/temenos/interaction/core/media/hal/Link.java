@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.decorator.hal;
+package com.temenos.interaction.core.media.hal;
 
 import java.net.URI;
 import java.net.URISyntaxException;

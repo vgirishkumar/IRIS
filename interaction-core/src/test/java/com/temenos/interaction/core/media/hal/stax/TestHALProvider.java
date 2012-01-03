@@ -1,18 +1,16 @@
-package com.temenos.interaction.core.decorator.hal;
+package com.temenos.interaction.core.media.hal.stax;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 
+import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Test;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -21,6 +19,7 @@ import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
 import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
@@ -28,28 +27,62 @@ import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.MetaDataResource;
-import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
+import com.temenos.interaction.core.media.hal.MediaType;
+import com.temenos.interaction.core.media.hal.stax.HALProvider;
 
-import org.custommonkey.xmlunit.XMLAssert;
-public class TestHALXMLDecorator {
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyString;
+
+public class TestHALProvider {
+
+	/*
+	 * Test the getSize operation of GET with this provider
+	 */
+	@Test
+	public void testSize() {
+		HALProvider hp = new HALProvider(null);
+		assertEquals(-1, hp.getSize(null, null, null, null, null));
+	}
+
+	/*
+	 * Test the getSize operation of GET with this provider
+	 */
+	@Test
+	public void testDeserialise() throws IOException {
+		EdmDataServices edmDS = mock(EdmDataServices.class);
+		EdmEntitySet entitySet = new EdmEntitySet("mockChild", mock(EdmEntityType.class));
+		when(edmDS.getEdmEntitySet(anyString())).thenReturn(entitySet);
+		HALProvider hp = new HALProvider(edmDS);
+		
+		String strEntityStream = "<resource><Child><name>noah</name><age>2</age></Child><links></links></resource>";
+		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
+		EntityResource er = hp.readFrom(EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		assertNotNull(er.getOEntity());
+		OEntity entity = er.getOEntity();
+		assertEquals("mockChild", entity.getEntitySetName());
+		assertNotNull(entity.getProperties());
+		// string type
+		assertEquals(EdmSimpleType.STRING, entity.getProperty("name").getType());
+		assertEquals("noah", entity.getProperty("name").getValue());
+		// int type
+		// TODO handle non string entity properties
+//		assertEquals(EdmSimpleType.INT32, entity.getProperty("age").getType());
+//		assertEquals(2, entity.getProperty("age").getValue());
+	}
 
 	@Test(expected = WebApplicationException.class)
-	public void testAttemptToDecorateNonEntityResponse() {
-		RESTResponse restResponse = mock(RESTResponse.class);
-		MetaDataResource mdr = mock(MetaDataResource.class);
-		when(restResponse.getResource()).thenReturn(mdr);
+	public void testAttemptToSerialiseNonEntityResource() throws IOException {
+		EntityResource mdr = mock(EntityResource.class);
 
-		HALXMLDecorator halDecorator = new HALXMLDecorator();
-		halDecorator.decorateRESTResponse(restResponse);
+		HALProvider hp = new HALProvider(null);
+		hp.writeTo(mdr, MetaDataResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
 	}
 	
 	@Test
-	public void testSimpleResource() throws Exception {
-		RESTResponse restResponse = mock(RESTResponse.class);
+	public void testSerialiseSimpleResource() throws Exception {
 		EntityResource er = mock(EntityResource.class);
-		when(restResponse.getStatus()).thenReturn(Response.Status.OK);
-		when(restResponse.getResource()).thenReturn(er);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
@@ -69,40 +102,32 @@ public class TestHALXMLDecorator {
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, new ArrayList<OLink>());
 		when(er.getOEntity()).thenReturn(entity);
 		
-		HALXMLDecorator halDecorator = new HALXMLDecorator();
-		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links></links></resource>";
-		StreamingOutput response = halDecorator.decorateRESTResponse(restResponse);
-		assertNotNull(response);
+		HALProvider hp = new HALProvider(null);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		response.write(bos);
+		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+
+		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links></links></resource>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
 
 	@Test
-	public void testResourceNoEntity() throws Exception {
-		RESTResponse restResponse = mock(RESTResponse.class);
+	public void testSerialiseResourceNoEntity() throws Exception {
 		EntityResource er = mock(EntityResource.class);
-		when(restResponse.getStatus()).thenReturn(Response.Status.OK);
-		when(restResponse.getResource()).thenReturn(er);
 		when(er.getOEntity()).thenReturn(null);
 		
-		HALXMLDecorator halDecorator = new HALXMLDecorator();
-		String expectedXML = "<resource></resource>";
-		StreamingOutput response = halDecorator.decorateRESTResponse(restResponse);
-		assertNotNull(response);
+		HALProvider hp = new HALProvider(null);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		response.write(bos);
+		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+
+		String expectedXML = "<resource></resource>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);		
 	}
 
 	@Test
-	public void testResourceWithLinks() throws Exception {
-		RESTResponse restResponse = mock(RESTResponse.class);
+	public void testSerialiseResourceWithLinks() throws Exception {
 		EntityResource er = mock(EntityResource.class);
-		when(restResponse.getStatus()).thenReturn(Response.Status.OK);
-		when(restResponse.getResource()).thenReturn(er);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
@@ -126,22 +151,18 @@ public class TestHALXMLDecorator {
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, links);
 		when(er.getOEntity()).thenReturn(entity);
 		
-		HALXMLDecorator halDecorator = new HALXMLDecorator();
-		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
-		StreamingOutput response = halDecorator.decorateRESTResponse(restResponse);
-		assertNotNull(response);
+		HALProvider hp = new HALProvider(null);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		response.write(bos);
+		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+
+		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);		
 	}
 
 	@Test
-	public void testResourceWithRelatedLinks() throws Exception {
-		RESTResponse restResponse = mock(RESTResponse.class);
+	public void testSerialiseResourceWithRelatedLinks() throws Exception {
 		EntityResource er = mock(EntityResource.class);
-		when(restResponse.getStatus()).thenReturn(Response.Status.OK);
-		when(restResponse.getResource()).thenReturn(er);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
@@ -170,12 +191,11 @@ public class TestHALXMLDecorator {
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, links);
 		when(er.getOEntity()).thenReturn(entity);
 		
-		HALXMLDecorator halDecorator = new HALXMLDecorator();
-		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
-		StreamingOutput response = halDecorator.decorateRESTResponse(restResponse);
-		assertNotNull(response);
+		HALProvider hp = new HALProvider(null);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		response.write(bos);
+		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+
+		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);		
 
@@ -183,12 +203,12 @@ public class TestHALXMLDecorator {
 
 	
 	@Test
-	public void testResourceWithForm() {
-		
+	public void testSerialiseResourceWithForm() {
+		// don't know how to deal with forms yet, possibly embed an xform
 	}
 
 	@Test
-	public void testStreamingResource() {
+	public void testSerialiseStreamingResource() {
 		// cannot decorate a streaming resource so should fail
 	}
 	

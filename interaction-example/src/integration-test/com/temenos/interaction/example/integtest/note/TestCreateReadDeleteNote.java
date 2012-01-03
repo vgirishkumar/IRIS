@@ -100,6 +100,22 @@ public class TestCreateReadDeleteNote extends JerseyTest {
         assertEquals("test note", nr.getBody());
 	}
 
+
+    /*
+     * This Read/GET test will use our HAL jax-rs Provider
+     */
+    @Test
+	public void testReadAPPLICATION_HAL_XML() {
+		String noteUri = NOTES_RESOURCE + "/1";
+        // GET new resource
+        ClientResponse getResponse = webResource.path(noteUri).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
+        assertEquals(200, getResponse.getStatus());
+        String noteHALRepresentation = getResponse.getEntity(String.class);
+//      NoteRepresentation nr = getResponse.getEntity(NoteRepresentation.class);
+        NoteRepresentation nr = NoteRepresentation.fromXmlString(noteHALRepresentation);
+        assertEquals("Beverages", nr.getBody());
+	}
+
     /*
      * This test will use our HAL jax-rs Provider
      */
@@ -108,16 +124,16 @@ public class TestCreateReadDeleteNote extends JerseyTest {
 		String noteUri = NOTES_RESOURCE + "/10";
 		// not created yet (delete it to make sure as tests could be run multiple times)
         webResource.path(noteUri).delete();
-        ClientResponse response = webResource.path(noteUri).accept(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
+        ClientResponse response = webResource.path(noteUri).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         assertEquals(404, response.getStatus());
         
         // create (PUT) resource
-        ClientResponse putResponse = webResource.path(noteUri).type(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).accept(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, new NoteRepresentation("test note"));
+        ClientResponse putResponse = webResource.path(noteUri).type(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, new NoteRepresentation("test note"));
         // now created
         assertEquals(200, putResponse.getStatus());
 		
         // GET new resource
-        ClientResponse getResponse = webResource.path(noteUri).accept(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
+        ClientResponse getResponse = webResource.path(noteUri).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         assertEquals(200, getResponse.getStatus());
         String noteHALRepresentation = getResponse.getEntity(String.class);
 //      NoteRepresentation nr = getResponse.getEntity(NoteRepresentation.class);

@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.decorator;
+package com.temenos.interaction.core.media;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;

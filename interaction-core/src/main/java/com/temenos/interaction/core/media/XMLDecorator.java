@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.decorator;
+package com.temenos.interaction.core.media;
 
 import java.io.StringWriter;
 

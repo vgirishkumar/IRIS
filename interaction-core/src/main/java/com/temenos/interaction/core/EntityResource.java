@@ -49,9 +49,10 @@ public class EntityResource implements RESTResource {
 		if (oEntity != null) return oEntity;
 		if (entity != null) {
 			logger.debug("Discovered a jaxb / json deserialised object");
+			// TODO implement a generic jaxb to OEntity conversion for our 'entity'
+			throw new NotImplementedException();
 		}
-		// TODO implement a generic jaxb to OEntity conversion for our 'entity'
-		throw new NotImplementedException();
+		throw new RuntimeException("Either oEntity or entity must be supplied");
 	}
 // not used?, see OEntity.getLinks	public Set<OLink> getLinks();
 

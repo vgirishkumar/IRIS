@@ -22,10 +22,10 @@ import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
-import com.temenos.interaction.core.decorator.Decorator;
-import com.temenos.interaction.core.decorator.JSONStreamingDecorator;
-import com.temenos.interaction.core.decorator.PDFDecorator;
-import com.temenos.interaction.core.decorator.XMLDecorator;
+import com.temenos.interaction.core.media.Decorator;
+import com.temenos.interaction.core.media.JSONStreamingDecorator;
+import com.temenos.interaction.core.media.PDFDecorator;
+import com.temenos.interaction.core.media.XMLDecorator;
 
 /**
  * Define the T24 SEE, HISTORY, AUTHORISE, REVERSE, DELETE, INPUT 'SHARDI' Resource Interaction Model.

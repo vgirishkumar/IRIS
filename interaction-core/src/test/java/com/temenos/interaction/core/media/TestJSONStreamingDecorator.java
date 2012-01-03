@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.decorator;
+package com.temenos.interaction.core.media;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -23,6 +23,7 @@ import org.odata4j.edm.EdmEntitySet;
 
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.media.JSONStreamingDecorator;
 
 public class TestJSONStreamingDecorator {
 

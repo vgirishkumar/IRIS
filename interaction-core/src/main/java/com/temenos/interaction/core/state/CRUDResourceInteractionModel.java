@@ -1,8 +1,5 @@
 package com.temenos.interaction.core.state;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -15,7 +12,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.slf4j.Logger;
@@ -28,9 +24,6 @@ import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
-import com.temenos.interaction.core.decorator.Decorator;
-import com.temenos.interaction.core.decorator.JSONStreamingDecorator;
-import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
 
 /**
  * Define a Create Read Update Delete 'CRUD' Resource Interaction Model.
@@ -40,18 +33,9 @@ import com.temenos.interaction.core.decorator.hal.HALXMLDecorator;
 public abstract class CRUDResourceInteractionModel implements ResourceStateTransition {
 	private final Logger logger = LoggerFactory.getLogger(CRUDResourceInteractionModel.class);
 
-	// TODO inject decorators
-	private static Decorator<StreamingOutput> DEFAULT_DECORATOR = new JSONStreamingDecorator();
-	private static Map<String, Decorator<StreamingOutput>> decorators = new HashMap<String, Decorator<StreamingOutput>>();
-
 	private String resourcePath;
 	private CommandController commandController = new CommandController();
-	
-	static {
-		decorators.put(MediaType.APPLICATION_JSON, new JSONStreamingDecorator());
-		decorators.put(com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML, new HALXMLDecorator());
-	}
-	
+		
 	/* Keep JAXB happy */
 	public CRUDResourceInteractionModel() {}
 	
@@ -74,8 +58,9 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	 * @invariant resourcePath not null
 	 */
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
+    	logger.debug("GET " + resourcePath);
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
     	RESTResponse response = getCommand.get(id);
@@ -84,7 +69,8 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 		assert (status != null);  // not a valid get command
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
-			return Response.ok(response.getResource()).status(status).build();
+			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
+			return HeaderHelper.allowHeader(rb, response).build();
 		}
 		return Response.status(status).build();
     }
@@ -106,25 +92,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 		return Response.status(status).build();
     }
     */
-    
-    private Response decoratedResponse(HttpHeaders headers, RESTResponse response) {
-		assert(response != null);
-		assert(headers != null);
-		// TODO need to be smarter in the way we evaluate acceptable media types
-		Decorator<StreamingOutput> d = null;
-		if (headers.getAcceptableMediaTypes().size() > 0) {
-			logger.debug("Accept header: " + headers.getAcceptableMediaTypes());
-			String usingMT = headers.getAcceptableMediaTypes().get(0).toString();
-			logger.info("Using media type: " + usingMT);
-			d = decorators.get(usingMT);
-		}
-		if (d == null)
-			d = DEFAULT_DECORATOR;
-		
-    	StreamingOutput so = d.decorateRESTResponse(response);
-    	return HeaderHelper.allowHeader(Response.status(response.getStatus()).entity(so), response).build();
-    }
-    
+        
 	/**
 	 * POST a document to a resource.
 	 * @precondition a valid POST command for this resourcePath + id must be registered with the command controller
@@ -132,9 +100,10 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	 * @invariant resourcePath not null
 	 */
     @POST
-// TODO not used in CRUD
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
+// TODO not used in CRUD, change to Transient resource interaction model
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    	logger.debug("POST " + resourcePath);
     	assert(resourcePath != null);
 		ResourcePostCommand postCommand = (ResourcePostCommand) commandController.fetchStateTransitionCommand("POST", getResourcePath());
     	RESTResponse response = postCommand.post(id, resource);
@@ -143,7 +112,8 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
     	assert (status != null);  // not a valid post command
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
-			return decoratedResponse(headers, response);
+			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
+			return HeaderHelper.allowHeader(rb, response).build();
 		}
    		return Response.status(status).build();
     }
@@ -156,8 +126,9 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	 * @invariant resourcePath not null
 	 */
     @PUT
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.decorator.hal.MediaType.APPLICATION_HAL_XML})
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    	logger.debug("PUT " + resourcePath);
     	assert(resourcePath != null);
 		ResourcePutCommand putCommand = (ResourcePutCommand) commandController.fetchStateTransitionCommand("PUT", getResourcePath());
 		StatusType status = putCommand.put(id, resource);
@@ -177,6 +148,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	 */
     @DELETE
     public Response delete( @Context HttpHeaders headers, @PathParam("id") String id ) {
+    	logger.debug("DELETE " + resourcePath);
     	assert(resourcePath != null);
     	ResourceDeleteCommand deleteCommand = (ResourceDeleteCommand) commandController.fetchStateTransitionCommand("DELETE", getResourcePath());
 		StatusType status = deleteCommand.delete(id);
@@ -192,6 +164,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	 */
     @Override
     public Response options(String id) {
+    	logger.debug("OPTIONS " + resourcePath);
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
     	ResponseBuilder response = Response.ok();

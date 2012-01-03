@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.odata4j.core.OEntity;
 
-@Entity
+@Entity(name = "note")
 @Table(name="NOTE")
 @XmlRootElement(name = "note")
 @XmlAccessorType(XmlAccessType.FIELD)

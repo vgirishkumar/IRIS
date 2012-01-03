@@ -1,4 +1,4 @@
-package com.temenos.interaction.core;
+package com.temenos.interaction.core.media.xml.jaxb;
 
 import java.util.Arrays;
 import java.util.HashSet;

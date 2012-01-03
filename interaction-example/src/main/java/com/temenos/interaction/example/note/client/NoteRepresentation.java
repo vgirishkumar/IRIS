@@ -11,8 +11,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.temenos.interaction.core.decorator.hal.Link;
-import com.temenos.interaction.core.decorator.hal.Representation;
+import com.temenos.interaction.core.media.hal.Link;
+import com.temenos.interaction.core.media.hal.Representation;
 
 @XmlRootElement(name = "resource")
 @XmlAccessorType(XmlAccessType.FIELD)

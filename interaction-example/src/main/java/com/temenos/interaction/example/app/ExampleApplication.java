@@ -5,8 +5,10 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
+import com.temenos.interaction.core.media.hal.stax.HALProvider;
 import com.temenos.interaction.example.country.CountryRIM;
 import com.temenos.interaction.example.note.NewNoteRIM;
+import com.temenos.interaction.example.note.NoteProducerFactory;
 import com.temenos.interaction.example.note.NoteRIM;
 import com.temenos.interaction.example.sandbox.SandboxRIM;
 
@@ -24,6 +26,7 @@ public class ExampleApplication extends Application {
         
         try {
             singletons.add(new JAXBContextResolver());
+            singletons.add(new HALProvider(new NoteProducerFactory().getJPAProducer().getMetadata()));
         } catch (Exception e) {
         	throw new RuntimeException(e);
         }
