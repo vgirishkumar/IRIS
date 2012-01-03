@@ -35,7 +35,7 @@ import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.PutNotSupportedCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
-import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
+import com.temenos.interaction.core.state.TRANSIENTResourceInteractionModel;
 
 /**
  * Define the 'new' note Resource Interaction Model
@@ -44,7 +44,7 @@ import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
  * @author aphethean
  */
 @Path("/notes/new")
-public class NewNoteRIM extends CRUDResourceInteractionModel implements ResourcePostCommand {
+public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements ResourcePostCommand {
 
 	private final static String RESOURCE_PATH = "/notes/new";
 	private final static String ENTITY_NAME = "ID";
@@ -73,7 +73,7 @@ public class NewNoteRIM extends CRUDResourceInteractionModel implements Resource
 		 * Configure the dynamic RIM
 		 */
 		CommandController commandController = getCommandController();
-		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand());
+//		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand());
 		commandController.addStateTransitionCommand("POST", RESOURCE_PATH, this);
 	}
 
@@ -86,14 +86,6 @@ public class NewNoteRIM extends CRUDResourceInteractionModel implements Resource
 		edmDataServices = producer.getMetadata();
 	}
 
-	private static Set<String> getValidNextStates() {
-		Set<String> validMethods = new HashSet<String>();
-		validMethods.add("HEAD");
-		validMethods.add("OPTIONS");
-		validMethods.add("POST");
-		return validMethods;
-	}
-	
 	
 	@PUT
     @Consumes(MediaType.TEXT_PLAIN)
@@ -122,7 +114,7 @@ public class NewNoteRIM extends CRUDResourceInteractionModel implements Resource
 		links.add(OLinks.link("_new", "NewNote", NoteRIM.RESOURCE_PATH.replaceFirst("\\{id\\}", replacement)));
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
 		EntityResource er = new EntityResource(entity);
-		return new RESTResponse(Response.Status.OK, er, getValidNextStates());
+		return new RESTResponse(Response.Status.OK, er, null);
 	}
 
 }

@@ -10,22 +10,18 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
 
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.media.Decorator;
-import com.temenos.interaction.core.media.JSONStreamingDecorator;
 import com.temenos.interaction.core.media.PDFDecorator;
-import com.temenos.interaction.core.media.XMLDecorator;
 
 /**
  * Define the T24 SEE, HISTORY, AUTHORISE, REVERSE, DELETE, INPUT 'SHARDI' Resource Interaction Model.
@@ -49,13 +45,10 @@ public abstract class SHARDIResourceInteractionModel implements ResourceStateTra
 	public @interface AUTHORISE { 
 	}
 
-    private @Context UriInfo uriInfo;
+//    private @Context UriInfo uriInfo;
 	private CommandController commandController = new CommandController();
 	private String resourcePath = null;
 	
-	/* Keep JAXB happy */
-	public SHARDIResourceInteractionModel() {}
-
 	public SHARDIResourceInteractionModel(String resourcePath) {
 		this.resourcePath = resourcePath;
 	}

@@ -19,6 +19,7 @@ public class DynaCRUDRIM extends CRUDResourceInteractionModel implements Dynamic
 	private ODataProducer producer; 
 	
 	public DynaCRUDRIM(String path) {
+		super(path);
 		this.path= path;
 	}
 	
