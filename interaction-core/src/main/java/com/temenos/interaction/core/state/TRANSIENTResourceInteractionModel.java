@@ -1,6 +1,8 @@
 package com.temenos.interaction.core.state;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
@@ -20,7 +22,6 @@ import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.PutNotSupportedCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
-import com.temenos.interaction.core.command.ResourcePutCommand;
 
 /**
  * Defines a Resource Interaction Model for a resource with no state at all.
@@ -70,12 +71,22 @@ public class TRANSIENTResourceInteractionModel implements
    		return Response.status(status).build();
     }
     
+    @GET
+    public Response getNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    	logger.debug("GET " + resourcePath);
+   		return Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
+    }
+
     @PUT
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    public Response putNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
     	logger.debug("PUT " + resourcePath);
-		StatusType status = new PutNotSupportedCommand().put(id, resource);
-   		return Response.status(status).build();
+   		return Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
+    }
+
+    @DELETE
+    public Response deleteNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    	logger.debug("DELETE " + resourcePath);
+   		return Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
     }
 
 	@Override
