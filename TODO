@@ -4,9 +4,6 @@ Implement the ability to bind a command to a combination of mediatype + http met
 
 Add to simple CRUD Note example and bind a GET command to application/xml and application/json to return JAXB EntityResource
 
-Implement Providers to replace the decorators for an EntityResource.  This way we should be able to serialize / deserialize 
-	directly to the OEntity or the jaxb object depending on how the providers are configured for the chosen media type
-
 Switch to using wink with Spring
 
 Implement a dynamic resource working with new EntityResource
