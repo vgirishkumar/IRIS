@@ -2,10 +2,8 @@ package com.temenos.interaction.example.note;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -49,6 +47,10 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements Res
 	private final static String RESOURCE_PATH = "/notes/new";
 	private final static String ENTITY_NAME = "ID";
 	private final static String DOMAIN_OBJECT_NAME = "NOTE";
+	
+	/*
+	 * Member variables used by ResourcePostCommand
+	 */
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
 
@@ -58,17 +60,19 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements Res
 		/*
 		 * Not required when wired with Spring
 		 */
-		  		NoteProducerFactory npf = new NoteProducerFactory();
-		  		producer = npf.getFunctionsProducer();
-		  		edmDataServices = producer.getMetadata();
-		/*
-		 * Not required when wired with Spring
-		 * 		NoteProducerFactory npf = new NoteProducerFactory();
-		 * 		producer = npf.getFunctionsProducer();
-		 * 		edmDataServices = producer.getMetadata();
-		 */
-
-		  		
+  		NoteProducerFactory npf = new NoteProducerFactory();
+  		producer = npf.getFunctionsProducer();
+  		edmDataServices = producer.getMetadata();
+	}
+		  	
+	public NewNoteRIM(ODataProducer producer) {
+		super(RESOURCE_PATH);
+		this.producer = producer;
+  		edmDataServices = producer.getMetadata();
+		initialise();
+	}
+	
+	public void initialise() {
 		/*
 		 * Configure the dynamic RIM
 		 */
@@ -84,6 +88,7 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements Res
 	public void setProducer(ODataProducer producer) {
 		this.producer = producer;
 		edmDataServices = producer.getMetadata();
+		initialise();
 	}
 
 	
@@ -93,7 +98,10 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements Res
 	    throw new WebApplicationException(Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).entity(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED_MSG).build());
 	}
 	
-	
+	/*
+	 * Implement ResourcePostCommand
+	 * @see com.temenos.interaction.core.command.ResourcePostCommand#post(java.lang.String, com.temenos.interaction.core.EntityResource)
+	 */
 	public RESTResponse post(String id, EntityResource resource) {
 		assert(id == null || "".equals(id));
 

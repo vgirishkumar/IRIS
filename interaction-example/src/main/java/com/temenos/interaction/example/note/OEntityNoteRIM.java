@@ -19,35 +19,26 @@ public class OEntityNoteRIM extends CRUDResourceInteractionModel {
 
 	public final static String RESOURCE_PATH = "/notes/{id}";
 	public final static String ENTITY_NAME = "note";
-	private ODataProducer producer;
 
 	public OEntityNoteRIM() {
 		super(RESOURCE_PATH);
-
 		/*
 		 * Not required when wired with Spring
 		 */
 		NoteProducerFactory npf = new NoteProducerFactory();
-		producer = npf.getFunctionsProducer();
-		/*
-		 * Not required when wired with Spring
-		 * 		NoteProducerFactory npf = new NoteProducerFactory();
-		 * 		producer = npf.getFunctionsProducer();
-		 * 		edmDataServices = producer.getMetadata();
-		 */
-
+		initialise(npf.getFunctionsProducer());
+	}
+	
+	public OEntityNoteRIM(ODataProducer producer) {
+		super(RESOURCE_PATH);
+		initialise(producer);
+	}
+	
+	public void initialise(ODataProducer producer) {
 		CommandController commandController = getCommandController();
 		commandController.addGetCommand(RESOURCE_PATH, new OEntityGetNoteCommand(producer));
 		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new OEntityPutNoteCommand(producer));
 		commandController.addStateTransitionCommand("DELETE", RESOURCE_PATH, new DeleteNoteCommand(producer));
-	}
-
-	public ODataProducer getProducer() {
-		return producer;
-	}
-
-	public void setProducer(ODataProducer producer) {
-		this.producer = producer;
 	}
 
 	public static Set<String> getValidNextStates() {

@@ -20,7 +20,6 @@ public class JAXBNoteRIM extends CRUDResourceInteractionModel {
 
 	public final static String RESOURCE_PATH = "/notesjaxb/{id}";
 	public final static String ENTITY_NAME = OEntityNoteRIM.ENTITY_NAME;
-	private ODataProducer producer;
 	
 	public JAXBNoteRIM() {
 		super(RESOURCE_PATH);
@@ -29,28 +28,21 @@ public class JAXBNoteRIM extends CRUDResourceInteractionModel {
 		 * Not required when wired with Spring
 		 */
 		NoteProducerFactory npf = new NoteProducerFactory();
-		producer = npf.getFunctionsProducer();
-		/*
-		 * Not required when wired with Spring
-		 * 		NoteProducerFactory npf = new NoteProducerFactory();
-		 * 		producer = npf.getFunctionsProducer();
-		 * 		edmDataServices = producer.getMetadata();
-		 */
+		initialise(npf.getFunctionsProducer());
+	}
 
+	public JAXBNoteRIM(ODataProducer producer) {
+		super(RESOURCE_PATH);
+		initialise(producer);
+	}
+	
+	public void initialise(ODataProducer producer) {
 		CommandController commandController = getCommandController();
 		commandController.addGetCommand(RESOURCE_PATH, new JAXBGetNoteCommand(producer));
 		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new JAXBPutNoteCommand(producer));
 		commandController.addStateTransitionCommand("DELETE", RESOURCE_PATH, new DeleteNoteCommand(producer));
 	}
 
-	public ODataProducer getProducer() {
-		return producer;
-	}
-
-	public void setProducer(ODataProducer producer) {
-		this.producer = producer;
-	}
-	
 	public static Set<String> getValidNextStates() {
 		Set<String> states = new HashSet<String>();
 		states.add("GET");

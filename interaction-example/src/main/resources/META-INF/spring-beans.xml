@@ -9,20 +9,25 @@
 			<property name="persistenceUnitName" value="NoteServiceHibernate" />		
 	</bean>
 	<!-- Create the MockResponder factory, at the moment this also initialises the Mock database -->
-	<bean id="MockResponderFactory" class="com.temenos.interaction.example.note.NoteProducerFactory" />
+	<bean id="mockResponderFactory" class="com.temenos.interaction.example.note.NoteProducerFactory" />
 	<!-- MockResponder Producer -->
-	<bean id="producer" factory-bean="MockResponderFactory" factory-method="getJPAProducer"/>
-	<bean id="functionsProducer" factory-bean="MockResponderFactory" factory-method="getFunctionsProducer"/>
+	<bean id="producer" factory-bean="mockResponderFactory" factory-method="getJPAProducer"/>
+	<bean id="edmDataServices" factory-bean="producer" factory-method="getMetadata"/>
+	<bean id="functionsProducer" factory-bean="mockResponderFactory" factory-method="getFunctionsProducer"/>
 
-
-	<bean class="org.apache.wink.spring.Registrar">
+<!--
+	An extension of org.apache.wink.spring.Registrar with support for singletons.
+-->
+	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
-          	  <ref local="jacksonJaxbJsonProvider" />
-      	  </set>
+        		<ref local="jaxbContextResolver" />
+				<ref local="staxHALProvider" />
+ 			</set>
    		</property>
    		<property name="classes">
 			<set value-type="java.lang.Class">
+				<value>com.temenos.interaction.example.sandbox.SandboxRIM</value>
 <!--  
 				<value>com.temenos.interaction.example.note.NoteRIM</value>
 				<value>com.temenos.interaction.example.note.NewNoteRIM</value>
@@ -31,8 +36,10 @@
 		</property>
 		<property name="instances">
 			<set>
-				<ref bean="NOTE" />
+				<ref bean="OEntity-NOTE" />
+				<ref bean="JAXB-NOTE" />
 				<ref bean="NEW_NOTE" />
+				<ref bean="COUNTRY" />
 			</set>
 		</property>
 <!--  
@@ -45,7 +52,10 @@
 -->
 	</bean>
 
-	<bean id="jacksonJaxbJsonProvider" class="org.apache.wink.providers.jackson.WinkJacksonJaxbJsonProvider" />
+	<bean id="jaxbContextResolver" class="com.temenos.interaction.example.app.JAXBContextResolver" />
+	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+	</bean>
 
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
     	<constructor-arg name="path" value="/nnnnnotes/{id}" />
@@ -56,11 +66,17 @@
     	<property name="producer" ref="functionsProducer" />
     </bean>
 
-    <bean id="NOTE" class="com.temenos.interaction.example.note.NoteRIM">
-    	<property name="producer" ref="producer" />
+    <bean id="OEntity-NOTE" class="com.temenos.interaction.example.note.OEntityNoteRIM">
+    	<constructor-arg name="producer" ref="producer" />
+    </bean>
+    <bean id="JAXB-NOTE" class="com.temenos.interaction.example.note.JAXBNoteRIM">
+    	<constructor-arg name="producer" ref="producer" />
     </bean>
     <bean id="NEW_NOTE" class="com.temenos.interaction.example.note.NewNoteRIM">
-    	<property name="producer" ref="functionsProducer" />
+    	<constructor-arg name="producer" ref="functionsProducer" />
+    </bean>
+    <bean id="COUNTRY" class="com.temenos.interaction.example.country.CountryRIM">
+    	<constructor-arg name="producer" ref="producer" />
     </bean>
 
 </beans>

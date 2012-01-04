@@ -11,17 +11,24 @@ import com.temenos.interaction.example.note.NoteProducerFactory;
 public class CountryRIM extends SHARDIResourceInteractionModel {
 
 	private final static String RESOURCE_PATH = "/countries/{id}";
-	private final GetCountryCommand getCommand = new GetCountryCommand();
 	
 	public CountryRIM() {
 		super(RESOURCE_PATH);
 		/*
 		 * Not required when wired with Spring and not a Country producer at the moment
 		 */
-		  		NoteProducerFactory npf = new NoteProducerFactory();
-		  		ODataProducer producer = npf.getJPAProducer();
-		getCommand.setProducer(producer);
-		registerGetCommand(RESOURCE_PATH, getCommand);
+  		NoteProducerFactory npf = new NoteProducerFactory();
+  		ODataProducer producer = npf.getJPAProducer();
+		initialise(producer);
+	}
+	
+	public CountryRIM(ODataProducer producer) {
+		super(RESOURCE_PATH);
+		initialise(producer);
+	}
+  		
+  	public void initialise(ODataProducer producer) {
+  		registerGetCommand(RESOURCE_PATH, new GetCountryCommand(producer));
 	}
 
 }

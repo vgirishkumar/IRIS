@@ -20,6 +20,9 @@ public class GetCountryCommand implements ResourceGetCommand {
 	
 	private ODataProducer producer;
 
+	public GetCountryCommand(ODataProducer producer) {
+		this.producer = producer;
+	}
 	
 	/*
 	 * Execute a command to get the country resource.

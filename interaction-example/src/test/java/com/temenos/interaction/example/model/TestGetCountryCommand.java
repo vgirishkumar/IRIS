@@ -29,13 +29,13 @@ public class TestGetCountryCommand {
 
 	@Test(expected=AssertionError.class)
 	public void testExecuteNoEntityManager() {
-		GetCountryCommand command = new GetCountryCommand();
+		GetCountryCommand command = new GetCountryCommand(null);
 		command.get("123");
 	}
 
 	@Test
 	public void testExecuteNotFound() {
-		GetCountryCommand command = new GetCountryCommand();
+		GetCountryCommand command = new GetCountryCommand(null);
 		ODataProducer mockP = mock(ODataProducer.class);
 		when(mockP.getEntity(anyString(), (OEntityKey) isNull(), (QueryInfo) isNull())).thenReturn(null);
 		command.setProducer(mockP);
@@ -46,7 +46,7 @@ public class TestGetCountryCommand {
 
 	@Test
 	public void testExecuteOK() {
-		GetCountryCommand command = new GetCountryCommand();
+		GetCountryCommand command = new GetCountryCommand(null);
 		ODataProducer mockP = mock(ODataProducer.class);
 		OEntity mockEntity = mock(OEntity.class);
 		OProperty busiProp = OProperties.string("businessCentre", "newbusinessCentre_123");
