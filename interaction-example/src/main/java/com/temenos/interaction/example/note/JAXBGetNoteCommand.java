@@ -11,21 +11,21 @@ import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
-public class GetOEntityNoteCommand implements ResourceGetCommand {
+public class JAXBGetNoteCommand implements ResourceGetCommand {
 
 	private ODataProducer producer;
 	
-	public GetOEntityNoteCommand(ODataProducer producer) {
+	public JAXBGetNoteCommand(ODataProducer producer) {
 		this.producer = producer;
 	}
 	
-	/* Implement ResourceGetCommand (OEntity) */
+	/* Implement ResourceGetCommand (JAXB) */
 	public RESTResponse get(String id) {
 		OEntityKey key = OEntityKey.create(new Long(id));
-		EntityResponse er = producer.getEntity(NoteRIM.ENTITY_NAME, key, null);
+		EntityResponse er = producer.getEntity(OEntityNoteRIM.ENTITY_NAME, key, null);
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(oEntity), NoteRIM.getValidNextStates());
+		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(new Note(oEntity)), OEntityNoteRIM.getValidNextStates());
 		return rr;
 	}
 

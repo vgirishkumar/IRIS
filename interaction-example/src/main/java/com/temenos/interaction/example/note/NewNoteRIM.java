@@ -107,11 +107,11 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements Res
 		assert(functionName.returnType == EdmSimpleType.INT64);
 		
 		// TODO this could either be the type we are creating and ID for, or it could just be a transient type
-		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(NoteRIM.ENTITY_NAME);
+		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(OEntityNoteRIM.ENTITY_NAME);
 		OEntityKey entityKey = OEntityKey.create("new");
 		List<OLink> links = new ArrayList<OLink>();
 		String replacement = ((PropertyResponse)fr).getProperty().getValue().toString();
-		links.add(OLinks.link("_new", "NewNote", NoteRIM.RESOURCE_PATH.replaceFirst("\\{id\\}", replacement)));
+		links.add(OLinks.link("_new", "NewNote", OEntityNoteRIM.RESOURCE_PATH.replaceFirst("\\{id\\}", replacement)));
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
 		EntityResource er = new EntityResource(entity);
 		return new RESTResponse(Response.Status.OK, er, null);

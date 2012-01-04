@@ -80,7 +80,7 @@ public class TestCreateReadDeleteNote extends JerseyTest {
      */
     @Test
 	public void testCreateReadDeleteAPPLICATION_XML() {
-		String noteUri = NOTES_RESOURCE + "/10";
+		String noteUri = NOTES_RESOURCE + "jaxb" + "/10";
 		// not created yet (delete it to make sure as tests could be run multiple times)
         webResource.path(noteUri).delete();
         ClientResponse response = webResource.path(noteUri).accept(MediaType.APPLICATION_XML).get(ClientResponse.class);
