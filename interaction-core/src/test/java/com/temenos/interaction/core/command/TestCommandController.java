@@ -3,6 +3,7 @@ package com.temenos.interaction.core.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -13,16 +14,16 @@ public class TestCommandController {
 
 	@Test
 	public void testAddGetCommand() {
-		CommandController cc = new CommandController();
-		cc.addGetCommand(null, null);
+		CommandController cc = new CommandController("/test-resource");
+		cc.setGetCommand(null);
 	}
 
 	@Test
 	public void testGetCommandNull() {
-		CommandController cc = new CommandController();
+		CommandController cc = new CommandController("/test-resource");
 		boolean exceptionThrown = false;
 		try {
-			cc.fetchGetCommand(null);
+			cc.fetchGetCommand();
 		} catch (WebApplicationException wae) {
 			if (wae.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
 				exceptionThrown = true;
@@ -33,10 +34,10 @@ public class TestCommandController {
 
 	@Test
 	public void testGetCommandNotNullNotRegistered() {
-		CommandController cc = new CommandController();
+		CommandController cc = new CommandController("/test-resource");
 		boolean exceptionThrown = false;
 		try {
-			cc.fetchGetCommand("test");
+			cc.fetchGetCommand();
 		} catch (WebApplicationException wae) {
 			if (wae.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
 				exceptionThrown = true;
@@ -47,22 +48,21 @@ public class TestCommandController {
 
 	@Test
 	public void testGetCommandRegistered() {
-		CommandController cc = new CommandController();
-		String uriPath = "test";
+		CommandController cc = new CommandController("/test-resource");
 		ResourceGetCommand getCommand = mock(ResourceGetCommand.class);
-		cc.addGetCommand(uriPath, getCommand);
-		assertEquals(getCommand, cc.fetchGetCommand(uriPath));
+		cc.setGetCommand(getCommand);
+		assertEquals(getCommand, cc.fetchGetCommand());
 	}
 
-	@Test
+	@Test(expected = AssertionError.class)
 	public void testAddSTCommand() {
-		CommandController cc = new CommandController();
-		cc.addStateTransitionCommand(null, null, null);
+		CommandController cc = new CommandController("/test-resource");
+		cc.addStateTransitionCommand(null);
 	}
 
 	@Test
 	public void testSTCommandNull() {
-		CommandController cc = new CommandController();
+		CommandController cc = new CommandController("/test-resource");
 		boolean exceptionThrown = false;
 		try {
 			cc.fetchStateTransitionCommand(null, null);
@@ -76,7 +76,7 @@ public class TestCommandController {
 
 	@Test
 	public void testSTCommandNotNullNotRegistered() {
-		CommandController cc = new CommandController();
+		CommandController cc = new CommandController("/test-resource");
 		boolean exceptionThrown = false;
 		try {
 			cc.fetchStateTransitionCommand("DO", "test");
@@ -90,10 +90,12 @@ public class TestCommandController {
 
 	@Test
 	public void testSTCommandRegistered() {
-		CommandController cc = new CommandController();
-		String uriPath = "test";
+		CommandController cc = new CommandController("/test-resource");
+		String uriPath = "/test-resource/do";
 		ResourceStateTransitionCommand command = mock(ResourcePutCommand.class);
-		cc.addStateTransitionCommand("DO", uriPath, command);
+		when(command.getMethod()).thenReturn("DO");
+		when(command.getPath()).thenReturn(uriPath);
+		cc.addStateTransitionCommand(command);
 		assertEquals(command, cc.fetchStateTransitionCommand("DO", uriPath));
 	}
 

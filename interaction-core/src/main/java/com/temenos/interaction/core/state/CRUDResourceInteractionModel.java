@@ -32,12 +32,18 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	private final Logger logger = LoggerFactory.getLogger(CRUDResourceInteractionModel.class);
 
 	private String resourcePath;
-	private CommandController commandController = new CommandController();
+	private CommandController commandController;
 		
 	public CRUDResourceInteractionModel(String resourcePath) {
 		this.resourcePath = resourcePath;
+		this.commandController = new CommandController(resourcePath);
 	}
-	
+
+	public CRUDResourceInteractionModel(String resourcePath, CommandController commandController) {
+		this.resourcePath = resourcePath;
+		this.commandController = commandController;
+	}
+
 	public String getResourcePath() {
 		return resourcePath;
 	}
@@ -57,7 +63,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
     	logger.debug("GET " + resourcePath);
     	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
     	RESTResponse response = getCommand.get(id);
     	assert (response != null);
     	StatusType status = response.getStatus();
@@ -117,7 +123,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
     public Response options(String id) {
     	logger.debug("OPTIONS " + resourcePath);
     	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand(getResourcePath());
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
     	ResponseBuilder response = Response.ok();
     	RESTResponse rResponse = getCommand.get(id);
     	assert (rResponse != null);

@@ -31,7 +31,7 @@ import org.odata4j.producer.PropertyResponse;
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.command.PutNotSupportedCommand;
+import com.temenos.interaction.core.command.NotSupportedCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.state.TRANSIENTResourceInteractionModel;
 
@@ -78,7 +78,7 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements Res
 		 */
 		CommandController commandController = getCommandController();
 //		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand());
-		commandController.addStateTransitionCommand("POST", RESOURCE_PATH, this);
+		commandController.addStateTransitionCommand(this);
 	}
 
 	public ODataProducer getProducer() {
@@ -95,7 +95,7 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements Res
 	@PUT
     @Consumes(MediaType.TEXT_PLAIN)
 	public RESTResponse put(String resource) {
-	    throw new WebApplicationException(Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).entity(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED_MSG).build());
+	    throw new WebApplicationException(Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).entity(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED_MSG).build());
 	}
 	
 	/*
@@ -123,6 +123,14 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel implements Res
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
 		EntityResource er = new EntityResource(entity);
 		return new RESTResponse(Response.Status.OK, er, null);
+	}
+
+	public String getMethod() {
+		return "POST";
+	}
+
+	public String getPath() {
+		return RESOURCE_PATH;
 	}
 
 }

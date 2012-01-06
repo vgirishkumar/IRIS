@@ -4,9 +4,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.Response.StatusType;
 
-import com.temenos.interaction.core.EntityResource;
-
-public class PutNotSupportedCommand implements ResourcePutCommand {
+public class NotSupportedCommand implements ResourceCommand {
 
 	public final static String HTTP_STATUS_NOT_IMPLEMENTED_MSG = "Not Implemented";
 	public final static StatusType HTTP_STATUS_NOT_IMPLEMENTED = new StatusType() {
@@ -25,9 +23,4 @@ public class PutNotSupportedCommand implements ResourcePutCommand {
 		
 	};
 	
-	@Override
-	public StatusType put(String id, EntityResource resource) {
-		return HTTP_STATUS_NOT_IMPLEMENTED;
-	}
-
 }

@@ -6,4 +6,7 @@ package com.temenos.interaction.core.command;
  */
 public interface ResourceStateTransitionCommand extends ResourceCommand {
 	
+	public String getMethod();
+	public String getPath();
+	
 }

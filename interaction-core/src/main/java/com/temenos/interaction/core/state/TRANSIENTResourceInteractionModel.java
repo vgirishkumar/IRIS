@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.command.PutNotSupportedCommand;
+import com.temenos.interaction.core.command.NotSupportedCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 
 /**
@@ -33,10 +33,11 @@ public class TRANSIENTResourceInteractionModel implements
 	private final Logger logger = LoggerFactory.getLogger(TRANSIENTResourceInteractionModel.class);
 
 	private String resourcePath;
-	private CommandController commandController = new CommandController();
+	private CommandController commandController;
 		
 	public TRANSIENTResourceInteractionModel(String resourcePath) {
 		this.resourcePath = resourcePath;
+		this.commandController = new CommandController(resourcePath);
 	}
 	
 	public String getResourcePath() {
@@ -74,19 +75,19 @@ public class TRANSIENTResourceInteractionModel implements
     @GET
     public Response getNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
     	logger.debug("GET " + resourcePath);
-   		return Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
+   		return Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
     }
 
     @PUT
     public Response putNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
     	logger.debug("PUT " + resourcePath);
-   		return Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
+   		return Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
     }
 
     @DELETE
     public Response deleteNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
     	logger.debug("DELETE " + resourcePath);
-   		return Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
+   		return Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
     }
 
 	@Override

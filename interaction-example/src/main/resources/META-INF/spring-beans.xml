@@ -36,10 +36,14 @@
 		</property>
 		<property name="instances">
 			<set>
+<!-- 
 				<ref bean="OEntity-NOTE" />
+ -->
 				<ref bean="JAXB-NOTE" />
 				<ref bean="NEW_NOTE" />
 				<ref bean="COUNTRY" />
+
+				<ref bean="DYNA_NOTE" />
 			</set>
 		</property>
 <!--  
@@ -58,14 +62,40 @@
 	</bean>
 
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
-    	<constructor-arg name="path" value="/nnnnnotes/{id}" />
-    	<property name="producer" ref="producer" />
+    	<constructor-arg name="path" value="/notes/{id}" />
+    	<constructor-arg name="commandController" ref="noteCommands" />
     </bean>
-    <bean id="DYNA_NEW_NOTE" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
+    
+    <bean id="noteCommands" class="com.temenos.interaction.core.command.CommandController">
+    	<constructor-arg name="resourcePath" value="/notes/{id}" />
+    	<constructor-arg name="getCommand">
+    		<bean class="com.temenos.interaction.example.note.OEntityGetNoteCommand">
+    			<constructor-arg name="producer" ref="producer" />
+    		</bean>
+   		</constructor-arg>
+    	<constructor-arg name="stateTransitionCommands">
+    		<set>
+	    		<bean class="com.temenos.interaction.example.note.OEntityPutNoteCommand">
+    				<constructor-arg name="method" value="PUT" />
+    				<constructor-arg name="path" value="/notes/{id}" />
+    				<constructor-arg name="producer" ref="producer" />
+    			</bean>
+	    		<bean class="com.temenos.interaction.example.note.DeleteNoteCommand">
+    				<constructor-arg name="method" value="DELETE" />
+    				<constructor-arg name="path" value="/notes/{id}" />
+    				<constructor-arg name="producer" ref="producer" />
+    			</bean>
+   			</set>
+   		</constructor-arg>
+    </bean>
+
+    <!-- 
+    <bean id="DYNA_NEW_NOTE" class="com.temenos.interaction.core.dynaresource.DynaTRANSIENTRIM">
     	<constructor-arg name="path" value="/nnnnnotes/new" />
     	<property name="producer" ref="functionsProducer" />
     </bean>
-
+	-->
+    
     <bean id="OEntity-NOTE" class="com.temenos.interaction.example.note.OEntityNoteRIM">
     	<constructor-arg name="producer" ref="producer" />
     </bean>

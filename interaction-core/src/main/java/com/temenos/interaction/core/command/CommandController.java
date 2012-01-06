@@ -2,6 +2,7 @@ package com.temenos.interaction.core.command;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -13,14 +14,31 @@ public class CommandController {
 
 	private final Logger logger = LoggerFactory.getLogger(CommandController.class);
 
+	private String resourcePath = null;
 	private Map<String, ResourceCommand> commands = new HashMap<String, ResourceCommand>();
 
-	public void addGetCommand(String resourcePath, ResourceGetCommand c) {
-		commands.put("GET+" + resourcePath, c);
+	public CommandController(String resourcePath) {
+		this.resourcePath = resourcePath;
+	}
+	public CommandController(String resourcePath, ResourceGetCommand getCommand, Set<ResourceStateTransitionCommand> stateTransitionCommands) {
+		this.resourcePath = resourcePath;
+		setGetCommand(getCommand);
+		for(ResourceStateTransitionCommand stc : stateTransitionCommands) {
+			addStateTransitionCommand(stc);
+		}
+	}
+	
+	public void setGetCommand(ResourceGetCommand c) {
+		commands.put("GET", c);
 	}
 
-	public void addStateTransitionCommand(String httpMethod, String resourcePath, ResourceStateTransitionCommand c) {
-		commands.put(httpMethod + "+" + resourcePath, c);
+	/**
+	 * Add a command to transition a resources state.
+	 * @precondition {@link ResourceStateTransitionCommand} not null
+	 */
+	public void addStateTransitionCommand(ResourceStateTransitionCommand c) {
+		assert(c != null);
+		commands.put(c.getMethod() + "+" + c.getPath(), c);
 	}
 
 	/*
@@ -30,12 +48,11 @@ public class CommandController {
 	 * @postcondition ResourceGetCommand class previously registered for GET operations by #addGetCommand
 	 * @invariant getCommands is not null
 	 */
-	public ResourceGetCommand fetchGetCommand(String resourcePath) {
-		resourcePath = "GET+" + resourcePath;
-		logger.info("Looking up command using [" + resourcePath + "]");
-		ResourceCommand getCommand = commands.get(resourcePath);
+	public ResourceGetCommand fetchGetCommand() {
+		logger.info("Looking up get command for [" + resourcePath + "]");
+		ResourceCommand getCommand = commands.get("GET");
 		if (getCommand == null) {
-			logger.warn("No command bound to [GET+" + resourcePath + "]");
+			logger.warn("No GET command bound for [" + resourcePath + "]");
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return (ResourceGetCommand) getCommand;
@@ -49,12 +66,11 @@ public class CommandController {
 	 * @postcondition ResourceGetCommand class previously registered for GET operations by #addGetCommand
 	 * @invariant getCommands is not null
 	 */
-	public ResourceCommand fetchStateTransitionCommand(String httpMethod, String resourcePath) {
-		resourcePath = httpMethod + "+" + resourcePath;
-		logger.info("Looking up command using [" + resourcePath + "]");
-		ResourceCommand command = commands.get(resourcePath);
+	public ResourceCommand fetchStateTransitionCommand(String httpMethod, String path) {
+		logger.info("Looking up state transition [" + httpMethod + "+" + path + "] command for [" + resourcePath + "]");
+		ResourceCommand command = commands.get(httpMethod + "+" + path);
 		if (command == null) {
-			logger.warn("No command bound to [" + httpMethod + "+" + resourcePath + "]");
+			logger.warn("No command bound to [" + httpMethod + "+" + path + "]");
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return command;

@@ -26,7 +26,7 @@ import org.odata4j.producer.jpa.JPAProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.command.PutNotSupportedCommand;
+import com.temenos.interaction.core.command.NotSupportedCommand;
 
 /**
  * A producer delegate that implements a simple new functions for testing.
@@ -56,7 +56,7 @@ public class NewFunctionProducer extends ODataProducerDelegate {
           return createNewDomainObjectID(function, params, queryInfo);
         } else {
         	logger.error("Unknown function");
-    	    throw new WebApplicationException(Response.status(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).entity(PutNotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED_MSG).build());
+    	    throw new WebApplicationException(Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).entity(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED_MSG).build());
         }
 
     }

@@ -21,10 +21,14 @@ import com.temenos.interaction.core.command.ResourcePutCommand;
 
 public class OEntityPutNoteCommand implements ResourcePutCommand {
 
+	private String method;
+	private String path;
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
 
-	public OEntityPutNoteCommand(ODataProducer producer) {
+	public OEntityPutNoteCommand(String method, String path, ODataProducer producer) {
+		this.method = method;
+		this.path = path;
 		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
 	}
@@ -54,5 +58,12 @@ public class OEntityPutNoteCommand implements ResourcePutCommand {
 		return Response.Status.OK;
 	}
 
+	public String getMethod() {
+		return method;
+	}
+
+	public String getPath() {
+		return path;
+	}
 
 }

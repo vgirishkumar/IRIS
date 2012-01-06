@@ -30,7 +30,9 @@ public class TestTRANSIENTResourceInteractionModel {
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
 		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(RESTResource.class), null));
-		cc.addStateTransitionCommand("POST", resourcePath, rpc);
+		when(rpc.getMethod()).thenReturn("POST");
+		when(rpc.getPath()).thenReturn(resourcePath);
+		cc.addStateTransitionCommand(rpc);
 		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
 		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
 	}
@@ -42,7 +44,10 @@ public class TestTRANSIENTResourceInteractionModel {
 		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
-		cc.addStateTransitionCommand("POST", resourcePath, mock(ResourcePostCommand.class));
+		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
+		when(rpc.getMethod()).thenReturn("POST");
+		when(rpc.getPath()).thenReturn(resourcePath);
+		cc.addStateTransitionCommand(rpc);
 		r.post(null, "123", mock(EntityResource.class));
 	}
 
@@ -62,9 +67,11 @@ public class TestTRANSIENTResourceInteractionModel {
 		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
-		ResourcePostCommand rgc = mock(ResourcePostCommand.class);
-		when(rgc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.OK, null, null));
-		cc.addStateTransitionCommand("POST", resourcePath, rgc);
+		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
+		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.OK, null, null));
+		when(rpc.getMethod()).thenReturn("POST");
+		when(rpc.getPath()).thenReturn(resourcePath);
+		cc.addStateTransitionCommand(rpc);
 		r.post(null, "123", mock(EntityResource.class));
 	}
 

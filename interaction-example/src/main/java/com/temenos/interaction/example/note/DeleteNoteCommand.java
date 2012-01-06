@@ -10,9 +10,13 @@ import com.temenos.interaction.core.command.ResourceDeleteCommand;
 
 public class DeleteNoteCommand implements ResourceDeleteCommand {
 
+	private String method;
+	private String path;
 	private ODataProducer producer;
 	
-	public DeleteNoteCommand(ODataProducer producer) {
+	public DeleteNoteCommand(String method, String path, ODataProducer producer) {
+		this.method = method;
+		this.path = path;
 		this.producer = producer;
 	}
 
@@ -25,6 +29,14 @@ public class DeleteNoteCommand implements ResourceDeleteCommand {
 			// delete the entity if it exists;
 		}
 		return Response.Status.OK;
+	}
+
+	public String getMethod() {
+		return method;
+	}
+
+	public String getPath() {
+		return path;
 	}
 
 }

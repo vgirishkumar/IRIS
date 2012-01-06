@@ -28,7 +28,7 @@ public class CountryRIM extends SHARDIResourceInteractionModel {
 	}
   		
   	public void initialise(ODataProducer producer) {
-  		registerGetCommand(RESOURCE_PATH, new GetCountryCommand(producer));
+  		registerGetCommand(new GetCountryCommand(producer));
 	}
 
 }

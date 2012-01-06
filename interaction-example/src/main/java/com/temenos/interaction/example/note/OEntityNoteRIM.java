@@ -36,9 +36,9 @@ public class OEntityNoteRIM extends CRUDResourceInteractionModel {
 	
 	public void initialise(ODataProducer producer) {
 		CommandController commandController = getCommandController();
-		commandController.addGetCommand(RESOURCE_PATH, new OEntityGetNoteCommand(producer));
-		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new OEntityPutNoteCommand(producer));
-		commandController.addStateTransitionCommand("DELETE", RESOURCE_PATH, new DeleteNoteCommand(producer));
+		commandController.setGetCommand(new OEntityGetNoteCommand(producer));
+		commandController.addStateTransitionCommand(new OEntityPutNoteCommand("PUT", RESOURCE_PATH, producer));
+		commandController.addStateTransitionCommand(new DeleteNoteCommand("DELETE", RESOURCE_PATH, producer));
 	}
 
 	public static Set<String> getValidNextStates() {

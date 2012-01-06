@@ -1,8 +1,8 @@
 package com.temenos.interaction.core.dynaresource;
 
 import org.apache.wink.common.DynamicResource;
-import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
 
 /**
@@ -14,61 +14,62 @@ import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
  */
 public class DynaCRUDRIM extends CRUDResourceInteractionModel implements DynamicResource {
 
-	private String beanName;
-	private String path;
-	private ODataProducer producer; 
+    private String path;
+    private Object parent;
+    private String workspaceTitle;
+    private String collectionTitle;
+    private String beanName;
 	
-	public DynaCRUDRIM(String path) {
-		super(path);
+	public DynaCRUDRIM(String path, CommandController commandController) {
+		super(path, commandController);
 		this.path= path;
 	}
-	
-	public ODataProducer getProducer() {
-		return producer;
-	}
-
-	public void setProducer(ODataProducer producer) {
-		this.producer = producer;
-	}
-
 
 	@Override
-	public String getBeanName() {
-		return beanName;
-	}
+    public String getBeanName() {
+        return beanName;
+    }
 
 	@Override
-	public String getCollectionTitle() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
+
+    public void setWorkspaceTitle(String workspaceTitle) {
+        this.workspaceTitle = workspaceTitle;
+    }
 
 	@Override
-	public Object getParent() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public String getWorkspaceTitle() {
+        return workspaceTitle;
+    }
+
+    public void setCollectionTitle(String collectionTitle) {
+        this.collectionTitle = collectionTitle;
+    }
 
 	@Override
-	public String getPath() {
-		return path;
-	}
+    public String getCollectionTitle() {
+        return collectionTitle;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 
 	@Override
-	public String getWorkspaceTitle() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public String getPath() {
+        return path;
+    }
 
 	@Override
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-	}
+    public void setParent(Object parent) {
+        this.parent = parent;
+    }
 
 	@Override
-	public void setParent(Object arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
+    public Object getParent() {
+        return parent;
+    }
+    
 }

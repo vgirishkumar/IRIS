@@ -27,7 +27,7 @@ public class TestCRUDResourceInteractionModel {
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
 		when(rgc.get(anyString())).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null, null));
-		cc.addGetCommand(resourcePath, rgc);
+		cc.setGetCommand(rgc);
 		Response response = r.get(null, "123");
 		assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
 	}
@@ -39,7 +39,7 @@ public class TestCRUDResourceInteractionModel {
 		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
-		cc.addGetCommand(resourcePath, mock(ResourceGetCommand.class));
+		cc.setGetCommand(mock(ResourceGetCommand.class));
 		r.get(null, "123");
 	}
 
@@ -61,7 +61,7 @@ public class TestCRUDResourceInteractionModel {
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
 		when(rgc.get(anyString())).thenReturn(new RESTResponse(Response.Status.OK, null, null));
-		cc.addGetCommand(resourcePath, rgc);
+		cc.setGetCommand(rgc);
 		r.get(null, "123");
 	}
 
@@ -74,7 +74,9 @@ public class TestCRUDResourceInteractionModel {
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rpc = mock(ResourceDeleteCommand.class);
 		when(rpc.delete(anyString())).thenReturn(Response.Status.ACCEPTED);
-		cc.addStateTransitionCommand("DELETE", resourcePath, rpc);
+		when(rpc.getMethod()).thenReturn("DELETE");
+		when(rpc.getPath()).thenReturn(resourcePath);
+		cc.addStateTransitionCommand(rpc);
 		Response response = r.delete(mock(HttpHeaders.class), "123");
 		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
 	}
@@ -86,7 +88,10 @@ public class TestCRUDResourceInteractionModel {
 		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
-		cc.addStateTransitionCommand("DELETE", resourcePath, mock(ResourceDeleteCommand.class));
+		ResourceDeleteCommand rdc = mock(ResourceDeleteCommand.class);
+		when(rdc.getMethod()).thenReturn("DELETE");
+		when(rdc.getPath()).thenReturn(resourcePath);
+		cc.addStateTransitionCommand(rdc);
 		r.delete(null, "123");
 	}
 
