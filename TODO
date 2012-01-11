@@ -1,5 +1,12 @@
 TODO:
 
+Add QueryParam information to GetCommand
+
+Implement atom/xml & json feed Producer's for EntitiesResponse
+using the odata4j AtomFeedFormatWriter and JsonFeedFormatWriter's
+
+Implement &skiptoken conditional command/link in Resource Interaction Model state machine
+
 Implement the ability to bind a command to a combination of mediatype + http method
 
 Add to simple CRUD Note example and bind a GET command to application/xml and application/json to return JAXB EntityResource
