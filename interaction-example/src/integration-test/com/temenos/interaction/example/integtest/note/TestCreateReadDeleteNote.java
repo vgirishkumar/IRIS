@@ -62,7 +62,7 @@ public class TestCreateReadDeleteNote extends JerseyTest {
 		// delete Note number 1 (which exists)
 		String noteUri = NOTES_RESOURCE + "/2";
 		ClientResponse response = webResource.path(noteUri).delete(ClientResponse.class);
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
 
 		// make sure Note number 1 is really gone
 		String deletedNoteUri = NOTES_RESOURCE + "/2";
@@ -72,7 +72,7 @@ public class TestCreateReadDeleteNote extends JerseyTest {
 		// delete Note number 56 (which does not exist)
 		String notFoundNoteUri = NOTES_RESOURCE + "/56";
 		ClientResponse nresponse = webResource.path(notFoundNoteUri).delete(ClientResponse.class);
-        assertEquals(200, nresponse.getStatus());
+        assertEquals(204, nresponse.getStatus());
     }
 
     /*

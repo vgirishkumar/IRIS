@@ -6,6 +6,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -55,7 +56,8 @@ public class TRANSIENTResourceInteractionModel implements
 	 * @invariant resourcePath not null
 	 */
     @POST
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+//    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+    @Consumes({MediaType.WILDCARD})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
     	logger.debug("POST " + resourcePath);
     	assert(resourcePath != null);
@@ -73,19 +75,32 @@ public class TRANSIENTResourceInteractionModel implements
     }
     
     @GET
-    public Response getNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    @Consumes({MediaType.WILDCARD})
+    public Response getNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id) {
     	logger.debug("GET " + resourcePath);
    		return Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
     }
 
     @PUT
-    public Response putNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
-    	logger.debug("PUT " + resourcePath);
+    @Consumes({MediaType.WILDCARD})
+    @Produces({MediaType.WILDCARD})
+    public Response putNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, String resource ) {
+    	logger.debug("PUT " + resourcePath + " " + headers.getMediaType());
+    	// TODO, status should  be not allowed as the TRANSIENT resource can only have a GET or POST method, return not implemented if the TRANSIENT resource does not have a GET or POST
+   		return Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
+    }
+
+    @PUT
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+    public Response putEntityNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    	logger.debug("PUT " + resourcePath + " " + headers.getMediaType());
+    	// TODO, status should  be not allowed as the TRANSIENT resource can only have a GET or POST method, return not implemented if the TRANSIENT resource does not have a GET or POST
    		return Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
     }
 
     @DELETE
-    public Response deleteNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    @Consumes({MediaType.WILDCARD})
+    public Response deleteNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id) {
     	logger.debug("DELETE " + resourcePath);
    		return Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
     }

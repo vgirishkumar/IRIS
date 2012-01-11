@@ -28,7 +28,7 @@ public class DeleteNoteCommand implements ResourceDeleteCommand {
 		} catch (Exception e) {
 			// delete the entity if it exists;
 		}
-		return Response.Status.OK;
+		return Response.Status.NO_CONTENT;
 	}
 
 	public String getMethod() {
