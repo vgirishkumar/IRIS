@@ -63,7 +63,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceInteractio
 	 * @invariant resourcePath not null
 	 */
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+    @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
     	logger.debug("GET " + resourcePath);
     	assert(resourcePath != null);
