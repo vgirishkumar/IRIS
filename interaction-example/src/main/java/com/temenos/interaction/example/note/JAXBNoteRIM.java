@@ -22,7 +22,7 @@ public class JAXBNoteRIM extends CRUDResourceInteractionModel {
 	public final static String ENTITY_NAME = OEntityNoteRIM.ENTITY_NAME;
 	
 	public JAXBNoteRIM() {
-		super(RESOURCE_PATH);
+		super(ENTITY_NAME, RESOURCE_PATH);
 
 		/*
 		 * Not required when wired with Spring
@@ -32,7 +32,7 @@ public class JAXBNoteRIM extends CRUDResourceInteractionModel {
 	}
 
 	public JAXBNoteRIM(ODataProducer producer) {
-		super(RESOURCE_PATH);
+		super(ENTITY_NAME, RESOURCE_PATH);
 		initialise(producer);
 	}
 	

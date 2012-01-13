@@ -28,20 +28,24 @@ import com.temenos.interaction.core.command.ResourcePutCommand;
  * @author aphethean
  *
  */
-public abstract class CRUDResourceInteractionModel implements ResourceStateTransition {
+public abstract class CRUDResourceInteractionModel implements ResourceInteractionModel {
 	private final Logger logger = LoggerFactory.getLogger(CRUDResourceInteractionModel.class);
 
+	private String entityName;
 	private String resourcePath;
 	private CommandController commandController;
 		
-	public CRUDResourceInteractionModel(String resourcePath) {
-		this.resourcePath = resourcePath;
-		this.commandController = new CommandController(resourcePath);
+	public CRUDResourceInteractionModel(String entityName, String resourcePath) {
+		this(entityName, resourcePath, new CommandController(resourcePath));
 	}
 
-	public CRUDResourceInteractionModel(String resourcePath, CommandController commandController) {
+	public CRUDResourceInteractionModel(String entityName, String resourcePath, CommandController commandController) {
 		this.resourcePath = resourcePath;
 		this.commandController = commandController;
+	}
+
+	public String getEntityName() {
+		return entityName;
 	}
 
 	public String getResourcePath() {

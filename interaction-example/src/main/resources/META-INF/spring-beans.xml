@@ -62,6 +62,7 @@
 	</bean>
 
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
+    	<constructor-arg name="entityName" value="NOTE" />
     	<constructor-arg name="path" value="/notes/{id}" />
     	<constructor-arg name="commandController" ref="noteCommands" />
     </bean>

@@ -2,7 +2,10 @@ package com.temenos.interaction.example.integtest.note;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.InputStream;
+
 import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXBContext;
 
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.After;
@@ -12,6 +15,8 @@ import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
+import com.temenos.interaction.example.note.client.DomainObjectID;
+import com.temenos.interaction.example.note.client.NewNoteRepresentation;
 
 public class TestNewNote extends JerseyTest {
 
@@ -92,13 +97,23 @@ public class TestNewNote extends JerseyTest {
     @Test
 	public void testPOSTNextNoteIDXML() throws Exception {
 		String newNoteUri = NEW_NOTE_RESOURCE;
+		// GET the ID of the most next note
+        ClientResponse getResponse = webResource.path(newNoteUri).type(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
+        InputStream getRespIS = getResponse.getEntityInputStream();
+        
+        JAXBContext jCtx = JAXBContext.newInstance(NewNoteRepresentation.class, DomainObjectID.class);
+        NewNoteRepresentation newNoteIDRepres = (NewNoteRepresentation) jCtx.createUnmarshaller().unmarshal(getRespIS);
+        
+        DomainObjectID nextID = newNoteIDRepres.getID();
+		Long nextIDStr = nextID.getID() + 1;
+        
         // POST to 'new' note resource
         ClientResponse postResponse = webResource.path(newNoteUri).type(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).post(ClientResponse.class, "<resource/>");
         // POST should return not implemented
         assertEquals(200, postResponse.getStatus());
 		// next note ID should be 2
         String actualXML = postResponse.getEntity(String.class);
-		String expectedXML = "<resource><note/><links><link href=\"/notes/2\" rel=\"_new\" title=\"NewNote\"/></links></resource>";
+		String expectedXML = "<resource><ID/><links><link href=\"/notes/" + nextIDStr + "\" rel=\"_new\" title=\"NewNote\"/></links></resource>";
 		XMLAssert.assertXMLEqual(expectedXML, actualXML);
 	}
 

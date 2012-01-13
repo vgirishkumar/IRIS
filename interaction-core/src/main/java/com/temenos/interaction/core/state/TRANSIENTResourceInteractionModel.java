@@ -22,25 +22,31 @@ import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.NotSupportedCommand;
+import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 
 /**
  * Defines a Resource Interaction Model for a resource with no state at all.
  * @author aphethean
  */
-public class TRANSIENTResourceInteractionModel implements
-		ResourceStateTransition {
+public class TRANSIENTResourceInteractionModel implements ResourceInteractionModel {
 
 	private final Logger logger = LoggerFactory.getLogger(TRANSIENTResourceInteractionModel.class);
 
+	private String entityName;
 	private String resourcePath;
 	private CommandController commandController;
 		
-	public TRANSIENTResourceInteractionModel(String resourcePath) {
+	public TRANSIENTResourceInteractionModel(String entityName, String resourcePath) {
+		this.entityName = entityName;
 		this.resourcePath = resourcePath;
 		this.commandController = new CommandController(resourcePath);
 	}
 	
+	public String getEntityName() {
+		return entityName;
+	}
+
 	public String getResourcePath() {
 		return resourcePath;
 	}
@@ -78,7 +84,18 @@ public class TRANSIENTResourceInteractionModel implements
     @Consumes({MediaType.WILDCARD})
     public Response getNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id) {
     	logger.debug("GET " + resourcePath);
-   		return Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).build();
+    	assert(resourcePath != null);
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
+    	RESTResponse response = getCommand.get(id);
+    	assert (response != null);
+    	StatusType status = response.getStatus();
+		assert (status != null);  // not a valid get command
+		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
+			assert(response.getResource() != null);
+			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
+			return HeaderHelper.allowHeader(rb, response).build();
+		}
+		return Response.status(status).build();
     }
 
     @PUT

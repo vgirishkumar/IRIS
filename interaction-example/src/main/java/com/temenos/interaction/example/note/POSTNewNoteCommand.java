@@ -26,6 +26,7 @@ import org.odata4j.producer.PropertyResponse;
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourcePostCommand;
+import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 /**
  * Execute a POST command by calling the 'NEW' function to create then next NOTE ID.
@@ -33,12 +34,21 @@ import com.temenos.interaction.core.command.ResourcePostCommand;
  */
 public class POSTNewNoteCommand implements ResourcePostCommand {
 
+	/* Command configuration */
+	private ResourceInteractionModel resourceInteraction;
+	private String domainObjectName;
+	// the resource that we will generate a new id link to, must contain template {id}
+	private String targetResource;
+	
 	private String method;
 	private String path;
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
 
-	public POSTNewNoteCommand(String method, String path, ODataProducer producer) {
+	public POSTNewNoteCommand(ResourceInteractionModel resourceInteraction, String domainObjectName, String targetResource, String method, String path, ODataProducer producer) {
+		this.resourceInteraction = resourceInteraction;
+		this.domainObjectName = domainObjectName;
+		this.targetResource = targetResource;
 		this.method = method;
 		this.path = path;
 		this.producer = producer;
@@ -56,17 +66,17 @@ public class POSTNewNoteCommand implements ResourcePostCommand {
         EdmFunctionImport functionName = edmDataServices.findEdmFunctionImport("NEW");
         
 		Map<String, OFunctionParameter> params = new HashMap<String, OFunctionParameter>();
-		params.put("PARAM1", OFunctionParameters.create("DOMAIN_OBJECT_NAME", "NOTE"));
+		params.put("PARAM1", OFunctionParameters.create("DOMAIN_OBJECT_NAME", domainObjectName));
 		//EdmFunctionImport functionName = new EdmFunctionImport("NEW", null, returnType, "POST", params);
 		BaseResponse fr = producer.callFunction(functionName, params, null);
 		assert(functionName.returnType == EdmSimpleType.INT64);
 		
 		// TODO this could either be the type we are creating and ID for, or it could just be a transient type
-		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(OEntityNoteRIM.ENTITY_NAME);
+		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(resourceInteraction.getEntityName());
 		OEntityKey entityKey = OEntityKey.create("new");
 		List<OLink> links = new ArrayList<OLink>();
 		String replacement = ((PropertyResponse)fr).getProperty().getValue().toString();
-		links.add(OLinks.link("_new", "NewNote", OEntityNoteRIM.RESOURCE_PATH.replaceFirst("\\{id\\}", replacement)));
+		links.add(OLinks.link("_new", "NewNote", targetResource.replaceFirst("\\{id\\}", replacement)));
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
 		EntityResource er = new EntityResource(entity);
 		return new RESTResponse(Response.Status.OK, er, null);

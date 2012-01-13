@@ -16,8 +16,6 @@ import com.temenos.interaction.core.command.ResourceGetCommand;
 
 public class GetCountryCommand implements ResourceGetCommand {
 
-	private final static String ENTITY_NAME = "Country";
-	
 	private ODataProducer producer;
 
 	public GetCountryCommand(ODataProducer producer) {
@@ -38,7 +36,7 @@ public class GetCountryCommand implements ResourceGetCommand {
 		assert(producer != null);
 		assert(id != null);
 		EntityResource resource = null;
-		EntityResponse entityResponse = producer.getEntity(ENTITY_NAME, OEntityKey.create(id), null);
+		EntityResponse entityResponse = producer.getEntity(CountryRIM.ENTITY_NAME, OEntityKey.create(id), null);
 		if (entityResponse != null && entityResponse.getEntity() != null) {
 			OEntity entity = entityResponse.getEntity();
 			resource = new EntityResource(new Country(entity));
