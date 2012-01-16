@@ -28,20 +28,24 @@ import com.temenos.interaction.core.command.ResourcePutCommand;
  * @author aphethean
  *
  */
-public abstract class CRUDResourceInteractionModel implements ResourceStateTransition {
+public abstract class CRUDResourceInteractionModel implements ResourceInteractionModel {
 	private final Logger logger = LoggerFactory.getLogger(CRUDResourceInteractionModel.class);
 
+	private String entityName;
 	private String resourcePath;
 	private CommandController commandController;
 		
-	public CRUDResourceInteractionModel(String resourcePath) {
-		this.resourcePath = resourcePath;
-		this.commandController = new CommandController(resourcePath);
+	public CRUDResourceInteractionModel(String entityName, String resourcePath) {
+		this(entityName, resourcePath, new CommandController(resourcePath));
 	}
 
-	public CRUDResourceInteractionModel(String resourcePath, CommandController commandController) {
+	public CRUDResourceInteractionModel(String entityName, String resourcePath, CommandController commandController) {
 		this.resourcePath = resourcePath;
 		this.commandController = commandController;
+	}
+
+	public String getEntityName() {
+		return entityName;
 	}
 
 	public String getResourcePath() {
@@ -59,7 +63,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceStateTrans
 	 * @invariant resourcePath not null
 	 */
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+    @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
     	logger.debug("GET " + resourcePath);
     	assert(resourcePath != null);

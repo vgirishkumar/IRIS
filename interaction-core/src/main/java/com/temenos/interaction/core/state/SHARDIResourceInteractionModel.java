@@ -33,7 +33,7 @@ import com.temenos.interaction.core.media.PDFDecorator;
  * 'I' - Input
  * @author aphethean
  */
-public abstract class SHARDIResourceInteractionModel implements ResourceStateTransition {
+public abstract class SHARDIResourceInteractionModel implements ResourceInteractionModel {
 
 	/**
 	 * Indicates that the annotated method responds to HTTP AUTHORISE requests
@@ -47,11 +47,17 @@ public abstract class SHARDIResourceInteractionModel implements ResourceStateTra
 
 //    private @Context UriInfo uriInfo;
 	private CommandController commandController;
+	private String entityName = null;
 	private String resourcePath = null;
 	
-	public SHARDIResourceInteractionModel(String resourcePath) {
+	public SHARDIResourceInteractionModel(String entityName, String resourcePath) {
+		this.entityName = entityName;
 		this.resourcePath = resourcePath;
 		this.commandController = new CommandController(resourcePath);
+	}
+	
+	public String getEntityName() {
+		return entityName;
 	}
 	
 	public String getResourcePath() {

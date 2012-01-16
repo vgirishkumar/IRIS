@@ -21,7 +21,7 @@ public class OEntityNoteRIM extends CRUDResourceInteractionModel {
 	public final static String ENTITY_NAME = "note";
 
 	public OEntityNoteRIM() {
-		super(RESOURCE_PATH);
+		super(ENTITY_NAME, RESOURCE_PATH);
 		/*
 		 * Not required when wired with Spring
 		 */
@@ -30,7 +30,7 @@ public class OEntityNoteRIM extends CRUDResourceInteractionModel {
 	}
 	
 	public OEntityNoteRIM(ODataProducer producer) {
-		super(RESOURCE_PATH);
+		super(ENTITY_NAME, RESOURCE_PATH);
 		initialise(producer);
 	}
 	

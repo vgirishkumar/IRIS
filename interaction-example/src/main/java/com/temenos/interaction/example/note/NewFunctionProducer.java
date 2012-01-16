@@ -65,13 +65,13 @@ public class NewFunctionProducer extends ODataProducerDelegate {
     	// perform update to database ID table
     	EntityManager em = emf.createEntityManager();
     	em.getTransaction().begin();
-    	Query update = em.createQuery("UPDATE ID x SET x.ID=x.ID+1 WHERE DomainObjectName = 'NOTE'");
+    	Query update = em.createQuery("UPDATE ID x SET x.LastId=x.LastId+1 WHERE DomainObjectName = 'NOTE'");
     	update.executeUpdate();
-    	Query query = em.createQuery("SELECT x.ID FROM ID x WHERE DomainObjectName = 'NOTE'");
+    	Query query = em.createQuery("SELECT x.LastId FROM ID x WHERE DomainObjectName = 'NOTE'");
     	Long value = (Long) query.getSingleResult();
     	em.getTransaction().commit();
 
-        return Responses.property(OProperties.int64("ID", value));
+        return Responses.property(OProperties.int64("LastId", value));
     }
     
     private void extendModel() {

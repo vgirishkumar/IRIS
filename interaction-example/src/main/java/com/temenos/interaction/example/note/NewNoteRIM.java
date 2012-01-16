@@ -22,7 +22,7 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel {
 	private final static String DOMAIN_OBJECT_NAME = "NOTE";
 	
 	public NewNoteRIM() {
-		super(RESOURCE_PATH);
+		super(ENTITY_NAME, RESOURCE_PATH);
 
 		/*
 		 * Not required when wired with Spring
@@ -32,7 +32,7 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel {
 	}
 		  	
 	public NewNoteRIM(ODataProducer producer) {
-		super(RESOURCE_PATH);
+		super(ENTITY_NAME, RESOURCE_PATH);
 		initialise(producer);
 	}
 	
@@ -41,15 +41,8 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel {
 		 * Configure the New Note RIM
 		 */
 		CommandController commandController = getCommandController();
-//		commandController.addStateTransitionCommand("PUT", RESOURCE_PATH, new PutNotSupportedCommand());
-		commandController.addStateTransitionCommand(new POSTNewNoteCommand(HttpMethod.POST, RESOURCE_PATH, producer));
+		commandController.setGetCommand(new GETNewNoteCommand(DOMAIN_OBJECT_NAME, producer));
+		commandController.addStateTransitionCommand(new POSTNewNoteCommand(this, DOMAIN_OBJECT_NAME, OEntityNoteRIM.RESOURCE_PATH, HttpMethod.POST, RESOURCE_PATH, producer));
 	}
 
-	/*
-	@PUT
-    @Consumes(MediaType.TEXT_PLAIN)
-	public RESTResponse put(String resource) {
-	    throw new WebApplicationException(Response.status(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED).entity(NotSupportedCommand.HTTP_STATUS_NOT_IMPLEMENTED_MSG).build());
-	}
-	*/
 }

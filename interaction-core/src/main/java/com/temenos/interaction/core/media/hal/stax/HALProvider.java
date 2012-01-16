@@ -63,11 +63,13 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 		this.edmDataServices = edmDataServices;
 	}
 	
+	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
 		return type.equals(EntityResource.class);
 	}
 
+	@Override
 	public long getSize(EntityResource t, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
 		return -1;
@@ -84,6 +86,7 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 	 * @invariant valid OutputStream
 	 */
 	// TODO implment writeTo with Stax
+	@Override
 	public void writeTo(EntityResource resource, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, Object> httpHeaders,
@@ -170,12 +173,22 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 		}
 	}
 
+	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
 		// this class can only deserialise EntityResource with OEntity.
 		return type.equals(EntityResource.class);
 	}
 
+	/**
+	 * Reads a Hypertext Application Language (HAL) representation of
+	 * {@link EntityResource} from the input stream.
+	 * 
+	 * @precondition {@link InputStream} contains a valid HAL <resource/> document
+	 * @postcondition {@link EntityResource} will be constructed and returned.
+	 * @invariant valid InputStream
+	 */
+	@Override
 	public EntityResource readFrom(Class<EntityResource> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)

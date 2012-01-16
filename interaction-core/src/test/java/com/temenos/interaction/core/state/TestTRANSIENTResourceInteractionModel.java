@@ -25,7 +25,7 @@ public class TestTRANSIENTResourceInteractionModel {
 	@Test
 	public void testPOSTCommandStatus() {
 		String resourcePath = "/test";
-		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel(resourcePath) {
+		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -41,7 +41,7 @@ public class TestTRANSIENTResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testPOSTStatusNull() {
 		String resourcePath = "/test";
-		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel(resourcePath) {
+		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -55,7 +55,7 @@ public class TestTRANSIENTResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testPOSTNoCommand() {
 		String resourcePath = "/test";
-		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel(resourcePath) {
+		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		r.post(null, "123", null);
 	}
@@ -64,7 +64,7 @@ public class TestTRANSIENTResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testPOST200NoResource() {
 		String resourcePath = "/test";
-		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel(resourcePath) {
+		TRANSIENTResourceInteractionModel r = new TRANSIENTResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);

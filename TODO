@@ -1,9 +1,13 @@
 TODO:
 
+Seem that if I navigate to http://localhost:8080/examples/rest/notes/2 with my browser I get 
+	a message 'class com.temenos.interaction.example.note.Note not found with key 2'.  We don't want to leak 
+	this information about classes, etc.
+
 Add QueryParam information to GetCommand
 
 Implement atom/xml & json feed Producer's for EntitiesResponse
-using the odata4j AtomFeedFormatWriter and JsonFeedFormatWriter's
+	using the odata4j AtomFeedFormatWriter and JsonFeedFormatWriter's
 
 Implement &skiptoken conditional command/link in Resource Interaction Model state machine
 

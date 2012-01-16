@@ -22,7 +22,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test
 	public void testGETCommandStatus() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -36,7 +36,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGETStatusNull() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand(mock(ResourceGetCommand.class));
@@ -47,7 +47,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testGETNoCommand() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		r.get(null, "123");
 	}
@@ -56,7 +56,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGET200NoResource() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -69,7 +69,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test
 	public void testDELETECommandStatus() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rpc = mock(ResourceDeleteCommand.class);
@@ -85,7 +85,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testDELETEStatusNull() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rdc = mock(ResourceDeleteCommand.class);
@@ -99,7 +99,7 @@ public class TestCRUDResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testDELETENoCommand() {
 		String resourcePath = "/test";
-		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel(resourcePath) {
+		CRUDResourceInteractionModel r = new CRUDResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		r.delete(null, "123");
 	}

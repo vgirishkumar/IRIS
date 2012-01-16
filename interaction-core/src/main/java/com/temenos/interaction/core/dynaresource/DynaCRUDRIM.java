@@ -20,8 +20,8 @@ public class DynaCRUDRIM extends CRUDResourceInteractionModel implements Dynamic
     private String collectionTitle;
     private String beanName;
 	
-	public DynaCRUDRIM(String path, CommandController commandController) {
-		super(path, commandController);
+	public DynaCRUDRIM(String entityName, String path, CommandController commandController) {
+		super(entityName, path, commandController);
 		this.path= path;
 	}
 
