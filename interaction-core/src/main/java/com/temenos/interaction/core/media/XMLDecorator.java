@@ -62,7 +62,7 @@ public class XMLDecorator implements Decorator<Response> {
 				    Element dataObject = doc.createElement(entity.getEntitySet().name);
 					for (OProperty<?> property : resource.getOEntity().getProperties()) {
 				        Element dataElement = doc.createElement(property.getName());
-				        dataElement.setTextContent(property.getValue().toString());
+						dataElement.appendChild(doc.createTextNode(property.getValue().toString()));
 				        dataObject.appendChild(dataElement);
 					}
 			        root.appendChild(dataObject);
