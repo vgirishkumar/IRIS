@@ -557,28 +557,16 @@ A class should be able to extend one of these and simply provide the appropriate
 
 The [[com.temenos.interaction.core.dynaresource.DynaResource]] is intended to be a dynamic resource with dynamic Resource Interaction Model.</pre>
 </div>
-<div title="interaction-mockresponder" creator="YourName" modifier="aphethean" created="201201191113" modified="201201191431" changecount="8">
+<div title="interaction-mockresponder" creator="YourName" modifier="aphethean" created="201201191113" modified="201201191117" changecount="5">
 <pre>This is a simple step by step example of creating a mock responder with the IRIS SDK.
 
 1.  Change to a directory where you want to create your Mock Responder project.
 
-
 2.  Create your mock responder project.  To do this you'll need Maven and a Java 1.6 SDK installed.
 
-{{{
-$ mvn archetype:generate -DgroupId=com.mycompany.useragentdev -DartifactId=mockresponder -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false
-}}}
-
-NOTE - When creating your responder project we use the 'groupId' and 'artifaceId' to form part of the package names in the generated configuration files and source.
-
-
-3.  Generate your JPA responder from the EDMX file at '''src/main/resources/edmx.xml'''.
-{{{
-$ cd mockresponder
-$ mvn interaction-sdk:gen
-}}}</pre>
+$ mvn archetype:generate -DgroupId=com.mycompany.useragentdev -DartifactId=my-mockresponder -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false</pre>
 </div>
-<div title="interaction-sdk" creator="aphethean" modifier="aphethean" created="201201162214" modified="201201191117" changecount="4">
+<div title="interaction-sdk" creator="aphethean" modifier="YourName" created="201201162214" modified="201201191109" changecount="3">
 <pre>The interaction-sdk is a supporting library for the IRIS SDK. The SDK would be used by developers who need to design resource interaction models, but have neither the time nor the desire to implement those resources within a specific resource manager.
 
 A user agent can be developed against the resource interaction model as designed in the SDK and the values of the Entity(s) and EntitySet(s) can be mocked in the database as accessed by generated JPA POJO's.  A resource manager (e.g. T24, TAP, or TreasuryTrader) can the be wired up to the resources at a later date.  Thus providing a simple way to develop user agents, or applications without needing a full blown system.

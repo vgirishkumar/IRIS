@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>${groupId}</groupId>
+  <artifactId>${artifactId}</artifactId>
+  <version>${version}</version>
+  <packaging>jar</packaging>
+
+  <name>An IRIS mock responder project.</name>
+  <url>http://www.temenos.com</url>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-sdk-plugin</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+<!--		
+		<executions>
+          <execution>
+            <phase>build</phase>
+            <goals>
+              <goal>gen</goal>
+            </goals>
+          </execution>
+       </executions>
+-->
+        <configuration>
+          <edmxFile>\${basedir}/src/main/resources/edmx.xml</edmxFile>
+          <targetDirectory>\${basedir}/src/main/java</targetDirectory>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-core</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

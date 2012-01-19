@@ -1,5 +1,10 @@
 TODO:
 
+(SDK) ensure JAVA_HOME is set in script that starts ResponderGen
+
+Create maven archetype for IRIS SDK e.g. mvn archetype:generate -DgroupId=com.mycompany.useragentdev -DartifactId=my-mockresponder -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false
+	This page contains a guide to writing archetypes http://maven.apache.org/guides/introduction/introduction-to-archetypes.html
+
 Seem that if I navigate to http://localhost:8080/examples/rest/notes/2 with my browser I get 
 	a message 'class com.temenos.interaction.example.note.Note not found with key 2'.  We don't want to leak 
 	this information about classes, etc.

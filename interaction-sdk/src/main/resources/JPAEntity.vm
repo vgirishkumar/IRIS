@@ -1,0 +1,17 @@
+package $jpaentity.getPackage();
+
+import javax.persistence.Entity;
+
+@Entity
+public class $jpaentity.getClazz() {
+
+	@Id
+	@Basic(optional = false)
+	private $jpaentity.getKeyInfo().getType() $jpaentity.getKeyInfo().getName();
+	
+	#foreach ( $fieldInfo in $jpaentity.getFieldInfos() )
+	private $fieldInfo.getType() $fieldInfo.getName();
+	#end
+	
+	public $jpaentity.getClazz()() {}
+}
