@@ -9,3 +9,5 @@
 /useragent-acquisition/acquisition-interfaces/report
 /interaction-winkext/target
 /interaction-sdk/target
+/interaction-sdk-plugin/target
+/interaction-sdk-archetype/target
