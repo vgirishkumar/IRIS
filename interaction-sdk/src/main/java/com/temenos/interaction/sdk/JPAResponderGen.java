@@ -34,46 +34,20 @@ import org.odata4j.stax2.XMLEventReader2;
  * 
  */
 public class JPAResponderGen {
-	public static void main(String[] args) {
-		boolean ok = false;
-		if (args != null && args.length == 2) {
-			String edmxFilePath = args[0]; 
-			String targetDirectoryStr = args[1]; 
-			File edmxFile = new File(edmxFilePath);
-			File targetDirectory = new File(targetDirectoryStr);
-			
-			// check our configuration
-			if (!edmxFile.exists()) {
-				System.out.println("EDMX file not found");
-				ok = false;
-			}
-			if (!targetDirectory.exists() || !targetDirectory.isDirectory()) {
-				System.out.println("Target directory is invalid");
-				ok = false;
-			}
-			
-			if (ok) {
-				JPAResponderGen rg = new JPAResponderGen();
-				ok = rg.generateArtifacts(edmxFile, targetDirectory);
-			}
-		} else {
-			ok = false;
-		}
-		if (!ok) {
-			System.out.print(usage());
-		}
 
+	private final static String JPA_CONFIG_FILE = "persistence.xml";
+	/*
+	 *  create a new instance of the engine
+	 */
+	VelocityEngine ve = new VelocityEngine();
+
+	public JPAResponderGen() {
+		// load .vm templates using classloader
+		ve.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
+		ve.setProperty("classpath." + VelocityEngine.RESOURCE_LOADER + ".class", ClasspathResourceLoader.class.getName());
+		ve.init();
 	}
 
-	public static String usage() {
-		StringBuffer sb = new StringBuffer();
-		sb.append("\n")
-		.append("Generates an IRIS JPA responder from an EDMX file.\n")
-		.append("\n")
-		.append("java ").append(JPAResponderGen.class.getName()).append(" [EDMX file] [target directory]\n");
-		return sb.toString();
-	}
-	
 	/**
 	 * @precondition File edmxFile exists on the file system
 	 * @postcondition JPA Entity classes written to file system as valid Java source
@@ -92,7 +66,7 @@ public class JPAResponderGen {
 	}
 	
 	/**
-	 * 
+	 * Generate JPA responder artifacts.  Including JPA classes, persistence.xml, and DML bootstrapping.
 	 * @param is
 	 * @param outputPath
 	 * @return
@@ -101,19 +75,28 @@ public class JPAResponderGen {
 		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(is)));
 		EdmDataServices ds = EdmxFormatParser.parseMetadata(reader);
 		
+		boolean ok = true;
+		List<JPAEntityInfo> entities = new ArrayList<JPAEntityInfo>();
 		
 		// generate JPA classes
 		for (EdmEntityType t : ds.getEntityTypes()) {
-			JPAEntityInfo entityInfo = createJPAEntityClassFromEdmEntityType(t);
+			JPAEntityInfo entityInfo = createJPAEntityInfoFromEdmEntityType(t);
 			String fqOutputDir = outputPath.getPath() + "/" + entityInfo.getPackageAsPath();
 			new File(fqOutputDir).mkdirs();
-			writeClass(formClassFilename(outputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo));
+			if (writeClass(formClassFilename(outputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
+				entities.add(entityInfo);
+			} else {
+				ok = false;
+			}
 			
 		}
 
 		// generate persistence.xml
+		if (!writeJPAConfiguration(outputPath, generateJPAConfiguration(entities))) {
+			ok = false;
+		}
 		
-		return true;
+		return ok;
 	}
 
 	/**
@@ -126,13 +109,15 @@ public class JPAResponderGen {
 		return srcTargetDir + "/" + entityInfo.getPackageAsPath() + "/" + entityInfo.getClazz() + ".java";
 	}
 	
-	private void writeClass(String classFileName, String generatedClass) {
+	private boolean writeClass(String classFileName, String generatedClass) {
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(classFileName);
 			fos.write(generatedClass.getBytes("UTF-8"));
 		} catch (IOException e) {
+			// TODO add slf4j logger here
 			e.printStackTrace();
+			return false;
 		} finally {
 			try {
 				if (fos != null)
@@ -141,10 +126,10 @@ public class JPAResponderGen {
 				// don't hide original exception
 			}
 		}
-		
+		return true;
 	}
 	
-	public JPAEntityInfo createJPAEntityClassFromEdmEntityType(EdmType type) {
+	public JPAEntityInfo createJPAEntityInfoFromEdmEntityType(EdmType type) {
 		if (!(type instanceof EdmEntityType))
 			return null;
 		
@@ -186,6 +171,45 @@ public class JPAResponderGen {
 		return javaType;
 	}
 	
+
+	private boolean writeJPAConfiguration(File sourceDir, String generatedPersistenceXML) {
+		FileOutputStream fos = null;
+		try {
+			File metaInfDir = new File(sourceDir.getPath() + "/META-INF");
+			metaInfDir.mkdirs();
+			fos = new FileOutputStream(new File(metaInfDir, JPA_CONFIG_FILE));
+			fos.write(generatedPersistenceXML.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO add slf4j logger here
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				// don't hide original exception
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Generate the JPA configuration for the provided JPA entities.
+	 * @param enitities
+	 * @return
+	 */
+	public String generateJPAConfiguration(List<JPAEntityInfo> enitities) {
+		VelocityContext context = new VelocityContext();
+		context.put("entities", enitities);
+		
+		Template t = ve.getTemplate("/persistence.vm");
+		StringWriter sw = new StringWriter();
+		t.merge(context, sw);
+		return sw.toString();
+	}
+	
+
 	/**
 	 * Generate a JPA Entity from the provided info
 	 * @precondition {@link JPAEntityInfo} non null
@@ -198,23 +222,53 @@ public class JPAResponderGen {
 	public String generateJPAEntityClass(JPAEntityInfo jpaEntityClass) {
 		assert(jpaEntityClass != null);
 		
-		/*
-		 *  create a new instance of the engine
-		 */
-		VelocityEngine ve = new VelocityEngine();
-		// load .vm templates using classloader
-		ve.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
-		ve.setProperty("classpath." + VelocityEngine.RESOURCE_LOADER + ".class", ClasspathResourceLoader.class.getName());
-		ve.init();
-
 		VelocityContext context = new VelocityContext();
 		context.put("jpaentity", jpaEntityClass);
-		
 		
 		Template t = ve.getTemplate("/JPAEntity.vm");
 		StringWriter sw = new StringWriter();
 		t.merge(context, sw);
 		return sw.toString();
+	}
+	
+	public static void main(String[] args) {
+		boolean ok = false;
+		if (args != null && args.length == 2) {
+			String edmxFilePath = args[0]; 
+			String targetDirectoryStr = args[1]; 
+			File edmxFile = new File(edmxFilePath);
+			File targetDirectory = new File(targetDirectoryStr);
+			
+			// check our configuration
+			if (!edmxFile.exists()) {
+				System.out.println("EDMX file not found");
+				ok = false;
+			}
+			if (!targetDirectory.exists() || !targetDirectory.isDirectory()) {
+				System.out.println("Target directory is invalid");
+				ok = false;
+			}
+			
+			if (ok) {
+				JPAResponderGen rg = new JPAResponderGen();
+				ok = rg.generateArtifacts(edmxFile, targetDirectory);
+			}
+		} else {
+			ok = false;
+		}
+		if (!ok) {
+			System.out.print(usage());
+		}
+
+	}
+
+	public static String usage() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("\n")
+		.append("Generates an IRIS JPA responder from an EDMX file.\n")
+		.append("\n")
+		.append("java ").append(JPAResponderGen.class.getName()).append(" [EDMX file] [target directory]\n");
+		return sb.toString();
 	}
 	
 }

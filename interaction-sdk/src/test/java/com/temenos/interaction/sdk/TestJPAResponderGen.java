@@ -17,14 +17,14 @@ import org.odata4j.edm.EdmType;
 /**
  * Unit test for {@link JPAResponderGen}.
  */
-public class ResponderGenTest {
+public class TestJPAResponderGen {
 
 	@Test
 	public void testCreateJPAEntitySupportedType() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		EdmType t = mock(EdmType.class);
-		assertNull(rg.createJPAEntityClassFromEdmEntityType(t));
+		assertNull(rg.createJPAEntityInfoFromEdmEntityType(t));
 	}
 	
 	@Test
@@ -32,7 +32,7 @@ public class ResponderGenTest {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, new ArrayList<String>(), null, null);
-		JPAEntityInfo p = rg.createJPAEntityClassFromEdmEntityType(t);
+		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		
 		assertEquals("Flight", p.getClazz());
 		assertEquals("AirlineModel", p.getPackage());
@@ -48,7 +48,7 @@ public class ResponderGenTest {
 		List<EdmProperty> properties = new ArrayList<EdmProperty>();
 		properties.add(new EdmProperty("flightID", EdmSimpleType.INT64, false));
 		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
-		JPAEntityInfo p = rg.createJPAEntityClassFromEdmEntityType(t);
+		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		
 		assertEquals("flightID", p.getKeyInfo().getName());
 		assertEquals("Long", p.getKeyInfo().getType());
@@ -66,7 +66,7 @@ public class ResponderGenTest {
 		properties.add(new EdmProperty("fitHostiesName", EdmSimpleType.STRING, true));
 		properties.add(new EdmProperty("runway", EdmSimpleType.STRING, false));
 		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
-		JPAEntityInfo p = rg.createJPAEntityClassFromEdmEntityType(t);
+		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		
 		assertEquals(4, p.getFieldInfos().size());
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("flightID", "Long")));
@@ -107,6 +107,22 @@ public class ResponderGenTest {
 		assertTrue(generatedClass.contains("public Flight() {}"));
 	}
 	
+	@Test
+	public void testGenJPAConfiguration() {
+		JPAResponderGen rg = new JPAResponderGen();
+		
+		List<JPAEntityInfo> entities = new ArrayList<JPAEntityInfo>();
+		entities.add(new JPAEntityInfo("Flight", "AirlineModel", null, null));
+		entities.add(new JPAEntityInfo("Airport", "AirlineModel", null, null));
+		entities.add(new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null));
+		String generatedPersistenceConfig = rg.generateJPAConfiguration(entities);
+		
+		assertTrue(generatedPersistenceConfig.contains("<!-- Generated JPA configuration for IRIS MockResponder -->"));
+		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.Flight</class>"));
+		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.Airport</class>"));
+		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.FlightSchedule</class>"));
+	}
+
 	@Test
 	public void testFormClassFilename() {
 		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah", new JPAEntityInfo("SomeClass", "com.some.package", null, null)));

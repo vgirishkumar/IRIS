@@ -19,7 +19,8 @@ public class TestResponderGen {
 		JPAResponderGen rg = new JPAResponderGen();
 		assertTrue(rg.generateArtifacts(is, targetDir));
 		
-		assertEquals(6, countFiles(targetDir));
+		assertEquals(6, countFiles(new File(targetDir, "AirlineModel")));
+		assertEquals(1, countFiles(new File(targetDir, "META-INF")));
 	}
 	
 	private int countFiles(File dir) {
