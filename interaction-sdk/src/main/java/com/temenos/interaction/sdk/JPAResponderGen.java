@@ -36,6 +36,8 @@ import org.odata4j.stax2.XMLEventReader2;
 public class JPAResponderGen {
 
 	private final static String JPA_CONFIG_FILE = "persistence.xml";
+	private final static String SPRING_CONFIG_FILE = "spring-beans.xml";
+
 	/*
 	 *  create a new instance of the engine
 	 */
@@ -98,7 +100,12 @@ public class JPAResponderGen {
 		if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(entities))) {
 			ok = false;
 		}
-		
+
+		// generate spring-beans.xml
+		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(entities))) {
+			ok = false;
+		}
+
 		return ok;
 	}
 
@@ -197,21 +204,27 @@ public class JPAResponderGen {
 		return true;
 	}
 
-	/**
-	 * Generate the JPA configuration for the provided JPA entities.
-	 * @param enitities
-	 * @return
-	 */
-	public String generateJPAConfiguration(List<JPAEntityInfo> enitities) {
-		VelocityContext context = new VelocityContext();
-		context.put("entities", enitities);
-		
-		Template t = ve.getTemplate("/persistence.vm");
-		StringWriter sw = new StringWriter();
-		t.merge(context, sw);
-		return sw.toString();
+	private boolean writeSpringConfiguration(File sourceDir, String generatedSpringXML) {
+		FileOutputStream fos = null;
+		try {
+			File metaInfDir = new File(sourceDir.getPath() + "/META-INF");
+			metaInfDir.mkdirs();
+			fos = new FileOutputStream(new File(metaInfDir, SPRING_CONFIG_FILE));
+			fos.write(generatedSpringXML.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO add slf4j logger here
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				// don't hide original exception
+			}
+		}
+		return true;
 	}
-	
 
 	/**
 	 * Generate a JPA Entity from the provided info
@@ -233,7 +246,37 @@ public class JPAResponderGen {
 		t.merge(context, sw);
 		return sw.toString();
 	}
-	
+
+	/**
+	 * Generate the JPA configuration for the provided JPA entities.
+	 * @param enitities
+	 * @return
+	 */
+	public String generateJPAConfiguration(List<JPAEntityInfo> enitities) {
+		VelocityContext context = new VelocityContext();
+		context.put("entities", enitities);
+		
+		Template t = ve.getTemplate("/persistence.vm");
+		StringWriter sw = new StringWriter();
+		t.merge(context, sw);
+		return sw.toString();
+	}
+
+	/**
+	 * Generate the Spring configuration for the provided resources.
+	 * @param enitities
+	 * @return
+	 */
+	public String generateSpringConfiguration(List<JPAEntityInfo> enitities) {
+		VelocityContext context = new VelocityContext();
+		context.put("entities", enitities);
+		
+		Template t = ve.getTemplate("/spring-beans.vm");
+		StringWriter sw = new StringWriter();
+		t.merge(context, sw);
+		return sw.toString();
+	}
+
 	public static void main(String[] args) {
 		boolean ok = true;
 		if (args != null && args.length == 2) {

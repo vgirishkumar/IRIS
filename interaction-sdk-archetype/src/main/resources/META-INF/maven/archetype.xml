@@ -12,4 +12,7 @@
   <resources>
     <resource>src/main/resources/edmx.xml</resource>
   </resources>
+  <siteResources>
+    <resource>src/main/webapp/WEB-INF/web.xml</resource>
+  </siteResources>
 </archetype>

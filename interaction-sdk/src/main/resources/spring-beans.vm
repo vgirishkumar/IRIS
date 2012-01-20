@@ -1,0 +1,49 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!-- Initialise JPA for MockResponder -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	</bean>
+	
+    <!--
+	  An extension of org.apache.wink.spring.Registrar with support for singletons.
+    -->
+	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
+		<property name="singletons">
+        	<set>
+        		<!--
+				<ref local="staxHALProvider" />
+				-->
+				<ref local="atomProvider" />
+ 			</set>
+   		</property>
+   		<property name="classes">
+			<set value-type="java.lang.Class">
+<!--  
+				<value>com.temenos.interaction.example.sandbox.SandboxRIM</value>
+				<value>com.temenos.interaction.example.note.NoteRIM</value>
+				<value>com.temenos.interaction.example.note.NewNoteRIM</value>
+-->
+			</set>
+		</property>
+		<property name="instances">
+			<set>
+<!-- 
+				<ref bean="DYNA_NOTE" />
+ -->
+			</set>
+		</property>
+	</bean>
+
+<!--
+	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+	</bean>
+-->
+	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider" />
+
+</beans>

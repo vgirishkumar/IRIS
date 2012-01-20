@@ -22,7 +22,7 @@ public class TestResponderGen {
 		assertTrue(rg.generateArtifacts(is, srcTargetDir, configTargetDir));
 		
 		assertEquals(6, countFiles(new File(srcTargetDir, "AirlineModel")));
-		assertEquals(1, countFiles(new File(configTargetDir, "META-INF")));
+		assertEquals(2, countFiles(new File(configTargetDir, "META-INF")));
 	}
 	
 	private int countFiles(File dir) {

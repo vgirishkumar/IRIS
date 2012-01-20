@@ -14,3 +14,8 @@ NOTE - When creating your responder project we use the 'groupId' and 'artifaceId
 
 $ cd mockresponder
 $ mvn interaction-sdk:gen
+
+
+4.  Run this IRIS SDK responder in jetty.
+
+$ mvn jetty:run
