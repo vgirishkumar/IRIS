@@ -94,32 +94,37 @@
   <command name="verify" method="POST" path="/{THIS}" />
   
   <!-- these commands are used by the rim state machine, links, and forms -->
-  <command name="unauthorised" method="GET" path="/{THIS}/unauth" />
   <command name="live" method="GET" path="/{THIS}/authorised" />
   <command name="history" method="GET" path="/{THIS}/history" />
 
+  
+  
+  
+  
   <!-- Determine this resources state, if included the evaluated states path will be included in Content-Location -->
   <state name="unauthorised" path="/{THIS}/unauth">
-    <eval>
-      <ok command="unauthorised" />
-    </eval>
-    <transition command="authorise" />
-    <transition command="delete" />
+    <transition target="live" method="PUT" />
+    <transition target="END" method="DELETE" />
   </state>
   
   <state name="live" path="/{THIS}/authorised">
-    <eval>
-      <ok command="live" />
-    </eval>
-    <transition command="history" />
+    <transition target="history" method="PUT" />
   </state>
   
   <state name="history" path="/{THIS}/history">
-    <eval>
-      <ok command="history" />
-    </eval>
-    <transition command="reverse" />
+    <transition target="reverse" />
   </state>
+
+  <state name="reversed" path="/{THIS}/reverse">
+    <transition target="live" method="PUT" />
+    <transition target="END" method="DELETE" />
+  </state>
+
+  <state name="END" />
+  
+  
+  
+  
   
   <command name="currency" method="GET" path="/{CURRENCY,id=THIS.currencyCode}" />
   
