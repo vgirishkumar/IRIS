@@ -1,11 +1,6 @@
 TODO:
 
-(SDK) ensure JAVA_HOME is set in script that starts ResponderGen
-
-Create maven archetype for IRIS SDK e.g. mvn archetype:generate -DgroupId=com.mycompany.useragentdev -DartifactId=my-mockresponder -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false
-	This page contains a guide to writing archetypes http://maven.apache.org/guides/introduction/introduction-to-archetypes.html
-
-Seem that if I navigate to http://localhost:8080/examples/rest/notes/2 with my browser I get 
+Seems that if I navigate to http://localhost:8080/examples/rest/notes/2 with my browser I get 
 	a message 'class com.temenos.interaction.example.note.Note not found with key 2'.  We don't want to leak 
 	this information about classes, etc.
 
@@ -18,11 +13,8 @@ Implement &skiptoken conditional command/link in Resource Interaction Model stat
 
 Implement the ability to bind a command to a combination of mediatype + http method
 
-Add to simple CRUD Note example and bind a GET command to application/xml and application/json to return JAXB EntityResource
-
-Switch to using wink with Spring
-
-Implement a dynamic resource working with new EntityResource
+Add to simple CRUD Note example and bind a GET command to application/xml and application/json to return JAXB EntityResource.  We 
+	want to prove that it is possible to get a JAXB Java bean in xml and json.
 
 Implement a dynamic link with semantic model of link condition in spring.  First simple link condition will be a value of a
 	property in the same resource.
@@ -36,5 +28,7 @@ Implement a super simple generic user agent
 Implement a plain/text media type over OFS
 
 Change acquistion project to use a few dynamic resources in a new interaction project
+
+Implement SHARDI resource interaction base class
 
 Create a integration test configuration to run in test JerseyTest or against external server.
