@@ -13,14 +13,16 @@ public class TestResponderGen {
 	@Test
 	public void testSourceGenerationFromEDMX() {
 	    InputStream is = getClass().getResourceAsStream("/edmx.xml");
-	    File targetDir = new File("./target/integration-test");
-	    targetDir.mkdir();
+	    File srcTargetDir = new File("./target/integration-test/java");
+	    srcTargetDir.mkdir();
+	    File configTargetDir = new File("./target/integration-test/resources");
+	    configTargetDir.mkdir();
 	    
 		JPAResponderGen rg = new JPAResponderGen();
-		assertTrue(rg.generateArtifacts(is, targetDir));
+		assertTrue(rg.generateArtifacts(is, srcTargetDir, configTargetDir));
 		
-		assertEquals(6, countFiles(new File(targetDir, "AirlineModel")));
-		assertEquals(1, countFiles(new File(targetDir, "META-INF")));
+		assertEquals(6, countFiles(new File(srcTargetDir, "AirlineModel")));
+		assertEquals(1, countFiles(new File(configTargetDir, "META-INF")));
 	}
 	
 	private int countFiles(File dir) {

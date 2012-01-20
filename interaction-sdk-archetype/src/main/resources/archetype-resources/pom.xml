@@ -28,7 +28,8 @@
 -->
         <configuration>
           <edmxFile>\${basedir}/src/main/resources/edmx.xml</edmxFile>
-          <targetDirectory>\${basedir}/src/main/java</targetDirectory>
+          <srcTargetDirectory>\${basedir}/src/main/java</srcTargetDirectory>
+          <configTargetDirectory>\${basedir}/src/main/resources</configTargetDirectory>
         </configuration>
       </plugin>
     </plugins>

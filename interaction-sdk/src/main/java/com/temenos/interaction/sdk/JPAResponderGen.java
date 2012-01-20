@@ -54,12 +54,14 @@ public class JPAResponderGen {
 	 * @postcondition JPA persistence.xml written to file system, configured to inmemory database
 	 * @postcondition a boolean flag indicating a successful result will be returned
 	 * @invariant enough free space on the file system
-	 * @param is
+	 * @param edmxFile
+	 * @param srcOutputPath
+	 * @param configOutputPath
 	 */
-	public boolean generateArtifacts(File edmxFile, File outputPath) {
+	public boolean generateArtifacts(File edmxFile, File sourceOutputPath, File configOutputPath) {
 		try {
 			InputStream is = new FileInputStream(edmxFile);
-			return generateArtifacts(is, outputPath);
+			return generateArtifacts(is, sourceOutputPath, configOutputPath);
 		} catch (FileNotFoundException e) {
 			return false;
 		}
@@ -68,10 +70,11 @@ public class JPAResponderGen {
 	/**
 	 * Generate JPA responder artifacts.  Including JPA classes, persistence.xml, and DML bootstrapping.
 	 * @param is
-	 * @param outputPath
+	 * @param srcOutputPath
+	 * @param configOutputPath
 	 * @return
 	 */
-	public boolean generateArtifacts(InputStream is, File outputPath) {
+	public boolean generateArtifacts(InputStream is, File srcOutputPath, File configOutputPath) {
 		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(is)));
 		EdmDataServices ds = EdmxFormatParser.parseMetadata(reader);
 		
@@ -81,9 +84,9 @@ public class JPAResponderGen {
 		// generate JPA classes
 		for (EdmEntityType t : ds.getEntityTypes()) {
 			JPAEntityInfo entityInfo = createJPAEntityInfoFromEdmEntityType(t);
-			String fqOutputDir = outputPath.getPath() + "/" + entityInfo.getPackageAsPath();
+			String fqOutputDir = srcOutputPath.getPath() + "/" + entityInfo.getPackageAsPath();
 			new File(fqOutputDir).mkdirs();
-			if (writeClass(formClassFilename(outputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
+			if (writeClass(formClassFilename(srcOutputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
 				entities.add(entityInfo);
 			} else {
 				ok = false;
@@ -92,7 +95,7 @@ public class JPAResponderGen {
 		}
 
 		// generate persistence.xml
-		if (!writeJPAConfiguration(outputPath, generateJPAConfiguration(entities))) {
+		if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(entities))) {
 			ok = false;
 		}
 		
@@ -232,7 +235,7 @@ public class JPAResponderGen {
 	}
 	
 	public static void main(String[] args) {
-		boolean ok = false;
+		boolean ok = true;
 		if (args != null && args.length == 2) {
 			String edmxFilePath = args[0]; 
 			String targetDirectoryStr = args[1]; 
@@ -251,7 +254,8 @@ public class JPAResponderGen {
 			
 			if (ok) {
 				JPAResponderGen rg = new JPAResponderGen();
-				ok = rg.generateArtifacts(edmxFile, targetDirectory);
+				System.out.println("Writing source and configuration to [" + targetDirectory + "]");
+				ok = rg.generateArtifacts(edmxFile, targetDirectory, targetDirectory);
 			}
 		} else {
 			ok = false;
