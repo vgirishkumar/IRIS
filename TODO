@@ -1,5 +1,8 @@
 TODO:
 
+Submit JAX-RS Provider as alternative to this odata4j issue (109) http://code.google.com/p/odata4j/issues/detail?id=109&colspec=ID%20Type%20Status%20Priority%20Stars%20Milestone%20Owner%20Summary
+
+
 Seems that if I navigate to http://localhost:8080/examples/rest/notes/2 with my browser I get 
 	a message 'class com.temenos.interaction.example.note.Note not found with key 2'.  We don't want to leak 
 	this information about classes, etc.
