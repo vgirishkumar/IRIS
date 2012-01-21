@@ -12,6 +12,6 @@ public interface ExtendedMediaTypes {
     /** "application/pdf" */
     public final static String APPLICATION_PDF = "application/pdf";
     /** "application/pdf" */
-    public final static MediaType AAPPLICATION_PDF_TYPE = new MediaType("application","pdf");
+    public final static MediaType APPLICATION_PDF_TYPE = new MediaType("application","pdf");
 
 }
