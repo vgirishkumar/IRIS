@@ -10,12 +10,18 @@ $ mvn archetype:generate -DgroupId=com.mycompany.useragentdev -DartifactId=mockr
 NOTE - When creating your responder project we use the 'groupId' and 'artifaceId' to form part of the package names in the generated configuration files and source.
 
 
-3.  Generate your JPA responder from the EDMX file at src/main/resources/edmx.xml.
+3.  Edit the sample EDMX file at src/main/resources/edmx.xml.
+	- Visual studio 2010 comes with a graphical EDMX editor
+	- alternatively edit the xml file directly
+	- NB we are aiming to build an Eclipse EDMX editor
+
+
+4.  Generate your JPA responder from the EDMX file at src/main/resources/edmx.xml.
 
 $ cd mockresponder
 $ mvn interaction-sdk:gen
 
 
-4.  Run this IRIS SDK responder in jetty.
+5.  Run this IRIS SDK responder in jetty.
 
 $ mvn jetty:run

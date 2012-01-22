@@ -35,13 +35,13 @@ public class NewFunctionProducer extends ODataProducerDelegate {
 	private final Logger logger = LoggerFactory.getLogger(NewFunctionProducer.class);
 
     private final EntityManagerFactory emf;
-    private final String jpaNamespace;
+    private final String odataNamespace;
 	private final JPAProducer producer;
 
-    public NewFunctionProducer(EntityManagerFactory emf, String jpaNamespace, JPAProducer p) {
+    public NewFunctionProducer(EntityManagerFactory emf, String odataNamespace, JPAProducer jpaProducer) {
     	this.emf = emf;
-    	this.jpaNamespace = jpaNamespace;
-        producer = p;
+    	this.odataNamespace = odataNamespace;
+        producer = jpaProducer;
         extendModel();
     }
     
@@ -79,8 +79,8 @@ public class NewFunctionProducer extends ODataProducerDelegate {
         EdmDataServices ds = this.getMetadata();
         
         // Add functions to our own namespace
-        EdmSchema schema = ds.findSchema(jpaNamespace + "Container");
-        EdmEntityContainer container = schema.findEntityContainer(jpaNamespace + "Entities");
+        EdmSchema schema = ds.findSchema(odataNamespace + "Container");
+        EdmEntityContainer container = schema.findEntityContainer(odataNamespace + "Entities");
         
         /*
          * Add 'createNewDomainObjectID' function

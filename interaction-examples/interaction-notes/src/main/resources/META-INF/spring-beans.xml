@@ -4,16 +4,29 @@
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
 	<!-- Initialise JPA for MockResponder -->
-	<bean id="entityManagerFactory"
-		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
-			<property name="persistenceUnitName" value="NoteServiceHibernate" />		
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+		<property name="persistenceUnitName" value="NoteServiceHibernate" />		
 	</bean>
+	<!-- 
+	<bean id="sharedEntityManagerFactory" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
+		<property name="entityManagerFactory" ref="springEntityManagerFactory" />  
+	</bean>	
+	<bean id="entityManagerFactory" factory-bean="sharedEntityManagerFactory" factory-method="getEntityManagerFactory"/>
+	 -->
 	<!-- Create the MockResponder factory, at the moment this also initialises the Mock database -->
 	<bean id="mockResponderFactory" class="com.temenos.interaction.example.note.NoteProducerFactory" />
-	<!-- MockResponder Producer -->
-	<bean id="producer" factory-bean="mockResponderFactory" factory-method="getJPAProducer"/>
+	<!-- MockResponder JPA Producer -->
+	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
+		<constructor-arg name="emf" ref="entityManagerFactory" />
+		<constructor-arg name="namespace" value="InteractionExample" />		
+		<constructor-arg name="maxResults" value="100" />				
+	</bean>
 	<bean id="edmDataServices" factory-bean="producer" factory-method="getMetadata"/>
-	<bean id="functionsProducer" factory-bean="mockResponderFactory" factory-method="getFunctionsProducer"/>
+	<bean id="functionsProducer" class="com.temenos.interaction.example.note.NewFunctionProducer">
+		<constructor-arg name="emf" ref="entityManagerFactory" />		
+		<constructor-arg name="odataNamespace" value="InteractionExample" />
+		<constructor-arg name="jpaProducer" ref="producer" />				
+	</bean>
 
 <!--
 	An extension of org.apache.wink.spring.Registrar with support for singletons.

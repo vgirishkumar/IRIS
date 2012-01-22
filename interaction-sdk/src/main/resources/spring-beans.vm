@@ -8,6 +8,20 @@
 		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
 			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
 	</bean>
+	<!-- MockResponder JPA Producer -->
+	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
+		<constructor-arg name="emf" ref="entityManagerFactory" />
+		<constructor-arg name="namespace" value="MockResponderSDK" />		
+		<constructor-arg name="maxResults" value="100" />				
+	</bean>
+	<bean id="edmDataServices" factory-bean="producer" factory-method="getMetadata"/>
+<!--
+	<bean id="functionsProducer" class="com.temenos.interaction.example.note.NewFunctionProducer">
+		<constructor-arg name="emf" ref="entityManagerFactory" />		
+		<constructor-arg name="odataNamespace" value="MockResponderSDK" />
+		<constructor-arg name="jpaProducer" ref="producer" />				
+	</bean>
+-->
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -15,9 +29,7 @@
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
-        		<!--
 				<ref local="staxHALProvider" />
-				-->
 				<ref local="atomProvider" />
  			</set>
    		</property>
@@ -32,18 +44,37 @@
 		</property>
 		<property name="instances">
 			<set>
-<!-- 
-				<ref bean="DYNA_NOTE" />
- -->
+#foreach ( $jpaentity in $entities )
+				<ref bean="$jpaentity.getClazz()" />
+#end
 			</set>
 		</property>
 	</bean>
 
-<!--
 	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 	</bean>
--->
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider" />
+
+    <!-- Resources -->
+#foreach ( $jpaentity in $entities )
+    <bean id="$jpaentity.getClazz()" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
+    	<constructor-arg name="entityName" value="$jpaentity.getClazz()" />
+    	<constructor-arg name="path" value="/$jpaentity.getClazz()/{id}" />
+    	<constructor-arg name="commandController" ref="$jpaentity.getClazz()Commands" />
+    </bean>
+    
+    <bean id="$jpaentity.getClazz()Commands" class="com.temenos.interaction.core.command.CommandController">
+    	<constructor-arg name="resourcePath" value="/$jpaentity.getClazz()/{id}" />
+    	<constructor-arg name="getCommand">
+            <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
+                <constructor-arg name="entity" value="$jpaentity.getClazz()" />
+                <constructor-arg name="producer" ref="producer" />
+            </bean>
+        </constructor-arg>
+        <constructor-arg><bean class="java.util.HashSet" /></constructor-arg>
+    </bean>
+    
+#end
 
 </beans>
