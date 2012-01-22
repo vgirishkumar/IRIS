@@ -8,6 +8,9 @@
 		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
 			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
 	</bean>
+	<!-- Initialise responder database -->
+	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+	
 	<!-- MockResponder JPA Producer -->
 	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />

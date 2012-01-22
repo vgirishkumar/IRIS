@@ -1,0 +1,21 @@
+#
+# Populate your responder inmemory database with some test values
+#
+
+#foreach ( $jpaentity in $entities )
+INSERT INTO `$jpaentity.getClazz()`(  ##              
+	#foreach ( $fieldInfo in $jpaentity.getFieldInfos() ) 
+        `$fieldInfo.getName()` ##
+        #set ( $indexOfLastElement = $jpaentity.getFieldInfos().size() - 1 )
+        #if (!$fieldInfo.equals($jpaentity.getFieldInfos().get($indexOfLastElement))) 
+        , ##
+        #end
+	#end                                                  
+) VALUES(  ##
+	#foreach ( $fieldInfo in $jpaentity.getFieldInfos() )
+        'example'  ##
+        #set ( $indexOfLastElement = $jpaentity.getFieldInfos().size() - 1 )
+        #if (!$fieldInfo.equals($jpaentity.getFieldInfos().get($indexOfLastElement))) , #end
+    #end
+);	
+#end

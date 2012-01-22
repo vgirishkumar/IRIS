@@ -37,6 +37,7 @@ public class JPAResponderGen {
 
 	private final static String JPA_CONFIG_FILE = "persistence.xml";
 	private final static String SPRING_CONFIG_FILE = "spring-beans.xml";
+	private final static String RESPONDER_INSERT_FILE = "responder_insert.sql";
 
 	/*
 	 *  create a new instance of the engine
@@ -103,6 +104,11 @@ public class JPAResponderGen {
 
 		// generate spring-beans.xml
 		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(entities))) {
+			ok = false;
+		}
+
+		// generate responder insert
+		if (!writeResponderDML(configOutputPath, generateResponderDML(entities))) {
 			ok = false;
 		}
 
@@ -226,6 +232,28 @@ public class JPAResponderGen {
 		return true;
 	}
 
+	private boolean writeResponderDML(File sourceDir, String generatedSpringXML) {
+		FileOutputStream fos = null;
+		try {
+			File metaInfDir = new File(sourceDir.getPath() + "/META-INF");
+			metaInfDir.mkdirs();
+			fos = new FileOutputStream(new File(metaInfDir, RESPONDER_INSERT_FILE));
+			fos.write(generatedSpringXML.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO add slf4j logger here
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				// don't hide original exception
+			}
+		}
+		return true;
+	}
+	
 	/**
 	 * Generate a JPA Entity from the provided info
 	 * @precondition {@link JPAEntityInfo} non null
@@ -264,14 +292,29 @@ public class JPAResponderGen {
 
 	/**
 	 * Generate the Spring configuration for the provided resources.
-	 * @param enitities
+	 * @param entities
 	 * @return
 	 */
-	public String generateSpringConfiguration(List<JPAEntityInfo> enitities) {
+	public String generateSpringConfiguration(List<JPAEntityInfo> entities) {
 		VelocityContext context = new VelocityContext();
-		context.put("entities", enitities);
+		context.put("entities", entities);
 		
 		Template t = ve.getTemplate("/spring-beans.vm");
+		StringWriter sw = new StringWriter();
+		t.merge(context, sw);
+		return sw.toString();
+	}
+
+	/**
+	 * Generate the responder_insert.sql provided resources.
+	 * @param entities
+	 * @return
+	 */
+	public String generateResponderDML(List<JPAEntityInfo> entities) {
+		VelocityContext context = new VelocityContext();
+		context.put("entities", entities);
+		
+		Template t = ve.getTemplate("/responder_insert.vm");
 		StringWriter sw = new StringWriter();
 		t.merge(context, sw);
 		return sw.toString();

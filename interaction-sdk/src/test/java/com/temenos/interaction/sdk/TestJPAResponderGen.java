@@ -124,6 +124,22 @@ public class TestJPAResponderGen {
 	}
 
 	@Test
+	public void testGenResponderDML() {
+		JPAResponderGen rg = new JPAResponderGen();
+		
+		List<JPAEntityInfo> entities = new ArrayList<JPAEntityInfo>();
+		entities.add(new JPAEntityInfo("Flight", "AirlineModel", null, null));
+		entities.add(new JPAEntityInfo("Airport", "AirlineModel", null, null));
+		entities.add(new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null));
+		String generatedResponderDML = rg.generateResponderDML(entities);
+		
+//		assertTrue(generatedResponderDML.contains("<!-- Generated JPA configuration for IRIS MockResponder -->"));
+//		assertTrue(generatedResponderDML.contains("<class>AirlineModel.Flight</class>"));
+//		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.Airport</class>"));
+//		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.FlightSchedule</class>"));
+		}
+
+	@Test
 	public void testFormClassFilename() {
 		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah", new JPAEntityInfo("SomeClass", "com.some.package", null, null)));
 	}
