@@ -1,5 +1,7 @@
 TODO:
 
+Add support for complex Entity keys and key types other than String and Long.
+
 Add <xml> or name=value way of populating responder database.
 
 Submit JAX-RS Provider as alternative to this odata4j issue (109) http://code.google.com/p/odata4j/issues/detail?id=109&colspec=ID%20Type%20Status%20Priority%20Stars%20Milestone%20Owner%20Summary

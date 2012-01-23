@@ -4,6 +4,8 @@ import javax.ws.rs.core.Response;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.edm.EdmDataServices;
+import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
@@ -23,11 +25,15 @@ public class GETSingleEntityCommand implements ResourceGetCommand {
 	private String entityKey;
 
 	private ODataProducer producer;
+	private EdmDataServices edmDataServices;
+	private EdmEntitySet entitySet;
 
 	public GETSingleEntityCommand(String entity, String entityKey, ODataProducer producer) {
 		this.entity = entity;
 		this.entityKey = entityKey;
 		this.producer = producer;
+		this.edmDataServices = producer.getMetadata();
+		this.entitySet = edmDataServices.getEdmEntitySet(entity);
 	}
 
 	/**
@@ -35,9 +41,10 @@ public class GETSingleEntityCommand implements ResourceGetCommand {
 	 */
 	public RESTResponse get(String id) {
 		assert(id == null || "".equals(id));
+		assert(entity.equals(entitySet.name));
 
 		OEntityKey key = OEntityKey.create(entityKey);
-		EntityResponse eResp = producer.getEntity(entity, key, null);
+		EntityResponse eResp = producer.getEntity(entitySet.name, key, null);
 		OEntity oEntity = eResp.getEntity();
 		EntityResource er = new EntityResource(oEntity);
 		return new RESTResponse(Response.Status.OK, er, null);
