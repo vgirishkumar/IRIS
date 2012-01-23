@@ -3,16 +3,16 @@
 #
 # For example:
 #foreach ( $jpaentity in $entities )
-#INSERT INTO `$jpaentity.getClazz()`(##              
-#foreach ( $fieldInfo in $jpaentity.getFieldInfos() ) 
+#INSERT INTO `$jpaentity.getClazz()`(##
+#foreach ( $fieldInfo in $jpaentity.getAllFieldInfos() ) 
 `$fieldInfo.getName()`##
-#set ( $indexOfLastElement = $jpaentity.getFieldInfos().size() - 1 )
-#if (!$fieldInfo.equals($jpaentity.getFieldInfos().get($indexOfLastElement))) 
+#set ( $indexOfLastElement = $jpaentity.getAllFieldInfos().size() - 1 )
+#if (!$fieldInfo.equals($jpaentity.getAllFieldInfos().get($indexOfLastElement))) 
  , ##
 #end
 #end                                                  
 ) VALUES(##
-#foreach ( $fieldInfo in $jpaentity.getFieldInfos() )
+#foreach ( $fieldInfo in $jpaentity.getAllFieldInfos() )
 #if ($fieldInfo.getType().equals("String")) 
 'example'##
 #elseif ($fieldInfo.getType().equals("Long") || $fieldInfo.getType().equals("Integer"))
@@ -24,8 +24,8 @@
 #else
 'Type not supported'##
 #end
-#set ( $indexOfLastElement = $jpaentity.getFieldInfos().size() - 1 )
-#if (!$fieldInfo.equals($jpaentity.getFieldInfos().get($indexOfLastElement))) 
+#set ( $indexOfLastElement = $jpaentity.getAllFieldInfos().size() - 1 )
+#if (!$fieldInfo.equals($jpaentity.getAllFieldInfos().get($indexOfLastElement))) 
  , ##
 #end
 #end

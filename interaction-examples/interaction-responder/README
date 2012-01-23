@@ -28,10 +28,12 @@ $ mvn jetty:run
 
 
 6.  You can now view your resources in the Jetty admin screens.  
-	NB - For the time being, consider this our service document.  Wink generates these admin views including an xml view which is essentially a
-	Web Application Description Language (or WADL)
 
 http://localhost:8080/responder/admin
+	NB - For the time being, consider this our service document.  Wink generates these admin views including an xml view which is essentially a
+	partial Web Application Description Language (or WADL) in the near future we will have:
+	- an OData service document http://localhost:8080/responder/MockResponder.svc
+	- a WADL service document http://localhost:8080/responder/MockResponder.wadl
 
 
 7.  To do something meaningful with your application you will more than likely need to mock some data.  You can

@@ -172,9 +172,7 @@ public class JPAResponderGen {
 			}
 
 			FieldInfo field = new FieldInfo(property.name, javaType(property.type), annotations);
-			if (!field.equals(keyInfo)) {
-				properties.add(field);
-			}
+			properties.add(field);
 		}
 		
 		return new JPAEntityInfo(entityType.name, entityType.namespace, keyInfo, properties);

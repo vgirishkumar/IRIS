@@ -1,5 +1,6 @@
 package com.temenos.interaction.sdk;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.odata4j.core.OEntity;
@@ -50,9 +51,20 @@ public class JPAEntityInfo {
 	}
 	
 	public List<FieldInfo> getFieldInfos() {
-		return properties;
+		List<FieldInfo> fieldsProps = new ArrayList<FieldInfo>();
+		for (FieldInfo field : properties) {
+			if (!field.equals(keyInfo)) {
+				fieldsProps.add(field);
+			}
+		}
+
+		return fieldsProps;
 	}
 	
+	public List<FieldInfo> getAllFieldInfos() {
+		return properties;
+	}
+
 	public String getPackageAsPath() {
 		if (pckge != null) {
 			return pckge.replace(".", "/");

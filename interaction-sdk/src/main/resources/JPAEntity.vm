@@ -12,7 +12,6 @@ import javax.persistence.TemporalType;
 public class $jpaentity.getClazz() {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Basic(optional = false)
 	private $jpaentity.getKeyInfo().getType() $jpaentity.getKeyInfo().getName();
 	
