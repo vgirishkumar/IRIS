@@ -11,6 +11,7 @@
 -->
   <resources>
     <resource>src/main/resources/edmx.xml</resource>
+    <resource>src/main/resources/logback.xml</resource>
   </resources>
   <siteResources>
     <resource>src/main/webapp/WEB-INF/web.xml</resource>
