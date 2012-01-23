@@ -160,12 +160,18 @@ public class JPAResponderGen {
 					key = e.type;
 				}
 			}
-			keyInfo = new FieldInfo(keyName, javaType(key));
+			keyInfo = new FieldInfo(keyName, javaType(key), null);
 		}
 		
 		List<FieldInfo> properties = new ArrayList<FieldInfo>();
 		for (EdmProperty property : entityType.getProperties()) {
-			FieldInfo field = new FieldInfo(property.name, javaType(property.type));
+			// add additional configuration by annotations
+			List<String> annotations = new ArrayList<String>();
+			if (property.type.equals(EdmSimpleType.DATETIME)) {
+				annotations.add("@Temporal(TemporalType.TIMESTAMP)");
+			}
+
+			FieldInfo field = new FieldInfo(property.name, javaType(property.type), annotations);
 			if (!field.equals(keyInfo)) {
 				properties.add(field);
 			}
@@ -176,13 +182,21 @@ public class JPAResponderGen {
 	
 	private String javaType(EdmType type) {
 		// TODO support complex type keys?
-		// TODO support types other than Long and String
 		assert(type.isSimple());
-		String javaType = "String";
+		String javaType = null;
 		if (EdmSimpleType.INT64 == type) {
 			javaType = "Long";
+		} else if (EdmSimpleType.INT32 == type) {
+			javaType = "Integer";
 		} else if (EdmSimpleType.STRING == type) {
 			javaType = "String";
+		} else if (EdmSimpleType.DATETIME == type) {
+			javaType = "java.util.Date";
+		} else if (EdmSimpleType.TIME == type) {
+			javaType = "java.sql.Timestamp";
+		} else {
+			// TODO support types other than Long and String
+			throw new RuntimeException("Entity property type not supported");
 		}
 		return javaType;
 	}

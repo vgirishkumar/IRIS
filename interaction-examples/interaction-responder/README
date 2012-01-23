@@ -7,7 +7,7 @@ This is a simple step by step example of creating a mock responder with the IRIS
 
 $ mvn archetype:generate -DgroupId=com.mycompany.useragentdev -DartifactId=mockresponder -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false
 
-NOTE - When creating your responder project we use the 'groupId' and 'artifaceId' to form part of the package names in the generated configuration files and source.
+	NOTE - When creating your responder project we use the 'groupId' and 'artifaceId' to form part of the package names in the generated configuration files and source.
 
 
 3.  Edit the sample EDMX file at src/main/resources/edmx.xml.
@@ -25,3 +25,26 @@ $ mvn interaction-sdk:gen
 5.  Run this IRIS SDK responder in jetty.
 
 $ mvn jetty:run
+
+
+6.  You can now view your resources in the Jetty admin screens.  
+	NB - For the time being, consider this our service document.  Wink generates these admin views including an xml view which is essentially a
+	Web Application Description Language (or WADL)
+
+http://localhost:8080/responder/admin
+
+
+7.  To do something meaningful with your application you will more than likely need to mock some data.  You can
+	achieve this by pusing data into the Mock Responder's database.  Just edit the file at {mockresponder}/src/main/resources/META-INF/responder_insert.sql
+	
+	If you haven't changed the mockresponder example you should be able to uncomment the following line:
+
+INSERT INTO `Flight`(`takeoffTime`) VALUES('1996-08-20 00:00:00');	
+
+	Then restart you Jetty server (just press ctrl+c) followed by:
+
+$ mvn jetty:run
+	
+	You can now browse your Flights at:
+
+http://localhost:8080/responder/rest/Flight/1

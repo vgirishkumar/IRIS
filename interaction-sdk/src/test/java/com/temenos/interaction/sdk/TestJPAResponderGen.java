@@ -56,7 +56,7 @@ public class TestJPAResponderGen {
 	}
 
 	@Test
-	public void testJPAEntityPropertiesInfo() {
+	public void testJPAEntityFieldInfo() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		List<String> keys = new ArrayList<String>();
@@ -65,14 +65,38 @@ public class TestJPAResponderGen {
 		properties.add(new EdmProperty("number", EdmSimpleType.STRING, false));
 		properties.add(new EdmProperty("fitHostiesName", EdmSimpleType.STRING, true));
 		properties.add(new EdmProperty("runway", EdmSimpleType.STRING, false));
+		properties.add(new EdmProperty("passengers", EdmSimpleType.INT32, false));
+		properties.add(new EdmProperty("departureDT", EdmSimpleType.DATETIME, false));
+		properties.add(new EdmProperty("dinnerServed", EdmSimpleType.TIME, false));
+
 		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
 		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		
-		assertEquals(4, p.getFieldInfos().size());
-		assertTrue(p.getFieldInfos().contains(new FieldInfo("flightID", "Long")));
-		assertTrue(p.getFieldInfos().contains(new FieldInfo("number", "String")));
-		assertTrue(p.getFieldInfos().contains(new FieldInfo("fitHostiesName", "String")));
-		assertTrue(p.getFieldInfos().contains(new FieldInfo("runway", "String")));
+		assertEquals(7, p.getFieldInfos().size());
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("flightID", "Long", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("number", "String", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("fitHostiesName", "String", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("runway", "String", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("passengers", "Integer", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("departureDT", "java.util.Date", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("dinnerServed", "java.sql.Timestamp", null)));
+	}
+	
+	public void testJPAEntityFieldInfoAnnotations() {
+		JPAResponderGen rg = new JPAResponderGen();
+		
+		List<String> keys = new ArrayList<String>();
+		List<EdmProperty> properties = new ArrayList<EdmProperty>();
+		properties.add(new EdmProperty("departureDT", EdmSimpleType.DATETIME, false));
+
+		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
+		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
+		
+		FieldInfo fi = p.getFieldInfos().get(0);
+		
+		// Annotations
+		assertEquals(1, fi.getAnnotations().size());
+		assertEquals("@Temporal(TemporalType.TIMESTAMP)", fi.getAnnotations().get(0));
 	}
 
 	@Test(expected = AssertionError.class)
@@ -85,11 +109,18 @@ public class TestJPAResponderGen {
 	public void testGenJPAEntity() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
-		FieldInfo keyInfo = new FieldInfo("flightID", "Long");
+		FieldInfo keyInfo = new FieldInfo("flightID", "Long", null);
 		List<FieldInfo> properties = new ArrayList<FieldInfo>();
-		properties.add(new FieldInfo("number", "String"));
-		properties.add(new FieldInfo("fitHostiesName", "String"));
-		properties.add(new FieldInfo("runway", "String"));
+		properties.add(new FieldInfo("number", "String", null));
+		properties.add(new FieldInfo("fitHostiesName", "String", null));
+		properties.add(new FieldInfo("runway", "String", null));
+		properties.add(new FieldInfo("passengers", "Integer", null));
+		
+		List<String> annotations = new ArrayList<String>();
+		annotations.add("@Temporal(TemporalType.TIMESTAMP)");
+		properties.add(new FieldInfo("departureDT", "java.util.Date", annotations));
+		
+		properties.add(new FieldInfo("dinnerServed", "java.sql.Timestamp", null));
 		
 		JPAEntityInfo jpaEntity = new JPAEntityInfo("Flight", "AirlineModel", keyInfo, properties);
 		String generatedClass = rg.generateJPAEntityClass(jpaEntity);
@@ -104,6 +135,13 @@ public class TestJPAResponderGen {
 		assertTrue(generatedClass.contains("private String number;"));
 		assertTrue(generatedClass.contains("private String fitHostiesName;"));
 		assertTrue(generatedClass.contains("private String runway;"));
+		assertTrue(generatedClass.contains("private Integer passengers;"));
+
+		// date handling needs some special support
+		assertTrue(generatedClass.contains("@Temporal(TemporalType.TIMESTAMP)"));
+		assertTrue(generatedClass.contains("private java.util.Date departureDT;"));
+
+		assertTrue(generatedClass.contains("private java.sql.Timestamp dinnerServed;"));
 		assertTrue(generatedClass.contains("public Flight() {}"));
 	}
 	
@@ -128,15 +166,20 @@ public class TestJPAResponderGen {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		List<JPAEntityInfo> entities = new ArrayList<JPAEntityInfo>();
-		entities.add(new JPAEntityInfo("Flight", "AirlineModel", null, null));
+		
+		List<FieldInfo> properties = new ArrayList<FieldInfo>();
+		properties.add(new FieldInfo("number", "Long", null));
+		properties.add(new FieldInfo("fitHostiesName", "String", null));
+		properties.add(new FieldInfo("runway", "String", null));
+		entities.add(new JPAEntityInfo("Flight", "AirlineModel", null, properties));
+
 		entities.add(new JPAEntityInfo("Airport", "AirlineModel", null, null));
 		entities.add(new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null));
 		String generatedResponderDML = rg.generateResponderDML(entities);
 		
-//		assertTrue(generatedResponderDML.contains("<!-- Generated JPA configuration for IRIS MockResponder -->"));
-//		assertTrue(generatedResponderDML.contains("<class>AirlineModel.Flight</class>"));
-//		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.Airport</class>"));
-//		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.FlightSchedule</class>"));
+		assertTrue(generatedResponderDML.contains("#INSERT INTO `Flight`(`number` , `fitHostiesName` , `runway`) VALUES('1' , 'example' , 'example');"));
+		assertTrue(generatedResponderDML.contains("#INSERT INTO `Airport`() VALUES();"));
+		assertTrue(generatedResponderDML.contains("#INSERT INTO `FlightSchedule`() VALUES();"));
 		}
 
 	@Test

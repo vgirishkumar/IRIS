@@ -1,13 +1,17 @@
 package com.temenos.interaction.sdk;
 
+import java.util.List;
+
 public class FieldInfo {
 
 	private String name;
 	private String type;
+	private List<String> annotations;
 	
-	public FieldInfo(String name, String type) {
+	public FieldInfo(String name, String type, List<String> annotations) {
 		this.name = name;
 		this.type = type;
+		this.annotations = annotations;
 	}
 	
 	public String getName() {
@@ -16,6 +20,10 @@ public class FieldInfo {
 	
 	public String getType() {
 		return type;
+	}
+	
+	public List<String> getAnnotations() {
+		return annotations;
 	}
 	
 	public boolean equals(Object other) {

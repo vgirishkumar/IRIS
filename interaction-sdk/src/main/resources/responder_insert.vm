@@ -1,21 +1,33 @@
 #
 # Populate your responder inmemory database with some test values
 #
-
+# For example:
 #foreach ( $jpaentity in $entities )
-INSERT INTO `$jpaentity.getClazz()`(  ##              
-	#foreach ( $fieldInfo in $jpaentity.getFieldInfos() ) 
-        `$fieldInfo.getName()` ##
-        #set ( $indexOfLastElement = $jpaentity.getFieldInfos().size() - 1 )
-        #if (!$fieldInfo.equals($jpaentity.getFieldInfos().get($indexOfLastElement))) 
-        , ##
-        #end
-	#end                                                  
-) VALUES(  ##
-	#foreach ( $fieldInfo in $jpaentity.getFieldInfos() )
-        'example'  ##
-        #set ( $indexOfLastElement = $jpaentity.getFieldInfos().size() - 1 )
-        #if (!$fieldInfo.equals($jpaentity.getFieldInfos().get($indexOfLastElement))) , #end
-    #end
+#INSERT INTO `$jpaentity.getClazz()`(##              
+#foreach ( $fieldInfo in $jpaentity.getFieldInfos() ) 
+`$fieldInfo.getName()`##
+#set ( $indexOfLastElement = $jpaentity.getFieldInfos().size() - 1 )
+#if (!$fieldInfo.equals($jpaentity.getFieldInfos().get($indexOfLastElement))) 
+ , ##
+#end
+#end                                                  
+) VALUES(##
+#foreach ( $fieldInfo in $jpaentity.getFieldInfos() )
+#if ($fieldInfo.getType().equals("String")) 
+'example'##
+#elseif ($fieldInfo.getType().equals("Long") || $fieldInfo.getType().equals("Integer"))
+'1'##
+#elseif ($fieldInfo.getType().equals("java.util.Date"))
+'1996-08-20 00:00:00'##
+#elseif ($fieldInfo.getType().equals("java.sql.Timestamp"))
+'00:00:00'##
+#else
+'Type not supported'##
+#end
+#set ( $indexOfLastElement = $jpaentity.getFieldInfos().size() - 1 )
+#if (!$fieldInfo.equals($jpaentity.getFieldInfos().get($indexOfLastElement))) 
+ , ##
+#end
+#end
 );	
 #end
