@@ -68,7 +68,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceInteractio
     	logger.debug("GET " + resourcePath);
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand();
-    	RESTResponse response = getCommand.get(id);
+    	RESTResponse response = getCommand.get(id, null);
     	assert (response != null);
     	StatusType status = response.getStatus();
 		assert (status != null);  // not a valid get command
@@ -129,7 +129,7 @@ public abstract class CRUDResourceInteractionModel implements ResourceInteractio
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand();
     	ResponseBuilder response = Response.ok();
-    	RESTResponse rResponse = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command

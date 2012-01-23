@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.StatusType;
+import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,11 +83,11 @@ public class TRANSIENTResourceInteractionModel implements ResourceInteractionMod
     
     @GET
     @Consumes({MediaType.WILDCARD})
-    public Response getNotImplemented( @Context HttpHeaders headers, @PathParam("id") String id) {
+    public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
     	logger.debug("GET " + resourcePath);
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand();
-    	RESTResponse response = getCommand.get(id);
+    	RESTResponse response = getCommand.get(id, uriInfo.getQueryParameters());
     	assert (response != null);
     	StatusType status = response.getStatus();
 		assert (status != null);  // not a valid get command

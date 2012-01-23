@@ -4,9 +4,11 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.isNull;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.junit.Test;
@@ -26,7 +28,7 @@ public class TestCRUDResourceInteractionModel {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
-		when(rgc.get(anyString())).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null, null));
+		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null, null));
 		cc.setGetCommand(rgc);
 		Response response = r.get(null, "123");
 		assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
@@ -60,7 +62,7 @@ public class TestCRUDResourceInteractionModel {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
-		when(rgc.get(anyString())).thenReturn(new RESTResponse(Response.Status.OK, null, null));
+		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.OK, null, null));
 		cc.setGetCommand(rgc);
 		r.get(null, "123");
 	}

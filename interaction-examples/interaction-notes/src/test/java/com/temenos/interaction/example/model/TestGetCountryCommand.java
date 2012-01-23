@@ -30,7 +30,7 @@ public class TestGetCountryCommand {
 	@Test(expected=AssertionError.class)
 	public void testExecuteNoEntityManager() {
 		GetCountryCommand command = new GetCountryCommand(null);
-		command.get("123");
+		command.get("123", null);
 	}
 
 	@Test
@@ -39,7 +39,7 @@ public class TestGetCountryCommand {
 		ODataProducer mockP = mock(ODataProducer.class);
 		when(mockP.getEntity(anyString(), (OEntityKey) isNull(), (QueryInfo) isNull())).thenReturn(null);
 		command.setProducer(mockP);
-		RESTResponse resp = command.get("123");
+		RESTResponse resp = command.get("123", null);
 		assertNotNull(resp);
 		assertEquals(Response.Status.NOT_FOUND, resp.getStatus());
 	}
@@ -57,7 +57,7 @@ public class TestGetCountryCommand {
 		EntityResponse response = Responses.entity(mockEntity);
 		when(mockP.getEntity(anyString(), any(OEntityKey.class), (QueryInfo) isNull())).thenReturn(response);
 		command.setProducer(mockP);
-		RESTResponse resp = command.get("123");
+		RESTResponse resp = command.get("123", null);
 		assertNotNull(resp);
 		assertEquals(Response.Status.OK, resp.getStatus());
 		assertNotNull(resp.getResource());

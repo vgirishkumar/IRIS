@@ -3,6 +3,7 @@ package com.temenos.interaction.example.country;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.odata4j.core.OEntity;
@@ -32,7 +33,7 @@ public class GetCountryCommand implements ResourceGetCommand {
 	 * @invariant none
 	 * @see com.temenos.interaction.core.command.ResourceGetCommand#execute(java.lang.String)
 	 */
-	public RESTResponse get(String id) {
+	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		assert(producer != null);
 		assert(id != null);
 		EntityResource resource = null;

@@ -1,5 +1,6 @@
 package com.temenos.interaction.example.note;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.odata4j.core.OEntity;
@@ -20,7 +21,7 @@ public class OEntityGetNoteCommand implements ResourceGetCommand {
 	}
 	
 	/* Implement ResourceGetCommand (OEntity) */
-	public RESTResponse get(String id) {
+	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		OEntityKey key = OEntityKey.create(new Long(id));
 		EntityResponse er = producer.getEntity(OEntityNoteRIM.ENTITY_NAME, key, null);
 		OEntity oEntity = er.getEntity();

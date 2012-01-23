@@ -53,6 +53,7 @@
 <!-- 
 				<ref bean="OEntity-NOTE" />
  -->
+				<ref bean="NOTES" />
 				<ref bean="JAXB-NOTE" />
 				<ref bean="NEW_NOTE" />
 				<ref bean="COUNTRY" />
@@ -112,6 +113,9 @@
     </bean>
 	-->
     
+    <bean id="NOTES" class="com.temenos.interaction.example.note.NotesRIM">
+    	<constructor-arg name="producer" ref="producer" />
+    </bean>
     <bean id="OEntity-NOTE" class="com.temenos.interaction.example.note.OEntityNoteRIM">
     	<constructor-arg name="producer" ref="producer" />
     </bean>

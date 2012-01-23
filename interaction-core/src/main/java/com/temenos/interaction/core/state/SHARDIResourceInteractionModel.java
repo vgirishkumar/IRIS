@@ -73,7 +73,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     @Produces({MediaType.APPLICATION_XML})
     public Response getXML( @PathParam("id") String id ) {
     	ResourceGetCommand getCommand = commandController.fetchGetCommand();
-    	RESTResponse rResponse = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
@@ -88,7 +88,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJson( @PathParam("id") String id ) {
     	ResourceGetCommand getCommand = commandController.fetchGetCommand();
-    	RESTResponse rResponse = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
@@ -120,7 +120,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     @Produces(ExtendedMediaTypes.APPLICATION_PDF)
     public StreamingOutput getPDF( @PathParam("id") String id ) {
    		ResourceGetCommand getCommand = (ResourceGetCommand) commandController.fetchGetCommand();
-    	RESTResponse rResponse = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
@@ -137,7 +137,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     public Response options(String id ) {
     	ResourceGetCommand getCommand = commandController.fetchGetCommand();
     	ResponseBuilder response = Response.ok();
-    	RESTResponse rResponse = getCommand.get(id);
+    	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command

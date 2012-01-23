@@ -1,5 +1,6 @@
 package com.temenos.interaction.commands.odata;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.odata4j.core.OEntity;
@@ -31,7 +32,7 @@ public class GETEntityCommand implements ResourceGetCommand {
 	}
 	
 	/* Implement ResourceGetCommand (OEntity) */
-	public RESTResponse get(String id) {
+	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		assert(entity.equals(entitySet.name));
 
 		// TODO lookup EdmType and form the right kind of key for this entity

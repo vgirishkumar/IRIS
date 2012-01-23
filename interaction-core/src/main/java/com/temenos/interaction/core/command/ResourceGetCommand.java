@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.command;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import com.temenos.interaction.core.RESTResource;
@@ -20,6 +21,6 @@ public interface ResourceGetCommand extends ResourceCommand {
 	 * will return a {@link Response.Status}.  A call to {@link RESTResponse#getResource()} will return
 	 * a {@link RESTResource} if a the Response.Status is an OK (200) family of response
 	 */
-	public RESTResponse get(String id);
+	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams);
 	
 }
