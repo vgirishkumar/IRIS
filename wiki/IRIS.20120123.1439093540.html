@@ -510,7 +510,7 @@ Also see [[AdvancedOptions]]</pre>
 <div title="IRIS" creator="YourName" modifier="YourName" created="201111022147" modified="201111022148" changecount="2">
 <pre>Anything and everything about IRIS (Interaction &amp; Reporting Information Service)</pre>
 </div>
-<div title="MainMenu" creator="YourName" modifier="aphethean" created="201111022149" modified="201201231413" changecount="7">
+<div title="MainMenu" creator="YourName" modifier="YourName" created="201111022149" modified="201201191111" changecount="6">
 <pre>[[GettingStarted]]
 
 [[interaction-core]]
@@ -520,7 +520,7 @@ Also see [[AdvancedOptions]]</pre>
 
 [[Research]]</pre>
 </div>
-<div title="Research" creator="aphethean" modifier="aphethean" created="201201112158" modified="201201231439" changecount="6">
+<div title="Research" creator="aphethean" modifier="YourName" created="201201112158" modified="201201162322" changecount="5">
 <pre>Useful links and other bits of research
 
 [[interaction-sdk]]
@@ -541,11 +541,11 @@ http://www.eclipse.org/Xtext/</pre>
 <div title="SiteTitle" creator="YourName" modifier="aphethean" created="201111022150" modified="201111022152" changecount="3">
 <pre>[[IRIS]]</pre>
 </div>
-<div title="examples" creator="YourName" modifier="aphethean" created="201201191110" modified="201201231415" changecount="3">
+<div title="examples" creator="YourName" modifier="aphethean" created="201201191110" modified="201201191117" changecount="2">
 <pre>[[interaction-notes]]
 [[interaction-mockresponder]]</pre>
 </div>
-<div title="interaction-core" creator="aphethean" modifier="aphethean" created="201111022154" modified="201201231412" changecount="6">
+<div title="interaction-core" creator="aphethean" modifier="YourName" created="201111022154" modified="201201162320" changecount="5">
 <pre>The core library of the interaction framework.
 
 This library contains a number of base classes that define how resources can transition state:
@@ -557,66 +557,33 @@ A class should be able to extend one of these and simply provide the appropriate
 
 The [[com.temenos.interaction.core.dynaresource.DynaResource]] is intended to be a dynamic resource with dynamic Resource Interaction Model.</pre>
 </div>
-<div title="interaction-mockresponder" creator="YourName" modifier="aphethean" created="201201191113" modified="201201231438" changecount="10">
+<div title="interaction-mockresponder" creator="YourName" modifier="aphethean" created="201201191113" modified="201201201514" changecount="9">
 <pre>This is a simple step by step example of creating a mock responder with the IRIS SDK.
 
 1.  Change to a directory where you want to create your Mock Responder project.
 
 
 2.  Create your mock responder project.  To do this you'll need Maven and a Java 1.6 SDK installed.
+
 {{{
 $ mvn archetype:generate -DgroupId=com.mycompany.useragentdev -DartifactId=mockresponder -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false
 }}}
-	NOTE - When creating your responder project we use the 'groupId' and 'artifaceId' to form part of the package names in the generated configuration files and source.
+
+NOTE - When creating your responder project we use the 'groupId' and 'artifaceId' to form part of the package names in the generated configuration files and source.
 
 
-3.  Edit the sample EDMX file at src/main/resources/edmx.xml.
-	- Visual studio 2010 comes with a graphical EDMX editor
-	- alternatively edit the xml file directly
-	- NB we are aiming to build an Eclipse EDMX editor
-
-
-4.  Generate your JPA responder from the EDMX file at src/main/resources/edmx.xml.
+3.  Generate your JPA responder from the EDMX file at '''src/main/resources/edmx.xml'''.
 {{{
 $ cd mockresponder
 $ mvn interaction-sdk:gen
 }}}
 
-5.  Run this IRIS SDK responder in jetty.
-{{{
-$ mvn jetty:run
-}}}
 
-6.  You can now view your resources in the Jetty admin screens.  
+4.  Run this IRIS SDK responder in jetty.
 
-http://localhost:8080/responder/admin
-	NB - For the time being, consider this our service document.  Wink generates these admin views including an xml view which is essentially a
-	partial Web Application Description Language (or WADL) in the near future we will have:
-	- an OData service document http://localhost:8080/responder/MockResponder.svc
-	- a WADL service document http://localhost:8080/responder/MockResponder.wadl
-
-
-7.  To do something meaningful with your application you will more than likely need to mock some data.  You can
-	achieve this by pusing data into the Mock Responder's database.  Just edit the file at {mockresponder}/src/main/resources/META-INF/responder_insert.sql
-	
-	If you haven't changed the mockresponder example you should be able to uncomment the following line:
-{{{
-INSERT INTO `Flight`(`takeoffTime`) VALUES('1996-08-20 00:00:00');	
-}}}
-
-	Then restart you Jetty server (just press ctrl+c) followed by:
-{{{
-$ mvn jetty:run
-}}}
-	
-	You can now browse your Flights at:
-
-http://localhost:8080/responder/rest/Flight/1
-	NB - it would be a really good idea to use 'curl' or RestClient to give you full control over the http request headers.  A web browser will
-	typically include application/xml in the acceptable media types (Accept header), but we only bind a Provider to application/hal+xml and leave
-	the default JAXB Provider in place for application/xml.</pre>
+$ mvn jetty:run</pre>
 </div>
-<div title="interaction-sdk" creator="aphethean" modifier="aphethean" created="201201162214" modified="201201231414" changecount="5">
+<div title="interaction-sdk" creator="aphethean" modifier="aphethean" created="201201162214" modified="201201191117" changecount="4">
 <pre>The interaction-sdk is a supporting library for the IRIS SDK. The SDK would be used by developers who need to design resource interaction models, but have neither the time nor the desire to implement those resources within a specific resource manager.
 
 A user agent can be developed against the resource interaction model as designed in the SDK and the values of the Entity(s) and EntitySet(s) can be mocked in the database as accessed by generated JPA POJO's.  A resource manager (e.g. T24, TAP, or TreasuryTrader) can the be wired up to the resources at a later date.  Thus providing a simple way to develop user agents, or applications without needing a full blown system.
