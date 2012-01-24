@@ -2,6 +2,8 @@ package com.temenos.interaction.core.media.atom;
 
 import java.io.Writer;
 
+import javax.ws.rs.core.UriInfo;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.odata4j.core.ODataConstants;
@@ -18,6 +20,12 @@ import org.odata4j.stax2.XMLWriter2;
 
 import com.sun.jersey.api.core.ExtendedUriInfo;
 
+/**
+ * Slightly modified version of @link{org.odata4j.format.xml.AtomEntryFormatWriter} that 
+ * is more aligned with JAX-RS.
+ * @author aphethean
+ *
+ */
 public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWriter<EntityResponse> {
 
   protected String baseUri;
@@ -46,8 +54,8 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     return ODataConstants.APPLICATION_ATOM_XML_CHARSET_UTF8;
   }
 
-  public void write(String baseUri, Writer w, EntityResponse target) {
-//    String baseUri = uriInfo.getBaseUri().toString();
+  public void write(UriInfo uriInfo, Writer w, EntityResponse target) {
+    String baseUri = uriInfo.getBaseUri().toString();
     EdmEntitySet ees = target.getEntity().getEntitySet();
 
     String entitySetName = ees.name;

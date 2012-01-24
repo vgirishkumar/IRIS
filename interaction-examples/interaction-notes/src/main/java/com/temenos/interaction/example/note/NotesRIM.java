@@ -1,6 +1,5 @@
 package com.temenos.interaction.example.note;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 
 import org.odata4j.producer.ODataProducer;

@@ -1,7 +1,7 @@
 package com.temenos.interaction.commands.odata;
 
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
@@ -9,11 +9,15 @@ import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.resources.OptionsQueryParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.CollectionResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
 public class GETEntitiesCommand implements ResourceGetCommand {
+	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
 
 	// Command configuration
 	private String entitySetName;
@@ -27,17 +31,20 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
 		this.entitySet = edmDataServices.getEdmEntitySet(entitySetName);
+		assert(entitySet != null);
 	}
 
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
+		logger.info("Getting entities for " + entitySet.name);
 
 		String inlineCount = queryParams.getFirst("$inlinecount");
 		String top = queryParams.getFirst("$top");
 		String skip = queryParams.getFirst("$skip");
 		String filter = queryParams.getFirst("$filter");
 		String orderBy = queryParams.getFirst("$orderby");
-		String format = queryParams.getFirst("$format");
-		String callback = queryParams.getFirst("$callback");
+// TODO what are format and callback used for
+//		String format = queryParams.getFirst("$format");
+//		String callback = queryParams.getFirst("$callback");
 		String skipToken = queryParams.getFirst("$skiptoken");
 		String expand = queryParams.getFirst("$expand");
 		String select = queryParams.getFirst("$select");
@@ -55,7 +62,9 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 		
 		EntitiesResponse response = producer.getEntities(entitySetName, query);
 		    
-		return null;
+		CollectionResource cr = new CollectionResource(entitySetName, response.getEntities(), null);
+		RESTResponse rr = new RESTResponse(Response.Status.OK, cr, null);
+		return rr;
 	}
 
 }

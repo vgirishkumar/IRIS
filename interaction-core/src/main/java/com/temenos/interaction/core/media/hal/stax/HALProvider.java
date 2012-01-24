@@ -61,6 +61,7 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 
 	public HALProvider(EdmDataServices edmDataServices) {
 		this.edmDataServices = edmDataServices;
+		assert(edmDataServices != null);
 	}
 	
 	@Override

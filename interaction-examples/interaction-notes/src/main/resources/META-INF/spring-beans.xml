@@ -75,7 +75,9 @@
 	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 	</bean>
-	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider" />
+	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+	</bean>
 
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
     	<constructor-arg name="entityName" value="NOTE" />

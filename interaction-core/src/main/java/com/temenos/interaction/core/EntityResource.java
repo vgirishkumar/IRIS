@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
- * system.  A 'thing' is addressable by a globally unique key, it has a 
- * set of name value pairs, and a set of links to find other resources
+ * system.  A 'thing' is addressable by a globally unique key, it has a set of
+ * simple & complex named properties, and a set of links to find other resources
  * linked to this resource.
  * @author aphethean
  */
@@ -50,10 +50,16 @@ public class EntityResource implements RESTResource {
 		if (entity != null) {
 			logger.debug("Discovered a jaxb / json deserialised object");
 			// TODO implement a generic jaxb to OEntity conversion for our 'entity'
+			/*
+			 * TODO implement a generic jaxb to OEntities conversion for our 
+			 * 'entities' or throw an error to change the runtime configuration 
+			 * to represent this object with a JAXB Provider
+			 */
 			throw new NotImplementedException();
 		}
 		throw new RuntimeException("Either oEntity or entity must be supplied");
 	}
-// not used?, see OEntity.getLinks	public Set<OLink> getLinks();
+	
+	// TODO implement links, see OEntity.getLinks public Set<OLink> getLinks();
 
 }

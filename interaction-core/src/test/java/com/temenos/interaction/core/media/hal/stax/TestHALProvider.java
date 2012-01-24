@@ -42,7 +42,7 @@ public class TestHALProvider {
 	 */
 	@Test
 	public void testSize() {
-		HALProvider hp = new HALProvider(null);
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		assertEquals(-1, hp.getSize(null, null, null, null, null));
 	}
 
@@ -76,7 +76,7 @@ public class TestHALProvider {
 	public void testAttemptToSerialiseNonEntityResource() throws IOException {
 		EntityResource mdr = mock(EntityResource.class);
 
-		HALProvider hp = new HALProvider(null);
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		hp.writeTo(mdr, MetaDataResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
 	}
 	
@@ -102,7 +102,7 @@ public class TestHALProvider {
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, new ArrayList<OLink>());
 		when(er.getOEntity()).thenReturn(entity);
 		
-		HALProvider hp = new HALProvider(null);
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
@@ -116,7 +116,7 @@ public class TestHALProvider {
 		EntityResource er = mock(EntityResource.class);
 		when(er.getOEntity()).thenReturn(null);
 		
-		HALProvider hp = new HALProvider(null);
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
@@ -151,7 +151,7 @@ public class TestHALProvider {
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, links);
 		when(er.getOEntity()).thenReturn(entity);
 		
-		HALProvider hp = new HALProvider(null);
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
@@ -191,7 +191,7 @@ public class TestHALProvider {
 		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, links);
 		when(er.getOEntity()).thenReturn(entity);
 		
-		HALProvider hp = new HALProvider(null);
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
