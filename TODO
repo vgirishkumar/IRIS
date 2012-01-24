@@ -1,5 +1,11 @@
 TODO:
 
+Rename CRUD interaction to HTTP interaction
+
+Supply RIM as constructor argument to Commands
+
+Add StateMachine to RIM by using DynamicResource states, and State.getTransitions.  Transitions / Commands will need to have method and path.
+
 Add support for complex Entity keys and key types other than String and Long.
 
 Add <xml> or name=value way of populating responder database.
