@@ -24,22 +24,35 @@ import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 
 /**
- * Define a Create Read Update Delete 'CRUD' Resource Interaction Model.
+ * <P>
+ * Define HTTP interactions for individual resources.  This model for resource
+ * interaction should be used for an individual resource who maintains persistent
+ * state.  HTTP provides one operation to view the resource (GET), and a only two
+ * operation to change an individual resources state (PUT and DELETE).  
+ * </P>
+ * <P>
+ * You might be wondering about a POST to a resource.  We've defined POST 
+ * as a transient operation, ie. an operation that does not change an individual 
+ * resources state. See {@link TRANSIENTResourceInteractionModel}.  The HTTP spec
+ * defines POST as "request that the origin server accept the entity enclosed in the 
+ * request as a new subordinate of the resource identified".  Therefore, you are
+ * creating a new individual resource, not modifying this resources state.
+ * </P>
  * @author aphethean
  *
  */
-public abstract class CRUDResourceInteractionModel implements ResourceInteractionModel {
-	private final Logger logger = LoggerFactory.getLogger(CRUDResourceInteractionModel.class);
+public abstract class HTTPResourceInteractionModel implements ResourceInteractionModel {
+	private final Logger logger = LoggerFactory.getLogger(HTTPResourceInteractionModel.class);
 
 	private String entityName;
 	private String resourcePath;
 	private CommandController commandController;
 		
-	public CRUDResourceInteractionModel(String entityName, String resourcePath) {
+	public HTTPResourceInteractionModel(String entityName, String resourcePath) {
 		this(entityName, resourcePath, new CommandController(resourcePath));
 	}
 
-	public CRUDResourceInteractionModel(String entityName, String resourcePath, CommandController commandController) {
+	public HTTPResourceInteractionModel(String entityName, String resourcePath, CommandController commandController) {
 		this.resourcePath = resourcePath;
 		this.commandController = commandController;
 	}

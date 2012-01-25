@@ -61,7 +61,7 @@
 
     <!-- Resources -->
 #foreach ( $jpaentity in $entities )
-    <bean id="$jpaentity.getClazz()" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
+    <bean id="$jpaentity.getClazz()" class="com.temenos.interaction.core.dynaresource.DynaHTTPRIM">
     	<constructor-arg name="entityName" value="$jpaentity.getClazz()" />
     	<constructor-arg name="path" value="/$jpaentity.getClazz()/{id}" />
     	<constructor-arg name="commandController" ref="$jpaentity.getClazz()Commands" />

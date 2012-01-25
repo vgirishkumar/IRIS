@@ -1,6 +1,8 @@
 TODO:
 
-Rename CRUD interaction to HTTP interaction
+Add maven-failsafe-plugin to run integration tests.
+
+Configure maven site for IRIS see 'mvn site'
 
 Supply RIM as constructor argument to Commands
 

@@ -27,7 +27,31 @@ import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 
 /**
- * Defines a Resource Interaction Model for a resource with no state at all.
+ * </P>
+ * Defines an HTTP Resource Interaction Model for a resource with no state 
+ * at all.  This includes two HTTP methods GET and POST.  GET is quite straight
+ * forward - it does not modify a resources state.  POST - The HTTP spec defines
+ * POST as "request that the origin server accept the entity enclosed in the 
+ * request as a new subordinate of the resource identified".  Therefore, you are
+ * creating a new individual resource, not modifying this resources state.
+ * </P>
+ * <P>
+ * Some usage examples:  <br>
+ * <li>A TRANSIENTResourceInteractionModel could be used to interact with 
+ * collection resources, as you define GET interactions that iterate through
+ * a collection of resources with no permanent state between requests.
+ * <li>A TRANSIENTResourceInteractionModel could be used to interact with
+ * control resources, as you define a POST operation that kicks some operation
+ * into life, but has no permanent state.
+ * <li>A TRANSIENTResourceInteractionModel could be used to interact with
+ * throw-away-able resources, as you define a POST operation that give you a
+ * handle to a resource (for you alone), but your resource has no modifiable
+ * state.
+ * <li>A TRANSIENTResourceInteractionModel could be used to interact with
+ * a resource container (similar to a collection resource), as you define a POST
+ * operation that add things to that container, but the container itself has
+ * no persistent state.
+ * </P>
  * @author aphethean
  */
 public class TRANSIENTResourceInteractionModel implements ResourceInteractionModel {

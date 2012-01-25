@@ -3,16 +3,17 @@ package com.temenos.interaction.core.dynaresource;
 import org.apache.wink.common.DynamicResource;
 
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.state.CRUDResourceInteractionModel;
+import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.state.TRANSIENTResourceInteractionModel;
 
 /**
- * Define a Dynamic CRUD based Resource Interaction Model
- * CRUD (Create, Read, Update, Delete) interaction are simple, this class
- * can be used to dynamically define resources that are managed with CRUD
- * interactions
+ * Define a Dynamic HTTP based Resource Interaction Model for an individual resource.
+ * HTTP interactions with resources to change state are simple, just PUT and DELETE.  You might
+ * be wondering about a POST to a resource.  We've defined POST as a transient operation, ie.
+ * an operation that does not change an individual resources state see {@link TRANSIENTResourceInteractionModel}
  * @author aphethean
  */
-public class DynaCRUDRIM extends CRUDResourceInteractionModel implements DynamicResource {
+public class DynaHTTPRIM extends HTTPResourceInteractionModel implements DynamicResource {
 
     private String path;
     private Object parent;
@@ -20,7 +21,7 @@ public class DynaCRUDRIM extends CRUDResourceInteractionModel implements Dynamic
     private String collectionTitle;
     private String beanName;
 	
-	public DynaCRUDRIM(String entityName, String path, CommandController commandController) {
+	public DynaHTTPRIM(String entityName, String path, CommandController commandController) {
 		super(entityName, path, commandController);
 		this.path= path;
 	}

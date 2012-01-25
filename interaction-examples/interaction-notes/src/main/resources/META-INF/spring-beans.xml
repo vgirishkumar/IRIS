@@ -79,7 +79,7 @@
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 	</bean>
 
-    <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.DynaCRUDRIM">
+    <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.DynaHTTPRIM">
     	<constructor-arg name="entityName" value="NOTE" />
     	<constructor-arg name="path" value="/notes/{id}" />
     	<constructor-arg name="commandController" ref="noteCommands" />
