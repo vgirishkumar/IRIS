@@ -24,6 +24,8 @@ import org.odata4j.core.OEntity;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.Responses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.CollectionResource;
 import com.temenos.interaction.core.EntityResource;
@@ -33,6 +35,7 @@ import com.temenos.interaction.core.RESTResource;
 @Consumes({MediaType.APPLICATION_ATOM_XML})
 @Produces({MediaType.APPLICATION_ATOM_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
+	private final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
 
 	@Context
 	private UriInfo uriInfo;
@@ -80,12 +83,22 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 		assert(uriInfo != null);
 		if (resource instanceof EntityResource) {
+			EntityResource entityResource = (EntityResource) resource;
+			if (entityResource.getEntity() != null) {
+				// TODO create GENERICs EntityResource type for jaxb objects and oentity objects.  Provider isWriteable only works the class type
+				logger.error("Cannot write a jaxb object to stream with this provider");
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+			}
 			// TODO add EntityResource Links to OEntity??
-			entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(((EntityResource)resource).getOEntity()));
+			entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity((entityResource).getOEntity()));
 		}
 		if (resource instanceof CollectionResource) {
 			// TODO add writer for Links
 			CollectionResource cr = ((CollectionResource) resource);
+			if (cr.getEntities() != null) {
+				// TODO create GENERICs CollectionResource type for jaxb collection and oentity collection.  Provider isWriteable only works the class type
+				logger.error("Cannot write a jaxb object to stream with this provider");
+			}
 			List<OEntity> entities = cr.getOEntities();
 			EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
 			// TODO implement collection properties and get transient values for inlinecount and skiptoken

@@ -8,6 +8,8 @@ Add StateMachine to RIM by using DynamicResource states, and State.getTransition
 
 Create CollectionResource with Properties and Links.
 
+For non OData links, we need to rewrite OEntity OLinks to point to our resources.
+
 Add getLinks to Resource Interaction Model.
 
 Test & implement representation of CollectionResource to application/xml & application/json using default JAXB based Producer
@@ -32,6 +34,10 @@ Implement the ability to bind a command to a combination of mediatype + http met
 Add to simple CRUD Note example and bind a GET command to application/xml and application/json to return JAXB EntityResource.  We 
 	want to prove that it is possible to get a JAXB Java bean in xml and json.
 
+Implement Generics for EntityResource and CollectionResource.  In addition to removing the cast for the getObject method, we will also have the ability to 
+		select the correct provider based on whether they support that specific type of Object.  see AtomXMLProvider, as this is currently call even for
+		non OEntity response objects.
+	
 Implement a dynamic link with semantic model of link condition in spring.  First simple link condition will be a value of a
 	property in the same resource.
 
