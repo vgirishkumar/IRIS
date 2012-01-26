@@ -68,7 +68,7 @@ public class TestJPAResponderGen {
 		properties.add(new EdmProperty("passengers", EdmSimpleType.INT32, false));
 		properties.add(new EdmProperty("departureDT", EdmSimpleType.DATETIME, false));
 		properties.add(new EdmProperty("dinnerServed", EdmSimpleType.TIME, false));
-
+		
 		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
 		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		
@@ -88,15 +88,29 @@ public class TestJPAResponderGen {
 		List<String> keys = new ArrayList<String>();
 		List<EdmProperty> properties = new ArrayList<EdmProperty>();
 		properties.add(new EdmProperty("departureDT", EdmSimpleType.DATETIME, false));
+		properties.add(new EdmProperty("departureTime", EdmSimpleType.TIME, false));
 
+		/*
+@Temporal(TemporalType.TIME)
+@Column(nullable = false, length = 8)
+private Date departureTime;
+
+@Temporal(TemporalType.TIMESTAMP)
+@Column(nullable = false)
+private Calendar firstDeparture;
+
+@Temporal(TemporalType.DATE)
+private Date lastDeparture;
+*/
+		
 		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
 		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
-		
 		FieldInfo fi = p.getFieldInfos().get(0);
 		
 		// Annotations
-		assertEquals(1, fi.getAnnotations().size());
+		assertEquals(2, fi.getAnnotations().size());
 		assertEquals("@Temporal(TemporalType.TIMESTAMP)", fi.getAnnotations().get(0));
+		assertEquals("@Temporal(TemporalType.TIME)", fi.getAnnotations().get(1));
 	}
 
 	@Test(expected = AssertionError.class)

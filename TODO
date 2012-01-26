@@ -1,5 +1,10 @@
 TODO:
 
+Jersey server seems to support this type of @Path specification "/note{id: (\\(.+?\\))}" where the uri is matched based
+	on a regex so /note(1) or /note(1.1.1) or other combinations required by OData are matched.  See @Path on org.odata.producer.resources.EntityRequestResource
+	Need to possibly report an issue to Wink community project, or fix it as org.apache.wink.server.internal.registry.ResourceRegistry matcher logic
+	does not match the resource at line 322 getMatchingRootResources.  For the time being wink will match resources based on "/nnnn({id})"
+
 Add maven-failsafe-plugin to run integration tests.
 
 Configure maven site for IRIS see 'mvn site'

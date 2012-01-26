@@ -57,11 +57,13 @@
 	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 	</bean>
-	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider" />
+	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+	</bean>
 
     <!-- Resources -->
 #foreach ( $jpaentity in $entities )
-    <bean id="$jpaentity.getClazz()" class="com.temenos.interaction.core.dynaresource.DynaHTTPRIM">
+    <bean id="$jpaentity.getClazz()" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="entityName" value="$jpaentity.getClazz()" />
     	<constructor-arg name="path" value="/$jpaentity.getClazz()/{id}" />
     	<constructor-arg name="commandController" ref="$jpaentity.getClazz()Commands" />
