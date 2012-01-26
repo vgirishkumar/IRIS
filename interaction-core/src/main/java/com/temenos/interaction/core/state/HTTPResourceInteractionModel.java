@@ -13,15 +13,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.odata4j.core.OEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
+import com.temenos.interaction.core.link.ResourceRegistry;
 
 /**
  * <P>
@@ -46,14 +49,19 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
 
 	private String entityName;
 	private String resourcePath;
+	private ResourceRegistry resourceRegistry;
 	private CommandController commandController;
 		
 	public HTTPResourceInteractionModel(String entityName, String resourcePath) {
-		this(entityName, resourcePath, new CommandController(resourcePath));
+		this(entityName, resourcePath, null, new CommandController(resourcePath));
 	}
 
-	public HTTPResourceInteractionModel(String entityName, String resourcePath, CommandController commandController) {
+	public HTTPResourceInteractionModel(String entityName, String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
 		this.resourcePath = resourcePath;
+		this.resourceRegistry = resourceRegistry;
+		if (resourceRegistry != null) {
+			resourceRegistry.add(this);
+		}
 		this.commandController = commandController;
 	}
 
@@ -82,6 +90,15 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand();
     	RESTResponse response = getCommand.get(id, null);
+    	
+    	if (response != null && resourceRegistry != null && response.getResource() instanceof EntityResource) {
+        	RESTResource rr = response.getResource();
+    		EntityResource er = (EntityResource) rr;
+        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getOEntity(), null);
+        	EntityResource rebuilt = new EntityResource(oe);
+        	response = new RESTResponse(response.getStatus(), rebuilt, null);
+    	}
+    	
     	assert (response != null);
     	StatusType status = response.getStatus();
 		assert (status != null);  // not a valid get command

@@ -3,6 +3,7 @@ package com.temenos.interaction.core.dynaresource;
 import org.apache.wink.common.DynamicResource;
 
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.TRANSIENTResourceInteractionModel;
 
@@ -13,7 +14,7 @@ import com.temenos.interaction.core.state.TRANSIENTResourceInteractionModel;
  * an operation that does not change an individual resources state see {@link TRANSIENTResourceInteractionModel}
  * @author aphethean
  */
-public class DynaHTTPRIM extends HTTPResourceInteractionModel implements DynamicResource {
+public class HTTPDynaRIM extends HTTPResourceInteractionModel implements DynamicResource {
 
     private String path;
     private Object parent;
@@ -21,8 +22,13 @@ public class DynaHTTPRIM extends HTTPResourceInteractionModel implements Dynamic
     private String collectionTitle;
     private String beanName;
 	
-	public DynaHTTPRIM(String entityName, String path, CommandController commandController) {
-		super(entityName, path, commandController);
+	public HTTPDynaRIM(String entityName, String path, CommandController commandController) {
+		super(entityName, path, null, commandController);
+		this.path= path;
+	}
+
+	public HTTPDynaRIM(String entityName, String path, ResourceRegistry rr, CommandController commandController) {
+		super(entityName, path, rr, commandController);
 		this.path= path;
 	}
 
