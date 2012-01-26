@@ -27,8 +27,9 @@ public class App {
 	public static void main(String[] args) {
 		Abdera abdera = new Abdera();
 		AbderaClient client = new AbderaClient(abdera);
-		ClientResponse resp = client.get("http://localhost:8080/example/rest/notes");
-//		ClientResponse resp = client.get("http://localhost:8886/JPAProducerExample.svc/Products");
+//		ClientResponse resp = client.get("http://localhost:8080/example/rest/notes");
+		ClientResponse resp = client.get("http://localhost:8886/JPAProducerExample.svc/Products(49)/Order_Details");
+//		ClientResponse resp = client.get("http://localhost:8080/responder/rest/FlightSchedule/1");
 		if (resp.getType() == ResponseType.SUCCESS) {
 			Document<Feed> doc = resp.getDocument();
 			Feed feed = doc.getRoot();
@@ -40,7 +41,7 @@ public class App {
 
 				// Get the Links
 				for (Link link : entry.getLinks()) {
-					System.out.println("Link: " + link.getHref());
+					System.out.println("Link: " + link.getHref() + ", rel: " + link.getRel());
 				}           
 				
 				try {
@@ -72,7 +73,7 @@ public class App {
 			}
 
 		} else {
-			System.out.println("there was an error");
+			System.out.println("there was an error [" + resp.getStatus() + "]");
 		}
 	}
 }
