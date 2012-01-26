@@ -10,6 +10,8 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.state.ResourceInteractionModel;
+
 public class CommandController {
 
 	private final Logger logger = LoggerFactory.getLogger(CommandController.class);
@@ -22,6 +24,13 @@ public class CommandController {
 	}
 	public CommandController(String resourcePath, ResourceGetCommand getCommand, Set<ResourceStateTransitionCommand> stateTransitionCommands) {
 		this.resourcePath = resourcePath;
+		setGetCommand(getCommand);
+		for(ResourceStateTransitionCommand stc : stateTransitionCommands) {
+			addStateTransitionCommand(stc);
+		}
+	}
+	public CommandController(ResourceInteractionModel rim, ResourceGetCommand getCommand, Set<ResourceStateTransitionCommand> stateTransitionCommands) {
+		this.resourcePath = rim.getResourcePath();
 		setGetCommand(getCommand);
 		for(ResourceStateTransitionCommand stc : stateTransitionCommands) {
 			addStateTransitionCommand(stc);

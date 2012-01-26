@@ -128,13 +128,12 @@
   
   <command name="currency" method="GET" path="/{CURRENCY,id=THIS.currencyCode}" />
   
-  <form command="">
+  <form>
     <rel>CURRENCY</rel>
     <eval>
       <not_found command="currency" />
     </eval>
-    <method>PUT</method>
-    <path>/{CURRENCY,id=THIS.currencyCode}</path>
+    <target method="PUT" resource="CURRENCY" id="{THIS.currencyCode}" />
   </form>
   
   <link>
@@ -142,15 +141,16 @@
     <eval>
       <ok command="currency" />
     </eval>
-    <method>GET</method>
-    <path>/{CURRENCY,id=THIS.currencyCode}</path>
+    <target method="PUT" resource="CURRENCY" id="{THIS.currencyCode}" />
   </link>
   
   <!-- external link -->
   <link>
     <rel>map</rel>
-    <method>GET</method>
-    <path>/google/maps?lat={THIS.location.lattitude}&lng={THIS.location.longitude}</path>
+	<target>
+      <method>GET</method>
+      <path>/google/maps?lat={THIS.location.lattitude}&lng={THIS.location.longitude}</path>
+	</target>
   </link>
   
 </rim>
