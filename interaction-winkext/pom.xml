@@ -3,7 +3,7 @@
   <groupId>com.temenos.interaction</groupId>
   <artifactId>interaction-winkext</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>winkext</name>
+  <name>interaction-winkext</name>
   <description>Extensions to wink</description>
   <dependencies>
   	<dependency>
