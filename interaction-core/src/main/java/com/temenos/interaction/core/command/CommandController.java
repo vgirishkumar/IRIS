@@ -79,7 +79,7 @@ public class CommandController {
 		logger.info("Looking up state transition [" + httpMethod + "+" + path + "] command for [" + resourcePath + "]");
 		ResourceCommand command = commands.get(httpMethod + "+" + path);
 		if (command == null) {
-			logger.warn("No command bound to [" + httpMethod + "+" + path + "]");
+			logger.error("No command bound to [" + httpMethod + "+" + path + "]");
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return command;
