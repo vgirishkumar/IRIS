@@ -31,8 +31,7 @@ public class TestTRANSIENTResourceInteractionModel {
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
 		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(RESTResource.class), null));
 		when(rpc.getMethod()).thenReturn("POST");
-		when(rpc.getPath()).thenReturn(resourcePath);
-		cc.addStateTransitionCommand(rpc);
+		cc.addStateTransitionCommand(resourcePath, rpc);
 		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
 		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
 	}
@@ -46,8 +45,7 @@ public class TestTRANSIENTResourceInteractionModel {
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
 		when(rpc.getMethod()).thenReturn("POST");
-		when(rpc.getPath()).thenReturn(resourcePath);
-		cc.addStateTransitionCommand(rpc);
+		cc.addStateTransitionCommand(resourcePath, rpc);
 		r.post(null, "123", mock(EntityResource.class));
 	}
 
@@ -70,8 +68,7 @@ public class TestTRANSIENTResourceInteractionModel {
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
 		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.OK, null, null));
 		when(rpc.getMethod()).thenReturn("POST");
-		when(rpc.getPath()).thenReturn(resourcePath);
-		cc.addStateTransitionCommand(rpc);
+		cc.addStateTransitionCommand(resourcePath, rpc);
 		r.post(null, "123", mock(EntityResource.class));
 	}
 

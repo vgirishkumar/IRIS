@@ -95,13 +95,9 @@
     	<constructor-arg name="stateTransitionCommands">
     		<set>
 	    		<bean class="com.temenos.interaction.example.note.OEntityPutNoteCommand">
-    				<constructor-arg name="method" value="PUT" />
-    				<constructor-arg name="path" value="/notes/{id}" />
     				<constructor-arg name="producer" ref="producer" />
     			</bean>
 	    		<bean class="com.temenos.interaction.example.note.DeleteNoteCommand">
-    				<constructor-arg name="method" value="DELETE" />
-    				<constructor-arg name="path" value="/notes/{id}" />
     				<constructor-arg name="producer" ref="producer" />
     			</bean>
    			</set>

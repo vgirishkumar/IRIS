@@ -16,38 +16,50 @@ public class CommandController {
 
 	private final Logger logger = LoggerFactory.getLogger(CommandController.class);
 
-	private String resourcePath = null;
 	private Map<String, ResourceCommand> commands = new HashMap<String, ResourceCommand>();
 
-	public CommandController(String resourcePath) {
-		this.resourcePath = resourcePath;
+	/**
+	 * Create an empty command controller.
+	 */
+	public CommandController() {
 	}
-	public CommandController(String resourcePath, ResourceGetCommand getCommand, Set<ResourceStateTransitionCommand> stateTransitionCommands) {
-		this.resourcePath = resourcePath;
-		setGetCommand(getCommand);
-		for(ResourceStateTransitionCommand stc : stateTransitionCommands) {
-			addStateTransitionCommand(stc);
-		}
-	}
+	
+	/**
+	 * Create a command controller and add the supplied commands to the resource path from {@link ResourceInteractionModel.getResourcePath()}
+	 * @param rim
+	 * @param getCommand
+	 * @param stateTransitionCommands
+	 */
 	public CommandController(ResourceInteractionModel rim, ResourceGetCommand getCommand, Set<ResourceStateTransitionCommand> stateTransitionCommands) {
-		this.resourcePath = rim.getResourcePath();
-		setGetCommand(getCommand);
-		for(ResourceStateTransitionCommand stc : stateTransitionCommands) {
-			addStateTransitionCommand(stc);
+		this(rim.getResourcePath(), getCommand, stateTransitionCommands);
+	}
+	
+	/**
+	 * Create a command controller and add the supplied commands to the resource path
+	 * @param rim
+	 * @param getCommand
+	 * @param stateTransitionCommands
+	 */
+	public CommandController(String resourcePath, ResourceGetCommand getCommand, Set<ResourceStateTransitionCommand> stateTransitionCommands) {
+		setGetCommand(resourcePath, getCommand);
+		if (stateTransitionCommands != null) {
+			for(ResourceStateTransitionCommand stc : stateTransitionCommands) {
+				addStateTransitionCommand(resourcePath, stc);
+			}
 		}
 	}
 	
-	public void setGetCommand(ResourceGetCommand c) {
-		commands.put("GET", c);
+	public void setGetCommand(String resourcePath, ResourceGetCommand c) {
+		commands.put("GET+" + resourcePath, c);
 	}
 
 	/**
 	 * Add a command to transition a resources state.
 	 * @precondition {@link ResourceStateTransitionCommand} not null
 	 */
-	public void addStateTransitionCommand(ResourceStateTransitionCommand c) {
+	public void addStateTransitionCommand(String resourcePath, ResourceStateTransitionCommand c) {
 		assert(c != null);
-		commands.put(c.getMethod() + "+" + c.getPath(), c);
+		commands.put(c.getMethod() + "+" + resourcePath, c);
 	}
 
 	/*
@@ -57,11 +69,11 @@ public class CommandController {
 	 * @postcondition ResourceGetCommand class previously registered for GET operations by #addGetCommand
 	 * @invariant getCommands is not null
 	 */
-	public ResourceGetCommand fetchGetCommand() {
+	public ResourceGetCommand fetchGetCommand(String resourcePath) {
 		logger.info("Looking up get command for [" + resourcePath + "]");
-		ResourceCommand getCommand = commands.get("GET");
+		ResourceCommand getCommand = commands.get("GET+" + resourcePath);
 		if (getCommand == null) {
-			logger.warn("No GET command bound for [" + resourcePath + "]");
+			logger.warn("No command bound for [" + "GET+" + resourcePath + "]");
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return (ResourceGetCommand) getCommand;
@@ -75,11 +87,11 @@ public class CommandController {
 	 * @postcondition ResourceGetCommand class previously registered for GET operations by #addGetCommand
 	 * @invariant getCommands is not null
 	 */
-	public ResourceCommand fetchStateTransitionCommand(String httpMethod, String path) {
-		logger.info("Looking up state transition [" + httpMethod + "+" + path + "] command for [" + resourcePath + "]");
-		ResourceCommand command = commands.get(httpMethod + "+" + path);
+	public ResourceCommand fetchStateTransitionCommand(String httpMethod, String resourcePath) {
+		logger.info("Looking up state transition command for [" + httpMethod + "+" + resourcePath + "]");
+		ResourceCommand command = commands.get(httpMethod + "+" + resourcePath);
 		if (command == null) {
-			logger.error("No command bound to [" + httpMethod + "+" + path + "]");
+			logger.error("No command bound to [" + httpMethod + "+" + resourcePath + "]");
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return command;

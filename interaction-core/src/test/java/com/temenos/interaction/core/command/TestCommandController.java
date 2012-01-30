@@ -14,16 +14,16 @@ public class TestCommandController {
 
 	@Test
 	public void testAddGetCommand() {
-		CommandController cc = new CommandController("/test-resource");
-		cc.setGetCommand(null);
+		CommandController cc = new CommandController();
+		cc.setGetCommand("/test-resource", null);
 	}
 
 	@Test
 	public void testGetCommandNull() {
-		CommandController cc = new CommandController("/test-resource");
+		CommandController cc = new CommandController("/test-resource", null, null);
 		boolean exceptionThrown = false;
 		try {
-			cc.fetchGetCommand();
+			cc.fetchGetCommand("/test-resource");
 		} catch (WebApplicationException wae) {
 			if (wae.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
 				exceptionThrown = true;
@@ -34,10 +34,10 @@ public class TestCommandController {
 
 	@Test
 	public void testGetCommandNotNullNotRegistered() {
-		CommandController cc = new CommandController("/test-resource");
+		CommandController cc = new CommandController();
 		boolean exceptionThrown = false;
 		try {
-			cc.fetchGetCommand();
+			cc.fetchGetCommand("/test-resource");
 		} catch (WebApplicationException wae) {
 			if (wae.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
 				exceptionThrown = true;
@@ -48,21 +48,21 @@ public class TestCommandController {
 
 	@Test
 	public void testGetCommandRegistered() {
-		CommandController cc = new CommandController("/test-resource");
+		CommandController cc = new CommandController();
 		ResourceGetCommand getCommand = mock(ResourceGetCommand.class);
-		cc.setGetCommand(getCommand);
-		assertEquals(getCommand, cc.fetchGetCommand());
+		cc.setGetCommand("/test-resource", getCommand);
+		assertEquals(getCommand, cc.fetchGetCommand("/test-resource"));
 	}
 
 	@Test(expected = AssertionError.class)
 	public void testAddSTCommand() {
-		CommandController cc = new CommandController("/test-resource");
-		cc.addStateTransitionCommand(null);
+		CommandController cc = new CommandController();
+		cc.addStateTransitionCommand(null, null);
 	}
 
 	@Test
 	public void testSTCommandNull() {
-		CommandController cc = new CommandController("/test-resource");
+		CommandController cc = new CommandController();
 		boolean exceptionThrown = false;
 		try {
 			cc.fetchStateTransitionCommand(null, null);
@@ -76,7 +76,7 @@ public class TestCommandController {
 
 	@Test
 	public void testSTCommandNotNullNotRegistered() {
-		CommandController cc = new CommandController("/test-resource");
+		CommandController cc = new CommandController();
 		boolean exceptionThrown = false;
 		try {
 			cc.fetchStateTransitionCommand("DO", "test");
@@ -90,12 +90,11 @@ public class TestCommandController {
 
 	@Test
 	public void testSTCommandRegistered() {
-		CommandController cc = new CommandController("/test-resource");
+		CommandController cc = new CommandController();
 		String uriPath = "/test-resource/do";
 		ResourceStateTransitionCommand command = mock(ResourcePutCommand.class);
 		when(command.getMethod()).thenReturn("DO");
-		when(command.getPath()).thenReturn(uriPath);
-		cc.addStateTransitionCommand(command);
+		cc.addStateTransitionCommand("/test-resource/do", command);
 		assertEquals(command, cc.fetchStateTransitionCommand("DO", uriPath));
 	}
 

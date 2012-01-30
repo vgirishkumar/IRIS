@@ -29,7 +29,7 @@ public class TestHTTPResourceInteractionModel {
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
 		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null, null));
-		cc.setGetCommand(rgc);
+		cc.setGetCommand(resourcePath, rgc);
 		Response response = r.get(null, "123");
 		assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
 	}
@@ -41,7 +41,7 @@ public class TestHTTPResourceInteractionModel {
 		HTTPResourceInteractionModel r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
-		cc.setGetCommand(mock(ResourceGetCommand.class));
+		cc.setGetCommand(resourcePath, mock(ResourceGetCommand.class));
 		r.get(null, "123");
 	}
 
@@ -63,7 +63,7 @@ public class TestHTTPResourceInteractionModel {
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
 		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.OK, null, null));
-		cc.setGetCommand(rgc);
+		cc.setGetCommand(resourcePath, rgc);
 		r.get(null, "123");
 	}
 
@@ -77,8 +77,7 @@ public class TestHTTPResourceInteractionModel {
 		ResourceDeleteCommand rpc = mock(ResourceDeleteCommand.class);
 		when(rpc.delete(anyString())).thenReturn(Response.Status.ACCEPTED);
 		when(rpc.getMethod()).thenReturn("DELETE");
-		when(rpc.getPath()).thenReturn(resourcePath);
-		cc.addStateTransitionCommand(rpc);
+		cc.addStateTransitionCommand(resourcePath, rpc);
 		Response response = r.delete(mock(HttpHeaders.class), "123");
 		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
 	}
@@ -92,8 +91,7 @@ public class TestHTTPResourceInteractionModel {
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rdc = mock(ResourceDeleteCommand.class);
 		when(rdc.getMethod()).thenReturn("DELETE");
-		when(rdc.getPath()).thenReturn(resourcePath);
-		cc.addStateTransitionCommand(rdc);
+		cc.addStateTransitionCommand(resourcePath, rdc);
 		r.delete(null, "123");
 	}
 

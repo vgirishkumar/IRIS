@@ -33,7 +33,7 @@ public class NotesRIM extends TRANSIENTResourceInteractionModel {
 		 * Configure the New Note RIM
 		 */
 		CommandController commandController = getCommandController();
-		commandController.setGetCommand(new GETEntitiesCommand(ENTITYSET_NAME, producer));
+		commandController.setGetCommand(RESOURCE_PATH, new GETEntitiesCommand(ENTITYSET_NAME, producer));
 	}
 
 }

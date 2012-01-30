@@ -38,9 +38,9 @@ public class JAXBNoteRIM extends HTTPResourceInteractionModel {
 	
 	public void initialise(ODataProducer producer) {
 		CommandController commandController = getCommandController();
-		commandController.setGetCommand(new JAXBGetNoteCommand(producer));
-		commandController.addStateTransitionCommand(new JAXBPutNoteCommand("PUT", RESOURCE_PATH, producer));
-		commandController.addStateTransitionCommand(new DeleteNoteCommand("DELETE", RESOURCE_PATH, producer));
+		commandController.setGetCommand(RESOURCE_PATH, new JAXBGetNoteCommand(producer));
+		commandController.addStateTransitionCommand(RESOURCE_PATH, new JAXBPutNoteCommand(producer));
+		commandController.addStateTransitionCommand(RESOURCE_PATH, new DeleteNoteCommand(producer));
 	}
 
 	public static Set<String> getValidNextStates() {

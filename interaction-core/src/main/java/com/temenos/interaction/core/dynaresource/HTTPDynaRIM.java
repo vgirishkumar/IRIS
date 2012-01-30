@@ -32,17 +32,19 @@ import com.temenos.interaction.core.state.ResourceInteractionModel;
 public class HTTPDynaRIM extends HTTPResourceInteractionModel implements DynamicResource {
 	private final Logger logger = LoggerFactory.getLogger(HTTPDynaRIM.class);
 
-    private Object parent;
+    private HTTPDynaRIM parent;
     private String workspaceTitle;
     private String collectionTitle;
     private String beanName;
-    
+
+    private final String path;
     private final ResourceState state;
     private final Set<String> interactions;
     
 	public HTTPDynaRIM(String entityName, String path, ResourceState state, ResourceRegistry rr, CommandController commandController) {
 		super(entityName, path, rr, commandController);
 		this.parent = null;
+		this.path = path;
 		this.state = state;
 		this.interactions = null;
 		System.out.println(new ASTValidation().graph(new ResourceStateMachine(this.state)));
@@ -50,8 +52,9 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 
 	public HTTPDynaRIM(HTTPDynaRIM parent, String entityName, String path, 
 			ResourceState state, Set<String> interactions, ResourceRegistry rr, CommandController commandController) {
-		super(entityName, path, rr, commandController);
+		super(entityName, (parent != null ? parent.getPath() + "/" + path : path), rr, commandController);
 		this.parent = parent;
+		this.path = path;
 		this.state = state;
 		if (parent == null && state != null) {
 			System.out.println(new ASTValidation().graph(new ResourceStateMachine(this.state)));
@@ -65,16 +68,16 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 	 * interactions with the resource state.
 	 */
 	private void bootstrap() {
-		getCommandController().fetchGetCommand();
+		getCommandController().fetchGetCommand(getResourcePath());
 		if (state != null) {
 			// interactions are a set of http methods
 			for (String method : interactions) {
-				logger.debug("Checking configuration for [" + method + "] " + getPath());
+				logger.debug("Checking configuration for [" + method + "] " + getResourcePath());
 				// check valid http method
 				if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)))
 					throw new RuntimeException("Invalid configuration of state [" + state.getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
 				// fetch command from command controller for this method
-				getCommandController().fetchStateTransitionCommand(method, getPath());
+				getCommandController().fetchStateTransitionCommand(method, getResourcePath());
 			}
 		}
 	}
@@ -109,12 +112,12 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 
 	@Override
     public String getPath() {
-        return getResourcePath();
+        return path;
     }
 
 	@Override
     public void setParent(Object parent) {
-        this.parent = parent;
+        this.parent = (HTTPDynaRIM) parent;
     }
 
 	@Override
@@ -124,7 +127,12 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
     
 	@Override
 	public Set<String> getInteractions() {
-		return interactions;
+		Set<String> allows = new HashSet<String>();
+		allows.addAll(interactions);
+		allows.add("GET");
+		allows.add("OPTIONS");
+		allows.add("HEAD");
+		return allows;
 	}
 
 	public ResourceState getState() {

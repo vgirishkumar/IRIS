@@ -68,7 +68,7 @@ public class TRANSIENTResourceInteractionModel implements ResourceInteractionMod
 	public TRANSIENTResourceInteractionModel(String entityName, String resourcePath) {
 		this.entityName = entityName;
 		this.resourcePath = resourcePath;
-		this.commandController = new CommandController(resourcePath);
+		this.commandController = new CommandController();
 	}
 	
 	public String getEntityName() {
@@ -113,7 +113,7 @@ public class TRANSIENTResourceInteractionModel implements ResourceInteractionMod
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
     	logger.debug("GET " + resourcePath);
     	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(resourcePath);
     	RESTResponse response = getCommand.get(id, uriInfo.getQueryParameters());
     	assert (response != null);
     	StatusType status = response.getStatus();

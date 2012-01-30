@@ -55,7 +55,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
 	public SHARDIResourceInteractionModel(String entityName, String resourcePath) {
 		this.entityName = entityName;
 		this.resourcePath = resourcePath;
-		this.commandController = new CommandController(resourcePath);
+		this.commandController = new CommandController();
 	}
 	
 	public String getEntityName() {
@@ -67,14 +67,14 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
 	}
 	
 	public void registerGetCommand(ResourceGetCommand c) {
-		commandController.setGetCommand(c);
+		commandController.setGetCommand(resourcePath, c);
 		System.out.println("Registered GET command [" + resourcePath + "]");
 	}
 	
     @GET
     @Produces({MediaType.APPLICATION_XML})
     public Response getXML( @PathParam("id") String id ) {
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(resourcePath);
     	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
@@ -89,7 +89,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJson( @PathParam("id") String id ) {
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(resourcePath);
     	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
@@ -121,7 +121,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     @GET
     @Produces(ExtendedMediaTypes.APPLICATION_PDF)
     public StreamingOutput getPDF( @PathParam("id") String id ) {
-   		ResourceGetCommand getCommand = (ResourceGetCommand) commandController.fetchGetCommand();
+   		ResourceGetCommand getCommand = (ResourceGetCommand) commandController.fetchGetCommand(resourcePath);
     	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
@@ -137,7 +137,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     }
     
     public Response options(String id ) {
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(resourcePath);
     	ResponseBuilder response = Response.ok();
     	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);

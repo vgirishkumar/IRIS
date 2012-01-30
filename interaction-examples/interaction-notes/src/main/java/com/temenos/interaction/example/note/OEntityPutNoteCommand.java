@@ -3,6 +3,7 @@ package com.temenos.interaction.example.note;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -21,14 +22,10 @@ import com.temenos.interaction.core.command.ResourcePutCommand;
 
 public class OEntityPutNoteCommand implements ResourcePutCommand {
 
-	private String method;
-	private String path;
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
 
-	public OEntityPutNoteCommand(String method, String path, ODataProducer producer) {
-		this.method = method;
-		this.path = path;
+	public OEntityPutNoteCommand(ODataProducer producer) {
 		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
 	}
@@ -59,11 +56,7 @@ public class OEntityPutNoteCommand implements ResourcePutCommand {
 	}
 
 	public String getMethod() {
-		return method;
-	}
-
-	public String getPath() {
-		return path;
+		return HttpMethod.PUT;
 	}
 
 }

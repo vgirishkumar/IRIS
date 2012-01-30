@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
 import org.odata4j.core.OEntities;
@@ -41,17 +42,13 @@ public class POSTNewCommand implements ResourcePostCommand {
 	// the resource that we will generate a new id link to, must contain template {id}
 	private String targetResource;
 	
-	private String method;
-	private String path;
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
 
-	public POSTNewCommand(ResourceInteractionModel resourceInteraction, String domainObjectName, String targetResource, String method, String path, ODataProducer producer) {
+	public POSTNewCommand(ResourceInteractionModel resourceInteraction, String domainObjectName, String targetResource, ODataProducer producer) {
 		this.resourceInteraction = resourceInteraction;
 		this.domainObjectName = domainObjectName;
 		this.targetResource = targetResource;
-		this.method = method;
-		this.path = path;
 		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
 	}
@@ -84,11 +81,7 @@ public class POSTNewCommand implements ResourcePostCommand {
 	}
 
 	public String getMethod() {
-		return method;
-	}
-
-	public String getPath() {
-		return path;
+		return HttpMethod.POST;
 	}
 
 }

@@ -33,12 +33,13 @@ public class TestHTTPDynaRIM {
 		
 		CommandController cc = mock(CommandController.class);
 		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
-		verify(cc).fetchGetCommand();
+		verify(cc).fetchGetCommand("/notes");
 		Collection<ResourceInteractionModel> resources = parent.createChildResources();
 		assertEquals(1, resources.size());
-		verify(cc, times(2)).fetchGetCommand();
-		verify(cc).fetchStateTransitionCommand("PUT", "{id}");
-		verify(cc).fetchStateTransitionCommand("DELETE", "{id}");
+		verify(cc, times(1)).fetchGetCommand("/notes");
+		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
+		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}");
+		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}");
 	}
 
 	@Test

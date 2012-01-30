@@ -1,6 +1,5 @@
 package com.temenos.interaction.example.note;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 
 import org.odata4j.producer.ODataProducer;
@@ -41,8 +40,8 @@ public class NewNoteRIM extends TRANSIENTResourceInteractionModel {
 		 * Configure the New Note RIM
 		 */
 		CommandController commandController = getCommandController();
-		commandController.setGetCommand(new GETNewNoteCommand(DOMAIN_OBJECT_NAME, producer));
-		commandController.addStateTransitionCommand(new POSTNewNoteCommand(this, DOMAIN_OBJECT_NAME, OEntityNoteRIM.RESOURCE_PATH, HttpMethod.POST, RESOURCE_PATH, producer));
+		commandController.setGetCommand(RESOURCE_PATH, new GETNewNoteCommand(DOMAIN_OBJECT_NAME, producer));
+		commandController.addStateTransitionCommand(RESOURCE_PATH, new POSTNewNoteCommand(this, DOMAIN_OBJECT_NAME, OEntityNoteRIM.RESOURCE_PATH, producer));
 	}
 
 }

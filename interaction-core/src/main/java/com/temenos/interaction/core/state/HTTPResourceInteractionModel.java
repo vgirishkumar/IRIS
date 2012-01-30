@@ -56,7 +56,7 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
 	private CommandController commandController;
 		
 	public HTTPResourceInteractionModel(String entityName, String resourcePath) {
-		this(entityName, resourcePath, null, new CommandController(resourcePath));
+		this(entityName, resourcePath, null, new CommandController());
 	}
 
 	public HTTPResourceInteractionModel(String entityName, String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
@@ -92,7 +92,7 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
     	logger.debug("GET " + resourcePath);
     	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(resourcePath);
     	RESTResponse response = getCommand.get(id, null);
     	
     	if (response != null && resourceRegistry != null && response.getResource() instanceof EntityResource) {
@@ -161,7 +161,7 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
     public Response options(String id) {
     	logger.debug("OPTIONS " + resourcePath);
     	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand();
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(resourcePath);
     	ResponseBuilder response = Response.ok();
     	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);

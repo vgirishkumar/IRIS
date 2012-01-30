@@ -36,9 +36,9 @@ public class OEntityNoteRIM extends HTTPResourceInteractionModel {
 	
 	public void initialise(ODataProducer producer) {
 		CommandController commandController = getCommandController();
-		commandController.setGetCommand(new OEntityGetNoteCommand(producer));
-		commandController.addStateTransitionCommand(new OEntityPutNoteCommand("PUT", RESOURCE_PATH, producer));
-		commandController.addStateTransitionCommand(new DeleteNoteCommand("DELETE", RESOURCE_PATH, producer));
+		commandController.setGetCommand(RESOURCE_PATH, new OEntityGetNoteCommand(producer));
+		commandController.addStateTransitionCommand(RESOURCE_PATH, new OEntityPutNoteCommand(producer));
+		commandController.addStateTransitionCommand(RESOURCE_PATH, new DeleteNoteCommand(producer));
 	}
 
 	public static Set<String> getValidNextStates() {
