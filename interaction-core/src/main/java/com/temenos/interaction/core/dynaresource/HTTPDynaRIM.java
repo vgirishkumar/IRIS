@@ -41,13 +41,19 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
     private final ResourceState state;
     private final Set<String> interactions;
     
+	public HTTPDynaRIM(String entityName, String path, CommandController commandController) {
+		this(entityName, path, null, null, commandController);
+		this.parent = null;
+	}
+
 	public HTTPDynaRIM(String entityName, String path, ResourceState state, ResourceRegistry rr, CommandController commandController) {
 		super(entityName, path, rr, commandController);
 		this.parent = null;
 		this.path = path;
 		this.state = state;
 		this.interactions = null;
-		System.out.println(new ASTValidation().graph(new ResourceStateMachine(this.state)));
+		if (state != null)
+			System.out.println(new ASTValidation().graph(new ResourceStateMachine(this.state)));
 	}
 
 	public HTTPDynaRIM(HTTPDynaRIM parent, String entityName, String path, 
@@ -128,7 +134,8 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 	@Override
 	public Set<String> getInteractions() {
 		Set<String> allows = new HashSet<String>();
-		allows.addAll(interactions);
+		if (interactions != null)
+			allows.addAll(interactions);
 		allows.add("GET");
 		allows.add("OPTIONS");
 		allows.add("HEAD");
