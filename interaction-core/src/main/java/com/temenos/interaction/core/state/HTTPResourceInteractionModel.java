@@ -1,5 +1,8 @@
 package com.temenos.interaction.core.state;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -57,11 +60,12 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
 	}
 
 	public HTTPResourceInteractionModel(String entityName, String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
+		this.entityName = entityName;
 		this.resourcePath = resourcePath;
-		this.resourceRegistry = resourceRegistry;
-		if (resourceRegistry != null) {
-			resourceRegistry.add(this);
-		}
+//		this.resourceRegistry = resourceRegistry;
+//		if (resourceRegistry != null) {
+//			resourceRegistry.add(this);
+//		}
 		this.commandController = commandController;
 	}
 
@@ -105,7 +109,7 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
-			return HeaderHelper.allowHeader(rb, response).build();
+			return HeaderHelper.allowHeader(rb, getInteractions()).build();
 		}
 		return Response.status(status).build();
     }
@@ -164,8 +168,23 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
     	if (status == Response.Status.OK) {
-        	response = HeaderHelper.allowHeader(response, rResponse);
+        	response = HeaderHelper.allowHeader(response, getInteractions());
     	}
     	return response.build();
+    }
+    
+    /**
+     * Get the valid methods for interacting with this resource.
+     * @return
+     */
+    public Set<String> getInteractions() {
+    	Set<String> interactions = new HashSet<String>();
+    	interactions.add("GET");
+    	interactions.add("PUT");
+    	interactions.add("POST");
+    	interactions.add("DELETE");
+    	interactions.add("HEAD");
+    	interactions.add("OPTIONS");
+    	return interactions;
     }
 }

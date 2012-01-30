@@ -10,8 +10,6 @@ import javax.ws.rs.core.Response;
 
 import org.junit.Test;
 
-import com.temenos.interaction.core.RESTResponse;
-
 public class TestHeaderHelper {
 
 	@Test
@@ -27,23 +25,19 @@ public class TestHeaderHelper {
 		validNextStates.add("HEAD");
 		validNextStates.add("OPTIONS");
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, null, validNextStates);
-
-		Response r = HeaderHelper.allowHeader(Response.ok(), rr).build();
+		Response r = HeaderHelper.allowHeader(Response.ok(), validNextStates).build();
 		assertEquals("AUTHORISE, DELETE, GET, HEAD, HISTORY, INPUT, OPTIONS, REVERSE, SEE", r.getMetadata().getFirst("Allow"));
 	}
 
 	@Test
 	public void testOptionsNoAllowHeader() {
-		RESTResponse rr = new RESTResponse(Response.Status.OK, null, null);
-		Response r = HeaderHelper.allowHeader(Response.ok(), rr).build();
+		Response r = HeaderHelper.allowHeader(Response.ok(), null).build();
 		assertNull(r.getMetadata().getFirst("Allow"));
 	}
 
 	@Test
 	public void testOptionsNoValidStates() {
-		RESTResponse rr = new RESTResponse(Response.Status.OK, null, new HashSet<String>());
-		Response r = HeaderHelper.allowHeader(Response.ok(), rr).build();
+		Response r = HeaderHelper.allowHeader(Response.ok(), new HashSet<String>()).build();
 		assertEquals("", r.getMetadata().getFirst("Allow"));
 	}
 

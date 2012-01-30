@@ -4,6 +4,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
@@ -80,7 +82,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
    // 	Decorator<Response> d = new XMLDecorator();
    // 	Response xml = d.decorateRESTResponse(rResponse);
 		Response xml = Response.ok(rResponse.getResource()).build();
-    	return HeaderHelper.allowHeader(Response.fromResponse(xml), rResponse).build();
+    	return HeaderHelper.allowHeader(Response.fromResponse(xml), getInteractions()).build();
 }
 	
 	
@@ -95,7 +97,7 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
 //    	Decorator<StreamingOutput> d = new JSONStreamingDecorator();
 //    	StreamingOutput so = d.decorateRESTResponse(rResponse);
 		Response json = Response.ok(rResponse.getResource()).build();
-    	return HeaderHelper.allowHeader(Response.fromResponse(json), rResponse).build();
+    	return HeaderHelper.allowHeader(Response.fromResponse(json), getInteractions()).build();
     }
 
     /*
@@ -142,9 +144,26 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
     	if (status == Response.Status.OK) {
-        	response = HeaderHelper.allowHeader(response, rResponse);
+        	response = HeaderHelper.allowHeader(response, getInteractions());
     	}
     	return response.build();
     }
     
+    /**
+     * Get the valid methods for interacting with this resource.
+     * @return
+     */
+    public Set<String> getInteractions() {
+    	Set<String> interactions = new HashSet<String>();
+    	interactions.add("GET");  // SEE
+    	interactions.add("HISTORY");
+    	interactions.add("AUTHORISE");
+    	interactions.add("REVERSE");
+    	interactions.add("DELETE");
+    	interactions.add("INPUT");
+    	interactions.add("HEAD");
+    	interactions.add("OPTIONS");
+    	return interactions;
+    }
+
 }

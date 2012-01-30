@@ -1,0 +1,11 @@
+digraph NOTE {
+    initial[shape=circle, width=.25, label="", color=black, style=filled]
+    exists[label="{id}"]
+    draft[label="draft/{id}"]
+    end[shape=circle, width=.25, label="", color=black, style=filled, peripheries=2]
+    initial->exists[label=GET]
+    initial->exists[label=PUT]
+    initial->draft[label=PUT]
+    draft->exists[label=PUT]
+    exists->end[label=DELETE]
+}

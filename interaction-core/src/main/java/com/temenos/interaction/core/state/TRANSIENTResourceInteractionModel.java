@@ -1,5 +1,8 @@
 package com.temenos.interaction.core.state;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -100,7 +103,7 @@ public class TRANSIENTResourceInteractionModel implements ResourceInteractionMod
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
-			return HeaderHelper.allowHeader(rb, response).build();
+			return HeaderHelper.allowHeader(rb, getInteractions()).build();
 		}
    		return Response.status(status).build();
     }
@@ -118,7 +121,7 @@ public class TRANSIENTResourceInteractionModel implements ResourceInteractionMod
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
-			return HeaderHelper.allowHeader(rb, response).build();
+			return HeaderHelper.allowHeader(rb, getInteractions()).build();
 		}
 		return Response.status(status).build();
     }
@@ -152,5 +155,18 @@ public class TRANSIENTResourceInteractionModel implements ResourceInteractionMod
     	logger.debug("OPTIONS " + resourcePath);
     	return Response.status(Status.NOT_FOUND).build();
 	}
+
+    /**
+     * Get the valid methods for interacting with this resource.
+     * @return
+     */
+    public Set<String> getInteractions() {
+    	Set<String> interactions = new HashSet<String>();
+    	interactions.add("GET");
+    	interactions.add("POST");
+    	interactions.add("HEAD");
+    	interactions.add("OPTIONS");
+    	return interactions;
+    }
 
 }

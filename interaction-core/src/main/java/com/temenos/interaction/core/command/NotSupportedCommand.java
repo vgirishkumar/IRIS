@@ -4,7 +4,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.Response.StatusType;
 
-public class NotSupportedCommand implements ResourceCommand {
+public final class NotSupportedCommand implements ResourceCommand {
 
 	public final static String HTTP_STATUS_NOT_IMPLEMENTED_MSG = "Not Implemented";
 	public final static StatusType HTTP_STATUS_NOT_IMPLEMENTED = new StatusType() {

@@ -1,16 +1,32 @@
 package com.temenos.interaction.core.link;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class ResourceStateMachine {
 
-	public Set<ResourceState> states = new HashSet<ResourceState>();
+	public final ResourceState initial;
 	
-	public ResourceStateMachine(Set<ResourceState> states) {
-		this.states = states;
+	public ResourceStateMachine(ResourceState initialState) {
+		this.initial = initialState;
+	}
+	
+	public ResourceState getInitial() {
+		return initial;
+	}
+	
+	public Collection<ResourceState> getStates() {
+		List<ResourceState> result = new ArrayList<ResourceState>();
+		collectStates(result, initial);
+		return result;
+	}
+	
+	private void collectStates(Collection<ResourceState> result, ResourceState s) {
+		if (result.contains(s)) return;
+		result.add(s);
+		for (ResourceState next : s.getAllTargets())
+			collectStates(result, next);
 	}
 	
 }

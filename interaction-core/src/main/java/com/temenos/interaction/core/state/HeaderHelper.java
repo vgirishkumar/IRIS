@@ -8,8 +8,7 @@ import com.temenos.interaction.core.RESTResponse;
 
 public class HeaderHelper {
 
-    protected static ResponseBuilder allowHeader(ResponseBuilder rb, RESTResponse rResponse) {
-    	Set<String> httpMethods = rResponse.getValidNextStates();
+    public static ResponseBuilder allowHeader(ResponseBuilder rb, Set<String> httpMethods) {
     	if (httpMethods != null) {
         	StringBuilder result = new StringBuilder();
         	for (String method : httpMethods) {

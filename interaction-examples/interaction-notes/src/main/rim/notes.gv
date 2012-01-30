@@ -1,0 +1,4 @@
+digraph notes {
+    NOTE [shape=box]
+    begin->NOTE[label=GET]
+}

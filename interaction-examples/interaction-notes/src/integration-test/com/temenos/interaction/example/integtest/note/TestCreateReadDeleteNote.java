@@ -48,13 +48,13 @@ public class TestCreateReadDeleteNote extends JerseyTest {
 	public void testOptions() {
         String noteUri = NOTES_RESOURCE + "/1";
         ClientResponse response = webResource.path(noteUri).options(ClientResponse.class);
-        assertEquals(200, response.getStatus());
-        assertEquals(5, response.getAllow().size());
-        assertTrue(response.getAllow().contains("GET"));
+        assertEquals(204, response.getStatus());
+        assertEquals(2, response.getAllow().size());
+//        assertTrue(response.getAllow().contains("GET"));
         assertTrue(response.getAllow().contains("PUT"));
-        assertTrue(response.getAllow().contains("DELETE"));
+//        assertTrue(response.getAllow().contains("DELETE"));
         assertTrue(response.getAllow().contains("OPTIONS"));
-        assertTrue(response.getAllow().contains("HEAD"));
+//        assertTrue(response.getAllow().contains("HEAD"));
 	}
 
     @Test
