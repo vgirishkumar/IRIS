@@ -11,22 +11,22 @@ public class TestResourceStateMachine {
 
 	@Test
 	public void testStates() {
-		ResourceState begin = new ResourceState("begin");
-		ResourceState unauthorised = new ResourceState("INAU");
-		ResourceState authorised = new ResourceState("LIVE");
-		ResourceState reversed = new ResourceState("RNAU");
-		ResourceState history = new ResourceState("REVE");
-		ResourceState end = new ResourceState("end");
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState unauthorised = new ResourceState("INAU", "unauthorised/{id}");
+		ResourceState authorised = new ResourceState("LIVE", "authorised/{id}");
+		ResourceState reversed = new ResourceState("RNAU", "reversed/{id}");
+		ResourceState history = new ResourceState("REVE", "history/{id}");
+		ResourceState end = new ResourceState("end", "");
 	
-		begin.addTransition(new CommandSpec("INPUT", "PUT"), unauthorised);
+		begin.addTransition(new TransitionCommandSpec("PUT", "unauthorised/{id}"), unauthorised);
 		
-		unauthorised.addTransition(new CommandSpec("INPUT", "PUT"), unauthorised);
-		unauthorised.addTransition(new CommandSpec("AUTHORISE", "PUT"), authorised);
-		unauthorised.addTransition(new CommandSpec("DELETE", "PUT"), end);
+		unauthorised.addTransition(new TransitionCommandSpec("PUT", "unauthorised/{id}"), unauthorised);
+		unauthorised.addTransition(new TransitionCommandSpec("PUT", "authorised/{id}"), authorised);
+		unauthorised.addTransition(new TransitionCommandSpec("DELETE", "unauthorised/{id}"), end);
 		
-		authorised.addTransition(new CommandSpec("REVERSE", "PUT"), reversed);
+		authorised.addTransition(new TransitionCommandSpec("PUT", "history/{id}"), history);
 		
-		reversed.addTransition(new CommandSpec("AUTHORISE", "PUT"), history);
+		history.addTransition(new TransitionCommandSpec("PUT", "reversed/{id}"), reversed);
 		
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);

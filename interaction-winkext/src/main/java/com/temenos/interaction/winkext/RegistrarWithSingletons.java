@@ -36,7 +36,7 @@ public class RegistrarWithSingletons extends Registrar {
         	this.setInstances(new HashSet<Object>());
     	}
         for (HTTPDynaRIM rim : interactions) {
-               this.getInstances().addAll(rim.getInteractionResources());
+               this.getInstances().addAll(rim.createChildResources());
         }
     }
     

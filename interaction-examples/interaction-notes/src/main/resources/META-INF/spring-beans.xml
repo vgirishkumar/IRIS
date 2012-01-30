@@ -74,9 +74,13 @@
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry" />
 
+    <!-- Notes resource state model (only getting initial state from resource registry as a convenience ) -->
+    <bean id="initialNoteState" factory-bean="resourceRegistry" factory-method="getSimpleResourceStateModel"/>
+
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="entityName" value="NOTE" />
     	<constructor-arg name="path" value="/notes" />
+    	<constructor-arg name="state" ref="initialNoteState" />
     	<constructor-arg name="rr" ref="resourceRegistry" />
     	<constructor-arg name="commandController" ref="noteCommands" />
     </bean>

@@ -69,4 +69,13 @@ public class ResourceRegistry {
 		return OEntities.create(entity.getEntitySet(), entity.getEntityKey(), entity.getProperties(), associatedLinks);
 	}
 
+	public ResourceState getSimpleResourceStateModel() {
+		ResourceState initialState = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState finalState = new ResourceState("end", "");
+	
+		initialState.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);		
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), finalState);
+		return initialState;
+	}
 }

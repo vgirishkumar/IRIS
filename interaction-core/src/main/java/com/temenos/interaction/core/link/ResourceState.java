@@ -3,29 +3,31 @@ package com.temenos.interaction.core.link;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ResourceState {
 
 	private final String name;
-	private Map<String, Transition> transitions = new HashMap<String, Transition>();
-	private Set<String> interactions = new HashSet<String>();
+	private final String path;
+	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
 
-	public ResourceState(String name) {
+	public ResourceState(String name, String path) {
 		this.name = name;
+		this.path = path;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void addTransition(CommandSpec commandSpec, ResourceState targetState) {
+	public String getPath() {
+		return path;
+	}
+
+	public void addTransition(TransitionCommandSpec commandSpec, ResourceState targetState) {
 		assert null != targetState;
-		targetState.addInteraction(commandSpec.getMethod());
-		transitions.put(commandSpec.getName(), new Transition(this, commandSpec, targetState));
+		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
 	}
 	
 	/**
@@ -42,14 +44,6 @@ public class ResourceState {
 			}
 		}
 		return foundTransition;
-	}
-
-	public void addInteraction(String method) {
-		interactions.add(method);
-	}
-	
-	public Set<String> getInteractions() {
-		return interactions;
 	}
 
 	public Collection<ResourceState> getAllTargets() {
@@ -72,12 +66,14 @@ public class ResourceState {
 	    if ( !(other instanceof ResourceState) ) return false;
 	    ResourceState otherState = (ResourceState) other;
 	    return name.equals(otherState.name) &&
+	    	path.equals(otherState.path) &&
 	    	transitions.equals(otherState.transitions);
 	}
 	
 	public int hashCode() {
 		// TODO proper implementation of hashCode, important as we intend to use the in our DSL validation
 		return name.hashCode() +
+			path.hashCode() +
 			transitions.hashCode();
 	}
 }

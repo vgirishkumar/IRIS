@@ -3,6 +3,7 @@ package com.temenos.interaction.core.dynaresource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,8 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.link.ASTValidation;
+import com.temenos.interaction.core.link.ResourceStateMachine;
+import com.temenos.interaction.core.link.TransitionCommandSpec;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.link.Transition;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -33,11 +38,25 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
     private String beanName;
     
     private final ResourceState state;
+    private final Set<String> interactions;
     
-	public HTTPDynaRIM(HTTPDynaRIM parent, String entityName, String path, ResourceState state, ResourceRegistry rr, CommandController commandController) {
+	public HTTPDynaRIM(String entityName, String path, ResourceState state, ResourceRegistry rr, CommandController commandController) {
+		super(entityName, path, rr, commandController);
+		this.parent = null;
+		this.state = state;
+		this.interactions = null;
+		System.out.println(new ASTValidation().graph(new ResourceStateMachine(this.state)));
+	}
+
+	public HTTPDynaRIM(HTTPDynaRIM parent, String entityName, String path, 
+			ResourceState state, Set<String> interactions, ResourceRegistry rr, CommandController commandController) {
 		super(entityName, path, rr, commandController);
 		this.parent = parent;
 		this.state = state;
+		if (parent == null && state != null) {
+			System.out.println(new ASTValidation().graph(new ResourceStateMachine(this.state)));
+		}
+		this.interactions = interactions;
 		bootstrap();
 	}
 
@@ -48,8 +67,8 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 	private void bootstrap() {
 		getCommandController().fetchGetCommand();
 		if (state != null) {
-			Set<String> httpMethods = state.getInteractions();
-			for (String method : httpMethods) {
+			// interactions are a set of http methods
+			for (String method : interactions) {
 				logger.debug("Checking configuration for [" + method + "] " + getPath());
 				// check valid http method
 				if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)))
@@ -105,15 +124,7 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
     
 	@Override
 	public Set<String> getInteractions() {
-		return state.getInteractions();
-		/*
-		Set<DynamicResource> interaction = new HashSet<DynamicResource>();
-//		interaction.add(new DynaOPTIONS(this, (ResourceGetCommand) commandController.fetchGetCommand(), "{id}"));
-		interaction.add(dynaGET);
-		interaction.add(new DynaPUT(this, (ResourcePutCommand) commandController.fetchStateTransitionCommand("PUT", getResourcePath() + "/{id}"), "{id}"));
-		interaction.add(new DynaDELETE(this, (ResourceDeleteCommand) commandController.fetchStateTransitionCommand("DELETE", getResourcePath() + "/{id}"), "{id}"));
-		return interaction;
-		*/
+		return interactions;
 	}
 
 	public ResourceState getState() {
@@ -121,27 +132,66 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 	}
 	
 	public Collection<ResourceInteractionModel> createChildResources() {
-		Map<String, ResourceInteractionModel> result = new HashMap<String, ResourceInteractionModel>();
-		List<ResourceState> states = new ArrayList<ResourceState>();
-		collectRIMs(result, states, this.state, this, getCommandController());
-		return result.values();
+		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
+		Map<String, Set<String>> interactionMap = getInteractionMap();
+		for (String path : interactionMap.keySet()) {
+			ResourceState state = null;
+			Collection<ResourceState> allStates = getStates();
+			for (ResourceState s : allStates) {
+				if (s.getPath().equals(path)) {
+					state = s;
+				}
+			}
+			HTTPDynaRIM child = new HTTPDynaRIM(this, getEntityName(), path, state, interactionMap.get(path), null, getCommandController());
+			result.add(child);
+		}
+		return result;
 	}
 	
-	private void collectRIMs(Map<String, ResourceInteractionModel> result, Collection<ResourceState> states, ResourceState s, HTTPDynaRIM resource, CommandController cc) {
-		if (states.contains(s)) return;
-		states.add(s);
-		for (ResourceState next : s.getAllTargets()) {
-			if (!next.equals(this.state) && !next.isFinalState()) {
-				// use the state name as the path
-				String path = next.getName();
-				if (!result.keySet().contains(path)) {
-					HTTPDynaRIM child = new HTTPDynaRIM(resource, resource.getEntityName(), path, next, null, cc);
-					result.put(path, child);
-					collectRIMs(result, states, next, child, cc);
-				}
+	public Collection<ResourceState> getStates() {
+		List<ResourceState> result = new ArrayList<ResourceState>();
+		collectStates(result, state);
+		return result;
+	}
+
+	private void collectStates(Collection<ResourceState> result, ResourceState currentState) {
+		if (result.contains(currentState)) return;
+		result.add(currentState);
+		for (ResourceState next : currentState.getAllTargets()) {
+			if (!next.equals(this.state)) {
+				collectStates(result, next);
 			}
 		}
 		
 	}
 
+	public Map<String, Set<String>> getInteractionMap() {
+		Map<String, Set<String>> interactionMap = new HashMap<String, Set<String>>();
+		List<ResourceState> states = new ArrayList<ResourceState>();
+		collectInteractions(interactionMap, states, this.state);
+		return interactionMap;
+	}
+	
+	private void collectInteractions(Map<String, Set<String>> result, Collection<ResourceState> states, ResourceState currentState) {
+		if (states.contains(currentState)) return;
+		states.add(currentState);
+		for (ResourceState next : currentState.getAllTargets()) {
+			if (!next.equals(this.state)) {
+				// lookup transition to get to here
+				Transition t = currentState.getTransition(next);
+				TransitionCommandSpec command = t.getCommand();
+				String path = command.getPath();
+				
+				Set<String> interactions = result.get(path);
+				if (interactions == null)
+					interactions = new HashSet<String>();
+				interactions.add(command.getMethod());
+				
+				result.put(path, interactions);
+				collectInteractions(result, states, next);
+			}
+		}
+		
+	}
+	
 }

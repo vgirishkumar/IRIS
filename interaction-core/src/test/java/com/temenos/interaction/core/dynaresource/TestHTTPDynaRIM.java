@@ -1,16 +1,20 @@
 package com.temenos.interaction.core.dynaresource;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
 
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.link.CommandSpec;
+import com.temenos.interaction.core.link.TransitionCommandSpec;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -19,22 +23,64 @@ public class TestHTTPDynaRIM {
 
 	@Test
 	public void testRIMsCRUD() {
-		ResourceState begin = new ResourceState("begin");
-		ResourceState exists = new ResourceState("{id}");
-		ResourceState end = new ResourceState("end");
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "");
 	
-		begin.addTransition(new CommandSpec("create", "PUT"), exists);
-		begin.addTransition(new CommandSpec("update", "PUT"), exists);
-		exists.addTransition(new CommandSpec("delete", "DELETE"), end);
+		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
 		
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
 		verify(cc).fetchGetCommand();
 		Collection<ResourceInteractionModel> resources = parent.createChildResources();
 		assertEquals(1, resources.size());
 		verify(cc, times(2)).fetchGetCommand();
 		verify(cc).fetchStateTransitionCommand("PUT", "{id}");
 		verify(cc).fetchStateTransitionCommand("DELETE", "{id}");
+	}
+
+	@Test
+	public void testGetStates() {
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "");
+	
+		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
+		
+		CommandController cc = mock(CommandController.class);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
+		Collection<ResourceState> states = parent.getStates();
+		assertEquals("Number of states", 3, states.size());
+		assertTrue(states.contains(begin));
+		assertTrue(states.contains(exists));
+		assertTrue(states.contains(end));
+	}
+
+	@Test
+	public void testInteractionMap() {
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "");
+	
+		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
+		
+		CommandController cc = mock(CommandController.class);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
+
+		Map<String, Set<String>> interactionMap = parent.getInteractionMap();
+		assertEquals("Number of resources", 1, interactionMap.size());
+		Set<String> entrySet = interactionMap.keySet();
+		assertTrue(entrySet.contains("{id}"));
+		Collection<String> interactions = interactionMap.get("{id}");
+		assertEquals("Number of interactions", 2, interactions.size());
+		assertTrue(interactions.contains("PUT"));
+		assertTrue(interactions.contains("DELETE"));
 	}
 
 	/*

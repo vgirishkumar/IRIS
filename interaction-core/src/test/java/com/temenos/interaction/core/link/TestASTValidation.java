@@ -13,12 +13,12 @@ public class TestASTValidation {
 
 	@Test
 	public void testValidateStatesValid() {
-		ResourceState begin = new ResourceState("begin");
-		ResourceState exists = new ResourceState("exists");
-		ResourceState end = new ResourceState("end");
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "");
 	
-		begin.addTransition(new CommandSpec("create", "PUT"), exists);		
-		exists.addTransition(new CommandSpec("delete", "DELETE"), end);
+		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);		
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
 		
 		Set<ResourceState> states = new HashSet<ResourceState>();
 		states.add(begin);
@@ -32,14 +32,14 @@ public class TestASTValidation {
 
 	@Test
 	public void testValidateStatesUnreachable() {
-		ResourceState begin = new ResourceState("begin");
-		ResourceState exists = new ResourceState("exists");
-		ResourceState end = new ResourceState("end");
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "");
 	
-		begin.addTransition(new CommandSpec("create", "PUT"), exists);		
-		exists.addTransition(new CommandSpec("delete", "DELETE"), end);
+		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);		
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
 		
-		ResourceState unreachableState = new ResourceState("unreachable");
+		ResourceState unreachableState = new ResourceState("unreachable", "");
 		Set<ResourceState> states = new HashSet<ResourceState>();
 		states.add(begin);
 		states.add(exists);
@@ -53,16 +53,16 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOT() {
-		ResourceState begin = new ResourceState("begin");
-		ResourceState exists = new ResourceState("exists");
-		ResourceState end = new ResourceState("end");
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "");
 	
-		begin.addTransition(new CommandSpec("create", "PUT"), exists);		
-		exists.addTransition(new CommandSpec("delete", "DELETE"), end);
+		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);		
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
 				
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		ASTValidation v = new ASTValidation();
-		assertEquals("digraph G {\n    begin->exists[style=bold,label=create]\n    exists->end[style=bold,label=delete]\n}", v.graph(sm));	
+		assertEquals("digraph G {\n    begin->exists[style=bold,label=PUT {id}]\n    exists->end[style=bold,label=DELETE {id}]\n}", v.graph(sm));	
 	}
 
 }

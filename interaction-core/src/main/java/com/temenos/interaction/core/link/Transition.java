@@ -3,9 +3,9 @@ package com.temenos.interaction.core.link;
 public class Transition {
 
 	private final ResourceState source, target;
-	private final CommandSpec command;
+	private final TransitionCommandSpec command;
 	
-	public Transition(ResourceState source, CommandSpec command, ResourceState target) {
+	public Transition(ResourceState source, TransitionCommandSpec command, ResourceState target) {
 		this.source = source;
 		this.target = target;
 		this.command = command;
@@ -19,7 +19,7 @@ public class Transition {
 		return target;
 	}
 
-	public CommandSpec getCommand() {
+	public TransitionCommandSpec getCommand() {
 		return command;
 	}
 	

@@ -28,8 +28,11 @@ public class ASTValidation {
 		sb.append("digraph G {").append("\n");
 		for (ResourceState s : states) {
 			for (ResourceState targetState : s.getAllTargets()) {
+				Transition transition = s.getTransition(targetState);
 				sb.append("    ").append(s.getName()).append("->").append(targetState.getName())
-					.append("[style=bold,label=").append(s.getTransition(targetState).getCommand().getName()).append("]").append("\n");
+					.append("[style=bold,label=")
+					.append(transition.getCommand().getMethod()).append(" ").append(transition.getCommand().getPath())
+					.append("]").append("\n");
 			}
 		}
 		sb.append("}");
