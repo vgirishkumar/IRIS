@@ -7,16 +7,12 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
-import static org.powermock.api.support.membermodification.MemberMatcher.method;
-import static org.powermock.api.support.membermodification.MemberModifier.suppress;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
@@ -24,7 +20,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmProperty;
-import org.odata4j.edm.EdmSimpleType;
+import org.odata4j.edm.EdmType;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
@@ -39,17 +35,94 @@ import com.temenos.interaction.core.RESTResponse;
 @PrepareForTest({OEntityKey.class, GETEntityCommand.class})
 public class TestPowermockGETEntityCommand {
 
+	class MyEdmType extends EdmType {
+		public MyEdmType(String name) {
+			super(name);
+		}
+		public boolean isSimple() { return false; }
+	}
+	
 	@Test
-	public void testEntityKeyType() {
+	public void testEntityKeyTypeString() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
+		
+		// test our method
+		RESTResponse rr = gec.get("1", null);
+		
+		PowerMockito.verifyStatic();
+		assertNotNull(rr);
+		assertTrue(rr.getResource() instanceof EntityResource);
+	}
+
+	@Test
+	public void testEntityKeyInt64() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Int64");
+		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
+		
+		// test our method
+		RESTResponse rr = gec.get("1", null);
+		
+		PowerMockito.verifyStatic();
+		assertNotNull(rr);
+		assertTrue(rr.getResource() instanceof EntityResource);
+	}
+
+	@Test
+	public void testEntityKeyInt64Error() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Int64");
+		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
+		
+		// test our method
+		RESTResponse rr = gec.get("A1", null);
+		
+		PowerMockito.verifyStatic();
+		assertNotNull(rr);
+		assertTrue(rr.getResource() == null);
+	}
+	
+	@Test
+	public void testEntityKeyTimestamp() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.DateTime");
+		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
+		
+		// test our method
+		RESTResponse rr = gec.get("2012-02-06 18:05:53", null);
+		
+		PowerMockito.verifyStatic();
+		assertNotNull(rr);
+		assertTrue(rr.getResource() instanceof EntityResource);
+	}
+
+	@Test
+	public void testEntityKeyTime() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Time");
+		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
+		
+		// test our method
+		RESTResponse rr = gec.get("18:05:53", null);
+		
+		PowerMockito.verifyStatic();
+		assertNotNull(rr);
+		assertTrue(rr.getResource() instanceof EntityResource);
+	}
+	
+	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {
 		ODataProducer mockProducer = mock(ODataProducer.class);
 		List<String> keys = new ArrayList<String>();
-		List<EdmProperty> properties = null;
+		keys.add("MyId");
+		List<EdmProperty> properties = new ArrayList<EdmProperty>();
+		properties.add(new EdmProperty("MyId", new MyEdmType(keyTypeName), true));
 		List<EdmNavigationProperty> navProperties = null;
-		EdmEntityType mockEntityType = new EdmEntityType("namespace", "alias", "entity", false, keys, properties, navProperties);
-		EdmEntitySet mockEntitySet = new EdmEntitySet("entity", mockEntityType);
+		EdmEntityType mockEntityType = new EdmEntityType("MyNamespace", "MyAlias", entityName, false, keys, properties, navProperties);
+		EdmEntitySet mockEntitySet = new EdmEntitySet(entityName, mockEntityType);
+
+		List<EdmEntityType> mockEntityTypes = new ArrayList<EdmEntityType>();
+		mockEntityTypes.add(mockEntityType);
 
 		EdmDataServices mockEDS = mock(EdmDataServices.class);
 		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(mockEntitySet);
+		when(mockEDS.getEntityTypes()).thenReturn(mockEntityTypes);
 		when(mockProducer.getMetadata()).thenReturn(mockEDS);
 
 		EntityResponse mockEntityResponse = mock(EntityResponse.class);
@@ -58,18 +131,8 @@ public class TestPowermockGETEntityCommand {
 				
 		mockStatic(OEntityKey.class);
         when(OEntityKey.create(anyLong())).thenReturn(mock(OEntityKey.class));
-
-		GETEntityCommand gec = new GETEntityCommand("entity", mockProducer);
-		
-		// test our method
-		RESTResponse rr = gec.get("1L", null);
-		
-		PowerMockito.verifyStatic();
-//		OEntityKey.create(new Long(1L));
-		OEntityKey.create("1L");
-		
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof EntityResource);
+        
+        return mockProducer;
 	}
-
+	
 }
