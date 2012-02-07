@@ -76,7 +76,7 @@ public class POSTNewNoteCommand implements ResourcePostCommand {
 		links.add(OLinks.link("_new", "NewNote", targetResource.replaceFirst("\\{id\\}", replacement)));
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
 		EntityResource er = new EntityResource(entity);
-		return new RESTResponse(Response.Status.OK, er, null);
+		return new RESTResponse(Response.Status.OK, er);
 	}
 
 	public String getMethod() {

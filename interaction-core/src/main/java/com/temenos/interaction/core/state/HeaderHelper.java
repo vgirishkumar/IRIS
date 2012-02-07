@@ -4,8 +4,6 @@ import java.util.Set;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import com.temenos.interaction.core.RESTResponse;
-
 public class HeaderHelper {
 
     public static ResponseBuilder allowHeader(ResponseBuilder rb, Set<String> httpMethods) {

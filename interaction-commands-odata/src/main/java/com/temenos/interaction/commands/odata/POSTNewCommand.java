@@ -69,7 +69,7 @@ public class POSTNewCommand implements ResourcePostCommand {
 		BaseResponse fr = producer.callFunction(functionName, params, null);
 		assert(functionName.returnType == EdmSimpleType.INT64);
 		
-		// TODO this could either be the type we are creating and ID for, or it could just be a transient type
+		// TODO this could either be the type we are creating an ID for, or it could just be a transient type
 		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(resourceInteraction.getEntityName());
 		OEntityKey entityKey = OEntityKey.create("new");
 		List<OLink> links = new ArrayList<OLink>();
@@ -77,7 +77,7 @@ public class POSTNewCommand implements ResourcePostCommand {
 		links.add(OLinks.link("_new", "NewNote", targetResource.replaceFirst("\\{id\\}", replacement)));
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
 		EntityResource er = new EntityResource(entity);
-		return new RESTResponse(Response.Status.OK, er, null);
+		return new RESTResponse(Response.Status.OK, er);
 	}
 
 	public String getMethod() {

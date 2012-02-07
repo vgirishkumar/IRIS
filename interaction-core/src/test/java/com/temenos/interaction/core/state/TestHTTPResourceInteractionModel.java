@@ -28,7 +28,7 @@ public class TestHTTPResourceInteractionModel {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
-		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null, null));
+		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null));
 		cc.setGetCommand(resourcePath, rgc);
 		Response response = r.get(null, "123");
 		assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
@@ -62,7 +62,7 @@ public class TestHTTPResourceInteractionModel {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
-		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.OK, null, null));
+		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.OK, null));
 		cc.setGetCommand(resourcePath, rgc);
 		r.get(null, "123");
 	}

@@ -63,7 +63,7 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 		EntitiesResponse response = producer.getEntities(entitySetName, query);
 		    
 		CollectionResource cr = new CollectionResource(entitySetName, response.getEntities(), null);
-		RESTResponse rr = new RESTResponse(Response.Status.OK, cr, null);
+		RESTResponse rr = new RESTResponse(Response.Status.OK, cr);
 		return rr;
 	}
 

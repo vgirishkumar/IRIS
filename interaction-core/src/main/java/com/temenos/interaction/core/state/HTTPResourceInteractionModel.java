@@ -28,6 +28,7 @@ import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.link.ResourceState;
 
 /**
  * <P>
@@ -62,10 +63,10 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
 	public HTTPResourceInteractionModel(String entityName, String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
 		this.entityName = entityName;
 		this.resourcePath = resourcePath;
-//		this.resourceRegistry = resourceRegistry;
-//		if (resourceRegistry != null) {
-//			resourceRegistry.add(this);
-//		}
+		this.resourceRegistry = resourceRegistry;
+		if (resourceRegistry != null) {
+			resourceRegistry.add(this);
+		}
 		this.commandController = commandController;
 	}
 
@@ -98,9 +99,9 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
     	if (response != null && resourceRegistry != null && response.getResource() instanceof EntityResource) {
         	RESTResource rr = response.getResource();
     		EntityResource er = (EntityResource) rr;
-        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getOEntity(), null);
+        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getOEntity(), getCurrentState());
         	EntityResource rebuilt = new EntityResource(oe);
-        	response = new RESTResponse(response.getStatus(), rebuilt, null);
+        	response = new RESTResponse(response.getStatus(), rebuilt);
     	}
     	
     	assert (response != null);
@@ -171,6 +172,14 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
         	response = HeaderHelper.allowHeader(response, getInteractions());
     	}
     	return response.build();
+    }
+    
+    /**
+     * The current application state.
+     * @return
+     */
+    public ResourceState getCurrentState() {
+    	return null;
     }
     
     /**

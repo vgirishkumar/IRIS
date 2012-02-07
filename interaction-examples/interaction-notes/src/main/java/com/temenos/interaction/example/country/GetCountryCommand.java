@@ -42,7 +42,7 @@ public class GetCountryCommand implements ResourceGetCommand {
 			OEntity entity = entityResponse.getEntity();
 			resource = new EntityResource(new Country(entity));
 		}
-		return new RESTResponse(resource == null ? Response.Status.NOT_FOUND : Response.Status.OK, resource, null);
+		return new RESTResponse(resource == null ? Response.Status.NOT_FOUND : Response.Status.OK, resource);
 	}
 
 	public void setProducer(ODataProducer producer) {

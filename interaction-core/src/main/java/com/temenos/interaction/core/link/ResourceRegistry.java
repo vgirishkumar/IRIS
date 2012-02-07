@@ -1,6 +1,7 @@
 package com.temenos.interaction.core.link;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,7 @@ public class ResourceRegistry {
 			}
 
 			String otherEntity = np.name;
-			// TODO add our releations
+			// TODO add our relations
 	        String rel = XmlFormatWriter.related + otherEntity;
 
 			ResourceInteractionModel otherResource = getResourceInteractionModel(otherEntity);
@@ -64,9 +65,17 @@ public class ResourceRegistry {
 		}
 
 		// these are links or forms to transition to another state
-		// List<OLink> transitionLinks = currentState.getTransitions();
-
-		return OEntities.create(entity.getEntitySet(), entity.getEntityKey(), entity.getProperties(), associatedLinks);
+		List<OLink> transitionLinks = new ArrayList<OLink>();
+		Collection<ResourceState> targetStates = currentState.getAllTargets();
+		for (ResourceState s : targetStates) {
+			TransitionCommandSpec cs = s.getTransition(s).getCommand();
+			transitionLinks.add(OLinks.link("rel+method=" + cs.getMethod(), s.getName(), cs.getPath()));
+		}
+		
+		List<OLink> links = new ArrayList<OLink>();
+		links.addAll(associatedLinks);
+		links.addAll(transitionLinks);
+		return OEntities.create(entity.getEntitySet(), entity.getEntityKey(), entity.getProperties(), links);
 	}
 
 	public ResourceState getSimpleResourceStateModel() {

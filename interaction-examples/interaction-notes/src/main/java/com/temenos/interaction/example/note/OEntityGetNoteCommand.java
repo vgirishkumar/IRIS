@@ -26,7 +26,8 @@ public class OEntityGetNoteCommand implements ResourceGetCommand {
 		EntityResponse er = producer.getEntity(OEntityNoteRIM.ENTITY_NAME, key, null);
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(oEntity), OEntityNoteRIM.getValidNextStates());
+		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(oEntity));
+		rr.getValidMethods().addAll(OEntityNoteRIM.getValidNextStates());
 		return rr;
 	}
 

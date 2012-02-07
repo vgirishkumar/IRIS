@@ -34,7 +34,7 @@ public class GETNewNoteCommand implements ResourceGetCommand {
 		EntityResponse eResp = producer.getEntity("ID", key, null);
 		OEntity oEntity = eResp.getEntity();
 		EntityResource er = new EntityResource(oEntity);
-		return new RESTResponse(Response.Status.OK, er, null);
+		return new RESTResponse(Response.Status.OK, er);
 	}
 
 }

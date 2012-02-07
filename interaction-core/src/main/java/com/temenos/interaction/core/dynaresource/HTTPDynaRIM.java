@@ -130,6 +130,11 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
     }
     
 	@Override
+	public ResourceState getCurrentState() {
+		return stateMachine.getInitial();
+	}
+	
+	@Override
 	public Set<String> getInteractions() {
 		Set<String> allows = new HashSet<String>();
 		if (interactions != null)

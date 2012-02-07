@@ -44,14 +44,14 @@ public class GETEntityCommand implements ResourceGetCommand {
 			key = CommandHelper.createEntityKey(entityTypes, entity, id);
 		}
 		catch(Exception e) {
-			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null, null);
+			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
 		}
 		
 		//Get the entity
 		EntityResponse er = getProducer().getEntity(entity, key, null);
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(oEntity), null);
+		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(oEntity));
 		return rr;
 	}
 
