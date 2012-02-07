@@ -1,15 +1,12 @@
 package com.temenos.interaction.core.dynaresource;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import org.junit.Test;
 
@@ -40,48 +37,6 @@ public class TestHTTPDynaRIM {
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
 		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}");
 		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}");
-	}
-
-	@Test
-	public void testGetStates() {
-		ResourceState begin = new ResourceState("begin", "");
-		ResourceState exists = new ResourceState("exists", "{id}");
-		ResourceState end = new ResourceState("end", "");
-	
-		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
-		
-		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
-		Collection<ResourceState> states = parent.getStates();
-		assertEquals("Number of states", 3, states.size());
-		assertTrue(states.contains(begin));
-		assertTrue(states.contains(exists));
-		assertTrue(states.contains(end));
-	}
-
-	@Test
-	public void testInteractionMap() {
-		ResourceState begin = new ResourceState("begin", "");
-		ResourceState exists = new ResourceState("exists", "{id}");
-		ResourceState end = new ResourceState("end", "");
-	
-		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
-		
-		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
-
-		Map<String, Set<String>> interactionMap = parent.getInteractionMap();
-		assertEquals("Number of resources", 1, interactionMap.size());
-		Set<String> entrySet = interactionMap.keySet();
-		assertTrue(entrySet.contains("{id}"));
-		Collection<String> interactions = interactionMap.get("{id}");
-		assertEquals("Number of interactions", 2, interactions.size());
-		assertTrue(interactions.contains("PUT"));
-		assertTrue(interactions.contains("DELETE"));
 	}
 
 	/*

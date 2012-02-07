@@ -2,7 +2,9 @@ package com.temenos.interaction.core.link;
 
 import static org.junit.Assert.*;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
@@ -46,4 +48,45 @@ public class TestResourceStateMachine {
 		System.out.println(new ASTValidation().graph(sm));
 	}
 	
+	@Test
+	public void testGetStates() {
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "");
+	
+		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		Collection<ResourceState> states = sm.getStates();
+		assertEquals("Number of states", 3, states.size());
+		assertTrue(states.contains(begin));
+		assertTrue(states.contains(exists));
+		assertTrue(states.contains(end));
+	}
+
+	@Test
+	public void testInteractionMap() {
+		ResourceState begin = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "");
+	
+		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
+
+		Map<String, Set<String>> interactionMap = sm.getInteractionMap();
+		assertEquals("Number of resources", 1, interactionMap.size());
+		Set<String> entrySet = interactionMap.keySet();
+		assertTrue(entrySet.contains("{id}"));
+		Collection<String> interactions = interactionMap.get("{id}");
+		assertEquals("Number of interactions", 2, interactions.size());
+		assertTrue(interactions.contains("PUT"));
+		assertTrue(interactions.contains("DELETE"));
+	}
+
+
 }

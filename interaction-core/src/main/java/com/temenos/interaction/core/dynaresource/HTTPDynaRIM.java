@@ -2,7 +2,6 @@ package com.temenos.interaction.core.dynaresource;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +16,8 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.link.ASTValidation;
 import com.temenos.interaction.core.link.ResourceStateMachine;
-import com.temenos.interaction.core.link.TransitionCommandSpec;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.Transition;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -38,7 +35,7 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
     private String beanName;
 
     private final String path;
-    private final ResourceState state;
+    private final ResourceStateMachine stateMachine;
     private final Set<String> interactions;
     
 	public HTTPDynaRIM(String entityName, String path, CommandController commandController) {
@@ -50,10 +47,11 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		super(entityName, path, rr, commandController);
 		this.parent = null;
 		this.path = path;
-		this.state = state;
 		this.interactions = null;
-		if (state != null)
-			System.out.println(new ASTValidation().graph(new ResourceStateMachine(this.state)));
+		this.stateMachine = new ResourceStateMachine(state);
+		if (state != null) {
+			System.out.println(new ASTValidation().graph(stateMachine));
+		}
 	}
 
 	public HTTPDynaRIM(HTTPDynaRIM parent, String entityName, String path, 
@@ -61,9 +59,9 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		super(entityName, (parent != null ? parent.getPath() + "/" + path : path), rr, commandController);
 		this.parent = parent;
 		this.path = path;
-		this.state = state;
+		this.stateMachine = new ResourceStateMachine(state);
 		if (parent == null && state != null) {
-			System.out.println(new ASTValidation().graph(new ResourceStateMachine(this.state)));
+			System.out.println(new ASTValidation().graph(stateMachine));
 		}
 		this.interactions = interactions;
 		bootstrap();
@@ -75,13 +73,13 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 	 */
 	private void bootstrap() {
 		getCommandController().fetchGetCommand(getResourcePath());
-		if (state != null) {
+		if (stateMachine != null) {
 			// interactions are a set of http methods
 			for (String method : interactions) {
 				logger.debug("Checking configuration for [" + method + "] " + getResourcePath());
 				// check valid http method
 				if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)))
-					throw new RuntimeException("Invalid configuration of state [" + state.getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
+					throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
 				// fetch command from command controller for this method
 				getCommandController().fetchStateTransitionCommand(method, getResourcePath());
 			}
@@ -142,16 +140,12 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		return allows;
 	}
 
-	public ResourceState getState() {
-		return state;
-	}
-	
 	public Collection<ResourceInteractionModel> createChildResources() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
-		Map<String, Set<String>> interactionMap = getInteractionMap();
+		Map<String, Set<String>> interactionMap = stateMachine.getInteractionMap();
 		for (String path : interactionMap.keySet()) {
 			ResourceState state = null;
-			Collection<ResourceState> allStates = getStates();
+			Collection<ResourceState> allStates = stateMachine.getStates();
 			for (ResourceState s : allStates) {
 				if (s.getPath().equals(path)) {
 					state = s;
@@ -162,51 +156,5 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		}
 		return result;
 	}
-	
-	public Collection<ResourceState> getStates() {
-		List<ResourceState> result = new ArrayList<ResourceState>();
-		collectStates(result, state);
-		return result;
-	}
-
-	private void collectStates(Collection<ResourceState> result, ResourceState currentState) {
-		if (result.contains(currentState)) return;
-		result.add(currentState);
-		for (ResourceState next : currentState.getAllTargets()) {
-			if (!next.equals(this.state)) {
-				collectStates(result, next);
-			}
-		}
 		
-	}
-
-	public Map<String, Set<String>> getInteractionMap() {
-		Map<String, Set<String>> interactionMap = new HashMap<String, Set<String>>();
-		List<ResourceState> states = new ArrayList<ResourceState>();
-		collectInteractions(interactionMap, states, this.state);
-		return interactionMap;
-	}
-	
-	private void collectInteractions(Map<String, Set<String>> result, Collection<ResourceState> states, ResourceState currentState) {
-		if (states.contains(currentState)) return;
-		states.add(currentState);
-		for (ResourceState next : currentState.getAllTargets()) {
-			if (!next.equals(this.state)) {
-				// lookup transition to get to here
-				Transition t = currentState.getTransition(next);
-				TransitionCommandSpec command = t.getCommand();
-				String path = command.getPath();
-				
-				Set<String> interactions = result.get(path);
-				if (interactions == null)
-					interactions = new HashSet<String>();
-				interactions.add(command.getMethod());
-				
-				result.put(path, interactions);
-				collectInteractions(result, states, next);
-			}
-		}
-		
-	}
-	
 }
