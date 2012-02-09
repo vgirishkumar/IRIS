@@ -48,7 +48,9 @@ public class ResourceRegistry {
 				continue;
 			}
 
-			String otherEntity = np.name;
+			String otherEntity = np.toRole.type.name;
+			// TODO get navigation value, and replace {id} with navigation property value
+			
 			// TODO add our relations
 	        String rel = XmlFormatWriter.related + otherEntity;
 
@@ -62,14 +64,17 @@ public class ResourceRegistry {
 		// these are links supplied from the producer at runtime (not defined in the associations section of the EDMX file)
 		for (OLink link : entity.getLinks()) {
 			System.out.println("Do something: " + link.getHref());
+			throw new RuntimeException();
 		}
 
 		// these are links or forms to transition to another state
 		List<OLink> transitionLinks = new ArrayList<OLink>();
-		Collection<ResourceState> targetStates = currentState.getAllTargets();
-		for (ResourceState s : targetStates) {
-			TransitionCommandSpec cs = s.getTransition(s).getCommand();
-			transitionLinks.add(OLinks.link("rel+method=" + cs.getMethod(), s.getName(), cs.getPath()));
+		if (currentState != null) {
+			Collection<ResourceState> targetStates = currentState.getAllTargets();
+			for (ResourceState s : targetStates) {
+				TransitionCommandSpec cs = s.getTransition(s).getCommand();
+				transitionLinks.add(OLinks.link("rel+method=" + cs.getMethod(), s.getName(), cs.getPath()));
+			}
 		}
 		
 		List<OLink> links = new ArrayList<OLink>();
