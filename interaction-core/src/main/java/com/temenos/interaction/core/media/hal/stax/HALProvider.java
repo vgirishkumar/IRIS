@@ -113,7 +113,7 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 
 			if (resource.getOEntity() != null) {
 				// create child element for data, and add to root
-				Element dataObject = doc.createElement(resource.getOEntity().getEntitySet().name);
+				Element dataObject = doc.createElement(resource.getOEntity().getEntitySet().getName());
 				for (OProperty<?> property : resource.getOEntity()
 						.getProperties()) {
 					Element dataElement = doc.createElement(property.getName());

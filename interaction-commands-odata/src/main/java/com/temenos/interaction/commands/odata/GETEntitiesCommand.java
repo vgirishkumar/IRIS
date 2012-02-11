@@ -35,7 +35,7 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 	}
 
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		logger.info("Getting entities for " + entitySet.name);
+		logger.info("Getting entities for " + entitySet.getName());
 
 		String inlineCount = queryParams.getFirst("$inlinecount");
 		String top = queryParams.getFirst("$top");

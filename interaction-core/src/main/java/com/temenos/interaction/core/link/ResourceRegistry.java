@@ -10,7 +10,6 @@ import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.format.xml.XmlFormatWriter;
@@ -19,7 +18,6 @@ import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 public class ResourceRegistry {
 
-	private EdmDataServices edmDataServices;
 	private Map<String, ResourceInteractionModel> rimMap = new HashMap<String, ResourceInteractionModel>();
 	
 	public void add(ResourceInteractionModel rim) {
@@ -43,23 +41,18 @@ public class ResourceRegistry {
 		List<OLink> associatedLinks = new ArrayList<OLink>();
 
 		EdmEntitySet ees = entity.getEntitySet();
-		for (EdmNavigationProperty np : ees.type.getNavigationProperties()) {
-			if (!np.selected) {
-				continue;
-			}
-
-			String otherEntity = np.toRole.type.name;
-			// TODO get navigation value, and replace {id} with navigation property value
+		for (EdmNavigationProperty np : ees.getType().getNavigationProperties()) {
+			String otherEntity = np.getToRole().getType().getName();			
 			
+			// TODO get navigation value, and replace {id} with navigation property value
 			// TODO add our relations
 	        String rel = XmlFormatWriter.related + otherEntity;
 
 			ResourceInteractionModel otherResource = getResourceInteractionModel(otherEntity);
 			if (otherResource != null) {
-				associatedLinks.add(OLinks.link(rel, otherEntity, otherResource.getResourcePath()));
+				associatedLinks.add(OLinks.relatedEntity(rel, otherEntity, otherResource.getResourcePath()));
 			}
 		}
-
 		
 		// these are links supplied from the producer at runtime (not defined in the associations section of the EDMX file)
 		for (OLink link : entity.getLinks()) {
@@ -73,7 +66,7 @@ public class ResourceRegistry {
 			Collection<ResourceState> targetStates = currentState.getAllTargets();
 			for (ResourceState s : targetStates) {
 				TransitionCommandSpec cs = s.getTransition(s).getCommand();
-				transitionLinks.add(OLinks.link("rel+method=" + cs.getMethod(), s.getName(), cs.getPath()));
+				transitionLinks.add(OLinks.relatedEntity("rel+method=" + cs.getMethod(), s.getName(), cs.getPath()));
 			}
 		}
 		

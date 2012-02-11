@@ -17,16 +17,16 @@ public class CommandHelper {
 	 * @return An OEntityKey instance
 	 * @throws Exception Error creating key 
 	 */
-	public static OEntityKey createEntityKey(List<EdmEntityType> entityTypes, String entity, String id) throws Exception {
+	public static OEntityKey createEntityKey(Iterable<EdmEntityType> entityTypes, String entity, String id) throws Exception {
 		//Lookup type of entity key (simple keys only)
 		String keyType = null;
 		for (EdmEntityType entityType : entityTypes) {
-			if (entityType.name.equals(entity)) {
+			if (entityType.getName().equals(entity)) {
 				List<String> keys = entityType.getKeys();
 				if(keys.size() == 1) {
 					EdmProperty prop = entityType.findDeclaredProperty(keys.get(0));
-					if(prop != null && prop.type != null) {
-						keyType = prop.type.getFullyQualifiedTypeName();
+					if(prop != null && prop.getType() != null) {
+						keyType = prop.getType().getFullyQualifiedTypeName();
 					}
 					break;
 				}

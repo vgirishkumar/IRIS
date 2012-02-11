@@ -18,7 +18,6 @@ import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
-import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmType;
 import org.odata4j.producer.EntityResponse;
@@ -111,17 +110,17 @@ public class TestPowermockGETEntityCommand {
 		ODataProducer mockProducer = mock(ODataProducer.class);
 		List<String> keys = new ArrayList<String>();
 		keys.add("MyId");
-		List<EdmProperty> properties = new ArrayList<EdmProperty>();
-		properties.add(new EdmProperty("MyId", new MyEdmType(keyTypeName), true));
-		List<EdmNavigationProperty> navProperties = null;
-		EdmEntityType mockEntityType = new EdmEntityType("MyNamespace", "MyAlias", entityName, false, keys, properties, navProperties);
-		EdmEntitySet mockEntitySet = new EdmEntitySet(entityName, mockEntityType);
+		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("MyId").setType(new MyEdmType(keyTypeName));
+		properties.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName(entityName).addKeys(keys).addProperties(properties);
+		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName(entityName).setEntityType(eet);
 
 		List<EdmEntityType> mockEntityTypes = new ArrayList<EdmEntityType>();
-		mockEntityTypes.add(mockEntityType);
+		mockEntityTypes.add(eet.build());
 
 		EdmDataServices mockEDS = mock(EdmDataServices.class);
-		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(mockEntitySet);
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees.build());
 		when(mockEDS.getEntityTypes()).thenReturn(mockEntityTypes);
 		when(mockProducer.getMetadata()).thenReturn(mockEDS);
 

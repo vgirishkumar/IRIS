@@ -42,10 +42,10 @@ public class GETSingleEntityCommand implements ResourceGetCommand {
 	 */
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		assert(id == null || "".equals(id));
-		assert(entity.equals(entitySet.name));
+		assert(entity.equals(entitySet.getName()));
 
 		OEntityKey key = OEntityKey.create(entityKey);
-		EntityResponse eResp = producer.getEntity(entitySet.name, key, null);
+		EntityResponse eResp = producer.getEntity(entitySet.getName(), key, null);
 		OEntity oEntity = eResp.getEntity();
 		EntityResource er = new EntityResource(oEntity);
 		return new RESTResponse(Response.Status.OK, er);

@@ -17,8 +17,6 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
-import com.sun.jersey.api.core.ExtendedUriInfo;
-
 public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWriter<EntitiesResponse> {
 
   @Override
@@ -30,7 +28,7 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     String baseUri = uriInfo.getBaseUri().toString();
 
     EdmEntitySet ees = response.getEntitySet();
-    String entitySetName = ees.name;
+    String entitySetName = ees.getName();
     DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
     String updated = InternalUtil.toString(utc);
 
@@ -56,7 +54,7 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 
     for (OEntity entity : response.getEntities()) {
       writer.startElement("entry");
-      writeEntry(writer, entity, entity.getProperties(), entity.getLinks(), entitySetName, baseUri, updated, ees, true);
+      writeEntry(writer, entity, entity.getProperties(), entity.getLinks(), baseUri, updated, ees, true);
       writer.endElement("entry");
     }
 
@@ -69,11 +67,5 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     writer.endDocument();
 
   }
-
-@Override
-public void write(ExtendedUriInfo uriInfo, Writer w, EntitiesResponse target) {
-	// TODO Auto-generated method stub
-	
-}
 
 }
