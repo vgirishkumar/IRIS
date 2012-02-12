@@ -86,24 +86,19 @@ public class ResourceRegistry {
 		List<OLink> associatedLinks = new ArrayList<OLink>();
 
 		EdmEntitySet ees = entity.getEntitySet();
-		for (EdmNavigationProperty np : ees.type.getNavigationProperties()) {
-			if (!np.selected) {
-				continue;
-			}
-
-			String otherEntity = np.toRole.type.name;
-			// TODO get navigation value, and replace {id} with navigation property value
+		for (EdmNavigationProperty np : ees.getType().getNavigationProperties()) {
+			String otherEntity = np.getToRole().getType().getName();			
 			
+			// TODO get navigation value, and replace {id} with navigation property value
 			// TODO add our relations
 	        String rel = XmlFormatWriter.related + otherEntity;
 
 	        
 			String pathOtherResource = getEntityResourcePath(otherEntity);
 			if (pathOtherResource != null) {
-				associatedLinks.add(OLinks.link(rel, otherEntity, pathOtherResource));
+				associatedLinks.add(OLinks.relatedEntity(rel, otherEntity, pathOtherResource));
 			}
 		}
-
 		
 		// these are links supplied from the producer at runtime (not defined in the associations section of the EDMX file)
 		for (OLink link : entity.getLinks()) {
@@ -117,7 +112,7 @@ public class ResourceRegistry {
 			Collection<ResourceState> targetStates = currentState.getAllTargets();
 			for (ResourceState s : targetStates) {
 				TransitionCommandSpec cs = s.getTransition(s).getCommand();
-				transitionLinks.add(OLinks.link("rel+method=" + cs.getMethod(), s.getName(), cs.getPath()));
+				transitionLinks.add(OLinks.relatedEntity("rel+method=" + cs.getMethod(), s.getName(), cs.getPath()));
 			}
 		}
 		

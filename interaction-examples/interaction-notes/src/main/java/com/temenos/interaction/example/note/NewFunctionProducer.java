@@ -52,7 +52,7 @@ public class NewFunctionProducer extends ODataProducerDelegate {
     
     @Override
     public BaseResponse callFunction(EdmFunctionImport function, java.util.Map<String, OFunctionParameter> params, QueryInfo queryInfo) {
-        if (function.name.equals("NEW")) {
+        if (function.getName().equals("NEW")) {
           return createNewDomainObjectID(function, params, queryInfo);
         } else {
         	logger.error("Unknown function");
@@ -85,18 +85,11 @@ public class NewFunctionProducer extends ODataProducerDelegate {
         /*
          * Add 'createNewDomainObjectID' function
          */
-        List<EdmFunctionParameter> params = new ArrayList<EdmFunctionParameter>(1);
-        params.add(new EdmFunctionParameter(
-            "DOMAIN_OBJECT_NAME",   // String name, 
-            EdmSimpleType.STRING, // EdmBaseType type, 
-            "IN"));          //String mode);
+        List<EdmFunctionParameter.Builder> params = new ArrayList<EdmFunctionParameter.Builder>(1);
+        EdmFunctionParameter.Builder efp = EdmFunctionParameter.newBuilder().setName("DOMAIN_OBJECT_NAME").setType(EdmSimpleType.STRING).setMode(EdmFunctionParameter.Mode.In);
+        params.add(efp);
         
-        EdmFunctionImport f = new EdmFunctionImport(
-            "NEW",			//String name, 
-            null,			// EdmEntitySet entitySet, 
-            EdmSimpleType.INT64,	// EdmBaseType returnType,
-            "POST",			// String httpMethod, 
-            params);		//List<EdmFunctionParameter> parameters)
-        container.functionImports.add(f);
+        EdmFunctionImport.Builder f = EdmFunctionImport.newBuilder().setName("NEW").setReturnType(EdmSimpleType.INT64).setHttpMethod("POST").addParameters(params);
+        container.getFunctionImports().add(f.build());
     }
 }

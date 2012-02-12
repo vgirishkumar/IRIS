@@ -18,8 +18,6 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
-import com.sun.jersey.api.core.ExtendedUriInfo;
-
 /**
  * Slightly modified version of @link{org.odata4j.format.xml.AtomEntryFormatWriter} that 
  * is more aligned with JAX-RS.
@@ -44,7 +42,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     
     OEntity entity = entry.getEntity();
     writeEntry(writer, null, entity.getProperties(), entity.getLinks(),
-        null, null, updated, entity.getEntitySet(), false);
+        null, updated, entity.getEntitySet(), false);
     writer.endDocument();
 
   }
@@ -58,7 +56,6 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     String baseUri = uriInfo.getBaseUri().toString();
     EdmEntitySet ees = target.getEntity().getEntitySet();
 
-    String entitySetName = ees.name;
     DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
     String updated = InternalUtil.toString(utc);
 
@@ -70,13 +67,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     writer.writeNamespace("d", d);
     writer.writeAttribute("xml:base", baseUri);
 
-    writeEntry(writer, target.getEntity(), target.getEntity().getProperties(), target.getEntity().getLinks(), entitySetName, baseUri, updated, ees, true);
+    writeEntry(writer, target.getEntity(), target.getEntity().getProperties(), target.getEntity().getLinks(), baseUri, updated, ees, true);
     writer.endDocument();
   }
-
-@Override
-public void write(ExtendedUriInfo uriInfo, Writer w, EntityResponse target) {
-	// TODO Auto-generated method stub
-	
-}
 }

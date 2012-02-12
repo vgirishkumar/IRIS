@@ -66,14 +66,14 @@ public class POSTNewNoteCommand implements ResourcePostCommand {
 		params.put("PARAM1", OFunctionParameters.create("DOMAIN_OBJECT_NAME", domainObjectName));
 		//EdmFunctionImport functionName = new EdmFunctionImport("NEW", null, returnType, "POST", params);
 		BaseResponse fr = producer.callFunction(functionName, params, null);
-		assert(functionName.returnType == EdmSimpleType.INT64);
+		assert(functionName.getReturnType() == EdmSimpleType.INT64);
 		
 		// TODO this could either be the type we are creating and ID for, or it could just be a transient type
 		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(resourceInteraction.getEntityName());
 		OEntityKey entityKey = OEntityKey.create("new");
 		List<OLink> links = new ArrayList<OLink>();
 		String replacement = ((PropertyResponse)fr).getProperty().getValue().toString();
-		links.add(OLinks.link("_new", "NewNote", targetResource.replaceFirst("\\{id\\}", replacement)));
+		links.add(OLinks.relatedEntity("_new", "NewNote", targetResource.replaceFirst("\\{id\\}", replacement)));
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
 		EntityResource er = new EntityResource(entity);
 		return new RESTResponse(Response.Status.OK, er);

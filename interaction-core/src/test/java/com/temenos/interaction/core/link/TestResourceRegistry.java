@@ -92,9 +92,10 @@ public class TestResourceRegistry {
 	public void testRebuildOEntityLinksAssociations() {
 		InputStream in = ClassLoader.getSystemResourceAsStream("com/temenos/interaction/core/link/TestResourceRegistryEDMX.xml");
 		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(in)));
-		EdmDataServices ds = EdmxFormatParser.parseMetadata(reader);
+		EdmxFormatParser formatParser = new EdmxFormatParser();
+		EdmDataServices ds = formatParser.parseMetadata(reader);
 		for (EdmEntityType type : ds.getEntityTypes()) {
-			System.out.println("type: " + type.name);
+			System.out.println("type: " + type.getName());
 		}
 		assertNotNull(ds.findEdmEntityType("AirlineModel.Flight"));
 		

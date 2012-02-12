@@ -52,7 +52,8 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialise() throws IOException {
 		EdmDataServices edmDS = mock(EdmDataServices.class);
-		EdmEntitySet entitySet = new EdmEntitySet("mockChild", mock(EdmEntityType.class));
+		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("mockChild").setEntityType(mock(EdmEntityType.Builder.class));
+		EdmEntitySet entitySet = ees.build();
 		when(edmDS.getEdmEntitySet(anyString())).thenReturn(entitySet);
 		HALProvider hp = new HALProvider(edmDS);
 		
@@ -85,13 +86,12 @@ public class TestHALProvider {
 		EntityResource er = mock(EntityResource.class);
 		
 		// mock a simple entity (Children entity set)
-		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
-		edmProperties.add(new EdmProperty("ID",
-				EdmSimpleType.STRING, false, null, null, null,
-				null, null, null, null, null, null));
-		EdmEntityType childrenEntityType = new EdmEntityType("InteractionTest", null,
-				"Children", null, Arrays.asList("ID"), edmProperties, null);
-		EdmEntitySet childrenEntitySet = new EdmEntitySet("Children", childrenEntityType);
+		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("ID").setType(EdmSimpleType.STRING);
+		eprops.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Children").addKeys(Arrays.asList("ID")).addProperties(eprops);
+		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Children").setEntityType(eet);
+
 		// the test key
 		OEntityKey entityKey = OEntityKey.create("123");
 		// the test properties
@@ -99,7 +99,7 @@ public class TestHALProvider {
 		properties.add(OProperties.string("name", "noah"));
 		properties.add(OProperties.string("age", "2"));
 
-		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, new ArrayList<OLink>());
+		OEntity entity = OEntities.create(ees.build(), entityKey, properties, new ArrayList<OLink>());
 		when(er.getOEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
@@ -128,15 +128,14 @@ public class TestHALProvider {
 	@Test
 	public void testSerialiseResourceWithLinks() throws Exception {
 		EntityResource er = mock(EntityResource.class);
-		
+
 		// mock a simple entity (Children entity set)
-		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
-		edmProperties.add(new EdmProperty("ID",
-				EdmSimpleType.STRING, false, null, null, null,
-				null, null, null, null, null, null));
-		EdmEntityType childrenEntityType = new EdmEntityType("InteractionTest", null,
-				"Children", null, Arrays.asList("ID"), edmProperties, null);
-		EdmEntitySet childrenEntitySet = new EdmEntitySet("Children", childrenEntityType);
+		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("ID").setType(EdmSimpleType.STRING);
+		eprops.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Children").addKeys(Arrays.asList("ID")).addProperties(eprops);
+		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Children").setEntityType(eet);
+
 		// the test key
 		OEntityKey entityKey = OEntityKey.create("123");
 		// the test properties
@@ -145,10 +144,10 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 		// the test links
 		List<OLink> links = new ArrayList<OLink>();
-		links.add(OLinks.link("_person", "father", "/humans/31"));
-		links.add(OLinks.link("_person", "mother", "/humans/32"));
+		links.add(OLinks.relatedEntity("_person", "father", "/humans/31"));
+		links.add(OLinks.relatedEntity("_person", "mother", "/humans/32"));
 		
-		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, links);
+		OEntity entity = OEntities.create(ees.build(), entityKey, properties, links);
 		when(er.getOEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
@@ -157,7 +156,7 @@ public class TestHALProvider {
 
 		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
-		XMLAssert.assertXMLEqual(expectedXML, responseString);		
+		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
 
 	@Test
@@ -165,13 +164,12 @@ public class TestHALProvider {
 		EntityResource er = mock(EntityResource.class);
 		
 		// mock a simple entity (Children entity set)
-		List<EdmProperty> edmProperties = new ArrayList<EdmProperty>();
-		edmProperties.add(new EdmProperty("ID",
-				EdmSimpleType.STRING, false, null, null, null,
-				null, null, null, null, null, null));
-		EdmEntityType childrenEntityType = new EdmEntityType("InteractionTest", null,
-				"Children", null, Arrays.asList("ID"), edmProperties, null);
-		EdmEntitySet childrenEntitySet = new EdmEntitySet("Children", childrenEntityType);
+		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("ID").setType(EdmSimpleType.STRING);
+		eprops.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Children").addKeys(Arrays.asList("ID")).addProperties(eprops);
+		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Children").setEntityType(eet);
+
 		// the test key
 		OEntityKey entityKey = OEntityKey.create("123");
 		// the test properties
@@ -188,7 +186,7 @@ public class TestHALProvider {
 		links.add(OLinks.relatedEntity("_person", "mother", "/humans/32"));
 		OLinks.relatedEntities("_family", "siblings", "/humans/phetheans");
 		
-		OEntity entity = OEntities.create(childrenEntitySet, entityKey, properties, links);
+		OEntity entity = OEntities.create(ees.build(), entityKey, properties, links);
 		when(er.getOEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
@@ -198,7 +196,6 @@ public class TestHALProvider {
 		String expectedXML = "<resource><Children><name>noah</name><age>2</age></Children><links><link href=\"/humans/31\" rel=\"_person\" title=\"father\"/><link href=\"/humans/32\" rel=\"_person\" title=\"mother\"/></links></resource>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);		
-
 	}
 
 	

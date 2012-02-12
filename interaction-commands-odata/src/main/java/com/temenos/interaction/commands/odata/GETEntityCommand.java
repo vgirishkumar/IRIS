@@ -1,7 +1,5 @@
 package com.temenos.interaction.commands.odata;
 
-import java.util.List;
-
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -25,15 +23,15 @@ public class GETEntityCommand implements ResourceGetCommand {
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
 	private EdmEntitySet entitySet;
-	private List<EdmEntityType> entityTypes;
+	private Iterable<EdmEntityType> entityTypes;
 
 	public GETEntityCommand(String entity, ODataProducer producer) {
 		this.entity = entity;
 		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
 		this.entitySet = edmDataServices.getEdmEntitySet(entity);
-		this.entityTypes = (List<EdmEntityType>) edmDataServices.getEntityTypes();
-		assert(entity.equals(entitySet.name));
+		this.entityTypes = edmDataServices.getEntityTypes();
+		assert(entity.equals(entitySet.getName()));
 	}
 	
 	/* Implement ResourceGetCommand (OEntity) */
