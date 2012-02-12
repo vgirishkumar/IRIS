@@ -13,6 +13,7 @@ import org.odata4j.core.OFunctionParameter;
 import org.odata4j.core.OProperties;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntityContainer;
+import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.edm.EdmFunctionParameter;
 import org.odata4j.edm.EdmSchema;
@@ -37,11 +38,13 @@ public class NewFunctionProducer extends ODataProducerDelegate {
     private final EntityManagerFactory emf;
     private final String odataNamespace;
 	private final JPAProducer producer;
+	private EdmDataServices metadata;
 
     public NewFunctionProducer(EntityManagerFactory emf, String odataNamespace, JPAProducer jpaProducer) {
     	this.emf = emf;
     	this.odataNamespace = odataNamespace;
         producer = jpaProducer;
+        metadata = getDelegate().getMetadata();
         extendModel();
     }
     
@@ -80,7 +83,7 @@ public class NewFunctionProducer extends ODataProducerDelegate {
         
         // Add functions to our own namespace
         EdmSchema schema = ds.findSchema(odataNamespace + "Container");
-        EdmEntityContainer container = schema.findEntityContainer(odataNamespace + "Entities");
+//        EdmEntityContainer container = schema.findEntityContainer(odataNamespace + "Entities");
         
         /*
          * Add 'createNewDomainObjectID' function
@@ -90,6 +93,17 @@ public class NewFunctionProducer extends ODataProducerDelegate {
         params.add(efp);
         
         EdmFunctionImport.Builder f = EdmFunctionImport.newBuilder().setName("NEW").setReturnType(EdmSimpleType.INT64).setHttpMethod("POST").addParameters(params);
-        container.getFunctionImports().add(f.build());
+        
+        // replace metadata service?
+        EdmEntityContainer.Builder newContainer = EdmEntityContainer.newBuilder()
+        		.addFunctionImports(f);
+        EdmSchema.Builder newSchema = EdmSchema.newBuilder()
+        		.addEntityContainers(newContainer);
+        metadata = EdmDataServices.newBuilder(ds).addSchemas(newSchema).build();
+    }
+    
+    @Override
+    public EdmDataServices getMetadata() {
+    	return metadata;
     }
 }
