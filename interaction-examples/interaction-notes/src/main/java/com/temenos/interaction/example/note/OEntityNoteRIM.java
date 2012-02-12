@@ -7,7 +7,7 @@ import javax.ws.rs.Path;
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
 /**
  * Define the Note Resource Interaction Model
@@ -15,7 +15,7 @@ import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
  * @author aphethean
  */
 @Path("/notes/{id}")
-public class OEntityNoteRIM extends HTTPResourceInteractionModel {
+public class OEntityNoteRIM extends AbstractHTTPResourceInteractionModel {
 
 	public final static String RESOURCE_PATH = "/notes/{id}";
 	public final static String ENTITY_NAME = "note";

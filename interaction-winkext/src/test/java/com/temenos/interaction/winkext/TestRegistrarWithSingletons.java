@@ -13,8 +13,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
-import com.temenos.interaction.core.state.HTTPResourceInteractionModelIntf;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 import com.temenos.interaction.winkext.DynamicResourceDelegate;
 import com.temenos.interaction.winkext.RegistrarWithSingletons;
@@ -27,27 +27,27 @@ public class TestRegistrarWithSingletons {
 	public void testHeirarchy() throws Exception {
 		// mock a few resources with a simple hierarchy in the resource registry
 		ResourceRegistry rRegistry = new ResourceRegistry();
-		HTTPResourceInteractionModel r1 = mock(HTTPResourceInteractionModel.class);
+		AbstractHTTPResourceInteractionModel r1 = mock(AbstractHTTPResourceInteractionModel.class);
 		when(r1.getEntityName()).thenReturn("notes");
 		when(r1.getResourcePath()).thenReturn("/notes");
 		when(r1.getFQResourcePath()).thenCallRealMethod();
 		rRegistry.add(r1);
 		// child 1
-		HTTPResourceInteractionModel cr1 = mock(HTTPResourceInteractionModel.class);
+		AbstractHTTPResourceInteractionModel cr1 = mock(AbstractHTTPResourceInteractionModel.class);
 		when(cr1.getEntityName()).thenReturn("draftNote");
 		when(cr1.getResourcePath()).thenReturn("/draft/{id}");
 		when(cr1.getFQResourcePath()).thenCallRealMethod();
 		rRegistry.add(cr1);
 		// child 2
-		HTTPResourceInteractionModel cr2 = mock(HTTPResourceInteractionModel.class);
+		AbstractHTTPResourceInteractionModel cr2 = mock(AbstractHTTPResourceInteractionModel.class);
 		when(cr2.getEntityName()).thenReturn("note");
 		when(cr2.getResourcePath()).thenReturn("/{id}");
 		when(cr2.getFQResourcePath()).thenCallRealMethod();
 		rRegistry.add(cr2);
 	
-		whenNew(DynamicResourceDelegate.class).withParameterTypes(HTTPResourceInteractionModelIntf.class, HTTPResourceInteractionModel.class).withArguments(any(DynamicResource.class), any(ResourceInteractionModel.class)).thenAnswer(new Answer<Object>() {
+		whenNew(DynamicResourceDelegate.class).withParameterTypes(HTTPResourceInteractionModel.class, AbstractHTTPResourceInteractionModel.class).withArguments(any(DynamicResource.class), any(ResourceInteractionModel.class)).thenAnswer(new Answer<Object>() {
 				public Object answer(InvocationOnMock invocation) throws Throwable {
-					return new DynamicResourceDelegate((HTTPResourceInteractionModelIntf) invocation.getArguments()[0], (HTTPResourceInteractionModel) invocation.getArguments()[1]);
+					return new DynamicResourceDelegate((HTTPResourceInteractionModel) invocation.getArguments()[0], (AbstractHTTPResourceInteractionModel) invocation.getArguments()[1]);
 				}
 		});
 		RegistrarWithSingletons rs = new RegistrarWithSingletons();
@@ -66,25 +66,25 @@ public class TestRegistrarWithSingletons {
 		}
 		
 		// verify resource delegate created 3 times
-		verifyNew(DynamicResourceDelegate.class, times(3)).withArguments(any(HTTPResourceInteractionModel.class), any(HTTPResourceInteractionModel.class));
+		verifyNew(DynamicResourceDelegate.class, times(3)).withArguments(any(AbstractHTTPResourceInteractionModel.class), any(AbstractHTTPResourceInteractionModel.class));
 	}
 
 	@Test
 	public void testParachute() throws Exception {
 		// mock a few resources with a simple hierarchy, added out of order to test the climbing back up to the root
 		ResourceRegistry rRegistry = new ResourceRegistry();
-		HTTPResourceInteractionModel r1 = mock(HTTPResourceInteractionModel.class);
+		AbstractHTTPResourceInteractionModel r1 = mock(AbstractHTTPResourceInteractionModel.class);
 		when(r1.getEntityName()).thenReturn("home");
 		when(r1.getResourcePath()).thenReturn("/");
 		when(r1.getFQResourcePath()).thenCallRealMethod();
 		// child 1
-		HTTPResourceInteractionModel cr1 = mock(HTTPResourceInteractionModel.class);
+		AbstractHTTPResourceInteractionModel cr1 = mock(AbstractHTTPResourceInteractionModel.class);
 		when(cr1.getEntityName()).thenReturn("notes");
 		when(cr1.getResourcePath()).thenReturn("/notes");
 		when(cr1.getFQResourcePath()).thenCallRealMethod();
 		when(cr1.getParent()).thenReturn(r1);
 		// child 2
-		HTTPResourceInteractionModel cr2 = mock(HTTPResourceInteractionModel.class);
+		AbstractHTTPResourceInteractionModel cr2 = mock(AbstractHTTPResourceInteractionModel.class);
 		when(cr2.getEntityName()).thenReturn("note");
 		when(cr2.getResourcePath()).thenReturn("/{id}");
 		when(cr2.getFQResourcePath()).thenCallRealMethod();

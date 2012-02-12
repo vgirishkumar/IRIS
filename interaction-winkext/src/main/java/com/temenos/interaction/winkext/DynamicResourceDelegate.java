@@ -6,15 +6,15 @@ import javax.ws.rs.core.Response;
 import org.apache.wink.common.DynamicResource;
 
 import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
-import com.temenos.interaction.core.state.HTTPResourceInteractionModelIntf;
 
-public class DynamicResourceDelegate implements HTTPResourceInteractionModelIntf, DynamicResource {
+public class DynamicResourceDelegate implements HTTPResourceInteractionModel, DynamicResource {
 
-	private final HTTPResourceInteractionModelIntf parent;
-	private final HTTPResourceInteractionModel resource;
+	private final HTTPResourceInteractionModel parent;
+	private final AbstractHTTPResourceInteractionModel resource;
 	
-	public DynamicResourceDelegate(HTTPResourceInteractionModelIntf parent, HTTPResourceInteractionModel resource) {
+	public DynamicResourceDelegate(HTTPResourceInteractionModel parent, AbstractHTTPResourceInteractionModel resource) {
 		this.parent = parent;
 		this.resource = resource;
 	}
@@ -58,7 +58,7 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModelIntf
     }
 
 	@Override
-    public HTTPResourceInteractionModelIntf getParent() {
+    public HTTPResourceInteractionModel getParent() {
         return parent;
     }
 

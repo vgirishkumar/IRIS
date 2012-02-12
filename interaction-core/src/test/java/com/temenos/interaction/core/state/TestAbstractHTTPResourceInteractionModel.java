@@ -18,13 +18,13 @@ import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
-public class TestHTTPResourceInteractionModel {
+public class TestAbstractHTTPResourceInteractionModel {
 
 	@Test
 	public void testFQResourcePath() {
-		final HTTPResourceInteractionModel parent = mock(HTTPResourceInteractionModel.class);
+		final AbstractHTTPResourceInteractionModel parent = mock(AbstractHTTPResourceInteractionModel.class);
 		when(parent.getResourcePath()).thenReturn("/root");
-		HTTPResourceInteractionModel child = new HTTPResourceInteractionModel("TEST_ENTITY", "/child") {
+		AbstractHTTPResourceInteractionModel child = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", "/child") {
 			public ResourceInteractionModel getParent() {
 				return parent;
 			}
@@ -38,7 +38,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test
 	public void testGETCommandStatus() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -52,7 +52,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGETStatusNull() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand(resourcePath, mock(ResourceGetCommand.class));
@@ -63,7 +63,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testGETNoCommand() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModelIntf r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		r.get(null, "123");
 	}
@@ -72,7 +72,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGET200NoResource() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -85,7 +85,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test
 	public void testDELETECommandStatus() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rpc = mock(ResourceDeleteCommand.class);
@@ -100,7 +100,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testDELETEStatusNull() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rdc = mock(ResourceDeleteCommand.class);
@@ -113,7 +113,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testDELETENoCommand() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModelIntf r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		r.delete(null, "123");
 	}

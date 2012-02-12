@@ -9,7 +9,6 @@ import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
 
-import org.apache.wink.common.DynamicResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +18,7 @@ import com.temenos.interaction.core.link.ResourceStateMachine;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.link.Transition;
-import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 /**
@@ -27,15 +26,10 @@ import com.temenos.interaction.core.state.ResourceInteractionModel;
  * HTTP interactions with resources are simple, just GET, PUT, POST and DELETE.
  * @author aphethean
  */
-public class HTTPDynaRIM extends HTTPResourceInteractionModel implements DynamicResource {
+public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	private final Logger logger = LoggerFactory.getLogger(HTTPDynaRIM.class);
 
     private HTTPDynaRIM parent;
-    private String workspaceTitle;
-    private String collectionTitle;
-    private String beanName;
-
-    private final String path;
     private final ResourceStateMachine stateMachine;
     private final Set<String> interactions;
     
@@ -44,10 +38,17 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		this.parent = null;
 	}
 
+	/**
+	 * Create a dynamic resource for application state interaction.
+	 * @param entityName
+	 * @param path
+	 * @param state
+	 * @param rr
+	 * @param commandController
+	 */
 	public HTTPDynaRIM(String entityName, String path, ResourceState state, ResourceRegistry rr, CommandController commandController) {
 		super(entityName, path, rr, commandController);
 		this.parent = null;
-		this.path = path;
 		this.interactions = null;
 		this.stateMachine = new ResourceStateMachine(state);
 		if (state != null) {
@@ -55,11 +56,20 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		}
 	}
 
+	/**
+	 * Create a dynamic resource for resource state interaction.
+	 * @param parent
+	 * @param entityName
+	 * @param path
+	 * @param state
+	 * @param interactions
+	 * @param rr
+	 * @param commandController
+	 */
 	public HTTPDynaRIM(HTTPDynaRIM parent, String entityName, String path, 
 			ResourceState state, Set<String> interactions, ResourceRegistry rr, CommandController commandController) {
 		super(entityName, path, rr, commandController);
 		this.parent = parent;
-		this.path = path;
 		this.stateMachine = new ResourceStateMachine(state);
 		if (parent == null && state != null) {
 			System.out.println(new ASTValidation().graph(stateMachine));
@@ -87,43 +97,6 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		}
 	}
 	
-	@Override
-    public String getBeanName() {
-        return beanName;
-    }
-
-	@Override
-    public void setBeanName(String beanName) {
-        this.beanName = beanName;
-    }
-
-    public void setWorkspaceTitle(String workspaceTitle) {
-        this.workspaceTitle = workspaceTitle;
-    }
-
-	@Override
-    public String getWorkspaceTitle() {
-        return workspaceTitle;
-    }
-
-    public void setCollectionTitle(String collectionTitle) {
-        this.collectionTitle = collectionTitle;
-    }
-
-	@Override
-    public String getCollectionTitle() {
-        return collectionTitle;
-    }
-
-	@Override
-    public String getPath() {
-        return path;
-    }
-
-	@Override
-    public void setParent(Object parent) {
-        this.parent = (HTTPDynaRIM) parent;
-    }
 
 	@Override
     public ResourceInteractionModel getParent() {
