@@ -12,6 +12,11 @@ public class ResourceStateMachine {
 
 	public final ResourceState initial;
 	
+	// TODO remove, only here to allow getSimpleResourceStateModel to work in Spring
+	public ResourceStateMachine() {
+		initial = null;
+	}
+	
 	public ResourceStateMachine(ResourceState initialState) {
 		this.initial = initialState;
 	}
@@ -64,6 +69,16 @@ public class ResourceStateMachine {
 			}
 		}
 		
+	}
+
+	public ResourceState getSimpleResourceStateModel() {
+		ResourceState initialState = new ResourceState("begin", "");
+		ResourceState exists = new ResourceState("exists", "/{id}");
+		ResourceState finalState = new ResourceState("end", "");
+	
+		initialState.addTransition(new TransitionCommandSpec("PUT", "/{id}"), exists);		
+		exists.addTransition(new TransitionCommandSpec("DELETE", "/{id}"), finalState);
+		return initialState;
 	}
 
 }

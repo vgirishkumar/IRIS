@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -66,6 +67,23 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
 		return resourcePath;
 	}
 	
+	// TODO REMOVE this class, or this duplication
+	public String getFQResourcePath() {
+		String result = "";
+		if (getParent() != null)
+			result += getParent().getResourcePath();
+			
+		return result += resourcePath;
+	}
+
+	public ResourceInteractionModel getParent() {
+		return null;
+	}
+	
+	public Collection<ResourceInteractionModel> getChildren() {
+		return null;
+	}
+
 	public void registerGetCommand(ResourceGetCommand c) {
 		commandController.setGetCommand(resourcePath, c);
 		System.out.println("Registered GET command [" + resourcePath + "]");

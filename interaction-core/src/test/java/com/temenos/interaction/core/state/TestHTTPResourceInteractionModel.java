@@ -20,6 +20,20 @@ import com.temenos.interaction.core.command.ResourceGetCommand;
 
 public class TestHTTPResourceInteractionModel {
 
+	@Test
+	public void testFQResourcePath() {
+		final HTTPResourceInteractionModel parent = mock(HTTPResourceInteractionModel.class);
+		when(parent.getResourcePath()).thenReturn("/root");
+		HTTPResourceInteractionModel child = new HTTPResourceInteractionModel("TEST_ENTITY", "/child") {
+			public ResourceInteractionModel getParent() {
+				return parent;
+			}
+		};
+
+		assertEquals("/child", child.getResourcePath());
+		assertEquals("/root/child", child.getFQResourcePath());
+	}
+
 	/* Test a status returned in the ResourceGetCommand will be returned all the way to the client */
 	@Test
 	public void testGETCommandStatus() {
@@ -49,7 +63,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testGETNoCommand() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		HTTPResourceInteractionModelIntf r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		r.get(null, "123");
 	}
@@ -99,7 +113,7 @@ public class TestHTTPResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testDELETENoCommand() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		HTTPResourceInteractionModelIntf r = new HTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
 		r.delete(null, "123");
 	}

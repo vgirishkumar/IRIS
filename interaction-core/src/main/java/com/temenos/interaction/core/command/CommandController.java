@@ -31,7 +31,7 @@ public class CommandController {
 	 * @param stateTransitionCommands
 	 */
 	public CommandController(ResourceInteractionModel rim, ResourceGetCommand getCommand, Set<ResourceStateTransitionCommand> stateTransitionCommands) {
-		this(rim.getResourcePath(), getCommand, stateTransitionCommands);
+		this(rim.getFQResourcePath(), getCommand, stateTransitionCommands);
 	}
 	
 	/**
@@ -73,7 +73,7 @@ public class CommandController {
 		logger.info("Looking up get command for [" + resourcePath + "]");
 		ResourceCommand getCommand = commands.get("GET+" + resourcePath);
 		if (getCommand == null) {
-			logger.warn("No command bound for [" + "GET+" + resourcePath + "]");
+			logger.error("No command bound for [" + "GET+" + resourcePath + "]");
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return (ResourceGetCommand) getCommand;

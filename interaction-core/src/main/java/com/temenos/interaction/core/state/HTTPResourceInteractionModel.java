@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.state;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,7 +49,7 @@ import com.temenos.interaction.core.link.ResourceState;
  * @author aphethean
  *
  */
-public abstract class HTTPResourceInteractionModel implements ResourceInteractionModel {
+public abstract class HTTPResourceInteractionModel implements ResourceInteractionModel, HTTPResourceInteractionModelIntf {
 	private final Logger logger = LoggerFactory.getLogger(HTTPResourceInteractionModel.class);
 
 	private String entityName;
@@ -78,22 +79,36 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
 		return resourcePath;
 	}
 
+	public String getFQResourcePath() {
+		String result = "";
+		if (getParent() != null)
+			result += getParent().getResourcePath();
+			
+		return result += getResourcePath();
+	}
+
+	public ResourceInteractionModel getParent() {
+		return null;
+	}
+
+	public Collection<ResourceInteractionModel> getChildren() {
+		return null;
+	}
+
 	protected CommandController getCommandController() {
 		return commandController;
 	}
 	
-	/**
-	 * GET a resource representation.
-	 * @precondition a valid GET command for this resourcePath + id must be registered with the command controller
-	 * @postcondition a Response with non null Status must be returned
-	 * @invariant resourcePath not null
+	/* (non-Javadoc)
+	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModelIntf#get(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
-    @GET
+    @Override
+	@GET
     @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
-    	logger.debug("GET " + resourcePath);
+    	logger.debug("GET " + getFQResourcePath());
     	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand(resourcePath);
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(getFQResourcePath());
     	RESTResponse response = getCommand.get(id, null);
     	
     	if (response != null && resourceRegistry != null && response.getResource() instanceof EntityResource) {
@@ -115,18 +130,16 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
 		return Response.status(status).build();
     }
     
-	/**
-	 * PUT a resource.
-	 * @precondition a valid PUT command for this resourcePath + id must be registered with the command controller
-	 * @postcondition a Response with non null Status must be returned
-	 * @invariant resourcePath not null
+	/* (non-Javadoc)
+	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModelIntf#put(javax.ws.rs.core.HttpHeaders, java.lang.String, com.temenos.interaction.core.EntityResource)
 	 */
-    @PUT
+    @Override
+	@PUT
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
-    	logger.debug("PUT " + resourcePath);
+    	logger.debug("PUT " + getFQResourcePath());
     	assert(resourcePath != null);
-		ResourcePutCommand putCommand = (ResourcePutCommand) commandController.fetchStateTransitionCommand("PUT", getResourcePath());
+		ResourcePutCommand putCommand = (ResourcePutCommand) commandController.fetchStateTransitionCommand("PUT", getFQResourcePath());
 		StatusType status = putCommand.put(id, resource);
 		assert (status != null);  // not a valid put command
     	if (status == Response.Status.OK) {
@@ -136,17 +149,15 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
     	}
     }
 
-	/**
-	 * DELETE a resource.
-	 * @precondition a valid DELETE command for this resourcePath + id must be registered with the command controller
-	 * @postcondition a Response with non null Status must be returned
-	 * @invariant resourcePath not null
+	/* (non-Javadoc)
+	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModelIntf#delete(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
-    @DELETE
+    @Override
+	@DELETE
     public Response delete( @Context HttpHeaders headers, @PathParam("id") String id ) {
-    	logger.debug("DELETE " + resourcePath);
+    	logger.debug("DELETE " + getFQResourcePath());
     	assert(resourcePath != null);
-    	ResourceDeleteCommand deleteCommand = (ResourceDeleteCommand) commandController.fetchStateTransitionCommand("DELETE", getResourcePath());
+    	ResourceDeleteCommand deleteCommand = (ResourceDeleteCommand) commandController.fetchStateTransitionCommand("DELETE", getFQResourcePath());
 		StatusType status = deleteCommand.delete(id);
 		assert (status != null);  // not a valid put command
    		return Response.status(status).build();
@@ -160,9 +171,9 @@ public abstract class HTTPResourceInteractionModel implements ResourceInteractio
 	 */
     @Override
     public Response options(String id) {
-    	logger.debug("OPTIONS " + resourcePath);
+    	logger.debug("OPTIONS " + getFQResourcePath());
     	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand(resourcePath);
+    	ResourceGetCommand getCommand = commandController.fetchGetCommand(getFQResourcePath());
     	ResponseBuilder response = Response.ok();
     	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);

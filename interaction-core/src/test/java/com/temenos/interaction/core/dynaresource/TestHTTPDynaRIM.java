@@ -21,17 +21,17 @@ public class TestHTTPDynaRIM {
 	@Test
 	public void testRIMsCRUD() {
 		ResourceState begin = new ResourceState("begin", "");
-		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState exists = new ResourceState("exists", "/{id}");
 		ResourceState end = new ResourceState("end", "");
 	
-		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
+		begin.addTransition(new TransitionCommandSpec("PUT", "/{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("PUT", "/{id}"), exists);
+		exists.addTransition(new TransitionCommandSpec("DELETE", "/{id}"), end);
 		
 		CommandController cc = mock(CommandController.class);
 		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
 		verify(cc).fetchGetCommand("/notes");
-		Collection<ResourceInteractionModel> resources = parent.createChildResources();
+		Collection<ResourceInteractionModel> resources = parent.getChildren();
 		assertEquals(1, resources.size());
 		verify(cc, times(1)).fetchGetCommand("/notes");
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}");

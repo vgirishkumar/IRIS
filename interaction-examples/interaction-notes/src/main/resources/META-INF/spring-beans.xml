@@ -56,11 +56,7 @@
 				<ref bean="COUNTRY" />
 			</set>
 		</property>
-		<property name="interactions">
-			<set>
-				<ref bean="DYNA_NOTE" />
-			</set>
-		</property>
+		<property name="resourceRegistry" ref="resourceRegistry" />
 	</bean>
 
 	<bean id="jaxbContextResolver" class="com.temenos.interaction.example.app.JAXBContextResolver" />
@@ -72,16 +68,19 @@
 	</bean>
 
 
-    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry" />
+    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+    	<constructor-arg name="root" ref="DYNA_NOTE" />
+    </bean>
 
     <!-- Notes resource state model (only getting initial state from resource registry as a convenience ) -->
-    <bean id="initialNoteState" factory-bean="resourceRegistry" factory-method="getSimpleResourceStateModel"/>
+    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine" />
+    <bean id="initialNoteState" factory-bean="stateMachine" factory-method="getSimpleResourceStateModel"/>
 
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="entityName" value="NOTE" />
     	<constructor-arg name="path" value="/notes" />
     	<constructor-arg name="state" ref="initialNoteState" />
-    	<constructor-arg name="rr" ref="resourceRegistry" />
+    	<constructor-arg name="rr"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="noteCommands" />
     </bean>
     

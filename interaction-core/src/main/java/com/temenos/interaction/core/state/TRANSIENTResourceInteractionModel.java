@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.state;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -79,6 +80,23 @@ public class TRANSIENTResourceInteractionModel implements ResourceInteractionMod
 		return resourcePath;
 	}
 	
+	// TODO REMOVE
+	public String getFQResourcePath() {
+		String result = "";
+		if (getParent() != null)
+			result += getParent().getResourcePath();
+			
+		return result += resourcePath;
+	}
+
+	public ResourceInteractionModel getParent() {
+		return null;
+	}
+	
+	public Collection<ResourceInteractionModel> getChildren() {
+		return null;
+	}
+
 	protected CommandController getCommandController() {
 		return commandController;
 	}

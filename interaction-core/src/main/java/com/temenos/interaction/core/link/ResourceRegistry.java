@@ -3,14 +3,15 @@ package com.temenos.interaction.core.link;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.format.xml.XmlFormatWriter;
@@ -19,15 +20,57 @@ import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 public class ResourceRegistry {
 
-	private EdmDataServices edmDataServices;
+//	private EdmDataServices edmDataServices;
+	// map of resource path to interaction model
 	private Map<String, ResourceInteractionModel> rimMap = new HashMap<String, ResourceInteractionModel>();
+	// map of entity name to resource path
+	private Map<String, String> entityResourcePathMap = new HashMap<String, String>();
 	
-	public void add(ResourceInteractionModel rim) {
-		rimMap.put(rim.getEntityName(), rim);
+	public ResourceRegistry() {}
+
+	/**
+	 * Construct and fill the resource registry from a single root resource.  In a RESTful interaction
+	 * there should be no way to reach a resource unless it has a link from another resource.
+	 * @param root
+	 */
+	public ResourceRegistry(ResourceInteractionModel root) {
+		collectResources(root);
+	}
+
+	private void collectResources(ResourceInteractionModel resource) {
+		add(resource);
+		for (ResourceInteractionModel r : resource.getChildren()) {
+			if (!rimMap.containsKey(r.getFQResourcePath())) {
+				collectResources(r);
+			}
+		}
 	}
 	
-	public ResourceInteractionModel getResourceInteractionModel(String entityName) {
-		return rimMap.get(entityName);
+	/**
+	 * Construct and fill the resource registry with a set of resources.
+	 * @param resources
+	 */
+	public ResourceRegistry(Set<ResourceInteractionModel> resources) {
+		for (ResourceInteractionModel r : resources)
+			add(r);
+	}
+
+	public void add(ResourceInteractionModel rim) {
+		rimMap.put(rim.getFQResourcePath(), rim);
+		entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
+	}
+	
+	
+	public String getEntityResourcePath(String entityName) {
+		return entityResourcePathMap.get(entityName);
+	}
+	
+	public Set<ResourceInteractionModel> getResourceInteractionModels() {
+		Set<ResourceInteractionModel> resources = new HashSet<ResourceInteractionModel>();
+		for (String r : rimMap.keySet()) {
+			resources.add(rimMap.get(r));
+		}
+		return resources;
 	}
 
 	/**
@@ -54,9 +97,10 @@ public class ResourceRegistry {
 			// TODO add our relations
 	        String rel = XmlFormatWriter.related + otherEntity;
 
-			ResourceInteractionModel otherResource = getResourceInteractionModel(otherEntity);
-			if (otherResource != null) {
-				associatedLinks.add(OLinks.link(rel, otherEntity, otherResource.getResourcePath()));
+	        
+			String pathOtherResource = getEntityResourcePath(otherEntity);
+			if (pathOtherResource != null) {
+				associatedLinks.add(OLinks.link(rel, otherEntity, pathOtherResource));
 			}
 		}
 
@@ -83,13 +127,4 @@ public class ResourceRegistry {
 		return OEntities.create(entity.getEntitySet(), entity.getEntityKey(), entity.getProperties(), links);
 	}
 
-	public ResourceState getSimpleResourceStateModel() {
-		ResourceState initialState = new ResourceState("begin", "");
-		ResourceState exists = new ResourceState("exists", "{id}");
-		ResourceState finalState = new ResourceState("end", "");
-	
-		initialState.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);		
-		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), finalState);
-		return initialState;
-	}
 }

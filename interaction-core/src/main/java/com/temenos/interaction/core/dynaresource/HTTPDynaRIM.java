@@ -18,6 +18,7 @@ import com.temenos.interaction.core.link.ASTValidation;
 import com.temenos.interaction.core.link.ResourceStateMachine;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.link.Transition;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -56,7 +57,7 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 
 	public HTTPDynaRIM(HTTPDynaRIM parent, String entityName, String path, 
 			ResourceState state, Set<String> interactions, ResourceRegistry rr, CommandController commandController) {
-		super(entityName, (parent != null ? parent.getPath() + "/" + path : path), rr, commandController);
+		super(entityName, path, rr, commandController);
 		this.parent = parent;
 		this.path = path;
 		this.stateMachine = new ResourceStateMachine(state);
@@ -72,16 +73,16 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 	 * interactions with the resource state.
 	 */
 	private void bootstrap() {
-		getCommandController().fetchGetCommand(getResourcePath());
+		getCommandController().fetchGetCommand(getFQResourcePath());
 		if (stateMachine != null) {
 			// interactions are a set of http methods
 			for (String method : interactions) {
-				logger.debug("Checking configuration for [" + method + "] " + getResourcePath());
+				logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
 				// check valid http method
 				if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)))
 					throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
 				// fetch command from command controller for this method
-				getCommandController().fetchStateTransitionCommand(method, getResourcePath());
+				getCommandController().fetchStateTransitionCommand(method, getFQResourcePath());
 			}
 		}
 	}
@@ -125,7 +126,7 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
     }
 
 	@Override
-    public Object getParent() {
+    public ResourceInteractionModel getParent() {
         return parent;
     }
     
@@ -145,6 +146,23 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		return allows;
 	}
 
+	@Override
+	public Collection<ResourceInteractionModel> getChildren() {
+		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
+		Map<String, Set<String>> interactionMap = stateMachine.getInteractionMap();
+		ResourceState thisState = stateMachine.getInitial();
+		for (ResourceState s : thisState.getAllTargets()) {
+			Transition t = thisState.getTransition(s);
+			// only create a new child resource if we are defined a new state
+			if (!t.getCommand().getPath().equals(thisState.getPath())) {
+				HTTPDynaRIM child = new HTTPDynaRIM(this, getEntityName(), t.getCommand().getPath(), s, interactionMap.get(t.getCommand().getPath()), null, getCommandController());
+				result.add(child);
+			}
+		}
+		return result;
+	}
+
+	/*
 	public Collection<ResourceInteractionModel> createChildResources() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
 		Map<String, Set<String>> interactionMap = stateMachine.getInteractionMap();
@@ -161,5 +179,5 @@ public class HTTPDynaRIM extends HTTPResourceInteractionModel implements Dynamic
 		}
 		return result;
 	}
-		
+	*/
 }
