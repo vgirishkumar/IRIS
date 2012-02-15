@@ -12,7 +12,7 @@
                 </Key>
                 <Property Name="flightID" Type="Edm.Int64" Nullable="false"></Property>
                 <Property Name="takeoffTime" Type="Edm.DateTime" Nullable="true"></Property>
-                <NavigationProperty Name="flightSchedule" Relationship="com.interaction.example.jpa.FK_Flight_FlightSchedule" FromRole="Flight" ToRole="FlightSchedule"></NavigationProperty>
+                <NavigationProperty Name="flightSchedule" Relationship="com.interaction.example.jpa.AirlineModel.FK_Flight_FlightSchedule" FromRole="Flight" ToRole="FlightSchedule"></NavigationProperty>
             </EntityType>
             <EntityType Name="Airport" myns:AnnotationAttribute="test annotation attribute">
                 <Key>
@@ -21,9 +21,9 @@
                 <Property Name="name" Type="Edm.String" Nullable="true"></Property>
                 <Property Name="code" Type="Edm.String" Nullable="false"></Property>
                 <Property Name="country" Type="Edm.String" Nullable="true"></Property>
-                <NavigationProperty Name="flights" Relationship="com.interaction.example.jpa.FK_Airport_Flight" 
+                <NavigationProperty Name="flights" Relationship="com.interaction.example.jpa.AirlineModel.FK_Airport_Flight" 
                     FromRole="Airport" ToRole="Flight"></NavigationProperty>
-                <NavigationProperty Name="city" Relationship="com.interaction.example.jpa.FK_Airport_City"
+                <NavigationProperty Name="city" Relationship="com.interaction.example.jpa.AirlineModel.FK_Airport_City"
                     FromRole="Airport" ToRole="City"/>
                 <myns:AnnotationElement>
                   <myns:testing>hello</myns:testing>
@@ -38,7 +38,7 @@
                 </Key>
                 <Property Name="name" Type="Edm.String" Nullable="false"/>
             </EntityType>
-            <EntityType Name="BadAirport" BaseType="com.interaction.example.jpa.Airport">
+            <EntityType Name="BadAirport" BaseType="com.interaction.example.jpa.AirlineModel.Airport">
                 <Property Name="rating" Type="Edm.Int32" Nullable="false"/>
                 <Property Name="prop2" Type="Edm.String" Nullable="false"/>
             </EntityType>
@@ -54,78 +54,78 @@
                 <Property Name="departureTime" Type="Edm.Time" Nullable="true"></Property>
                 <Property Name="departureAirportCode" Type="Edm.String" Nullable="true" MaxLength="255"></Property>
                 <Property Name="lastDeparture" Type="Edm.DateTime" Nullable="true"></Property>
-                <NavigationProperty Name="departureAirport" Relationship="com.interaction.example.jpa.FK_FlightSchedule_Airport" FromRole="FlightSchedule" ToRole="Airport"></NavigationProperty>
-                <NavigationProperty Name="arrivalAirport" Relationship="com.interaction.example.jpa.FK_FlightSchedule_Airport_1" FromRole="FlightSchedule" ToRole="Airport"></NavigationProperty>
+                <NavigationProperty Name="departureAirport" Relationship="com.interaction.example.jpa.AirlineModel.FK_FlightSchedule_Airport" FromRole="FlightSchedule" ToRole="Airport"></NavigationProperty>
+                <NavigationProperty Name="arrivalAirport" Relationship="com.interaction.example.jpa.AirlineModel.FK_FlightSchedule_Airport_1" FromRole="FlightSchedule" ToRole="Airport"></NavigationProperty>
             </EntityType>
-            <EntityType Name="SubFlightSchedule" BaseType="com.interaction.example.jpa.FlightSchedule">
+            <EntityType Name="SubFlightSchedule" BaseType="com.interaction.example.jpa.AirlineModel.FlightSchedule">
                 <Property Name="prop3" Type="Edm.String" Nullable="false"/>
                 <Property Name="prop4" Type="Edm.String" Nullable="false"/>
                 <Property Name="prop5" Type="Edm.String" Nullable="false"/>
             </EntityType>
-             <EntityType Name="SubSubFlightSchedule" BaseType="com.interaction.example.jpa.SubFlightSchedule">
+             <EntityType Name="SubSubFlightSchedule" BaseType="com.interaction.example.jpa.AirlineModel.SubFlightSchedule">
                 <Property Name="prop6" Type="Edm.String" Nullable="false"/>
                 <Property Name="prop7" Type="Edm.String" Nullable="false"/>
                 <Property Name="prop8" Type="Edm.String" Nullable="false"/>
                 <Property Name="prop9" Type="Edm.String" Nullable="false"/>
-                <NavigationProperty Name="backupSchedule" Relationship="com.interaction.example.jpa.BackupSchedule"
+                <NavigationProperty Name="backupSchedule" Relationship="com.interaction.example.jpa.AirlineModel.BackupSchedule"
                     FromRole="PrimaryFlightSchedule" ToRole="BackupFlightSchedule"></NavigationProperty>
             </EntityType>
             <Association Name="FK_Flight_FlightSchedule">
-                <End Role="Flight" Type="com.interaction.example.jpa.Flight" Multiplicity="*"></End>
-                <End Role="FlightSchedule" Type="com.interaction.example.jpa.FlightSchedule" Multiplicity="0..1"></End>
+                <End Role="Flight" Type="com.interaction.example.jpa.AirlineModel.Flight" Multiplicity="*"></End>
+                <End Role="FlightSchedule" Type="com.interaction.example.jpa.AirlineModel.FlightSchedule" Multiplicity="0..1"></End>
             </Association>
             <Association Name="FK_FlightSchedule_Airport">
-                <End Role="FlightSchedule" Type="com.interaction.example.jpa.FlightSchedule" Multiplicity="*"></End>
-                <End Role="Airport" Type="com.interaction.example.jpa.Airport" Multiplicity="0..1"></End>
+                <End Role="FlightSchedule" Type="com.interaction.example.jpa.AirlineModel.FlightSchedule" Multiplicity="*"></End>
+                <End Role="Airport" Type="com.interaction.example.jpa.AirlineModel.Airport" Multiplicity="0..1"></End>
             </Association>
             <Association Name="FK_FlightSchedule_Airport_1">
-                <End Role="FlightSchedule" Type="com.interaction.example.jpa.FlightSchedule" Multiplicity="*"></End>
-                <End Role="Airport" Type="com.interaction.example.jpa.Airport" Multiplicity="0..1"></End>
+                <End Role="FlightSchedule" Type="com.interaction.example.jpa.AirlineModel.FlightSchedule" Multiplicity="*"></End>
+                <End Role="Airport" Type="com.interaction.example.jpa.AirlineModel.Airport" Multiplicity="0..1"></End>
             </Association>
             <Association Name="BackupSchedule">
-                <End Role="PrimaryFlightSchedule" Type="com.interaction.example.jpa.FlightSchedule" Multiplicity="1"></End>
-                <End Role="BackupFlightSchedule" Type="com.interaction.example.jpa.FlightSchedule" Multiplicity="1"></End>
+                <End Role="PrimaryFlightSchedule" Type="com.interaction.example.jpa.AirlineModel.FlightSchedule" Multiplicity="1"></End>
+                <End Role="BackupFlightSchedule" Type="com.interaction.example.jpa.AirlineModel.FlightSchedule" Multiplicity="1"></End>
             </Association>
             <Association Name="FK_Airport_Flight">
-                <End Role="Airport" Type="com.interaction.example.jpa.Airport" Multiplicity="1"></End>
-                <End Role="Flight" Type="com.interaction.example.jpa.Flight" Multiplicity="*"></End>
+                <End Role="Airport" Type="com.interaction.example.jpa.AirlineModel.Airport" Multiplicity="1"></End>
+                <End Role="Flight" Type="com.interaction.example.jpa.AirlineModel.Flight" Multiplicity="*"></End>
             </Association>
             <Association Name="FK_Airport_City">
-                <End Role="Airport" Type="com.interaction.example.jpa.Airport" Multiplicity="1"></End>
-                <End Role="City" Type="com.interaction.example.jpa.City" Multiplicity="0..1"></End>
+                <End Role="Airport" Type="com.interaction.example.jpa.AirlineModel.Airport" Multiplicity="1"></End>
+                <End Role="City" Type="com.interaction.example.jpa.AirlineModel.City" Multiplicity="0..1"></End>
             </Association>
         </Schema>
         <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="com.interaction.example.jpa.AirlineContainer">
             <EntityContainer Name="AirlineEntities" m:IsDefaultEntityContainer="true">
-                <EntitySet Name="Flight" EntityType="com.interaction.example.jpa.Flight"></EntitySet>
-                <EntitySet Name="Airport" EntityType="com.interaction.example.jpa.Airport"></EntitySet>
-                <EntitySet Name="City" EntityType="com.interaction.example.jpa.City"></EntitySet>
-                <EntitySet Name="BadAirport" EntityType="com.interaction.example.jpa.BadAirport"></EntitySet>
-                <EntitySet Name="FlightSchedule" EntityType="com.interaction.example.jpa.FlightSchedule"></EntitySet>
-                <EntitySet Name="SubFlightSchedule" EntityType="com.interaction.example.jpa.SubFlightSchedule"></EntitySet>
-                <EntitySet Name="SubSubFlightSchedule" EntityType="com.interaction.example.jpa.SubSubFlightSchedule"></EntitySet>
+                <EntitySet Name="Flight" EntityType="com.interaction.example.jpa.AirlineModel.Flight"></EntitySet>
+                <EntitySet Name="Airport" EntityType="com.interaction.example.jpa.AirlineModel.Airport"></EntitySet>
+                <EntitySet Name="City" EntityType="com.interaction.example.jpa.AirlineModel.City"></EntitySet>
+                <EntitySet Name="BadAirport" EntityType="com.interaction.example.jpa.AirlineModel.BadAirport"></EntitySet>
+                <EntitySet Name="FlightSchedule" EntityType="com.interaction.example.jpa.AirlineModel.FlightSchedule"></EntitySet>
+                <EntitySet Name="SubFlightSchedule" EntityType="com.interaction.example.jpa.AirlineModel.SubFlightSchedule"></EntitySet>
+                <EntitySet Name="SubSubFlightSchedule" EntityType="com.interaction.example.jpa.AirlineModel.SubSubFlightSchedule"></EntitySet>
 
-                <AssociationSet Name="FK_Flight_FlightSchedule" Association="com.interaction.example.jpa.FK_Flight_FlightSchedule">
+                <AssociationSet Name="FK_Flight_FlightSchedule" Association="com.interaction.example.jpa.AirlineModel.FK_Flight_FlightSchedule">
                     <End Role="Flight" EntitySet="Flight"></End>
                     <End Role="FlightSchedule" EntitySet="FlightSchedule"></End>
                 </AssociationSet>
-                <AssociationSet Name="FK_FlightSchedule_Airport" Association="com.interaction.example.jpa.FK_FlightSchedule_Airport">
+                <AssociationSet Name="FK_FlightSchedule_Airport" Association="com.interaction.example.jpa.AirlineModel.FK_FlightSchedule_Airport">
                     <End Role="FlightSchedule" EntitySet="FlightSchedule"></End>
                     <End Role="Airport" EntitySet="Airport"></End>
                 </AssociationSet>
-                <AssociationSet Name="FK_FlightSchedule_Airport_1" Association="com.interaction.example.jpa.FK_FlightSchedule_Airport_1">
+                <AssociationSet Name="FK_FlightSchedule_Airport_1" Association="com.interaction.example.jpa.AirlineModel.FK_FlightSchedule_Airport_1">
                     <End Role="FlightSchedule" EntitySet="FlightSchedule"></End>
                     <End Role="Airport" EntitySet="Airport"></End>
                 </AssociationSet>
-                <AssociationSet Name="BackupSchedule" Association="com.interaction.example.jpa.BackupSchedule">
+                <AssociationSet Name="BackupSchedule" Association="com.interaction.example.jpa.AirlineModel.BackupSchedule">
                     <End Role="PrimaryFlightSchedule" EntitySet="FlightSchedule"></End>
                     <End Role="BackupFlightSchedule" EntitySet="FlightSchedule"></End>
                 </AssociationSet>
-                <AssociationSet Name="FK_Airport_Flight" Association="com.interaction.example.jpa.FK_Airport_Flight">
+                <AssociationSet Name="FK_Airport_Flight" Association="com.interaction.example.jpa.AirlineModel.FK_Airport_Flight">
                     <End Role="Airport" EntitySet="Airport"></End>
                     <End Role="Flight" EntitySet="Flight"></End>
                 </AssociationSet>
-                 <AssociationSet Name="FK_Airport_City" Association="com.interaction.example.jpa.FK_Airport_City">
+                 <AssociationSet Name="FK_Airport_City" Association="com.interaction.example.jpa.AirlineModel.FK_Airport_City">
                     <End Role="Airport" EntitySet="Airport"></End>
                     <End Role="City" EntitySet="City"></End>
                 </AssociationSet>
