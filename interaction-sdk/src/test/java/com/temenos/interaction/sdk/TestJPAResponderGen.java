@@ -31,7 +31,17 @@ public class TestJPAResponderGen {
 	public void testJPAEntityInfo() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
-		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, new ArrayList<String>(), null, null);
+		List<String> keys = new ArrayList<String>();
+		keys.add("ID");
+		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
+		properties.add(EdmProperty.newBuilder("ID").setType(EdmSimpleType.INT64));
+
+		EdmEntityType.Builder entityTypeBuilder = EdmEntityType.newBuilder();
+		entityTypeBuilder.setNamespace("AirlineModel");
+		entityTypeBuilder.setName("Flight");
+		entityTypeBuilder.addKeys(keys);
+		entityTypeBuilder.addProperties(properties);
+		EdmEntityType t = entityTypeBuilder.build();
 		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		
 		assertEquals("Flight", p.getClazz());
@@ -45,9 +55,15 @@ public class TestJPAResponderGen {
 		
 		List<String> keys = new ArrayList<String>();
 		keys.add("flightID");
-		List<EdmProperty> properties = new ArrayList<EdmProperty>();
-		properties.add(new EdmProperty("flightID", EdmSimpleType.INT64, false));
-		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
+		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
+		properties.add(EdmProperty.newBuilder("flightID").setType(EdmSimpleType.INT64));
+
+		EdmEntityType.Builder entityTypeBuilder = EdmEntityType.newBuilder();
+		entityTypeBuilder.setNamespace("AirlineModel");
+		entityTypeBuilder.setName("Flight");
+		entityTypeBuilder.addKeys(keys);
+		entityTypeBuilder.addProperties(properties);
+		EdmEntityType t = entityTypeBuilder.build();
 		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		
 		assertEquals("flightID", p.getKeyInfo().getName());
@@ -60,16 +76,24 @@ public class TestJPAResponderGen {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		List<String> keys = new ArrayList<String>();
-		List<EdmProperty> properties = new ArrayList<EdmProperty>();
-		properties.add(new EdmProperty("flightID", EdmSimpleType.INT64, false));
-		properties.add(new EdmProperty("number", EdmSimpleType.STRING, false));
-		properties.add(new EdmProperty("fitHostiesName", EdmSimpleType.STRING, true));
-		properties.add(new EdmProperty("runway", EdmSimpleType.STRING, false));
-		properties.add(new EdmProperty("passengers", EdmSimpleType.INT32, false));
-		properties.add(new EdmProperty("departureDT", EdmSimpleType.DATETIME, false));
-		properties.add(new EdmProperty("dinnerServed", EdmSimpleType.TIME, false));
+		keys.add("ID");
 		
-		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
+		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
+		properties.add(EdmProperty.newBuilder("ID").setType(EdmSimpleType.INT64));
+		properties.add(EdmProperty.newBuilder("flightID").setType(EdmSimpleType.INT64));
+		properties.add(EdmProperty.newBuilder("number").setType(EdmSimpleType.STRING));
+		properties.add(EdmProperty.newBuilder("fitHostiesName").setType(EdmSimpleType.STRING).setNullable(true));
+		properties.add(EdmProperty.newBuilder("runway").setType(EdmSimpleType.STRING));
+		properties.add(EdmProperty.newBuilder("passengers").setType(EdmSimpleType.INT32));
+		properties.add(EdmProperty.newBuilder("departureDT").setType(EdmSimpleType.DATETIME));
+		properties.add(EdmProperty.newBuilder("dinnerServed").setType(EdmSimpleType.TIME));
+		
+		EdmEntityType.Builder entityTypeBuilder = EdmEntityType.newBuilder();
+		entityTypeBuilder.setNamespace("AirlineModel");
+		entityTypeBuilder.setName("Flight");
+		entityTypeBuilder.addKeys(keys);
+		entityTypeBuilder.addProperties(properties);
+		EdmEntityType t = entityTypeBuilder.build();
 		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		
 		assertEquals(7, p.getFieldInfos().size());
@@ -86,9 +110,9 @@ public class TestJPAResponderGen {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		List<String> keys = new ArrayList<String>();
-		List<EdmProperty> properties = new ArrayList<EdmProperty>();
-		properties.add(new EdmProperty("departureDT", EdmSimpleType.DATETIME, false));
-		properties.add(new EdmProperty("departureTime", EdmSimpleType.TIME, false));
+		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
+		properties.add(EdmProperty.newBuilder("departureDT").setType(EdmSimpleType.DATETIME));
+		properties.add(EdmProperty.newBuilder("departureTime").setType(EdmSimpleType.TIME));
 
 		/*
 @Temporal(TemporalType.TIME)
@@ -103,7 +127,12 @@ private Calendar firstDeparture;
 private Date lastDeparture;
 */
 		
-		EdmEntityType t = new EdmEntityType("AirlineModel", null, "Flight", false, keys, properties, null);
+		EdmEntityType.Builder entityTypeBuilder = EdmEntityType.newBuilder();
+		entityTypeBuilder.setNamespace("AirlineModel");
+		entityTypeBuilder.setName("Flight");
+		entityTypeBuilder.addKeys(keys);
+		entityTypeBuilder.addProperties(properties);
+		EdmEntityType t = entityTypeBuilder.build();
 		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
 		FieldInfo fi = p.getFieldInfos().get(0);
 		

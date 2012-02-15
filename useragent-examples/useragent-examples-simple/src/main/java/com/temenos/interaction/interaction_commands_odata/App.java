@@ -1,6 +1,7 @@
 package com.temenos.interaction.interaction_commands_odata;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
@@ -13,9 +14,12 @@ import org.apache.abdera.protocol.Response.ResponseType;
 import org.apache.abdera.protocol.client.AbderaClient;
 import org.apache.abdera.protocol.client.ClientResponse;
 import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.xml.AtomFeedFormatParser;
+import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.format.xml.XmlFormatParser;
 import org.odata4j.internal.InternalUtil;
+import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 import org.odata4j.stax2.XMLEvent2;
 import org.odata4j.stax2.XMLEventReader2;
 
@@ -27,7 +31,28 @@ public class App {
 	public static void main(String[] args) {
 		Abdera abdera = new Abdera();
 		AbderaClient client = new AbderaClient(abdera);
-//		ClientResponse resp = client.get("http://localhost:8080/example/rest/notes");
+
+		String svcRootURI = "http://localhost:8886/JPAProducerExample.svc/";
+
+	    EdmDataServices metadata = null;
+		ODataJerseyConsumer consumer = ODataJerseyConsumer.create(svcRootURI);
+		metadata = consumer.getMetadata();
+		/*
+		try {
+			ClientResponse resp = client.get(svcRootURI + "$metadata");
+			if (resp.getType() != ResponseType.SUCCESS) {
+				System.out.println("Unable to retrieve " + svcRootURI + "$metadata");			
+				System.exit(1);
+			}
+			XMLEventReader2 metaDataReader = InternalUtil.newXMLEventReader(resp.getReader());
+			metadata = new EdmxFormatParser().parseMetadata(metaDataReader);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+			*/
+		
+		//		ClientResponse resp = client.get("http://localhost:8080/example/rest/notes");
 		ClientResponse resp = client.get("http://localhost:8886/JPAProducerExample.svc/Products(49)/Order_Details");
 //		ClientResponse resp = client.get("http://localhost:8080/responder/rest/FlightSchedule/1");
 		if (resp.getType() == ResponseType.SUCCESS) {
@@ -45,7 +70,7 @@ public class App {
 				}           
 				
 				try {
-					// Get the OData OProperties
+				    // Get the OData OProperties
 					String dsXML = entry.getContent();
 					entry.getContentElement().getQName();
 					// odata4j only support utf-8, so assume it wants a utf-8 stream
@@ -54,7 +79,7 @@ public class App {
 					while (reader.hasNext()) {
 						XMLEvent2 event = reader.nextEvent();
 						if (event.isStartElement() && event.asStartElement().getName().equals(XmlFormatParser.M_PROPERTIES)) {
-							properties = AtomFeedFormatParser.parseProperties(reader, event.asStartElement());
+							properties = AtomFeedFormatParser.parseProperties(reader, event.asStartElement(), metadata);
 						}
 						
 					}

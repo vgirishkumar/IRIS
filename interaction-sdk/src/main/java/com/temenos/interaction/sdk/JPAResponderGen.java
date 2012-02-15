@@ -79,7 +79,7 @@ public class JPAResponderGen {
 	 */
 	public boolean generateArtifacts(InputStream is, File srcOutputPath, File configOutputPath) {
 		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(is)));
-		EdmDataServices ds = EdmxFormatParser.parseMetadata(reader);
+		EdmDataServices ds = new EdmxFormatParser().parseMetadata(reader);
 		
 		boolean ok = true;
 		List<JPAEntityInfo> entities = new ArrayList<JPAEntityInfo>();
@@ -156,8 +156,8 @@ public class JPAResponderGen {
 			String keyName = entityType.getKeys().get(0);
 			EdmType key = null;
 			for (EdmProperty e : entityType.getProperties()) {
-				if (e.name.equals(keyName)) {
-					key = e.type;
+				if (e.getName().equals(keyName)) {
+					key = e.getType();
 				}
 			}
 			keyInfo = new FieldInfo(keyName, javaType(key), null);
@@ -167,15 +167,15 @@ public class JPAResponderGen {
 		for (EdmProperty property : entityType.getProperties()) {
 			// add additional configuration by annotations
 			List<String> annotations = new ArrayList<String>();
-			if (property.type.equals(EdmSimpleType.DATETIME)) {
+			if (property.getType().equals(EdmSimpleType.DATETIME)) {
 				annotations.add("@Temporal(TemporalType.TIMESTAMP)");
 			}
 
-			FieldInfo field = new FieldInfo(property.name, javaType(property.type), annotations);
+			FieldInfo field = new FieldInfo(property.getName(), javaType(property.getType()), annotations);
 			properties.add(field);
 		}
 		
-		return new JPAEntityInfo(entityType.name, entityType.namespace, keyInfo, properties);
+		return new JPAEntityInfo(entityType.getName(), entityType.getNamespace(), keyInfo, properties);
 	}
 	
 	private String javaType(EdmType type) {
