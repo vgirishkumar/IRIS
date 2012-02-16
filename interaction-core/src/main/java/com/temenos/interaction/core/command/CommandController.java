@@ -23,7 +23,21 @@ public class CommandController {
 	 */
 	public CommandController() {
 	}
-	
+
+	/**
+	 * Create and populate command controller.
+	 */
+	public CommandController(Map<String, ResourceCommand> commands) {
+		for (String path : commands.keySet()) {
+			ResourceCommand rc = commands.get(path);
+			if (rc instanceof ResourceGetCommand) {
+				setGetCommand(path, (ResourceGetCommand) rc);
+			} else {
+				addStateTransitionCommand(path, (ResourceStateTransitionCommand) rc);
+			}
+		}
+	}
+
 	/**
 	 * Create a command controller and add the supplied commands to the resource path from {@link ResourceInteractionModel.getResourcePath()}
 	 * @param rim
