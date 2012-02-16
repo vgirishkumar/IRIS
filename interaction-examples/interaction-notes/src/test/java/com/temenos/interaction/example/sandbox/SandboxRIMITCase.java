@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.integtest.sandbox;
+package com.temenos.interaction.example.sandbox;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,7 +13,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
-public class TestSandboxRIM extends JerseyTest {
+public class SandboxRIMITCase extends JerseyTest {
 
 	 @Before
 	 public void initTest() { 
@@ -25,7 +25,7 @@ public class TestSandboxRIM extends JerseyTest {
 	 @After
 	 public void tearDown() {}
 
-	public TestSandboxRIM() throws Exception {
+	public SandboxRIMITCase() throws Exception {
 //		super("example", "rest", "com.temenos.interaction.example");
 		// enable logging on base web resource
 		System.setProperty("enableLogging", "ya");

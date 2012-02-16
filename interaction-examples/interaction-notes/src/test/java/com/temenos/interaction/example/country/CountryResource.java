@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.integtest.country;
+package com.temenos.interaction.example.country;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

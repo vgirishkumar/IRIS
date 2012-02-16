@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.integtest.note;
+package com.temenos.interaction.example.note;
 
 import static org.junit.Assert.assertEquals;
 
@@ -18,7 +18,7 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.example.note.client.DomainObjectID;
 import com.temenos.interaction.example.note.client.NewNoteRepresentation;
 
-public class TestNewNote extends JerseyTest {
+public class NewNoteITCase extends JerseyTest {
 
 	public final static String NEW_NOTE_RESOURCE = "notes/new";
 
@@ -40,7 +40,7 @@ public class TestNewNote extends JerseyTest {
 	@After
 	public void tearDown() {}
 	
-    public TestNewNote() throws Exception {
+    public NewNoteITCase() throws Exception {
     	/* Allows standalone Jersey Test
     	super("example", "rest", "com.temenos.interaction.example");
 		*/
