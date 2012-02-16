@@ -42,7 +42,6 @@ DAMAGE.
 <!--{{{-->
 <link rel='alternate' type='application/rss+xml' title='RSS' href='index.xml' />
 <!--}}}-->
-
 <!--PRE-HEAD-END-->
 <title> IRIS - Anything and everything about IRIS (Interaction &amp; Reporting Information Service) </title>
 <style id="styleArea" type="text/css">
@@ -541,9 +540,16 @@ http://www.eclipse.org/Xtext/</pre>
 <div title="SiteTitle" creator="YourName" modifier="aphethean" created="201111022150" modified="201111022152" changecount="3">
 <pre>[[IRIS]]</pre>
 </div>
-<div title="examples" creator="YourName" modifier="aphethean" created="201201191110" modified="201201231415" changecount="3">
+<div title="examples" creator="YourName" modifier="YourName" created="201201191110" modified="201202161433" changecount="4">
 <pre>[[interaction-notes]]
-[[interaction-mockresponder]]</pre>
+[[interaction-mockresponder]]
+[[integration tests]]</pre>
+</div>
+<div title="integration tests" creator="YourName" modifier="lucasgut" created="201202161434" modified="201202161438" changecount="2">
+<pre>The interaction examples provide a set of unit tests and integration tests which can be run with the following command:
+{{{
+$ mvn verify
+}}}</pre>
 </div>
 <div title="interaction-core" creator="aphethean" modifier="aphethean" created="201111022154" modified="201201251223" changecount="7">
 <pre>The core library of the interaction framework.
@@ -619,8 +625,7 @@ http://localhost:8080/responder/rest/Flight/1
 <div title="interaction-sdk" creator="aphethean" modifier="aphethean" created="201201162214" modified="201201231414" changecount="5">
 <pre>The interaction-sdk is a supporting library for the IRIS SDK. The SDK would be used by developers who need to design resource interaction models, but have neither the time nor the desire to implement those resources within a specific resource manager.
 
-A user agent can be developed against the resource interaction model as designed in the SDK and the values of the Entity(s) and EntitySet(s) can be mocked in the database as accessed by generated JPA POJO's.  A resource manager (e.g. T24, TAP, or TreasuryTrader) can the be wired up to the resources at a later date.  Thus providing a simple way to develop user agents, or applications without needing a full blown system.
-</pre>
+A user agent can be developed against the resource interaction model as designed in the SDK and the values of the Entity(s) and EntitySet(s) can be mocked in the database as accessed by generated JPA POJO's.  A resource manager (e.g. T24, TAP, or TreasuryTrader) can the be wired up to the resources at a later date.  Thus providing a simple way to develop user agents, or applications without needing a full blown system.</pre>
 </div>
 <div title="interaction-sdk-archetype" creator="YourName" modifier="YourName" created="201201191112" changecount="1">
 <pre>The IRIS SDK includes a Maven archetype that helps create mock responder projects.</pre>

@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.integtest.country;
+package com.temenos.interaction.example.country;
 
 import static org.junit.Assert.*;
 
@@ -26,7 +26,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-public class TestCreateAuthoriseCountry extends JerseyTest {
+public class CreateAuthoriseCountryITCase extends JerseyTest {
 
 	/* Allows standalone Jersey Test
 	@BeforeClass
@@ -46,7 +46,7 @@ public class TestCreateAuthoriseCountry extends JerseyTest {
 	@After
 	public void tearDown() {}
       
-    public TestCreateAuthoriseCountry() throws Exception {
+    public CreateAuthoriseCountryITCase() throws Exception {
     	/* Allows standalone Jersey Test
     	super("example", "rest", "com.temenos.interaction.example");
 		*/
