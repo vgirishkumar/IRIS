@@ -11,7 +11,6 @@ import java.util.HashSet;
 import org.junit.Test;
 
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.link.TransitionCommandSpec;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -20,16 +19,15 @@ public class TestHTTPDynaRIM {
 
 	@Test
 	public void testRIMsCRUD() {
-		ResourceState begin = new ResourceState("begin", "");
+		ResourceState initial = new ResourceState("begin", "/{id}");
 		ResourceState exists = new ResourceState("exists", "/{id}");
-		ResourceState end = new ResourceState("end", "");
+		ResourceState end = new ResourceState("end", "/{id}");
 	
-		begin.addTransition(new TransitionCommandSpec("PUT", "/{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("PUT", "/{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("DELETE", "/{id}"), end);
+		initial.addTransition("PUT", exists);
+		exists.addTransition("DELETE", end);
 		
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", initial, new HashSet<String>(), null, cc);
 		verify(cc).fetchGetCommand("/notes");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
 		assertEquals(1, resources.size());
@@ -37,6 +35,32 @@ public class TestHTTPDynaRIM {
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
 		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}");
 		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}");
+	}
+
+	@Test
+	public void testRIMsSubstate() {
+  		ResourceState begin = new ResourceState("begin", "/{id}");
+		ResourceState published = new ResourceState("published", "/{id}");
+		ResourceState draft = new ResourceState("draft", "/draft/{id}");
+		ResourceState end = new ResourceState("end", "/{id}");
+	
+		begin.addTransition("PUT", draft);
+		draft.addTransition("PUT", draft);
+		draft.addTransition("PUT", published);
+		draft.addStateChange("DELETE", end);
+		published.addTransition("DELETE", end);
+		
+		CommandController cc = mock(CommandController.class);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, "NOTE", "/notes", begin, new HashSet<String>(), null, cc);
+		verify(cc).fetchGetCommand("/notes");
+		Collection<ResourceInteractionModel> resources = parent.getChildren();
+		assertEquals(2, resources.size());
+		verify(cc, times(1)).fetchGetCommand("/notes");
+		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
+		verify(cc, times(1)).fetchGetCommand("/notes/draft/{id}");
+		verify(cc).fetchStateTransitionCommand("PUT", "/notes/draft/{id}");
+		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}");
+		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/draft/{id}");
 	}
 
 	/*

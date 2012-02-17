@@ -12,6 +12,7 @@ import javax.ws.rs.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.org.apache.bcel.internal.generic.GETSTATIC;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.link.ASTValidation;
 import com.temenos.interaction.core.link.ResourceStateMachine;
@@ -123,13 +124,13 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	public Collection<ResourceInteractionModel> getChildren() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
 		Map<String, Set<String>> interactionMap = stateMachine.getInteractionMap();
-		ResourceState thisState = stateMachine.getInitial();
-		for (ResourceState s : thisState.getAllTargets()) {
-			Transition t = thisState.getTransition(s);
-			// only create a new child resource if we are defined a new state
-			if (!t.getCommand().getPath().equals(thisState.getPath())) {
-				HTTPDynaRIM child = new HTTPDynaRIM(this, getEntityName(), t.getCommand().getPath(), s, interactionMap.get(t.getCommand().getPath()), null, getCommandController());
+
+		List<String> createdResources = new ArrayList<String>();
+		for (ResourceState s : stateMachine.getStates()) {
+			if (!createdResources.contains(s.getPath())) {
+				HTTPDynaRIM child = new HTTPDynaRIM(this, getEntityName(), s.getPath(), s, interactionMap.get(s.getPath()), null, getCommandController());
 				result.add(child);
+				createdResources.add(s.getPath());
 			}
 		}
 		return result;

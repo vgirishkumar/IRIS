@@ -13,22 +13,22 @@ public class TestResourceStateMachine {
 
 	@Test
 	public void testStates() {
-		ResourceState begin = new ResourceState("begin", "");
+		ResourceState begin = new ResourceState("begin", "{id}");
 		ResourceState unauthorised = new ResourceState("INAU", "unauthorised/{id}");
 		ResourceState authorised = new ResourceState("LIVE", "authorised/{id}");
 		ResourceState reversed = new ResourceState("RNAU", "reversed/{id}");
 		ResourceState history = new ResourceState("REVE", "history/{id}");
-		ResourceState end = new ResourceState("end", "");
+		ResourceState end = new ResourceState("end", "{id}");
 	
-		begin.addTransition(new TransitionCommandSpec("PUT", "unauthorised/{id}"), unauthorised);
+		begin.addTransition("PUT", unauthorised);
 		
-		unauthorised.addTransition(new TransitionCommandSpec("PUT", "unauthorised/{id}"), unauthorised);
-		unauthorised.addTransition(new TransitionCommandSpec("PUT", "authorised/{id}"), authorised);
-		unauthorised.addTransition(new TransitionCommandSpec("DELETE", "unauthorised/{id}"), end);
+		unauthorised.addTransition("PUT", unauthorised);
+		unauthorised.addTransition("PUT", authorised);
+		unauthorised.addTransition("PUT", end);
 		
-		authorised.addTransition(new TransitionCommandSpec("PUT", "history/{id}"), history);
+		authorised.addTransition("PUT", history);
 		
-		history.addTransition(new TransitionCommandSpec("PUT", "reversed/{id}"), reversed);
+		history.addTransition("PUT", reversed);
 		
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
@@ -50,13 +50,13 @@ public class TestResourceStateMachine {
 	
 	@Test
 	public void testGetStates() {
-		ResourceState begin = new ResourceState("begin", "");
+		ResourceState begin = new ResourceState("begin", "{id}");
 		ResourceState exists = new ResourceState("exists", "{id}");
-		ResourceState end = new ResourceState("end", "");
+		ResourceState end = new ResourceState("end", "{id}");
 	
-		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
+		begin.addTransition("PUT", exists);
+		exists.addTransition("PUT", exists);
+		exists.addTransition("DELETE", end);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		Collection<ResourceState> states = sm.getStates();
@@ -68,13 +68,13 @@ public class TestResourceStateMachine {
 
 	@Test
 	public void testInteractionMap() {
-		ResourceState begin = new ResourceState("begin", "");
+		ResourceState begin = new ResourceState("begin", "{id}");
 		ResourceState exists = new ResourceState("exists", "{id}");
-		ResourceState end = new ResourceState("end", "");
+		ResourceState end = new ResourceState("end", "{id}");
 	
-		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
+		begin.addTransition("PUT", exists);
+		exists.addTransition("PUT", exists);
+		exists.addTransition("DELETE", end);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 

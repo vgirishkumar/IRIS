@@ -25,11 +25,28 @@ public class ResourceState {
 		return path;
 	}
 
-	public void addTransition(TransitionCommandSpec commandSpec, ResourceState targetState) {
+	/**
+	 * Normal transitions transition state to another state.
+	 * @param httpMethod
+	 * @param targetState
+	 */
+	public void addTransition(String httpMethod, ResourceState targetState) {
 		assert null != targetState;
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, targetState.getPath());
 		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
 	}
-	
+
+	/**
+	 * Resource State transitions act on this resource.
+	 * @param httpMethod
+	 * @param targetState
+	 */
+	public void addStateChange(String httpMethod, ResourceState targetState) {
+		assert null != targetState;
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, path);
+		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
+	}
+
 	/**
 	 * Get the transition to the supplied target state.
 	 * @param targetState
