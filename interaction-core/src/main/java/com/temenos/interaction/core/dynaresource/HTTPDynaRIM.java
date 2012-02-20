@@ -132,6 +132,30 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		return result;
 	}
 
+	/*
+	private void collectResources(Collection<ResourceInteractionModel> result, ResourceInteractionModel resource) {
+		if (result.contains(resource)) return;
+		result.add(resource);
+		for (ResourceInteractionModel r : resource.getChildren()) {
+			if (!rimMap.containsKey(r.getFQResourcePath())) {
+				collectResources(r);
+			}
+		}
+	}
+*/
+	
+	public boolean equals(Object other) {
+		//check for self-comparison
+	    if ( this == other ) return true;
+	    if ( !(other instanceof HTTPDynaRIM) ) return false;
+	    HTTPDynaRIM otherResource = (HTTPDynaRIM) other;
+	    return getFQResourcePath().equals(otherResource.getFQResourcePath());
+	}
+	
+	public int hashCode() {
+		return getFQResourcePath().hashCode();
+	}
+
 	public String toString() {
 		return ("HTTPDynaRIM " + stateMachine.getEntityName() + "[" + getFQResourcePath() + "]");
 	}

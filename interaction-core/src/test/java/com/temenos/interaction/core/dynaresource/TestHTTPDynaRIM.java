@@ -1,6 +1,7 @@
 package com.temenos.interaction.core.dynaresource;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -152,14 +153,29 @@ public class TestHTTPDynaRIM {
 		verify(cc).fetchStateTransitionCommand("DELETE", "/bookings/{id}");
 	}
 
-	/*
-	 * TODO implement if required
 	@Test
 	public void testEquality() {
 		ResourceState begin = new ResourceState("begin");
-		CommandController cc = new CommandController("");
-		HTTPDynaRIM rim1 = new HTTPDynaRIM(null, "NOTE", "/notes", begin, null, cc);
-		HTTPDynaRIM rim2 = new HTTPDynaRIM(null, "NOTE", "/notes", begin, null, cc);
+		ResourceState begin2 = new ResourceState("begin2");
+		CommandController cc = mock(CommandController.class);
+		CommandController cc2 = mock(CommandController.class);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes", null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(null, new ResourceStateMachine("DIFFERENT", begin2), "/notes", null, cc2);
+		
+		// the only thing used to compare equality is the path as the URI must be unique
+		assertEquals(rim1, rim2);
+		assertEquals(rim1.hashCode(), rim2.hashCode());
+	}
+
+	@Test
+	public void testEqualityParent() {
+		ResourceState begin = new ResourceState("begin");
+		CommandController cc = mock(CommandController.class);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("PARENT", begin), "/root", null, cc);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/notes", null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine("DIFFERENT", begin), "/notes", null, cc);
+		
+		// the only thing used to compare equality is the path as the URI must be unique
 		assertEquals(rim1, rim2);
 		assertEquals(rim1.hashCode(), rim2.hashCode());
 	}
@@ -167,26 +183,24 @@ public class TestHTTPDynaRIM {
 	@Test
 	public void testInequality() {
 		ResourceState begin = new ResourceState("begin");
-		ResourceState begin2 = new ResourceState("begin2");
-		CommandController cc = new CommandController("");
-		CommandController cc2 = new CommandController("");
-		HTTPDynaRIM rim1 = new HTTPDynaRIM(null, "NOTE", "/notes", begin, null, cc);
-		HTTPDynaRIM rim2 = new HTTPDynaRIM(null, "NOTE1", "/notes", begin, null, cc);
-		HTTPDynaRIM rim3 = new HTTPDynaRIM(null, "NOTE", "/notes1", begin, null, cc);
-		HTTPDynaRIM rim4 = new HTTPDynaRIM(null, "NOTE", "/notes", begin2, null, cc);
-		HTTPDynaRIM rim5 = new HTTPDynaRIM(null, "NOTE", "/notes", begin, null, cc2);
+		CommandController cc = mock(CommandController.class);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("PARENT", begin), "/notes", null, cc);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/{id}", null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/{id}/different", null, cc);
+		HTTPDynaRIM rim3 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes1", null, cc);
+		HTTPDynaRIM rim4 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes", null, cc);
 
+		// both with parent
 		assertFalse(rim1.equals(rim2));
 		assertFalse(rim1.hashCode() == rim2.hashCode());
 
-		assertFalse(rim1.equals(rim3));
-		assertFalse(rim1.hashCode() == rim3.hashCode());
+		// both without parent
+		assertFalse(parent.equals(rim3));
+		assertFalse(parent.hashCode() == rim3.hashCode());
 
+		// one with parent
 		assertFalse(rim1.equals(rim4));
 		assertFalse(rim1.hashCode() == rim4.hashCode());
-
-		assertFalse(rim1.equals(rim5));
-		assertFalse(rim1.hashCode() == rim5.hashCode());
 	}
-*/
+
 }
