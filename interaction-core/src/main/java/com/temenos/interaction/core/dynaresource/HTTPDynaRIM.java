@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
@@ -29,6 +30,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 
     private HTTPDynaRIM parent;
     private final ResourceStateMachine stateMachine;
+    private final ResourceState subState;
     
 	public HTTPDynaRIM(String entityName, String path, CommandController commandController) {
 		this(new ResourceStateMachine(entityName, null), path, null, commandController);
@@ -44,12 +46,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 * @param commandController
 	 */
 	public HTTPDynaRIM(ResourceStateMachine stateMachine, String path, ResourceRegistry rr, CommandController commandController) {
-		super(stateMachine.getEntityName(), path, rr, commandController);
-		this.parent = null;
-		this.stateMachine = stateMachine;
-		if (stateMachine.getInitial() != null) {
-			System.out.println(new ASTValidation().graph(stateMachine));
-		}
+		this(null, stateMachine, path, null, rr, commandController);
 	}
 
 	/**
@@ -62,11 +59,12 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 * @param rr
 	 * @param commandController
 	 */
-	public HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, String path, 
+	public HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, String path, ResourceState subState, 
 			ResourceRegistry rr, CommandController commandController) {
 		super(stateMachine.getEntityName(), path, rr, commandController);
 		this.parent = parent;
 		this.stateMachine = stateMachine;
+		this.subState = subState;
 		if (parent == null && stateMachine.getInitial() != null) {
 			logger.info("Checking state machine for [" + this.toString() + "]");
 			logger.info(new ASTValidation().graph(stateMachine));
@@ -80,16 +78,18 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 */
 	private void bootstrap() {
 		getCommandController().fetchGetCommand(getFQResourcePath());
-		Set<String> interactions = stateMachine.getInteractions(stateMachine.getInitial());
-		if (stateMachine != null && interactions != null) {
-			// interactions are a set of http methods
-			for (String method : interactions) {
-				logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
-				// check valid http method
-				if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)))
-					throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
-				// fetch command from command controller for this method
-				getCommandController().fetchStateTransitionCommand(method, getFQResourcePath());
+		if (subState != null) {
+			Set<String> interactions = stateMachine.getInteractions(subState);
+			if (interactions != null) {
+				// interactions are a set of http methods
+				for (String method : interactions) {
+					logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
+					// check valid http method
+					if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)))
+						throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
+					// fetch command from command controller for this method
+					getCommandController().fetchStateTransitionCommand(method, getFQResourcePath());
+				}
 			}
 		}
 	}
@@ -120,30 +120,16 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
-		List<String> createdResources = new ArrayList<String>();
-		for (ResourceState s : stateMachine.getStates()) {
-			boolean substate = !s.equals(stateMachine.getInitial()) && !s.isFinalState() && !s.isSelfState();
-			if (substate && !createdResources.contains(s.getPath())) {
-				HTTPDynaRIM child = new HTTPDynaRIM(this, new ResourceStateMachine(getEntityName(), s), s.getPath(), null, getCommandController());
-				result.add(child);
-				createdResources.add(s.getPath());
-			}
+		
+		Map<String, ResourceState> resourceStates = stateMachine.getStateMap();
+		for (String childPath : resourceStates.keySet()) {
+			ResourceState s = resourceStates.get(childPath);
+			HTTPDynaRIM child = new HTTPDynaRIM(this, stateMachine, s.getPath(), s, null, getCommandController());
+			result.add(child);
 		}
 		return result;
 	}
 
-	/*
-	private void collectResources(Collection<ResourceInteractionModel> result, ResourceInteractionModel resource) {
-		if (result.contains(resource)) return;
-		result.add(resource);
-		for (ResourceInteractionModel r : resource.getChildren()) {
-			if (!rimMap.containsKey(r.getFQResourcePath())) {
-				collectResources(r);
-			}
-		}
-	}
-*/
-	
 	public boolean equals(Object other) {
 		//check for self-comparison
 	    if ( this == other ) return true;

@@ -107,4 +107,8 @@ public class ResourceState {
 			(path != null ? path.hashCode() : 0) +
 			transitions.hashCode();
 	}
+	
+	public String toString() {
+		return name;
+	}
 }

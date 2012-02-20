@@ -8,7 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ResourceStateMachine {
+	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
 
 	public final String entityName;
 	public final ResourceState initial;
@@ -64,20 +68,18 @@ public class ResourceStateMachine {
 		if (currentState == null || states.contains(currentState)) return;
 		states.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
-//			if (!next.equals(initial)) {
-				// lookup transition to get to here
-				Transition t = currentState.getTransition(next);
-				TransitionCommandSpec command = t.getCommand();
-				String path = command.getPath();
-				
-				Set<String> interactions = result.get(path);
-				if (interactions == null)
-					interactions = new HashSet<String>();
-				interactions.add(command.getMethod());
-				
-				result.put(path, interactions);
-				collectInteractions(result, states, next);
-//			}
+			// lookup transition to get to here
+			Transition t = currentState.getTransition(next);
+			TransitionCommandSpec command = t.getCommand();
+			String path = command.getPath();
+			
+			Set<String> interactions = result.get(path);
+			if (interactions == null)
+				interactions = new HashSet<String>();
+			interactions.add(command.getMethod());
+			
+			result.put(path, interactions);
+			collectInteractions(result, states, next);
 		}
 		
 	}
@@ -97,6 +99,45 @@ public class ResourceStateMachine {
 		return interactions;
 	}
 	
+	/**
+	 * Return a map of the all paths to ResourceState's
+	 * @return
+	 */
+	public Map<String, ResourceState> getStateMap() {
+		Map<String, ResourceState> stateMap = new HashMap<String, ResourceState>();
+		List<ResourceState> states = new ArrayList<ResourceState>();
+		collectStates(stateMap, states, initial);
+		return stateMap;
+	}
+	
+	private void collectStates(Map<String, ResourceState> result, Collection<ResourceState> states, ResourceState currentState) {
+		if (currentState == null || states.contains(currentState)) return;
+		states.add(currentState);
+		for (ResourceState next : currentState.getAllTargets()) {
+			if (!next.isSelfState()) {
+				String path = next.getPath();
+				
+				if (result.get(path) != null)
+					logger.debug("Replacing ResourceState[" + path + "] " + result.get(path));
+				
+				result.put(path, next);
+			}
+			collectStates(result, states, next);
+		}
+		
+	}
+
+	/**
+	 * For a given path, return the resource state.
+	 * @param state
+	 * @return
+	 */
+	public ResourceState getState(String path) {
+		if (path == null)
+			return initial;
+		return getStateMap().get(path);
+	}
+
 	public ResourceState getSimpleResourceStateModel() {
 		ResourceState initialState = new ResourceState("begin", "/{id}");
 		ResourceState finalState = new ResourceState("end", "/{id}");

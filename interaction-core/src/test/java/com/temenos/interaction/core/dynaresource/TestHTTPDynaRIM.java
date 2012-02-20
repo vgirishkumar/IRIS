@@ -32,7 +32,7 @@ public class TestHTTPDynaRIM {
 		exists.addTransition("DELETE", deleted);
 		
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", initial), "/notes/{id}", null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", initial), "/notes/{id}", initial, null, cc);
 		verify(cc).fetchGetCommand("/notes/{id}");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
 		assertEquals(0, resources.size());
@@ -63,7 +63,7 @@ public class TestHTTPDynaRIM {
 		
 		CommandController cc = mock(CommandController.class);
 		ResourceStateMachine stateMachine = new ResourceStateMachine("DraftNote", initial);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, stateMachine, "/notes/{id}", null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, stateMachine, "/notes/{id}", initial, null, cc);
 		verify(cc).fetchGetCommand("/notes/{id}");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
 		assertEquals(1, resources.size());
@@ -75,7 +75,7 @@ public class TestHTTPDynaRIM {
 		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}");
 	}
 
-//	@Test
+	@Test
 	public void testRIMsMultipleSubstates() {
   		ResourceState initial = new ResourceState("initial");
 		ResourceState published = new ResourceState("published", "/published");
@@ -95,10 +95,10 @@ public class TestHTTPDynaRIM {
 		
 		CommandController cc = mock(CommandController.class);
 		ResourceStateMachine stateMachine = new ResourceStateMachine("PublishNote", initial);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, stateMachine, "/notes/{id}", null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, stateMachine, "/notes/{id}", initial, null, cc);
 		verify(cc).fetchGetCommand("/notes/{id}");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
-		assertEquals(3, resources.size());
+		assertEquals(2, resources.size());
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}/draft");
 		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/draft");
@@ -106,26 +106,25 @@ public class TestHTTPDynaRIM {
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}/published");
 		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/published");
 		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/published");
-		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}");
 	}
 
-//	@Test
+	@Test
 	public void testRIMsMultipleSubstates1() {
 
 		// the booking
-		ResourceState begin = new ResourceState("begin", "/{id}");
-  		ResourceState bookingCreated = new ResourceState("bookingCreated", "/{id}");
-  		ResourceState bookingCancellation = new ResourceState("cancellation", "/{id}/cancellation");
-  		ResourceState end = new ResourceState("end", "/{id}");
+		ResourceState begin = new ResourceState("begin");
+  		ResourceState bookingCreated = new ResourceState("bookingCreated");
+  		ResourceState bookingCancellation = new ResourceState("cancellation", "/cancellation");
+  		ResourceState deleted = new ResourceState("deleted");
 
 		begin.addTransition("PUT", bookingCreated);
 		bookingCreated.addTransition("PUT", bookingCancellation);
-		bookingCancellation.addTransition("DELETE", end);
+		bookingCancellation.addTransition("DELETE", deleted);
 
 		// the payment
-		ResourceState payment = new ResourceState("payment", "/{id}/payment");
-		ResourceState confirmation = new ResourceState("pconfirmation", "/{id}/payment/pconfirmation");
-		ResourceState waitingForConfirmation = new ResourceState("pwaiting", "/{id}/payment/pwaiting");
+		ResourceState payment = new ResourceState("payment", "/payment");
+		ResourceState confirmation = new ResourceState("pconfirmation", "/payment/pconfirmation");
+		ResourceState waitingForConfirmation = new ResourceState("pwaiting", "/payment/pwaiting");
 
 		payment.addTransition("PUT", waitingForConfirmation);
 		payment.addTransition("PUT", confirmation);
@@ -137,11 +136,10 @@ public class TestHTTPDynaRIM {
 		
 		
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("BOOKING", begin), "/bookings", null, cc);
-		verify(cc).fetchGetCommand("/bookings");
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("BOOKING", begin), "/bookings/{id}", begin, null, cc);
+		verify(cc, times(1)).fetchGetCommand("/bookings/{id}");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
-		assertEquals(5, resources.size());
-		verify(cc, times(1)).fetchGetCommand("/bookings");
+		assertEquals(4, resources.size());
 		verify(cc, times(1)).fetchGetCommand("/bookings/{id}");
 		verify(cc, times(1)).fetchGetCommand("/bookings/{id}/cancellation");
 		verify(cc, times(1)).fetchGetCommand("/bookings/{id}/payment");
@@ -150,7 +148,9 @@ public class TestHTTPDynaRIM {
 		verify(cc).fetchStateTransitionCommand("PUT", "/bookings/{id}");
 		verify(cc).fetchStateTransitionCommand("PUT", "/bookings/{id}/cancellation");
 		verify(cc).fetchStateTransitionCommand("PUT", "/bookings/{id}/payment");
-		verify(cc).fetchStateTransitionCommand("DELETE", "/bookings/{id}");
+		verify(cc).fetchStateTransitionCommand("PUT", "/bookings/{id}/payment/pwaiting");
+		verify(cc).fetchStateTransitionCommand("PUT", "/bookings/{id}/payment/pconfirmation");
+		verify(cc).fetchStateTransitionCommand("DELETE", "/bookings/{id}/cancellation");
 	}
 
 	@Test
@@ -159,8 +159,8 @@ public class TestHTTPDynaRIM {
 		ResourceState begin2 = new ResourceState("begin2");
 		CommandController cc = mock(CommandController.class);
 		CommandController cc2 = mock(CommandController.class);
-		HTTPDynaRIM rim1 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes", null, cc);
-		HTTPDynaRIM rim2 = new HTTPDynaRIM(null, new ResourceStateMachine("DIFFERENT", begin2), "/notes", null, cc2);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes", null, null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(null, new ResourceStateMachine("DIFFERENT", begin2), "/notes", null, null, cc2);
 		
 		// the only thing used to compare equality is the path as the URI must be unique
 		assertEquals(rim1, rim2);
@@ -171,9 +171,9 @@ public class TestHTTPDynaRIM {
 	public void testEqualityParent() {
 		ResourceState begin = new ResourceState("begin");
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("PARENT", begin), "/root", null, cc);
-		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/notes", null, cc);
-		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine("DIFFERENT", begin), "/notes", null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("PARENT", begin), "/root", null, null, cc);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/notes", null, null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine("DIFFERENT", begin), "/notes", null, null, cc);
 		
 		// the only thing used to compare equality is the path as the URI must be unique
 		assertEquals(rim1, rim2);
@@ -184,11 +184,11 @@ public class TestHTTPDynaRIM {
 	public void testInequality() {
 		ResourceState begin = new ResourceState("begin");
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("PARENT", begin), "/notes", null, cc);
-		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/{id}", null, cc);
-		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/{id}/different", null, cc);
-		HTTPDynaRIM rim3 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes1", null, cc);
-		HTTPDynaRIM rim4 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes", null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("PARENT", begin), "/notes", null, null, cc);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/{id}", null, null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine("NOTE", begin), "/{id}/different", null, null, cc);
+		HTTPDynaRIM rim3 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes1", null, null, cc);
+		HTTPDynaRIM rim4 = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes", null, null, cc);
 
 		// both with parent
 		assertFalse(rim1.equals(rim2));
