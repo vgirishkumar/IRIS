@@ -10,15 +10,22 @@ import java.util.Set;
 
 public class ResourceStateMachine {
 
+	public final String entityName;
 	public final ResourceState initial;
 	
 	// TODO remove, only here to allow getSimpleResourceStateModel to work in Spring
 	public ResourceStateMachine() {
+		entityName = null;
 		initial = null;
 	}
 	
-	public ResourceStateMachine(ResourceState initialState) {
+	public ResourceStateMachine(String entityName, ResourceState initialState) {
+		this.entityName = entityName;
 		this.initial = initialState;
+	}
+	
+	public String getEntityName() {
+		return entityName;
 	}
 	
 	public ResourceState getInitial() {
@@ -73,6 +80,18 @@ public class ResourceStateMachine {
 //			}
 		}
 		
+	}
+
+	/**
+	 * For a given resource state, get the valid interactions.
+	 * @param state
+	 * @return
+	 */
+	public Set<String> getInteractions(ResourceState state) {
+		assert(getStates().contains(state));
+		Map<String, Set<String>> interactionMap = getInteractionMap();
+		Set<String> interactions = interactionMap.get(state.getPath());
+		return interactions;
 	}
 	
 	public ResourceState getSimpleResourceStateModel() {

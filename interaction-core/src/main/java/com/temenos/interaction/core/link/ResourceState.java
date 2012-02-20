@@ -32,18 +32,14 @@ public class ResourceState {
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState) {
 		assert null != targetState;
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, targetState.getPath());
-		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
-	}
-
-	/**
-	 * Resource State transitions act on this resource.
-	 * @param httpMethod
-	 * @param targetState
-	 */
-	public void addStateChange(String httpMethod, ResourceState targetState) {
-		assert null != targetState;
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, path);
+		String resourcePath = null;
+		// a destructive command acts on this state, a constructive command acts on the target state
+		if (httpMethod.equals("DELETE")) {
+			resourcePath = getPath();
+		} else {
+			resourcePath = targetState.getPath();
+		}
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath);
 		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
 	}
 

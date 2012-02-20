@@ -31,7 +31,7 @@ public class TestResourceStateMachine {
 		history.addTransition("PUT", reversed);
 		
 		
-		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		ResourceStateMachine sm = new ResourceStateMachine("", begin);
 		assertEquals(6, sm.getStates().size());
 		
 		Set<ResourceState> testStates = new HashSet<ResourceState>();
@@ -58,7 +58,7 @@ public class TestResourceStateMachine {
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		ResourceStateMachine sm = new ResourceStateMachine("", begin);
 		Collection<ResourceState> states = sm.getStates();
 		assertEquals("Number of states", 3, states.size());
 		assertTrue(states.contains(begin));
@@ -76,7 +76,7 @@ public class TestResourceStateMachine {
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		ResourceStateMachine sm = new ResourceStateMachine("", begin);
 
 		Map<String, Set<String>> interactionMap = sm.getInteractionMap();
 		assertEquals("Number of resources", 1, interactionMap.size());
@@ -88,5 +88,38 @@ public class TestResourceStateMachine {
 		assertTrue(interactions.contains("DELETE"));
 	}
 
+	@Test
+	public void testInteractions() {
+		ResourceState begin = new ResourceState("begin", "{id}");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "{id}");
+	
+		begin.addTransition("PUT", exists);
+		exists.addTransition("PUT", exists);
+		exists.addTransition("DELETE", end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine("", begin);
+
+		Set<String> interactions = sm.getInteractions(begin);
+		assertEquals("Number of interactions", 2, interactions.size());
+		assertTrue(interactions.contains("PUT"));
+		assertTrue(interactions.contains("DELETE"));
+	}
+
+	@Test(expected=AssertionError.class)
+	public void testInteractionsInvalidState() {
+		ResourceState begin = new ResourceState("begin", "{id}");
+		ResourceState exists = new ResourceState("exists", "{id}");
+		ResourceState end = new ResourceState("end", "{id}");
+	
+		begin.addTransition("PUT", exists);
+		exists.addTransition("PUT", exists);
+		exists.addTransition("DELETE", end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine("", begin);
+
+		ResourceState other = new ResourceState("other", "/other");
+		sm.getInteractions(other);
+	}
 
 }

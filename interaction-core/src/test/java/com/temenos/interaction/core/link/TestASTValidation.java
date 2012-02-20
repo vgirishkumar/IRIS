@@ -25,7 +25,7 @@ public class TestASTValidation {
 		states.add(exists);
 		states.add(end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		ResourceStateMachine sm = new ResourceStateMachine("", begin);
 		ASTValidation v = new ASTValidation();
 		assertTrue(v.validate(states, sm));	
 	}
@@ -46,7 +46,7 @@ public class TestASTValidation {
 		states.add(unreachableState);
 		states.add(end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		ResourceStateMachine sm = new ResourceStateMachine("", begin);
 		ASTValidation v = new ASTValidation();
 		assertFalse(v.validate(states, sm));	
 	}
@@ -60,7 +60,7 @@ public class TestASTValidation {
 		begin.addTransition("PUT", exists);		
 		exists.addTransition("DELETE", end);
 				
-		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		ResourceStateMachine sm = new ResourceStateMachine("", begin);
 		ASTValidation v = new ASTValidation();
 		assertEquals("digraph G {\n    begin->exists[style=bold,label=\"PUT {id}\"]\n    exists->end[style=bold,label=\"DELETE {id}\"]\n}", v.graph(sm));	
 	}
