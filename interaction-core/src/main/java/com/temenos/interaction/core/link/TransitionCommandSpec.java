@@ -29,11 +29,15 @@ public class TransitionCommandSpec {
 		if (this == other) return true;
 		if (!(other instanceof TransitionCommandSpec)) return false;
 		TransitionCommandSpec otherObj = (TransitionCommandSpec) other;
-		return this.getPath().equals(otherObj.getPath()) &&
+		return ((this.getPath() == null && otherObj.getPath() == null) || (this.getPath() != null && this.getPath().equals(otherObj.getPath()))) &&
 			this.getMethod().equals(otherObj.getMethod());
 	}
 	
 	public int hashCode() {
-		return this.path.hashCode() + this.method.hashCode();
+		return (this.path != null ? this.path.hashCode() : 0) + this.method.hashCode();
+	}
+	
+	public String toString() {
+		return method + ((path != null && path.length() > 0) ? " " + path : "");
 	}
 }

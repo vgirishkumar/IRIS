@@ -19,12 +19,16 @@ public class TestHTTPDynaRIM {
 
 	@Test
 	public void testRIMsCRUD() {
-		ResourceState initial = new ResourceState("initial", "");
-//		ResourceState exists = new ResourceState("exists", "");
-		ResourceState end = new ResourceState("end", "");
-	
-		initial.addTransition("PUT", initial);
-		initial.addTransition("DELETE", end);
+		ResourceState initial = new ResourceState("initial");
+		ResourceState exists = new ResourceState("exists");
+		ResourceState deleted = new ResourceState("deleted");
+
+		// create
+		initial.addTransition("PUT", exists);
+		// update
+		exists.addTransition("PUT", exists);
+		// delete
+		exists.addTransition("DELETE", deleted);
 		
 		CommandController cc = mock(CommandController.class);
 		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", initial), "/notes/{id}", null, cc);
@@ -36,36 +40,76 @@ public class TestHTTPDynaRIM {
 		verify(cc, times(1)).fetchStateTransitionCommand("DELETE", "/notes/{id}");
 	}
 
-//	@Test
+	@Test
 	public void testRIMsSubstate() {
-  		ResourceState begin = new ResourceState("begin", "");
-		ResourceState published = new ResourceState("published", "/published");
+  		ResourceState initial = new ResourceState("initial");
+		ResourceState exists = new ResourceState("exists");
 		ResourceState draft = new ResourceState("draft", "/draft");
-		ResourceState end = new ResourceState("end", "/{id}");
+		ResourceState deleted = new ResourceState("deleted");
 	
-		begin.addTransition("PUT", draft);
+		// create
+		initial.addTransition("PUT", exists);
+		// create draft
+		initial.addTransition("PUT", draft);
+		// updated draft
 		draft.addTransition("PUT", draft);
-		draft.addTransition("PUT", published);
-		draft.addTransition("DELETE", end);
-		published.addTransition("DELETE", end);
+		// publish
+		draft.addTransition("PUT", exists);
+		// delete draft
+		draft.addTransition("DELETE", deleted);
+		// delete published
+		exists.addTransition("DELETE", deleted);
 		
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine("NOTE", begin), "/notes/{id}", null, cc);
+		ResourceStateMachine stateMachine = new ResourceStateMachine("DraftNote", initial);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, stateMachine, "/notes/{id}", null, cc);
 		verify(cc).fetchGetCommand("/notes/{id}");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
-		assertEquals(2, resources.size());
+		assertEquals(1, resources.size());
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}/draft");
+		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}");
 		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/draft");
 		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/draft");
-		verify(cc, times(1)).fetchGetCommand("/notes/{id}/published");
-		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/published");
-		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/published");
 		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}");
 	}
 
 //	@Test
 	public void testRIMsMultipleSubstates() {
+  		ResourceState initial = new ResourceState("initial");
+		ResourceState published = new ResourceState("published", "/published");
+		ResourceState draft = new ResourceState("draft", "/draft");
+		ResourceState deleted = new ResourceState("deleted");
+	
+		// create draft
+		initial.addTransition("PUT", draft);
+		// updated draft
+		draft.addTransition("PUT", draft);
+		// publish
+		draft.addTransition("PUT", published);
+		// delete draft
+		draft.addTransition("DELETE", deleted);
+		// delete published
+		published.addTransition("DELETE", deleted);
+		
+		CommandController cc = mock(CommandController.class);
+		ResourceStateMachine stateMachine = new ResourceStateMachine("PublishNote", initial);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, stateMachine, "/notes/{id}", null, cc);
+		verify(cc).fetchGetCommand("/notes/{id}");
+		Collection<ResourceInteractionModel> resources = parent.getChildren();
+		assertEquals(3, resources.size());
+		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
+		verify(cc, times(1)).fetchGetCommand("/notes/{id}/draft");
+		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/draft");
+		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/draft");
+		verify(cc, times(1)).fetchGetCommand("/notes/{id}/published");
+		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/published");
+		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/published");
+		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}");
+	}
+
+//	@Test
+	public void testRIMsMultipleSubstates1() {
 
 		// the booking
 		ResourceState begin = new ResourceState("begin", "/{id}");

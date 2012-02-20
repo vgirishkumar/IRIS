@@ -1,7 +1,6 @@
 package com.interaction.example.jpa;
 
 import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.TransitionCommandSpec;
 
 public class Behaviour {
 
@@ -18,8 +17,6 @@ public class Behaviour {
 		ResourceState airport = new ResourceState("airports", "/Airports");
 		ResourceState flightsSchedules = new ResourceState("flightschedules", "/FlightSchedule");
 		
-		ResourceState finalState = new ResourceState("end", "");
-	
 		initialState.addTransition("GET", metadata);
 		initialState.addTransition("GET", flights);
 		initialState.addTransition("GET", airport);

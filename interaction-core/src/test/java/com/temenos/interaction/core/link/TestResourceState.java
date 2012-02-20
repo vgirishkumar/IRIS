@@ -29,23 +29,13 @@ public class TestResourceState {
 		assertEquals(0, states.size());
 	}
 
-/*
 	@Test
-	public void testInteractions() {
-		ResourceState begin = new ResourceState("begin");
-		ResourceState exists = new ResourceState("exists");
-		ResourceState end = new ResourceState("end");
-		
-		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
-		exists.addTransition(new TransitionCommandSpec("DELETE", "{id}"), end);
-		
-		assertEquals(0, begin.getInteractions().size());
-		assertEquals(1, exists.getInteractions().size());
-		assertTrue(exists.getInteractions().contains("PUT"));
-		assertEquals(1, end.getInteractions().size());
-		assertTrue(end.getInteractions().contains("DELETE"));
+	public void testSelfState() {
+		ResourceState initial = new ResourceState("initial");
+		ResourceState archived = new ResourceState("archived", "/archived");
+		assertTrue(initial.isSelfState());
+		assertFalse(archived.isSelfState());
 	}
-*/
 	
 	@Test
 	public void testGetCommand() {
@@ -72,6 +62,31 @@ public class TestResourceState {
 		assertFalse(begin.hashCode() == end.hashCode());
 	}
 	
+	@Test
+	public void testEqualityNull() {
+		ResourceState begin = new ResourceState("begin", null);
+		ResourceState end = new ResourceState("begin", null);
+		assertEquals(begin, end);
+		assertEquals(end, begin);
+		assertEquals(begin.hashCode(), end.hashCode());
+	}
+
+	@Test
+	public void testInequalityNull() {
+		ResourceState begin = new ResourceState("begin", null);
+		ResourceState end = new ResourceState("end", "/test");
+		assertFalse(begin.equals(end));
+		assertFalse(begin.hashCode() == end.hashCode());
+	}
+
+	@Test
+	public void testInequalityBothNull() {
+		ResourceState begin = new ResourceState("begin", null);
+		ResourceState end = new ResourceState("end", null);
+		assertFalse(begin.equals(end));
+		assertFalse(begin.hashCode() == end.hashCode());
+	}
+
 	@Test
 	public void testEndState() {
 		ResourceState begin = new ResourceState("begin", "");
