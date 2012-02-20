@@ -24,3 +24,33 @@ b.	Add this line at the end of the file:
 2.	Edit the pom.xml files
 a.	Open the file acquisition-web\parentpom\pom.xml with a text editor
 b.	Replace micro3d21 with 10.140.5.226
+
+----------------------------------------------------------------------
+
+[Edit 20/02/2012]
+
+The Acquisition project has 2 maven profiles:
+	web		Uses hibernate POJOs to store and load data (for testing)
+	delivery	Uses the acquisition messaging layer (OFSML POJOs) to access T24
+
+To build, switch to
+	useragent-acquisition\acquisition-web\parentpom
+and
+	1. Configure setenv.bat
+	2. mvn clean package -Pweb
+
+To build from eclipse (inside parentpom)
+	mvn eclipse:clean 
+	mvn eclipse:eclipse 
+
+To build and run the Acquisition mock responder
+	mvn jetty:run
+
+	NOTE: The Acquisition web application currently read the edmx file from the classpath and not from the url myservice.svc/$metadata. 
+	      Changing the edmx.xml requires copying the file to acquisition-web\src\main\resources\edmx.xml prior to building the acquisition project.
+
+To retrieve nomencl data entries run HTTP GET requests such as
+	http://localhost:8080/responder/rest/nomencl
+	http://localhost:8080/responder/rest/nomencl?$filter=groupCode%20eq%20'COUNTRY'
+	http://localhost:8080/responder/rest/nomencl/1
+

@@ -17,22 +17,22 @@
 		<url>http://www.temenos.com</url>
 	</organization>
 	<repositories>
-<!--
 		<repository>
 			<id>ebank-artifact-repos</id>
 			<name>Maven central repo Viveo</name>
 			<url>file:////10.140.5.226/maven/artifact-repos</url>
 		</repository>
--->
 		<repository>
 			<id>jboss-maven-repo</id>
 			<name>JBoss Maven repository</name>
 			<url>https://repository.jboss.org/nexus/content/groups/public</url>
 		</repository>
+<!--
 		<repository>
 			<id>my-internal-site</id>
 			<url>file:///Documents and Settings/aphethean/repo</url>
 		</repository>
+-->
 	</repositories>
 <!--
 	<distributionManagement>
