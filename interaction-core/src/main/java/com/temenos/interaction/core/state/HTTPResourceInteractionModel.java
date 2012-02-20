@@ -10,6 +10,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import com.temenos.interaction.core.EntityResource;
 
@@ -25,7 +26,8 @@ public interface HTTPResourceInteractionModel {
 			MediaType.APPLICATION_JSON,
 			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
 	public abstract Response get(@Context HttpHeaders headers,
-			@PathParam("id") String id);
+			@PathParam("id") String id,
+			@Context UriInfo uriInfo);
 
 	/**
 	 * PUT a resource.

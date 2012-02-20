@@ -14,6 +14,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -106,11 +107,11 @@ public abstract class AbstractHTTPResourceInteractionModel implements ResourceIn
     @Override
 	@GET
     @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-    public Response get( @Context HttpHeaders headers, @PathParam("id") String id ) {
+    public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.debug("GET " + getFQResourcePath());
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getFQResourcePath());
-    	RESTResponse response = getCommand.get(id, null);
+    	RESTResponse response = getCommand.get(id, uriInfo != null ? uriInfo.getQueryParameters() : null);
     	
     	if (response != null && resourceRegistry != null && response.getResource() instanceof EntityResource) {
         	RESTResource rr = response.getResource();
@@ -148,7 +149,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements ResourceIn
 		StatusType status = putCommand.put(id, resource);
 		assert (status != null);  // not a valid put command
     	if (status == Response.Status.OK) {
-        	return get(headers, id);
+        	return get(headers, id, null);
     	} else {
     		return Response.status(status).build();
     	}
