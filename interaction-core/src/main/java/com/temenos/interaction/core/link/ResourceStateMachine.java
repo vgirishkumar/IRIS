@@ -61,7 +61,7 @@ public class ResourceStateMachine {
 	}
 	
 	private void collectInteractions(Map<String, Set<String>> result, Collection<ResourceState> states, ResourceState currentState) {
-		if (states.contains(currentState)) return;
+		if (currentState == null || states.contains(currentState)) return;
 		states.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
 //			if (!next.equals(initial)) {
@@ -88,9 +88,12 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Set<String> getInteractions(ResourceState state) {
-		assert(getStates().contains(state));
-		Map<String, Set<String>> interactionMap = getInteractionMap();
-		Set<String> interactions = interactionMap.get(state.getPath());
+		Set<String> interactions = null;
+		if(state != null) {
+			assert(getStates().contains(state));
+			Map<String, Set<String>> interactionMap = getInteractionMap();
+			interactions = interactionMap.get(state.getPath());
+		}
 		return interactions;
 	}
 	
