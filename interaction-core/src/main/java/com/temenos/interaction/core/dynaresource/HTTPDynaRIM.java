@@ -68,7 +68,8 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		this.parent = parent;
 		this.stateMachine = stateMachine;
 		if (parent == null && stateMachine.getInitial() != null) {
-			System.out.println(new ASTValidation().graph(stateMachine));
+			logger.info("Checking state machine for [" + this.toString() + "]");
+			logger.info(new ASTValidation().graph(stateMachine));
 		}
 		bootstrap();
 	}
@@ -121,7 +122,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
 		List<String> createdResources = new ArrayList<String>();
 		for (ResourceState s : stateMachine.getStates()) {
-			boolean substate = !s.equals(stateMachine.getInitial()) && !s.isFinalState();
+			boolean substate = !s.equals(stateMachine.getInitial()) && !s.isFinalState() && !s.isSelfState();
 			if (substate && !createdResources.contains(s.getPath())) {
 				HTTPDynaRIM child = new HTTPDynaRIM(this, new ResourceStateMachine(getEntityName(), s), s.getPath(), null, getCommandController());
 				result.add(child);
@@ -131,22 +132,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		return result;
 	}
 
-	/*
-	public Collection<ResourceInteractionModel> createChildResources() {
-		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
-		Map<String, Set<String>> interactionMap = stateMachine.getInteractionMap();
-		for (String path : interactionMap.keySet()) {
-			ResourceState state = null;
-			Collection<ResourceState> allStates = stateMachine.getStates();
-			for (ResourceState s : allStates) {
-				if (s.getPath().equals(path)) {
-					state = s;
-				}
-			}
-			HTTPDynaRIM child = new HTTPDynaRIM(this, getEntityName(), path, state, interactionMap.get(path), null, getCommandController());
-			result.add(child);
-		}
-		return result;
+	public String toString() {
+		return ("HTTPDynaRIM " + stateMachine.getEntityName() + "[" + getFQResourcePath() + "]");
 	}
-	*/
 }

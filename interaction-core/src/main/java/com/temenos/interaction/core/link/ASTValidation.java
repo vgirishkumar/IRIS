@@ -5,7 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ASTValidation {
-
+	
+	private final static String FINAL_STATE = "final";
+	
 	public Set<ResourceState> unreachableStates(final Set<ResourceState> states, final ResourceStateMachine sm) {
 		Set<ResourceState> copyStates = new HashSet<ResourceState>(states);
 		copyStates.removeAll(sm.getStates());
@@ -26,13 +28,28 @@ public class ASTValidation {
 		Collection<ResourceState> states = sm.getStates();
 		StringBuffer sb = new StringBuffer();
 		sb.append("digraph G {").append("\n");
+		sb.append("    ").append(sm.getInitial().getName()).append("[shape=circle, width=.25, label=\"\", color=black, style=filled]").append("\n");
+		int countFinal = 0;
 		for (ResourceState s : states) {
 			for (ResourceState targetState : s.getAllTargets()) {
 				Transition transition = s.getTransition(targetState);
 				sb.append("    ").append(s.getName()).append("->").append(targetState.getName())
-					.append("[style=bold,label=\"")
-					.append(transition.getCommand().getMethod()).append(" ").append(transition.getCommand().getPath())
+					.append("[label=\"")
+					.append(transition.getCommand())
 					.append("\"]").append("\n");
+			}
+			if (s.isFinalState()) {
+				sb.append("    ").append(FINAL_STATE);
+				if (countFinal > 0) {
+					sb.append(countFinal);
+				}
+				sb.append("[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]").append("\n");
+				sb.append("    ").append(s.getName()).append("->").append(FINAL_STATE);
+				if (countFinal > 0) {
+					sb.append(countFinal);
+				}
+				sb.append("[label=\"\"]").append("\n");
+				countFinal++;
 			}
 		}
 		sb.append("}");

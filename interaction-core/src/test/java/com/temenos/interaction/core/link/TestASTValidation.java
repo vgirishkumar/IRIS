@@ -53,16 +53,42 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOT() {
-		ResourceState begin = new ResourceState("begin", "{id}");
+		String expected = "digraph G {\n    initial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    initial->exists[label=\"PUT {id}\"]\n    exists->deleted[label=\"DELETE {id}\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    deleted->final[label=\"\"]\n}";
+		
+		ResourceState initial = new ResourceState("initial", "{id}");
 		ResourceState exists = new ResourceState("exists", "{id}");
-		ResourceState end = new ResourceState("end", "{id}");
+		ResourceState deleted = new ResourceState("deleted", "{id}");
 	
-		begin.addTransition("PUT", exists);		
-		exists.addTransition("DELETE", end);
+		initial.addTransition("PUT", exists);		
+		exists.addTransition("DELETE", deleted);
 				
-		ResourceStateMachine sm = new ResourceStateMachine("", begin);
+		ResourceStateMachine sm = new ResourceStateMachine("", initial);
 		ASTValidation v = new ASTValidation();
-		assertEquals("digraph G {\n    begin->exists[style=bold,label=\"PUT {id}\"]\n    exists->end[style=bold,label=\"DELETE {id}\"]\n}", v.graph(sm));	
+		String result = v.graph(sm);
+		assertEquals(expected, result);	
+	}
+
+	@Test
+	public void testDOTMultipleFinalStates() {
+		String expected = "digraph G {\n    initial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    initial->exists[label=\"PUT\"]\n    exists->deleted[label=\"DELETE\"]\n    exists->archived[label=\"PUT /archived\"]\n"
+			+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
+			+ "    deleted->final[label=\"\"]\n"
+			+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
+			+ "    archived->final1[label=\"\"]\n}";
+		
+		ResourceState initial = new ResourceState("initial");
+		ResourceState exists = new ResourceState("exists");
+		ResourceState archived = new ResourceState("archived", "/archived");
+		ResourceState deleted = new ResourceState("deleted");
+	
+		initial.addTransition("PUT", exists);		
+		exists.addTransition("PUT", archived);
+		exists.addTransition("DELETE", deleted);
+				
+		ResourceStateMachine sm = new ResourceStateMachine("", initial);
+		ASTValidation v = new ASTValidation();
+		String result = v.graph(sm);
+		assertEquals(expected, result);	
 	}
 
 }

@@ -12,7 +12,22 @@ public class ResourceState {
 	private final String path;
 	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
 
+	/**
+	 * Construct a 'self' ResourceState.  A transition to one's self will not create a new resource.
+	 * @param name
+	 */
+	public ResourceState(String name) {
+		assert(name != null);
+		this.name = name;
+		this.path = null;
+	}
+
+	/**
+	 * Construct a substate ResourceState.  A transition to a substate state will create a new resource.
+	 * @param name
+	 */
 	public ResourceState(String name, String path) {
+		assert(name != null);
 		this.name = name;
 		this.path = path;
 	}
@@ -25,6 +40,10 @@ public class ResourceState {
 		return path;
 	}
 
+	public boolean isSelfState() {
+		return (path == null);
+	}
+	
 	/**
 	 * Normal transitions transition state to another state.
 	 * @param httpMethod
@@ -32,12 +51,11 @@ public class ResourceState {
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState) {
 		assert null != targetState;
-		String resourcePath = null;
+		String resourcePath = targetState.getPath();
 		// a destructive command acts on this state, a constructive command acts on the target state
+		// TODO define set of destructive methods
 		if (httpMethod.equals("DELETE")) {
 			resourcePath = getPath();
-		} else {
-			resourcePath = targetState.getPath();
 		}
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath);
 		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
@@ -79,14 +97,14 @@ public class ResourceState {
 	    if ( !(other instanceof ResourceState) ) return false;
 	    ResourceState otherState = (ResourceState) other;
 	    return name.equals(otherState.name) &&
-	    	path.equals(otherState.path) &&
+	    	((path == null && otherState.path == null) || (path != null && path.equals(otherState.path))) &&
 	    	transitions.equals(otherState.transitions);
 	}
 	
 	public int hashCode() {
 		// TODO proper implementation of hashCode, important as we intend to use the in our DSL validation
 		return name.hashCode() +
-			path.hashCode() +
+			(path != null ? path.hashCode() : 0) +
 			transitions.hashCode();
 	}
 }
