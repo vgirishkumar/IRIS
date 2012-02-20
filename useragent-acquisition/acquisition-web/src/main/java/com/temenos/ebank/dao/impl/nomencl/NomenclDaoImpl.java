@@ -3,8 +3,6 @@ package com.temenos.ebank.dao.impl.nomencl;
 import java.util.List;
 
 import org.hibernate.criterion.Example;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,14 +12,25 @@ import com.temenos.ebank.dao.interfaces.nomencl.INomenclDao;
 import com.temenos.ebank.domain.Nomencl;
 
 @Repository
-@SuppressWarnings("unchecked")
 public class NomenclDaoImpl extends HibernateDaoSupport implements INomenclDao {
-
+	private NomenclDaoHelper daoHelper;
+	
+	public NomenclDaoImpl() {
+		daoHelper = new NomenclDaoHelper();
+	}
+	
 	@Transactional(readOnly = true)
 	public List<Nomencl> getNomencl(String language, String group) {
+		String urlResource = "http://localhost:8080/responder/rest/nomencl";
+		String filter = "$filter=language eq '" + language + "'";
+		filter += " and groupCode eq '" + group + "'";
+		String orderby = "$orderby=sortOrder,label asc";
+		return daoHelper.getEntities(urlResource + "?" + filter + "&" + orderby);
+		/*
 		return getSession().createCriteria(Nomencl.class).add(Restrictions.eq("language", language))
 				.add(Restrictions.eq("groupCode", group)).addOrder(Order.asc("sortOrder")).addOrder(Order.asc("label"))
 				.list();
+				*/
 	}
 
 	@Transactional
