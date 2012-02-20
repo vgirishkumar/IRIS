@@ -46,7 +46,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 * @param commandController
 	 */
 	public HTTPDynaRIM(ResourceStateMachine stateMachine, String path, ResourceRegistry rr, CommandController commandController) {
-		this(null, stateMachine, path, null, rr, commandController);
+		this(null, stateMachine, path, stateMachine.getInitial(), rr, commandController);
 	}
 
 	/**

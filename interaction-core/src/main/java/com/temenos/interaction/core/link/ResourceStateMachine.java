@@ -138,13 +138,4 @@ public class ResourceStateMachine {
 		return getStateMap().get(path);
 	}
 
-	public ResourceState getSimpleResourceStateModel() {
-		ResourceState initialState = new ResourceState("begin", "/{id}");
-		ResourceState finalState = new ResourceState("end", "/{id}");
-	
-		initialState.addTransition("PUT", initialState);		
-		initialState.addTransition("DELETE", finalState);
-		return initialState;
-	}
-
 }

@@ -72,14 +72,18 @@
     	<constructor-arg name="root" ref="DYNA_NOTE" />
     </bean>
 
+    <bean id="behaviour" class="com.temenos.interaction.example.note.Behaviour" />
+    <bean id="initialNoteState" factory-bean="behaviour" factory-method="getCRUDResourceStateModel"/>
+
     <!-- Notes resource state model (only getting initial state from resource registry as a convenience ) -->
-    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine" />
-    <bean id="initialNoteState" factory-bean="stateMachine" factory-method="getSimpleResourceStateModel"/>
+    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
+    	<constructor-arg name="entityName" value="NOTE" />
+    	<constructor-arg name="initialState" ref="initialNoteState" />
+    </bean>
 
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="NOTE" />
-    	<constructor-arg name="path" value="/notes" />
-    	<constructor-arg name="state" ref="initialNoteState" />
+    	<constructor-arg name="stateMachine" ref="stateMachine" />
+    	<constructor-arg name="path" value="/notes/{id}" />
     	<constructor-arg name="rr"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="noteCommands" />
     </bean>
