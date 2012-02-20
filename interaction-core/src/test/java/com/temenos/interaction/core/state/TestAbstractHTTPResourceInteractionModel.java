@@ -44,7 +44,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
 		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null));
 		cc.setGetCommand(resourcePath, rgc);
-		Response response = r.get(null, "123");
+		Response response = r.get(null, "123", null);
 		assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
 	}
 
@@ -56,7 +56,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand(resourcePath, mock(ResourceGetCommand.class));
-		r.get(null, "123");
+		r.get(null, "123", null);
 	}
 
 	/* No real need to test for this exception, responsibility of CommandConntroller */
@@ -65,7 +65,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
-		r.get(null, "123");
+		r.get(null, "123", null);
 	}
 
 	/* ResourceGetCommand returns a RESTResponse with Status OK, but getResource will return null */
@@ -78,7 +78,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
 		when(rgc.get(anyString(), isNull(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.OK, null));
 		cc.setGetCommand(resourcePath, rgc);
-		r.get(null, "123");
+		r.get(null, "123", null);
 	}
 
 	/* Test a status returned in the ResourceDeleteCommand will be returned all the way to the client */

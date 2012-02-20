@@ -32,6 +32,18 @@ public class App {
 		Abdera abdera = new Abdera();
 		AbderaClient client = new AbderaClient(abdera);
 
+		//Read meta data from file
+		/*
+	    EdmDataServices metadata = null;
+		try {
+			InputStream is = new FileInputStream("C:/edmx.xml");
+			XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(is)));
+			metadata = new EdmxFormatParser().parseMetadata(reader);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		*/
+		
 		String svcRootURI = "http://localhost:8886/JPAProducerExample.svc/";
 
 	    EdmDataServices metadata = null;
@@ -51,10 +63,11 @@ public class App {
 			e.printStackTrace();
 		}
 			*/
-		
-		//		ClientResponse resp = client.get("http://localhost:8080/example/rest/notes");
+
+//		ClientResponse resp = client.get("http://localhost:8080/example/rest/notes");
 		ClientResponse resp = client.get("http://localhost:8886/JPAProducerExample.svc/Products(49)/Order_Details");
 //		ClientResponse resp = client.get("http://localhost:8080/responder/rest/FlightSchedule/1");
+//		ClientResponse resp = client.get("http://localhost:8080/responder/rest/nomencl?$filter=language%20eq%20'en'%20and%20groupCode%20eq%20'COUNTRY'&$orderby=sortOrder,label%20asc");
 		if (resp.getType() == ResponseType.SUCCESS) {
 			Document<Feed> doc = resp.getDocument();
 			Feed feed = doc.getRoot();

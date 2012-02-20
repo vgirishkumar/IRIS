@@ -1,0 +1,102 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!-- Initialise JPA for MockResponder -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	</bean>
+	<!-- Initialise responder database -->
+	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+	
+	<!-- MockResponder JPA Producer -->
+	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
+		<constructor-arg name="emf" ref="entityManagerFactory" />
+		<constructor-arg name="namespace" value="MockResponderSDK" />		
+		<constructor-arg name="maxResults" value="100" />				
+	</bean>
+	<bean id="edmDataServices" factory-bean="producer" factory-method="getMetadata"/>
+<!--
+	<bean id="functionsProducer" class="com.temenos.interaction.example.note.NewFunctionProducer">
+		<constructor-arg name="emf" ref="entityManagerFactory" />		
+		<constructor-arg name="odataNamespace" value="MockResponderSDK" />
+		<constructor-arg name="jpaProducer" ref="producer" />				
+	</bean>
+-->
+	
+    <!--
+	  An extension of org.apache.wink.spring.Registrar with support for singletons.
+    -->
+	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
+		<property name="singletons">
+        	<set>
+				<ref local="staxHALProvider" />
+				<ref local="atomProvider" />
+ 			</set>
+   		</property>
+   		<property name="classes">
+			<set value-type="java.lang.Class">
+<!--  
+				<value>com.temenos.interaction.example.sandbox.SandboxRIM</value>
+				<value>com.temenos.interaction.example.note.NoteRIM</value>
+				<value>com.temenos.interaction.example.note.NewNoteRIM</value>
+-->
+			</set>
+		</property>
+		<property name="resourceRegistry" ref="resourceRegistry" />
+	</bean>
+
+	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+	</bean>
+	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+	</bean>
+
+    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+    	<constructor-arg name="resource">
+    	    <set>
+				<ref bean="NomenclFeed" />
+				<ref bean="Nomencl" />
+            </set>
+        </constructor-arg>
+    </bean>
+
+    <!-- Resources -->
+    <bean id="NomenclFeed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    	<constructor-arg name="entityName" value="Nomencl" />
+    	<constructor-arg name="path" value="/nomencl" />
+    	<constructor-arg name="commandController" ref="commands" />
+    </bean>
+    
+    <bean id="Nomencl" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    	<constructor-arg name="entityName" value="Nomencl" />
+    	<constructor-arg name="path" value="/nomencl/{id}" />
+    	<constructor-arg name="commandController" ref="commands" />
+    </bean>
+
+    <!-- Commands -->
+    <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
+    	<constructor-arg name="commands">
+			<map>
+			    <entry>
+                    <key><value>/nomencl</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="entity" value="Nomencl" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+				</entry>
+                <entry>
+                    <key><value>/nomencl/{id}</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
+                        <constructor-arg name="entity" value="Nomencl" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+            </map>
+        </constructor-arg>
+</bean>
+
+</beans>

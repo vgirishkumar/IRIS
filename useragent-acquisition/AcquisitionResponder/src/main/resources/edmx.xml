@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+    <edmx:DataServices m:DataServiceVersion="1.0">
+        <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="com.temenos.ebank.AcquisitionResponder">
+            <EntityType Name="Nomencl">
+                <Key>
+                    <PropertyRef Name="id"></PropertyRef>
+                </Key>
+                <Property Name="id" Type="Edm.Int64" Nullable="false"></Property>
+                <Property Name="language" Type="Edm.String" Nullable="true"></Property>
+                <Property Name="groupCode" Type="Edm.String" Nullable="true"></Property>
+                <Property Name="code" Type="Edm.String" Nullable="true"></Property>
+                <Property Name="label" Type="Edm.String" Nullable="true"></Property>
+                <Property Name="sortOrder" Type="Edm.Int32" Nullable="true"></Property>
+                <NavigationProperty Name="NomenclFeed" Relationship="com.temenos.ebank.AcquisitionResponder.FK_Nomencl_NomenclFeed" FromRole="Nomencl" ToRole="NomenclFeed"></NavigationProperty>
+            </EntityType>
+            <Association Name="FK_Nomencl_NomenclFeed">
+                <End Role="Nomencl" Type="com.temenos.ebank.AcquisitionResponder.Nomencl" Multiplicity="*"></End>
+                <End Role="NomenclFeed" Type="com.temenos.ebank.AcquisitionResponder.Nomencl" Multiplicity="0..1"></End>
+            </Association>
+        </Schema>
+        <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="AcquisitionContainer">
+            <EntityContainer Name="AcquisitionEntities" m:IsDefaultEntityContainer="true">
+                <EntitySet Name="Nomencl" EntityType="com.temenos.ebank.AcquisitionResponder.Nomencl"></EntitySet>
+            </EntityContainer>
+            <AssociationSet Name="FK_Nomencl_NomenclFeed" Association="com.temenos.ebank.AcquisitionResponder.FK_Nomencl_NomenclFeed">
+                <End Role="Nomencl" EntitySet="Nomencl"></End>
+                <End Role="NomenclFeed" EntitySet="Nomencl"></End>
+            </AssociationSet>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

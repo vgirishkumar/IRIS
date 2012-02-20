@@ -2,6 +2,7 @@ package com.temenos.interaction.winkext;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.DynamicResource;
 
@@ -63,8 +64,8 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
     }
 
 	@Override
-	public Response get(HttpHeaders headers, String id) {
-		return resource.get(headers, id);
+	public Response get(HttpHeaders headers, String id, UriInfo uriInfo) {
+		return resource.get(headers, id, uriInfo);
 	}
 
 	@Override
