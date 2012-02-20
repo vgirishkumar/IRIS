@@ -12,7 +12,7 @@ public class TransitionCommandSpec {
 	private String method;
 	private List<String> queryParams;
 	
-	public TransitionCommandSpec(String method, String path) {
+	protected TransitionCommandSpec(String method, String path) {
 		this.path = path;
 		this.method = method;
 	}

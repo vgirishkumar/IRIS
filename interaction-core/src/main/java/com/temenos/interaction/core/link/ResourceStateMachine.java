@@ -10,15 +10,22 @@ import java.util.Set;
 
 public class ResourceStateMachine {
 
+	public final String entityName;
 	public final ResourceState initial;
 	
 	// TODO remove, only here to allow getSimpleResourceStateModel to work in Spring
 	public ResourceStateMachine() {
+		entityName = null;
 		initial = null;
 	}
 	
-	public ResourceStateMachine(ResourceState initialState) {
+	public ResourceStateMachine(String entityName, ResourceState initialState) {
+		this.entityName = entityName;
 		this.initial = initialState;
+	}
+	
+	public String getEntityName() {
+		return entityName;
 	}
 	
 	public ResourceState getInitial() {
@@ -42,6 +49,10 @@ public class ResourceStateMachine {
 		
 	}
 
+	/**
+	 * Return a map of the all paths (states), and transitions to other states
+	 * @return
+	 */
 	public Map<String, Set<String>> getInteractionMap() {
 		Map<String, Set<String>> interactionMap = new HashMap<String, Set<String>>();
 		List<ResourceState> states = new ArrayList<ResourceState>();
@@ -53,7 +64,7 @@ public class ResourceStateMachine {
 		if (states.contains(currentState)) return;
 		states.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
-			if (!next.equals(initial)) {
+//			if (!next.equals(initial)) {
 				// lookup transition to get to here
 				Transition t = currentState.getTransition(next);
 				TransitionCommandSpec command = t.getCommand();
@@ -66,18 +77,29 @@ public class ResourceStateMachine {
 				
 				result.put(path, interactions);
 				collectInteractions(result, states, next);
-			}
+//			}
 		}
 		
 	}
 
-	public ResourceState getSimpleResourceStateModel() {
-		ResourceState initialState = new ResourceState("begin", "");
-		ResourceState exists = new ResourceState("exists", "/{id}");
-		ResourceState finalState = new ResourceState("end", "");
+	/**
+	 * For a given resource state, get the valid interactions.
+	 * @param state
+	 * @return
+	 */
+	public Set<String> getInteractions(ResourceState state) {
+		assert(getStates().contains(state));
+		Map<String, Set<String>> interactionMap = getInteractionMap();
+		Set<String> interactions = interactionMap.get(state.getPath());
+		return interactions;
+	}
 	
-		initialState.addTransition(new TransitionCommandSpec("PUT", "/{id}"), exists);		
-		exists.addTransition(new TransitionCommandSpec("DELETE", "/{id}"), finalState);
+	public ResourceState getSimpleResourceStateModel() {
+		ResourceState initialState = new ResourceState("begin", "/{id}");
+		ResourceState finalState = new ResourceState("end", "/{id}");
+	
+		initialState.addTransition("PUT", initialState);		
+		initialState.addTransition("DELETE", finalState);
 		return initialState;
 	}
 

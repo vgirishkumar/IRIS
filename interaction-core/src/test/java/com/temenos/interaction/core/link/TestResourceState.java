@@ -49,9 +49,9 @@ public class TestResourceState {
 	
 	@Test
 	public void testGetCommand() {
-		ResourceState begin = new ResourceState("begin", "");
+		ResourceState begin = new ResourceState("begin", "{id}");
 		ResourceState exists = new ResourceState("exists", "{id}");
-		begin.addTransition(new TransitionCommandSpec("PUT", "{id}"), exists);
+		begin.addTransition("PUT", exists);
 		assertEquals("PUT", begin.getTransition(exists).getCommand().getMethod());
 		assertEquals("{id}", begin.getTransition(exists).getCommand().getPath());
 	}
@@ -76,7 +76,7 @@ public class TestResourceState {
 	public void testEndState() {
 		ResourceState begin = new ResourceState("begin", "");
 		ResourceState end = new ResourceState("end", "");
-		begin.addTransition(new TransitionCommandSpec("DELETE", "noop"), end);
+		begin.addTransition("DELETE", end);
 		assertFalse(begin.isFinalState());
 		assertTrue(end.isFinalState());
 	}

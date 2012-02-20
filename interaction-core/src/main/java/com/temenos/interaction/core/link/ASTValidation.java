@@ -30,9 +30,9 @@ public class ASTValidation {
 			for (ResourceState targetState : s.getAllTargets()) {
 				Transition transition = s.getTransition(targetState);
 				sb.append("    ").append(s.getName()).append("->").append(targetState.getName())
-					.append("[style=bold,label=")
+					.append("[style=bold,label=\"")
 					.append(transition.getCommand().getMethod()).append(" ").append(transition.getCommand().getPath())
-					.append("]").append("\n");
+					.append("\"]").append("\n");
 			}
 		}
 		sb.append("}");
