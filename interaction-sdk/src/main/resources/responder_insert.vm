@@ -2,17 +2,18 @@
 # Populate your responder inmemory database with some test values
 #
 # For example:
-#foreach ( $jpaentity in $entities )
-#INSERT INTO `$jpaentity.getClazz()`(##
-#foreach ( $fieldInfo in $jpaentity.getAllFieldInfos() ) 
+#foreach ( $resourceInfo in $resourcesInfo )
+#if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
+#INSERT INTO `$resourceInfo.getJPAEntityInfo().getClazz()`(##
+#foreach ( $fieldInfo in $resourceInfo.getJPAEntityInfo().getAllFieldInfos() ) 
 `$fieldInfo.getName()`##
-#set ( $indexOfLastElement = $jpaentity.getAllFieldInfos().size() - 1 )
-#if (!$fieldInfo.equals($jpaentity.getAllFieldInfos().get($indexOfLastElement))) 
+#set ( $indexOfLastElement = $resourceInfo.getJPAEntityInfo().getAllFieldInfos().size() - 1 )
+#if (!$fieldInfo.equals($resourceInfo.getJPAEntityInfo().getAllFieldInfos().get($indexOfLastElement))) 
  , ##
 #end
 #end                                                  
 ) VALUES(##
-#foreach ( $fieldInfo in $jpaentity.getAllFieldInfos() )
+#foreach ( $fieldInfo in $resourceInfo.getJPAEntityInfo().getAllFieldInfos() )
 #if ($fieldInfo.getType().equals("String")) 
 'example'##
 #elseif ($fieldInfo.getType().equals("Long") || $fieldInfo.getType().equals("Integer"))
@@ -24,10 +25,11 @@
 #else
 'Type not supported'##
 #end
-#set ( $indexOfLastElement = $jpaentity.getAllFieldInfos().size() - 1 )
-#if (!$fieldInfo.equals($jpaentity.getAllFieldInfos().get($indexOfLastElement))) 
+#set ( $indexOfLastElement = $resourceInfo.getJPAEntityInfo().getAllFieldInfos().size() - 1 )
+#if (!$fieldInfo.equals($resourceInfo.getJPAEntityInfo().getAllFieldInfos().get($indexOfLastElement))) 
  , ##
 #end
 #end
 );	
+#end
 #end

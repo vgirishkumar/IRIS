@@ -7,8 +7,8 @@
 	<persistence-unit name="ResponderServiceHibernate"
 		transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-			<class>com.temenos.ebank.AcquisitionResponder.Nomencl</class>
-			<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<class>com.temenos.ebank.AcquisitionResponder.Nomencl</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="javax.persistence.jdbc.driver" value="org.hsqldb.jdbcDriver" />
 			<property name="javax.persistence.jdbc.user" value="sa" />

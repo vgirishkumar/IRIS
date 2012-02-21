@@ -192,11 +192,11 @@ private Date lastDeparture;
 	public void testGenJPAConfiguration() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
-		List<JPAEntityInfo> entities = new ArrayList<JPAEntityInfo>();
-		entities.add(new JPAEntityInfo("Flight", "AirlineModel", null, null));
-		entities.add(new JPAEntityInfo("Airport", "AirlineModel", null, null));
-		entities.add(new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null));
-		String generatedPersistenceConfig = rg.generateJPAConfiguration(entities);
+		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
+		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new JPAEntityInfo("Flight", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new JPAEntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		String generatedPersistenceConfig = rg.generateJPAConfiguration(resourcesInfo);
 		
 		assertTrue(generatedPersistenceConfig.contains("<!-- Generated JPA configuration for IRIS MockResponder -->"));
 		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.Flight</class>"));
@@ -208,17 +208,16 @@ private Date lastDeparture;
 	public void testGenResponderDML() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
-		List<JPAEntityInfo> entities = new ArrayList<JPAEntityInfo>();
+		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
 		
 		List<FieldInfo> properties = new ArrayList<FieldInfo>();
 		properties.add(new FieldInfo("number", "Long", null));
 		properties.add(new FieldInfo("fitHostiesName", "String", null));
 		properties.add(new FieldInfo("runway", "String", null));
-		entities.add(new JPAEntityInfo("Flight", "AirlineModel", null, properties));
-
-		entities.add(new JPAEntityInfo("Airport", "AirlineModel", null, null));
-		entities.add(new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null));
-		String generatedResponderDML = rg.generateResponderDML(entities);
+		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new JPAEntityInfo("Flight", "AirlineModel", null, properties), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new JPAEntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		String generatedResponderDML = rg.generateResponderDML(resourcesInfo);
 		
 		assertTrue(generatedResponderDML.contains("#INSERT INTO `Flight`(`number` , `fitHostiesName` , `runway`) VALUES('1' , 'example' , 'example');"));
 		assertTrue(generatedResponderDML.contains("#INSERT INTO `Airport`() VALUES();"));

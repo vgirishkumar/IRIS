@@ -16,6 +16,7 @@ public class JPAEntityInfo {
 	private String pckge;
 	private FieldInfo keyInfo;
 	private List<FieldInfo> properties;
+	private boolean isFeed = false;
 	
 	public JPAEntityInfo(String clazz, String pckge, FieldInfo keyInfo, List<FieldInfo> properties) {
 		this.clazz = clazz;
@@ -70,5 +71,13 @@ public class JPAEntityInfo {
 			return pckge.replace(".", "/");
 		}
 		return "";
+	}
+	
+	public void setFeedEntity() {
+		isFeed = true;
+	}
+	
+	public boolean isFeedEntity() {
+		return isFeed;
 	}
 }

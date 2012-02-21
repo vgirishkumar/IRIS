@@ -58,8 +58,8 @@
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
     	<constructor-arg name="resource">
     	    <set>
-				<ref bean="NomenclFeed" />
-				<ref bean="Nomencl" />
+                <ref bean="NomenclFeed" />
+                <ref bean="Nomencl" />
             </set>
         </constructor-arg>
     </bean>
@@ -67,36 +67,37 @@
     <!-- Resources -->
     <bean id="NomenclFeed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="entityName" value="Nomencl" />
-    	<constructor-arg name="path" value="/nomencl" />
+    	<constructor-arg name="path" value="/Nomencl/{id}" />
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     
     <bean id="Nomencl" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="entityName" value="Nomencl" />
-    	<constructor-arg name="path" value="/nomencl/{id}" />
+    	<constructor-arg name="path" value="/Nomencl" />
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
+    
 
     <!-- Commands -->
     <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
     	<constructor-arg name="commands">
-			<map>
-			    <entry>
-                    <key><value>/nomencl</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+            <map>
+                <entry>
+                    <key><value>/Nomencl/{id}</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
                         <constructor-arg name="entity" value="Nomencl" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
-				</entry>
+                </entry>
                 <entry>
-                    <key><value>/nomencl/{id}</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
+                    <key><value>/Nomencl</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
                         <constructor-arg name="entity" value="Nomencl" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>
             </map>
         </constructor-arg>
-</bean>
+    </bean>
 
 </beans>

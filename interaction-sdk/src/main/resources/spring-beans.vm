@@ -58,18 +58,26 @@
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
     	<constructor-arg name="resource">
     	    <set>
-#foreach ( $jpaentity in $entities )
-                <ref bean="$jpaentity.getClazz()" />
+#foreach ( $resourceInfo in $resourcesInfo )
+#if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
+                <ref bean="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" />
+#else
+                <ref bean="$resourceInfo.getJPAEntityInfo().getClazz()" />
+#end
 #end
             </set>
         </constructor-arg>
     </bean>
 
     <!-- Resources -->
-#foreach ( $jpaentity in $entities )
-    <bean id="$jpaentity.getClazz()" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="$jpaentity.getClazz()" />
-    	<constructor-arg name="path" value="/$jpaentity.getClazz()/{id}" />
+#foreach ( $resourceInfo in $resourcesInfo )
+#if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
+    <bean id="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+#else
+    <bean id="$resourceInfo.getJPAEntityInfo().getClazz()" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+#end
+    	<constructor-arg name="entityName" value="$resourceInfo.getJPAEntityInfo().getClazz()" />
+    	<constructor-arg name="path" value="$resourceInfo.getResourcePath()" />
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     
@@ -79,11 +87,11 @@
     <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
     	<constructor-arg name="commands">
             <map>
-#foreach ( $jpaentity in $entities )
+#foreach ( $resourceInfo in $resourcesInfo )
                 <entry>
-                    <key><value>/$jpaentity.getClazz()/{id}</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg name="entity" value="$jpaentity.getClazz()" />
+                    <key><value>$resourceInfo.getResourcePath()</value></key>
+                    <bean class="$resourceInfo.getCommandType()">
+                        <constructor-arg name="entity" value="$resourceInfo.getJPAEntityInfo().getClazz()" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>

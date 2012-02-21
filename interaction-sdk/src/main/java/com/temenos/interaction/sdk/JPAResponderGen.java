@@ -16,8 +16,12 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.odata4j.edm.EdmAssociation;
+import org.odata4j.edm.EdmAssociationEnd;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntityType;
+import org.odata4j.edm.EdmMultiplicity;
+import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
@@ -82,7 +86,7 @@ public class JPAResponderGen {
 		EdmDataServices ds = new EdmxFormatParser().parseMetadata(reader);
 		
 		boolean ok = true;
-		List<JPAEntityInfo> entities = new ArrayList<JPAEntityInfo>();
+		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
 		
 		// generate JPA classes
 		for (EdmEntityType t : ds.getEntityTypes()) {
@@ -90,25 +94,45 @@ public class JPAResponderGen {
 			String fqOutputDir = srcOutputPath.getPath() + "/" + entityInfo.getPackageAsPath();
 			new File(fqOutputDir).mkdirs();
 			if (writeClass(formClassFilename(srcOutputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
-				entities.add(entityInfo);
+				String resourcePath = "/" + entityInfo.getClazz() + "/{id}";
+				String commandType = "com.temenos.interaction.commands.odata.GETEntityCommand"; 
+				resourcesInfo.add(new ResourceInfo(resourcePath, entityInfo, commandType));
+				
+				//Navigation properties linking to itself with multiplicity are considered to relate a resource with a collection resource
+				if(t.getNavigationProperties() != null) {
+					for (EdmNavigationProperty np : t.getNavigationProperties()) {
+						EdmAssociation ea = np.getRelationship();
+						EdmAssociationEnd end1 = ea.getEnd1();
+						EdmAssociationEnd end2 = ea.getEnd2();
+						if(end1.getType().equals(end2.getType()) && (
+								end1.getMultiplicity().equals(EdmMultiplicity.MANY) ||
+								end2.getMultiplicity().equals(EdmMultiplicity.MANY))) {
+							JPAEntityInfo entityFeedInfo = createJPAEntityInfoFromEdmEntityType(t);
+							entityFeedInfo.setFeedEntity();		//This is a feed of OEntities and should not exist as a JPA entity 
+							resourcePath = "/" + entityFeedInfo.getClazz();
+							commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
+							resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
+						}					
+					}
+				}
+					
 			} else {
 				ok = false;
 			}
-			
 		}
-
+		
 		// generate persistence.xml
-		if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(entities))) {
+		if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(resourcesInfo))) {
 			ok = false;
 		}
 
 		// generate spring-beans.xml
-		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(entities))) {
+		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo))) {
 			ok = false;
 		}
 
 		// generate responder insert
-		if (!writeResponderDML(configOutputPath, generateResponderDML(entities))) {
+		if (!writeResponderDML(configOutputPath, generateResponderDML(resourcesInfo))) {
 			ok = false;
 		}
 
@@ -289,12 +313,12 @@ public class JPAResponderGen {
 
 	/**
 	 * Generate the JPA configuration for the provided JPA entities.
-	 * @param enitities
+	 * @param resourcesInfo
 	 * @return
 	 */
-	public String generateJPAConfiguration(List<JPAEntityInfo> enitities) {
+	public String generateJPAConfiguration(List<ResourceInfo> resourcesInfo) {
 		VelocityContext context = new VelocityContext();
-		context.put("entities", enitities);
+		context.put("resourcesInfo", resourcesInfo);
 		
 		Template t = ve.getTemplate("/persistence.vm");
 		StringWriter sw = new StringWriter();
@@ -304,12 +328,12 @@ public class JPAResponderGen {
 
 	/**
 	 * Generate the Spring configuration for the provided resources.
-	 * @param entities
+	 * @param resourcesInfo
 	 * @return
 	 */
-	public String generateSpringConfiguration(List<JPAEntityInfo> entities) {
+	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo) {
 		VelocityContext context = new VelocityContext();
-		context.put("entities", entities);
+		context.put("resourcesInfo", resourcesInfo);
 		
 		Template t = ve.getTemplate("/spring-beans.vm");
 		StringWriter sw = new StringWriter();
@@ -319,12 +343,12 @@ public class JPAResponderGen {
 
 	/**
 	 * Generate the responder_insert.sql provided resources.
-	 * @param entities
+	 * @param resourcesInfo
 	 * @return
 	 */
-	public String generateResponderDML(List<JPAEntityInfo> entities) {
+	public String generateResponderDML(List<ResourceInfo> resourcesInfo) {
 		VelocityContext context = new VelocityContext();
-		context.put("entities", entities);
+		context.put("resourcesInfo", resourcesInfo);
 		
 		Template t = ve.getTemplate("/responder_insert.vm");
 		StringWriter sw = new StringWriter();
