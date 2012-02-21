@@ -13,7 +13,7 @@
 <!-- 	<context:property-placeholder location="classpath:jdbc.properties"/> -->
 	
 		<!-- configuration for HSQLDB in-memory - for testing only, DO NOT USE in production  -->
-	<context:property-placeholder location="classpath:application.hsqldb.properties"/>
+	<context:property-placeholder location="classpath:application.hsqldb.properties, classpath:application.properties"/>
 
 	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
 		<property name="driverClass" value="${jdbc.driver}" />
@@ -86,7 +86,9 @@
 	</bean>
 	
 	<bean id="applicationDao" class="com.temenos.ebank.dao.impl.acquisition.ApplicationDaoImpl" parent="abstractDao"/>
-	<bean id="nomenclDao" class="com.temenos.ebank.dao.impl.nomencl.NomenclDaoImpl" parent="abstractDao"/>
+	<bean id="nomenclDao" class="com.temenos.ebank.dao.impl.nomencl.NomenclDaoImpl" parent="abstractDao">
+		<constructor-arg name="irisUrl" value="${iris.url}" />	
+	</bean>
 
 	<bean id="resourceDao" class="com.temenos.ebank.dao.impl.resources.ResourcesDaoImpl" parent="abstractDao"/>
 
