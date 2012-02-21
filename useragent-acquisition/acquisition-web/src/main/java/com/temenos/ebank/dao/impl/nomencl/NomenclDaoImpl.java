@@ -21,7 +21,7 @@ public class NomenclDaoImpl extends HibernateDaoSupport implements INomenclDao {
 	
 	@Transactional(readOnly = true)
 	public List<Nomencl> getNomencl(String language, String group) {
-		String urlResource = "http://localhost:8080/responder/rest/nomencl";
+		String urlResource = "http://localhost:8080/responder/rest/Nomencl";
 		String filter = "$filter=language eq '" + language + "'";
 		filter += " and groupCode eq '" + group + "'";
 		String orderby = "$orderby=sortOrder,label asc";
