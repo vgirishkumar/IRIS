@@ -1,4 +1,4 @@
-package com.temenos.ebank.dao.impl.nomencl;
+package com.temenos.ebank.dao.impl;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -27,34 +27,38 @@ import org.odata4j.stax2.XMLEventReader2;
 import com.temenos.ebank.domain.Nomencl;
 
 /**
- * Helper class to perform an HTTP GET request on the /nomencl REST resource.
+ * Helper class to perform an HTTP GET request on the REST resources.
  *  
  * NOTE: This class uses the Apache Abdera client to access the service and expects the edmx.xml to be located
  * under /edmx.xml. The latter won't be necessary once we expose the metadata service document and it will
  * enable to use an OData client library.
  */
-public class NomenclDaoHelper {
+public class IrisDaoHelper {
 	Abdera abdera;
 	AbderaClient client;
 	EdmDataServices metadata = null;
+	String irisUrl;
 	
-	public NomenclDaoHelper() {
+	public IrisDaoHelper(String irisUrl) {
 		abdera = new Abdera();
 		client = new AbderaClient(abdera);
 
 		//Read meta data
 		try {
-			InputStream is = NomenclDaoHelper.class.getResourceAsStream("/edmx.xml");
+			InputStream is = IrisDaoHelper.class.getResourceAsStream("/edmx.xml");
 			XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(is)));
 			metadata = new EdmxFormatParser().parseMetadata(reader);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to read /edmx.xml", e);
 		}
+		
+		this.irisUrl = irisUrl;
 	}
 	
-	public List<Nomencl> getEntities(String url) {
+	public List<Nomencl> getNomenclEntities(String resourcePath, String filter, String orderby) {
 		List<Nomencl> entities = new ArrayList<Nomencl>();
 		
+		String url = irisUrl + resourcePath + "?" + filter + "&" + orderby;
 		url = url.replaceAll(" ", "%20");
 		ClientResponse resp = client.get(url);
 		if (resp.getType() == ResponseType.SUCCESS) {

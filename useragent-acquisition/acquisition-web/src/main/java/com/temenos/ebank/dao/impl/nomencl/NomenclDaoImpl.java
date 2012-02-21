@@ -8,24 +8,25 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import com.temenos.ebank.dao.impl.IrisDaoHelper;
 import com.temenos.ebank.dao.interfaces.nomencl.INomenclDao;
 import com.temenos.ebank.domain.Nomencl;
 
 @Repository
 public class NomenclDaoImpl extends HibernateDaoSupport implements INomenclDao {
-	private NomenclDaoHelper daoHelper;
+	private IrisDaoHelper daoHelper;
 	
-	public NomenclDaoImpl() {
-		daoHelper = new NomenclDaoHelper();
+	public NomenclDaoImpl(String irisUrl) {
+		daoHelper = new IrisDaoHelper(irisUrl);
 	}
 	
 	@Transactional(readOnly = true)
 	public List<Nomencl> getNomencl(String language, String group) {
-		String urlResource = "http://localhost:8080/responder/rest/Nomencl";
 		String filter = "$filter=language eq '" + language + "'";
 		filter += " and groupCode eq '" + group + "'";
 		String orderby = "$orderby=sortOrder,label asc";
-		return daoHelper.getEntities(urlResource + "?" + filter + "&" + orderby);
+		return daoHelper.getNomenclEntities("/Nomencl", filter, orderby);
+		
 		/*
 		return getSession().createCriteria(Nomencl.class).add(Restrictions.eq("language", language))
 				.add(Restrictions.eq("groupCode", group)).addOrder(Order.asc("sortOrder")).addOrder(Order.asc("label"))
