@@ -60,9 +60,9 @@
     	    <set>
 #foreach ( $resourceInfo in $resourcesInfo )
 #if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
-                <ref bean="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" />
-#else
                 <ref bean="$resourceInfo.getJPAEntityInfo().getClazz()" />
+#else
+                <ref bean="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" />
 #end
 #end
             </set>
@@ -72,9 +72,9 @@
     <!-- Resources -->
 #foreach ( $resourceInfo in $resourcesInfo )
 #if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
-    <bean id="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-#else
     <bean id="$resourceInfo.getJPAEntityInfo().getClazz()" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+#else
+    <bean id="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
 #end
     	<constructor-arg name="entityName" value="$resourceInfo.getJPAEntityInfo().getClazz()" />
     	<constructor-arg name="path" value="$resourceInfo.getResourcePath()" />
