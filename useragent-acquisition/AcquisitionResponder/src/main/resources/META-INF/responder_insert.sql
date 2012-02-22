@@ -2,6 +2,11 @@
 # Populate your responder inmemory database with some test values
 #
 # For example:
+INSERT INTO `Address`(`id` , `country` , `line1` , `line2` , `county` , `district` , `town` , `postcode`) VALUES('1' , 'UK' , 'Maylands Avenue' , '' , 'Hertfordshire' , 'Dacorum' , 'Hemel Hempstead' , 'HP2 4NW');	
+INSERT INTO `Address`(`id` , `country` , `line1` , `line2` , `county` , `district` , `town` , `postcode`) VALUES('2' , 'CH' , 'Rue temenos' , '' , 'Geneva' , '' , 'Geneva' , '2548');	
+INSERT INTO `Country`(`code` , `languageCode` , `label`) VALUES('UK' , 'en' , 'United Kingdom');	
+INSERT INTO `Country`(`code` , `languageCode` , `label`) VALUES('CH' , 'de' , 'Switzerland');	
+
 INSERT INTO `Nomencl`(`id` , `language` , `groupCode` , `code` , `label` , `sortOrder`) VALUES('118','en','ftdTerm','6','6 months','0');
 INSERT INTO `Nomencl`(`id` , `language` , `groupCode` , `code` , `label` , `sortOrder`) VALUES('119','en','ftdTerm','12','1 year','0');
 INSERT INTO `Nomencl`(`id` , `language` , `groupCode` , `code` , `label` , `sortOrder`) VALUES('120','en','ftdTerm','24','2 years','0');

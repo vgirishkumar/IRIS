@@ -20,7 +20,9 @@
 
 	<!-- services, in alphabetical order --> 
 
-	<bean id="servicePafAddresses" class="com.temenos.ebank.services.impl.thirdParty.ServicePafAddressesImpl"/>
+	<bean id="servicePafAddresses" class="com.temenos.ebank.services.impl.thirdParty.ServicePafAddressesImpl" >
+		<constructor-arg name="irisUrl" value="${iris.url}" />	
+	</bean>
 
 	<bean id="serviceConfigParam" class="org.mockito.Mockito" factory-method="mock"  >
  		 <qualifier value="mock"/>

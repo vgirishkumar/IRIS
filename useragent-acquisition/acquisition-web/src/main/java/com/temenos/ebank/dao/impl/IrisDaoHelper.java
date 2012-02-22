@@ -24,6 +24,7 @@ import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEvent2;
 import org.odata4j.stax2.XMLEventReader2;
 
+import com.temenos.ebank.domain.Address;
 import com.temenos.ebank.domain.Nomencl;
 
 /**
@@ -88,6 +89,54 @@ public class IrisDaoHelper {
 						else if(pName.equals("label")) entity.setLabel((String) p.getValue());
 						else if(pName.equals("language")) entity.setLanguage((String) p.getValue());
 						else if(pName.equals("sortOrder")) entity.setSortOrder((Integer) p.getValue());
+					}
+					entities.add(entity);
+
+				} catch (UnsupportedEncodingException e1) {
+					e1.printStackTrace();
+				}
+			}
+		} else {
+			throw new RuntimeException("Error " + resp.getStatus() + " while reading data from URL " + url);
+		}
+		return entities;
+	}
+
+	public List<Address> getAddressEntities(String resourcePath, String filter) {
+		List<Address> entities = new ArrayList<Address>();
+		
+		String url = irisUrl + resourcePath + "?" + filter;
+		url = url.replaceAll(" ", "%20");
+		ClientResponse resp = client.get(url);
+		if (resp.getType() == ResponseType.SUCCESS) {
+			Document<Feed> doc = resp.getDocument();
+			Feed feed = doc.getRoot();
+			for (Entry entry : feed.getEntries()) {
+				try {
+					String dsXML = entry.getContent();
+					entry.getContentElement().getQName();
+					XMLEventReader2 reader = InternalUtil.newXMLEventReader(new InputStreamReader(new ByteArrayInputStream(dsXML.getBytes("UTF-8"))));
+					Iterable<OProperty<?>> properties = null;
+					while (reader.hasNext()) {
+						XMLEvent2 event = reader.nextEvent();
+						if (event.isStartElement() && event.asStartElement().getName().equals(XmlFormatParser.M_PROPERTIES)) {
+							properties = AtomFeedFormatParser.parseProperties(reader, event.asStartElement(), metadata);
+						}
+						
+					}
+					
+					//Create Address instance
+					Address entity = new Address();
+					for (OProperty<?> p : properties) {
+						String pName = p.getName();
+						if(pName.equals("id")) entity.setAdrId((Long) p.getValue());
+						else if(pName.equals("country")) entity.setCountry((String) p.getValue());
+						else if(pName.equals("line1")) entity.setLine1((String) p.getValue());
+						else if(pName.equals("line2")) entity.setLine2((String) p.getValue());
+						else if(pName.equals("county")) entity.setCounty((String) p.getValue());
+						else if(pName.equals("district")) entity.setDistrict((String) p.getValue());
+						else if(pName.equals("town")) entity.setTown((String) p.getValue());
+						else if(pName.equals("postcode")) entity.setPostcode((String) p.getValue());
 					}
 					entities.add(entity);
 

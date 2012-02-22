@@ -115,5 +115,7 @@
 	<bean id="referenceGeneratorService" class="com.temenos.ebank.services.impl.random.ReferenceGenerator"/>
 	
 	
-	<bean id="servicePafAddresses" class="com.temenos.ebank.services.impl.thirdParty.ServicePafAddressesImpl"/>
+	<bean id="servicePafAddresses" class="com.temenos.ebank.services.impl.thirdParty.ServicePafAddressesImpl" >
+		<constructor-arg name="irisUrl" value="${iris.url}" />	
+	</bean>
 </beans>
