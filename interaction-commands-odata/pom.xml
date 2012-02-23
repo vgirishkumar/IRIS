@@ -2,38 +2,35 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.temenos.interaction</groupId>
+	<parent>
+		<groupId>com.temenos.interaction</groupId>
+		<artifactId>interaction-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../interaction-parent/pom.xml</relativePath>
+	</parent>
+
   <artifactId>interaction-commands-odata</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>interaction-commands-odata</name>
   <url>http://maven.apache.org</url>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
   <dependencies>
   	<dependency>
   		<groupId>com.temenos.interaction</groupId>
   		<artifactId>interaction-core</artifactId>
-  		<version>0.0.1-SNAPSHOT</version>
   	</dependency>
   	<dependency>
   		<groupId>org.slf4j</groupId>
   		<artifactId>slf4j-api</artifactId>
-  		<version>1.6.4</version>
   	</dependency>
     <dependency>
     	<groupId>org.powermock</groupId>
     	<artifactId>powermock-api-mockito</artifactId>
-    	<version>1.4.11</version>
     </dependency>
     <dependency>
     	<groupId>org.powermock</groupId>
     	<artifactId>powermock-module-junit4</artifactId>
-    	<version>1.4.11</version>
     </dependency>
   </dependencies>
 </project>
