@@ -1,0 +1,13 @@
+Requirements:
+
+OData4j 0.6.0
+Java JDK 1.6
+Maven 3
+
+Build commands:
+
+mvn clean		Clean projects
+mvn install		Build and install to maven repository
+mvn site		Build maven site
+mvn site:deploy		Deploy maven site [default: C:\temp\iris\site]
+

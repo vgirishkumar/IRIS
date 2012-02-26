@@ -1,0 +1,24 @@
+ -----
+ Interaction Core
+ -----
+ IRIS Team
+ -----
+
+  The core library of the interaction framework.
+
+  This library contains a number of base classes that define how resources can transition state:
+  
+    * <com.temenos.interaction.core.state.HTTPResourceInteractionModel> for a resource with a
+      simple created/deleted states.  (Uses HTTP methods GET, PUT, DELETE)
+    * <com.temenos.interaction.core.state.SHARDIResourceInteractionModel> for a resource with
+      T24 states unauthorised/authorised/history/reversed.  (Partial implementation, but intended
+      to use HTTP methods of SEE, HISTORY, AUTHORISE, REVERSE, DELETE, INPUT)
+    * <com.temenos.interaction.core.state.TRANSIENTResourceInteractionModel> for a resource with
+      no state. (Uses HTTP methods GET & POST)
+
+  A class should be able to extend one of these and simply provide the appropriate
+  <com.temenos.interaction.core.command.ResourceCommands>. You will then be able to interact
+  with your resource with any of the IRIS supported media types.
+
+  The <com.temenos.interaction.core.dynaresource.DynaResource> is intended to be a dynamic
+  resource with dynamic Resource Interaction Model.

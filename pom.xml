@@ -11,13 +11,15 @@
     <url>http://www.temenos.com</url>
 
     <modules>
-        <module>interaction-core</module>
-        <module>interaction-winkext</module>
-        <module>interaction-commands-odata</module>
-        <module>interaction-sdk</module>
-        <module>interaction-sdk-plugin</module>
-        <module>interaction-sdk-archetype</module>
+        <module>interaction-parent</module>
     </modules>
+
+    <distributionManagement>
+      <site>
+        <id>interaction-framework</id>
+        <url>file://localhost/c:/temp/iris/site</url>
+      </site>
+    </distributionManagement>
 
     <reporting>
         <plugins>

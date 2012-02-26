@@ -1,0 +1,112 @@
+ -----
+ IRIS Technical Architecture
+ -----
+ IRIS Team
+ -----
+ -----
+
+IRIS Technical Architecture
+~~~~~~~~~~~~~~
+
+  The following sections describe the runtime and design time architecture used in IRIS.
+
+* Runtime
+~~~~~~~~~~~~~~~~~~~~
+
+  The Java interaction framework will be based on JAX-RS and it is desirable
+  to be able to configure the JAX-RS implementation to the appropriate implementation
+  supplied with the JEE application server.  Our research has found the Apache Wink
+  library to be most appropriate, mainly for its DynamicResource extensions to JAX-RS.
+  Moving away from this DynamicResource definition will require code generation at 
+  design time.  On the Microsoft stack we will implement the interaction framework with
+  the WebAPI REST library. 
+
+[../images/runtime_architecture.png]
+
+
+* Design Time
+~~~~~~~~~~~~~~~~~~~~
+
+  To define the model of our resources, and definition of the interaction between these
+  resources external to the User Agent and Resource Manager we will use the existing EDMX
+  domain specific language (DSL) to describe the REST resources (entities) and the static
+  links between those resources (associations), plus a new Resource Interaction Model (RIM)
+  DSL to define the dynamic links to application behaviours (application state) and resources
+  states.  Creating, defining and managing these resources and relationships in the DSL by
+  hand would be a very complex task.  To overcome this difficulty the Design Studio work bench
+  will be used by our clients and Model Bank to define the banking model across all 
+  Resource Managers.   We will accelerate the user agent development by providing an SDK that
+  supports the generation of a JPA based mock responder from the EDMX and RIM models.
+  This design time work bench for the EDMX and RIM files will provide a clear separation of
+  design and runtime for all Temenos products (see Figure 15 Design time).
+
+  It would be desirable to generate a default T24 wiring during development of a target system
+  with the ability to defer the wiring of the commands to a running T24 instance to a
+  different phase of development, but this is beyond the scope of the interaction framework SDK.  
+
+  Existing T24 clients and T24 Model Bank migration to this model will be accelerated by using
+  a T24 introspection component to obtain the resources and relationships already defined in T24.
+
+[../images/designtime_architecture.png]
+
+
+* Media type
+~~~~~~~~~~~~~~~~~~~~
+
+  For a user agent to interact with our interaction framework we need to use a commonly
+  understood media type that supports links, forms, and relations.  This media type will
+  be based on OData for external apps and a possibly custom media type with more support for
+  form controls for our internal user agents.  OData extends the Atom media type
+  (application/atom+xml) and extends the AtomPub conventions to create browseable and
+  updateable data.
+
+
+* Forms and field validation
+~~~~~~~~~~~~~~~~~~~~
+
+  For our custom banking media type we would support input forms and any field level
+  validation by embedding a form and control within the application/banking+xml hypermedia
+  response.  The XForms schema is a standard that has several client library implementations
+  that understand the form and xpath functions.  Such a library might be appropriate for this
+  approach.  OData defines a new standard based on vocabularies to accomplish field and form
+  validation.
+
+
+* Vocabularies
+~~~~~~~~~~~~~~~~~~~~
+
+  Vocabularies are an OData concept for user agents to understand how to render and validate
+  various data elements.  A similar hypermedia concept uses links with relations; vocabularies
+  provide the equivalent of relations for data elements.  The OData vocabularies could be an
+  appropriate technique for external user agents.
+
+
+* Resource state transition
+~~~~~~~~~~~~~~~~~~~~
+
+  A form will be delivered to the user agent within our xml based media type. The user agent
+  simply submits this form with the supplied method to transition a resource form one state
+  to the next.
+
+
+* Application state transition
+~~~~~~~~~~~~~~~~~~~~
+
+  A resource will be delivered to the user agent within our xml based media type. The user agent
+  simply follows (GETs) the supplied links to transition the application state from one state
+  (view) to another.
+
+
+* Resource Model and Representations
+~~~~~~~~~~~~~~~~~~~~
+
+  A User Agent can request resources in different formats (representations) by specifying the
+  Accept header  when requesting the resource.  These resource requests are directed to an
+  appropriate resource model which is responsible for returning data fields and associations
+  (essentially links to related resources). The data fields and links for a model have been
+  decided at design time and the data for a model is funded by calling the configured Producer.
+  It is the Producer’s responsibility to transforms this model request into an appropriate
+  message for a target Resource Manager.  The interaction framework controls the applications
+  state is by generating an xml representation with links that can be used by the User Agent
+  to change to the next application state.
+

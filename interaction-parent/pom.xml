@@ -6,16 +6,33 @@
 	<artifactId>interaction-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
+	<name>interaction-parent</name>
+
+	<modules>
+		<module>../interaction-core</module>
+		<module>../interaction-winkext</module>
+		<module>../interaction-commands-odata</module>
+		<module>../interaction-sdk</module>
+		<module>../interaction-sdk-plugin</module>
+		<module>../interaction-sdk-archetype</module>
+	</modules>
+
+	<distributionManagement>
+		<site>
+			<id>interaction-site</id>
+			<url>file://localhost/c:/temp/iris/site</url>
+		</site>
+	</distributionManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<javadoc.aggregate>true</javadoc.aggregate>
-        <javadoc.exclude.patterns>com.temenos.interaction.core.*</javadoc.exclude.patterns>
-        <maven.compile.source>1.6</maven.compile.source>
-        <maven.compile.target>1.6</maven.compile.target>
-        <!--WINK-330 Change slf4j api import to a range to make it more user friendly.-->
-        <slf4j.osgi.import.instruction>org.slf4j.*;version="[1.5,1.7)"</slf4j.osgi.import.instruction>
-		
+		<javadoc.exclude.patterns>com.temenos.interaction.core.*</javadoc.exclude.patterns>
+		<maven.compile.source>1.6</maven.compile.source>
+		<maven.compile.target>1.6</maven.compile.target>
+		<!--WINK-330 Change slf4j api import to a range to make it more user friendly. -->
+		<slf4j.osgi.import.instruction>org.slf4j.*;version="[1.5,1.7)"</slf4j.osgi.import.instruction>
+
 		<odata4j.version>0.6.0-SNAPSHOT</odata4j.version>
 		<powermock.version>1.4.11</powermock.version>
 		<wink.version>1.1.3-incubating</wink.version>
@@ -23,6 +40,38 @@
 		<spring.version>3.0.6.RELEASE</spring.version>
 	</properties>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<locales>en</locales>
+					<reportPlugins>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-project-info-reports-plugin</artifactId>
+							<version>2.4</version>
+							<configuration>
+								<dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+								<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+							</configuration>
+							<reports>
+								<report>dependencies</report>
+								<report>scm</report>
+							</reports>
+						</plugin>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-javadoc-plugin</artifactId>
+							<version>2.8</version>
+						</plugin>
+					</reportPlugins>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencyManagement>
 		<dependencies>
@@ -81,7 +130,7 @@
 				<artifactId>logback-classic</artifactId>
 				<version>0.9.29</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>org.odata4j</groupId>
 				<artifactId>odata4j-core</artifactId>
@@ -92,7 +141,7 @@
 				<artifactId>odata4j-jersey</artifactId>
 				<version>${odata4j.version}</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>org.hibernate</groupId>
 				<artifactId>hibernate-entitymanager</artifactId>
@@ -108,7 +157,7 @@
 				<artifactId>jersey-test-framework</artifactId>
 				<version>1.1.1-ea</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-core</artifactId>
@@ -140,13 +189,13 @@
 				<artifactId>wink-spring-support</artifactId>
 				<version>${wink.version}</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>org.apache.abdera</groupId>
 				<artifactId>abdera-bundle</artifactId>
 				<version>1.1.2</version>
 			</dependency>
-			
+
 			<!-- Test Frameworks -->
 			<dependency>
 				<groupId>org.mockito</groupId>

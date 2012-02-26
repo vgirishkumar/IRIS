@@ -1,0 +1,120 @@
+ -----
+ Getting started
+ -----
+ IRIS Team
+ -----
+ -----
+
+
+Building IRIS
+~~~~~~~~~~~~~~~~~~~~
+
+  [[1]] Get the latest odata4j 0.6.0 snaphot (currently requires pulling the source with HG and
+  building with maven)
+  
+	<<https://code.google.com/p/odata4j>>
+	
+  [[2]]	Build and install odata4j to the local maven repository
+  
+	<<$ mvn clean install>>
+  
+  [[3]] Get the latest IRIS snapshot (use GIT (e.g. TortoiseGIT with mysis GIT) to clone and
+  sync a local copy of IRIS
+  
+	<<https://github.com/aphethean/IRIS>>
+	
+  [[4]]	Build and install IRIS to the local maven repository
+  
+	<<$ mvn clean install>>
+
+
+* Running integration tests
+~~~~~~~~~~~~~~~~~~~~
+  The interaction examples provide a set of unit tests and integration tests which can be run with the following command:
+  
+  <<$ mvn verify>>
+  
+
+Creating a mock responder
+~~~~~~~~~~~~~~~~~~~~
+  This section describes how use the interaction SDK to facilitate the creation of resource
+  instances for the resource model. The interaction SDK depends on the interaction framework
+  libraries. These libraries are not yet available on a public repository and must be installed
+  into the local repository. Either install them manually or build the IRIS project manually
+  as described in the previous section.
+
+  [[1]]	Create a mock responder project, e.g. FlightResponder
+
+	<<$ mvn archetype:generate -DgroupId=com.mycorp.airtraffic -DartifactId=FlightResponder -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false>>
+
+	This command will create a subdirectory named FlightResponder which contains a maven project
+	with the following artifacts:
+		
+		* WEB-INF/web.xml
+		
+		* edmx.xml
+		
+		[]
+
+  [[2]]	Edit the sample EDMX file to define the resource model.
+  
+  [[3]] Build the FlightReponder
+  
+	<<$ mvn interaction-sdk:gen>>
+
+	This command will generate the artefacts for
+	
+		* [<<spring configuration file>>] Create resource instances, defining how those resources
+		  should be accessed (i.e. resource path, etc.) and the producer to be used by those
+		  resources. By default it uses a JPA producer:
+		
+----------  
+ 	 <bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
+		<constructor-arg name="emf" ref="entityManagerFactory" />
+		<constructor-arg name="namespace" value="MockResponderSDK" />	
+		<constructor-arg name="maxResults" value="100" />			
+	  </bean>
+----------  
+		  
+		* [<<JPA producer>>] These artefacts are JPA artefacts which are configured to provide
+		  a mock responder with data stored inside an in-memory HSQL database .
+		
+		[]
+		
+	Artefacts:
+	
+		* META-INF
+		
+			* Persistence.xml
+			
+			* responder_insert.sql
+			
+			* spring-beans.xml
+			
+			
+		* Test responder JPA classes
+		
+			* Flight.java
+			
+			* Airport.java
+			
+			* etc.
+			
+	It is useful to generate a JPA based mock responder for testing or providing out
+	generic  behaviour. Switching resource instances to use a different resource manager should be
+	as simple as changing the producer property in the spring configuration file.
+
+    [Note:] The JPA classes, persistence.xml and responder_insert.sql apply to the <<JPA producer>>.
+    If we wire up our resources to a different producer these artifacts would not be required. 
+
+  [[4]] Start the FlightReponder
+  
+	<<$ mvn jetty:run>>
+
+  [[5]] Access the FlightReponder
+  
+	<<http://localhost:8080/responder/rest/Flight/1>>
+
+	[Note:] IRIS does not yet expose the service metadata document. Use a tool such as
+	WizTools.org REST client to view the OData feeds and entries.
+
