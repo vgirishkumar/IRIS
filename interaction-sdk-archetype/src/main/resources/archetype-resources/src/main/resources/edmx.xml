@@ -8,6 +8,7 @@
                 </Key>
                 <Property Name="flightID" Type="Edm.Int64" Nullable="false"></Property>
                 <Property Name="takeoffTime" Type="Edm.DateTime" Nullable="true"></Property>
+                <NavigationProperty Name="FlightFeed" Relationship="${groupId}.${artifactId}.FK_Flight_FlightFeed" FromRole="Flight" ToRole="FlightFeed"></NavigationProperty>
                 <NavigationProperty Name="flightSchedule" Relationship="${groupId}.${artifactId}.FK_Flight_FlightSchedule" FromRole="Flight" ToRole="FlightSchedule"></NavigationProperty>
             </EntityType>
             <EntityType Name="Airport">
@@ -17,6 +18,7 @@
                 <Property Name="name" Type="Edm.String" Nullable="true"></Property>
                 <Property Name="code" Type="Edm.String" Nullable="false"></Property>
                 <Property Name="country" Type="Edm.String" Nullable="true"></Property>
+                <NavigationProperty Name="AirportFeed" Relationship="${groupId}.${artifactId}.FK_Airport_AirportFeed" FromRole="Airport" ToRole="AirportFeed"></NavigationProperty>
             </EntityType>
             <EntityType Name="BadAirport" BaseType="${groupId}.${artifactId}.Airport">
                 <Property Name="rating" Type="Edm.Int32" Nullable="false"/>
@@ -50,6 +52,10 @@
                 <NavigationProperty Name="backupSchedule" Relationship="${groupId}.${artifactId}.BackupSchedule"
                     FromRole="PrimaryFlightSchedule" ToRole="BackupFlightSchedule"></NavigationProperty>
             </EntityType>
+            <Association Name="FK_Flight_FlightFeed">
+                <End Role="Flight" Type="${groupId}.${artifactId}.Flight" Multiplicity="*"></End>
+                <End Role="FlightFeed" Type="${groupId}.${artifactId}.Flight" Multiplicity="0..1"></End>
+            </Association>
             <Association Name="FK_Flight_FlightSchedule">
                 <End Role="Flight" Type="${groupId}.${artifactId}.Flight" Multiplicity="*"></End>
                 <End Role="FlightSchedule" Type="${groupId}.${artifactId}.FlightSchedule" Multiplicity="0..1"></End>
@@ -57,6 +63,10 @@
             <Association Name="FK_FlightSchedule_Airport">
                 <End Role="FlightSchedule" Type="${groupId}.${artifactId}.FlightSchedule" Multiplicity="*"></End>
                 <End Role="Airport" Type="${groupId}.${artifactId}.Airport" Multiplicity="0..1"></End>
+            </Association>
+            <Association Name="FK_Airport_AirportFeed">
+                <End Role="Airport" Type="${groupId}.${artifactId}.Airport" Multiplicity="*"></End>
+                <End Role="AirportFeed" Type="${groupId}.${artifactId}.Airport" Multiplicity="0..1"></End>
             </Association>
             <Association Name="FK_FlightSchedule_Airport_1">
                 <End Role="FlightSchedule" Type="${groupId}.${artifactId}.FlightSchedule" Multiplicity="*"></End>
@@ -76,10 +86,18 @@
                 <EntitySet Name="SubFlightSchedule" EntityType="${groupId}.${artifactId}.SubFlightSchedule"></EntitySet>
                 <EntitySet Name="SubSubFlightSchedule" EntityType="${groupId}.${artifactId}.SubSubFlightSchedule"></EntitySet>
 
+	            <AssociationSet Name="FK_Flight_FlightFeed" Association="${groupId}.${artifactId}.FK_Flight_FlightFeed">
+	                <End Role="Flight" EntitySet="Flight"></End>
+	                <End Role="FlightFeed" EntitySet="Flight"></End>
+	            </AssociationSet>
                 <AssociationSet Name="FK_Flight_FlightSchedule" Association="${groupId}.${artifactId}.FK_Flight_FlightSchedule">
                     <End Role="Flight" EntitySet="Flight"></End>
                     <End Role="FlightSchedule" EntitySet="FlightSchedule"></End>
                 </AssociationSet>
+	            <AssociationSet Name="FK_Airport_AirportFeed" Association="${groupId}.${artifactId}.FK_Airport_AirportFeed">
+	                <End Role="Airport" EntitySet="Airport"></End>
+	                <End Role="AirportFeed" EntitySet="Airport"></End>
+	            </AssociationSet>
                 <AssociationSet Name="FK_FlightSchedule_Airport" Association="${groupId}.${artifactId}.FK_FlightSchedule_Airport">
                     <End Role="FlightSchedule" EntitySet="FlightSchedule"></End>
                     <End Role="Airport" EntitySet="Airport"></End>

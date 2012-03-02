@@ -11,5 +11,13 @@
         </p>
       </answer>
     </faq>
+    <faq id="MultiResourceManager">
+      <question>Is it possible for a resource to access multiple resource managers?</question>
+      <answer>
+        <p>
+          This should only be possible for HTTP GET requests.
+        </p>
+      </answer>
+    </faq>
   </part>
 </faqs>

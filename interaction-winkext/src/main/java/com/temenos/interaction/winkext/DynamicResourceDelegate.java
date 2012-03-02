@@ -36,7 +36,7 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 
 	@Override
     public String getWorkspaceTitle() {
-        return null;
+		return "DefaultWorkspace";
     }
 
     public void setCollectionTitle(String collectionTitle) {
@@ -45,7 +45,7 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 
 	@Override
     public String getCollectionTitle() {
-        return null;
+		return resource.getResourcePath();
     }
 
 	@Override

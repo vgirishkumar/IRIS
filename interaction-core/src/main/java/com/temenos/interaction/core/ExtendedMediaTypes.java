@@ -2,6 +2,8 @@ package com.temenos.interaction.core;
 
 import javax.ws.rs.core.MediaType;
 
+import org.odata4j.core.ODataConstants;
+
 public interface ExtendedMediaTypes {
 
     /** "application/odata+xml" */
@@ -9,6 +11,11 @@ public interface ExtendedMediaTypes {
     /** "application/odata+xml" */
     public final static MediaType APPLICATION_ODATA_XML_TYPE = new MediaType("application","odata+xml");
 
+    /** "application/atomsvc+xml" */
+    public final static String APPLICATION_ATOMSVC_XML = ODataConstants.APPLICATION_ATOMSVC_XML;
+    /** "application/atomsvc+xml" */
+    public final static MediaType APPLICATION_ATOMSVC_XML_TYPE = new MediaType("application","atomsvc+xml");
+    
     /** "application/pdf" */
     public final static String APPLICATION_PDF = "application/pdf";
     /** "application/pdf" */
