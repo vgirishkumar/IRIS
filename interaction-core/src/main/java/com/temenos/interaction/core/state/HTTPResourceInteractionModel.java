@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.ExtendedMediaTypes;
 
 public interface HTTPResourceInteractionModel {
 
@@ -23,6 +24,7 @@ public interface HTTPResourceInteractionModel {
 	@Produces({
 			MediaType.APPLICATION_ATOM_XML,
 			MediaType.APPLICATION_XML,
+			ExtendedMediaTypes.APPLICATION_ATOMSVC_XML,
 			MediaType.APPLICATION_JSON,
 			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
 	public abstract Response get(@Context HttpHeaders headers,

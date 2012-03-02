@@ -12,36 +12,52 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A MetaDataResource is resource that describes another resource.
- * @author aphethean
+ * A ServiceDocumentResource is a resource that lists other resources to aid
+ * discovery of available resources.
  */
-@XmlRootElement(name = "metadata")
+@XmlRootElement(name = "servicedocument")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class MetaDataResource implements RESTResource {
+public class ServiceDocumentResource implements RESTResource {
 	@XmlTransient
-	private final Logger logger = LoggerFactory.getLogger(MetaDataResource.class);
+	private final Logger logger = LoggerFactory.getLogger(ServiceDocumentResource.class);
 
 	@XmlAnyElement(lax=true)
-	private Object metadata; 
+	private Object serviceDocument; 
 
 	@XmlTransient
 	private EdmDataServices edmx; 
 	
-	public MetaDataResource(Object metadata) {
-		this.metadata = metadata;
+	/**
+	 * Construct an instance for the specified service document
+	 * @param serviceDocument Service document
+	 */
+	public ServiceDocumentResource(Object serviceDocument) {
+		this.serviceDocument = serviceDocument;
 	}
 	
-	public MetaDataResource(EdmDataServices edmx) {
+	/**
+	 * Construct an instance with the specified OData EDM definition.
+	 * @param edmx OData EDM definition
+	 */
+	public ServiceDocumentResource(EdmDataServices edmx) {
 		this.edmx = edmx;
 	}
 	
-	public Object getMetadata() {
-		return metadata;
+	/**
+	 * Returns the Service document
+	 * @return Service document
+	 */
+	public Object getServiceDocument() {
+		return serviceDocument;
 	}
 	
+	/**
+	 * Returns the EDM definition
+	 * @return EDM definition
+	 */
 	public EdmDataServices getEdmx() {
 		if (edmx != null) return edmx;
-		if (metadata != null) {
+		if (serviceDocument != null) {
 			logger.debug("Discovered a jaxb / json deserialised object");
 			// TODO implement a generic jaxb to OEntity conversion for our 'entity'
 			/*
@@ -51,7 +67,7 @@ public class MetaDataResource implements RESTResource {
 			 */
 			throw new NotImplementedException();
 		}
-		throw new RuntimeException("Metadata has not been be supplied");
+		throw new RuntimeException("Service document has not been be supplied");
 	}
 	
 }

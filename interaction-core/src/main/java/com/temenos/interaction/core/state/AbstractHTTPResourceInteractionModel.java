@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
@@ -106,7 +107,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements ResourceIn
 	 */
     @Override
 	@GET
-    @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+    @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.debug("GET " + getFQResourcePath());
     	assert(resourcePath != null);

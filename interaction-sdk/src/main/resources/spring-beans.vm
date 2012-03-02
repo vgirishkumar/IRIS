@@ -3,6 +3,26 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
+	<!-- Override wink default properties --> 
+	<bean id="customPropertiesFactory" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="customConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="order" value="1" />
+		<property name="propertiesArray">
+			<list>
+				<props>
+					<prop key="wink.propertiesFactory">customPropertiesFactory</prop>
+				</props>
+			</list>
+		</property>
+	</bean>
+
 	<!-- Initialise JPA for MockResponder -->
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
@@ -32,6 +52,8 @@
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
+				<ref local="serviceDocumentProvider" />
+				<ref local="edmxProvider" />
 				<ref local="staxHALProvider" />
 				<ref local="atomProvider" />
  			</set>
@@ -54,10 +76,14 @@
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 	</bean>
+	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
+	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
     	<constructor-arg name="resource">
     	    <set>
+                <ref bean="ServiceDocument" />
+                <ref bean="Metadata" />
 #foreach ( $resourceInfo in $resourcesInfo )
 #if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
                 <ref bean="$resourceInfo.getJPAEntityInfo().getClazz()" />
@@ -70,6 +96,18 @@
     </bean>
 
     <!-- Resources -->
+    <bean id="ServiceDocument" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    	<constructor-arg name="entityName" value="ServiceDocument" />
+    	<constructor-arg name="path" value="/" />
+    	<constructor-arg name="commandController" ref="commands" />
+    </bean>
+
+    <bean id="Metadata" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    	<constructor-arg name="entityName" value="Metadata" />
+    	<constructor-arg name="path" value="/$metadata" />
+    	<constructor-arg name="commandController" ref="commands" />
+    </bean>
+
 #foreach ( $resourceInfo in $resourcesInfo )
 #if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
     <bean id="$resourceInfo.getJPAEntityInfo().getClazz()" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
@@ -87,6 +125,20 @@
     <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
     	<constructor-arg name="commands">
             <map>
+                <entry>
+                    <key><value>/</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+                        <constructor-arg name="entity" value="ServiceDocument" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>/$metadata</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+                        <constructor-arg name="entity" value="Metadata" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
 #foreach ( $resourceInfo in $resourcesInfo )
                 <entry>
                     <key><value>$resourceInfo.getResourcePath()</value></key>
