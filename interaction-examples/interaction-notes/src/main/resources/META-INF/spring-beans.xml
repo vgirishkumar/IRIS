@@ -75,7 +75,7 @@
     <bean id="behaviour" class="com.temenos.interaction.example.note.Behaviour" />
     <bean id="initialNoteState" factory-bean="behaviour" factory-method="getCRUDResourceStateModel"/>
 
-    <!-- Notes resource state model (only getting initial state from resource registry as a convenience ) -->
+    <!-- Simple Notes resource state model -->
     <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
     	<constructor-arg name="entityName" value="NOTE" />
     	<constructor-arg name="initialState" ref="initialNoteState" />
