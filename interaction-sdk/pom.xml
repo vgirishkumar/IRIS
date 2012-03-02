@@ -60,10 +60,6 @@
 			<artifactId>odata4j-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.odata4j</groupId>
-			<artifactId>odata4j-jersey</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>

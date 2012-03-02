@@ -100,10 +100,6 @@
 			<artifactId>odata4j-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.odata4j</groupId>
-			<artifactId>odata4j-jersey</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>xmlunit</groupId>
 			<artifactId>xmlunit</artifactId>
 			<scope>test</scope>

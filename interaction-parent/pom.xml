@@ -136,11 +136,6 @@
 				<artifactId>odata4j-core</artifactId>
 				<version>${odata4j.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>org.odata4j</groupId>
-				<artifactId>odata4j-jersey</artifactId>
-				<version>${odata4j.version}</version>
-			</dependency>
 
 			<dependency>
 				<groupId>org.hibernate</groupId>
