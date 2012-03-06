@@ -3,15 +3,26 @@ package com.temenos.interaction.core.state;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
+import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
@@ -19,6 +30,39 @@ import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
 public class TestAbstractHTTPResourceInteractionModel {
+
+	/* We decode the query parameters to workaround an issue in Wink */
+	@Test
+	public void testDecodeQueryParameters() {
+		String resourcePath = "/test";
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		CommandController cc = r.getCommandController();
+		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
+		when(rgc.get(anyString(), any(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null));
+		cc.setGetCommand(resourcePath, rgc);
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl();
+		queryMap.add("$filter", "this+that");
+		when(uriInfo.getQueryParameters()).thenReturn(queryMap);
+		
+		r.get(null, "id", uriInfo);
+		verify(rgc).get(eq("id"), (MultivaluedMap<String, String>) argThat(new MultimapArgumentMatcher()));
+	}
+
+	class MultimapArgumentMatcher extends ArgumentMatcher {
+		public boolean matches(Object o) {
+			if (o instanceof MultivaluedMap) {
+				MultivaluedMap<String, String> mvmap = (MultivaluedMap<String, String>) o;
+				if (!mvmap.getFirst("$filter").equals("this that")) {
+					return false;
+				}
+				return true;
+			}
+            return false;
+        }
+    }
 
 	@Test
 	public void testFQResourcePath() {

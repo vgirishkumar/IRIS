@@ -1,7 +1,11 @@
 package com.temenos.interaction.core.state;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -13,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
@@ -112,7 +117,10 @@ public abstract class AbstractHTTPResourceInteractionModel implements ResourceIn
     	logger.debug("GET " + getFQResourcePath());
     	assert(resourcePath != null);
     	ResourceGetCommand getCommand = commandController.fetchGetCommand(getFQResourcePath());
-    	RESTResponse response = getCommand.get(id, uriInfo != null ? uriInfo.getQueryParameters() : null);
+    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters() : null;
+    	// work around an issue in wink, wink does not decode query parameters in 1.1.3
+    	decodeQueryParams(queryParameters);
+    	RESTResponse response = getCommand.get(id, queryParameters);
     	
     	if (response != null && resourceRegistry != null && response.getResource() instanceof EntityResource) {
         	RESTResource rr = response.getResource();
@@ -131,6 +139,26 @@ public abstract class AbstractHTTPResourceInteractionModel implements ResourceIn
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();
 		}
 		return Response.status(status).build();
+    }
+    
+    private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
+    	try {
+    		if (queryParameters == null)
+    			return;
+			URLDecoder ud = new URLDecoder();
+			for (String key : queryParameters.keySet()) {
+				List<String> values = queryParameters.get(key);
+				if (values != null) {
+					List<String> newValues = new ArrayList<String>();
+				    for (String value : values) {
+				    	newValues.add(ud.decode(value, "UTF-8"));
+				    }
+				    queryParameters.put(key, newValues);
+				}
+			}
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
     }
     
 	/**
