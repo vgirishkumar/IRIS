@@ -40,7 +40,7 @@ import com.temenos.interaction.core.ExtendedMediaTypes;
  */
 @Provider
 @Consumes({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML})
-@Produces({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_ATOM_XML})
+@Produces({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(ServiceDocumentProvider.class);
 
