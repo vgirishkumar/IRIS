@@ -193,6 +193,8 @@ public class JPAResponderGen {
 			List<String> annotations = new ArrayList<String>();
 			if (property.getType().equals(EdmSimpleType.DATETIME)) {
 				annotations.add("@Temporal(TemporalType.TIMESTAMP)");
+			} else if (property.getType().equals(EdmSimpleType.TIME)) {
+				annotations.add("@Temporal(TemporalType.TIME)");
 			}
 
 			FieldInfo field = new FieldInfo(property.getName(), javaType(property.getType()), annotations);
@@ -215,7 +217,7 @@ public class JPAResponderGen {
 		} else if (EdmSimpleType.DATETIME == type) {
 			javaType = "java.util.Date";
 		} else if (EdmSimpleType.TIME == type) {
-			javaType = "java.sql.Timestamp";
+			javaType = "java.util.Date";
 		} else {
 			// TODO support types other than Long and String
 			throw new RuntimeException("Entity property type not supported");

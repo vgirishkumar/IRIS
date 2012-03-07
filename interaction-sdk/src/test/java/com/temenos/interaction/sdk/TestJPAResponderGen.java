@@ -103,14 +103,18 @@ public class TestJPAResponderGen {
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("runway", "String", null)));
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("passengers", "Integer", null)));
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("departureDT", "java.util.Date", null)));
-		assertTrue(p.getFieldInfos().contains(new FieldInfo("dinnerServed", "java.sql.Timestamp", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("dinnerServed", "java.util.Date", null)));
 	}
 	
+	@Test
 	public void testJPAEntityFieldInfoAnnotations() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		List<String> keys = new ArrayList<String>();
+		keys.add("ID");
+
 		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
+		properties.add(EdmProperty.newBuilder("ID").setType(EdmSimpleType.INT64));
 		properties.add(EdmProperty.newBuilder("departureDT").setType(EdmSimpleType.DATETIME));
 		properties.add(EdmProperty.newBuilder("departureTime").setType(EdmSimpleType.TIME));
 
@@ -134,12 +138,15 @@ private Date lastDeparture;
 		entityTypeBuilder.addProperties(properties);
 		EdmEntityType t = entityTypeBuilder.build();
 		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
-		FieldInfo fi = p.getFieldInfos().get(0);
-		
+
 		// Annotations
-		assertEquals(2, fi.getAnnotations().size());
-		assertEquals("@Temporal(TemporalType.TIMESTAMP)", fi.getAnnotations().get(0));
-		assertEquals("@Temporal(TemporalType.TIME)", fi.getAnnotations().get(1));
+		FieldInfo dateFI = p.getFieldInfos().get(0);
+		assertEquals(1, dateFI.getAnnotations().size());
+		assertEquals("@Temporal(TemporalType.TIMESTAMP)", dateFI.getAnnotations().get(0));
+
+		FieldInfo timeFI = p.getFieldInfos().get(1);
+		assertEquals(1, timeFI.getAnnotations().size());
+		assertEquals("@Temporal(TemporalType.TIME)", timeFI.getAnnotations().get(0));
 	}
 
 	@Test(expected = AssertionError.class)
