@@ -124,7 +124,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	public Collection<ResourceInteractionModel> getChildren() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
 		
-		Map<String, ResourceState> resourceStates = stateMachine.getStateMap(this.subState);
+		Map<String, ResourceState> resourceStates = stateMachine.getStateMap();
 		for (String childPath : resourceStates.keySet()) {
 			ResourceState s = resourceStates.get(childPath);
 			HTTPDynaRIM child = new HTTPDynaRIM(this, stateMachine, s.getPath(), s, null, getCommandController());
