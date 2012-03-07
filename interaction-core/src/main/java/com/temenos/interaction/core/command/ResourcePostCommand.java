@@ -24,7 +24,7 @@ public interface ResourcePostCommand extends ResourceStateTransitionCommand {
 	 * 
 	 * @precondition id not null
 	 * @precondition EntityResource not null
-	 * @precondition resource should be found in implementing classes provider
+	 * @precondition resource should be able to be created in implementing resource manager
 	 * @postcondition a valid {@link RESTResponse} will be returned and {@link RESTResponse#getStatus()} 
 	 * will return a {@link Response.Status}.  A call to {@link RESTResponse#getResource()} will return
 	 * a {@link RESTResource} if a the Response.Status is an OK (200) family of response
