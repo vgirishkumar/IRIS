@@ -1,0 +1,130 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!-- Initialise JPA for MockResponder -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	</bean>
+	<!-- Initialise responder database -->
+	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+	
+	<!-- MockResponder JPA Producer -->
+	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
+		<constructor-arg name="emf" ref="entityManagerFactory" />
+		<constructor-arg name="namespace" value="MockResponderSDK" />		
+		<constructor-arg name="maxResults" value="100" />				
+	</bean>
+	<bean id="edmDataServices" factory-bean="producer" factory-method="getMetadata"/>
+	
+    <!--
+	  An extension of org.apache.wink.spring.Registrar with support for singletons.
+    -->
+	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
+		<property name="singletons">
+        	<set>
+				<ref local="staxHALProvider" />
+				<ref local="atomProvider" />
+				<ref local="edmxProvider" />
+				<ref local="serviceDocumentProvider" />
+ 			</set>
+   		</property>
+		<property name="resourceRegistry" ref="resourceRegistry" />
+	</bean>
+
+	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+	</bean>
+	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+	</bean>
+	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
+	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
+
+    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+        <constructor-arg name="root" ref="ServiceRoot" />
+    </bean>
+
+
+    <bean id="behaviour" class="com.interaction.example.odata.airline.Behaviour" />
+    <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
+    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
+    	<constructor-arg name="entityName" value="" />
+    	<constructor-arg name="initialState" ref="interaction" />
+    </bean>
+
+    <!-- Resources -->
+    <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    	<constructor-arg name="stateMachine" ref="stateMachine" />
+    	<constructor-arg name="path" value="" />
+    	<constructor-arg name="rr"><null/></constructor-arg>
+    	<constructor-arg name="commandController" ref="commands" />
+    </bean>
+    
+    <!-- Commands -->
+    <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
+    	<constructor-arg name="commands">
+            <map>
+               <entry>
+                    <key><value></value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+                        <constructor-arg name="entity" value="ServiceDocument" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>/$metadata</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+                        <constructor-arg name="entity" value="Metadata" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>/Flight/{id}</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
+                        <constructor-arg name="entity" value="Flight" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>/Flight</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="entity" value="Flight" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>/Airport/{id}</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
+                        <constructor-arg name="entity" value="Airport" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>/Airport</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="entity" value="Airport" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>/FlightSchedule/{id}</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
+                        <constructor-arg name="entity" value="FlightSchedule" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>/FlightSchedule</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="entity" value="FlightSchedule" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+</beans>
