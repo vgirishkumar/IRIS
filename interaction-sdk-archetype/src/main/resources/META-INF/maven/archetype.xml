@@ -10,7 +10,6 @@
   </testSources>
 -->
   <resources>
-    <resource>src/main/resources/application.properties</resource>
     <resource>src/main/resources/edmx.xml</resource>
     <resource>src/main/resources/logback.xml</resource>
   </resources>
