@@ -29,14 +29,7 @@ public class CommandController {
 	 * Create and populate command controller.
 	 */
 	public CommandController(Map<String, ResourceCommand> commands) {
-		for (String path : commands.keySet()) {
-			ResourceCommand rc = commands.get(path);
-			if (rc instanceof ResourceGetCommand) {
-				setGetCommand(path, (ResourceGetCommand) rc);
-			} else {
-				addStateTransitionCommand(path, (ResourceStateTransitionCommand) rc);
-			}
-		}
+		this.commands.putAll(commands);
 	}
 
 	/**
