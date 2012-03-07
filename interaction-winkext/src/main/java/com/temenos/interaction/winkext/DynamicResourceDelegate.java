@@ -1,5 +1,7 @@
 package com.temenos.interaction.winkext;
 
+import java.util.Collection;
+
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -9,6 +11,7 @@ import org.apache.wink.common.DynamicResource;
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 public class DynamicResourceDelegate implements HTTPResourceInteractionModel, DynamicResource {
 
@@ -69,6 +72,11 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
+	public Response post(HttpHeaders headers, String id, EntityResource eresource) {
+		return resource.post(headers, id, eresource);
+	}
+
+	@Override
 	public Response put(HttpHeaders headers, String id, EntityResource eresource) {
 		return resource.put(headers, id, eresource);
 	}
@@ -80,6 +88,26 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 
 	public Response options(String id) {
 		return resource.options(id);
+	}
+
+	@Override
+	public String getEntityName() {
+		return resource.getEntityName();
+	}
+
+	@Override
+	public String getResourcePath() {
+		return resource.getResourcePath();
+	}
+
+	@Override
+	public String getFQResourcePath() {
+		return resource.getFQResourcePath();
+	}
+
+	@Override
+	public Collection<ResourceInteractionModel> getChildren() {
+		return resource.getChildren();
 	}
     
 }

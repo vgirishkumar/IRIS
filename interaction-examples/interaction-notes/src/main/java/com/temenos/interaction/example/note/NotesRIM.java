@@ -6,10 +6,10 @@ import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.commands.odata.GETEntitiesCommand;
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.state.TRANSIENTResourceInteractionModel;
+import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
 @Path("/notes")
-public class NotesRIM extends TRANSIENTResourceInteractionModel {
+public class NotesRIM extends AbstractHTTPResourceInteractionModel {
 
 	private final static String RESOURCE_PATH = "/notes";
 	private final static String ENTITYSET_NAME = "note";

@@ -3,6 +3,7 @@ package com.temenos.interaction.core.state;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -15,7 +16,7 @@ import javax.ws.rs.core.UriInfo;
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 
-public interface HTTPResourceInteractionModel {
+public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 
 	/**
 	 * GET a resource representation.
@@ -30,6 +31,24 @@ public interface HTTPResourceInteractionModel {
 	public abstract Response get(@Context HttpHeaders headers,
 			@PathParam("id") String id,
 			@Context UriInfo uriInfo);
+
+	/**
+	 * POST a resource representation.
+	 */
+	@POST
+	@Consumes({
+		MediaType.APPLICATION_ATOM_XML,
+		MediaType.APPLICATION_XML,
+		MediaType.APPLICATION_JSON,
+		com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+	@Produces({
+			MediaType.APPLICATION_ATOM_XML,
+			MediaType.APPLICATION_XML,
+			MediaType.APPLICATION_JSON,
+			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+	public abstract Response post(@Context HttpHeaders headers,
+			@PathParam("id") String id,
+			EntityResource resource);
 
 	/**
 	 * PUT a resource.

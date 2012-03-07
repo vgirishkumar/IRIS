@@ -84,6 +84,9 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 				// interactions are a set of http methods
 				for (String method : interactions) {
 					logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
+					// TODO probably shouldn't end up with a GET interaction here, but maybe we should...
+					if (method.equals(HttpMethod.GET))
+						continue;
 					// check valid http method
 					if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)))
 						throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
@@ -102,7 +105,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
     
 	@Override
 	public ResourceState getCurrentState() {
-		return stateMachine.getInitial();
+		return subState;
 	}
 	
 	@Override
@@ -121,7 +124,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	public Collection<ResourceInteractionModel> getChildren() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
 		
-		Map<String, ResourceState> resourceStates = stateMachine.getStateMap();
+		Map<String, ResourceState> resourceStates = stateMachine.getStateMap(this.subState);
 		for (String childPath : resourceStates.keySet()) {
 			ResourceState s = resourceStates.get(childPath);
 			HTTPDynaRIM child = new HTTPDynaRIM(this, stateMachine, s.getPath(), s, null, getCommandController());

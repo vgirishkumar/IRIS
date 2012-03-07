@@ -48,7 +48,7 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
 	public void testOptions() {
         String noteUri = NOTES_RESOURCE + "/1";
         ClientResponse response = webResource.path(noteUri).options(ClientResponse.class);
-        assertEquals(204, response.getStatus());
+        assertEquals(200, response.getStatus());
         assertEquals(5, response.getAllow().size());
         assertTrue(response.getAllow().contains("GET"));
         assertTrue(response.getAllow().contains("PUT"));

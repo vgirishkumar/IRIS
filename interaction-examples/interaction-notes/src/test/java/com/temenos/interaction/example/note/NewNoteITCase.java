@@ -1,6 +1,7 @@
 package com.temenos.interaction.example.note;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 
@@ -49,10 +50,15 @@ public class NewNoteITCase extends JerseyTest {
     }
 
     @Test
-	public void testOptionsNotFound() {
+	public void testOptions() {
         String noteUri = NEW_NOTE_RESOURCE;
         ClientResponse response = webResource.path(noteUri).options(ClientResponse.class);
-        assertEquals(404, response.getStatus());
+        assertEquals(200, response.getStatus());
+        assertEquals(4, response.getAllow().size());
+        assertTrue(response.getAllow().contains("GET"));
+        assertTrue(response.getAllow().contains("POST"));
+        assertTrue(response.getAllow().contains("OPTIONS"));
+        assertTrue(response.getAllow().contains("HEAD"));
 	}
 
     @Test
@@ -60,8 +66,8 @@ public class NewNoteITCase extends JerseyTest {
 		String fabricatedNewNoteUri = NEW_NOTE_RESOURCE;
         // PUT to 'new' note resource
         ClientResponse putResponse = webResource.path(fabricatedNewNoteUri).put(ClientResponse.class, "blah");
-        // PUT should return not implemented
-        assertEquals(501, putResponse.getStatus());
+        // PUT should return 415, we know this media type is unacceptable for the server (not completely sure this is right)
+        assertEquals(415, putResponse.getStatus());
 	}
 
     @Test
@@ -69,8 +75,8 @@ public class NewNoteITCase extends JerseyTest {
 		String fabricatedNewNoteUri = NEW_NOTE_RESOURCE;
         // PUT to 'new' note resource
         ClientResponse putResponse = webResource.path(fabricatedNewNoteUri).type(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_XML).put(ClientResponse.class, "<resource></resource>");
-        // PUT should return not implemented
-        assertEquals(501, putResponse.getStatus());
+        // PUT should return not found
+        assertEquals(404, putResponse.getStatus());
 	}
 
     @Test

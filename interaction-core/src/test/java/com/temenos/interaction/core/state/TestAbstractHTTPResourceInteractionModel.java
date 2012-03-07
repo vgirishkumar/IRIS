@@ -24,10 +24,13 @@ import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
+import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.command.ResourcePostCommand;
 
 public class TestAbstractHTTPResourceInteractionModel {
 
@@ -162,6 +165,56 @@ public class TestAbstractHTTPResourceInteractionModel {
 		r.delete(null, "123");
 	}
 
+	/* Test a status returned in the ResourcePostCommand will be returned all the way to the client */
+	@Test
+	public void testPOSTCommandStatus() {
+		String resourcePath = "/test";
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		CommandController cc = r.getCommandController();
+		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
+		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(RESTResource.class)));
+		when(rpc.getMethod()).thenReturn("POST");
+		cc.addStateTransitionCommand(resourcePath, rpc);
+		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
+		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
+	}
+
+	/* When the ResourcePostCommand does not return a Status (null) we expect to get an assertion error */
+	@Test(expected = AssertionError.class)
+	public void testPOSTStatusNull() {
+		String resourcePath = "/test";
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		CommandController cc = r.getCommandController();
+		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
+		when(rpc.getMethod()).thenReturn("POST");
+		cc.addStateTransitionCommand(resourcePath, rpc);
+		r.post(null, "123", mock(EntityResource.class));
+	}
+
+	/* No real need to test for this exception, responsibility of CommandConntroller */
+	@Test(expected = WebApplicationException.class)
+	public void testPOSTNoCommand() {
+		String resourcePath = "/test";
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		r.post(null, "123", null);
+	}
+
+	/* ResourcePostCommand returns a RESTResponse with Status OK, but getResource will return null */
+	@Test(expected = AssertionError.class)
+	public void testPOST200NoResource() {
+		String resourcePath = "/test";
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		CommandController cc = r.getCommandController();
+		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
+		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.OK, null));
+		when(rpc.getMethod()).thenReturn("POST");
+		cc.addStateTransitionCommand(resourcePath, rpc);
+		r.post(null, "123", mock(EntityResource.class));
+	}
 
 	/* TODO
 	@Test

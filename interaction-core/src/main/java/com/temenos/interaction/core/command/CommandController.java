@@ -111,4 +111,7 @@ public class CommandController {
 		return command;
 	}
 
+	public boolean isValidStateTransitioncommand(String httpMethod, String resourcePath) {
+		return (commands.get(httpMethod + "+" + resourcePath) != null);
+	}
 }
