@@ -2,8 +2,6 @@ TODO:
 
 Create a mockresponder archetype to generate odata and non odata mock responders.
 
-Remove application.properties from the generated mockresponder spring.xml. This is a wink configuration file and not required.
-
 Jersey server seems to support this type of @Path specification "/note{id: (\\(.+?\\))}" where the uri is matched based
 	on a regex so /note(1) or /note(1.1.1) or other combinations required by OData are matched.  See @Path on org.odata.producer.resources.EntityRequestResource
 	Need to possibly report an issue to Wink community project, or fix it as org.apache.wink.server.internal.registry.ResourceRegistry matcher logic
