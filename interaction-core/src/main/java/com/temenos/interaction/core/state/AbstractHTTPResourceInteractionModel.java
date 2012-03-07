@@ -33,10 +33,13 @@ import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.MethodNotAllowedCommand;
+import com.temenos.interaction.core.command.ResourceCommand;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
+import com.temenos.interaction.core.command.ResourceStatusCommand;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
 
@@ -53,7 +56,7 @@ import com.temenos.interaction.core.link.ResourceState;
  *
  */
 public abstract class AbstractHTTPResourceInteractionModel implements HTTPResourceInteractionModel {
-	private final Logger logger = LoggerFactory.getLogger(AbstractHTTPResourceInteractionModel.class);
+	private final static Logger logger = LoggerFactory.getLogger(AbstractHTTPResourceInteractionModel.class);
 
 	private String entityName;
 	private String resourcePath;
@@ -98,7 +101,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	protected CommandController getCommandController() {
 		return commandController;
 	}
-	
+
 	/**
 	 * GET a resource representation.
 	 * @precondition a valid GET command for this resourcePath + id must be registered with the command controller
@@ -111,8 +114,8 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.debug("GET " + getFQResourcePath());
-    	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand(getFQResourcePath());
+    	assert(getResourcePath() != null);
+    	ResourceGetCommand getCommand = getCommandController().fetchGetCommand(getFQResourcePath());
     	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters() : null;
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
@@ -167,19 +170,31 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     @Consumes({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
-    	logger.debug("POST " + resourcePath);
-    	assert(resourcePath != null);
-		ResourcePostCommand postCommand = (ResourcePostCommand) commandController.fetchStateTransitionCommand("POST", getResourcePath());
-    	RESTResponse response = postCommand.post(id, resource);
-    	assert (response != null);
-    	StatusType status = response.getStatus();
+    	logger.debug("POST " + getFQResourcePath());
+    	assert(getResourcePath() != null);
+    	ResourceCommand c = getCommandController().fetchStateTransitionCommand("POST", getFQResourcePath());
+
+    	StatusType status = null;
+    	RESTResponse response = null;
+    	if (c instanceof ResourcePostCommand) {
+    		ResourcePostCommand postCommand = (ResourcePostCommand) c;
+        	response = postCommand.post(id, resource);
+        	assert (response != null);
+        	status = response.getStatus();
+    	} else if (c instanceof ResourceStatusCommand) {
+       		status = ((ResourceStatusCommand) c).getStatus();    		
+    	}
     	assert (status != null);  // not a valid post command
+
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();
+		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
+			ResponseBuilder rb = Response.status(status);
+			return HeaderHelper.allowHeader(rb, getInteractions()).build();
 		}
-   		return Response.status(status).build();
+    	return Response.status(status).build();
     }
 
     /**
@@ -194,15 +209,25 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
     	logger.debug("PUT " + getFQResourcePath());
-    	assert(resourcePath != null);
-		ResourcePutCommand putCommand = (ResourcePutCommand) commandController.fetchStateTransitionCommand("PUT", getFQResourcePath());
-		StatusType status = putCommand.put(id, resource);
-		assert (status != null);  // not a valid put command
-    	if (status == Response.Status.OK) {
-        	return get(headers, id, null);
-    	} else {
-    		return Response.status(status).build();
+    	assert(getResourcePath() != null);
+    	ResourceCommand c = getCommandController().fetchStateTransitionCommand("PUT", getFQResourcePath());
+
+    	StatusType status = null;
+    	if (c instanceof ResourcePutCommand) {
+    		ResourcePutCommand putCommand = (ResourcePutCommand) c;
+    		status = putCommand.put(id, resource);
+    	} else if (c instanceof ResourceStatusCommand) {
+       		status = ((ResourceStatusCommand) c).getStatus();    		
     	}
+		assert (status != null);  // not a valid put command
+		
+		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
+        	return get(headers, id, null);
+		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
+			ResponseBuilder rb = Response.status(status);
+			return HeaderHelper.allowHeader(rb, getInteractions()).build();
+    	}
+   		return Response.status(status).build();
     }
 
 	/**
@@ -216,10 +241,16 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	@DELETE
     public Response delete( @Context HttpHeaders headers, @PathParam("id") String id ) {
     	logger.debug("DELETE " + getFQResourcePath());
-    	assert(resourcePath != null);
-    	ResourceDeleteCommand deleteCommand = (ResourceDeleteCommand) commandController.fetchStateTransitionCommand("DELETE", getFQResourcePath());
-		StatusType status = deleteCommand.delete(id);
-		assert (status != null);  // not a valid put command
+    	assert(getResourcePath() != null);
+    	ResourceCommand c = getCommandController().fetchStateTransitionCommand("DELETE", getFQResourcePath());
+    	StatusType status = null;
+    	if (c instanceof ResourceDeleteCommand) {
+        	ResourceDeleteCommand deleteCommand = (ResourceDeleteCommand) c;
+  			status = deleteCommand.delete(id);
+    	} else if (c instanceof ResourceStatusCommand) {
+       		status = ((ResourceStatusCommand) c).getStatus();    		
+    	}
+		assert (status != null);  // not a valid delete command
    		return Response.status(status).build();
     }
 
@@ -232,14 +263,14 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     @Override
     public Response options(String id) {
     	logger.debug("OPTIONS " + getFQResourcePath());
-    	assert(resourcePath != null);
-    	ResourceGetCommand getCommand = commandController.fetchGetCommand(getFQResourcePath());
+    	assert(getResourcePath() != null);
+    	ResourceGetCommand getCommand = getCommandController().fetchGetCommand(getFQResourcePath());
     	ResponseBuilder response = Response.ok();
     	RESTResponse rResponse = getCommand.get(id, null);
     	assert (rResponse != null);
     	StatusType status = rResponse.getStatus();
 		assert (status != null);  // not a valid get command
-    	if (status == Response.Status.OK) {
+		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
         	response = HeaderHelper.allowHeader(response, getInteractions());
     	}
     	return response.build();

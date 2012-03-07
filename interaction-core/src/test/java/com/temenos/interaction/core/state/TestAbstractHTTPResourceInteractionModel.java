@@ -28,9 +28,11 @@ import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.MethodNotAllowedCommand;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
+import com.temenos.interaction.core.command.ResourcePutCommand;
 
 public class TestAbstractHTTPResourceInteractionModel {
 
@@ -157,12 +159,13 @@ public class TestAbstractHTTPResourceInteractionModel {
 	}
 
 	/* No real need to test for this exception, responsibility of CommandConntroller */
-	@Test(expected = WebApplicationException.class)
+	@Test
 	public void testDELETENoCommand() {
 		String resourcePath = "/test";
 		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
-		r.delete(null, "123");
+		Response resp = r.delete(null, "123");
+		assertTrue(resp.getStatus() == 405);
 	}
 
 	/* Test a status returned in the ResourcePostCommand will be returned all the way to the client */
@@ -194,12 +197,13 @@ public class TestAbstractHTTPResourceInteractionModel {
 	}
 
 	/* No real need to test for this exception, responsibility of CommandConntroller */
-	@Test(expected = WebApplicationException.class)
+	@Test
 	public void testPOSTNoCommand() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
 		};
-		r.post(null, "123", null);
+		Response resp = r.post(null, "123", null);
+		assertTrue(resp.getStatus() == 405);
 	}
 
 	/* ResourcePostCommand returns a RESTResponse with Status OK, but getResource will return null */
@@ -214,6 +218,85 @@ public class TestAbstractHTTPResourceInteractionModel {
 		when(rpc.getMethod()).thenReturn("POST");
 		cc.addStateTransitionCommand(resourcePath, rpc);
 		r.post(null, "123", mock(EntityResource.class));
+	}
+
+	/* ResourcePostCommand returns a RESTResponse with Status "Family" (202), getResource will return null, and options */
+	@Test
+	public void testPOST204Options() {
+		String resourcePath = "/test";
+
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		CommandController cc = r.getCommandController();
+		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
+		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(EntityResource.class)));
+		when(rpc.getMethod()).thenReturn("POST");
+		cc.addStateTransitionCommand(resourcePath, rpc);
+
+		Response response = r.post(null, "123", mock(EntityResource.class));
+		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
+
+		// we don't need to, but it's nice to return the options
+		List<Object> allowHeader = response.getMetadata().get("Allow");
+		assertNotNull(allowHeader);
+        assertEquals(1, allowHeader.size());
+        assertEquals("POST, GET, OPTIONS, HEAD", allowHeader.get(0));
+	}
+
+	/* Test a status returned in the ResourcePostCommand will be returned all the way to the client */
+	@Test
+	public void testPOSTCommand405Options() {
+		String resourcePath = "/test";
+		
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		
+		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
+		assertEquals(405, response.getStatus());
+		
+        // as per the http spec, 405 MUST include an Allow header
+		List<Object> allowHeader = response.getMetadata().get("Allow");
+		assertNotNull(allowHeader);
+        assertEquals(1, allowHeader.size());
+        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
+	}
+
+	/* ResourcePutCommand returns a RESTResponse with Status "Family" (202), getResource will return null, and get latest version of resource */
+	@Test
+	public void testPUT204Options() {
+		String resourcePath = "/test";
+
+		CommandController cc = new CommandController();
+		ResourcePutCommand rpc = mock(ResourcePutCommand.class);
+		when(rpc.put(anyString(), any(EntityResource.class))).thenReturn(Response.Status.ACCEPTED);
+		when(rpc.getMethod()).thenReturn("PUT");
+		cc.addStateTransitionCommand(resourcePath, rpc);
+
+		AbstractHTTPResourceInteractionModel r = mock(AbstractHTTPResourceInteractionModel.class);
+		when(r.getCommandController()).thenReturn(cc);
+		when(r.getResourcePath()).thenReturn(resourcePath);
+		when(r.getFQResourcePath()).thenReturn(resourcePath);
+		when(r.put(any(HttpHeaders.class), anyString(), any(EntityResource.class))).thenCallRealMethod();
+		r.put(null, "123", mock(EntityResource.class));
+		verify(r).get(any(HttpHeaders.class), anyString(), any(UriInfo.class));
+	}
+
+	/* Test a status returned in the ResourcePostCommand will be returned all the way to the client */
+	@Test
+	public void testPUTCommand405Options() {
+		String resourcePath = "/test";
+		
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		
+		Response response = r.put(mock(HttpHeaders.class), "123", mock(EntityResource.class));
+		assertEquals(405, response.getStatus());
+		
+        // as per the http spec, 405 MUST include an Allow header
+		List<Object> allowHeader = response.getMetadata().get("Allow");
+		assertNotNull(allowHeader);
+        assertEquals(1, allowHeader.size());
+        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
 	}
 
 	/* TODO

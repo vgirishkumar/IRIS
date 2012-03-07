@@ -25,6 +25,7 @@ public class TestCommandController {
 		try {
 			cc.fetchGetCommand("/test-resource");
 		} catch (WebApplicationException wae) {
+			// every resource must have a GET command, so no command means no resource (404)
 			if (wae.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
 				exceptionThrown = true;
 			}
@@ -39,6 +40,7 @@ public class TestCommandController {
 		try {
 			cc.fetchGetCommand("/test-resource");
 		} catch (WebApplicationException wae) {
+			// every resource must have a GET command, so no command means no resource (404)
 			if (wae.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
 				exceptionThrown = true;
 			}
@@ -63,29 +65,17 @@ public class TestCommandController {
 	@Test
 	public void testSTCommandNull() {
 		CommandController cc = new CommandController();
-		boolean exceptionThrown = false;
-		try {
-			cc.fetchStateTransitionCommand(null, null);
-		} catch (WebApplicationException wae) {
-			if (wae.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-				exceptionThrown = true;
-			}
-		}
-		assertTrue(exceptionThrown);
+		ResourceCommand command = cc.fetchStateTransitionCommand(null, null);
+		// No state transition command, therefore method not allowed
+		assertTrue(command instanceof MethodNotAllowedCommand);
 	}
 
 	@Test
 	public void testSTCommandNotNullNotRegistered() {
 		CommandController cc = new CommandController();
-		boolean exceptionThrown = false;
-		try {
-			cc.fetchStateTransitionCommand("DO", "test");
-		} catch (WebApplicationException wae) {
-			if (wae.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-				exceptionThrown = true;
-			}
-		}
-		assertTrue(exceptionThrown);
+		ResourceCommand command = cc.fetchStateTransitionCommand("DO", "test");
+		// No state transition command, therefore method not allowed
+		assertTrue(command instanceof MethodNotAllowedCommand);
 	}
 
 	@Test

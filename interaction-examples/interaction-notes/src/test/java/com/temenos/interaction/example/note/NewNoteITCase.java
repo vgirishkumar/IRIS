@@ -75,8 +75,14 @@ public class NewNoteITCase extends JerseyTest {
 		String fabricatedNewNoteUri = NEW_NOTE_RESOURCE;
         // PUT to 'new' note resource
         ClientResponse putResponse = webResource.path(fabricatedNewNoteUri).type(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_XML).put(ClientResponse.class, "<resource></resource>");
-        // PUT should return not found
-        assertEquals(404, putResponse.getStatus());
+        // PUT does not have a command registered, should return method not allowed
+        assertEquals(405, putResponse.getStatus());
+        // as per the http spec, 405 MUST include an Allow header
+        assertEquals(4, putResponse.getAllow().size());
+        assertTrue(putResponse.getAllow().contains("GET"));
+        assertTrue(putResponse.getAllow().contains("POST"));
+        assertTrue(putResponse.getAllow().contains("OPTIONS"));
+        assertTrue(putResponse.getAllow().contains("HEAD"));
 	}
 
     @Test

@@ -15,6 +15,7 @@ import com.temenos.interaction.core.state.ResourceInteractionModel;
 public class CommandController {
 
 	private final Logger logger = LoggerFactory.getLogger(CommandController.class);
+	private final static MethodNotAllowedCommand METHOD_NOT_ALLOWED = new MethodNotAllowedCommand();
 
 	private Map<String, ResourceCommand> commands = new HashMap<String, ResourceCommand>();
 
@@ -106,7 +107,7 @@ public class CommandController {
 		ResourceCommand command = commands.get(httpMethod + "+" + resourcePath);
 		if (command == null) {
 			logger.error("No command bound to [" + httpMethod + "+" + resourcePath + "]");
-			throw new WebApplicationException(Response.Status.NOT_FOUND);
+			return METHOD_NOT_ALLOWED;
 		}
 		return command;
 	}
