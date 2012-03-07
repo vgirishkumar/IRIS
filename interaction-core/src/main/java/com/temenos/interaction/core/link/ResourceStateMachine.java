@@ -104,12 +104,18 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Map<String, ResourceState> getStateMap() {
+		return getStateMap(initial);
+	}
+
+	public Map<String, ResourceState> getStateMap(ResourceState begin) {
+		if (begin == null)
+			begin = initial;
 		Map<String, ResourceState> stateMap = new HashMap<String, ResourceState>();
 		List<ResourceState> states = new ArrayList<ResourceState>();
-		collectStates(stateMap, states, initial);
+		collectStates(stateMap, states, begin);
 		return stateMap;
 	}
-	
+
 	private void collectStates(Map<String, ResourceState> result, Collection<ResourceState> states, ResourceState currentState) {
 		if (currentState == null || states.contains(currentState)) return;
 		states.add(currentState);
