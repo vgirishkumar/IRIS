@@ -31,14 +31,15 @@ public class TestServiceDocumentProvider {
 		}
 	};
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testWriteServiceDocumentResource() throws Exception {
-		ServiceDocumentResource mr = mock(ServiceDocumentResource.class);
+		ServiceDocumentResource<EdmDataServices> mr = mock(ServiceDocumentResource.class);
 		
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 
 		//Mock ServiceDocumentResource
-		when(mr.getEdmx()).thenReturn(mockEDS);
+		when(mr.getServiceDocument()).thenReturn(mockEDS);
 		
 		//Serialize service document resource
 		MockServiceDocumentProvider p = new MockServiceDocumentProvider();

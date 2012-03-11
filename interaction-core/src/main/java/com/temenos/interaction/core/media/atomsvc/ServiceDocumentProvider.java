@@ -20,13 +20,13 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.odata4j.core.OEntity;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.ResourceTypeHelper;
 import com.temenos.interaction.core.ServiceDocumentResource;
 import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
@@ -42,8 +42,6 @@ import com.temenos.interaction.core.ExtendedMediaTypes;
 @Consumes({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML})
 @Produces({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
-	private final Logger logger = LoggerFactory.getLogger(ServiceDocumentProvider.class);
-
 	@Context
 	private UriInfo uriInfo;
 	
@@ -53,7 +51,7 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return type.equals(ServiceDocumentResource.class);
+		return ResourceTypeHelper.isType(type, genericType, ServiceDocumentResource.class);
 	}
 
 	@Override
@@ -70,6 +68,7 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 	 * @postcondition non null service document written to OutputStream
 	 * @invariant valid OutputStream
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void writeTo(RESTResource resource, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
@@ -78,23 +77,19 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 			WebApplicationException {
 		assert (resource != null);
 
-		if (!type.equals(ServiceDocumentResource.class))
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-
-		ServiceDocumentResource serviceDocumentResource = (ServiceDocumentResource) resource;
-		if (serviceDocumentResource.getServiceDocument() != null) {
-			// TODO create GENERICs ServiceDocumentResource type for jaxb objects and EdmDataServices objects
-			logger.error("Cannot write a jaxb object to stream with this provider");
+		final String svcDocString;
+		if(ResourceTypeHelper.isType(type, genericType, ServiceDocumentResource.class, EdmDataServices.class)) {
+			ServiceDocumentResource<EdmDataServices> serviceDocumentResource = (ServiceDocumentResource<EdmDataServices>) resource;
+		    EdmDataServices metadata = serviceDocumentResource.getServiceDocument();
+		    StringWriter sw = new StringWriter();
+		    MediaType[] acceptedMediaTypes = { ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE };
+		    FormatWriter<EdmDataServices> fw = FormatWriterFactory.getFormatWriter(EdmDataServices.class, Arrays.asList(acceptedMediaTypes), "atom", null);
+		    fw.write(uriInfo, sw, metadata);
+			svcDocString = sw.toString();
+		}
+		else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
-
-	    EdmDataServices metadata = serviceDocumentResource.getEdmx();
-	    StringWriter sw = new StringWriter();
-	    MediaType[] acceptedMediaTypes = { ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE };
-	    FormatWriter<EdmDataServices> fw = FormatWriterFactory.getFormatWriter(EdmDataServices.class, Arrays.asList(acceptedMediaTypes), "atom", null);
-	    fw.write(uriInfo, sw, metadata);
-		final String svcDocString = sw.toString();
-		
 		outputStream.write(svcDocString.getBytes("UTF-8"));
 		outputStream.flush();
 	}
@@ -102,7 +97,7 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return type.equals(ServiceDocumentResource.class);
+		return ResourceTypeHelper.isType(type, genericType, ServiceDocumentResource.class);
 	}
 
 	/**
@@ -113,7 +108,7 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 	 * @invariant valid InputStream
 	 */
 	@Override
-	public EntityResource readFrom(Class<RESTResource> type,
+	public ServiceDocumentResource<EdmDataServices> readFrom(Class<RESTResource> type,
 			Type genericType, Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {

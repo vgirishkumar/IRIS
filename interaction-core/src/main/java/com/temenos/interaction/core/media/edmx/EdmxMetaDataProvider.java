@@ -19,13 +19,12 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.xml.EdmxFormatWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.MetaDataResource;
 import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.ResourceTypeHelper;
 
 /**
  * JAX-RS Provider class for marshalling EDMX metadata resources.
@@ -37,8 +36,7 @@ import com.temenos.interaction.core.RESTResource;
 @Consumes({MediaType.APPLICATION_XML})
 @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_ATOM_XML})
 public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
-	private final Logger logger = LoggerFactory.getLogger(EdmxMetaDataProvider.class);
-
+	@SuppressWarnings("unused")
 	@Context
 	private UriInfo uriInfo;
 	
@@ -48,7 +46,7 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return type.equals(MetaDataResource.class);
+		return ResourceTypeHelper.isType(type, genericType, MetaDataResource.class);
 	}
 
 	@Override
@@ -65,6 +63,7 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	 * @postcondition non null meta data document written to OutputStream
 	 * @invariant valid OutputStream
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void writeTo(RESTResource resource, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
@@ -73,19 +72,16 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 			WebApplicationException {
 		assert (resource != null);
 
-		if (!type.equals(MetaDataResource.class))
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-
-		MetaDataResource metadataResource = (MetaDataResource) resource;
-		if (metadataResource.getMetadata() != null) {
-			// TODO create GENERICs MetaDataResource type for jaxb objects and EdmDataServices objects
-			logger.error("Cannot write a jaxb object to stream with this provider");
+		final String edmxString;
+		if(ResourceTypeHelper.isType(type, genericType, MetaDataResource.class, EdmDataServices.class)) {
+			MetaDataResource<EdmDataServices> metadataResource = (MetaDataResource<EdmDataServices>) resource;
+			StringWriter sw = new StringWriter();
+			EdmxFormatWriter.write(metadataResource.getMetadata(), sw);
+			edmxString = sw.toString();
+		}
+		else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
-		StringWriter sw = new StringWriter();
-		EdmxFormatWriter.write(metadataResource.getEdmx(), sw);
-		final String edmxString = sw.toString();
-		
 		outputStream.write(edmxString.getBytes("UTF-8"));
 		outputStream.flush();
 	}
@@ -93,7 +89,7 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return type.equals(MetaDataResource.class);
+		return ResourceTypeHelper.isType(type, genericType, MetaDataResource.class);
 	}
 
 	/**
@@ -104,7 +100,7 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	 * @invariant valid InputStream
 	 */
 	@Override
-	public EntityResource readFrom(Class<RESTResource> type,
+	public MetaDataResource<EdmDataServices> readFrom(Class<RESTResource> type,
 			Type genericType, Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {

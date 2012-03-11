@@ -1,15 +1,12 @@
 package com.temenos.interaction.core;
 
+import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import org.odata4j.core.OEntity;
-import org.odata4j.producer.exceptions.NotImplementedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
@@ -20,46 +17,27 @@ import org.slf4j.LoggerFactory;
  */
 @XmlRootElement(name = "resource")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EntityResource implements RESTResource {
-	@XmlTransient
-	private final Logger logger = LoggerFactory.getLogger(EntityResource.class);
-
+public class EntityResource<T> implements RESTResource {
 	@XmlAnyElement(lax=true)
-	private Object entity;
-	@XmlTransient
-	private OEntity oEntity;
+	private T entity;
 	
-	// keep JAXB happy
-	public EntityResource() {}
+	public EntityResource() {
+	}
 	
-	public EntityResource(Object entity) {
+	public EntityResource(T entity) {
 		this.entity = entity;
 	}
 
-	public EntityResource(OEntity oEntity) {
-		this.oEntity = oEntity;
+	public T getEntity() {
+		return entity;
 	}
 
-	// TODO use Generics here
-	public Object getEntity() {
-		return entity;
+	@Override
+	public GenericEntity<EntityResource<T>> getGenericEntity() {
+		return new GenericEntity<EntityResource<T>>(this, this.getClass().getGenericSuperclass());
 	}
 	
 	public OEntity getOEntity() {
-		if (oEntity != null) return oEntity;
-		if (entity != null) {
-			logger.debug("Discovered a jaxb / json deserialised object");
-			// TODO implement a generic jaxb to OEntity conversion for our 'entity'
-			/*
-			 * TODO implement a generic jaxb to OEntities conversion for our 
-			 * 'entities' or throw an error to change the runtime configuration 
-			 * to represent this object with a JAXB Provider
-			 */
-			throw new NotImplementedException();
-		}
-		throw new RuntimeException("Either oEntity or entity must be supplied");
+		return (OEntity) entity;
 	}
-	
-	// TODO implement links, see OEntity.getLinks public Set<OLink> getLinks();
-
 }

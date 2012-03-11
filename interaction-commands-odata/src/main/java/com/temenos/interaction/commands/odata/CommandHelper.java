@@ -7,8 +7,50 @@ import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 
+import com.temenos.interaction.core.CollectionResource;
+import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.MetaDataResource;
+import com.temenos.interaction.core.ServiceDocumentResource;
+
 public class CommandHelper {
 
+	/**
+	 * Create an OData entity resource (entry)
+	 * @param e OEntity
+	 * @return entity resource
+	 */
+	public static<OEntity> EntityResource<OEntity> createEntityResource(OEntity e) {
+		return new EntityResource<OEntity>(e) {};	
+	}
+	
+	/**
+	 * Create an OData collection resource (feed)
+	 * @param entitySetName Entity set name
+	 * @param entities List of OData entities
+	 * @return collection resource
+	 */
+	public static<OEntity> CollectionResource<OEntity> createCollectionResource(String entitySetName, List<OEntity> entities) {
+		return new CollectionResource<OEntity>(entitySetName, entities, null) {};
+	}
+
+	/**
+	 * Create an OData service document (atomsvc)
+	 * @param metadata Edmx
+	 * @return Service document
+	 */
+	public static<EdmDataServices> ServiceDocumentResource<EdmDataServices> createServiceDocumentResource(EdmDataServices metadata) {
+		return new ServiceDocumentResource<EdmDataServices>(metadata) {};	
+	}
+
+	/**
+	 * Create an OData metadata document (edmx)
+	 * @param metadata Edmx
+	 * @return metadata resource
+	 */
+	public static<EdmDataServices> MetaDataResource<EdmDataServices> createMetaDataResource(EdmDataServices metadata) {
+		return new MetaDataResource<EdmDataServices>(metadata) {};	
+	}
+	
 	/**
 	 * Create an OEntityKey instance for the specified entity id
 	 * @param entityTypes List of entity types

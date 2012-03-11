@@ -29,6 +29,6 @@ public interface ResourcePostCommand extends ResourceStateTransitionCommand {
 	 * will return a {@link Response.Status}.  A call to {@link RESTResponse#getResource()} will return
 	 * a {@link RESTResource} if a the Response.Status is an OK (200) family of response
 	 */
-	public RESTResponse post(String id, EntityResource resource);
+	public RESTResponse post(String id, EntityResource<?> resource);
 
 }

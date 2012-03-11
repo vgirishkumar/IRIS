@@ -49,7 +49,8 @@ public class GETEntityCommand implements ResourceGetCommand {
 		EntityResponse er = getProducer().getEntity(entity, key, null);
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(oEntity));
+		EntityResource<OEntity> oer = CommandHelper.createEntityResource(oEntity);
+		RESTResponse rr = new RESTResponse(Response.Status.OK, oer);		
 		return rr;
 	}
 

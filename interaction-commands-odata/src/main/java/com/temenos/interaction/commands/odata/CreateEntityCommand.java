@@ -29,7 +29,7 @@ public class CreateEntityCommand implements ResourcePostCommand {
 	}
 
 	@Override
-	public RESTResponse post(String id, EntityResource resource) {
+	public RESTResponse post(String id, EntityResource<?> resource) {
 		assert(entity != null && !entity.equals(""));
 		assert(resource != null);
 		
@@ -37,7 +37,7 @@ public class CreateEntityCommand implements ResourcePostCommand {
 		EntityResponse er = producer.createEntity(entity, resource.getOEntity());
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.CREATED, new EntityResource(oEntity));
+		RESTResponse rr = new RESTResponse(Response.Status.CREATED, new EntityResource<OEntity>(oEntity));
 		return rr;
 	}
 

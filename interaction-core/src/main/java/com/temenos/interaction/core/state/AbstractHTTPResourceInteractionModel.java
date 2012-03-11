@@ -16,6 +16,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -30,8 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
-import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.ResourceTypeHelper;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.MethodNotAllowedCommand;
 import com.temenos.interaction.core.command.ResourceCommand;
@@ -109,7 +110,8 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @invariant resourcePath not null
 	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModel#get(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
 	@GET
     @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
@@ -120,27 +122,34 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
     	RESTResponse response = getCommand.get(id, queryParameters);
-    	
-    	if (response != null && resourceRegistry != null && response.getResource() instanceof EntityResource) {
-        	RESTResource rr = response.getResource();
-    		EntityResource er = (EntityResource) rr;
-        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getOEntity(), getCurrentState());
-        	EntityResource rebuilt = new EntityResource(oe);
-        	response = new RESTResponse(response.getStatus(), rebuilt);
-    	}
-    	
+
     	assert (response != null);
     	StatusType status = response.getStatus();
 		assert (status != null);  // not a valid get command
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
-			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
+
+			//Wrap response into a JAX-RS GenericEntity object 
+			GenericEntity<?> entity = response.getResource().getGenericEntity();
+			
+			//Rebuild resource links if necessary
+	    	if (resourceRegistry != null &&
+	    			ResourceTypeHelper.isType(entity.getRawType(), entity.getType(), EntityResource.class)) {
+	    		EntityResource<OEntity> er = (EntityResource<OEntity>) entity.getEntity();
+	        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getOEntity(), getCurrentState());
+	        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
+	        	entity = rebuilt.getGenericEntity();
+	    	}	    	
+			
+			//Create resource representation from response
+			ResponseBuilder rb = Response.ok(entity).status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();
 		}
 		return Response.status(status).build();
     }
     
-    private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
+    @SuppressWarnings("static-access")
+	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
     	try {
     		if (queryParameters == null)
     			return;
@@ -169,7 +178,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     @POST
     @Consumes({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource<?> resource ) {
     	logger.debug("POST " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("POST", getFQResourcePath());
@@ -207,7 +216,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     @Override
 	@PUT
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource resource ) {
+    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource<?> resource ) {
     	logger.debug("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("PUT", getFQResourcePath());

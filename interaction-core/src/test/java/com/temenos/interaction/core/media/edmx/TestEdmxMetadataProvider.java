@@ -24,14 +24,15 @@ import static org.mockito.Mockito.when;
 
 public class TestEdmxMetadataProvider {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testWriteMetadataResource() throws Exception {
-		MetaDataResource mr = mock(MetaDataResource.class);
+		MetaDataResource<EdmDataServices> mr = mock(MetaDataResource.class);
 		
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 
 		//Mock MetadataResource
-		when(mr.getEdmx()).thenReturn(mockEDS);
+		when(mr.getMetadata()).thenReturn(mockEDS);
 		
 		//Serialize metadata resource
 		EdmxMetaDataProvider p = new EdmxMetaDataProvider();

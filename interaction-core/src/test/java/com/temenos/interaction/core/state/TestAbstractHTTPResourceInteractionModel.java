@@ -3,7 +3,6 @@ package com.temenos.interaction.core.state;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -11,7 +10,6 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
@@ -28,7 +26,6 @@ import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.command.MethodNotAllowedCommand;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
@@ -37,6 +34,7 @@ import com.temenos.interaction.core.command.ResourcePutCommand;
 public class TestAbstractHTTPResourceInteractionModel {
 
 	/* We decode the query parameters to workaround an issue in Wink */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testDecodeQueryParameters() {
 		String resourcePath = "/test";
@@ -56,7 +54,9 @@ public class TestAbstractHTTPResourceInteractionModel {
 		verify(rgc).get(eq("id"), (MultivaluedMap<String, String>) argThat(new MultimapArgumentMatcher()));
 	}
 
+	@SuppressWarnings("rawtypes")
 	class MultimapArgumentMatcher extends ArgumentMatcher {
+		@SuppressWarnings("unchecked")
 		public boolean matches(Object o) {
 			if (o instanceof MultivaluedMap) {
 				MultivaluedMap<String, String> mvmap = (MultivaluedMap<String, String>) o;
@@ -84,6 +84,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 	}
 
 	/* Test a status returned in the ResourceGetCommand will be returned all the way to the client */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGETCommandStatus() {
 		String resourcePath = "/test";
@@ -118,6 +119,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 	}
 
 	/* ResourceGetCommand returns a RESTResponse with Status OK, but getResource will return null */
+	@SuppressWarnings("unchecked")
 	@Test(expected = AssertionError.class)
 	public void testGET200NoResource() {
 		String resourcePath = "/test";

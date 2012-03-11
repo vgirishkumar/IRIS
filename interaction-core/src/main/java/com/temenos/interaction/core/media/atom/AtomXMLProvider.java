@@ -14,7 +14,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
@@ -24,18 +23,16 @@ import org.odata4j.core.OEntity;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.Responses;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.CollectionResource;
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.ResourceTypeHelper;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})
 @Produces({MediaType.APPLICATION_ATOM_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
-	private final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
 
 	@Context
 	private UriInfo uriInfo;
@@ -52,7 +49,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return type.equals(EntityResource.class) || type.equals(CollectionResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
+				ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
 	}
 
 	@Override
@@ -70,6 +68,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * @postcondition non null Atom (OData) XML document written to OutputStream
 	 * @invariant valid OutputStream
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void writeTo(RESTResource resource, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
@@ -77,29 +76,15 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			OutputStream entityStream) throws IOException,
 			WebApplicationException {
 		assert (resource != null);
-
-		if (!type.equals(EntityResource.class) && !type.equals(CollectionResource.class))
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-
 		assert(uriInfo != null);
-		if (resource instanceof EntityResource) {
-			EntityResource entityResource = (EntityResource) resource;
-			if (entityResource.getEntity() != null) {
-				// TODO create GENERICs EntityResource type for jaxb objects and oentity objects.  Provider isWriteable only works the class type
-				logger.error("Cannot write a jaxb object to stream with this provider");
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-			}
-			// TODO add EntityResource Links to OEntity??
-			entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity((entityResource).getOEntity()));
+		
+		if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
+			EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+			entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(entityResource.getEntity()));
 		}
-		if (resource instanceof CollectionResource) {
-			// TODO add writer for Links
-			CollectionResource cr = ((CollectionResource) resource);
-			if (cr.getEntities() != null) {
-				// TODO create GENERICs CollectionResource type for jaxb collection and oentity collection.  Provider isWriteable only works the class type
-				logger.error("Cannot write a jaxb object to stream with this provider");
-			}
-			List<OEntity> entities = cr.getOEntities();
+		if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
+			CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
+			List<OEntity> entities = (List<OEntity>) cr.getEntities();
 			EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
 			// TODO implement collection properties and get transient values for inlinecount and skiptoken
 			Integer inlineCount = null;
@@ -112,7 +97,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
 		// this class can only deserialise EntityResource with OEntity.
-		return type.equals(EntityResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class);
 	}
 
 	/**
@@ -123,12 +108,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * @invariant valid InputStream
 	 */
 	@Override
-	public EntityResource readFrom(Class<RESTResource> type,
+	public EntityResource<OEntity> readFrom(Class<RESTResource> type,
 			Type genericType, Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 		// TODO implement deserialise
 		return null;
 	}
-
 }

@@ -48,7 +48,7 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
 	public abstract Response post(@Context HttpHeaders headers,
 			@PathParam("id") String id,
-			EntityResource resource);
+			EntityResource<?> resource);
 
 	/**
 	 * PUT a resource.
@@ -59,7 +59,7 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 			MediaType.APPLICATION_JSON,
 			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
 	public abstract Response put(@Context HttpHeaders headers,
-			@PathParam("id") String id, EntityResource resource);
+			@PathParam("id") String id, EntityResource<?> resource);
 
 	/**
 	 * DELETE a resource.

@@ -47,7 +47,7 @@ public class GETSingleEntityCommand implements ResourceGetCommand {
 		OEntityKey key = OEntityKey.create(entityKey);
 		EntityResponse eResp = producer.getEntity(entitySet.getName(), key, null);
 		OEntity oEntity = eResp.getEntity();
-		EntityResource er = new EntityResource(oEntity);
+		EntityResource<OEntity> er = new EntityResource<OEntity>(oEntity);
 		return new RESTResponse(Response.Status.OK, er);
 	}
 

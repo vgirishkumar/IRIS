@@ -3,6 +3,7 @@ package com.temenos.interaction.commands.odata;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.odata4j.core.OEntity;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.EntitiesResponse;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.CollectionResource;
+import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
@@ -62,7 +64,7 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 		
 		EntitiesResponse response = producer.getEntities(entitySetName, query);
 		    
-		CollectionResource cr = new CollectionResource(entitySetName, response.getEntities(), null);
+		CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 		RESTResponse rr = new RESTResponse(Response.Status.OK, cr);
 		return rr;
 	}

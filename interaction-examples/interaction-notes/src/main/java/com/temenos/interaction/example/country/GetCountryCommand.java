@@ -36,11 +36,11 @@ public class GetCountryCommand implements ResourceGetCommand {
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		assert(producer != null);
 		assert(id != null);
-		EntityResource resource = null;
+		EntityResource<Country> resource = null;
 		EntityResponse entityResponse = producer.getEntity(CountryRIM.ENTITY_NAME, OEntityKey.create(id), null);
 		if (entityResponse != null && entityResponse.getEntity() != null) {
 			OEntity entity = entityResponse.getEntity();
-			resource = new EntityResource(new Country(entity));
+			resource = new EntityResource<Country>(new Country(entity));
 		}
 		return new RESTResponse(resource == null ? Response.Status.NOT_FOUND : Response.Status.OK, resource);
 	}

@@ -72,12 +72,12 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
-	public Response post(HttpHeaders headers, String id, EntityResource eresource) {
+	public Response post(HttpHeaders headers, String id, EntityResource<?> eresource) {
 		return resource.post(headers, id, eresource);
 	}
 
 	@Override
-	public Response put(HttpHeaders headers, String id, EntityResource eresource) {
+	public Response put(HttpHeaders headers, String id, EntityResource<?> eresource) {
 		return resource.put(headers, id, eresource);
 	}
 

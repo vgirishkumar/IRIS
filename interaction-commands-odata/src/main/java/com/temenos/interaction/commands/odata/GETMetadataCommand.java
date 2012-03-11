@@ -36,10 +36,12 @@ public class GETMetadataCommand implements ResourceGetCommand {
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		RESTResponse rr;
 		if(entity.equals("ServiceDocument")) {
-			rr = new RESTResponse(Response.Status.OK, new ServiceDocumentResource(edmDataServices));
+			ServiceDocumentResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
+			rr = new RESTResponse(Response.Status.OK, sdr);
 		}
 		else {
-			rr = new RESTResponse(Response.Status.OK, new MetaDataResource(edmDataServices));
+			MetaDataResource<EdmDataServices> mdr = CommandHelper.createMetaDataResource(edmDataServices);
+			rr = new RESTResponse(Response.Status.OK, mdr);
 		}
 		return rr;
 	}
