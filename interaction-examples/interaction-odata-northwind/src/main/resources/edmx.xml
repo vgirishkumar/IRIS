@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx"
+xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices"
+xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+    <edmx:DataServices m:DataServiceVersion="1.0">
+        <Schema Namespace="MockResponderSDKContainer" xmlns="http://schemas.microsoft.com/ado/2006/04/edm">
+            <EntityContainer Name="MockResponderSDKEntities"
+            m:IsDefaultEntityContainer="true">
+                <EntitySet Name="Suppliers" EntityType="MockResponderSDKModel.Suppliers"/>
+                <EntitySet Name="Orders" EntityType="MockResponderSDKModel.Orders"/>
+                <EntitySet Name="Order_Details" EntityType="MockResponderSDKModel.Order_Details"/>
+                <EntitySet Name="Customers" EntityType="MockResponderSDKModel.Customers"/>
+                <EntitySet Name="Categories" EntityType="MockResponderSDKModel.Categories"/>
+                <EntitySet Name="Employees" EntityType="MockResponderSDKModel.Employees"/>
+                <EntitySet Name="Products" EntityType="MockResponderSDKModel.Products"/>
+                <AssociationSet Name="FK_Orders_Customers" Association="MockResponderSDKModel.FK_Orders_Customers">
+                    <End Role="Orders" EntitySet="Orders"/>
+                    <End Role="Customers" EntitySet="Customers"/>
+                </AssociationSet>
+                <AssociationSet Name="FK_Orders_Employees" Association="MockResponderSDKModel.FK_Orders_Employees">
+                    <End Role="Orders" EntitySet="Orders"/>
+                    <End Role="Employees" EntitySet="Employees"/>
+                </AssociationSet>
+                <AssociationSet Name="FK_Order_Details_Orders"
+                Association="MockResponderSDKModel.FK_Order_Details_Orders">
+                    <End Role="Order_Details" EntitySet="Order_Details"/>
+                    <End Role="Orders" EntitySet="Orders"/>
+                </AssociationSet>
+                <AssociationSet Name="FK_Order_Details_Products"
+                Association="MockResponderSDKModel.FK_Order_Details_Products">
+                    <End Role="Order_Details" EntitySet="Order_Details"/>
+                    <End Role="Products" EntitySet="Products"/>
+                </AssociationSet>
+                <AssociationSet Name="FK_Products_Categories"
+                Association="MockResponderSDKModel.FK_Products_Categories">
+                    <End Role="Products" EntitySet="Products"/>
+                    <End Role="Categories" EntitySet="Categories"/>
+                </AssociationSet>
+                <AssociationSet Name="FK_Products_Suppliers"
+                Association="MockResponderSDKModel.FK_Products_Suppliers">
+                    <End Role="Products" EntitySet="Products"/>
+                    <End Role="Suppliers" EntitySet="Suppliers"/>
+                </AssociationSet>
+            </EntityContainer>
+        </Schema>
+        <Schema Namespace="MockResponderSDKModel" xmlns="http://schemas.microsoft.com/ado/2006/04/edm">
+            <ComplexType Name="Order_DetailsPK">
+                <Property Name="OrderID" Type="Edm.Int32" Nullable="false"/>
+                <Property Name="ProductID" Type="Edm.Int32"
+                Nullable="false"/>
+            </ComplexType>
+            <EntityType Name="Suppliers">
+                <Key>
+                    <PropertyRef Name="SupplierID"/>
+                </Key>
+                <Property Name="HomePage" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="ContactName" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="Phone" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="ContactTitle" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="Country" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="Fax" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="Address" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="CompanyName" Type="Edm.String"
+                Nullable="false" MaxLength="255"/>
+                <Property Name="City" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="PostalCode" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="SupplierID" Type="Edm.Int32"
+                Nullable="false"/>
+                <Property Name="Region" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <NavigationProperty Name="Products" Relationship="MockResponderSDKModel.FK_Products_Suppliers"
+                FromRole="Suppliers" ToRole="Products"/>
+            </EntityType>
+            <EntityType Name="Orders">
+                <Key>
+                    <PropertyRef Name="OrderID"/>
+                </Key>
+                <Property Name="EmployeeID" Type="Edm.Int32"
+                Nullable="true"/>
+                <Property Name="ShipName" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="CustomerID" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="ShipVia" Type="Edm.Int32" Nullable="true"/>
+                <Property Name="OrderDate" Type="Edm.DateTime"
+                Nullable="true"/>
+                <Property Name="ShipCity" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="RequiredDate" Type="Edm.DateTime"
+                Nullable="true"/>
+                <Property Name="OrderID" Type="Edm.Int32" Nullable="false"/>
+                <Property Name="ShipCountry" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="ShipRegion" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="ShipPostalCode" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="Freight" Type="Edm.Decimal"
+                Nullable="true"/>
+                <Property Name="ShipAddress" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="ShippedDate" Type="Edm.DateTime"
+                Nullable="true"/>
+                <NavigationProperty Name="Customer" Relationship="MockResponderSDKModel.FK_Orders_Customers"
+                FromRole="Orders" ToRole="Customers"/>
+                <NavigationProperty Name="Employee" Relationship="MockResponderSDKModel.FK_Orders_Employees"
+                FromRole="Orders" ToRole="Employees"/>
+                <NavigationProperty Name="OrderDetails" Relationship="MockResponderSDKModel.FK_Order_Details_Orders"
+                FromRole="Orders" ToRole="Order_Details"/>
+            </EntityType>
+            <EntityType Name="Order_Details">
+                <Key>
+                    <PropertyRef Name="OrderID"/>
+                    <PropertyRef Name="ProductID"/>
+                </Key>
+                <Property Name="OrderID" Type="Edm.Int32" Nullable="false"/>
+                <Property Name="ProductID" Type="Edm.Int32"
+                Nullable="false"/>
+                <Property Name="Discount" Type="Edm.Single"
+                Nullable="false"/>
+                <Property Name="UnitPrice" Type="Edm.Decimal"
+                Nullable="false"/>
+                <Property Name="Quantity" Type="Edm.Int16" Nullable="false"/>
+                <NavigationProperty Name="Order" Relationship="MockResponderSDKModel.FK_Order_Details_Orders"
+                FromRole="Order_Details" ToRole="Orders"/>
+                <NavigationProperty Name="Product" Relationship="MockResponderSDKModel.FK_Order_Details_Products"
+                FromRole="Order_Details" ToRole="Products"/>
+            </EntityType>
+            <EntityType Name="Customers">
+                <Key>
+                    <PropertyRef Name="CustomerID"/>
+                </Key>
+                <Property Name="ContactTitle" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="ContactName" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="City" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="Fax" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="CompanyName" Type="Edm.String"
+                Nullable="false" MaxLength="255"/>
+                <Property Name="Address" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="CustomerID" Type="Edm.String"
+                Nullable="false" MaxLength="255"/>
+                <Property Name="Region" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="Country" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="Phone" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="PostalCode" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <NavigationProperty Name="Orders" Relationship="MockResponderSDKModel.FK_Orders_Customers"
+                FromRole="Customers" ToRole="Orders"/>
+            </EntityType>
+            <EntityType Name="Categories">
+                <Key>
+                    <PropertyRef Name="CategoryID"/>
+                </Key>
+                <Property Name="CategoryID" Type="Edm.Int32"
+                Nullable="false"/>
+                <Property Name="CategoryName" Type="Edm.String"
+                Nullable="false" MaxLength="255"/>
+                <Property Name="Description" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="Picture" Type="Edm.Binary" Nullable="true"
+                MaxLength="255"/>
+                <NavigationProperty Name="Products" Relationship="MockResponderSDKModel.FK_Products_Categories"
+                FromRole="Categories" ToRole="Products"/>
+            </EntityType>
+            <EntityType Name="Employees">
+                <Key>
+                    <PropertyRef Name="EmployeeID"/>
+                </Key>
+                <Property Name="Country" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="PostalCode" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="Region" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="ReportsTo" Type="Edm.Int32"
+                Nullable="true"/>
+                <Property Name="LastName" Type="Edm.String"
+                Nullable="false" MaxLength="255"/>
+                <Property Name="Notes" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="HireDate" Type="Edm.DateTime"
+                Nullable="true"/>
+                <Property Name="PhotoPath" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="EmployeeID" Type="Edm.Int32"
+                Nullable="false"/>
+                <Property Name="Photo" Type="Edm.Binary" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="FirstName" Type="Edm.String"
+                Nullable="false" MaxLength="255"/>
+                <Property Name="HomePhone" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="City" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="Address" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <Property Name="TitleOfCourtesy" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="BirthDate" Type="Edm.DateTime"
+                Nullable="true"/>
+                <Property Name="Extension" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="Title" Type="Edm.String" Nullable="true"
+                MaxLength="255"/>
+                <NavigationProperty Name="Order" Relationship="MockResponderSDKModel.FK_Orders_Employees"
+                FromRole="Employees" ToRole="Orders"/>
+            </EntityType>
+            <EntityType Name="Products">
+                <Key>
+                    <PropertyRef Name="ProductID"/>
+                </Key>
+                <Property Name="ProductName" Type="Edm.String"
+                Nullable="false" MaxLength="255"/>
+                <Property Name="UnitPrice" Type="Edm.Decimal"
+                Nullable="true"/>
+                <Property Name="QuantityPerUnit" Type="Edm.String"
+                Nullable="true" MaxLength="255"/>
+                <Property Name="ProductID" Type="Edm.Int32"
+                Nullable="false"/>
+                <Property Name="ReorderLevel" Type="Edm.Int16"
+                Nullable="true"/>
+                <Property Name="CategoryID" Type="Edm.Int32"
+                Nullable="true"/>
+                <Property Name="SupplierID" Type="Edm.Int32"
+                Nullable="true"/>
+                <Property Name="Discontinued" Type="Edm.Boolean"
+                Nullable="false"/>
+                <Property Name="UnitsInStock" Type="Edm.Int16"
+                Nullable="true"/>
+                <Property Name="UnitsOnOrder" Type="Edm.Int16"
+                Nullable="true"/>
+                <NavigationProperty Name="Category" Relationship="MockResponderSDKModel.FK_Products_Categories"
+                FromRole="Products" ToRole="Categories"/>
+                <NavigationProperty Name="Supplier" Relationship="MockResponderSDKModel.FK_Products_Suppliers"
+                FromRole="Products" ToRole="Suppliers"/>
+                <NavigationProperty Name="Order_Details" Relationship="MockResponderSDKModel.FK_Order_Details_Products"
+                FromRole="Products" ToRole="Order_Details"/>
+            </EntityType>
+            <Association Name="FK_Orders_Customers">
+                <End Role="Orders" Type="MockResponderSDKModel.Orders"
+                Multiplicity="*"/>
+                <End Role="Customers" Type="MockResponderSDKModel.Customers"
+                Multiplicity="0..1"/>
+            </Association>
+            <Association Name="FK_Orders_Employees">
+                <End Role="Orders" Type="MockResponderSDKModel.Orders"
+                Multiplicity="*"/>
+                <End Role="Employees" Type="MockResponderSDKModel.Employees"
+                Multiplicity="0..1"/>
+            </Association>
+            <Association Name="FK_Order_Details_Orders">
+                <End Role="Order_Details" Type="MockResponderSDKModel.Order_Details"
+                Multiplicity="*"/>
+                <End Role="Orders" Type="MockResponderSDKModel.Orders"
+                Multiplicity="0..1"/>
+            </Association>
+            <Association Name="FK_Order_Details_Products">
+                <End Role="Order_Details" Type="MockResponderSDKModel.Order_Details"
+                Multiplicity="*"/>
+                <End Role="Products" Type="MockResponderSDKModel.Products"
+                Multiplicity="0..1"/>
+            </Association>
+            <Association Name="FK_Products_Categories">
+                <End Role="Products" Type="MockResponderSDKModel.Products"
+                Multiplicity="*"/>
+                <End Role="Categories" Type="MockResponderSDKModel.Categories"
+                Multiplicity="0..1"/>
+            </Association>
+            <Association Name="FK_Products_Suppliers">
+                <End Role="Products" Type="MockResponderSDKModel.Products"
+                Multiplicity="*"/>
+                <End Role="Suppliers" Type="MockResponderSDKModel.Suppliers"
+                Multiplicity="0..1"/>
+            </Association>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>
