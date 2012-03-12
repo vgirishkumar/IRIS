@@ -2,7 +2,6 @@ package com.temenos.interaction.core.dynaresource;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,7 +87,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 					if (method.equals(HttpMethod.GET))
 						continue;
 					// check valid http method
-					if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)))
+					if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE) || method.equals(HttpMethod.POST)))
 						throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
 					// fetch command from command controller for this method
 					getCommandController().fetchStateTransitionCommand(method, getFQResourcePath());
@@ -108,18 +107,6 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		return subState;
 	}
 	
-	@Override
-	public Set<String> getInteractions() {
-		Set<String> allows = new HashSet<String>();
-		Set<String> interactions = stateMachine.getInteractions(stateMachine.getInitial());
-		if (interactions != null)
-			allows.addAll(interactions);
-		allows.add("GET");
-		allows.add("OPTIONS");
-		allows.add("HEAD");
-		return allows;
-	}
-
 	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
