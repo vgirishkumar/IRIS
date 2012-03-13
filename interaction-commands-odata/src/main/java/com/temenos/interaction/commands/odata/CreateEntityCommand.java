@@ -28,13 +28,15 @@ public class CreateEntityCommand implements ResourcePostCommand {
 		return HttpMethod.POST;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public RESTResponse post(String id, EntityResource<?> resource) {
 		assert(entity != null && !entity.equals(""));
 		assert(resource != null);
 		
 		// create the entity
-		EntityResponse er = producer.createEntity(entity, resource.getOEntity());
+		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+		EntityResponse er = producer.createEntity(entity, entityResource.getEntity());
 		OEntity oEntity = er.getEntity();
 		
 		RESTResponse rr = new RESTResponse(Response.Status.CREATED, new EntityResource<OEntity>(oEntity));

@@ -64,8 +64,8 @@ public class TestHALProvider {
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>()) {}; 
 		EntityResource<OEntity> er = (EntityResource<OEntity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
-		assertNotNull(er.getOEntity());
-		OEntity entity = er.getOEntity();
+		assertNotNull(er.getEntity());
+		OEntity entity = er.getEntity();
 		assertEquals("mockChild", entity.getEntitySetName());
 		assertNotNull(entity.getProperties());
 		// string type
@@ -85,9 +85,10 @@ public class TestHALProvider {
 		hp.writeTo(mdr, MetaDataResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSerialiseSimpleResource() throws Exception {
-		EntityResource<?> er = mock(EntityResource.class);
+		EntityResource<OEntity> er = mock(EntityResource.class);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
@@ -104,7 +105,7 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 
 		OEntity entity = OEntities.create(ees.build(), entityKey, properties, new ArrayList<OLink>());
-		when(er.getOEntity()).thenReturn(entity);
+		when(er.getEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -118,7 +119,7 @@ public class TestHALProvider {
 	@Test
 	public void testSerialiseResourceNoEntity() throws Exception {
 		EntityResource<?> er = mock(EntityResource.class);
-		when(er.getOEntity()).thenReturn(null);
+		when(er.getEntity()).thenReturn(null);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -129,9 +130,10 @@ public class TestHALProvider {
 		XMLAssert.assertXMLEqual(expectedXML, responseString);		
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSerialiseResourceWithLinks() throws Exception {
-		EntityResource<?> er = mock(EntityResource.class);
+		EntityResource<OEntity> er = mock(EntityResource.class);
 
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
@@ -152,7 +154,7 @@ public class TestHALProvider {
 		links.add(OLinks.relatedEntity("_person", "mother", "/humans/32"));
 		
 		OEntity entity = OEntities.create(ees.build(), entityKey, properties, links);
-		when(er.getOEntity()).thenReturn(entity);
+		when(er.getEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -163,9 +165,10 @@ public class TestHALProvider {
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSerialiseResourceWithRelatedLinks() throws Exception {
-		EntityResource<?> er = mock(EntityResource.class);
+		EntityResource<OEntity> er = mock(EntityResource.class);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
@@ -191,7 +194,7 @@ public class TestHALProvider {
 		OLinks.relatedEntities("_family", "siblings", "/humans/phetheans");
 		
 		OEntity entity = OEntities.create(ees.build(), entityKey, properties, links);
-		when(er.getOEntity()).thenReturn(entity);
+		when(er.getEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();

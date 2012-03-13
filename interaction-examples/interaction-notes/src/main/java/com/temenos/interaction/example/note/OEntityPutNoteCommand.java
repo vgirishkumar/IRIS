@@ -31,7 +31,9 @@ public class OEntityPutNoteCommand implements ResourcePutCommand {
 	}
 
 	/* Implement ResourcePutCommand */
+	@SuppressWarnings("unchecked")
 	public Status put(String id, EntityResource<?> resource) {
+		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource; 
 		OEntityKey key = OEntityKey.create(new Long(id));
 		try {
 			producer.deleteEntity(OEntityNoteRIM.ENTITY_NAME, key);
@@ -42,7 +44,7 @@ public class OEntityPutNoteCommand implements ResourcePutCommand {
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(OEntityNoteRIM.ENTITY_NAME);
 		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
 		properties.add(OProperties.int64("noteID", new Long(id)));
-		properties.addAll((resource.getOEntity().getProperties()));
+		properties.addAll((entityResource.getEntity().getProperties()));
 /*		
 		Note note = (Note) resource.getEntity();
 		if (note != null) {

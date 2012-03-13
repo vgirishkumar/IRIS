@@ -136,7 +136,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	    	if (resourceRegistry != null &&
 	    			ResourceTypeHelper.isType(entity.getRawType(), entity.getType(), EntityResource.class)) {
 	    		EntityResource<OEntity> er = (EntityResource<OEntity>) entity.getEntity();
-	        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getOEntity(), getCurrentState());
+	        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getEntity(), getCurrentState());
 	        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
 	        	entity = rebuilt.getGenericEntity();
 	    	}	    	

@@ -63,7 +63,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * Writes a Atom (OData) representation of {@link EntityResource} to the output stream.
 	 * 
 	 * @precondition supplied {@link EntityResource} is non null
-	 * @precondition {@link EntityResource#getOEntity()} returns a valid OEntity, this 
+	 * @precondition {@link EntityResource#getEntity()} returns a valid OEntity, this 
 	 * provider only supports serialising OEntities
 	 * @postcondition non null Atom (OData) XML document written to OutputStream
 	 * @invariant valid OutputStream

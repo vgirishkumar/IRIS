@@ -83,7 +83,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	 * {@link EntityResource} to the output stream.
 	 * 
 	 * @precondition supplied {@link EntityResource} is non null
-	 * @precondition {@link EntityResource#getOEntity()} returns a valid OEntity, this 
+	 * @precondition {@link EntityResource#getEntity()} returns a valid OEntity, this 
 	 * provider only supports serialising OEntities
 	 * @postcondition non null HAL XML document written to OutputStream
 	 * @invariant valid OutputStream
@@ -115,10 +115,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			doc.appendChild(root);
 
 			EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-			if (entityResource.getOEntity() != null) {
+			if (entityResource.getEntity() != null) {
 				// create child element for data, and add to root
-				Element dataObject = doc.createElement(entityResource.getOEntity().getEntitySet().getName());
-				for (OProperty<?> property : entityResource.getOEntity()
+				Element dataObject = doc.createElement(entityResource.getEntity().getEntitySet().getName());
+				for (OProperty<?> property : entityResource.getEntity()
 						.getProperties()) {
 					Element dataElement = doc.createElement(property.getName());
 					dataElement.appendChild(doc.createTextNode(property.getValue().toString()));
@@ -129,7 +129,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 
 				// create child element for links, and add to root
 				Element links = doc.createElement("links");
-				for (OLink link : entityResource.getOEntity().getLinks()) {
+				for (OLink link : entityResource.getEntity().getLinks()) {
 					Element linkElement = doc.createElement("link");
 					linkElement.setAttribute("href", link.getHref());
 					linkElement.setAttribute("rel", link.getRelation());

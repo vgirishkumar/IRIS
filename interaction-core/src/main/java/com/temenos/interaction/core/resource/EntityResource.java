@@ -6,8 +6,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.odata4j.core.OEntity;
-
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
  * system.  A 'thing' is addressable by a globally unique key, it has a set of
@@ -35,9 +33,5 @@ public class EntityResource<T> implements RESTResource {
 	@Override
 	public GenericEntity<EntityResource<T>> getGenericEntity() {
 		return new GenericEntity<EntityResource<T>>(this, this.getClass().getGenericSuperclass());
-	}
-	
-	public OEntity getOEntity() {
-		return (OEntity) entity;
 	}
 }
