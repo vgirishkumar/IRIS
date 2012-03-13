@@ -8,6 +8,6 @@ import com.temenos.interaction.core.EntityResource;
 
 @XmlRootElement(name = "resource")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class StringResource extends EntityResource {
+public class StringResource extends EntityResource<String> {
 
 }

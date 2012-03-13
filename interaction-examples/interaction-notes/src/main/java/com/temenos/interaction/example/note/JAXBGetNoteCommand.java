@@ -26,7 +26,7 @@ public class JAXBGetNoteCommand implements ResourceGetCommand {
 		EntityResponse er = producer.getEntity(OEntityNoteRIM.ENTITY_NAME, key, null);
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource(new Note(oEntity)));
+		RESTResponse rr = new RESTResponse(Response.Status.OK, new EntityResource<Note>(new Note(oEntity)));
 		rr.getValidMethods().addAll(OEntityNoteRIM.getValidNextStates());
 		return rr;
 	}

@@ -31,7 +31,7 @@ public class JAXBPutNoteCommand implements ResourcePutCommand {
 	}
 
 	/* Implement ResourcePutCommand */
-	public Status put(String id, EntityResource resource) {
+	public Status put(String id, EntityResource<?> resource) {
 		OEntityKey key = OEntityKey.create(new Long(id));
 		try {
 			producer.deleteEntity(OEntityNoteRIM.ENTITY_NAME, key);

@@ -27,6 +27,7 @@ import com.temenos.interaction.core.media.JSONStreamingDecorator;
 
 public class TestJSONStreamingDecorator {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDecorateRESTResponse() throws IOException {
 		JSONStreamingDecorator decorator = new JSONStreamingDecorator();
@@ -38,7 +39,7 @@ public class TestJSONStreamingDecorator {
 		List<OLink> links = new ArrayList<OLink>();
 		OEntity entity = OEntities.create(entityMetaData, OEntityKey.create("123"), properties, links);
 		
-		EntityResource resource = mock(EntityResource.class);
+		EntityResource<OEntity> resource = mock(EntityResource.class);
 		when(resource.getOEntity()).thenReturn(entity);
 
 		RESTResponse rr = new RESTResponse(Response.Status.OK, resource);

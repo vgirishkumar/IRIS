@@ -50,11 +50,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.ResourceTypeHelper;
 
 @Provider
 @Consumes({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
 @Produces({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-public class HALProvider implements MessageBodyReader<EntityResource>, MessageBodyWriter<EntityResource> {
+public class HALProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(HALProvider.class);
 
 	private EdmDataServices edmDataServices;
@@ -67,11 +69,11 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return type.equals(EntityResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class);
 	}
 
 	@Override
-	public long getSize(EntityResource t, Class<?> type, Type genericType,
+	public long getSize(RESTResource t, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
 		return -1;
 	}
@@ -86,16 +88,17 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 	 * @postcondition non null HAL XML document written to OutputStream
 	 * @invariant valid OutputStream
 	 */
+	@SuppressWarnings("unchecked")
 	// TODO implment writeTo with Stax
 	@Override
-	public void writeTo(EntityResource resource, Class<?> type, Type genericType,
+	public void writeTo(RESTResource resource, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, Object> httpHeaders,
 			OutputStream entityStream) throws IOException,
 			WebApplicationException {
 		assert (resource != null);
 
-		if (!type.equals(EntityResource.class))
+		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
 		try {
@@ -111,10 +114,11 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 			Element root = doc.createElement("resource");
 			doc.appendChild(root);
 
-			if (resource.getOEntity() != null) {
+			EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+			if (entityResource.getOEntity() != null) {
 				// create child element for data, and add to root
-				Element dataObject = doc.createElement(resource.getOEntity().getEntitySet().getName());
-				for (OProperty<?> property : resource.getOEntity()
+				Element dataObject = doc.createElement(entityResource.getOEntity().getEntitySet().getName());
+				for (OProperty<?> property : entityResource.getOEntity()
 						.getProperties()) {
 					Element dataElement = doc.createElement(property.getName());
 					dataElement.appendChild(doc.createTextNode(property.getValue().toString()));
@@ -125,7 +129,7 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 
 				// create child element for links, and add to root
 				Element links = doc.createElement("links");
-				for (OLink link : resource.getOEntity().getLinks()) {
+				for (OLink link : entityResource.getOEntity().getLinks()) {
 					Element linkElement = doc.createElement("link");
 					linkElement.setAttribute("href", link.getHref());
 					linkElement.setAttribute("rel", link.getRelation());
@@ -178,7 +182,7 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
 		// this class can only deserialise EntityResource with OEntity.
-		return type.equals(EntityResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class);
 	}
 
 	/**
@@ -190,11 +194,14 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 	 * @invariant valid InputStream
 	 */
 	@Override
-	public EntityResource readFrom(Class<EntityResource> type, Type genericType,
+	public RESTResource readFrom(Class<RESTResource> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 
+		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class))
+			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		
 		try {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLStreamReader parser = factory.createXMLStreamReader(entityStream);
@@ -229,7 +236,7 @@ public class HALProvider implements MessageBodyReader<EntityResource>, MessageBo
 				logger.debug("");
 			}
 			
-			return new EntityResource(oEntity);
+			return new EntityResource<OEntity>(oEntity);
 		} catch (FactoryConfigurationError e) {
 			logger.error("Error while parsing xml", e);
 			throw new WebApplicationException(Response.Status.BAD_REQUEST);

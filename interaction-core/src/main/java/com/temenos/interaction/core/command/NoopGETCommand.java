@@ -11,7 +11,7 @@ public final class NoopGETCommand implements ResourceGetCommand {
 	@Override
 	public RESTResponse get(String id,
 			MultivaluedMap<String, String> queryParams) {
-		return new RESTResponse(Response.Status.OK, new EntityResource(""));
+		return new RESTResponse(Response.Status.OK, new EntityResource<String>(""));
 	}
 	
 }

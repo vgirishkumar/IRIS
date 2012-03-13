@@ -19,6 +19,6 @@ public interface ResourcePutCommand extends ResourceStateTransitionCommand {
 	 * @precondition root resource should be found in implementing classes provider
 	 * @postcondition a valid {@link Response.Status} will be returned
 	 */
-	public StatusType put(String id, EntityResource resource);
+	public StatusType put(String id, EntityResource<?> resource);
 	
 }

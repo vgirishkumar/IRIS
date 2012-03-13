@@ -12,26 +12,28 @@ import org.junit.Test;
 
 public class TestEntityResource {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntityObject() throws JAXBException {
 		String testXMLString = "<resource><Test/></resource>";
 		
 		JAXBContext jc = JAXBContext.newInstance(EntityResource.class, NestedObject.class);
         Unmarshaller unmarshaller = jc.createUnmarshaller();
-        EntityResource er = (EntityResource) unmarshaller.unmarshal(new ByteArrayInputStream(testXMLString.getBytes()));
+        EntityResource<NestedObject> er = (EntityResource<NestedObject>) unmarshaller.unmarshal(new ByteArrayInputStream(testXMLString.getBytes()));
  
         assertNotNull(er);
         assertNotNull(er.getEntity());
 		assertTrue(er.getEntity() instanceof NestedObject);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntityObjectName() throws JAXBException {
 		String testXMLString = "<resource><Test><name>noah</name></Test></resource>";
 		
 		JAXBContext jc = JAXBContext.newInstance(EntityResource.class, NestedObject.class);
         Unmarshaller unmarshaller = jc.createUnmarshaller();
-        EntityResource er = (EntityResource) unmarshaller.unmarshal(new ByteArrayInputStream(testXMLString.getBytes()));
+        EntityResource<NestedObject> er = (EntityResource<NestedObject>) unmarshaller.unmarshal(new ByteArrayInputStream(testXMLString.getBytes()));
  
         assertNotNull(er);
         assertNotNull(er.getEntity());

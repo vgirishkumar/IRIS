@@ -6,7 +6,8 @@ import com.temenos.interaction.example.app.client.Activity;
 
 public class ReadNoteActivity extends Activity {
 
-    private final URI orderUri;
+    @SuppressWarnings("unused")
+	private final URI orderUri;
 //    private OrderRepresentation currentOrderRepresentation;
 
     public ReadNoteActivity(URI orderUri) {

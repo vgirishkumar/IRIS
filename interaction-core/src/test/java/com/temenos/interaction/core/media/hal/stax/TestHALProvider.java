@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.GenericEntity;
 
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Test;
@@ -27,6 +28,7 @@ import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.EntityResource;
 import com.temenos.interaction.core.MetaDataResource;
+import com.temenos.interaction.core.RESTResource;
 import com.temenos.interaction.core.media.hal.MediaType;
 import com.temenos.interaction.core.media.hal.stax.HALProvider;
 
@@ -49,6 +51,7 @@ public class TestHALProvider {
 	/*
 	 * Test the getSize operation of GET with this provider
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialise() throws IOException {
 		EdmDataServices edmDS = mock(EdmDataServices.class);
@@ -59,7 +62,8 @@ public class TestHALProvider {
 		
 		String strEntityStream = "<resource><Child><name>noah</name><age>2</age></Child><links></links></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
-		EntityResource er = hp.readFrom(EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>()) {}; 
+		EntityResource<OEntity> er = (EntityResource<OEntity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getOEntity());
 		OEntity entity = er.getOEntity();
 		assertEquals("mockChild", entity.getEntitySetName());
@@ -75,7 +79,7 @@ public class TestHALProvider {
 
 	@Test(expected = WebApplicationException.class)
 	public void testAttemptToSerialiseNonEntityResource() throws IOException {
-		EntityResource mdr = mock(EntityResource.class);
+		EntityResource<?> mdr = mock(EntityResource.class);
 
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		hp.writeTo(mdr, MetaDataResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
@@ -83,7 +87,7 @@ public class TestHALProvider {
 	
 	@Test
 	public void testSerialiseSimpleResource() throws Exception {
-		EntityResource er = mock(EntityResource.class);
+		EntityResource<?> er = mock(EntityResource.class);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
@@ -113,7 +117,7 @@ public class TestHALProvider {
 
 	@Test
 	public void testSerialiseResourceNoEntity() throws Exception {
-		EntityResource er = mock(EntityResource.class);
+		EntityResource<?> er = mock(EntityResource.class);
 		when(er.getOEntity()).thenReturn(null);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
@@ -127,7 +131,7 @@ public class TestHALProvider {
 
 	@Test
 	public void testSerialiseResourceWithLinks() throws Exception {
-		EntityResource er = mock(EntityResource.class);
+		EntityResource<?> er = mock(EntityResource.class);
 
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
@@ -161,7 +165,7 @@ public class TestHALProvider {
 
 	@Test
 	public void testSerialiseResourceWithRelatedLinks() throws Exception {
-		EntityResource er = mock(EntityResource.class);
+		EntityResource<?> er = mock(EntityResource.class);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();

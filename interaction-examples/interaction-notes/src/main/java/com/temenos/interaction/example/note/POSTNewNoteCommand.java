@@ -56,7 +56,7 @@ public class POSTNewNoteCommand implements ResourcePostCommand {
 	 * Implement ResourcePostCommand
 	 * @see com.temenos.interaction.core.command.ResourcePostCommand#post(java.lang.String, com.temenos.interaction.core.EntityResource)
 	 */
-	public RESTResponse post(String id, EntityResource resource) {
+	public RESTResponse post(String id, EntityResource<?> resource) {
 		assert(id == null || "".equals(id));
 
         // find the function that creates us new things
@@ -75,7 +75,7 @@ public class POSTNewNoteCommand implements ResourcePostCommand {
 		String replacement = ((PropertyResponse)fr).getProperty().getValue().toString();
 		links.add(OLinks.relatedEntity("_new", "NewNote", targetResource.replaceFirst("\\{id\\}", replacement)));
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
-		EntityResource er = new EntityResource(entity);
+		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
 		return new RESTResponse(Response.Status.OK, er);
 	}
 

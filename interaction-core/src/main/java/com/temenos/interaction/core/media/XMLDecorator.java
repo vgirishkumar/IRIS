@@ -35,6 +35,7 @@ public class XMLDecorator implements Decorator<Response> {
 	
 	public XMLDecorator() {}
 	
+	@SuppressWarnings("unchecked")
 	public Response decorateRESTResponse(final RESTResponse r) {
 		if (r == null)
 			throw new WebApplicationException(Response.Status.BAD_REQUEST);
@@ -44,7 +45,7 @@ public class XMLDecorator implements Decorator<Response> {
 			String xmlString = null;
     		try {
 				if (r.getResource() instanceof EntityResource) {
-					EntityResource resource = (EntityResource) r.getResource();
+					EntityResource<OEntity> resource = (EntityResource<OEntity>) r.getResource();
 					OEntity entity = resource.getOEntity();
 
 					DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();

@@ -10,6 +10,7 @@ public class TransitionCommandSpec {
 
 	private String path;
 	private String method;
+	@SuppressWarnings("unused")
 	private List<String> queryParams;
 	
 	protected TransitionCommandSpec(String method, String path) {
