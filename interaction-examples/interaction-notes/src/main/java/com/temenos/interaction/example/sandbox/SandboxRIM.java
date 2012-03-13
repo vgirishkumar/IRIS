@@ -12,7 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 
 @Path("/sandbox/{id}")
 public class SandboxRIM {

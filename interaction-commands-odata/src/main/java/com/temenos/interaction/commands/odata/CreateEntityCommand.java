@@ -7,7 +7,7 @@ import org.odata4j.core.OEntity;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 

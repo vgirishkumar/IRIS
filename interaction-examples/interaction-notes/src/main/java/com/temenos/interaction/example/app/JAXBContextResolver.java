@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.example.country.Country;
 import com.temenos.interaction.example.note.Note;
 import com.temenos.interaction.example.sandbox.Book;

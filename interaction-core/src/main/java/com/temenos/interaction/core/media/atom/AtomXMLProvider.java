@@ -24,10 +24,10 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.Responses;
 
-import com.temenos.interaction.core.CollectionResource;
-import com.temenos.interaction.core.EntityResource;
-import com.temenos.interaction.core.RESTResource;
-import com.temenos.interaction.core.ResourceTypeHelper;
+import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})

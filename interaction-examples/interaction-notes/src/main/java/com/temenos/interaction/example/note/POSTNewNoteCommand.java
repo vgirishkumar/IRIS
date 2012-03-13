@@ -24,7 +24,7 @@ import org.odata4j.producer.BaseResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.PropertyResponse;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.state.ResourceInteractionModel;

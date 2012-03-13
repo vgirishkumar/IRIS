@@ -1,4 +1,4 @@
-package com.temenos.interaction.core;
+package com.temenos.interaction.core.resource;
 
 import static org.junit.Assert.*;
 
@@ -9,6 +9,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.junit.Test;
+
+import com.temenos.interaction.core.NestedObject;
 
 public class TestEntityResource {
 

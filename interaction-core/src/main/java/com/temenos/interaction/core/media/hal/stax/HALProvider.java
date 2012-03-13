@@ -49,9 +49,9 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.temenos.interaction.core.EntityResource;
-import com.temenos.interaction.core.RESTResource;
-import com.temenos.interaction.core.ResourceTypeHelper;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 
 @Provider
 @Consumes({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})

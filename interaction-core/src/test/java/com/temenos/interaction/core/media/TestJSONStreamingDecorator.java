@@ -21,7 +21,7 @@ import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.media.JSONStreamingDecorator;
 

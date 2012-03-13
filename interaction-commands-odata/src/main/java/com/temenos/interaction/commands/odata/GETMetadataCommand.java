@@ -6,9 +6,9 @@ import javax.ws.rs.core.Response;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.producer.ODataProducer;
 
-import com.temenos.interaction.core.MetaDataResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.ServiceDocumentResource;
+import com.temenos.interaction.core.resource.ServiceDocumentResource;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
 /**

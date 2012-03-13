@@ -27,7 +27,7 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 
 public class XMLDecorator implements Decorator<Response> {

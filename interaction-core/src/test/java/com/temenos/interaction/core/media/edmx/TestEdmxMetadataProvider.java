@@ -17,7 +17,7 @@ import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 
-import com.temenos.interaction.core.MetaDataResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

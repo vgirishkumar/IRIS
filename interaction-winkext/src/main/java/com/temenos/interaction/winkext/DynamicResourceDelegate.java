@@ -8,7 +8,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.DynamicResource;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;

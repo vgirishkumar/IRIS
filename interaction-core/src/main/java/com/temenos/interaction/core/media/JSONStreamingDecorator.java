@@ -12,7 +12,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OProperty;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 
 public class JSONStreamingDecorator implements Decorator<StreamingOutput> {

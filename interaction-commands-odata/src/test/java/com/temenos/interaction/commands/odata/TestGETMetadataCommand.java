@@ -20,9 +20,9 @@ import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 
-import com.temenos.interaction.core.MetaDataResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.ServiceDocumentResource;
+import com.temenos.interaction.core.resource.ServiceDocumentResource;
 
 public class TestGETMetadataCommand {
 

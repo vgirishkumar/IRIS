@@ -1,4 +1,4 @@
-package com.temenos.interaction.core;
+package com.temenos.interaction.core.resource;
 
 import java.util.Collection;
 import java.util.List;

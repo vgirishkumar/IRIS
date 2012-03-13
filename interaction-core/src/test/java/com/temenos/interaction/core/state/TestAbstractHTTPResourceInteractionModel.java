@@ -22,8 +22,8 @@ import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
-import com.temenos.interaction.core.EntityResource;
-import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;

@@ -19,7 +19,7 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
-import com.temenos.interaction.core.ServiceDocumentResource;
+import com.temenos.interaction.core.resource.ServiceDocumentResource;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

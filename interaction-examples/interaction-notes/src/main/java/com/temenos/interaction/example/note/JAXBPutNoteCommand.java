@@ -17,7 +17,7 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.ODataProducer;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 
 public class JAXBPutNoteCommand implements ResourcePutCommand {

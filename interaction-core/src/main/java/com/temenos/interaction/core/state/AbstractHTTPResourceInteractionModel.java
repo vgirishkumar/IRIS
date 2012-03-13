@@ -29,10 +29,10 @@ import org.odata4j.core.OEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.ResourceTypeHelper;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.MethodNotAllowedCommand;
 import com.temenos.interaction.core.command.ResourceCommand;

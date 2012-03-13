@@ -1,4 +1,4 @@
-package com.temenos.interaction.core;
+package com.temenos.interaction.core.resource;
 
 import javax.ws.rs.core.GenericEntity;
 

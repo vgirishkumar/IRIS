@@ -20,7 +20,7 @@ import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.example.country.Country;
 import com.temenos.interaction.example.country.GetCountryCommand;

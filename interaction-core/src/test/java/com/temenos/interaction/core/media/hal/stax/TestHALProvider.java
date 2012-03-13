@@ -26,9 +26,9 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 
-import com.temenos.interaction.core.EntityResource;
-import com.temenos.interaction.core.MetaDataResource;
-import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.media.hal.MediaType;
 import com.temenos.interaction.core.media.hal.stax.HALProvider;
 

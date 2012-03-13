@@ -24,9 +24,9 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
 
-import com.temenos.interaction.core.ResourceTypeHelper;
-import com.temenos.interaction.core.ServiceDocumentResource;
-import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
+import com.temenos.interaction.core.resource.ServiceDocumentResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 
 /**
