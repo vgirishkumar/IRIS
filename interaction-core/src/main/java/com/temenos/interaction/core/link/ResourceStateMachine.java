@@ -100,7 +100,7 @@ public class ResourceStateMachine {
 	}
 	
 	/**
-	 * Return a map of the all paths to ResourceState's
+	 * Return a map of all the paths to the various ResourceState's
 	 * @return
 	 */
 	public Map<String, ResourceState> getStateMap() {
