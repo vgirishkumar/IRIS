@@ -27,7 +27,7 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 
 public class XMLDecorator implements Decorator<Response> {
@@ -35,6 +35,7 @@ public class XMLDecorator implements Decorator<Response> {
 	
 	public XMLDecorator() {}
 	
+	@SuppressWarnings("unchecked")
 	public Response decorateRESTResponse(final RESTResponse r) {
 		if (r == null)
 			throw new WebApplicationException(Response.Status.BAD_REQUEST);
@@ -44,8 +45,8 @@ public class XMLDecorator implements Decorator<Response> {
 			String xmlString = null;
     		try {
 				if (r.getResource() instanceof EntityResource) {
-					EntityResource resource = (EntityResource) r.getResource();
-					OEntity entity = resource.getOEntity();
+					EntityResource<OEntity> resource = (EntityResource<OEntity>) r.getResource();
+					OEntity entity = resource.getEntity();
 
 					DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
 				    DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
@@ -60,7 +61,7 @@ public class XMLDecorator implements Decorator<Response> {
 
 				    //create child element for data, and add to root
 				    Element dataObject = doc.createElement(entity.getEntitySet().getName());
-					for (OProperty<?> property : resource.getOEntity().getProperties()) {
+					for (OProperty<?> property : resource.getEntity().getProperties()) {
 				        Element dataElement = doc.createElement(property.getName());
 						dataElement.appendChild(doc.createTextNode(property.getValue().toString()));
 				        dataObject.appendChild(dataElement);
@@ -69,7 +70,7 @@ public class XMLDecorator implements Decorator<Response> {
 
 				    //create child element for links, and add to root
 				    Element links = doc.createElement("links");
-					for (OLink link : resource.getOEntity().getLinks()) {
+					for (OLink link : resource.getEntity().getLinks()) {
 				        Element linkElement = doc.createElement("link");
 				        linkElement.setAttribute("href", link.getHref());
 				        linkElement.setAttribute("rel", link.getRelation());

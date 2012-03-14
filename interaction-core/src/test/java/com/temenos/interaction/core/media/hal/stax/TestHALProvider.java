@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.GenericEntity;
 
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Test;
@@ -25,8 +26,9 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 
-import com.temenos.interaction.core.EntityResource;
-import com.temenos.interaction.core.MetaDataResource;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.media.hal.MediaType;
 import com.temenos.interaction.core.media.hal.stax.HALProvider;
 
@@ -49,6 +51,7 @@ public class TestHALProvider {
 	/*
 	 * Test the getSize operation of GET with this provider
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialise() throws IOException {
 		EdmDataServices edmDS = mock(EdmDataServices.class);
@@ -59,9 +62,10 @@ public class TestHALProvider {
 		
 		String strEntityStream = "<resource><Child><name>noah</name><age>2</age></Child><links></links></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
-		EntityResource er = hp.readFrom(EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
-		assertNotNull(er.getOEntity());
-		OEntity entity = er.getOEntity();
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>()) {}; 
+		EntityResource<OEntity> er = (EntityResource<OEntity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		assertNotNull(er.getEntity());
+		OEntity entity = er.getEntity();
 		assertEquals("mockChild", entity.getEntitySetName());
 		assertNotNull(entity.getProperties());
 		// string type
@@ -75,15 +79,16 @@ public class TestHALProvider {
 
 	@Test(expected = WebApplicationException.class)
 	public void testAttemptToSerialiseNonEntityResource() throws IOException {
-		EntityResource mdr = mock(EntityResource.class);
+		EntityResource<?> mdr = mock(EntityResource.class);
 
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		hp.writeTo(mdr, MetaDataResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSerialiseSimpleResource() throws Exception {
-		EntityResource er = mock(EntityResource.class);
+		EntityResource<OEntity> er = mock(EntityResource.class);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
@@ -100,7 +105,7 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 
 		OEntity entity = OEntities.create(ees.build(), entityKey, properties, new ArrayList<OLink>());
-		when(er.getOEntity()).thenReturn(entity);
+		when(er.getEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -113,8 +118,8 @@ public class TestHALProvider {
 
 	@Test
 	public void testSerialiseResourceNoEntity() throws Exception {
-		EntityResource er = mock(EntityResource.class);
-		when(er.getOEntity()).thenReturn(null);
+		EntityResource<?> er = mock(EntityResource.class);
+		when(er.getEntity()).thenReturn(null);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -125,9 +130,10 @@ public class TestHALProvider {
 		XMLAssert.assertXMLEqual(expectedXML, responseString);		
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSerialiseResourceWithLinks() throws Exception {
-		EntityResource er = mock(EntityResource.class);
+		EntityResource<OEntity> er = mock(EntityResource.class);
 
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
@@ -148,7 +154,7 @@ public class TestHALProvider {
 		links.add(OLinks.relatedEntity("_person", "mother", "/humans/32"));
 		
 		OEntity entity = OEntities.create(ees.build(), entityKey, properties, links);
-		when(er.getOEntity()).thenReturn(entity);
+		when(er.getEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -159,9 +165,10 @@ public class TestHALProvider {
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSerialiseResourceWithRelatedLinks() throws Exception {
-		EntityResource er = mock(EntityResource.class);
+		EntityResource<OEntity> er = mock(EntityResource.class);
 		
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
@@ -187,7 +194,7 @@ public class TestHALProvider {
 		OLinks.relatedEntities("_family", "siblings", "/humans/phetheans");
 		
 		OEntity entity = OEntities.create(ees.build(), entityKey, properties, links);
-		when(er.getOEntity()).thenReturn(entity);
+		when(er.getEntity()).thenReturn(entity);
 		
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();

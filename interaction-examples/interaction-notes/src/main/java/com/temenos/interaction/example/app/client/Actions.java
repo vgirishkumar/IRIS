@@ -16,7 +16,8 @@ public class Actions extends ArrayList<Activity> {
         return false;
     }
 
-    public <T extends Activity> T get(Class<?> clazz) {
+    @SuppressWarnings("unchecked")
+	public <T extends Activity> T get(Class<?> clazz) {
         
         for(Activity act : this) {
             if(act.getClass() == clazz) {

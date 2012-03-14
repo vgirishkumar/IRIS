@@ -2,29 +2,14 @@ package com.temenos.interaction.example.country;
 
 import static org.junit.Assert.*;
 
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
-
 import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.impl.util.CommonUtils;
 import com.temenos.interaction.example.country.Country;
-import com.temenos.interaction.example.email.EmailMessage;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 public class CreateAuthoriseCountryITCase extends JerseyTest {
 

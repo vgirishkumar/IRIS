@@ -3,7 +3,7 @@ package com.temenos.interaction.core.command;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import com.temenos.interaction.core.RESTResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
 
 /**

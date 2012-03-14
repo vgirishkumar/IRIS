@@ -1,7 +1,6 @@
 package com.temenos.interaction.interaction_commands_odata;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
@@ -16,7 +15,6 @@ import org.apache.abdera.protocol.client.ClientResponse;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.xml.AtomFeedFormatParser;
-import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.format.xml.XmlFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;

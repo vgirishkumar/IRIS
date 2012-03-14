@@ -22,9 +22,9 @@ import javax.ws.rs.ext.Provider;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.xml.EdmxFormatWriter;
 
-import com.temenos.interaction.core.MetaDataResource;
-import com.temenos.interaction.core.RESTResource;
-import com.temenos.interaction.core.ResourceTypeHelper;
+import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 
 /**
  * JAX-RS Provider class for marshalling EDMX metadata resources.

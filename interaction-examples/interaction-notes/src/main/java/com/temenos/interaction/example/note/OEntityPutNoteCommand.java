@@ -17,7 +17,7 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.ODataProducer;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 
 public class OEntityPutNoteCommand implements ResourcePutCommand {
@@ -31,7 +31,9 @@ public class OEntityPutNoteCommand implements ResourcePutCommand {
 	}
 
 	/* Implement ResourcePutCommand */
-	public Status put(String id, EntityResource resource) {
+	@SuppressWarnings("unchecked")
+	public Status put(String id, EntityResource<?> resource) {
+		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource; 
 		OEntityKey key = OEntityKey.create(new Long(id));
 		try {
 			producer.deleteEntity(OEntityNoteRIM.ENTITY_NAME, key);
@@ -42,7 +44,7 @@ public class OEntityPutNoteCommand implements ResourcePutCommand {
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(OEntityNoteRIM.ENTITY_NAME);
 		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
 		properties.add(OProperties.int64("noteID", new Long(id)));
-		properties.addAll((resource.getOEntity().getProperties()));
+		properties.addAll((entityResource.getEntity().getProperties()));
 /*		
 		Note note = (Note) resource.getEntity();
 		if (note != null) {
