@@ -29,7 +29,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 
     private HTTPDynaRIM parent;
     private final ResourceStateMachine stateMachine;
-    private final ResourceState subState;
+    private final ResourceState currentState;
     
 	public HTTPDynaRIM(String entityName, String path, CommandController commandController) {
 		this(new ResourceStateMachine(entityName, null), path, null, commandController);
@@ -37,33 +37,41 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	}
 
 	/**
-	 * Create a dynamic resource for application state interaction.
-	 * @param entityName
-	 * @param path
-	 * @param state
-	 * @param rr
+	 * Create a dynamic resource with application state interaction defined in supplied StateMachine.
+	 * @param stateMachine
+	 * 			All application states.
+	 * @param path 			
+	 * 			The path to this resource, when concatenated to the parent path forms the fully qualified URI. 
+	 * @param resourceRegistry
+	 * 			A registry of all resources.
 	 * @param commandController
+	 * 			All commands for all resources.
 	 */
-	public HTTPDynaRIM(ResourceStateMachine stateMachine, String path, ResourceRegistry rr, CommandController commandController) {
-		this(null, stateMachine, path, stateMachine.getInitial(), rr, commandController);
+	public HTTPDynaRIM(ResourceStateMachine stateMachine, String path, ResourceRegistry resourceRegistry, CommandController commandController) {
+		this(null, stateMachine, path, stateMachine.getInitial(), resourceRegistry, commandController);
 	}
 
 	/**
 	 * Create a dynamic resource for resource state interaction.
 	 * @param parent
-	 * @param entityName
-	 * @param path
-	 * @param state
-	 * @param interactions
-	 * @param rr
+	 * 			This resources parent interaction model.
+	 * @param stateMachine
+	 * 			All application states.
+	 * @param path 			
+	 * 			The path to this resource, when concatenated to the parent path forms the fully qualified URI. 
+	 * @param currentState	
+	 * 			The current application state when accessing this resource.
+	 * @param resourceRegistry
+	 * 			A registry of all resources.
 	 * @param commandController
+	 * 			All commands for all resources.
 	 */
-	public HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, String path, ResourceState subState, 
-			ResourceRegistry rr, CommandController commandController) {
-		super(stateMachine.getEntityName(), path, rr, commandController);
+	protected HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, String path, ResourceState currentState, 
+			ResourceRegistry resourceRegistry, CommandController commandController) {
+		super(stateMachine.getEntityName(), path, resourceRegistry, commandController);
 		this.parent = parent;
 		this.stateMachine = stateMachine;
-		this.subState = subState;
+		this.currentState = currentState;
 		if (parent == null && stateMachine.getInitial() != null) {
 			logger.info("Checking state machine for [" + this.toString() + "]");
 			logger.info(new ASTValidation().graph(stateMachine));
@@ -77,8 +85,8 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 */
 	private void bootstrap() {
 		getCommandController().fetchGetCommand(getFQResourcePath());
-		if (subState != null) {
-			Set<String> interactions = stateMachine.getInteractions(subState);
+		if (currentState != null) {
+			Set<String> interactions = stateMachine.getInteractions(currentState);
 			if (interactions != null) {
 				// interactions are a set of http methods
 				for (String method : interactions) {
@@ -104,14 +112,14 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
     
 	@Override
 	public ResourceState getCurrentState() {
-		return subState;
+		return currentState;
 	}
 	
 	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
 		
-		Map<String, ResourceState> resourceStates = stateMachine.getStateMap(this.subState);
+		Map<String, ResourceState> resourceStates = stateMachine.getStateMap(this.currentState);
 		for (String childPath : resourceStates.keySet()) {
 			ResourceState s = resourceStates.get(childPath);
 			HTTPDynaRIM child = new HTTPDynaRIM(this, stateMachine, s.getPath(), s, null, getCommandController());
