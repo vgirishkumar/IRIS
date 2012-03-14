@@ -19,6 +19,7 @@ import org.odata4j.core.OEntity;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Country {
 
+	@SuppressWarnings("unused")
 	@Transient
 	@XmlTransient
 	private OEntity entity;

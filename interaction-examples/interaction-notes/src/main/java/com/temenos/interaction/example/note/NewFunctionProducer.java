@@ -13,7 +13,6 @@ import org.odata4j.core.OFunctionParameter;
 import org.odata4j.core.OProperties;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntityContainer;
-import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.edm.EdmFunctionParameter;
 import org.odata4j.edm.EdmSchema;
@@ -36,13 +35,13 @@ public class NewFunctionProducer extends ODataProducerDelegate {
 	private final Logger logger = LoggerFactory.getLogger(NewFunctionProducer.class);
 
     private final EntityManagerFactory emf;
-    private final String odataNamespace;
+//    private final String odataNamespace;
 	private final JPAProducer producer;
 	private EdmDataServices metadata;
 
     public NewFunctionProducer(EntityManagerFactory emf, String odataNamespace, JPAProducer jpaProducer) {
     	this.emf = emf;
-    	this.odataNamespace = odataNamespace;
+//    	this.odataNamespace = odataNamespace;
         producer = jpaProducer;
         metadata = getDelegate().getMetadata();
         extendModel();
@@ -82,7 +81,7 @@ public class NewFunctionProducer extends ODataProducerDelegate {
         EdmDataServices ds = this.getMetadata();
         
         // Add functions to our own namespace
-        EdmSchema schema = ds.findSchema(odataNamespace + "Container");
+        //EdmSchema schema = ds.findSchema(odataNamespace + "Container");
 //        EdmEntityContainer container = schema.findEntityContainer(odataNamespace + "Entities");
         
         /*

@@ -20,7 +20,7 @@ import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.example.country.Country;
 import com.temenos.interaction.example.country.GetCountryCommand;
@@ -44,15 +44,16 @@ public class TestGetCountryCommand {
 		assertEquals(Response.Status.NOT_FOUND, resp.getStatus());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testExecuteOK() {
 		GetCountryCommand command = new GetCountryCommand(null);
 		ODataProducer mockP = mock(ODataProducer.class);
 		OEntity mockEntity = mock(OEntity.class);
-		OProperty busiProp = OProperties.string("businessCentre", "newbusinessCentre_123");
-		when(mockEntity.getProperty("businessCentre")).thenReturn(busiProp);
-		OProperty centralBankProp = OProperties.string("centralBankCode", "newcentralBankCode_123");
-		when(mockEntity.getProperty("centralBankCode")).thenReturn(centralBankProp);
+		OProperty<String> busiProp = OProperties.string("businessCentre", "newbusinessCentre_123");
+		when((OProperty<String>) mockEntity.getProperty("businessCentre")).thenReturn(busiProp);
+		OProperty<String> centralBankProp = OProperties.string("centralBankCode", "newcentralBankCode_123");
+		when((OProperty<String>)mockEntity.getProperty("centralBankCode")).thenReturn(centralBankProp);
 		
 		EntityResponse response = Responses.entity(mockEntity);
 		when(mockP.getEntity(anyString(), any(OEntityKey.class), (QueryInfo) isNull())).thenReturn(response);
@@ -62,8 +63,8 @@ public class TestGetCountryCommand {
 		assertEquals(Response.Status.OK, resp.getStatus());
 		assertNotNull(resp.getResource());
 		assertEquals(EntityResource.class, resp.getResource().getClass());
-		assertEquals(Country.class, ((EntityResource)resp.getResource()).getEntity().getClass());
-		Country c = (Country) ((EntityResource)resp.getResource()).getEntity();
+		assertEquals(Country.class, ((EntityResource<Country>) resp.getResource()).getEntity().getClass());
+		Country c = (Country) ((EntityResource<Country>) resp.getResource()).getEntity();
 		assertEquals("newbusinessCentre_123", c.getBusinessCentre());
 		assertEquals("newcentralBankCode_123", c.getCentralBankCode());
 	}

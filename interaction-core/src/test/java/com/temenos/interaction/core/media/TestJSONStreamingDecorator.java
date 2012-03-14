@@ -21,12 +21,13 @@ import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
 
-import com.temenos.interaction.core.EntityResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.media.JSONStreamingDecorator;
 
 public class TestJSONStreamingDecorator {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDecorateRESTResponse() throws IOException {
 		JSONStreamingDecorator decorator = new JSONStreamingDecorator();
@@ -38,8 +39,8 @@ public class TestJSONStreamingDecorator {
 		List<OLink> links = new ArrayList<OLink>();
 		OEntity entity = OEntities.create(entityMetaData, OEntityKey.create("123"), properties, links);
 		
-		EntityResource resource = mock(EntityResource.class);
-		when(resource.getOEntity()).thenReturn(entity);
+		EntityResource<OEntity> resource = mock(EntityResource.class);
+		when(resource.getEntity()).thenReturn(entity);
 
 		RESTResponse rr = new RESTResponse(Response.Status.OK, resource);
 		StreamingOutput so = decorator.decorateRESTResponse(rr);

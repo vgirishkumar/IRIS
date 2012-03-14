@@ -7,10 +7,10 @@ import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 
-import com.temenos.interaction.core.CollectionResource;
-import com.temenos.interaction.core.EntityResource;
-import com.temenos.interaction.core.MetaDataResource;
-import com.temenos.interaction.core.ServiceDocumentResource;
+import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.resource.ServiceDocumentResource;
 
 public class CommandHelper {
 

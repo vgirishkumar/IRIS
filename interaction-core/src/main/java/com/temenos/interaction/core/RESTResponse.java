@@ -7,6 +7,8 @@ import javax.ws.rs.core.Response.StatusType;
 
 import org.odata4j.core.OLink;
 
+import com.temenos.interaction.core.resource.RESTResource;
+
 public class RESTResponse {
 
 	private final StatusType status;
