@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.UriInfo;
 
 import org.custommonkey.xmlunit.XMLAssert;
@@ -48,13 +49,40 @@ public class TestServiceDocumentProvider {
 		when(uriInfo.getBaseUri()).thenReturn(uri);
 		p.setUriInfo(uriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		p.writeTo(mr, ServiceDocumentResource.class, null, null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, null, bos);
+		p.writeTo(mr, ServiceDocumentResource.class, EdmDataServices.class, null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, null, bos);
 
 		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><service xmlns=\"http://www.w3.org/2007/app\" xml:base=\"http://localhost:8080/responder/rest\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:app=\"http://www.w3.org/2007/app\"><workspace><atom:title>Default</atom:title><collection href=\"Flight\"><atom:title>Flight</atom:title></collection></workspace></service>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testWriteServiceDocumentResourceGenericEntity() throws Exception {
+		ServiceDocumentResource<EdmDataServices> mr = mock(ServiceDocumentResource.class);
+		
+		EdmDataServices mockEDS = createMockFlightEdmDataServices();
+
+		//Mock ServiceDocumentResource
+		when(mr.getServiceDocument()).thenReturn(mockEDS);
+		
+        //Wrap entity resource into a JAX-RS GenericEntity instance
+		GenericEntity<ServiceDocumentResource<EdmDataServices>> ge = new GenericEntity<ServiceDocumentResource<EdmDataServices>>(mr) {};
+		
+		//Serialize service document resource
+		MockServiceDocumentProvider p = new MockServiceDocumentProvider();
+		UriInfo uriInfo = mock(UriInfo.class);
+		URI uri = new URI("http://localhost:8080/responder/rest");
+		when(uriInfo.getBaseUri()).thenReturn(uri);
+		p.setUriInfo(uriInfo);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(),ge.getType(), null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, null, bos);
+
+		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><service xmlns=\"http://www.w3.org/2007/app\" xml:base=\"http://localhost:8080/responder/rest\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:app=\"http://www.w3.org/2007/app\"><workspace><atom:title>Default</atom:title><collection href=\"Flight\"><atom:title>Flight</atom:title></collection></workspace></service>";
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		XMLAssert.assertXMLEqual(expectedXML, responseString);
+	}
+	
 	private EdmDataServices createMockFlightEdmDataServices() {
 		EdmDataServices mockEDS = mock(EdmDataServices.class);
 

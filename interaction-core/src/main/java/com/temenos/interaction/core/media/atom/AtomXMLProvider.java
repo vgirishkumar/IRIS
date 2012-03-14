@@ -14,6 +14,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
@@ -31,7 +32,7 @@ import com.temenos.interaction.core.resource.ResourceTypeHelper;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})
-@Produces({MediaType.APPLICATION_ATOM_XML})
+@Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 
 	@Context
@@ -49,8 +50,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
-				ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class) ||
+				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class);
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 			entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(entityResource.getEntity()));
 		}
-		if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
+		else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 			CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
 			List<OEntity> entities = (List<OEntity>) cr.getEntities();
 			EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
@@ -90,6 +91,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			Integer inlineCount = null;
 			String skipToken = null;
 			feedWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entities(entities, entitySet, inlineCount, skipToken));
+		}
+		else {
+			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -114,5 +118,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			throws IOException, WebApplicationException {
 		// TODO implement deserialise
 		return null;
+	}
+
+	protected void setUriInfo(UriInfo uriInfo) {
+		this.uriInfo = uriInfo;
 	}
 }

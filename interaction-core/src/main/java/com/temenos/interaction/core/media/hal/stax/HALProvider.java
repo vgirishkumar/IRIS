@@ -199,7 +199,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 
-		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class))
+		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		
 		try {

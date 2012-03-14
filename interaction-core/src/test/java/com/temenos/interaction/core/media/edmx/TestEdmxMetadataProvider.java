@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 
 import org.custommonkey.xmlunit.XMLAssert;
@@ -37,13 +38,36 @@ public class TestEdmxMetadataProvider {
 		//Serialize metadata resource
 		EdmxMetaDataProvider p = new EdmxMetaDataProvider();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		p.writeTo(mr, MetaDataResource.class, null, null, MediaType.APPLICATION_XML_TYPE, null, bos);
+		p.writeTo(mr, MetaDataResource.class, EdmDataServices.class, null, MediaType.APPLICATION_XML_TYPE, null, bos);
 
 		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><edmx:Edmx Version=\"1.0\" xmlns:edmx=\"http://schemas.microsoft.com/ado/2007/06/edmx\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><edmx:DataServices m:DataServiceVersion=\"1.0\"><Schema xmlns=\"http://schemas.microsoft.com/ado/2006/04/edm\" Namespace=\"MyNamespace\"><EntityType Name=\"Flight\"><Key><PropertyRef Name=\"MyId\"></PropertyRef></Key><Property Name=\"MyId\" Type=\"Edm.String\" Nullable=\"false\"></Property></EntityType><EntityContainer Name=\"MyEntityContainer\" m:IsDefaultEntityContainer=\"false\"><EntitySet Name=\"Flight\" EntityType=\"MyNamespace.Flight\"></EntitySet></EntityContainer></Schema></edmx:DataServices></edmx:Edmx>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testWriteMetadataResourceGenericEntity() throws Exception {
+		MetaDataResource<EdmDataServices> mr = mock(MetaDataResource.class);
+		
+		EdmDataServices mockEDS = createMockFlightEdmDataServices();
+
+		//Mock MetadataResource
+		when(mr.getMetadata()).thenReturn(mockEDS);
+
+        //Wrap entity resource into a JAX-RS GenericEntity instance
+		GenericEntity<MetaDataResource<EdmDataServices>> ge = new GenericEntity<MetaDataResource<EdmDataServices>>(mr) {};
+		
+		//Serialize metadata resource
+		EdmxMetaDataProvider p = new EdmxMetaDataProvider();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_XML_TYPE, null, bos);
+
+		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><edmx:Edmx Version=\"1.0\" xmlns:edmx=\"http://schemas.microsoft.com/ado/2007/06/edmx\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><edmx:DataServices m:DataServiceVersion=\"1.0\"><Schema xmlns=\"http://schemas.microsoft.com/ado/2006/04/edm\" Namespace=\"MyNamespace\"><EntityType Name=\"Flight\"><Key><PropertyRef Name=\"MyId\"></PropertyRef></Key><Property Name=\"MyId\" Type=\"Edm.String\" Nullable=\"false\"></Property></EntityType><EntityContainer Name=\"MyEntityContainer\" m:IsDefaultEntityContainer=\"false\"><EntitySet Name=\"Flight\" EntityType=\"MyNamespace.Flight\"></EntitySet></EntityContainer></Schema></edmx:DataServices></edmx:Edmx>";
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		XMLAssert.assertXMLEqual(expectedXML, responseString);
+	}
+	
 	private EdmDataServices createMockFlightEdmDataServices() {
 		EdmDataServices mockEDS = mock(EdmDataServices.class);
 
