@@ -84,7 +84,7 @@
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine" ref="stateMachine" />
     	<constructor-arg name="path" value="/notes/{id}" />
-    	<constructor-arg name="rr"><null/></constructor-arg>
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="noteCommands" />
     </bean>
     
