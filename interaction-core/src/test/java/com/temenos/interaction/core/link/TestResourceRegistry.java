@@ -25,6 +25,7 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
+import com.jayway.jaxrs.hateoas.LinkableInfo;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 public class TestResourceRegistry {
@@ -119,5 +120,34 @@ public class TestResourceRegistry {
 		assertEquals("FlightSchedule", entityLinks.get(0).getTitle());
 		
 	}
+
+	@Test (expected = AssertionError.class)
+	public void testNotImplementedMapClass() {
+		ResourceRegistry rr = new ResourceRegistry();
+		// this method is used to map the Linkable annotation, we don't use that
+		rr.mapClass(String.class);
+	}
+
+	@Test (expected = AssertionError.class)
+	public void testLinkableNotRegistered() {
+		ResourceRegistry rr = new ResourceRegistry();
+		rr.getLinkableInfo("test");
+	}
+
+//	@Test
+	public void testLinkable() {
+		HashSet<ResourceInteractionModel> resourceSet = new HashSet<ResourceInteractionModel>();
+		ResourceInteractionModel testResource = mock(ResourceInteractionModel.class);
+		when(testResource.getEntityName()).thenReturn("test.resource");
+		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
+		resourceSet.add(testResource);
+		
+		ResourceRegistry rr = new ResourceRegistry();
+		LinkableInfo link = rr.getLinkableInfo("test.resource");
+		assertNotNull(link);
+		assertEquals("", link.getHttpMethod());
+		
+	}
+
 
 }

@@ -11,6 +11,7 @@ import javax.ws.rs.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.link.ASTValidation;
 import com.temenos.interaction.core.link.ResourceStateMachine;
@@ -128,6 +129,11 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		return result;
 	}
 
+	@Override
+	public HateoasContext getHateoasContext() {
+		return null;
+	}
+	
 	public boolean equals(Object other) {
 		//check for self-comparison
 	    if ( this == other ) return true;

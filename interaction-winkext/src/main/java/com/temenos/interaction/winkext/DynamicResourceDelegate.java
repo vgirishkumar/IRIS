@@ -8,6 +8,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.DynamicResource;
 
+import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
@@ -64,6 +65,11 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	@Override
     public HTTPResourceInteractionModel getParent() {
         return parent;
+    }
+
+	@Override
+    public HateoasContext getHateoasContext() {
+        return resource.getHateoasContext();
     }
 
 	@Override

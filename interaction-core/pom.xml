@@ -74,6 +74,16 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
@@ -103,6 +113,12 @@
 			<groupId>xmlunit</groupId>
 			<artifactId>xmlunit</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jax-rs-hateoas</groupId>
+			<artifactId>jax-rs-hateoas-core</artifactId>
+<!--  			<version>0.4.2</version> -->
+			<version>0.5-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

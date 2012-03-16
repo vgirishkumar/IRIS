@@ -29,6 +29,9 @@ import org.odata4j.core.OEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jayway.jaxrs.hateoas.HateoasContext;
+import com.jayway.jaxrs.hateoas.core.HateoasResponse;
+import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResponse;
@@ -91,14 +94,24 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		return result += getResourcePath();
 	}
 
+	@Override
 	public ResourceInteractionModel getParent() {
 		return null;
 	}
 
+	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
 		return null;
 	}
 
+	/**
+	 * Override this method to provide support for application state or links.
+	 */
+	@Override
+	public HateoasContext getHateoasContext() {
+		return null;
+	}
+		
 	protected CommandController getCommandController() {
 		return commandController;
 	}
@@ -142,8 +155,14 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	    	}	    	
 			
 			//Create resource representation from response
-			ResponseBuilder rb = Response.ok(entity).status(status);
-			return HeaderHelper.allowHeader(rb, getInteractions()).build();
+	    	HateoasResponseBuilder builder = HateoasResponse.ok();
+	    	if (getHateoasContext() != null) {
+	    		builder.selfLink(getHateoasContext(), entityName, id);	    		
+	    	}
+	    	builder.entity(entity);
+	    	
+			//ResponseBuilder rb = Response.ok(entity).status(status);
+			return HeaderHelper.allowHeader(builder, getInteractions()).build();
 		}
 		return Response.status(status).build();
     }

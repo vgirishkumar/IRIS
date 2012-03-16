@@ -6,6 +6,8 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
+import com.jayway.jaxrs.hateoas.HateoasContext;
+
 public interface ResourceInteractionModel {
 
 	/**
@@ -25,6 +27,8 @@ public interface ResourceInteractionModel {
 	public String getFQResourcePath();
 	public ResourceInteractionModel getParent();
 	public Collection<ResourceInteractionModel> getChildren();
+	
+	public HateoasContext getHateoasContext();
 	
     @OPTIONS
     public Response options( @PathParam("id") String id );

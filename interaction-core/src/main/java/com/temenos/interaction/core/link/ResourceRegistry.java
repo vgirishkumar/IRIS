@@ -16,9 +16,11 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.format.xml.XmlFormatWriter;
 
+import com.jayway.jaxrs.hateoas.HateoasContext;
+import com.jayway.jaxrs.hateoas.LinkableInfo;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
-public class ResourceRegistry {
+public class ResourceRegistry implements HateoasContext {
 
 //	private EdmDataServices edmDataServices;
 	// map of resource path to interaction model
@@ -120,6 +122,20 @@ public class ResourceRegistry {
 		links.addAll(associatedLinks);
 		links.addAll(transitionLinks);
 		return OEntities.create(entity.getEntitySet(), entity.getEntityKey(), entity.getProperties(), links);
+	}
+
+	@Override
+	public void mapClass(Class<?> clazz) {
+		// we do not implement this part of HateoasContext
+		assert(false);
+	}
+
+	@Override
+	public LinkableInfo getLinkableInfo(String linkKey) {
+		LinkableInfo link = null;
+		
+		assert(link != null);
+		return link;
 	}
 
 }

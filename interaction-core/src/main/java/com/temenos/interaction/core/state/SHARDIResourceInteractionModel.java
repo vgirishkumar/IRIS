@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.CommandController;
@@ -76,11 +77,21 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
 		return result += resourcePath;
 	}
 
+	@Override
 	public ResourceInteractionModel getParent() {
 		return null;
 	}
 	
+	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
+		return null;
+	}
+
+	/**
+	 * Override this method to provide support for application state or links.
+	 */
+	@Override
+	public HateoasContext getHateoasContext() {
 		return null;
 	}
 
