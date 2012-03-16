@@ -1,7 +1,5 @@
 TODO:
 
-test
-
 Create a mockresponder archetype to generate odata and non odata mock responders.
 
 Jersey server seems to support this type of @Path specification "/note{id: (\\(.+?\\))}" where the uri is matched based
