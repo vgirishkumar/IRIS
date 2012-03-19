@@ -154,14 +154,14 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	        	entity = rebuilt.getGenericEntity();
 	    	}	    	
 			
-			//Create resource representation from response
+			// Create hypermedia representation for this resource
 	    	HateoasResponseBuilder builder = HateoasResponse.ok();
 	    	if (getHateoasContext() != null) {
 	    		builder.selfLink(getHateoasContext(), entityName, id);	    		
 	    	}
 	    	builder.entity(entity);
 	    	
-			//ResponseBuilder rb = Response.ok(entity).status(status);
+			// Create the Response for this resource GET (representation created by the jax-rs Provider)
 			return HeaderHelper.allowHeader(builder, getInteractions()).build();
 		}
 		return Response.status(status).build();
