@@ -24,6 +24,7 @@ public class ResourceStateMachine {
 	}
 	
 	public ResourceStateMachine(String entityName, ResourceState initialState) {
+		assert(entityName.equals(initialState.getEntityName()));
 		this.entityName = entityName;
 		this.initial = initialState;
 	}

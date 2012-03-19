@@ -11,7 +11,6 @@ import javax.ws.rs.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.link.ASTValidation;
 import com.temenos.interaction.core.link.ResourceStateMachine;
@@ -32,6 +31,12 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
     private final ResourceStateMachine stateMachine;
     private final ResourceState currentState;
     
+    /**
+     * Create a dynamic resource without any resource state model (state machine).
+     * @param entityName
+     * @param path
+     * @param commandController
+     */
 	public HTTPDynaRIM(String entityName, String path, CommandController commandController) {
 		this(new ResourceStateMachine(entityName, null), path, null, commandController);
 		this.parent = null;
@@ -102,6 +107,13 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 					getCommandController().fetchStateTransitionCommand(method, getFQResourcePath());
 				}
 			}
+			
+			// TODO should be verified in constructor, but this class is currently mixed with dynamic resources that do not use links
+			// assert(getResourceRegistry() != null);
+			// resource created and valid, now register ourselves in the resource registry
+			if (getResourceRegistry() != null)
+				getResourceRegistry().add(this);
+
 		}
 	}
 	
@@ -122,18 +134,14 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		
 		Map<String, ResourceState> resourceStates = stateMachine.getStateMap(this.currentState);
 		for (String childPath : resourceStates.keySet()) {
-			ResourceState s = resourceStates.get(childPath);
-			HTTPDynaRIM child = new HTTPDynaRIM(this, stateMachine, s.getPath(), s, null, getCommandController());
+			// get the childs state, i.e. the substate
+			ResourceState substate = resourceStates.get(childPath);
+			HTTPDynaRIM child = new HTTPDynaRIM(this, stateMachine, substate.getPath(), substate, getResourceRegistry(), getCommandController());
 			result.add(child);
 		}
 		return result;
 	}
 
-	@Override
-	public HateoasContext getHateoasContext() {
-		return null;
-	}
-	
 	public boolean equals(Object other) {
 		//check for self-comparison
 	    if ( this == other ) return true;

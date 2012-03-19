@@ -27,7 +27,7 @@ public class ASTValidation {
 	public String graph(ResourceStateMachine sm) {
 		Collection<ResourceState> states = sm.getStates();
 		StringBuffer sb = new StringBuffer();
-		sb.append("digraph G {").append("\n");
+		sb.append("digraph ").append(sm.getEntityName()).append(" {\n");
 		sb.append("    ").append(sm.getInitial().getName()).append("[shape=circle, width=.25, label=\"\", color=black, style=filled]").append("\n");
 		int countFinal = 0;
 		for (ResourceState s : states) {

@@ -9,8 +9,8 @@ import java.util.Set;
 import org.apache.wink.common.DynamicResource;
 import org.apache.wink.spring.Registrar;
 
+import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.link.ResourceRegistry;
-import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -68,7 +68,7 @@ public class RegistrarWithSingletons extends Registrar {
     	}
     	
     	// TODO could do a lot better then this cast
-    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parent != null ? (HTTPResourceInteractionModel) parent : null, (AbstractHTTPResourceInteractionModel) rim);
+    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parent != null ? (HTTPResourceInteractionModel) parent : null, (HTTPDynaRIM) rim);
     	resources.put(rimKey, dr);
     	this.getInstances().add(dr);
    	

@@ -18,15 +18,18 @@ import org.odata4j.format.xml.XmlFormatWriter;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.jayway.jaxrs.hateoas.LinkableInfo;
+import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 public class ResourceRegistry implements HateoasContext {
 
 //	private EdmDataServices edmDataServices;
 	// map of resource path to interaction model
-	private Map<String, ResourceInteractionModel> rimMap = new HashMap<String, ResourceInteractionModel>();
+	private Map<String, HTTPDynaRIM> rimMap = new HashMap<String, HTTPDynaRIM>();
 	// map of entity name to resource path
 	private Map<String, String> entityResourcePathMap = new HashMap<String, String>();
+	// map of link key to transition
+	private Map<String, Transition> linkTransitionMap = new HashMap<String, Transition>();
 	
 	public ResourceRegistry() {}
 
@@ -35,12 +38,14 @@ public class ResourceRegistry implements HateoasContext {
 	 * there should be no way to reach a resource unless it has a link from another resource.
 	 * @param root
 	 */
-	public ResourceRegistry(ResourceInteractionModel root) {
+	public ResourceRegistry(HTTPDynaRIM root) {
 		collectResources(root);
 	}
 
 	private void collectResources(ResourceInteractionModel resource) {
-		add(resource);
+		// the registry can only be constructed with HTTPDynaRIM, no way to have children of any other type
+		assert(resource instanceof HTTPDynaRIM);
+		add((HTTPDynaRIM) resource);
 		for (ResourceInteractionModel r : resource.getChildren()) {
 			if (!rimMap.containsKey(r.getFQResourcePath())) {
 				collectResources(r);
@@ -52,14 +57,28 @@ public class ResourceRegistry implements HateoasContext {
 	 * Construct and fill the resource registry with a set of resources.
 	 * @param resources
 	 */
-	public ResourceRegistry(Set<ResourceInteractionModel> resources) {
-		for (ResourceInteractionModel r : resources)
+	public ResourceRegistry(Set<HTTPDynaRIM> resources) {
+		for (HTTPDynaRIM r : resources)
 			add(r);
 	}
 
-	public void add(ResourceInteractionModel rim) {
+	public void add(HTTPDynaRIM rim) {
 		rimMap.put(rim.getFQResourcePath(), rim);
 		entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
+		
+		/* 
+		 * test if current state of resource has been supplied, HTTPDynaRIM could be
+		 * constructed without a state model, and this registry could be filled with
+		 * a set of resources that have no state model
+		 */
+		if (rim.getCurrentState() != null) {
+			for (ResourceState targetState : rim.getCurrentState().getAllTargets()) {
+				// linkKey = the target entity name and state name
+				String linkKey = targetState.getEntityName() + "." + targetState.getName();
+				Transition transition = rim.getCurrentState().getTransition(targetState);
+				linkTransitionMap.put(linkKey, transition);
+			}
+		}
 	}
 	
 	
@@ -132,7 +151,20 @@ public class ResourceRegistry implements HateoasContext {
 
 	@Override
 	public LinkableInfo getLinkableInfo(String linkKey) {
-		LinkableInfo link = null;
+		Transition transition = linkTransitionMap.get(linkKey);
+		// no transition must be a transition to self
+		String entityName = (transition != null ? transition.getTarget().getEntityName() : linkKey);
+		String fqPath = entityResourcePathMap.get(entityName);
+		// there should not be any way to define linkKey's without defining a transition and resource
+		assert(fqPath != null);
+		ResourceInteractionModel rim = rimMap.get(fqPath);
+		assert(rim != null);
+		
+		// TODO need to lookup from link registry, mock up GET link for now
+		String label = "lookup label from EDMX";  // TODO get from entityDataServices
+		String description = "lookup description from EDMX";  // TODO get from entityDataServices, in Accept-Language
+		String method = (transition != null ? transition.getCommand().getMethod() : "GET");
+		LinkableInfo link = new LinkableInfo(linkKey, rim.getFQResourcePath(), method, null, null, label, description, null);
 		
 		assert(link != null);
 		return link;

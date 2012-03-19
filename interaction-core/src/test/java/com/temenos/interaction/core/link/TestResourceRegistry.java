@@ -26,6 +26,7 @@ import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
 import com.jayway.jaxrs.hateoas.LinkableInfo;
+import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 public class TestResourceRegistry {
@@ -40,9 +41,9 @@ public class TestResourceRegistry {
 
 	@Test
 	public void testConstructedWithResourceSet() {
-		HashSet<ResourceInteractionModel> resourceSet = new HashSet<ResourceInteractionModel>();
-		resourceSet.add(mock(ResourceInteractionModel.class));
-		ResourceInteractionModel rim2 = mock(ResourceInteractionModel.class);
+		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
+		resourceSet.add(mock(HTTPDynaRIM.class));
+		HTTPDynaRIM rim2 = mock(HTTPDynaRIM.class);
 		when(rim2.getFQResourcePath()).thenReturn("rim2");
 		resourceSet.add(rim2);
 		ResourceRegistry rr = new ResourceRegistry(resourceSet);
@@ -53,9 +54,9 @@ public class TestResourceRegistry {
 
 	@Test
 	public void testConstructedWithRootResource() {
-		ResourceInteractionModel parent = mock(ResourceInteractionModel.class);
+		HTTPDynaRIM parent = mock(HTTPDynaRIM.class);
 		when(parent.getFQResourcePath()).thenReturn("parent");
-		ResourceInteractionModel child = mock(ResourceInteractionModel.class);
+		HTTPDynaRIM child = mock(HTTPDynaRIM.class);
 		when(parent.getFQResourcePath()).thenReturn("child");
 
 		HashSet<ResourceInteractionModel> resourceSet = new HashSet<ResourceInteractionModel>();
@@ -70,9 +71,9 @@ public class TestResourceRegistry {
 
 	@Test
 	public void testConstructedWithRootCircularResource() {
-		ResourceInteractionModel parent = mock(ResourceInteractionModel.class);
+		HTTPDynaRIM parent = mock(HTTPDynaRIM.class);
 		when(parent.getFQResourcePath()).thenReturn("parent");
-		ResourceInteractionModel child = mock(ResourceInteractionModel.class);
+		HTTPDynaRIM child = mock(HTTPDynaRIM.class);
 		when(parent.getFQResourcePath()).thenReturn("child");
 
 		HashSet<ResourceInteractionModel> parentResourceSet = new HashSet<ResourceInteractionModel>();
@@ -107,7 +108,7 @@ public class TestResourceRegistry {
 		OEntity oEntity = OEntities.create(entitySet, entityKey, properties, links);
 		
 		ResourceRegistry rr = new ResourceRegistry();
-		ResourceInteractionModel airport = mock(ResourceInteractionModel.class);
+		HTTPDynaRIM airport = mock(HTTPDynaRIM.class);
 		when(airport.getEntityName()).thenReturn("FlightSchedule");
 		when(airport.getFQResourcePath()).thenReturn("/FS/{id}");
 		rr.add(airport);
@@ -134,20 +135,70 @@ public class TestResourceRegistry {
 		rr.getLinkableInfo("test");
 	}
 
-//	@Test
-	public void testLinkable() {
-		HashSet<ResourceInteractionModel> resourceSet = new HashSet<ResourceInteractionModel>();
-		ResourceInteractionModel testResource = mock(ResourceInteractionModel.class);
-		when(testResource.getEntityName()).thenReturn("test.resource");
+	@Test
+	public void testLinkableSelf() {
+		String ENTITY_NAME = "TEST_ENTITY";
+		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
+		HTTPDynaRIM testResource = mock(HTTPDynaRIM.class);
+		when(testResource.getEntityName()).thenReturn("TEST_ENTITY");
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 		resourceSet.add(testResource);
 		
-		ResourceRegistry rr = new ResourceRegistry();
-		LinkableInfo link = rr.getLinkableInfo("test.resource");
+		ResourceRegistry rr = new ResourceRegistry(resourceSet);
+		LinkableInfo link = rr.getLinkableInfo(ENTITY_NAME);
 		assertNotNull(link);
-		assertEquals("", link.getHttpMethod());
+		assertEquals("TEST_ENTITY", link.getId());
+		assertEquals("GET", link.getHttpMethod());
+		assertEquals("/blah/test", link.getMethodPath());
+        assertEquals("lookup label from EDMX", link.getLabel());
+        assertEquals("lookup description from EDMX", link.getDescription());
+        assertNull(link.getConsumes());	
+        assertNull(link.getProduces());	
+        assertNull(link.getTemplateClass());	
+    }
+
+	@Test
+	public void testLinkableStateTransition() {
+		String ENTITY_NAME = "TEST_ENTITY";
+		
+		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
+		HTTPDynaRIM testResource = mock(HTTPDynaRIM.class);
+		when(testResource.getEntityName()).thenReturn(ENTITY_NAME);
+		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
+
+		// create a little CRUD state machine
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists");
+		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted");
+		// update
+		exists.addTransition("PUT", exists);
+		// delete
+		exists.addTransition("DELETE", deleted);
+		
+		when(testResource.getCurrentState()).thenReturn(exists);
+		resourceSet.add(testResource);
+		
+		ResourceRegistry rr = new ResourceRegistry(resourceSet);
+		// link to self
+		LinkableInfo link = rr.getLinkableInfo(ENTITY_NAME);
+		assertNotNull(link);
+		assertEquals("TEST_ENTITY", link.getId());
+		assertEquals("GET", link.getHttpMethod());
+		assertEquals("/blah/test", link.getMethodPath());
+
+		// link to update
+		LinkableInfo updateLink = rr.getLinkableInfo("TEST_ENTITY.exists");
+		assertNotNull(updateLink);
+		assertEquals("TEST_ENTITY.exists", updateLink.getId());
+		assertEquals("PUT", updateLink.getHttpMethod());
+		assertEquals("/blah/test", updateLink.getMethodPath());
+
+		// link to delete
+		LinkableInfo deleteLink = rr.getLinkableInfo("TEST_ENTITY.deleted");
+		assertNotNull(deleteLink);
+		assertEquals("TEST_ENTITY.deleted", deleteLink.getId());
+		assertEquals("DELETE", deleteLink.getHttpMethod());
+		assertEquals("/blah/test", deleteLink.getMethodPath());
 		
 	}
-
 
 }

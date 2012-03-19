@@ -9,17 +9,17 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.wink.common.DynamicResource;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
+import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 public class DynamicResourceDelegate implements HTTPResourceInteractionModel, DynamicResource {
 
 	private final HTTPResourceInteractionModel parent;
-	private final AbstractHTTPResourceInteractionModel resource;
+	private final HTTPDynaRIM resource;
 	
-	public DynamicResourceDelegate(HTTPResourceInteractionModel parent, AbstractHTTPResourceInteractionModel resource) {
+	public DynamicResourceDelegate(HTTPResourceInteractionModel parent, HTTPDynaRIM resource) {
 		this.parent = parent;
 		this.resource = resource;
 	}

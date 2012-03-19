@@ -8,7 +8,11 @@ import java.util.Map;
 
 public class ResourceState {
 
+	/* the name of the entity which this is a state of */
+	private final String entityName;
+	/* the name for this state */
 	private final String name;
+	/* the path to the create the resource which represents this state of the entity */
 	private final String path;
 	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
 
@@ -16,20 +20,23 @@ public class ResourceState {
 	 * Construct a 'self' ResourceState.  A transition to one's self will not create a new resource.
 	 * @param name
 	 */
-	public ResourceState(String name) {
-		assert(name != null);
-		this.name = name;
-		this.path = null;
+	public ResourceState(String entityName, String name) {
+		this(entityName, name, null);
 	}
 
 	/**
 	 * Construct a substate ResourceState.  A transition to a substate state will create a new resource.
 	 * @param name
 	 */
-	public ResourceState(String name, String path) {
+	public ResourceState(String entityName, String name, String path) {
 		assert(name != null);
+		this.entityName = entityName;
 		this.name = name;
 		this.path = path;
+	}
+
+	public String getEntityName() {
+		return entityName;
 	}
 
 	public String getName() {
@@ -45,7 +52,7 @@ public class ResourceState {
 	}
 	
 	/**
-	 * Normal transitions transition state to another state.
+	 * Normal transitions, transition this entities state to another state.
 	 * @param httpMethod
 	 * @param targetState
 	 */

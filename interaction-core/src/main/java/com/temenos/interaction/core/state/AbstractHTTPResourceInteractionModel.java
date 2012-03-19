@@ -74,8 +74,10 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	public AbstractHTTPResourceInteractionModel(String entityName, String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
 		this.entityName = entityName;
 		this.resourcePath = resourcePath;
+		// TODO extract resource registry into HTTPDynaRIM
 		this.resourceRegistry = resourceRegistry;
 		this.commandController = commandController;
+		assert(this.commandController != null);
 	}
 
 	public String getEntityName() {
@@ -104,15 +106,36 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		return null;
 	}
 
+    /**
+     * The current application state.
+     * @return
+     */
+    public ResourceState getCurrentState() {
+    	return null;
+    }
+    
 	/**
-	 * Override this method to provide support for application state or links.
+	 * We use links (also called hypermedia) for controlling / describing application 
+	 * state.  This method returns a context object for the application state at the 
+	 * time this resource was viewed.
 	 */
 	@Override
 	public HateoasContext getHateoasContext() {
-		return null;
+		return getResourceRegistry();
 	}
+    
 		
-	protected CommandController getCommandController() {
+    /*
+     * The registry of all resources / application states in this application.
+     */
+    protected ResourceRegistry getResourceRegistry() {
+    	return resourceRegistry;
+    }
+
+    /*
+     * The map of all commands for http methods, paths, and media types.
+     */
+    protected CommandController getCommandController() {
 		return commandController;
 	}
 
@@ -302,14 +325,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
         	response = HeaderHelper.allowHeader(response, getInteractions());
     	}
     	return response.build();
-    }
-    
-    /**
-     * The current application state.
-     * @return
-     */
-    public ResourceState getCurrentState() {
-    	return null;
     }
     
     /**
