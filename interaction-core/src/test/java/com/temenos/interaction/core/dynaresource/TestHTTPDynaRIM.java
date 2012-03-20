@@ -188,9 +188,61 @@ public class TestHTTPDynaRIM {
         assertEquals("/notes/{id}", result.getMethodPath());
         assertEquals("lookup label from EDMX", result.getLabel());
         assertEquals("lookup description from EDMX", result.getDescription());
-//        assertEquals(DummyDto.class, result.getTemplateClass());
 	}
-	
+
+	@Test
+	public void testLinksApplicationState() {
+		String ENTITY_NAME = "SERVICE";
+		ResourceState serviceRoot = new ResourceState(ENTITY_NAME, "home");
+
+		ResourceState customers = new ResourceState(ENTITY_NAME, "customers", "/customers");
+		ResourceState accounts = new ResourceState(ENTITY_NAME, "accounts", "/accounts");
+		ResourceState transactions = new ResourceState(ENTITY_NAME, "transactions", "/txns");
+
+		// Create links from service root
+		serviceRoot.addTransition("GET", customers);
+		serviceRoot.addTransition("GET", accounts);
+		serviceRoot.addTransition("GET", transactions);
+
+		ResourceRegistry rr = new ResourceRegistry();
+		CommandController cc = mock(CommandController.class);
+		
+		// create the dynamic resource, this also registers itself with the ResourceRegistry
+		HTTPDynaRIM resource = new HTTPDynaRIM(null, new ResourceStateMachine(ENTITY_NAME, serviceRoot), "", serviceRoot, rr, cc);
+		// this creates and registers the child resources / links
+		resource.getChildren();
+		
+		HateoasContext context = resource.getHateoasContext();
+		// every dynamic resource should have the information to link to itself
+        LinkableInfo result = context.getLinkableInfo(ENTITY_NAME);
+        assertNotNull(result);
+        assertEquals("SERVICE", result.getId());
+        assertEquals("GET", result.getHttpMethod());
+        assertEquals("", result.getMethodPath());
+
+        // customers
+        LinkableInfo linkToCustomers = context.getLinkableInfo(ENTITY_NAME + ".customers");
+        assertNotNull(linkToCustomers);
+        assertEquals("SERVICE.customers", linkToCustomers.getId());
+        assertEquals("GET", linkToCustomers.getHttpMethod());
+        assertEquals("/customers", linkToCustomers.getMethodPath());
+
+        // accounts
+        LinkableInfo linkToAccounts = context.getLinkableInfo(ENTITY_NAME + ".accounts");
+        assertNotNull(linkToAccounts);
+        assertEquals("SERVICE.accounts", linkToAccounts.getId());
+        assertEquals("GET", linkToAccounts.getHttpMethod());
+        assertEquals("/accounts", linkToAccounts.getMethodPath());
+
+        // transactions
+        LinkableInfo linkToTxns = context.getLinkableInfo(ENTITY_NAME + ".transactions");
+        assertNotNull(linkToTxns);
+        assertEquals("SERVICE.transactions", linkToTxns.getId());
+        assertEquals("GET", linkToTxns.getHttpMethod());
+        assertEquals("/txns", linkToTxns.getMethodPath());
+
+	}
+
 	@Test
 	public void testEquality() {
 		String ENTITY_NAME = "NOTE";

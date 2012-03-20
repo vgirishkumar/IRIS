@@ -28,6 +28,8 @@ public class ResourceRegistry implements HateoasContext {
 	private Map<String, HTTPDynaRIM> rimMap = new HashMap<String, HTTPDynaRIM>();
 	// map of entity name to resource path
 	private Map<String, String> entityResourcePathMap = new HashMap<String, String>();
+	// map of resource state to resource path
+	private Map<ResourceState, String> statePathMap = new HashMap<ResourceState, String>();
 	// map of link key to transition
 	private Map<String, Transition> linkTransitionMap = new HashMap<String, Transition>();
 	
@@ -64,7 +66,13 @@ public class ResourceRegistry implements HateoasContext {
 
 	public void add(HTTPDynaRIM rim) {
 		rimMap.put(rim.getFQResourcePath(), rim);
-		entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
+		
+		// TODO add tests for initial state only
+		if (rim.getStateMachine().getInitial().equals(rim.getCurrentState())) {
+			entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
+		}
+		
+		statePathMap.put(rim.getCurrentState(), rim.getFQResourcePath());
 		
 		/* 
 		 * test if current state of resource has been supplied, HTTPDynaRIM could be
@@ -153,8 +161,7 @@ public class ResourceRegistry implements HateoasContext {
 	public LinkableInfo getLinkableInfo(String linkKey) {
 		Transition transition = linkTransitionMap.get(linkKey);
 		// no transition must be a transition to self
-		String entityName = (transition != null ? transition.getTarget().getEntityName() : linkKey);
-		String fqPath = entityResourcePathMap.get(entityName);
+		String fqPath = (transition != null ? statePathMap.get(transition.getTarget()) :  entityResourcePathMap.get(linkKey));
 		// there should not be any way to define linkKey's without defining a transition and resource
 		assert(fqPath != null);
 		ResourceInteractionModel rim = rimMap.get(fqPath);

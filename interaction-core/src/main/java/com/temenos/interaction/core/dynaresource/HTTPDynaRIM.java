@@ -128,6 +128,10 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		return currentState;
 	}
 	
+	public ResourceStateMachine getStateMachine() {
+		return stateMachine;
+	}
+	
 	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
