@@ -67,12 +67,31 @@ public class ResourceRegistry implements HateoasContext {
 	public void add(HTTPDynaRIM rim) {
 		rimMap.put(rim.getFQResourcePath(), rim);
 		
-		// TODO add tests for initial state only
-		if (rim.getStateMachine().getInitial().equals(rim.getCurrentState())) {
+		// populate a map of resources and their paths, and resource states and their paths 
+		if (rim.getStateMachine() != null) {
+			ResourceStateMachine stateMachine = rim.getStateMachine();
+			// do not update entity resource path if this resource is a child state
+			if (stateMachine.getInitial().equals(rim.getCurrentState())) {
+				entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
+			}
+			/*
+			 *  create the state-path map for "self state" child states, not necessary to
+			 *  populate the map with other resource states as these RIMs will be added
+			 *  here also 
+			 */
+			Collection<ResourceState> resourceStates = rim.getCurrentState().getAllTargets();
+			for (ResourceState childState : resourceStates) {
+				if (childState.isSelfState()) {
+					statePathMap.put(childState, rim.getFQResourcePath());
+				} else if (!childState.getEntityName().equals(rim.getCurrentState().getEntityName())) {
+					statePathMap.put(childState, childState.getPath());
+				}
+			}
+		} else {
+			// must be just an entity with no state machine
 			entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
 		}
 		
-		statePathMap.put(rim.getCurrentState(), rim.getFQResourcePath());
 		
 		/* 
 		 * test if current state of resource has been supplied, HTTPDynaRIM could be
@@ -160,7 +179,7 @@ public class ResourceRegistry implements HateoasContext {
 	@Override
 	public LinkableInfo getLinkableInfo(String linkKey) {
 		Transition transition = linkTransitionMap.get(linkKey);
-		// no transition must be a transition to self
+		// no transition, must be a transition to self
 		String fqPath = (transition != null ? statePathMap.get(transition.getTarget()) :  entityResourcePathMap.get(linkKey));
 		// there should not be any way to define linkKey's without defining a transition and resource
 		assert(fqPath != null);

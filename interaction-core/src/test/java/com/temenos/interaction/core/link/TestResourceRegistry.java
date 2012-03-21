@@ -91,6 +91,23 @@ public class TestResourceRegistry {
 	}
 
 	@Test
+	public void testEntityResourcePath() {
+		/*
+		 * Creating a resource registry with a resource that has neither a state machine, nor
+		 * an initial state should populate the entity resource map with a path to the entity
+		 */
+		String ENTITY_NAME = "TEST_ENTITY";
+		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
+		HTTPDynaRIM testResource = mock(HTTPDynaRIM.class);
+		when(testResource.getEntityName()).thenReturn(ENTITY_NAME);
+		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
+		resourceSet.add(testResource);
+		
+		ResourceRegistry registry = new ResourceRegistry(resourceSet);
+		assertEquals("/blah/test", registry.getEntityResourcePath(ENTITY_NAME));
+	}
+
+	@Test
 	public void testRebuildOEntityLinksAssociations() {
 		InputStream in = ClassLoader.getSystemResourceAsStream("com/temenos/interaction/core/link/TestResourceRegistryEDMX.xml");
 		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(in)));
@@ -140,7 +157,7 @@ public class TestResourceRegistry {
 		String ENTITY_NAME = "TEST_ENTITY";
 		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
 		HTTPDynaRIM testResource = mock(HTTPDynaRIM.class);
-		when(testResource.getEntityName()).thenReturn("TEST_ENTITY");
+		when(testResource.getEntityName()).thenReturn(ENTITY_NAME);
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 		resourceSet.add(testResource);
 		
@@ -174,12 +191,13 @@ public class TestResourceRegistry {
 		// delete
 		exists.addTransition("DELETE", deleted);
 		
+		when(testResource.getStateMachine()).thenReturn(new ResourceStateMachine(ENTITY_NAME, exists));
 		when(testResource.getCurrentState()).thenReturn(exists);
 		resourceSet.add(testResource);
 		
 		ResourceRegistry rr = new ResourceRegistry(resourceSet);
 		// link to self
-		LinkableInfo link = rr.getLinkableInfo(ENTITY_NAME);
+		LinkableInfo link = rr.getLinkableInfo("TEST_ENTITY");
 		assertNotNull(link);
 		assertEquals("TEST_ENTITY", link.getId());
 		assertEquals("GET", link.getHttpMethod());

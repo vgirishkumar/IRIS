@@ -55,7 +55,7 @@ public class ResourceStateMachine {
 	}
 
 	/**
-	 * Return a map of the all paths (states), and transitions to other states
+	 * Return a map of all the paths (states), and interactions with other states
 	 * @return
 	 */
 	public Map<String, Set<String>> getInteractionMap() {
@@ -69,18 +69,21 @@ public class ResourceStateMachine {
 		if (currentState == null || states.contains(currentState)) return;
 		states.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
-			// lookup transition to get to here
-			Transition t = currentState.getTransition(next);
-			TransitionCommandSpec command = t.getCommand();
-			String path = command.getPath();
-			
-			Set<String> interactions = result.get(path);
-			if (interactions == null)
-				interactions = new HashSet<String>();
-			interactions.add(command.getMethod());
-			
-			result.put(path, interactions);
-			collectInteractions(result, states, next);
+			// is the target a state of the same entity
+			if (next.getEntityName().equals(currentState.getEntityName())) {
+				// lookup transition to get to here
+				Transition t = currentState.getTransition(next);
+				TransitionCommandSpec command = t.getCommand();
+				String path = command.getPath();
+				
+				Set<String> interactions = result.get(path);
+				if (interactions == null)
+					interactions = new HashSet<String>();
+				interactions.add(command.getMethod());
+				
+				result.put(path, interactions);
+				collectInteractions(result, states, next);
+			}
 		}
 		
 	}

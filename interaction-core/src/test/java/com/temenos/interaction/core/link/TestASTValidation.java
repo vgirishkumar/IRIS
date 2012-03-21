@@ -95,4 +95,72 @@ public class TestASTValidation {
 		assertEquals(expected, result);	
 	}
 
+	@Test
+	public void testDOTTransitionToStateMachine() {
+		String PROCESS_ENTITY_NAME = "process";
+		String TASK_ENTITY_NAME = "task";
+
+		// process behaviour
+		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", "/processes");
+		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", "/new");
+		// create new process
+		processes.addTransition("POST", newProcess);
+
+		// Process states
+		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess");
+		ResourceState processStarted = new ResourceState(PROCESS_ENTITY_NAME, "started");
+		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", "/nextTask");
+		ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME,	"completedProcess");
+		// start new process
+		newProcess.addTransition("PUT", processInitial);
+		processInitial.addTransition("PUT", processStarted);
+		// do a task
+		processStarted.addTransition("GET", nextTask);
+		// finish the process
+		processStarted.addTransition("DELETE", processCompleted);
+
+		ResourceStateMachine processSM = new ResourceStateMachine(PROCESS_ENTITY_NAME,	processes);
+
+		// Task states
+		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
+		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", "/completed");
+		ResourceState taskAbandoned = new ResourceState(TASK_ENTITY_NAME, "abandoned");
+		// abandon task
+		taskAcquired.addTransition("DELETE", taskAbandoned);
+		// complete task
+		taskAcquired.addTransition("PUT", taskComplete);
+
+		ResourceStateMachine taskSM = new ResourceStateMachine(TASK_ENTITY_NAME, taskAcquired);
+		/*
+		 * acquire task by a PUT to the initial state of the task state machine (acquired)
+		 */
+		nextTask.addTransition("PUT", taskSM);
+
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home");
+		home.addTransition("GET", processSM);
+		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine("SERVICE_ROOT", home);
+		
+		System.out.println(new ASTValidation().graph(serviceDocumentSM));
+
+		String expected = "digraph SERVICE_ROOT {\n"
+				+ "    home[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
+				+ "    home->processes[label=\"GET /processes\"]\n"
+				+ "    processes->new[label=\"POST /new\"]\n"
+				+ "    new->initialProcess[label=\"PUT\"]\n"
+				+ "    initialProcess->started[label=\"PUT\"]\n"
+				+ "    started->completedProcess[label=\"DELETE\"]\n"
+				+ "    started->taskAvailable[label=\"GET /nextTask\"]\n"
+				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
+				+ "    completedProcess->final[label=\"\"]\n"
+				+ "    taskAvailable->acquired[label=\"PUT /acquired\"]\n"
+				+ "    acquired->complete[label=\"PUT /completed\"]\n"
+				+ "    acquired->abandoned[label=\"DELETE /acquired\"]\n"
+				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
+				+ "    complete->final1[label=\"\"]\n"
+				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
+				+ "    abandoned->final2[label=\"\"]\n"
+				+ "}";
+		assertEquals(expected, new ASTValidation().graph(serviceDocumentSM));
+	}
+
 }

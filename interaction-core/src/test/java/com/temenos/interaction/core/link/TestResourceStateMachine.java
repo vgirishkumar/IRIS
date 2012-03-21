@@ -25,7 +25,7 @@ public class TestResourceStateMachine {
 		
 		unauthorised.addTransition("PUT", unauthorised);
 		unauthorised.addTransition("PUT", authorised);
-		unauthorised.addTransition("PUT", end);
+		unauthorised.addTransition("DELETE", end);
 		
 		authorised.addTransition("PUT", history);
 		
@@ -222,50 +222,59 @@ public class TestResourceStateMachine {
 		sm.getInteractions(other);
 	}
 
-	
-//    @Test
-    public void testProcessOrchestration() {
+	@Test
+	public void testTransitionToStateMachine() {
 		String PROCESS_ENTITY_NAME = "process";
 		String TASK_ENTITY_NAME = "task";
 
-          // process behaviour
-          ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", "/processes");
-          ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", "/new");
+		// process behaviour
+		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", "/processes");
+		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", "/new");
+		// create new process
+		processes.addTransition("POST", newProcess);
 
-          // create new process
-          processes.addTransition("POST", newProcess);
+		// Process states
+		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess");
+		ResourceState processStarted = new ResourceState(PROCESS_ENTITY_NAME, "started");
+		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", "/nextTask");
+		ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME,	"completedProcess");
+		// start new process
+		newProcess.addTransition("PUT", processInitial);
+		processInitial.addTransition("PUT", processStarted);
+		// do a task
+		processStarted.addTransition("GET", nextTask);
+		// finish the process
+		processStarted.addTransition("DELETE", processCompleted);
 
-          
-          // Process states
-          ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess");
-          ResourceState processStarted = new ResourceState(PROCESS_ENTITY_NAME, "started");
-          ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME, "taskAvailable", "/nextTask");
-          ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME, "completedProcess");
+		ResourceStateMachine processSM = new ResourceStateMachine(PROCESS_ENTITY_NAME,	processes);
 
-          // start new process
-          newProcess.addTransition("PUT", processInitial);
-          processInitial.addTransition("PUT", processStarted);
-          // do a task
-          processStarted.addTransition("GET", nextTask);
-          // finish the process
-          processStarted.addTransition("DELETE", processCompleted);
+		// Task states
+		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
+		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", "/completed");
+		ResourceState taskAbandoned = new ResourceState(TASK_ENTITY_NAME, "abandoned");
+		// abandon task
+		taskAcquired.addTransition("DELETE", taskAbandoned);
+		// complete task
+		taskAcquired.addTransition("PUT", taskComplete);
 
-          
-          // Task states
-          ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
-          ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", "/completed");
-          ResourceState taskCompleted = new ResourceState(TASK_ENTITY_NAME, "deletedTask");
-          
-          nextTask.addTransition("PUT", taskAcquired);
-          taskAcquired.addTransition("DELETE", nextTask);
-          taskAcquired.addTransition("PUT", taskComplete);
-//          taskComplete.addTransition("DELETE", taskCompleted);
-          
-          // TODO need to link one state machine to another
-          ResourceStateMachine sm = new ResourceStateMachine(PROCESS_ENTITY_NAME, processInitial);
-          System.out.println(new ASTValidation().graph(sm));
+		ResourceStateMachine taskSM = new ResourceStateMachine(TASK_ENTITY_NAME, taskAcquired);
+		/*
+		 * acquire task by a PUT to the initial state of the task state machine (acquired)
+		 */
+		nextTask.addTransition("PUT", taskSM);
 
-          assertEquals("", new ASTValidation().graph(sm));
-    }
+		ResourceState home = new ResourceState("", "home");
+		home.addTransition("GET", processSM);
+		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine("", home);
+		
+		Map<String, Set<String>> interactionMap = serviceDocumentSM.getInteractionMap();
+		// no interactions for this entity
+		assertEquals(0, interactionMap.size());
+
+		// all target states, including states not for this entity (application states)
+		Collection<ResourceState> targetStates = serviceDocumentSM.getInitial().getAllTargets();
+		assertEquals(1, targetStates.size());
+		assertEquals(10, serviceDocumentSM.getStates().size());
+	}
 
 }

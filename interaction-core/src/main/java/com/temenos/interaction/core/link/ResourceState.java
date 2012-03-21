@@ -48,6 +48,7 @@ public class ResourceState {
 	}
 
 	public boolean isSelfState() {
+		System.out.println((path == null));
 		return (path == null);
 	}
 	
@@ -69,6 +70,17 @@ public class ResourceState {
 	}
 
 	/**
+	 * Add transition to another resource interaction model.
+	 * @param httpMethod
+	 * @param resourceStateModel
+	 */
+	public void addTransition(String httpMethod, ResourceStateMachine resourceStateModel) {
+		assert resourceStateModel != null;
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourceStateModel.getInitial().getPath());
+		transitions.put(commandSpec, new Transition(this, commandSpec, resourceStateModel.getInitial()));
+	}
+
+	/**
 	 * Get the transition to the supplied target state.
 	 * @param targetState
 	 * @return
@@ -77,7 +89,7 @@ public class ResourceState {
 		Transition foundTransition = null;
 		for (Transition t : transitions.values()) {
 			if (t.getTarget().equals(targetState)) {
-				assert(foundTransition == null);
+				assert(foundTransition == null);  // transition must be defined more than once
 				foundTransition = t;
 			}
 		}

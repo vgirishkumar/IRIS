@@ -195,14 +195,17 @@ public class TestHTTPDynaRIM {
 		String ENTITY_NAME = "SERVICE";
 		ResourceState serviceRoot = new ResourceState(ENTITY_NAME, "home");
 
-		ResourceState customers = new ResourceState(ENTITY_NAME, "customers", "/customers");
-		ResourceState accounts = new ResourceState(ENTITY_NAME, "accounts", "/accounts");
-		ResourceState transactions = new ResourceState(ENTITY_NAME, "transactions", "/txns");
+		ResourceState customers = new ResourceState("CUSTOMER", "customers", "/customers");
+		ResourceStateMachine customerSM = new ResourceStateMachine("CUSTOMER", customers);
+		ResourceState accounts = new ResourceState("ACCOUNT", "accounts", "/accounts");
+		ResourceStateMachine accountSM = new ResourceStateMachine("ACCOUNT", accounts);
+		ResourceState transactions = new ResourceState("TRANSACTION", "transactions", "/txns");
+		ResourceStateMachine txnSM = new ResourceStateMachine("TRANSACTION", transactions);
 
 		// Create links from service root
-		serviceRoot.addTransition("GET", customers);
-		serviceRoot.addTransition("GET", accounts);
-		serviceRoot.addTransition("GET", transactions);
+		serviceRoot.addTransition("GET", customerSM);
+		serviceRoot.addTransition("GET", accountSM);
+		serviceRoot.addTransition("GET", txnSM);
 
 		ResourceRegistry rr = new ResourceRegistry();
 		CommandController cc = mock(CommandController.class);
@@ -221,23 +224,23 @@ public class TestHTTPDynaRIM {
         assertEquals("", result.getMethodPath());
 
         // customers
-        LinkableInfo linkToCustomers = context.getLinkableInfo(ENTITY_NAME + ".customers");
+        LinkableInfo linkToCustomers = context.getLinkableInfo("CUSTOMER.customers");
         assertNotNull(linkToCustomers);
-        assertEquals("SERVICE.customers", linkToCustomers.getId());
+        assertEquals("CUSTOMER.customers", linkToCustomers.getId());
         assertEquals("GET", linkToCustomers.getHttpMethod());
         assertEquals("/customers", linkToCustomers.getMethodPath());
 
         // accounts
-        LinkableInfo linkToAccounts = context.getLinkableInfo(ENTITY_NAME + ".accounts");
+        LinkableInfo linkToAccounts = context.getLinkableInfo("ACCOUNT.accounts");
         assertNotNull(linkToAccounts);
-        assertEquals("SERVICE.accounts", linkToAccounts.getId());
+        assertEquals("ACCOUNT.accounts", linkToAccounts.getId());
         assertEquals("GET", linkToAccounts.getHttpMethod());
         assertEquals("/accounts", linkToAccounts.getMethodPath());
 
         // transactions
-        LinkableInfo linkToTxns = context.getLinkableInfo(ENTITY_NAME + ".transactions");
+        LinkableInfo linkToTxns = context.getLinkableInfo("TRANSACTION.transactions");
         assertNotNull(linkToTxns);
-        assertEquals("SERVICE.transactions", linkToTxns.getId());
+        assertEquals("TRANSACTION.transactions", linkToTxns.getId());
         assertEquals("GET", linkToTxns.getHttpMethod());
         assertEquals("/txns", linkToTxns.getMethodPath());
 

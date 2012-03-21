@@ -50,6 +50,31 @@ public class TestResourceState {
 	}
 
 	@Test
+	public void testTransitionToStateMachine() {
+		String ENTITY_NAME1 = "entity1";
+		ResourceState initial = new ResourceState(ENTITY_NAME1, "initial");
+		ResourceState exists = new ResourceState(ENTITY_NAME1, "exists");
+		ResourceState deleted = new ResourceState(ENTITY_NAME1, "deleted");
+		initial.addTransition("PUT", exists);
+		exists.addTransition("DELETE", deleted);
+		
+		String ENTITY_NAME2 = "entity2";
+		ResourceState initial2 = new ResourceState(ENTITY_NAME2, "initial");
+		ResourceState exists2 = new ResourceState(ENTITY_NAME2, "exists");
+		ResourceState deleted2 = new ResourceState(ENTITY_NAME2, "deleted");
+		initial2.addTransition("PUT", exists2);
+		exists2.addTransition("DELETE", deleted2);
+		
+		ResourceStateMachine rsm1 = new ResourceStateMachine(ENTITY_NAME1, initial);
+		ResourceStateMachine rsm2 = new ResourceStateMachine(ENTITY_NAME2, initial2);
+		exists.addTransition("GET", rsm2);
+		exists2.addTransition("GET", rsm1);
+		
+		assertEquals("GET", exists.getTransition(initial2).getCommand().getMethod());
+		assertEquals(null, exists.getTransition(initial2).getCommand().getPath());
+	}
+	
+	@Test
 	public void testEquality() {
 		String ENTITY_NAME = "entity";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "");
