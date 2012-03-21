@@ -132,6 +132,10 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	return resourceRegistry;
     }
 
+    public void setResourceRegistry(ResourceRegistry resourceRegistry) {
+    	this.resourceRegistry = resourceRegistry;
+    }
+
     /*
      * The map of all commands for http methods, paths, and media types.
      */

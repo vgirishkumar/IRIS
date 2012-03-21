@@ -10,6 +10,17 @@
 			classpath:META-INF/spring-beans.xml
 		</param-value>
 	</context-param>
+	
+	<filter>
+		<filter-name>jax-rs-hateoas</filter-name>
+		<description>This filter sets the request context for jax-rs-hateoas (TODO - should not be required)</description>
+		<filter-class>com.jayway.jaxrs.hateoas.web.RequestContextFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>jax-rs-hateoas</filter-name>
+		<servlet-name>StateTransition</servlet-name>
+	</filter-mapping>
+	
 <!-- 
   DOESN'T WORK.  "Cannot initialize context because there is already a root application context present - check whether you have multiple ContextLoader* definitions in your web.xml!"
  	<listener>
@@ -17,7 +28,8 @@
 			org.springframework.web.context.ContextLoaderListener
 		</listener-class>
 	</listener>
- -->	
+ -->
+ 	
 	<servlet>
 		<servlet-name>context</servlet-name>
 		<servlet-class>org.springframework.web.context.ContextLoaderServlet</servlet-class>

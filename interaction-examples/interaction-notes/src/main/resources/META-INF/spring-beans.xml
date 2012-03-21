@@ -31,7 +31,7 @@
 <!--
 	An extension of org.apache.wink.spring.Registrar with support for singletons.
 -->
-	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons" depends-on="DYNA_NOTE">
+	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
         		<ref local="jaxbContextResolver" />
@@ -69,7 +69,7 @@
 
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
-<!--      	<constructor-arg name="root" ref="DYNA_NOTE" />  -->
+      	<constructor-arg name="root" ref="DYNA_NOTE" />
     </bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.note.Behaviour" />
@@ -84,7 +84,7 @@
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine" ref="stateMachine" />
     	<constructor-arg name="path" value="/notes/{id}" />
-    	<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="noteCommands" />
     </bean>
     

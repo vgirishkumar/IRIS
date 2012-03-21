@@ -41,6 +41,8 @@ public class ResourceRegistry implements HateoasContext {
 	 * @param root
 	 */
 	public ResourceRegistry(HTTPDynaRIM root) {
+		// TODO dodgy - need to change this to a context object that can be initialised and passed to all dynamic resources
+		root.setResourceRegistry(this);
 		collectResources(root);
 	}
 
