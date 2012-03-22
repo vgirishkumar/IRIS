@@ -5,7 +5,7 @@
   <groupId>${groupId}</groupId>
   <artifactId>${artifactId}</artifactId>
   <version>${version}</version>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
 
   <name>An IRIS mock responder project.</name>
   <url>http://www.temenos.com</url>
