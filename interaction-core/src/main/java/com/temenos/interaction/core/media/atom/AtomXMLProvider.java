@@ -2,11 +2,15 @@ package com.temenos.interaction.core.media.atom;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -21,30 +25,49 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.format.Entry;
+import org.odata4j.format.xml.AtomEntryFormatParser;
 import org.odata4j.producer.Responses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
+import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})
 @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
-
+	private final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
+	private final static Pattern RESOURCE_PATTERN = Pattern.compile("(.*)/(.+)");
+	
 	@Context
 	private UriInfo uriInfo;
 	private AtomEntryFormatWriter entryWriter = new AtomEntryFormatWriter();
 	private AtomFeedFormatWriter feedWriter = new AtomFeedFormatWriter();
 	
-	private EdmDataServices edmDataServices;
+	private final EdmDataServices edmDataServices;
+	private final ResourceRegistry resourceRegistry;
 
-	public AtomXMLProvider(EdmDataServices edmDataServices) {
+	/**
+	 * Construct the jax-rs Provider for OData media type.
+	 * @param edmDataServices
+	 * 		The entity metadata for reading and writing OData entities.
+	 * @param resourceRegistry
+	 * 		The resource registry contains all the resource to entity mappings
+	 */
+	public AtomXMLProvider(EdmDataServices edmDataServices, ResourceRegistry resourceRegistry) {
 		this.edmDataServices = edmDataServices;
+		this.resourceRegistry = resourceRegistry;
 		assert(edmDataServices != null);
+		assert(resourceRegistry != null);
 	}
 
 	@Override
@@ -100,8 +123,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		// this class can only deserialise EntityResource with OEntity.
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class);
+		// TODO this class can only deserialise EntityResource with OEntity, but at the moment we are accepting any EntityResource or CollectionResource
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
+				|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
 	}
 
 	/**
@@ -116,8 +140,57 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			Type genericType, Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
-		// TODO implement deserialise
-		return null;
+		
+		// TODO check media type can be handled
+		
+		if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
+			ResourceInteractionModel rim = null;
+			OEntityKey entityKey = null;
+			/* 
+			 * TODO add uritemplate helper class (something like the wink JaxRsUriTemplateProcessor) to 
+			 * our project, or use wink directly, will also need it for handling link transitions
+			 */
+//			JaxRsUriTemplateProcessor processor = new JaxRsUriTemplateProcessor("/{therest}/");
+//			UriTemplateMatcher matcher = processor.matcher();
+//			matcher.matches(uriInfo.getPath());
+//			String entityKey = matcher.getVariableValue("id");
+			String path = uriInfo.getPath();
+			logger.info("Reading atom xml content for [" + path + "]");
+			Matcher matcher = RESOURCE_PATTERN.matcher(path);
+			if (matcher.find()) {
+				// the resource path
+				String resourcePath = matcher.group(1);
+				rim = resourceRegistry.getResourceInteractionModel(resourcePath);
+
+				if (rim != null) {
+					// at the moment things are pretty simply, the bit after the last slash is the key
+					entityKey = OEntityKey.parse(matcher.group(2));
+				}
+			}
+			if (rim == null) {
+				// might be a request without an entity key e.g. a POST
+				if (!path.startsWith("/")) {
+					// TODO remove this hack :-(
+					path = "/" + path;
+				}
+				rim = resourceRegistry.getResourceInteractionModel(path);
+				if (rim == null) {
+					// give up, we can't handle this request 404
+					logger.error("resource not found in registry");
+					throw new WebApplicationException(Response.Status.NOT_FOUND);
+				}
+			}
+
+			// parse the request content
+			Reader reader = new InputStreamReader(entityStream);
+			Entry e = new AtomEntryFormatParser(edmDataServices, rim.getEntityName(), entityKey, null).parse(reader);
+			
+			return new EntityResource<OEntity>(e.getEntity());
+		} else {
+			logger.error("Unhandled type");
+			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
 	protected void setUriInfo(UriInfo uriInfo) {

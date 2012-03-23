@@ -184,7 +184,11 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			// Create hypermedia representation for this resource
 	    	HateoasResponseBuilder builder = HateoasResponse.ok();
 	    	if (getHateoasContext() != null) {
-	    		builder.selfLink(getHateoasContext(), entityName, id);	    		
+	    		if (id != null) {
+		    		builder.selfLink(getHateoasContext(), entityName, id);	    		
+	    		} else {
+		    		builder.selfLink(getHateoasContext(), entityName);
+	    		}
 	    	}
 	    	builder.entity(entity);
 	    	

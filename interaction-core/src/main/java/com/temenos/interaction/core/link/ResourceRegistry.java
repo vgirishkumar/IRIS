@@ -115,6 +115,17 @@ public class ResourceRegistry implements HateoasContext {
 		return entityResourcePathMap.get(entityName);
 	}
 	
+	/**
+	 * When supplied with a uri of a registered resource you will be returned a 
+	 * reference to the ResourceInteractionModel.
+	 * @param path
+	 * 		The base uri for the resource.
+	 * @return {@link ResourceInteractionModel}
+	 */
+	public ResourceInteractionModel getResourceInteractionModel(String path) {
+		return rimMap.get(path);
+	}
+	
 	public Set<ResourceInteractionModel> getResourceInteractionModels() {
 		Set<ResourceInteractionModel> resources = new HashSet<ResourceInteractionModel>();
 		for (String r : rimMap.keySet()) {

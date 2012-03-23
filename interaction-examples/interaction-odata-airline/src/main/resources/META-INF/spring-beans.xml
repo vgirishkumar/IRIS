@@ -22,7 +22,7 @@
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
     -->
-	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons" depends-on="ServiceRoot">
+	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
 				<ref local="staxHALProvider" />
@@ -39,12 +39,13 @@
 	</bean>
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+    	<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
-<!--         <constructor-arg name="root" ref="ServiceRoot" />  -->
+         <constructor-arg name="root" ref="ServiceRoot" />
     </bean>
 
 
@@ -59,7 +60,7 @@
     <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine" ref="stateMachine" />
     	<constructor-arg name="path" value="" />
-    	<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     

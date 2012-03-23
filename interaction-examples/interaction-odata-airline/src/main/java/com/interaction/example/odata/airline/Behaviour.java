@@ -1,6 +1,7 @@
 package com.interaction.example.odata.airline;
 
 import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.link.ResourceStateMachine;
 
 public class Behaviour {
 
@@ -13,14 +14,14 @@ public class Behaviour {
 		 * create a GET command for the $metadata
 		 */
 		ResourceState metadata = new ResourceState("", "metadata", "/$metadata");
-		ResourceState flights = new ResourceState("", "flights", "/Flight");
-		ResourceState airport = new ResourceState("", "airports", "/Airport");
-		ResourceState flightsSchedules = new ResourceState("", "flightschedules", "/FlightSchedule");
+		ResourceState flights = new ResourceState("Flight", "flights", "/Flight");
+		ResourceState airport = new ResourceState("Airport", "airports", "/Airport");
+		ResourceState flightsSchedules = new ResourceState("FlightSchedule", "flightschedules", "/FlightSchedule");
 		
 		initialState.addTransition("GET", metadata);
-		initialState.addTransition("GET", flights);
-		initialState.addTransition("GET", airport);
-		initialState.addTransition("GET", flightsSchedules);
+		initialState.addTransition("GET", new ResourceStateMachine("Flight", flights));
+		initialState.addTransition("GET", new ResourceStateMachine("Airport", airport));
+		initialState.addTransition("GET", new ResourceStateMachine("FlightSchedule", flightsSchedules));
 		return initialState;
 	}
 

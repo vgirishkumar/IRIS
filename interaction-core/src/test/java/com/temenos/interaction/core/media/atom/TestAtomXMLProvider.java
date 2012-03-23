@@ -1,24 +1,37 @@
 package com.temenos.interaction.core.media.atom;
 
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.DifferenceListener;
 import org.custommonkey.xmlunit.IgnoreTextAndAttributeValuesDifferenceListener;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.odata4j.core.ImmutableList;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -33,13 +46,27 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
+import org.odata4j.format.Entry;
+import org.odata4j.format.xml.AtomEntryFormatParser;
+import org.odata4j.internal.FeedCustomizationMapping;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.state.ResourceInteractionModel;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({OEntityKey.class, AtomXMLProvider.class})
 public class TestAtomXMLProvider {
+	
+	private final static String EXPECTED_XML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xml:base=\"http://localhost:8080/responder/rest\"><id>http://localhost:8080/responder/restFlight('123')</id><title type=\"text\"></title><updated>2012-03-14T11:29:19Z</updated><author><name></name></author><link rel=\"edit\" title=\"Flight\" href=\"Flight('123')\"></link><category term=\"InteractionTest.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\"></category><content type=\"application/xml\"><m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content></entry>";
+	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
-			super(edmDataServices);
+			super(edmDataServices, new ResourceRegistry());
 		}
 		public void setUriInfo(UriInfo uriInfo) {
 			super.setUriInfo(uriInfo);
@@ -67,9 +94,8 @@ public class TestAtomXMLProvider {
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 
 		//Assert xml string but ignore text and attribute values
-		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xml:base=\"http://localhost:8080/responder/rest\"><id>http://localhost:8080/responder/restFlight('123')</id><title type=\"text\"></title><updated>2012-03-14T11:29:19Z</updated><author><name></name></author><link rel=\"edit\" title=\"Flight\" href=\"Flight('123')\"></link><category term=\"InteractionTest.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\"></category><content type=\"application/xml\"><m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content></entry>";
 	    DifferenceListener myDifferenceListener = new IgnoreTextAndAttributeValuesDifferenceListener();
-	    Diff myDiff = new Diff(responseString, expectedXML);
+	    Diff myDiff = new Diff(responseString, EXPECTED_XML);
 	    myDiff.overrideDifferenceListener(myDifferenceListener);
 	    assertTrue(myDiff.similar());		
 	}
@@ -95,9 +121,8 @@ public class TestAtomXMLProvider {
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 
 		//Assert xml string but ignore text and attribute values
-		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xml:base=\"http://localhost:8080/responder/rest\"><id>http://localhost:8080/responder/restFlight('123')</id><title type=\"text\"></title><updated>2012-03-14T11:29:19Z</updated><author><name></name></author><link rel=\"edit\" title=\"Flight\" href=\"Flight('123')\"></link><category term=\"InteractionTest.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\"></category><content type=\"application/xml\"><m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content></entry>";
 	    DifferenceListener myDifferenceListener = new IgnoreTextAndAttributeValuesDifferenceListener();
-	    Diff myDiff = new Diff(responseString, expectedXML);
+	    Diff myDiff = new Diff(responseString, EXPECTED_XML);
 	    myDiff.overrideDifferenceListener(myDifferenceListener);
 	    assertTrue(myDiff.similar());		
 	}
@@ -147,5 +172,160 @@ public class TestAtomXMLProvider {
 		OEntity entity = OEntities.create(ees.build(), entityKey, properties, new ArrayList<OLink>());
 		when(er.getEntity()).thenReturn(entity);
 		return er;
+	}
+	
+	@Test (expected = WebApplicationException.class)
+	public void testUnhandledRawType() throws IOException {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceRegistry registry = mock(ResourceRegistry.class);
+
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, registry);
+        // Wrap an unsupported resource into a JAX-RS GenericEntity instance
+		GenericEntity<MetaDataResource<String>> ge = new GenericEntity<MetaDataResource<String>>(new MetaDataResource<String>("")) {};
+		// will throw exception if we check the class properly
+		Annotation[] annotations = null;
+		MediaType mediaType = null;
+		MultivaluedMap<String, String> headers = null;
+		InputStream content = null;
+		ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
+	}
+
+	/*
+	 * Wink does not seem to supply us with a Generic type so we must accept everything and hope for the best
+	@Test (expected = WebApplicationException.class)
+	public void testUnhandledGenericType() throws IOException {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceRegistry registry = mock(ResourceRegistry.class);
+
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, registry);
+        // Wrap an unsupported entity resource into a JAX-RS GenericEntity instance
+		GenericEntity<EntityResource<String>> ge = new GenericEntity<EntityResource<String>>(new EntityResource<String>(null)) {};
+		// will throw exception if we check the class properly
+		Annotation[] annotations = null;
+		MediaType mediaType = null;
+		MultivaluedMap<String, String> headers = null;
+		InputStream content = null;
+		ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
+	}
+	 */
+
+	@Test
+	public void testReadPath() throws Exception {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceRegistry registry = mock(ResourceRegistry.class);
+		when(registry.getResourceInteractionModel(anyString())).thenReturn(mock(ResourceInteractionModel.class));
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		// don't do anything when trying to read context
+		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
+		Entry mockEntry = mock(Entry.class);
+		OEntity mockOEntity = mock(OEntity.class);
+		when(mockEntry.getEntity()).thenReturn(mockOEntity);
+		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
+		whenNew(AtomEntryFormatParser.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, registry);
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
+		ap.setUriInfo(uriInfo);
+		
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new byte[0]));
+		assertNotNull(result);
+		assertEquals(mockOEntity, result.getEntity());
+		
+		// verify get rim with /test/someresource
+		verify(registry).getResourceInteractionModel("/test/someresource");
+		// verify static with entity key "2"
+		verifyStatic();
+		OEntityKey.parse("2");
+	}
+
+	@Test
+	public void testReadPathNoEntityKey() throws Exception {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceRegistry registry = mock(ResourceRegistry.class);
+		when(registry.getResourceInteractionModel("/test/someresource")).thenReturn(mock(ResourceInteractionModel.class));
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		// don't do anything when trying to read context
+		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
+		Entry mockEntry = mock(Entry.class);
+		OEntity mockOEntity = mock(OEntity.class);
+		when(mockEntry.getEntity()).thenReturn(mockOEntity);
+		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
+		whenNew(AtomEntryFormatParser.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, registry);
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/test/someresource");
+		ap.setUriInfo(uriInfo);
+		
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new byte[0]));
+		assertNotNull(result);
+		assertEquals(mockOEntity, result.getEntity());
+		
+		// verify get rim with /test/someresource
+		verify(registry).getResourceInteractionModel("/test/someresource");
+		// verify static with entity key "2"
+		verifyStatic();
+		OEntityKey.parse("2");
+	}
+
+	@Test
+	public void testReadPath404() throws Exception {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceRegistry registry = mock(ResourceRegistry.class);
+		// never find any resources
+		when(registry.getResourceInteractionModel(anyString())).thenReturn(null);
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		// don't do anything when trying to read context
+		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
+		Entry mockEntry = mock(Entry.class);
+		OEntity mockOEntity = mock(OEntity.class);
+		when(mockEntry.getEntity()).thenReturn(mockOEntity);
+		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
+		whenNew(AtomEntryFormatParser.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, registry);
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/test/someresource");
+		ap.setUriInfo(uriInfo);
+		
+		int status = -1;
+		try {
+			ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new byte[0]));
+		} catch (WebApplicationException wae) {
+			status = wae.getResponse().getStatus();
+		}
+		assertEquals(404, status);
+	}
+
+	@Test
+	public void testReadEntityResourceOEntity() throws Exception {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceRegistry registry = mock(ResourceRegistry.class);
+		when(registry.getResourceInteractionModel(anyString())).thenReturn(mock(ResourceInteractionModel.class));
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		// don't do anything when trying to read context
+		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
+		Entry mockEntry = mock(Entry.class);
+		OEntity mockOEntity = mock(OEntity.class);
+		when(mockEntry.getEntity()).thenReturn(mockOEntity);
+		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
+		whenNew(AtomEntryFormatParser.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, registry);
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
+		ap.setUriInfo(uriInfo);
+		
+		Annotation[] annotations = null;
+		MediaType mediaType = null;
+		MultivaluedMap<String, String> headers = null;
+		InputStream content = new ByteArrayInputStream(new byte[0]);
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
+		assertNotNull(result);
+		assertEquals(mockOEntity, result.getEntity());
+
+		// verify parse was called
+		verify(mockParser).parse(any(Reader.class));
 	}
 }
