@@ -57,6 +57,18 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private final ResourceRegistry resourceRegistry;
 
 	/**
+	 * Construct the jax-rs Provider for OData media type.  This constructor would
+	 * only support writing as without the ResourceRegistry it cannot create any
+	 * entities.
+	 * @param edmDataServices
+	 * 		The entity metadata for reading and writing OData entities.
+	 * @param edmDataServices
+	 */
+	public AtomXMLProvider(EdmDataServices edmDataServices) {
+		this(edmDataServices, new ResourceRegistry());
+	}
+
+	/**
 	 * Construct the jax-rs Provider for OData media type.
 	 * @param edmDataServices
 	 * 		The entity metadata for reading and writing OData entities.
