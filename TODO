@@ -7,15 +7,9 @@ Jersey server seems to support this type of @Path specification "/note{id: (\\(.
 	Need to possibly report an issue to Wink community project, or fix it as org.apache.wink.server.internal.registry.ResourceRegistry matcher logic
 	does not match the resource at line 322 getMatchingRootResources.  For the time being wink will match resources based on "/nnnn({id})"
 
-Supply RIM as constructor argument to Commands
-
-Add StateMachine to RIM by using DynamicResource states, and State.getTransitions.  Transitions / Commands will need to have method and path.
-
 Create CollectionResource with Properties and Links.
 
 For non OData links, we need to rewrite OEntity OLinks to point to our resources.
-
-Add getLinks to Resource Interaction Model.
 
 Test & implement representation of CollectionResource to application/xml & application/json using default JAXB based Producer
 
