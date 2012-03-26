@@ -39,7 +39,7 @@ public class CreateEntityCommand implements ResourcePostCommand {
 		EntityResponse er = producer.createEntity(entity, entityResource.getEntity());
 		OEntity oEntity = er.getEntity();
 		
-		RESTResponse rr = new RESTResponse(Response.Status.CREATED, new EntityResource<OEntity>(oEntity));
+		RESTResponse rr = new RESTResponse(Response.Status.CREATED, CommandHelper.createEntityResource(oEntity));
 		return rr;
 	}
 
