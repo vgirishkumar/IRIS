@@ -1,6 +1,7 @@
 Requirements:
 
 OData4j 0.6.0
+aphethean/jax-rs-hateoas.git
 Java JDK 1.6
 Maven 3
 
