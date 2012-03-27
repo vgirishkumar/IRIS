@@ -13,13 +13,7 @@
 	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
 
 	<!-- Metadata -->	
-	<bean id="oDataMetadata" class="com.temenos.interaction.core.media.ODataMetadata" >
-        <constructor-arg name="producers">
-    	    <set>
-                <ref bean="mockProducer" />
-            </set>
-        </constructor-arg>
-	</bean>
+	<bean id="oDataMetadata" class="com.temenos.interaction.core.media.ODataMetadata" />
 	<bean id="edmDataServices" factory-bean="oDataMetadata" factory-method="getMetadata"/>
 	
 	<!-- Producers -->

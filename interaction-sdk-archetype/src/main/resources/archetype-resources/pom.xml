@@ -27,7 +27,7 @@
        </executions>
 -->
         <configuration>
-          <edmxFile>\${basedir}/src/main/resources/edmx.xml</edmxFile>
+          <edmxFile>\${basedir}/src/main/resources/service.edmx</edmxFile>
           <srcTargetDirectory>\${basedir}/src/main/java</srcTargetDirectory>
           <configTargetDirectory>\${basedir}/src/main/resources</configTargetDirectory>
         </configuration>

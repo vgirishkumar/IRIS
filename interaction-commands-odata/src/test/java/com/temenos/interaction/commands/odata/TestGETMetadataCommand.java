@@ -6,9 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Test;
 import org.odata4j.core.ImmutableList;
@@ -50,10 +48,11 @@ public class TestGETMetadataCommand {
 
 	@Test
 	public void testGETMetadataODataMetadata() {
-		Set<ODataProducer> producers = new HashSet<ODataProducer>();
-		producers.add(createMockODataProducer("A"));
-		producers.add(createMockODataProducer("B"));
-		ODataMetadata metadata = new ODataMetadata(producers);
+		ODataMetadata metadata = new ODataMetadata() {
+			protected EdmDataServices parseEdmx() {
+				return createMockODataProducer("A").getMetadata();
+			}			
+		};
 		
 		GETMetadataCommand command = new GETMetadataCommand("Metadata", metadata);
 		RESTResponse rr = command.get("1", null);

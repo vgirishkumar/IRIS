@@ -1,9 +1,7 @@
 package com.temenos.interaction.core.media;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Test;
 import org.odata4j.core.ImmutableList;
@@ -23,11 +21,13 @@ import static org.mockito.Mockito.when;
 public class TestODataMetadata {
 
 	@Test
-	public void testSingleProducer() throws Exception {
-		Set<ODataProducer> producers = new HashSet<ODataProducer>();
-		ODataProducer producerA = createMockODataProducer("A");
-		producers.add(producerA);
-		ODataMetadata mdProducer = new ODataMetadata(producers);
+	public void testMetadata() throws Exception {
+		final ODataProducer producerA = createMockODataProducer("A");
+		ODataMetadata mdProducer = new ODataMetadata() {
+			protected EdmDataServices parseEdmx() {
+				return producerA.getMetadata();
+			}			
+		};
 		assertTrue(mdProducer.getMetadata() != null);
 
 		EdmDataServices metadata = mdProducer.getMetadata();
@@ -36,16 +36,17 @@ public class TestODataMetadata {
 	}
 
 	@Test
-	public void testMultipleProducers() throws Exception {
-		Set<ODataProducer> producers = new HashSet<ODataProducer>();
-		producers.add(createMockODataProducer("A"));
-		producers.add(createMockODataProducer("B"));
-		ODataMetadata mdProducer = new ODataMetadata(producers);
+	public void testEntityType() throws Exception {
+		final ODataProducer producerA = createMockODataProducer("A");
+		ODataMetadata mdProducer = new ODataMetadata() {
+			protected EdmDataServices parseEdmx() {
+				return producerA.getMetadata();
+			}			
+		};
 		assertTrue(mdProducer.getMetadata() != null);
 
 		EdmDataServices metadata = mdProducer.getMetadata();
 		assertTrue(metadata.findEdmEntityType("MyNamespaceA.FlightA").getFullyQualifiedTypeName().equals("MyNamespaceA.FlightA"));
-		assertTrue(metadata.findEdmEntityType("MyNamespaceB.FlightB").getFullyQualifiedTypeName().equals("MyNamespaceB.FlightB"));
 	}
 	
 	private ODataProducer createMockODataProducer(String suffix) {
@@ -78,6 +79,8 @@ public class TestODataMetadata {
 		List<EdmSchema> mockSchemas = new ArrayList<EdmSchema>();
 		mockSchemas.add(es.build());
 		when(mockEDS.getSchemas()).thenReturn(ImmutableList.copyOf(mockSchemas));
+
+		when(mockEDS.findEdmEntityType("MyNamespaceA.FlightA")).thenReturn(eet.build());
 
 		return mockEDS;
 	}
