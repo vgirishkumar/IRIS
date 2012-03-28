@@ -111,7 +111,7 @@
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/FlightSchedule/{id}</value></key>
+                    <key><value>GET+/FlightSchedule({id})</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
                         <constructor-arg name="entity" value="FlightSchedule" />
                         <constructor-arg name="producer" ref="producer" />

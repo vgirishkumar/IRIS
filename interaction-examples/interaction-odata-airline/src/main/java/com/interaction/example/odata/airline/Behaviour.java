@@ -16,12 +16,16 @@ public class Behaviour {
 		ResourceState metadata = new ResourceState("", "metadata", "/$metadata");
 		ResourceState flights = new ResourceState("Flight", "flights", "/Flight");
 		ResourceState airport = new ResourceState("Airport", "airports", "/Airport");
-		ResourceState flightsSchedules = new ResourceState("FlightSchedule", "flightschedules", "/FlightSchedule");
+		
+		ResourceState flightSchedules = new ResourceState("FlightSchedule", "flightschedules", "/FlightSchedule");
+		ResourceState flightSchedule = new ResourceState("FlightSchedule", "flightschedule", "/FlightSchedule({id})");
+		// add collection transition to individual
+		flightSchedules.addTransition("GET", flightSchedule);
 		
 		initialState.addTransition("GET", metadata);
 		initialState.addTransition("GET", new ResourceStateMachine("Flight", flights));
 		initialState.addTransition("GET", new ResourceStateMachine("Airport", airport));
-		initialState.addTransition("GET", new ResourceStateMachine("FlightSchedule", flightsSchedules));
+		initialState.addTransition("GET", new ResourceStateMachine("FlightSchedule", flightSchedules));
 		return initialState;
 	}
 

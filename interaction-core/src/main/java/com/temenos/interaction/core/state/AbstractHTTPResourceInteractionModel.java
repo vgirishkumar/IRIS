@@ -25,7 +25,6 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.odata4j.core.OEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,6 @@ import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.MethodNotAllowedCommand;
 import com.temenos.interaction.core.command.ResourceCommand;
@@ -150,7 +148,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @invariant resourcePath not null
 	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModel#get(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
-    @SuppressWarnings("unchecked")
 	@Override
 	@GET
     @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
@@ -173,21 +170,22 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			GenericEntity<?> entity = response.getResource().getGenericEntity();
 			
 			//Rebuild resource links if necessary
-	    	if (resourceRegistry != null &&
+/*
+			if (resourceRegistry != null &&
 	    			ResourceTypeHelper.isType(entity.getRawType(), entity.getType(), EntityResource.class)) {
 	    		EntityResource<OEntity> er = (EntityResource<OEntity>) entity.getEntity();
 	        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getEntity(), getCurrentState());
 	        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
 	        	entity = rebuilt.getGenericEntity();
 	    	}	    	
-			
+*/			
 			// Create hypermedia representation for this resource
 	    	HateoasResponseBuilder builder = HateoasResponse.ok();
 	    	if (getHateoasContext() != null) {
 	    		if (id != null) {
-		    		builder.selfLink(getHateoasContext(), entityName, id);	    		
+		    		builder.selfLink(getHateoasContext(), (getCurrentState() != null ? entityName + "." + getCurrentState().getName() : entityName), id);	    		
 	    		} else {
-		    		builder.selfLink(getHateoasContext(), entityName);
+		    		builder.selfLink(getHateoasContext(), (getCurrentState() != null ? entityName + "." + getCurrentState().getName() : entityName));
 	    		}
 	    	}
 	    	builder.entity(entity);
@@ -247,8 +245,25 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
-			ResponseBuilder rb = Response.ok(response.getResource()).status(status);
-			return HeaderHelper.allowHeader(rb, getInteractions()).build();
+			// Wrap response into a JAX-RS GenericEntity object 
+			GenericEntity<?> entity = response.getResource().getGenericEntity();
+			// Create response
+			ResponseBuilder builder = Response.status(status);
+			
+			// Create hypermedia representation for this resource
+/*
+			HateoasResponseBuilder builder = HateoasResponse.status(status);
+	    	if (getHateoasContext() != null) {
+	    		if (id != null) {
+		    		builder.selfLink(getHateoasContext(), entityName, id);	    		
+	    		} else {
+		    		builder.selfLink(getHateoasContext(), entityName);
+	    		}
+	    	}
+*/
+			builder.entity(entity);
+
+			return HeaderHelper.allowHeader(builder, getInteractions()).build();
 		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();

@@ -2,6 +2,8 @@ package com.interaction.example.odata.airline.model;
 
 import javax.persistence.Basic;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -11,6 +13,8 @@ import javax.persistence.TemporalType;
 public class FlightSchedule {
 
 	@Id
+	/* Added this GeneratedValue annotation to auto create ids, otherwise this class in generated from the EDMX */
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Basic(optional = false)
 	private Long flightScheduleID;
 	

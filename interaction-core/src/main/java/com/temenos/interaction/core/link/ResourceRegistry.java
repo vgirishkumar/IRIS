@@ -72,15 +72,21 @@ public class ResourceRegistry implements HateoasContext {
 		// populate a map of resources and their paths, and resource states and their paths 
 		if (rim.getStateMachine() != null) {
 			ResourceStateMachine stateMachine = rim.getStateMachine();
+
 			// do not update entity resource path if this resource is a child state
 			if (stateMachine.getInitial().equals(rim.getCurrentState())) {
+				
+				
 				entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
 			}
 			/*
-			 *  create the state-path map for "self state" child states, not necessary to
+			 *  create the state-path map for "self state" and child states, not necessary to
 			 *  populate the map with other resource states as these RIMs will be added
 			 *  here also 
 			 */
+			// TODO use state name for link id?
+			linkTransitionMap.put(rim.getEntityName() + "." + rim.getCurrentState().getName(), new Transition(null, new TransitionCommandSpec("GET", rim.getFQResourcePath()), rim.getCurrentState()));
+			statePathMap.put(rim.getCurrentState(), rim.getFQResourcePath());
 			Collection<ResourceState> resourceStates = rim.getCurrentState().getAllTargets();
 			for (ResourceState childState : resourceStates) {
 				if (childState.isSelfState()) {
