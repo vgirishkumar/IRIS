@@ -71,5 +71,11 @@
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
 		</dependency>
+	    <dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>1.6</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

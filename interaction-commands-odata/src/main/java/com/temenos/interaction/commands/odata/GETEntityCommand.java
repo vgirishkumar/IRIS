@@ -40,8 +40,7 @@ public class GETEntityCommand implements ResourceGetCommand {
 		OEntityKey key;
 		try {
 			key = CommandHelper.createEntityKey(entityTypes, entity, id);
-		}
-		catch(Exception e) {
+		} catch(Exception e) {
 			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
 		}
 		

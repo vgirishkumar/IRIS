@@ -1,11 +1,12 @@
 package com.temenos.interaction.commands.odata;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -13,6 +14,7 @@ import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.ServiceDocumentResource;
 
 public class CommandHelper {
+	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
 
 	/**
 	 * Create an OData entity resource (entry)
@@ -76,27 +78,36 @@ public class CommandHelper {
 		}		
 		
 		//Create an entity key
-		OEntityKey key;
-		if(keyType.equals("Edm.Int64")) {
-			key = OEntityKey.create(Long.parseLong(id));
+		OEntityKey key = null;
+		try {
+			if(keyType.equals("Edm.Int64")) {
+				key = OEntityKey.create(Long.parseLong(id));
+			}
+			else if(keyType.equals("Edm.Int32")) {
+				key = OEntityKey.create(Integer.parseInt(id));
+			}
+			else if(keyType.equals("Edm.DateTime")) {
+				key = OEntityKey.parse(id);
+			}
+			else if(keyType.equals("Edm.Time")) {
+				key = OEntityKey.parse(id);
+			}
+			else if(keyType.equals("Edm.String")) {
+				key = OEntityKey.create(id);
+			}
+		} catch (Exception e) {
+			logger.warn("Entity key type " + keyType + " is not supported by CommandHelper, trying OEntityKey.parse");
 		}
-		else if(keyType.equals("Edm.Int32")) {
-			key = OEntityKey.create(Integer.parseInt(id));
+		// could not parse the key, have one last attempt with OEntityKey parse
+		if (key == null) {
+			try {
+				key = OEntityKey.parse(id);
+			} catch (Exception e) {
+				logger.error("OEntityKey.parse failed to parse id [" + id + "]");
+			}
 		}
-		else if(keyType.equals("Edm.DateTime")) {
-		    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
-			key = OEntityKey.create(dateFormat.parse(id));
-		}
-		else if(keyType.equals("Edm.Time")) {
-		    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-			key = OEntityKey.create(dateFormat.parse(id));
-		}
-		else if(keyType.equals("Edm.String")) {
-			key = OEntityKey.create(id);
-		}
-		else {
+		if (key == null)
 			throw new Exception("Entity key type " + id + " is not supported.");
-		}
 		return key;
 	}
 }
