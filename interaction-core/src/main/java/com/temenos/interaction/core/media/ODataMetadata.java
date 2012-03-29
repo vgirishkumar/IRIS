@@ -1,6 +1,7 @@
 package com.temenos.interaction.core.media;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.odata4j.edm.EdmDataServices;
@@ -41,13 +42,17 @@ public class ODataMetadata {
 	 */
 	protected EdmDataServices parseEdmx() {
 		try {
-			InputStreamReader stream = new InputStreamReader(getClass().getResourceAsStream("/" + EDMX_FILENAME));
-			XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(stream)); 
+			InputStream is = getClass().getClassLoader().getResourceAsStream(EDMX_FILENAME);
+			if(is == null) {
+				throw new Exception("Unable to load resource from classpath.");
+			}
+			XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(is))); 
 			return new EdmxFormatParser().parseMetadata(reader);
 		}
 		catch(Exception e) {
-			logger.error("Failed to parse EDMX file " + EDMX_FILENAME);
-			throw new RuntimeException("Failed to parse EMDX file " + EDMX_FILENAME);
+			logger.error("Failed to parse EDMX file " + EDMX_FILENAME + ": " + e.getMessage());
+			e.printStackTrace();
+			throw new RuntimeException("Failed to parse EDMX file " + EDMX_FILENAME + ": " + e.getMessage());
 		}
 	}
 }
