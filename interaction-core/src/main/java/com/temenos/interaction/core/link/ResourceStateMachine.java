@@ -16,13 +16,7 @@ public class ResourceStateMachine {
 
 	public final String entityName;
 	public final ResourceState initial;
-	
-	// TODO remove, only here to allow getSimpleResourceStateModel to work in Spring
-	public ResourceStateMachine() {
-		entityName = null;
-		initial = null;
-	}
-	
+		
 	public ResourceStateMachine(String entityName, ResourceState initialState) {
 		assert(entityName.equals(initialState.getEntityName()));
 		this.entityName = entityName;
