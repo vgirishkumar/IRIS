@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.media;
+package com.temenos.interaction.core.resource;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 /**
  * This class provides EDM metadata for the current service.
  */
-public class ODataMetadata {
-	private final static Logger logger = LoggerFactory.getLogger(ODataMetadata.class);
+public class ResourceMetadataManager {
+	private final static Logger logger = LoggerFactory.getLogger(ResourceMetadataManager.class);
 
 	private final static String EDMX_FILENAME = "service.edmx";
 	private EdmDataServices metadata = null;
@@ -24,7 +24,7 @@ public class ODataMetadata {
 	/**
 	 * Construct the odata metadata object
 	 */
-	public ODataMetadata()
+	public ResourceMetadataManager()
 	{
 		metadata = parseEdmx();
 	}

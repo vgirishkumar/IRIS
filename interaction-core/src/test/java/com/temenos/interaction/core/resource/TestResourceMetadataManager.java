@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.media;
+package com.temenos.interaction.core.resource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +14,18 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.resource.ResourceMetadataManager;
+
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TestODataMetadata {
+public class TestResourceMetadataManager {
 
 	@Test
 	public void testMetadata() throws Exception {
 		final ODataProducer producerA = createMockODataProducer("A");
-		ODataMetadata mdProducer = new ODataMetadata() {
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager() {
 			protected EdmDataServices parseEdmx() {
 				return producerA.getMetadata();
 			}			
@@ -38,7 +40,7 @@ public class TestODataMetadata {
 	@Test
 	public void testEntityType() throws Exception {
 		final ODataProducer producerA = createMockODataProducer("A");
-		ODataMetadata mdProducer = new ODataMetadata() {
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager() {
 			protected EdmDataServices parseEdmx() {
 				return producerA.getMetadata();
 			}			

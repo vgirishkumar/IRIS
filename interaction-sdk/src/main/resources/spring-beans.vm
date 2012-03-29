@@ -13,8 +13,8 @@
 	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
 
 	<!-- Metadata -->	
-	<bean id="oDataMetadata" class="com.temenos.interaction.core.media.ODataMetadata" />
-	<bean id="edmDataServices" factory-bean="oDataMetadata" factory-method="getMetadata"/>
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
 	
 	<!-- Producers -->
 	<bean id="mockProducer" class="org.odata4j.producer.jpa.JPAProducer">
@@ -114,14 +114,14 @@
                     <key><value>GET+/</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
                         <constructor-arg name="entity" value="ServiceDocument" />
-                        <constructor-arg name="odataMetadata" ref="oDataMetadata" />
+                        <constructor-arg name="resourceMetadata" ref="edmDataServices" />
                     </bean>
                 </entry>
                 <entry>
                     <key><value>GET+/$metadata</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
                         <constructor-arg name="entity" value="Metadata" />
-                        <constructor-arg name="odataMetadata" ref="oDataMetadata" />
+                        <constructor-arg name="resourceMetadata" ref="edmDataServices" />
                     </bean>
                 </entry>
 #foreach ( $resourceInfo in $resourcesInfo )

@@ -6,7 +6,6 @@ import javax.ws.rs.core.Response;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.producer.ODataProducer;
 
-import com.temenos.interaction.core.media.ODataMetadata;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.resource.ServiceDocumentResource;
@@ -34,11 +33,11 @@ public class GETMetadataCommand implements ResourceGetCommand {
 	/**
 	 * Construct an instance of this command
 	 * @param entity Entity name
-	 * @param odataMetadata OData metadata
+	 * @param resourceMetadata Description of the resources and their types.
 	 */
-	public GETMetadataCommand(String entity, ODataMetadata odataMetadata) {
+	public GETMetadataCommand(String entity, EdmDataServices resourceMetadata) {
 		this.entity = entity;
-		this.edmDataServices = odataMetadata.getMetadata();
+		this.edmDataServices = resourceMetadata;
 	}
 	
 	@Override

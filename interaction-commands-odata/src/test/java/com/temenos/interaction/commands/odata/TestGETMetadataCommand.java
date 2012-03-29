@@ -19,7 +19,6 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 
-import com.temenos.interaction.core.media.ODataMetadata;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.resource.ServiceDocumentResource;
@@ -48,13 +47,7 @@ public class TestGETMetadataCommand {
 
 	@Test
 	public void testGETMetadataODataMetadata() {
-		ODataMetadata metadata = new ODataMetadata() {
-			protected EdmDataServices parseEdmx() {
-				return createMockODataProducer("A").getMetadata();
-			}			
-		};
-		
-		GETMetadataCommand command = new GETMetadataCommand("Metadata", metadata);
+		GETMetadataCommand command = new GETMetadataCommand("Metadata", createMockODataProducer("A").getMetadata());
 		RESTResponse rr = command.get("1", null);
 		assertNotNull(rr);
 		assertTrue(rr.getResource() instanceof MetaDataResource);
