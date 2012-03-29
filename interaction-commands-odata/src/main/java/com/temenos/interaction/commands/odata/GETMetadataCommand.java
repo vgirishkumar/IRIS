@@ -6,6 +6,7 @@ import javax.ws.rs.core.Response;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.media.ODataMetadata;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.resource.ServiceDocumentResource;
@@ -17,7 +18,6 @@ import com.temenos.interaction.core.command.ResourceGetCommand;
  */
 public class GETMetadataCommand implements ResourceGetCommand {
 
-	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
 	private String entity;
 
@@ -28,10 +28,19 @@ public class GETMetadataCommand implements ResourceGetCommand {
 	 */
 	public GETMetadataCommand(String entity, ODataProducer producer) {
 		this.entity = entity;
-		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
 	}
 
+	/**
+	 * Construct an instance of this command
+	 * @param entity Entity name
+	 * @param odataMetadata OData metadata
+	 */
+	public GETMetadataCommand(String entity, ODataMetadata odataMetadata) {
+		this.entity = entity;
+		this.edmDataServices = odataMetadata.getMetadata();
+	}
+	
 	@Override
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		RESTResponse rr;
@@ -44,9 +53,5 @@ public class GETMetadataCommand implements ResourceGetCommand {
 			rr = new RESTResponse(Response.Status.OK, mdr);
 		}
 		return rr;
-	}
-
-	protected ODataProducer getProducer() {
-		return producer;
 	}
 }

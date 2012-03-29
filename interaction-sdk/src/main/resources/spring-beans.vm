@@ -8,21 +8,26 @@
 		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
 			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
 	</bean>
+	
 	<!-- Initialise responder database -->
 	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+
+	<!-- Metadata -->	
+	<bean id="oDataMetadata" class="com.temenos.interaction.core.media.ODataMetadata" />
+	<bean id="edmDataServices" factory-bean="oDataMetadata" factory-method="getMetadata"/>
 	
-	<!-- MockResponder JPA Producer -->
-	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
+	<!-- Producers -->
+	<bean id="mockProducer" class="org.odata4j.producer.jpa.JPAProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />
 		<constructor-arg name="namespace" value="MockResponderSDK" />		
 		<constructor-arg name="maxResults" value="100" />				
 	</bean>
-	<bean id="edmDataServices" factory-bean="producer" factory-method="getMetadata"/>
+
 <!--
 	<bean id="functionsProducer" class="com.temenos.interaction.example.note.NewFunctionProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />		
 		<constructor-arg name="odataNamespace" value="MockResponderSDK" />
-		<constructor-arg name="jpaProducer" ref="producer" />				
+		<constructor-arg name="jpaProducer" ref="mockProducer" />				
 	</bean>
 -->
 	
@@ -106,25 +111,25 @@
     	<constructor-arg name="commands">
             <map>
                 <entry>
-                    <key><value>/</value></key>
+                    <key><value>GET+/</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
                         <constructor-arg name="entity" value="ServiceDocument" />
-                        <constructor-arg name="producer" ref="producer" />
+                        <constructor-arg name="odataMetadata" ref="oDataMetadata" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>/$metadata</value></key>
+                    <key><value>GET+/$metadata</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
                         <constructor-arg name="entity" value="Metadata" />
-                        <constructor-arg name="producer" ref="producer" />
+                        <constructor-arg name="odataMetadata" ref="oDataMetadata" />
                     </bean>
                 </entry>
 #foreach ( $resourceInfo in $resourcesInfo )
                 <entry>
-                    <key><value>$resourceInfo.getResourcePath()</value></key>
+                    <key><value>GET+$resourceInfo.getResourcePath()</value></key>
                     <bean class="$resourceInfo.getCommandType()">
                         <constructor-arg name="entity" value="$resourceInfo.getJPAEntityInfo().getClazz()" />
-                        <constructor-arg name="producer" ref="producer" />
+                        <constructor-arg name="producer" ref="mockProducer" />
                     </bean>
                 </entry>
 #end

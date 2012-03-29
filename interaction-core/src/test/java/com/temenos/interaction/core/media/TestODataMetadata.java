@@ -1,9 +1,4 @@
-package com.temenos.interaction.commands.odata;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+package com.temenos.interaction.core.media;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,45 +14,39 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 
-import com.temenos.interaction.core.media.ODataMetadata;
-import com.temenos.interaction.core.resource.MetaDataResource;
-import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class TestGETMetadataCommand {
-
-	@Test
-	public void testMetadataResource() {
-		ODataProducer mockProducer = createMockODataProducer("A");
-		
-		GETMetadataCommand command = new GETMetadataCommand("Metadata", mockProducer);
-		RESTResponse rr = command.get("1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof MetaDataResource);
-	}
+public class TestODataMetadata {
 
 	@Test
-	public void testServiceDocumentResource() {
-		ODataProducer mockProducer = createMockODataProducer("A");
-		
-		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", mockProducer);
-		RESTResponse rr = command.get("1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof ServiceDocumentResource);
-	}
-
-	@Test
-	public void testGETMetadataODataMetadata() {
-		ODataMetadata metadata = new ODataMetadata() {
+	public void testMetadata() throws Exception {
+		final ODataProducer producerA = createMockODataProducer("A");
+		ODataMetadata mdProducer = new ODataMetadata() {
 			protected EdmDataServices parseEdmx() {
-				return createMockODataProducer("A").getMetadata();
+				return producerA.getMetadata();
 			}			
 		};
-		
-		GETMetadataCommand command = new GETMetadataCommand("Metadata", metadata);
-		RESTResponse rr = command.get("1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof MetaDataResource);
+		assertTrue(mdProducer.getMetadata() != null);
+
+		EdmDataServices metadata = mdProducer.getMetadata();
+		EdmDataServices metadataA = producerA.getMetadata();
+		assertTrue(metadata.equals(metadataA)); 
+	}
+
+	@Test
+	public void testEntityType() throws Exception {
+		final ODataProducer producerA = createMockODataProducer("A");
+		ODataMetadata mdProducer = new ODataMetadata() {
+			protected EdmDataServices parseEdmx() {
+				return producerA.getMetadata();
+			}			
+		};
+		assertTrue(mdProducer.getMetadata() != null);
+
+		EdmDataServices metadata = mdProducer.getMetadata();
+		assertTrue(metadata.findEdmEntityType("MyNamespaceA.FlightA").getFullyQualifiedTypeName().equals("MyNamespaceA.FlightA"));
 	}
 	
 	private ODataProducer createMockODataProducer(String suffix) {
@@ -90,6 +79,8 @@ public class TestGETMetadataCommand {
 		List<EdmSchema> mockSchemas = new ArrayList<EdmSchema>();
 		mockSchemas.add(es.build());
 		when(mockEDS.getSchemas()).thenReturn(ImmutableList.copyOf(mockSchemas));
+
+		when(mockEDS.findEdmEntityType("MyNamespaceA.FlightA")).thenReturn(eet.build());
 
 		return mockEDS;
 	}

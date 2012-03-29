@@ -5,7 +5,7 @@
   <groupId>${groupId}</groupId>
   <artifactId>${artifactId}</artifactId>
   <version>${version}</version>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
 
   <name>An IRIS mock responder project.</name>
   <url>http://www.temenos.com</url>
@@ -27,7 +27,7 @@
        </executions>
 -->
         <configuration>
-          <edmxFile>\${basedir}/src/main/resources/edmx.xml</edmxFile>
+          <edmxFile>\${basedir}/src/main/resources/service.edmx</edmxFile>
           <srcTargetDirectory>\${basedir}/src/main/java</srcTargetDirectory>
           <configTargetDirectory>\${basedir}/src/main/resources</configTargetDirectory>
         </configuration>
@@ -124,8 +124,22 @@
     </dependency>
     <dependency>
     	<groupId>org.hibernate</groupId>
+    	<artifactId>hibernate-core</artifactId>
+    	<version>3.6.7.Final</version>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.hibernate</groupId>
     	<artifactId>hibernate-entitymanager</artifactId>
     	<version>3.6.7.Final</version>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.hibernate</groupId>
+    	<artifactId>hibernate-validator-legacy</artifactId>
+    	<version>4.0.2.GA</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
