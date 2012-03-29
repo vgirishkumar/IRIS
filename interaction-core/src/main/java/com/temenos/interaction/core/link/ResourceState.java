@@ -48,7 +48,6 @@ public class ResourceState {
 	}
 
 	public boolean isSelfState() {
-		System.out.println((path == null));
 		return (path == null);
 	}
 	
