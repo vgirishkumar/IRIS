@@ -17,15 +17,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.StatusType;
-import javax.ws.rs.core.StreamingOutput;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
-import com.temenos.interaction.core.media.Decorator;
-import com.temenos.interaction.core.media.PDFDecorator;
 
 /**
  * Define the T24 SEE, HISTORY, AUTHORISE, REVERSE, DELETE, INPUT 'SHARDI' Resource Interaction Model.
@@ -147,18 +144,6 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
     	throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
     
-    @GET
-    @Produces(ExtendedMediaTypes.APPLICATION_PDF)
-    public StreamingOutput getPDF( @PathParam("id") String id ) {
-   		ResourceGetCommand getCommand = (ResourceGetCommand) commandController.fetchGetCommand(resourcePath);
-    	RESTResponse rResponse = getCommand.get(id, null);
-    	assert (rResponse != null);
-    	StatusType status = rResponse.getStatus();
-		assert (status != null);  // not a valid get command
-       	Decorator<StreamingOutput> d = new PDFDecorator();
-       	return d.decorateRESTResponse(rResponse);
-    }
-
     @AUTHORISE
     @Produces(MediaType.APPLICATION_JSON)
     public Response authorise( @PathParam("id") String id ) {
