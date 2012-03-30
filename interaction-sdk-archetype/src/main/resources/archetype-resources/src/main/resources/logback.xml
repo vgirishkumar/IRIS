@@ -10,12 +10,10 @@
   <!-- Log all resource endpoints -->
   <logger name="org.apache.wink.server.internal.log.Resources">
     <level value="DEBUG" />
-    <appender-ref ref="STDOUT"/>
   </logger>
   <!-- Log all requests -->
   <logger name="org.apache.wink.server.internal.log.Requests">
     <level value="DEBUG" />
-    <appender-ref ref="STDOUT"/>
   </logger>
 
   <logger name="org.apache.wink.common">
