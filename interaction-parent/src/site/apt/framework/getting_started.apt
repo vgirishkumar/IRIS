@@ -52,11 +52,11 @@ Creating a mock responder
 		
 		* WEB-INF/web.xml
 		
-		* edmx.xml
+		* service.edmx
 		
 		[]
 
-  [[2]]	Edit the sample EDMX file to define the resource model.
+  [[2]]	Edit the sample EDMX file to define the entity model.
   
   [[3]] Build the FlightReponder
   
@@ -64,9 +64,9 @@ Creating a mock responder
 
 	This command will generate the artefacts for
 	
-		* [<<spring configuration file>>] Create resource instances, defining how those resources
-		  should be accessed (i.e. resource path, etc.) and the producer to be used by those
-		  resources. By default it uses a JPA producer:
+		* [<<spring configuration file>>] Defines the resource model with the respective
+		  commands used to access the resource managers. This Interaction SDK creates a
+		  Mock responder with OData commands that access a JPA producer:
 		
 ----------  
  	 <bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
@@ -107,7 +107,7 @@ Creating a mock responder
     [Note:] The JPA classes, persistence.xml and responder_insert.sql apply to the <<JPA producer>>.
     If we wire up our resources to a different producer these artifacts would not be required. 
 
-  [[4]] Start the FlightReponder
+  [[4]] Start the FlightReponder with Jetty
   
 	<<$ mvn jetty:run>>
 
@@ -116,5 +116,9 @@ Creating a mock responder
 	<<http://localhost:8080/responder/rest/Flight/1>>
 
 	[Note:] IRIS does not yet expose the service metadata document. Use a tool such as
-	WizTools.org REST client to view the OData feeds and entries.
+	WizTools.org REST client to view the OData feeds and entries. 
+
+  [[6]] Create the FlightResponder web application archive
+  
+	<<$ mvn package>>
 
