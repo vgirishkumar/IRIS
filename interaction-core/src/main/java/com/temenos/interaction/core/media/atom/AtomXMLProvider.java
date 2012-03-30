@@ -31,6 +31,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParser;
 import org.odata4j.producer.Responses;
+import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,21 +115,24 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		assert (resource != null);
 		assert(uriInfo != null);
 		
-		if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
-			EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-			entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(entityResource.getEntity()));
-		}
-		else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
-			CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
-			List<OEntity> entities = (List<OEntity>) cr.getEntities();
-			EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
-			// TODO implement collection properties and get transient values for inlinecount and skiptoken
-			Integer inlineCount = null;
-			String skipToken = null;
-			feedWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entities(entities, entitySet, inlineCount, skipToken));
-		}
-		else {
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		try {
+			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
+				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(entityResource.getEntity()));
+			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
+				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
+				List<OEntity> entities = (List<OEntity>) cr.getEntities();
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
+				// TODO implement collection properties and get transient values for inlinecount and skiptoken
+				Integer inlineCount = null;
+				String skipToken = null;
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entities(entities, entitySet, inlineCount, skipToken));
+			} else {
+				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+			}
+		} catch (ODataException e) {
+			logger.error("An error occurred while writing " + mediaType + " resource representation", e);
 		}
 	}
 
