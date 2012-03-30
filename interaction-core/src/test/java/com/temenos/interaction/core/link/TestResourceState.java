@@ -91,7 +91,25 @@ public class TestResourceState {
 		assertFalse(begin.equals(end));
 		assertFalse(begin.hashCode() == end.hashCode());
 	}
-	
+
+	@Test
+	public void testEqualityEntity() {
+		String STATE_NAME = "pseudo";
+		ResourceState one = new ResourceState("entity1", STATE_NAME, "");
+		ResourceState two = new ResourceState("entity1", STATE_NAME, "");
+		assertEquals(one, two);
+		assertEquals(one.hashCode(), two.hashCode());
+	}
+
+	@Test
+	public void testInequalityEntity() {
+		String STATE_NAME = "pseudo";
+		ResourceState one = new ResourceState("entity1", STATE_NAME, "");
+		ResourceState two = new ResourceState("entity2", STATE_NAME, "");
+		assertFalse(one.equals(two));
+		assertFalse(one.hashCode() == two.hashCode());
+	}
+
 	@Test
 	public void testEqualityNull() {
 		String ENTITY_NAME = "entity";
