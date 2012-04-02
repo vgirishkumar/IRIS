@@ -114,19 +114,21 @@ public class ResourceState {
 	    if ( this == other ) return true;
 	    if ( !(other instanceof ResourceState) ) return false;
 	    ResourceState otherState = (ResourceState) other;
-	    return name.equals(otherState.name) &&
+	    return entityName.equals(otherState.entityName) &&
+	    	name.equals(otherState.name) &&
 	    	((path == null && otherState.path == null) || (path != null && path.equals(otherState.path))) &&
 	    	transitions.equals(otherState.transitions);
 	}
 	
 	public int hashCode() {
 		// TODO proper implementation of hashCode, important as we intend to use the in our DSL validation
-		return name.hashCode() +
+		return entityName.hashCode() +
+			name.hashCode() +
 			(path != null ? path.hashCode() : 0) +
 			transitions.hashCode();
 	}
 	
 	public String toString() {
-		return name;
+		return entityName + "." + name;
 	}
 }

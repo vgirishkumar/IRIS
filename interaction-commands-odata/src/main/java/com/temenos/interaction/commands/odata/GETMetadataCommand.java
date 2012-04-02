@@ -25,6 +25,7 @@ public class GETMetadataCommand implements ResourceGetCommand {
 	 * @param entity Entity name
 	 * @param producer Producer
 	 */
+	// TODO deprecate this constructor, we don't want anyone assuming that the producer controls the metadata for an IRIS instance
 	public GETMetadataCommand(String entity, ODataProducer producer) {
 		this.entity = entity;
 		this.edmDataServices = producer.getMetadata();
