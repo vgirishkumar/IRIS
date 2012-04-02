@@ -15,9 +15,9 @@ import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
+import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
-import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
 import com.temenos.interaction.core.resource.EntityResource;
@@ -37,7 +37,7 @@ public class TestGetCountryCommand {
 	public void testExecuteNotFound() {
 		GetCountryCommand command = new GetCountryCommand(null);
 		ODataProducer mockP = mock(ODataProducer.class);
-		when(mockP.getEntity(anyString(), (OEntityKey) isNull(), (QueryInfo) isNull())).thenReturn(null);
+		when(mockP.getEntity(anyString(), (OEntityKey) isNull(), (EntityQueryInfo) isNull())).thenReturn(null);
 		command.setProducer(mockP);
 		RESTResponse resp = command.get("123", null);
 		assertNotNull(resp);
@@ -56,7 +56,7 @@ public class TestGetCountryCommand {
 		when((OProperty<String>)mockEntity.getProperty("centralBankCode")).thenReturn(centralBankProp);
 		
 		EntityResponse response = Responses.entity(mockEntity);
-		when(mockP.getEntity(anyString(), any(OEntityKey.class), (QueryInfo) isNull())).thenReturn(response);
+		when(mockP.getEntity(anyString(), any(OEntityKey.class), (EntityQueryInfo) isNull())).thenReturn(response);
 		command.setProducer(mockP);
 		RESTResponse resp = command.get("123", null);
 		assertNotNull(resp);
