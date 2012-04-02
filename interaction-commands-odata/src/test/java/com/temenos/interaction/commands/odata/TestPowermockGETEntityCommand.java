@@ -21,9 +21,9 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
+import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
-import org.odata4j.producer.QueryInfo;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -97,7 +97,7 @@ public class TestPowermockGETEntityCommand {
 
 		EntityResponse mockEntityResponse = mock(EntityResponse.class);
 		when(mockEntityResponse.getEntity()).thenReturn(mock(OEntity.class));
-		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(QueryInfo.class))).thenReturn(mockEntityResponse);
+		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
 				        
         return mockProducer;
 	}

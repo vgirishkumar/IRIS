@@ -29,9 +29,9 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmType;
+import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
-import org.odata4j.producer.QueryInfo;
 
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -59,7 +59,7 @@ public class TestJUnitGETEntityCommand {
 
 		EntityResponse mockEntityResponse = mock(EntityResponse.class);
 		when(mockEntityResponse.getEntity()).thenReturn(mock(OEntity.class));
-		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(QueryInfo.class))).thenReturn(mockEntityResponse);
+		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
 				
 		new GETEntityCommand("DOESNOTMATCH", mockProducer);
 	}
@@ -83,7 +83,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), isNull(QueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), isNull(EntityQueryInfo.class));
 	}
 
 	@Test
@@ -105,7 +105,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new Int64OEntityKey()), isNull(QueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new Int64OEntityKey()), isNull(EntityQueryInfo.class));
 	}
 
 	@Test
@@ -140,7 +140,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new TimestampOEntityKey()), isNull(QueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new TimestampOEntityKey()), isNull(EntityQueryInfo.class));
 	}
 
 	@Test
@@ -162,7 +162,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new DateOEntityKey()), isNull(QueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new DateOEntityKey()), isNull(EntityQueryInfo.class));
 	}
 
 	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {
@@ -185,7 +185,7 @@ public class TestJUnitGETEntityCommand {
 
 		EntityResponse mockEntityResponse = mock(EntityResponse.class);
 		when(mockEntityResponse.getEntity()).thenReturn(mock(OEntity.class));
-		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(QueryInfo.class))).thenReturn(mockEntityResponse);
+		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
 				        
         return mockProducer;
 	}

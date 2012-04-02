@@ -11,7 +11,7 @@ import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 
 public class SimpleQueriesITCase {
 
-	protected static final String endpointUri = "http://localhost:8080/responder/rest/";
+	protected static final String endpointUri = "http://localhost:8080/northwind/Northwind.svc/";
 
 	public SimpleQueriesITCase() throws Exception {
 		super();
