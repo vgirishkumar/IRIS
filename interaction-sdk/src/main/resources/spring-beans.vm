@@ -139,6 +139,18 @@
                         <constructor-arg name="producer" ref="mockProducer" />
                     </bean>
                 </entry>
+                <entry>
+                    <key><value>POST+$resourceInfo.getResourcePath()</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
+                </entry>
+                <entry>
+                    <key><value>PUT+$resourceInfo.getResourcePath()</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
+                </entry>
+                <entry>
+                    <key><value>DELETE+$resourceInfo.getResourcePath()</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
+                </entry>
 #end
             </map>
         </constructor-arg>
