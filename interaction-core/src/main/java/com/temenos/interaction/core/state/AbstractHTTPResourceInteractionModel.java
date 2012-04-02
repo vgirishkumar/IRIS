@@ -25,6 +25,9 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.odata4j.core.OEntities;
+import org.odata4j.core.OEntity;
+import org.odata4j.core.OLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +35,7 @@ import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
@@ -170,15 +174,20 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			GenericEntity<?> entity = response.getResource().getGenericEntity();
 			
 			//Rebuild resource links if necessary
-/*
 			if (resourceRegistry != null &&
 	    			ResourceTypeHelper.isType(entity.getRawType(), entity.getType(), EntityResource.class)) {
 	    		EntityResource<OEntity> er = (EntityResource<OEntity>) entity.getEntity();
-	        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getEntity(), getCurrentState());
+	    		OEntity oEntity = er.getEntity();
+	        	
+	    		// get the links for this entity
+//	    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity, getCurrentState());
+	    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity);
+	        	// create a new entity as at the moment we pass the resource links in the OEntity
+	        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(entityName), oEntity.getEntityKey(), oEntity.getProperties(), links);;
 	        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
 	        	entity = rebuilt.getGenericEntity();
 	    	}	    	
-*/			
+
 			// Create hypermedia representation for this resource
 	    	HateoasResponseBuilder builder = HateoasResponse.ok();
 	    	if (getHateoasContext() != null) {
@@ -280,7 +289,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 */
     @Override
 	@PUT
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+    @Consumes({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource<?> resource ) {
     	logger.debug("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);

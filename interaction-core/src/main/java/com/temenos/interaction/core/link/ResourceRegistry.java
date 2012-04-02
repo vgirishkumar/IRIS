@@ -8,13 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.format.xml.XmlFormatWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.jayway.jaxrs.hateoas.LinkableInfo;
@@ -22,8 +24,10 @@ import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 public class ResourceRegistry implements HateoasContext {
+	private final static Logger logger = LoggerFactory.getLogger(ResourceRegistry.class);
 
-//	private EdmDataServices edmDataServices;
+	// the resource metadata
+	private EdmDataServices edmDataServices;
 	// map of resource path to interaction model
 	private Map<String, HTTPDynaRIM> rimMap = new HashMap<String, HTTPDynaRIM>();
 	// map of entity name to resource path
@@ -33,16 +37,14 @@ public class ResourceRegistry implements HateoasContext {
 	// map of link key to transition
 	private Map<String, Transition> linkTransitionMap = new HashMap<String, Transition>();
 	
-	public ResourceRegistry() {}
-
 	/**
 	 * Construct and fill the resource registry from a single root resource.  In a RESTful interaction
 	 * there should be no way to reach a resource unless it has a link from another resource.
 	 * @param root
 	 */
-	public ResourceRegistry(HTTPDynaRIM root) {
-		// TODO dodgy - need to change this to a context object that can be initialised and passed to all dynamic resources
-		root.setResourceRegistry(this);
+	public ResourceRegistry(EdmDataServices edmDataServices, HTTPDynaRIM root) {
+		assert(edmDataServices != null);
+		this.edmDataServices = edmDataServices;
 		collectResources(root);
 	}
 
@@ -61,12 +63,17 @@ public class ResourceRegistry implements HateoasContext {
 	 * Construct and fill the resource registry with a set of resources.
 	 * @param resources
 	 */
-	public ResourceRegistry(Set<HTTPDynaRIM> resources) {
+	public ResourceRegistry(EdmDataServices edmDataServices, Set<HTTPDynaRIM> resources) {
+		assert(edmDataServices != null);
+		this.edmDataServices = edmDataServices;
 		for (HTTPDynaRIM r : resources)
 			add(r);
 	}
 
 	public void add(HTTPDynaRIM rim) {
+		logger.debug("Registering new resource " + rim);
+		// TODO dodgy - need to change this to a context object that can be initialised and passed to all dynamic resources
+		rim.setResourceRegistry(this);
 		rimMap.put(rim.getFQResourcePath(), rim);
 		
 		// populate a map of resources and their paths, and resource states and their paths 
@@ -116,6 +123,9 @@ public class ResourceRegistry implements HateoasContext {
 		}
 	}
 	
+	public EdmEntitySet getEntitySet(String entityName) {
+		return edmDataServices.getEdmEntitySet(entityName);
+	}
 	
 	public String getEntityResourcePath(String entityName) {
 		return entityResourcePathMap.get(entityName);
@@ -141,14 +151,22 @@ public class ResourceRegistry implements HateoasContext {
 	}
 
 	/**
-	 * Where we have an OEntity, the links are generated to other entities. We
-	 * just need to re write this to point to our resources.
+	 * Create the links from this entity to view other entities (when used in this 
+	 * way these links control the application state).
 	 * 
 	 * @param entity
 	 * @param currentState
 	 * @return
+	 * @precondition non null OEntity
+	 * @precondition a resource for {@link OEntity.getEntitySetName()} must have been 
+	 * 		previously added {@link ResourceRegistry.add())} to this registry
+	 * @postcondition a list of the OEntity's links to other entities
+	 * @invariant the resource registry will not be modified
 	 */
-	public OEntity rebuildOEntityLinks(OEntity entity, ResourceState currentState) {
+	public List<OLink> getNavigationLinks(OEntity entity) {
+		assert(entity != null);
+		// TODO change test so we can enable this assertion
+//		assert(entityResourcePathMap.get(entity.getEntitySetName()) != null);
 		// these are links to associated Entities
 		List<OLink> associatedLinks = new ArrayList<OLink>();
 
@@ -175,6 +193,7 @@ public class ResourceRegistry implements HateoasContext {
 
 		// these are links or forms to transition to another state
 		List<OLink> transitionLinks = new ArrayList<OLink>();
+/*
 		if (currentState != null) {
 			Collection<ResourceState> targetStates = currentState.getAllTargets();
 			for (ResourceState s : targetStates) {
@@ -182,11 +201,12 @@ public class ResourceRegistry implements HateoasContext {
 				transitionLinks.add(OLinks.relatedEntity("rel+method=" + cs.getMethod(), s.getName(), cs.getPath()));
 			}
 		}
+*/
 		
 		List<OLink> links = new ArrayList<OLink>();
 		links.addAll(associatedLinks);
 		links.addAll(transitionLinks);
-		return OEntities.create(entity.getEntitySet(), entity.getEntityKey(), entity.getProperties(), links);
+		return links;
 	}
 
 	@Override

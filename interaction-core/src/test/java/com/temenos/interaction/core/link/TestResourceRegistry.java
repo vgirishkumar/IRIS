@@ -20,7 +20,6 @@ import org.odata4j.core.OLink;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.edm.EdmEntityType;
 import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
@@ -33,7 +32,7 @@ public class TestResourceRegistry {
 
 	@Test
 	public void testNoResources() {
-		ResourceRegistry rr = new ResourceRegistry();
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
 		Set<ResourceInteractionModel> set = rr.getResourceInteractionModels();
 		assertNotNull(set);
 		assertEquals(0, set.size());
@@ -46,7 +45,7 @@ public class TestResourceRegistry {
 		HTTPDynaRIM rim2 = mock(HTTPDynaRIM.class);
 		when(rim2.getFQResourcePath()).thenReturn("rim2");
 		resourceSet.add(rim2);
-		ResourceRegistry rr = new ResourceRegistry(resourceSet);
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), resourceSet);
 		Set<ResourceInteractionModel> set = rr.getResourceInteractionModels();
 		assertNotNull(set);
 		assertEquals(2, set.size());
@@ -63,7 +62,7 @@ public class TestResourceRegistry {
 		resourceSet.add(child);
 		when(parent.getChildren()).thenReturn(resourceSet);
 
-		ResourceRegistry rr = new ResourceRegistry(parent);
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), parent);
 		Set<ResourceInteractionModel> set = rr.getResourceInteractionModels();
 		assertNotNull(set);
 		assertEquals(2, set.size());
@@ -84,7 +83,7 @@ public class TestResourceRegistry {
 		childResourceSet.add(parent);
 		when(child.getChildren()).thenReturn(childResourceSet);
 
-		ResourceRegistry rr = new ResourceRegistry(parent);
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), parent);
 		Set<ResourceInteractionModel> set = rr.getResourceInteractionModels();
 		assertNotNull(set);
 		assertEquals(2, set.size());
@@ -103,35 +102,35 @@ public class TestResourceRegistry {
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 		resourceSet.add(testResource);
 		
-		ResourceRegistry registry = new ResourceRegistry(resourceSet);
+		ResourceRegistry registry = new ResourceRegistry(mock(EdmDataServices.class), resourceSet);
 		assertEquals("/blah/test", registry.getEntityResourcePath(ENTITY_NAME));
 	}
 
 	@Test
-	public void testRebuildOEntityLinksAssociations() {
+	public void testNavigationLinks() {
 		InputStream in = ClassLoader.getSystemResourceAsStream("com/temenos/interaction/core/link/TestResourceRegistryEDMX.xml");
 		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(in)));
 		EdmxFormatParser formatParser = new EdmxFormatParser();
 		EdmDataServices ds = formatParser.parseMetadata(reader);
-		for (EdmEntityType type : ds.getEntityTypes()) {
-			System.out.println("type: " + type.getName());
-		}
 		assertNotNull(ds.findEdmEntityType("AirlineModel.Flight"));
-		
+
+		// Flight has a navigation property to FlightSchedule
 		EdmEntitySet entitySet = ds.findEdmEntitySet("Flight");
 		OEntityKey entityKey = OEntityKey.create("123");
 		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
 		List<OLink> links = new ArrayList<OLink>();
-		OEntity oEntity = OEntities.create(entitySet, entityKey, properties, links);
+		OEntity flightEntity = OEntities.create(entitySet, entityKey, properties, links);
 		
-		ResourceRegistry rr = new ResourceRegistry();
-		HTTPDynaRIM airport = mock(HTTPDynaRIM.class);
-		when(airport.getEntityName()).thenReturn("FlightSchedule");
-		when(airport.getFQResourcePath()).thenReturn("/FS/{id}");
-		rr.add(airport);
-		OEntity newOEntity = rr.rebuildOEntityLinks(oEntity, null);
-		
-		List<OLink> entityLinks = newOEntity.getLinks();
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
+		// give the FlightSchedule resource a path
+		HTTPDynaRIM rim = mock(HTTPDynaRIM.class);
+		when(rim.getEntityName()).thenReturn("FlightSchedule");
+		when(rim.getFQResourcePath()).thenReturn("/FS/{id}");
+		// register the resource
+		rr.add(rim);
+
+		// get the links for the Flight entity
+		List<OLink> entityLinks = rr.getNavigationLinks(flightEntity);
 		assertEquals(1, entityLinks.size());
 		assertEquals("/FS/{id}", entityLinks.get(0).getHref());
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FlightSchedule", entityLinks.get(0).getRelation());
@@ -141,14 +140,14 @@ public class TestResourceRegistry {
 
 	@Test (expected = AssertionError.class)
 	public void testNotImplementedMapClass() {
-		ResourceRegistry rr = new ResourceRegistry();
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
 		// this method is used to map the Linkable annotation, we don't use that
 		rr.mapClass(String.class);
 	}
 
 	@Test (expected = AssertionError.class)
 	public void testLinkableNotRegistered() {
-		ResourceRegistry rr = new ResourceRegistry();
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
 		rr.getLinkableInfo("test");
 	}
 
@@ -161,7 +160,7 @@ public class TestResourceRegistry {
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 		resourceSet.add(testResource);
 		
-		ResourceRegistry rr = new ResourceRegistry(resourceSet);
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), resourceSet);
 		LinkableInfo link = rr.getLinkableInfo(ENTITY_NAME);
 		assertNotNull(link);
 		assertEquals("TEST_ENTITY", link.getId());
@@ -195,7 +194,7 @@ public class TestResourceRegistry {
 		when(testResource.getCurrentState()).thenReturn(exists);
 		resourceSet.add(testResource);
 		
-		ResourceRegistry rr = new ResourceRegistry(resourceSet);
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), resourceSet);
 		// link to self
 		LinkableInfo link = rr.getLinkableInfo("TEST_ENTITY");
 		assertNotNull(link);
