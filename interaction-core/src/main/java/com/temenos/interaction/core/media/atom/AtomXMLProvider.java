@@ -58,18 +58,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private final ResourceRegistry resourceRegistry;
 
 	/**
-	 * Construct the jax-rs Provider for OData media type.  This constructor would
-	 * only support writing as without the ResourceRegistry it cannot create any
-	 * entities.
-	 * @param edmDataServices
-	 * 		The entity metadata for reading and writing OData entities.
-	 * @param edmDataServices
-	 */
-	public AtomXMLProvider(EdmDataServices edmDataServices) {
-		this(edmDataServices, new ResourceRegistry());
-	}
-
-	/**
 	 * Construct the jax-rs Provider for OData media type.
 	 * @param edmDataServices
 	 * 		The entity metadata for reading and writing OData entities.
@@ -118,7 +106,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		try {
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(entityResource.getEntity()));
+				OEntity oentity = entityResource.getEntity();
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(oentity.getEntitySetName());
+				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(oentity), entitySet);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
 				List<OEntity> entities = (List<OEntity>) cr.getEntities();

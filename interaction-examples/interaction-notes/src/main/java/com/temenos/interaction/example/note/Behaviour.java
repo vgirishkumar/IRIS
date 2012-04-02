@@ -4,7 +4,7 @@ import com.temenos.interaction.core.link.ResourceState;
 
 public class Behaviour {
 
-	private final static String ENTITY_NAME = "NOTE";
+	private final static String ENTITY_NAME = "note";
 	
 	public ResourceState getCRUDResourceStateModel() {
 		

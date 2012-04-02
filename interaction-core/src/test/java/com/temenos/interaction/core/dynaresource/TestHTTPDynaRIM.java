@@ -3,17 +3,25 @@ package com.temenos.interaction.core.dynaresource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Test;
+import org.odata4j.edm.EdmDataServices;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.jayway.jaxrs.hateoas.LinkableInfo;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.NoopDELETECommand;
+import com.temenos.interaction.core.command.NoopGETCommand;
+import com.temenos.interaction.core.command.NoopPOSTCommand;
+import com.temenos.interaction.core.command.NoopPUTCommand;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.link.ResourceStateMachine;
@@ -21,6 +29,63 @@ import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 
 public class TestHTTPDynaRIM {
+
+	@Test
+	public void testBootstrapNoStateMachineValid() {
+		String PATH = "/path";
+		CommandController cc = new CommandController();
+		cc.setGetCommand(PATH, new NoopGETCommand());
+		cc.addStateTransitionCommand(PATH, new NoopPOSTCommand());
+		cc.addStateTransitionCommand(PATH, new NoopPUTCommand());
+		cc.addStateTransitionCommand(PATH, new NoopDELETECommand());
+		// construct a dynamic resource, this will check its configuration by calling bootstrap()
+		HTTPDynaRIM dynaResource = new HTTPDynaRIM("Entity", "/path", cc);
+		/*
+		 *  the set of interaction is more a function of the command controller, but getting
+		 *  this far means we have passed the bootstrap checks
+		 */
+		Set<String> interactions = dynaResource.getInteractions();
+		assertEquals(6, interactions.size());
+		assertTrue(interactions.contains("GET"));
+		assertTrue(interactions.contains("PUT"));
+		assertTrue(interactions.contains("POST"));
+		assertTrue(interactions.contains("DELETE"));
+		assertTrue(interactions.contains("HEAD"));
+		assertTrue(interactions.contains("OPTIONS"));
+	}
+
+	@Test (expected = RuntimeException.class)
+	public void testBootstrapNoStateMachineInvalidNoPUT() {
+		String PATH = "/path";
+		CommandController cc = new CommandController();
+		cc.setGetCommand(PATH, new NoopGETCommand());
+		cc.addStateTransitionCommand(PATH, new NoopPOSTCommand());
+		cc.addStateTransitionCommand(PATH, new NoopDELETECommand());
+		// construct a dynamic resource, this will check its configuration by calling bootstrap()
+		new HTTPDynaRIM("Entity", "/path", cc);
+	}
+
+	@Test (expected = RuntimeException.class)
+	public void testBootstrapNoStateMachineInvalidNoPOST() {
+		String PATH = "/path";
+		CommandController cc = new CommandController();
+		cc.setGetCommand(PATH, new NoopGETCommand());
+		cc.addStateTransitionCommand(PATH, new NoopPUTCommand());
+		cc.addStateTransitionCommand(PATH, new NoopDELETECommand());
+		// construct a dynamic resource, this will check its configuration by calling bootstrap()
+		new HTTPDynaRIM("Entity", "/path", cc);
+	}
+
+	@Test (expected = RuntimeException.class)
+	public void testBootstrapNoStateMachineInvalidNoDELETE() {
+		String PATH = "/path";
+		CommandController cc = new CommandController();
+		cc.setGetCommand(PATH, new NoopGETCommand());
+		cc.addStateTransitionCommand(PATH, new NoopPOSTCommand());
+		cc.addStateTransitionCommand(PATH, new NoopPUTCommand());
+		// construct a dynamic resource, this will check its configuration by calling bootstrap()
+		new HTTPDynaRIM("Entity", "/path", cc);
+	}
 
 	@Test
 	public void testRIMsCRUD() {
@@ -173,7 +238,7 @@ public class TestHTTPDynaRIM {
 	public void testLinksSelf() {
 		String ENTITY_NAME = "NOTE";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial");
-		ResourceRegistry rr = new ResourceRegistry();
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
 		CommandController cc = mock(CommandController.class);
 		
 		// create the dynamic resource, this also registers itself with the ResourceRegistry
@@ -207,7 +272,7 @@ public class TestHTTPDynaRIM {
 		serviceRoot.addTransition("GET", accountSM);
 		serviceRoot.addTransition("GET", txnSM);
 
-		ResourceRegistry rr = new ResourceRegistry();
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
 		CommandController cc = mock(CommandController.class);
 		
 		// create the dynamic resource, this also registers itself with the ResourceRegistry
@@ -254,8 +319,8 @@ public class TestHTTPDynaRIM {
 		ResourceState begin2 = new ResourceState(OTHER_ENTITY_NAME, "begin2");
 		CommandController cc = mock(CommandController.class);
 		CommandController cc2 = mock(CommandController.class);
-		HTTPDynaRIM rim1 = new HTTPDynaRIM(null, new ResourceStateMachine(ENTITY_NAME, begin), "/notes", null, null, cc);
-		HTTPDynaRIM rim2 = new HTTPDynaRIM(null, new ResourceStateMachine(OTHER_ENTITY_NAME, begin2), "/notes", null, null, cc2);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(null, new ResourceStateMachine(ENTITY_NAME, begin), "/notes", begin, null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(null, new ResourceStateMachine(OTHER_ENTITY_NAME, begin2), "/notes", begin2, null, cc2);
 		
 		// the only thing used to compare equality is the path as the URI must be unique
 		assertEquals(rim1, rim2);
@@ -271,9 +336,9 @@ public class TestHTTPDynaRIM {
 		String DIFFERENT_ENTITY_NAME = "DIFFERENT";
 		ResourceState differentBegin = new ResourceState(DIFFERENT_ENTITY_NAME, "begin");
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine(PARENT_ENTITY_NAME, parentBegin), "/root", null, null, cc);
-		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine(ENTITY_NAME, begin), "/notes", null, null, cc);
-		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine(DIFFERENT_ENTITY_NAME, differentBegin), "/notes", null, null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine(PARENT_ENTITY_NAME, parentBegin), "/root", parentBegin, null, cc);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine(ENTITY_NAME, begin), "/notes", begin, null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine(DIFFERENT_ENTITY_NAME, differentBegin), "/notes", differentBegin, null, cc);
 		
 		// the only thing used to compare equality is the path as the URI must be unique
 		assertEquals(rim1, rim2);
@@ -287,11 +352,11 @@ public class TestHTTPDynaRIM {
 		String PARENT_ENTITY_NAME = "PARENT";
 		ResourceState parentBegin = new ResourceState(PARENT_ENTITY_NAME, "begin");
 		CommandController cc = mock(CommandController.class);
-		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine(PARENT_ENTITY_NAME, parentBegin), "/notes", null, null, cc);
-		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine(ENTITY_NAME, begin), "/{id}", null, null, cc);
-		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine(ENTITY_NAME, begin), "/{id}/different", null, null, cc);
-		HTTPDynaRIM rim3 = new HTTPDynaRIM(null, new ResourceStateMachine(ENTITY_NAME, begin), "/notes1", null, null, cc);
-		HTTPDynaRIM rim4 = new HTTPDynaRIM(null, new ResourceStateMachine(ENTITY_NAME, begin), "/notes", null, null, cc);
+		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine(PARENT_ENTITY_NAME, parentBegin), "/notes", parentBegin, null, cc);
+		HTTPDynaRIM rim1 = new HTTPDynaRIM(parent, new ResourceStateMachine(ENTITY_NAME, begin), "/{id}", begin, null, cc);
+		HTTPDynaRIM rim2 = new HTTPDynaRIM(parent, new ResourceStateMachine(ENTITY_NAME, begin), "/{id}/different", begin, null, cc);
+		HTTPDynaRIM rim3 = new HTTPDynaRIM(null, new ResourceStateMachine(ENTITY_NAME, begin), "/notes1", begin, null, cc);
+		HTTPDynaRIM rim4 = new HTTPDynaRIM(null, new ResourceStateMachine(ENTITY_NAME, begin), "/notes", begin, null, cc);
 
 		// both with parent
 		assertFalse(rim1.equals(rim2));

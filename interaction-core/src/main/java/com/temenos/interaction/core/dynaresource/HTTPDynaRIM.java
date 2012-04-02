@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.MethodNotAllowedCommand;
+import com.temenos.interaction.core.command.ResourceCommand;
 import com.temenos.interaction.core.link.ASTValidation;
 import com.temenos.interaction.core.link.ResourceStateMachine;
 import com.temenos.interaction.core.link.ResourceRegistry;
@@ -38,8 +40,22 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
      * @param commandController
      */
 	public HTTPDynaRIM(String entityName, String path, CommandController commandController) {
-		this(new ResourceStateMachine(entityName, new ResourceState(entityName, "pseudo")), path, null, commandController);
+		this(new ResourceStateMachine(entityName, createPseudoStateMachine(entityName)), path, null, commandController);
 		this.parent = null;
+	}
+
+	private static ResourceState createPseudoStateMachine(String entityName) {
+		/*
+		 * any interaction might be possible for a dynamic resource created without the 
+		 * assistance of a state machine, therefore add all possible transitions.
+		 */
+		ResourceState initial = new ResourceState(entityName, "pseudo.initial");
+		ResourceState pseudo = new ResourceState(entityName, "pseudo.created");
+		ResourceState deleted = new ResourceState(entityName, "pseudo.deleted");
+		initial.addTransition("POST", pseudo);
+		pseudo.addTransition("PUT", pseudo);
+		pseudo.addTransition("DELETE", deleted);
+		return initial;
 	}
 
 	/**
@@ -82,6 +98,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			logger.info("Checking state machine for [" + this.toString() + "]");
 			logger.info(new ASTValidation().graph(stateMachine));
 		}
+		assert(currentState != null);
 		bootstrap();
 	}
 
@@ -90,31 +107,32 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 * interactions with the resource state.
 	 */
 	private void bootstrap() {
+		// every resource MUST have a GET command
 		getCommandController().fetchGetCommand(getFQResourcePath());
-		if (currentState != null) {
-			Set<String> interactions = stateMachine.getInteractions(currentState);
-			if (interactions != null) {
-				// interactions are a set of http methods
-				for (String method : interactions) {
-					logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
-					// TODO probably shouldn't end up with a GET interaction here, but maybe we should...
-					if (method.equals(HttpMethod.GET))
-						continue;
-					// check valid http method
-					if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE) || method.equals(HttpMethod.POST)))
-						throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
-					// fetch command from command controller for this method
-					getCommandController().fetchStateTransitionCommand(method, getFQResourcePath());
-				}
+		Set<String> interactions = stateMachine.getInteractions(currentState);
+		
+		if (interactions != null) {
+			// interactions are a set of http methods
+			for (String method : interactions) {
+				logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
+				// already checked GET command for this resource
+				if (method.equals(HttpMethod.GET))
+					continue;
+				// check valid http method
+				if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE) || method.equals(HttpMethod.POST)))
+					throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
+				// fetch command from command controller for this method
+				ResourceCommand stc = getCommandController().fetchStateTransitionCommand(method, getFQResourcePath());
+				if (stc instanceof MethodNotAllowedCommand)
+					throw new RuntimeException("Invalid configuration of dynamic resource [" + this + "] - no state transition command for http method [" + method + "]");
 			}
-			
-			// TODO should be verified in constructor, but this class is currently mixed with dynamic resources that do not use links
-			// assert(getResourceRegistry() != null);
-			// resource created and valid, now register ourselves in the resource registry
-			if (getResourceRegistry() != null)
-				getResourceRegistry().add(this);
-
 		}
+
+		// TODO should be verified in constructor, but this class is currently mixed with dynamic resources that do not use links
+		// assert(getResourceRegistry() != null);
+		// resource created and valid, now register ourselves in the resource registry
+		if (getResourceRegistry() != null)
+			getResourceRegistry().add(this);
 	}
 	
 

@@ -4,11 +4,14 @@ import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
+import java.util.HashSet;
+
 import org.apache.wink.common.DynamicResource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.odata4j.edm.EdmDataServices;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -26,7 +29,7 @@ public class TestRegistrarWithSingletons {
 	@Test
 	public void testHeirarchy() throws Exception {
 		// mock a few resources with a simple hierarchy in the resource registry
-		ResourceRegistry rRegistry = new ResourceRegistry();
+		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
 		HTTPDynaRIM r1 = mock(HTTPDynaRIM.class);
 		when(r1.getEntityName()).thenReturn("notes");
 		when(r1.getResourcePath()).thenReturn("/notes");
@@ -72,7 +75,7 @@ public class TestRegistrarWithSingletons {
 	@Test
 	public void testParachute() throws Exception {
 		// mock a few resources with a simple hierarchy, added out of order to test the climbing back up to the root
-		ResourceRegistry rRegistry = new ResourceRegistry();
+		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
 		HTTPDynaRIM r1 = mock(HTTPDynaRIM.class);
 		when(r1.getEntityName()).thenReturn("home");
 		when(r1.getResourcePath()).thenReturn("/");

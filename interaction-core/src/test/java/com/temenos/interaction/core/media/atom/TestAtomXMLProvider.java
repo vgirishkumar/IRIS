@@ -19,6 +19,7 @@ import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
@@ -52,6 +53,7 @@ import org.odata4j.internal.FeedCustomizationMapping;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -66,7 +68,7 @@ public class TestAtomXMLProvider {
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
-			super(edmDataServices, new ResourceRegistry());
+			super(edmDataServices, new ResourceRegistry(edmDataServices, new HashSet<HTTPDynaRIM>()));
 		}
 		public void setUriInfo(UriInfo uriInfo) {
 			super.setUriInfo(uriInfo);
@@ -75,8 +77,11 @@ public class TestAtomXMLProvider {
 
 	@Test
 	public void testWriteEntityResourceOEntity_XML() throws Exception {
+		EdmEntitySet ees = createMockEdmEntitySet();
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
-		EntityResource<OEntity> er = createMockEntityResourceOEntity();
+		EntityResource<OEntity> er = createMockEntityResourceOEntity(ees);
+		
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
 		
         //Wrap entity resource into a JAX-RS GenericEntity instance
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(er) {};
@@ -102,9 +107,12 @@ public class TestAtomXMLProvider {
 
 	@Test
 	public void testWriteEntityResourceOEntity_AtomXML() throws Exception {
+		EdmEntitySet ees = createMockEdmEntitySet();
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
-		EntityResource<OEntity> er = createMockEntityResourceOEntity();
+		EntityResource<OEntity> er = createMockEntityResourceOEntity(ees);
 		
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+
         //Wrap entity resource into a JAX-RS GenericEntity instance
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(er) {};
 
@@ -125,6 +133,16 @@ public class TestAtomXMLProvider {
 	    Diff myDiff = new Diff(responseString, EXPECTED_XML);
 	    myDiff.overrideDifferenceListener(myDifferenceListener);
 	    assertTrue(myDiff.similar());		
+	}
+	
+	private EdmEntitySet createMockEdmEntitySet() {
+		// Create an entity set
+		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("id").setType(EdmSimpleType.STRING);
+		eprops.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Flight").addKeys(Arrays.asList("id")).addProperties(eprops);
+		EdmEntitySet.Builder eesb = EdmEntitySet.newBuilder().setName("Flight").setEntityType(eet);
+		return eesb.build();
 	}
 	
 	private EdmDataServices createMockFlightEdmDataServices() {
@@ -154,22 +172,15 @@ public class TestAtomXMLProvider {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private EntityResource<OEntity> createMockEntityResourceOEntity() {
+	private EntityResource<OEntity> createMockEntityResourceOEntity(EdmEntitySet ees) {
 		EntityResource<OEntity> er = mock(EntityResource.class);
-
-		//Create an entity set
-		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
-		EdmProperty.Builder ep = EdmProperty.newBuilder("id").setType(EdmSimpleType.STRING);
-		eprops.add(ep);
-		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Flight").addKeys(Arrays.asList("id")).addProperties(eprops);
-		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Flight").setEntityType(eet);
 
 		//Create an OEntity
 		OEntityKey entityKey = OEntityKey.create("123");
 		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
 		properties.add(OProperties.string("id", "1"));
 		properties.add(OProperties.string("flight", "EI218"));
-		OEntity entity = OEntities.create(ees.build(), entityKey, properties, new ArrayList<OLink>());
+		OEntity entity = OEntities.create(ees, entityKey, properties, new ArrayList<OLink>());
 		when(er.getEntity()).thenReturn(entity);
 		return er;
 	}
