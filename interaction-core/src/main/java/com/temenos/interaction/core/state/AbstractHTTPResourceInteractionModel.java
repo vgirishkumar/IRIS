@@ -323,9 +323,14 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
   			status = deleteCommand.delete(id);
     	} else if (c instanceof ResourceStatusCommand) {
        		status = ((ResourceStatusCommand) c).getStatus();    		
-    	}
+		}
 		assert (status != null);  // not a valid delete command
-   		return Response.status(status).build();
+    	if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
+			ResponseBuilder rb = Response.status(status);
+			return HeaderHelper.allowHeader(rb, getInteractions()).build();
+    	} else {
+       		return Response.status(status).build();
+    	}
     }
 
 	/**

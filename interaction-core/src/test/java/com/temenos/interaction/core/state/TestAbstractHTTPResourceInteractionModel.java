@@ -170,6 +170,24 @@ public class TestAbstractHTTPResourceInteractionModel {
 		assertTrue(resp.getStatus() == 405);
 	}
 
+	/* Test a status of method not allows returns a response with the valid options */
+	@Test
+	public void testDELETECommand405Options() {
+		String resourcePath = "/test";
+		
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		};
+		
+		Response response = r.delete(mock(HttpHeaders.class), "123");
+		assertEquals(405, response.getStatus());
+		
+        // as per the http spec, 405 MUST include an Allow header
+		List<Object> allowHeader = response.getMetadata().get("Allow");
+		assertNotNull(allowHeader);
+        assertEquals(1, allowHeader.size());
+        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
+	}
+
 	/* Test a status returned in the ResourcePostCommand will be returned all the way to the client */
 	@Test
 	public void testPOSTCommandStatus() {
@@ -283,7 +301,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		verify(r).get(any(HttpHeaders.class), anyString(), any(UriInfo.class));
 	}
 
-	/* Test a status returned in the ResourcePostCommand will be returned all the way to the client */
+	/* Test a status of method not allows returns a response with the valid options */
 	@Test
 	public void testPUTCommand405Options() {
 		String resourcePath = "/test";
