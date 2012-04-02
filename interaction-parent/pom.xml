@@ -15,6 +15,9 @@
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
 		<module>../interaction-sdk-archetype</module>
+		<module>../interaction-examples/interaction-odata-northwind</module>
+		<module>../interaction-examples/interaction-odata-airline</module>
+		<module>../interaction-examples/interaction-notes</module>
 	</modules>
 
 	<distributionManagement>
