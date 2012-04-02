@@ -10,6 +10,17 @@
 			classpath:META-INF/spring-beans.xml
 		</param-value>
 	</context-param>
+	
+	<filter>
+		<filter-name>jax-rs-hateoas</filter-name>
+		<description>This filter sets the request context for jax-rs-hateoas (TODO - should not be required)</description>
+		<filter-class>com.jayway.jaxrs.hateoas.web.RequestContextFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>jax-rs-hateoas</filter-name>
+		<servlet-name>IRIS</servlet-name>
+	</filter-mapping>
+	
 	<servlet>
 		<servlet-name>context</servlet-name>
 		<servlet-class>org.springframework.web.context.ContextLoaderServlet</servlet-class>
@@ -31,6 +42,6 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>IRIS</servlet-name>
-		<url-pattern>/rest/*</url-pattern>
+		<url-pattern>/${artifactId}.svc/*</url-pattern>
 	</servlet-mapping>
  </web-app>
