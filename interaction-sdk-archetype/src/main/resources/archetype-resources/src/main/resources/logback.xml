@@ -7,6 +7,11 @@
     </layout>
   </appender>
 
+  <!-- Log debug information about links -->
+  <logger name="com.temenos.interaction.core.link">
+    <level value="DEBUG" />
+  </logger>
+
   <!-- Log all resource endpoints -->
   <logger name="org.apache.wink.server.internal.log.Resources">
     <level value="DEBUG" />
