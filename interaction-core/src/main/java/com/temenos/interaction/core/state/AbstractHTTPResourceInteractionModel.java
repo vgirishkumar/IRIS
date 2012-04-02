@@ -152,6 +152,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @invariant resourcePath not null
 	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModel#get(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	@GET
     @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
