@@ -52,7 +52,7 @@
 				<stopPort>8005</stopPort>
 				<stopKey>STOP</stopKey>
   				<!-- Configure the webapp -->
-				<contextPath>/airline</contextPath>
+				<contextPath>/example</contextPath>
           		<webDefaultXml>${basedir}/src/main/webapp/WEB-INF/web.xml</webDefaultXml>
 			</configuration>
 			<executions>
