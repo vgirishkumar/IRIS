@@ -23,7 +23,7 @@ import org.odata4j.jersey.consumer.ODataJerseyConsumer;
  */
 public class EdmTimeTemporalITCase {
 
-	protected static final String endpointUri = "http://localhost:8080/airline/Airline.svc/";
+	protected static final String endpointUri = "http://localhost:8080/example/interaction-odata-airline.svc/";
 
 	public EdmTimeTemporalITCase() throws Exception {
 		super();
