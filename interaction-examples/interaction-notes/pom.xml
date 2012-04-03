@@ -12,8 +12,15 @@
   <artifactId>interaction-examples-notes</artifactId>
   <packaging>jar</packaging>
 
-  <name>interaction-example</name>
+  <name>interaction-example-notes</name>
   <url>http://www.temenos.com</url>
+
+  <distributionManagement>
+    <site>
+      <id>interaction-example-notes</id>
+      <url>file://localhost/c:/temp/iris/site/interaction-example-notes</url>
+    </site>
+  </distributionManagement>
 
   <build>
   	<plugins>
@@ -62,8 +69,52 @@
 				</execution>
 			</executions>
 		</plugin>  		
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-site-plugin</artifactId>
+			<version>3.0</version>
+			<configuration>
+				<locales>en</locales>
+				<reportPlugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-project-info-reports-plugin</artifactId>
+						<version>2.4</version>
+						<configuration>
+							<dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+							<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+						</configuration>
+						<reports>
+							<report>index</report>
+							<report>dependencies</report>
+							<report>scm</report>
+						</reports>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.8</version>
+					</plugin>
+				</reportPlugins>
+			</configuration>
+		</plugin>
   	</plugins>
   </build>
+  
+  <profiles>
+	<!-- Skip integration-test phase - activate with '-Ddebug' -->
+  	<profile>
+  		<activation>
+  			<property>
+  				<name>debug</name>
+  			</property>
+  		</activation>
+  		<properties>
+  			<jetty.skip>true</jetty.skip>
+  			<skipITs>true</skipITs>
+  		</properties>
+  	</profile>
+  </profiles>
   
   <dependencies>
     <dependency>
