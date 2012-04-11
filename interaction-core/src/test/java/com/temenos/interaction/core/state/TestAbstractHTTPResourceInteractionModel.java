@@ -22,6 +22,7 @@ import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
+import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.RESTResponse;
@@ -38,7 +39,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testDecodeQueryParameters() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -73,9 +77,12 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testFQResourcePath() {
 		final AbstractHTTPResourceInteractionModel parent = mock(AbstractHTTPResourceInteractionModel.class);
 		when(parent.getResourcePath()).thenReturn("/root");
-		AbstractHTTPResourceInteractionModel child = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", "/child") {
+		AbstractHTTPResourceInteractionModel child = new AbstractHTTPResourceInteractionModel("/child") {
 			public ResourceInteractionModel getParent() {
 				return parent;
+			}
+			public ResourceState getCurrentState() {
+				return null;
 			}
 		};
 
@@ -88,7 +95,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testGETCommandStatus() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -102,7 +112,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGETStatusNull() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand(resourcePath, mock(ResourceGetCommand.class));
@@ -113,7 +126,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test(expected = WebApplicationException.class)
 	public void testGETNoCommand() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		r.get(null, "123", null);
 	}
@@ -123,7 +139,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testGET200NoResource() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -136,7 +155,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testDELETECommandStatus() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rpc = mock(ResourceDeleteCommand.class);
@@ -151,7 +173,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testDELETEStatusNull() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rdc = mock(ResourceDeleteCommand.class);
@@ -164,7 +189,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testDELETENoCommand() {
 		String resourcePath = "/test";
-		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		Response resp = r.delete(null, "123");
 		assertTrue(resp.getStatus() == 405);
@@ -175,7 +203,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testDELETECommand405Options() {
 		String resourcePath = "/test";
 		
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		
 		Response response = r.delete(mock(HttpHeaders.class), "123");
@@ -192,7 +223,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testPOSTCommandStatus() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -207,7 +241,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testPOSTStatusNull() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -220,7 +257,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testPOSTNoCommand() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		Response resp = r.post(null, "123", null);
 		assertTrue(resp.getStatus() == 405);
@@ -230,7 +270,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test(expected = AssertionError.class)
 	public void testPOST200NoResource() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -245,7 +288,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testPOST204Options() {
 		String resourcePath = "/test";
 
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -268,7 +314,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testPOSTCommand405Options() {
 		String resourcePath = "/test";
 		
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		
 		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
@@ -306,7 +355,10 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testPUTCommand405Options() {
 		String resourcePath = "/test";
 		
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		
 		Response response = r.put(mock(HttpHeaders.class), "123", mock(EntityResource.class));

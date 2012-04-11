@@ -23,9 +23,9 @@ public class Behaviour {
 		flightSchedules.addTransition("GET", flightSchedule);
 		
 		initialState.addTransition("GET", metadata);
-		initialState.addTransition("GET", new ResourceStateMachine("Flight", flights));
-		initialState.addTransition("GET", new ResourceStateMachine("Airport", airport));
-		initialState.addTransition("GET", new ResourceStateMachine("FlightSchedule", flightSchedules));
+		initialState.addTransition("GET", new ResourceStateMachine(flights));
+		initialState.addTransition("GET", new ResourceStateMachine(airport));
+		initialState.addTransition("GET", new ResourceStateMachine(flightSchedules));
 		return initialState;
 	}
 

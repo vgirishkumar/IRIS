@@ -23,6 +23,7 @@ import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.link.ResourceState;
 
 /**
  * Define the T24 SEE, HISTORY, AUTHORISE, REVERSE, DELETE, INPUT 'SHARDI' Resource Interaction Model.
@@ -57,8 +58,8 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
 		this.commandController = new CommandController();
 	}
 	
-	public String getEntityName() {
-		return entityName;
+	public ResourceState getCurrentState() {
+		return null;
 	}
 	
 	public String getResourcePath() {

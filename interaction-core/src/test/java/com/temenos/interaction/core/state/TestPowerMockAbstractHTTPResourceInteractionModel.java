@@ -16,6 +16,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
+import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.NoopGETCommand;
@@ -28,7 +29,10 @@ public class TestPowerMockAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testGETWithNoHateoasContext() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand("/test", new NoopGETCommand());
@@ -51,9 +55,12 @@ public class TestPowerMockAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testGETWithHateoasContext() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("TEST_ENTITY", resourcePath) {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public HateoasContext getHateoasContext() {
 				return mock(HateoasContext.class);
+			}
+			public ResourceState getCurrentState() {
+				return mock(ResourceState.class);
 			}
 		};
 		CommandController cc = r.getCommandController();

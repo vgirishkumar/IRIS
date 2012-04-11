@@ -43,6 +43,10 @@ public class ResourceState {
 		return name;
 	}
 
+	public String getId() {
+		return entityName + "." + name;
+	}
+
 	public String getPath() {
 		return path;
 	}

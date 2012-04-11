@@ -38,11 +38,21 @@ public class TestResourceRegistry {
 		assertEquals(0, set.size());
 	}
 
+	private HTTPDynaRIM createMockHTTPDynaRIM() {
+		HTTPDynaRIM rim1 = mock(HTTPDynaRIM.class);
+		ResourceState rs = mock(ResourceState.class);
+		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
+		when(rsm.getInitial()).thenReturn(rs);
+		when(rim1.getStateMachine()).thenReturn(rsm);
+		when(rim1.getCurrentState()).thenReturn(rs);
+		return rim1;
+	}
+	
 	@Test
 	public void testConstructedWithResourceSet() {
 		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
-		resourceSet.add(mock(HTTPDynaRIM.class));
-		HTTPDynaRIM rim2 = mock(HTTPDynaRIM.class);
+		resourceSet.add(createMockHTTPDynaRIM());
+		HTTPDynaRIM rim2 = createMockHTTPDynaRIM();
 		when(rim2.getFQResourcePath()).thenReturn("rim2");
 		resourceSet.add(rim2);
 		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), resourceSet);
@@ -53,9 +63,9 @@ public class TestResourceRegistry {
 
 	@Test
 	public void testConstructedWithRootResource() {
-		HTTPDynaRIM parent = mock(HTTPDynaRIM.class);
+		HTTPDynaRIM parent = createMockHTTPDynaRIM();
 		when(parent.getFQResourcePath()).thenReturn("parent");
-		HTTPDynaRIM child = mock(HTTPDynaRIM.class);
+		HTTPDynaRIM child = createMockHTTPDynaRIM();
 		when(parent.getFQResourcePath()).thenReturn("child");
 
 		HashSet<ResourceInteractionModel> resourceSet = new HashSet<ResourceInteractionModel>();
@@ -70,9 +80,9 @@ public class TestResourceRegistry {
 
 	@Test
 	public void testConstructedWithRootCircularResource() {
-		HTTPDynaRIM parent = mock(HTTPDynaRIM.class);
+		HTTPDynaRIM parent = createMockHTTPDynaRIM();
 		when(parent.getFQResourcePath()).thenReturn("parent");
-		HTTPDynaRIM child = mock(HTTPDynaRIM.class);
+		HTTPDynaRIM child = createMockHTTPDynaRIM();
 		when(parent.getFQResourcePath()).thenReturn("child");
 
 		HashSet<ResourceInteractionModel> parentResourceSet = new HashSet<ResourceInteractionModel>();
@@ -97,8 +107,8 @@ public class TestResourceRegistry {
 		 */
 		String ENTITY_NAME = "TEST_ENTITY";
 		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
-		HTTPDynaRIM testResource = mock(HTTPDynaRIM.class);
-		when(testResource.getEntityName()).thenReturn(ENTITY_NAME);
+		HTTPDynaRIM testResource = createMockHTTPDynaRIM();
+		when(testResource.getCurrentState().getEntityName()).thenReturn(ENTITY_NAME);
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 		resourceSet.add(testResource);
 		
@@ -123,8 +133,8 @@ public class TestResourceRegistry {
 		
 		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
 		// give the FlightSchedule resource a path
-		HTTPDynaRIM rim = mock(HTTPDynaRIM.class);
-		when(rim.getEntityName()).thenReturn("FlightSchedule");
+		HTTPDynaRIM rim = createMockHTTPDynaRIM();
+		when(rim.getCurrentState().getEntityName()).thenReturn("FlightSchedule");
 		when(rim.getFQResourcePath()).thenReturn("/FS/{id}");
 		// register the resource
 		rr.add(rim);
@@ -155,8 +165,8 @@ public class TestResourceRegistry {
 	public void testLinkableSelf() {
 		String ENTITY_NAME = "TEST_ENTITY";
 		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
-		HTTPDynaRIM testResource = mock(HTTPDynaRIM.class);
-		when(testResource.getEntityName()).thenReturn(ENTITY_NAME);
+		HTTPDynaRIM testResource = createMockHTTPDynaRIM();
+		when(testResource.getCurrentState().getEntityName()).thenReturn(ENTITY_NAME);
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 		resourceSet.add(testResource);
 		
@@ -179,7 +189,7 @@ public class TestResourceRegistry {
 		
 		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
 		HTTPDynaRIM testResource = mock(HTTPDynaRIM.class);
-		when(testResource.getEntityName()).thenReturn(ENTITY_NAME);
+//		when(testResource.getEntityName()).thenReturn(ENTITY_NAME);
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 
 		// create a little CRUD state machine
@@ -190,7 +200,7 @@ public class TestResourceRegistry {
 		// delete
 		exists.addTransition("DELETE", deleted);
 		
-		when(testResource.getStateMachine()).thenReturn(new ResourceStateMachine(ENTITY_NAME, exists));
+		when(testResource.getStateMachine()).thenReturn(new ResourceStateMachine(exists));
 		when(testResource.getCurrentState()).thenReturn(exists);
 		resourceSet.add(testResource);
 		

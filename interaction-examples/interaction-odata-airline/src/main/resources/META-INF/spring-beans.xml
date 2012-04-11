@@ -56,7 +56,6 @@
     <bean id="behaviour" class="com.interaction.example.odata.airline.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
     <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
-    	<constructor-arg name="entityName" value="" />
     	<constructor-arg name="initialState" ref="interaction" />
     </bean>
 

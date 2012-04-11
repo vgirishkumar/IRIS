@@ -12,12 +12,11 @@
 			</EntityContainer>
 			<EntityType Name="Note">
 				<Key>
-					<PropertyRef Name="PersonId" />
 					<PropertyRef Name="Id" />
 				</Key>
 				<Property Type="Edm.Int32" Name="Id" Nullable="false" />
 				<Property Type="Edm.String" Name="body" Nullable="false" />
-				<NavigationProperty Name="Person" Relationship="InteractionNoteModel.PersonNote" FromRole="Note" ToRole="Person" />
+				<NavigationProperty Name="person" Relationship="InteractionNoteModel.PersonNote" FromRole="Note" ToRole="Person" />
 			</EntityType>
 			<EntityType Name="Person">
 				<Key>

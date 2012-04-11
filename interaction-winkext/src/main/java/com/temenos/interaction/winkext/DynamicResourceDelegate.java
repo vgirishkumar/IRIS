@@ -10,6 +10,7 @@ import org.apache.wink.common.DynamicResource;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
+import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
@@ -26,7 +27,7 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 
 	@Override
     public String getBeanName() {
-        return resource.getEntityName();
+        return resource.getCurrentState().getId();
     }
 
 	@Override
@@ -97,8 +98,8 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
-	public String getEntityName() {
-		return resource.getEntityName();
+	public ResourceState getCurrentState() {
+		return resource.getCurrentState();
 	}
 
 	@Override

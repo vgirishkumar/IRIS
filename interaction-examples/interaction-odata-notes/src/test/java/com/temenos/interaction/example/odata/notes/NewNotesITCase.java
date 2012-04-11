@@ -56,6 +56,17 @@ public class NewNotesITCase extends JerseyTest {
 		assertTrue(id > 0);
 		assertEquals("Noah", person.getProperty("name").getValue());
 
+		OEntity note = consumer
+				.createEntity("Note")
+				.properties(OProperties.string("body", "test"))
+				.link("person", person)
+				.execute();
+
+		Integer noteId = (Integer) note.getProperty("Id").getValue();
+		assertTrue(noteId > 0);
+		assertEquals("test", note.getProperty("body").getValue());
+		assertEquals(1, note.getLinks());
+
 	}
 
 	/*

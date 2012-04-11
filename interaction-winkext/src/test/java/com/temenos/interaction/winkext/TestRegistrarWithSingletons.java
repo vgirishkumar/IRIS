@@ -16,6 +16,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.link.ResourceStateMachine;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
@@ -26,26 +28,30 @@ import com.temenos.interaction.winkext.RegistrarWithSingletons;
 @PrepareForTest({RegistrarWithSingletons.class})
 public class TestRegistrarWithSingletons {
 
+	private HTTPDynaRIM createMockHTTPDynaRIM(String entityName, String path) {
+		HTTPDynaRIM rim = mock(HTTPDynaRIM.class);
+		ResourceState rs = mock(ResourceState.class);
+		when(rs.getEntityName()).thenReturn(entityName);
+		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
+		when(rsm.getInitial()).thenReturn(rs);
+		when(rim.getStateMachine()).thenReturn(rsm);
+		when(rim.getCurrentState()).thenReturn(rs);
+		when(rim.getResourcePath()).thenReturn(path);
+		when(rim.getFQResourcePath()).thenCallRealMethod();
+		return rim;
+	}
+
 	@Test
 	public void testHeirarchy() throws Exception {
 		// mock a few resources with a simple hierarchy in the resource registry
 		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
-		HTTPDynaRIM r1 = mock(HTTPDynaRIM.class);
-		when(r1.getEntityName()).thenReturn("notes");
-		when(r1.getResourcePath()).thenReturn("/notes");
-		when(r1.getFQResourcePath()).thenCallRealMethod();
+		HTTPDynaRIM r1 = createMockHTTPDynaRIM("notes", "/notes");
 		rRegistry.add(r1);
 		// child 1
-		HTTPDynaRIM cr1 = mock(HTTPDynaRIM.class);
-		when(cr1.getEntityName()).thenReturn("draftNote");
-		when(cr1.getResourcePath()).thenReturn("/draft/{id}");
-		when(cr1.getFQResourcePath()).thenCallRealMethod();
+		HTTPDynaRIM cr1 = createMockHTTPDynaRIM("draftNote", "/draft/{id}");
 		rRegistry.add(cr1);
 		// child 2
-		HTTPDynaRIM cr2 = mock(HTTPDynaRIM.class);
-		when(cr2.getEntityName()).thenReturn("note");
-		when(cr2.getResourcePath()).thenReturn("/{id}");
-		when(cr2.getFQResourcePath()).thenCallRealMethod();
+		HTTPDynaRIM cr2 = createMockHTTPDynaRIM("note", "/{id}");
 		rRegistry.add(cr2);
 	
 		whenNew(DynamicResourceDelegate.class).withParameterTypes(HTTPResourceInteractionModel.class, HTTPDynaRIM.class).withArguments(any(DynamicResource.class), any(ResourceInteractionModel.class)).thenAnswer(new Answer<Object>() {
@@ -76,21 +82,12 @@ public class TestRegistrarWithSingletons {
 	public void testParachute() throws Exception {
 		// mock a few resources with a simple hierarchy, added out of order to test the climbing back up to the root
 		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
-		HTTPDynaRIM r1 = mock(HTTPDynaRIM.class);
-		when(r1.getEntityName()).thenReturn("home");
-		when(r1.getResourcePath()).thenReturn("/");
-		when(r1.getFQResourcePath()).thenCallRealMethod();
+		HTTPDynaRIM r1 = createMockHTTPDynaRIM("home", "/");
 		// child 1
-		HTTPDynaRIM cr1 = mock(HTTPDynaRIM.class);
-		when(cr1.getEntityName()).thenReturn("notes");
-		when(cr1.getResourcePath()).thenReturn("/notes");
-		when(cr1.getFQResourcePath()).thenCallRealMethod();
+		HTTPDynaRIM cr1 = createMockHTTPDynaRIM("notes", "/notes");
 		when(cr1.getParent()).thenReturn(r1);
 		// child 2
-		HTTPDynaRIM cr2 = mock(HTTPDynaRIM.class);
-		when(cr2.getEntityName()).thenReturn("note");
-		when(cr2.getResourcePath()).thenReturn("/{id}");
-		when(cr2.getFQResourcePath()).thenCallRealMethod();
+		HTTPDynaRIM cr2 = createMockHTTPDynaRIM("note", "/{id}");
 		when(cr2.getParent()).thenReturn(cr1);
 
 		rRegistry.add(cr2);

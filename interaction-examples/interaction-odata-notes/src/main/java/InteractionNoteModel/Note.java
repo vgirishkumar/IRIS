@@ -12,11 +12,15 @@ import javax.persistence.TemporalType;
 public class Note {
 
 	@Id
+	/* Added this GeneratedValue annotation to auto create ids, otherwise this class in generated from the EDMX */
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Basic(optional = false)
 	private Integer Id;
 	
-			private String body;
-			private Integer PersonId;
+	private String body;
+	
+	/* link to the person whose note this belongs to */
+	private String person;
 		
 	public Note() {}
 }

@@ -79,7 +79,6 @@
 
     <!-- Simple Notes resource state model -->
     <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
-    	<constructor-arg name="entityName" value="note" />
     	<constructor-arg name="initialState" ref="initialNoteState" />
     </bean>
 

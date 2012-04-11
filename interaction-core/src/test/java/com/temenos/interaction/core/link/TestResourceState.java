@@ -10,6 +10,13 @@ import org.junit.Test;
 public class TestResourceState {
 
 	@Test
+	public void testId() {
+		String ENTITY_NAME = "entity";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "");
+		assertEquals("entity.begin", initial.getId());
+	}
+	
+	@Test
 	public void testCollection() {
 		String ENTITY_NAME = "entity";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "");
@@ -65,8 +72,8 @@ public class TestResourceState {
 		initial2.addTransition("PUT", exists2);
 		exists2.addTransition("DELETE", deleted2);
 		
-		ResourceStateMachine rsm1 = new ResourceStateMachine(ENTITY_NAME1, initial);
-		ResourceStateMachine rsm2 = new ResourceStateMachine(ENTITY_NAME2, initial2);
+		ResourceStateMachine rsm1 = new ResourceStateMachine(initial);
+		ResourceStateMachine rsm2 = new ResourceStateMachine(initial2);
 		exists.addTransition("GET", rsm2);
 		exists2.addTransition("GET", rsm1);
 		

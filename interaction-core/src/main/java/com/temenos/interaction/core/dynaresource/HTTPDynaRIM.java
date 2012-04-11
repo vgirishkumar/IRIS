@@ -33,25 +33,14 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
     private final ResourceStateMachine stateMachine;
     private final ResourceState currentState;
     
-    /**
-     * Create a dynamic resource without any resource state model (state machine).
-     * @param entityName
-     * @param path
-     * @param commandController
-     */
-	public HTTPDynaRIM(String entityName, String path, CommandController commandController) {
-		this(new ResourceStateMachine(entityName, createPseudoStateMachine(entityName)), path, null, commandController);
-		this.parent = null;
-	}
-
-	private static ResourceState createPseudoStateMachine(String entityName) {
+	public static ResourceState createPseudoStateMachine(String entityName, String resourceName) {
 		/*
 		 * any interaction might be possible for a dynamic resource created without the 
 		 * assistance of a state machine, therefore add all possible transitions.
 		 */
-		ResourceState initial = new ResourceState(entityName, "pseudo.initial");
-		ResourceState pseudo = new ResourceState(entityName, "pseudo.created");
-		ResourceState deleted = new ResourceState(entityName, "pseudo.deleted");
+		ResourceState initial = new ResourceState(entityName, resourceName + ".pseudo.initial");
+		ResourceState pseudo = new ResourceState(entityName, resourceName + ".pseudo.created");
+		ResourceState deleted = new ResourceState(entityName, resourceName + ".pseudo.deleted");
 		initial.addTransition("POST", pseudo);
 		pseudo.addTransition("PUT", pseudo);
 		pseudo.addTransition("DELETE", deleted);
@@ -90,15 +79,16 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 */
 	protected HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, String path, ResourceState currentState, 
 			ResourceRegistry resourceRegistry, CommandController commandController) {
-		super(stateMachine.getEntityName(), path, resourceRegistry, commandController);
+		super(path, resourceRegistry, commandController);
 		this.parent = parent;
 		this.stateMachine = stateMachine;
 		this.currentState = currentState;
+		assert(stateMachine != null);
+		assert(currentState != null);
 		if (parent == null && stateMachine.getInitial() != null) {
 			logger.info("Checking state machine for [" + this.toString() + "]");
 			logger.info(new ASTValidation().graph(stateMachine));
 		}
-		assert(currentState != null);
 		bootstrap();
 	}
 
@@ -120,7 +110,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 					continue;
 				// check valid http method
 				if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE) || method.equals(HttpMethod.POST)))
-					throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getName() + "] for entity [" + getEntityName() + "]- invalid http method [" + method + "]");
+					throw new RuntimeException("Invalid configuration of state [" + stateMachine.getInitial().getId() + "] - invalid http method [" + method + "]");
 				// fetch command from command controller for this method
 				ResourceCommand stc = getCommandController().fetchStateTransitionCommand(method, getFQResourcePath());
 				if (stc instanceof MethodNotAllowedCommand)
@@ -161,7 +151,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			ResourceState childState = resourceStates.get(childPath);
 			if (!childState.getEntityName().equals(stateMachine.getInitial().getEntityName())) {
 				// TODO shouldn't really need to create it again
-				childSM = new ResourceStateMachine(childState.getEntityName(), childState);
+				childSM = new ResourceStateMachine(childState);
 			}
 			HTTPDynaRIM child = new HTTPDynaRIM(this, childSM, childState.getPath(), childState, getResourceRegistry(), getCommandController());
 			result.add(child);
@@ -182,6 +172,6 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	}
 
 	public String toString() {
-		return ("HTTPDynaRIM " + stateMachine.getEntityName() + "[" + getFQResourcePath() + "]");
+		return ("HTTPDynaRIM " + stateMachine.getInitial().getId() + "[" + getFQResourcePath() + "]");
 	}
 }

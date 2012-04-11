@@ -6,6 +6,7 @@ import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.commands.odata.GETEntitiesCommand;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
 @Path("/notes")
@@ -15,7 +16,7 @@ public class NotesRIM extends AbstractHTTPResourceInteractionModel {
 	private final static String ENTITYSET_NAME = "note";
 
 	public NotesRIM() {
-		super(ENTITYSET_NAME, RESOURCE_PATH);
+		super(RESOURCE_PATH);
 		/*
 		 * Not required when wired with Spring
 		 */
@@ -24,7 +25,7 @@ public class NotesRIM extends AbstractHTTPResourceInteractionModel {
 	}
 		  	
 	public NotesRIM(ODataProducer producer) {
-		super(ENTITYSET_NAME, RESOURCE_PATH);
+		super(RESOURCE_PATH);
 		initialise(producer);
 	}
 	
@@ -34,6 +35,10 @@ public class NotesRIM extends AbstractHTTPResourceInteractionModel {
 		 */
 		CommandController commandController = getCommandController();
 		commandController.setGetCommand(RESOURCE_PATH, new GETEntitiesCommand(ENTITYSET_NAME, producer));
+	}
+
+	public ResourceState getCurrentState() {
+		return null;
 	}
 
 }

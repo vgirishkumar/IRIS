@@ -77,34 +77,29 @@ public class ResourceRegistry implements HateoasContext {
 		rimMap.put(rim.getFQResourcePath(), rim);
 		
 		// populate a map of resources and their paths, and resource states and their paths 
-		if (rim.getStateMachine() != null) {
-			ResourceStateMachine stateMachine = rim.getStateMachine();
+		ResourceStateMachine stateMachine = rim.getStateMachine();
 
-			// do not update entity resource path if this resource is a child state
-			if (stateMachine.getInitial().equals(rim.getCurrentState())) {
-				
-				
-				entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
+		// do not update entity resource path if this resource is a child state
+		if (stateMachine.getInitial().equals(rim.getCurrentState())) {
+			
+			
+			entityResourcePathMap.put(rim.getCurrentState().getEntityName(), rim.getFQResourcePath());
+		}
+		/*
+		 *  create the state-path map for "self state" and child states, not necessary to
+		 *  populate the map with other resource states as these RIMs will be added
+		 *  here also 
+		 */
+		// TODO use state name for link id?
+		linkTransitionMap.put(rim.getCurrentState().getId(), new Transition(null, new TransitionCommandSpec("GET", rim.getFQResourcePath()), rim.getCurrentState()));
+		statePathMap.put(rim.getCurrentState(), rim.getFQResourcePath());
+		Collection<ResourceState> resourceStates = rim.getCurrentState().getAllTargets();
+		for (ResourceState childState : resourceStates) {
+			if (childState.isSelfState()) {
+				statePathMap.put(childState, rim.getFQResourcePath());
+			} else if (!childState.getEntityName().equals(rim.getCurrentState().getEntityName())) {
+				statePathMap.put(childState, childState.getPath());
 			}
-			/*
-			 *  create the state-path map for "self state" and child states, not necessary to
-			 *  populate the map with other resource states as these RIMs will be added
-			 *  here also 
-			 */
-			// TODO use state name for link id?
-			linkTransitionMap.put(rim.getEntityName() + "." + rim.getCurrentState().getName(), new Transition(null, new TransitionCommandSpec("GET", rim.getFQResourcePath()), rim.getCurrentState()));
-			statePathMap.put(rim.getCurrentState(), rim.getFQResourcePath());
-			Collection<ResourceState> resourceStates = rim.getCurrentState().getAllTargets();
-			for (ResourceState childState : resourceStates) {
-				if (childState.isSelfState()) {
-					statePathMap.put(childState, rim.getFQResourcePath());
-				} else if (!childState.getEntityName().equals(rim.getCurrentState().getEntityName())) {
-					statePathMap.put(childState, childState.getPath());
-				}
-			}
-		} else {
-			// must be just an entity with no state machine
-			entityResourcePathMap.put(rim.getEntityName(), rim.getFQResourcePath());
 		}
 		
 		

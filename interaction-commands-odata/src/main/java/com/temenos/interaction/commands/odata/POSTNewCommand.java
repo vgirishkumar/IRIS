@@ -70,7 +70,7 @@ public class POSTNewCommand implements ResourcePostCommand {
 		assert(functionName.getReturnType() == EdmSimpleType.INT64);
 		
 		// TODO this could either be the type we are creating an ID for, or it could just be a transient type
-		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(resourceInteraction.getEntityName());
+		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(resourceInteraction.getCurrentState().getEntityName());
 		OEntityKey entityKey = OEntityKey.create("new");
 		List<OLink> links = new ArrayList<OLink>();
 		String replacement = ((PropertyResponse)fr).getProperty().getValue().toString();

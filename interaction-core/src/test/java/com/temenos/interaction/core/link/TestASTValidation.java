@@ -26,7 +26,7 @@ public class TestASTValidation {
 		states.add(exists);
 		states.add(end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, begin);
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		ASTValidation v = new ASTValidation();
 		assertTrue(v.validate(states, sm));	
 	}
@@ -48,7 +48,7 @@ public class TestASTValidation {
 		states.add(unreachableState);
 		states.add(end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, begin);
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		ASTValidation v = new ASTValidation();
 		assertFalse(v.validate(states, sm));	
 	}
@@ -65,7 +65,7 @@ public class TestASTValidation {
 		initial.addTransition("PUT", exists);		
 		exists.addTransition("DELETE", deleted);
 				
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, initial);
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		ASTValidation v = new ASTValidation();
 		String result = v.graph(sm);
 		assertEquals(expected, result);	
@@ -89,7 +89,7 @@ public class TestASTValidation {
 		exists.addTransition("PUT", archived);
 		exists.addTransition("DELETE", deleted);
 				
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, initial);
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		ASTValidation v = new ASTValidation();
 		String result = v.graph(sm);
 		assertEquals(expected, result);	
@@ -119,7 +119,7 @@ public class TestASTValidation {
 		// finish the process
 		processStarted.addTransition("DELETE", processCompleted);
 
-		ResourceStateMachine processSM = new ResourceStateMachine(PROCESS_ENTITY_NAME,	processes);
+		ResourceStateMachine processSM = new ResourceStateMachine(processes);
 
 		// Task states
 		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
@@ -130,7 +130,7 @@ public class TestASTValidation {
 		// complete task
 		taskAcquired.addTransition("PUT", taskComplete);
 
-		ResourceStateMachine taskSM = new ResourceStateMachine(TASK_ENTITY_NAME, taskAcquired);
+		ResourceStateMachine taskSM = new ResourceStateMachine(taskAcquired);
 		/*
 		 * acquire task by a PUT to the initial state of the task state machine (acquired)
 		 */
@@ -138,7 +138,7 @@ public class TestASTValidation {
 
 		ResourceState home = new ResourceState("SERVICE_ROOT", "home");
 		home.addTransition("GET", processSM);
-		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine("SERVICE_ROOT", home);
+		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
 		
 		System.out.println(new ASTValidation().graph(serviceDocumentSM));
 

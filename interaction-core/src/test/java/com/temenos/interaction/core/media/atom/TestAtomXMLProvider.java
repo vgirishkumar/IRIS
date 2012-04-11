@@ -55,6 +55,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -224,7 +225,9 @@ public class TestAtomXMLProvider {
 	public void testReadPath() throws Exception {
 		EdmDataServices metadata = mock(EdmDataServices.class);
 		ResourceRegistry registry = mock(ResourceRegistry.class);
-		when(registry.getResourceInteractionModel(anyString())).thenReturn(mock(ResourceInteractionModel.class));
+		ResourceInteractionModel rim = mock(ResourceInteractionModel.class);
+		when(rim.getCurrentState()).thenReturn(mock(ResourceState.class));
+		when(registry.getResourceInteractionModel(anyString())).thenReturn(rim);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
 		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
@@ -254,7 +257,9 @@ public class TestAtomXMLProvider {
 	public void testReadPathNoEntityKey() throws Exception {
 		EdmDataServices metadata = mock(EdmDataServices.class);
 		ResourceRegistry registry = mock(ResourceRegistry.class);
-		when(registry.getResourceInteractionModel("/test/someresource")).thenReturn(mock(ResourceInteractionModel.class));
+		ResourceInteractionModel rim = mock(ResourceInteractionModel.class);
+		when(rim.getCurrentState()).thenReturn(mock(ResourceState.class));
+		when(registry.getResourceInteractionModel("/test/someresource")).thenReturn(rim);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
 		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
@@ -313,7 +318,9 @@ public class TestAtomXMLProvider {
 	public void testReadEntityResourceOEntity() throws Exception {
 		EdmDataServices metadata = mock(EdmDataServices.class);
 		ResourceRegistry registry = mock(ResourceRegistry.class);
-		when(registry.getResourceInteractionModel(anyString())).thenReturn(mock(ResourceInteractionModel.class));
+		ResourceInteractionModel rim = mock(ResourceInteractionModel.class);
+		when(rim.getCurrentState()).thenReturn(mock(ResourceState.class));
+		when(registry.getResourceInteractionModel(anyString())).thenReturn(rim);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
 		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);

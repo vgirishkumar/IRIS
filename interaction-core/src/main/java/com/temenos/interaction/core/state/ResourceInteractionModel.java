@@ -7,15 +7,16 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
+import com.temenos.interaction.core.link.ResourceState;
 
 public interface ResourceInteractionModel {
 
-	/**
-	 * The name of resource definition that this interaction model deals with
-	 * @return
-	 */
-	public String getEntityName();
-	/**
+    /**
+     * The current application state.
+     * @return
+     */
+    public ResourceState getCurrentState();
+    /**
 	 * The path to this resource
 	 * @return
 	 */

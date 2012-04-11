@@ -76,7 +76,6 @@
     <bean id="ServiceDocument" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine">
     		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="entityName" value="ServiceDocument" />
     			<constructor-arg name="initialState">
     				<bean class="com.temenos.interaction.core.link.ResourceState">
     					<constructor-arg name="entityName" value="ServiceDocument" />
@@ -93,7 +92,6 @@
     <bean id="Metadata" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine">
     		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="entityName" value="Metadata" />
     			<constructor-arg name="initialState">
     				<bean class="com.temenos.interaction.core.link.ResourceState">
     					<constructor-arg name="entityName" value="Metadata" />
@@ -108,79 +106,219 @@
     </bean>
 
     <bean id="Supplier" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Suppliers" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Suppliers" />
+    					<constructor-arg name="resourceName" value="item" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Suppliers/{id}" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     <bean id="Suppliers" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Suppliers" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Suppliers" />
+    					<constructor-arg name="resourceName" value="collection" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Suppliers" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
 
     <bean id="Order_Detail" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Order_Details" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Order_Details" />
+    					<constructor-arg name="resourceName" value="item" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Order_Details/{id}" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     <bean id="Order_Details" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Order_Details" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Order_Details" />
+    					<constructor-arg name="resourceName" value="collection" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Order_Details" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
 
     <bean id="Category" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Categories" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Categories" />
+    					<constructor-arg name="resourceName" value="item" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Categories/{id}" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     <bean id="Categories" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Categories" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Categories" />
+    					<constructor-arg name="resourceName" value="collection" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Categories" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     
     <bean id="Customer" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Customers" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Customers" />
+    					<constructor-arg name="resourceName" value="item" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Customers/{id}" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     <bean id="Customers" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Customers" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Customers" />
+    					<constructor-arg name="resourceName" value="collection" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Customers" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
 
     <bean id="Product" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Products" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Products" />
+    					<constructor-arg name="resourceName" value="item" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Products/{id}" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     <bean id="Products" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Products" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Products" />
+    					<constructor-arg name="resourceName" value="collection" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Products" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
 
     <bean id="Employee" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Employees" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Employees" />
+    					<constructor-arg name="resourceName" value="item" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Employees/{id}" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     <bean id="Employees" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Employees" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Employees" />
+    					<constructor-arg name="resourceName" value="collection" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Employees" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
 
     <bean id="Order" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Orders" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Orders" />
+    					<constructor-arg name="resourceName" value="item" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Orders/{id}" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     <bean id="Orders" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="entityName" value="Orders" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="Orders" />
+    					<constructor-arg name="resourceName" value="collection" />
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="/Orders" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     

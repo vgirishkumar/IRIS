@@ -69,7 +69,6 @@
     <bean id="ServiceDocument" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine">
     		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="entityName" value="ServiceDocument" />
     			<constructor-arg name="initialState">
     				<bean class="com.temenos.interaction.core.link.ResourceState">
     					<constructor-arg name="entityName" value="ServiceDocument" />
@@ -86,7 +85,6 @@
     <bean id="Metadata" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine">
     		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="entityName" value="Metadata" />
     			<constructor-arg name="initialState">
     				<bean class="com.temenos.interaction.core.link.ResourceState">
     					<constructor-arg name="entityName" value="Metadata" />
@@ -106,8 +104,22 @@
 #else
     <bean id="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
 #end
-    	<constructor-arg name="entityName" value="$resourceInfo.getJPAEntityInfo().getClazz()" />
+    	<constructor-arg name="stateMachine">
+    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    			<constructor-arg name="initialState">
+    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    					<constructor-arg name="entityName" value="$resourceInfo.getJPAEntityInfo().getClazz()" />
+#if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
+    					<constructor-arg name="resourceName" value="item" />
+#else
+    					<constructor-arg name="resourceName" value="collection" />
+#end
+    				</bean>
+    			</constructor-arg>
+    		</bean>
+    	</constructor-arg>
     	<constructor-arg name="path" value="$resourceInfo.getResourcePath()" />
+    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     

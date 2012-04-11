@@ -189,7 +189,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 			// parse the request content
 			Reader reader = new InputStreamReader(entityStream);
-			Entry e = new AtomEntryFormatParser(edmDataServices, rim.getEntityName(), entityKey, null).parse(reader);
+			Entry e = new AtomEntryFormatParser(edmDataServices, rim.getCurrentState().getEntityName(), entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} else {

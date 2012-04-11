@@ -5,6 +5,7 @@ import javax.ws.rs.Path;
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
 /**
@@ -20,9 +21,11 @@ public class NewNoteRIM extends AbstractHTTPResourceInteractionModel {
 	private final static String ENTITY_NAME = "ID";
 	private final static String DOMAIN_OBJECT_NAME = "NOTE";
 	
+	private final ResourceState initial;
+	
 	public NewNoteRIM() {
-		super(ENTITY_NAME, RESOURCE_PATH);
-
+		super(RESOURCE_PATH);
+		initial = new ResourceState(ENTITY_NAME, "initial");
 		/*
 		 * Not required when wired with Spring
 		 */
@@ -31,7 +34,8 @@ public class NewNoteRIM extends AbstractHTTPResourceInteractionModel {
 	}
 		  	
 	public NewNoteRIM(ODataProducer producer) {
-		super(ENTITY_NAME, RESOURCE_PATH);
+		super(RESOURCE_PATH);
+		initial = new ResourceState(ENTITY_NAME, "initial");
 		initialise(producer);
 	}
 	
@@ -42,6 +46,10 @@ public class NewNoteRIM extends AbstractHTTPResourceInteractionModel {
 		CommandController commandController = getCommandController();
 		commandController.setGetCommand(RESOURCE_PATH, new GETNewNoteCommand(DOMAIN_OBJECT_NAME, producer));
 		commandController.addStateTransitionCommand(RESOURCE_PATH, new POSTNewNoteCommand(this, DOMAIN_OBJECT_NAME, OEntityNoteRIM.RESOURCE_PATH, producer));
+	}
+
+	public ResourceState getCurrentState() {
+		return initial;
 	}
 
 }

@@ -25,9 +25,14 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.core4j.Enumerable;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
+import org.odata4j.core.OProperties;
+import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmNavigationProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,26 +69,20 @@ import com.temenos.interaction.core.link.ResourceState;
 public abstract class AbstractHTTPResourceInteractionModel implements HTTPResourceInteractionModel {
 	private final static Logger logger = LoggerFactory.getLogger(AbstractHTTPResourceInteractionModel.class);
 
-	private String entityName;
 	private String resourcePath;
 	private ResourceRegistry resourceRegistry;
 	private CommandController commandController;
 		
-	public AbstractHTTPResourceInteractionModel(String entityName, String resourcePath) {
-		this(entityName, resourcePath, null, new CommandController());
+	public AbstractHTTPResourceInteractionModel(String resourcePath) {
+		this(resourcePath, null, new CommandController());
 	}
 
-	public AbstractHTTPResourceInteractionModel(String entityName, String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
-		this.entityName = entityName;
+	public AbstractHTTPResourceInteractionModel(String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
 		this.resourcePath = resourcePath;
 		// TODO extract resource registry into HTTPDynaRIM
 		this.resourceRegistry = resourceRegistry;
 		this.commandController = commandController;
 		assert(this.commandController != null);
-	}
-
-	public String getEntityName() {
-		return entityName;
 	}
 
 	public String getResourcePath() {
@@ -108,14 +107,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		return null;
 	}
 
-    /**
-     * The current application state.
-     * @return
-     */
-    public ResourceState getCurrentState() {
-    	return null;
-    }
-    
 	/**
 	 * We use links (also called hypermedia) for controlling / describing application 
 	 * state.  This method returns a context object for the application state at the 
@@ -184,7 +175,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 //	    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity, getCurrentState());
 	    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity);
 	        	// create a new entity as at the moment we pass the resource links in the OEntity
-	        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(entityName), oEntity.getEntityKey(), oEntity.getProperties(), links);;
+	        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(oEntity.getEntitySet().getName()), oEntity.getEntityKey(), oEntity.getProperties(), links);;
 	        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
 	        	entity = rebuilt.getGenericEntity();
 	    	}	    	
@@ -193,9 +184,9 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	    	HateoasResponseBuilder builder = HateoasResponse.ok();
 	    	if (getHateoasContext() != null) {
 	    		if (id != null) {
-		    		builder.selfLink(getHateoasContext(), (getCurrentState() != null ? entityName + "." + getCurrentState().getName() : entityName), id);	    		
+		    		builder.selfLink(getHateoasContext(), getCurrentState().getId(), id);	    		
 	    		} else {
-		    		builder.selfLink(getHateoasContext(), (getCurrentState() != null ? entityName + "." + getCurrentState().getName() : entityName));
+		    		builder.selfLink(getHateoasContext(), getCurrentState().getId());
 	    		}
 	    	}
 	    	builder.entity(entity);
@@ -245,6 +236,31 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	RESTResponse response = null;
     	if (c instanceof ResourcePostCommand) {
     		ResourcePostCommand postCommand = (ResourcePostCommand) c;
+    		
+			GenericEntity<?> entity = resource.getGenericEntity();
+			if (entity != null) {
+				EntityResource<OEntity> er = (EntityResource<OEntity>) entity.getEntity();
+		    	OEntity oEntity = er.getEntity();
+		    	if (oEntity != null) {
+			    	List<OProperty<?>> oProperties = new ArrayList<OProperty<?>>();
+			    	oProperties.addAll(oEntity.getProperties());
+			    	if (oEntity.getLinks() != null && oEntity.getLinks().size() > 0) {
+				    	Enumerable<EdmNavigationProperty> enumnp = oEntity.getEntityType().getNavigationProperties();
+				    	for (EdmNavigationProperty np : enumnp.toList()) {
+				    		System.out.println("name=" + np.getName() + "; relName=" + np.getRelationship().getName() + "; rel=" + np.getRelationship().getFQNamespaceName());
+					    	// should use rel here
+					    	//EdmEntitySet relatedEntity = resourceRegistry.getEntitySet(id);
+				    		oProperties.add(OProperties.string(np.getName(), "1"));
+				    	}
+				    	for (OLink link : oEntity.getLinks()) {
+				    		System.out.println("Link rel=" + link.getRelation() + "; id=" + link.getHref());
+				    	}
+			    	}
+		        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(oEntity.getEntitySet().getName()), OEntityKey.create(""), oProperties, new ArrayList<OLink>());
+		        	resource = new EntityResource<OEntity>(oe) {};
+		    	}
+			}
+
         	response = postCommand.post(id, resource);
         	assert (response != null);
         	status = response.getStatus();
