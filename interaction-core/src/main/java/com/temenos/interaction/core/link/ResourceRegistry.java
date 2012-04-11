@@ -13,6 +13,7 @@ import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmMultiplicity;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.slf4j.Logger;
@@ -165,7 +166,7 @@ public class ResourceRegistry implements HateoasContext {
 		// these are links to associated Entities
 		List<OLink> associatedLinks = new ArrayList<OLink>();
 
-		EdmEntitySet ees = entity.getEntitySet();
+		EdmEntitySet ees = getEntitySet(entity.getEntitySetName());
 		for (EdmNavigationProperty np : ees.getType().getNavigationProperties()) {
 			String otherEntity = np.getToRole().getType().getName();			
 			
@@ -176,14 +177,17 @@ public class ResourceRegistry implements HateoasContext {
 	        
 			String pathOtherResource = getEntityResourcePath(otherEntity);
 			if (pathOtherResource != null) {
-				associatedLinks.add(OLinks.relatedEntity(rel, otherEntity, pathOtherResource));
+	            if (np.getToRole().getMultiplicity() == EdmMultiplicity.MANY) {
+					associatedLinks.add(OLinks.relatedEntities(rel, otherEntity, pathOtherResource));
+	              } else {
+	  				associatedLinks.add(OLinks.relatedEntity(rel, otherEntity, pathOtherResource));
+	              }
 			}
 		}
 		
 		// these are links supplied from the producer at runtime (not defined in the associations section of the EDMX file)
 		for (OLink link : entity.getLinks()) {
-			System.out.println("Do something: " + link.getHref());
-			throw new RuntimeException();
+			System.out.println("We need to do something: " + link.getHref());
 		}
 
 		// these are links or forms to transition to another state

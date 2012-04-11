@@ -131,7 +131,7 @@ public class TestResourceRegistry {
 		List<OLink> links = new ArrayList<OLink>();
 		OEntity flightEntity = OEntities.create(entitySet, entityKey, properties, links);
 		
-		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
+		ResourceRegistry rr = new ResourceRegistry(ds, new HashSet<HTTPDynaRIM>());
 		// give the FlightSchedule resource a path
 		HTTPDynaRIM rim = createMockHTTPDynaRIM();
 		when(rim.getCurrentState().getEntityName()).thenReturn("FlightSchedule");

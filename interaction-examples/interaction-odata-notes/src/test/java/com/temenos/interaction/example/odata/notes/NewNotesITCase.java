@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import javax.ws.rs.core.MediaType;
 
+import org.core4j.Enumerable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +43,30 @@ public class NewNotesITCase extends JerseyTest {
 
 	@Test
 	/**
+	 * GET collection, check link to another entity
+	 */
+	public void getPersonsLinksToNotes() throws Exception {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+
+		Enumerable<OEntity> persons = consumer
+				.getEntities("Person").execute();
+
+		// should be only one result, but test could be run multiple times
+		assertTrue(persons.count() > 0);
+		
+		OEntity person = persons.first();
+		Integer id = (Integer) person.getProperty("Id").getValue();
+		assertEquals(1, (int) id);
+		assertEquals("example", person.getProperty("name").getValue());
+
+		// there should be one link to one note for this person
+		assertEquals(1, person.getLinks().size());
+		assertEquals("Person(1)/Note", person.getLinks().get(0).getHref());
+		
+	}
+
+//	@Test
+	/**
 	 * Creation of entity with link to another entity
 	 */
 	public void createPersonSingleNote() throws Exception {
@@ -65,7 +90,7 @@ public class NewNotesITCase extends JerseyTest {
 		Integer noteId = (Integer) note.getProperty("Id").getValue();
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
-		assertEquals(1, note.getLinks());
+		assertEquals(1, note.getLinks().size());
 
 	}
 

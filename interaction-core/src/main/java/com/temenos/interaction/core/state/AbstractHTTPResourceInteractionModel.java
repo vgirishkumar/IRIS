@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
+import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.ExtendedMediaTypes;
@@ -162,21 +163,34 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			assert(response.getResource() != null);
 
 			//Wrap response into a JAX-RS GenericEntity object 
-			GenericEntity<?> entity = response.getResource().getGenericEntity();
+			GenericEntity<?> resource = response.getResource().getGenericEntity();
 			
 			//Rebuild resource links if necessary
-			if (resourceRegistry != null &&
-	    			ResourceTypeHelper.isType(entity.getRawType(), entity.getType(), EntityResource.class)) {
-	    		EntityResource<OEntity> er = (EntityResource<OEntity>) entity.getEntity();
-	    		OEntity oEntity = er.getEntity();
-	        	
-	    		// get the links for this entity
-//	    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity, getCurrentState());
-	    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity);
-	        	// create a new entity as at the moment we pass the resource links in the OEntity
-	        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(oEntity.getEntitySet().getName()), oEntity.getEntityKey(), oEntity.getProperties(), links);;
-	        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
-	        	entity = rebuilt.getGenericEntity();
+			if (resourceRegistry != null) {
+				if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), EntityResource.class)) {
+		    		EntityResource<OEntity> er = (EntityResource<OEntity>) resource.getEntity();
+		    		OEntity oEntity = er.getEntity();
+		        	
+		    		// get the links for this entity
+		    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity);
+		        	// create a new entity as at the moment we pass the resource links in the OEntity
+		        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(oEntity.getEntitySet().getName()), oEntity.getEntityKey(), oEntity.getProperties(), links);;
+		        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
+		        	resource = rebuilt.getGenericEntity();
+				} else if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), CollectionResource.class)) {
+					CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource.getEntity();
+					List<OEntity> entities = (List<OEntity>) cr.getEntities();
+					List<OEntity> newEntities = new ArrayList<OEntity>();
+					for (OEntity oEntity : entities) {
+			    		// get the links for this entity
+			    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity);
+			        	// create a new entity as at the moment we pass the resource links in the OEntity
+			        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(oEntity.getEntitySet().getName()), oEntity.getEntityKey(), oEntity.getProperties(), links);
+			        	newEntities.add(oe);
+					}
+					CollectionResource<OEntity> rebuilt = new CollectionResource<OEntity>(cr.getEntitySetName(), newEntities, null) {};
+		        	resource = rebuilt.getGenericEntity();
+				}
 	    	}	    	
 
 			// Create hypermedia representation for this resource
@@ -188,7 +202,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		    		builder.selfLink(getHateoasContext(), getCurrentState().getId());
 	    		}
 	    	}
-	    	builder.entity(entity);
+	    	builder.entity(resource);
 	    	
 			// Create the Response for this resource GET (representation created by the jax-rs Provider)
 			return HeaderHelper.allowHeader(builder, getInteractions()).build();

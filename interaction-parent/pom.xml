@@ -17,6 +17,7 @@
 		<module>../interaction-sdk-archetype</module>
 		<module>../interaction-examples/interaction-odata-northwind</module>
 		<module>../interaction-examples/interaction-odata-airline</module>
+		<module>../interaction-examples/interaction-odata-notes</module>
 		<module>../interaction-examples/interaction-notes</module>
 	</modules>
 
