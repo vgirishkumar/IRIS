@@ -31,6 +31,7 @@ public class TestRegistrarWithSingletons {
 	private HTTPDynaRIM createMockHTTPDynaRIM(String entityName, String path) {
 		HTTPDynaRIM rim = mock(HTTPDynaRIM.class);
 		ResourceState rs = mock(ResourceState.class);
+		when(rs.getName()).thenReturn("");
 		when(rs.getEntityName()).thenReturn(entityName);
 		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
 		when(rsm.getInitial()).thenReturn(rs);
