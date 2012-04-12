@@ -2,10 +2,16 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.mycompany.useragentdev</groupId>
+  <parent>
+	<groupId>com.temenos.interaction</groupId>
+	<artifactId>interaction-parent</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<relativePath>../../interaction-parent/pom.xml</relativePath>
+  </parent>
+
+  <groupId>com.temenos.interaction.example</groupId>
   <artifactId>interaction-odata-notes</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
 
   <name>interaction-example-odata-notes</name>
   <url>http://www.temenos.com</url>
@@ -99,28 +105,24 @@
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-core</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-winkext</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-commands-odata</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-sdk</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
@@ -129,50 +131,36 @@
     <dependency>
       <groupId>org.odata4j</groupId>
       <artifactId>odata4j-jersey</artifactId>
-      <version>0.6.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
     	<groupId>com.sun.jersey</groupId>
     	<artifactId>jersey-bundle</artifactId>
-		<version>1.1.1-ea</version>
     	<scope>test</scope>
     </dependency>
     <dependency>
     	<groupId>com.sun.jersey.test.framework</groupId>
     	<artifactId>jersey-test-framework</artifactId>
-		<version>1.1.1-ea</version>
     	<scope>test</scope>
     </dependency>
 
     <dependency>
     	<groupId>org.apache.wink</groupId>
     	<artifactId>wink-spring-support</artifactId>
-    	<version>1.1.3-incubating</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
 
-    <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
-    <dependency>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>javax.persistence</artifactId>
-      <version>2.0.0</version>
-      <scope>provided</scope>
-    </dependency>
-    
     <!-- Responder inmemory database -->
     <dependency>
     	<groupId>hsqldb</groupId>
     	<artifactId>hsqldb</artifactId>
-    	<version>1.8.0.10</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>org.hibernate</groupId>
     	<artifactId>hibernate-entitymanager</artifactId>
-    	<version>3.6.7.Final</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
@@ -180,7 +168,6 @@
     <dependency>
     	<groupId>ch.qos.logback</groupId>
     	<artifactId>logback-classic</artifactId>
-    	<version>0.9.29</version>
     	<scope>runtime</scope>
     </dependency>
 
