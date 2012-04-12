@@ -17,6 +17,15 @@ public class TestTransition {
 		assertEquals(t.hashCode(), t2.hashCode());
 	}
 	
+	@Test
+	public void testEqualityNullSource() {
+		ResourceState begin2 = new ResourceState("begin", "");
+		Transition t = new Transition(null, new TransitionCommandSpec("PUT", "stuff"), begin2);
+		Transition t2 = new Transition(null, new TransitionCommandSpec("PUT", "stuff"), begin2);
+		assertEquals(t, t2);
+		assertEquals(t.hashCode(), t2.hashCode());
+	}
+
 	@Test 
 	public void testInequality() {
 		ResourceState begin = new ResourceState("begin", "");

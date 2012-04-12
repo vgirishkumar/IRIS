@@ -29,13 +29,13 @@ public class Transition {
 	    if ( !(other instanceof Transition) ) return false;
 	    Transition otherTrans = (Transition) other;
 	    // only compare the ResourceState name to avoid recursion
-	    return source.getName().equals(otherTrans.source.getName()) &&
+	    return ((source == null && otherTrans.source == null) || source.getName().equals(otherTrans.source.getName())) &&
 	    	target.getName().equals(otherTrans.target.getName()) &&
 	    	command.equals(otherTrans.command);
 	}
 	
 	public int hashCode() {
-		return source.getName().hashCode() +
+		return (source != null ? source.getName().hashCode() : 0) +
 			target.getName().hashCode() +
 			command.hashCode();
 	}
