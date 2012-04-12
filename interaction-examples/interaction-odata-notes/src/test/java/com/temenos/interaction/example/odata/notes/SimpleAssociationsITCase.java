@@ -23,11 +23,11 @@ import com.sun.jersey.test.framework.JerseyTest;
  * 
  * @author aphethean
  */
-public class NewNotesITCase extends JerseyTest {
+public class SimpleAssociationsITCase extends JerseyTest {
 
 	protected static final String endpointUri = "http://localhost:8080/example/interaction-odata-notes.svc/";
 
-	public NewNotesITCase() throws Exception {
+	public SimpleAssociationsITCase() throws Exception {
 		super();
 	}
 	
@@ -40,6 +40,24 @@ public class NewNotesITCase extends JerseyTest {
 
 	@After
 	public void tearDown() {}
+
+	@Test
+	/**
+	 * GET item, check link to another entity
+	 */
+	public void getPersonLinksToNote() throws Exception {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+
+		OEntity person = consumer.getEntity("Person", 1).execute();
+		Integer id = (Integer) person.getProperty("Id").getValue();
+		assertEquals(1, (int) id);
+		assertEquals("example", person.getProperty("name").getValue());
+
+		// there should be one link to one note for this person
+		assertEquals(1, person.getLinks().size());
+		assertEquals("Person(1)/Note", person.getLinks().get(0).getHref());
+		
+	}
 
 	@Test
 	/**
