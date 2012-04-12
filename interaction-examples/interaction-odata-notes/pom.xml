@@ -151,6 +151,13 @@
     	<scope>runtime</scope>
     </dependency>
 
+    <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- Responder inmemory database -->
     <dependency>
     	<groupId>hsqldb</groupId>
