@@ -3,11 +3,11 @@
     <edmx:DataServices m:DataServiceVersion="1.0">
         <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="InteractionNoteModel">
 			<EntityContainer Name="InteractionNotes">
-				<EntitySet Name="Note" EntityType="InteractionNoteModel.Note" />
-				<EntitySet Name="Person" EntityType="InteractionNoteModel.Person" />
-				<AssociationSet Name="PersonNote" Association="InteractionNoteModel.PersonNote">
-					<End Role="Person" EntitySet="Person" />
-					<End Role="Note" EntitySet="Note" />
+				<EntitySet Name="Notes" EntityType="InteractionNoteModel.Note" />
+				<EntitySet Name="Persons" EntityType="InteractionNoteModel.Person" />
+				<AssociationSet Name="PersonNotes" Association="InteractionNoteModel.PersonNotes">
+					<End Role="Person" EntitySet="Persons" />
+					<End Role="Note" EntitySet="Notes" />
 				</AssociationSet>
 			</EntityContainer>
 			<EntityType Name="Note">
@@ -16,7 +16,7 @@
 				</Key>
 				<Property Type="Edm.Int32" Name="Id" Nullable="false" />
 				<Property Type="Edm.String" Name="body" Nullable="false" />
-				<NavigationProperty Name="person" Relationship="InteractionNoteModel.PersonNote" FromRole="Note" ToRole="Person" />
+				<NavigationProperty Name="Persons" Relationship="InteractionNoteModel.PersonNotes" FromRole="Note" ToRole="Person" />
 			</EntityType>
 			<EntityType Name="Person">
 				<Key>
@@ -24,9 +24,9 @@
 				</Key>
 				<Property Type="Edm.Int32" Name="Id" Nullable="false" />
 				<Property Type="Edm.String" Name="name" Nullable="false" />
-				<NavigationProperty Name="Notes" Relationship="InteractionNoteModel.PersonNote" FromRole="Person" ToRole="Note" />
+				<NavigationProperty Name="Notes" Relationship="InteractionNoteModel.PersonNotes" FromRole="Person" ToRole="Note" />
 			</EntityType>
-			<Association Name="PersonNote">
+			<Association Name="PersonNotes">
 				<End Type="InteractionNoteModel.Note" Role="Note" Multiplicity="*" />
 				<End Type="InteractionNoteModel.Person" Role="Person" Multiplicity="0..1" />
 			</Association>

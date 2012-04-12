@@ -32,6 +32,8 @@ import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,9 +153,18 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	logger.debug("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceGetCommand getCommand = getCommandController().fetchGetCommand(getFQResourcePath());
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters() : null;
+    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
+    	
+    	// debugging
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	if (pathParameters != null) {
+        	for (String pathParam : pathParameters.keySet()) {
+        		System.out.println("PathParam " + pathParam + ":" + pathParameters.get(pathParam));
+        	}
+    	}
+    	
     	RESTResponse response = getCommand.get(id, queryParameters);
 
     	assert (response != null);
@@ -168,27 +179,35 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			//Rebuild resource links if necessary
 			if (resourceRegistry != null) {
 				if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), EntityResource.class)) {
-		    		EntityResource<OEntity> er = (EntityResource<OEntity>) resource.getEntity();
+					String entitySetName = getCurrentState().getEntityName();
+					EdmEntitySet entitySet = resourceRegistry.getEntitySet(entitySetName);
+					EdmEntityType entityType = entitySet.getType();
+
+					EntityResource<OEntity> er = (EntityResource<OEntity>) resource.getEntity();
 		    		OEntity oEntity = er.getEntity();
 		        	
 		    		// get the links for this entity
-		    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity);
+		    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
 		        	// create a new entity as at the moment we pass the resource links in the OEntity
-		        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(oEntity.getEntitySet().getName()), oEntity.getEntityKey(), oEntity.getProperties(), links);;
+		        	OEntity oe = OEntities.create(entitySet, oEntity.getEntityKey(), oEntity.getProperties(), links);;
 		        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
 		        	resource = rebuilt.getGenericEntity();
 				} else if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), CollectionResource.class)) {
+					String entitySetName = getCurrentState().getEntityName();
+					EdmEntitySet entitySet = resourceRegistry.getEntitySet(entitySetName);
+					EdmEntityType entityType = entitySet.getType();
+
 					CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource.getEntity();
 					List<OEntity> entities = (List<OEntity>) cr.getEntities();
 					List<OEntity> newEntities = new ArrayList<OEntity>();
 					for (OEntity oEntity : entities) {
 			    		// get the links for this entity
-			    		List<OLink> links = resourceRegistry.getNavigationLinks(oEntity);
+			    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
 			        	// create a new entity as at the moment we pass the resource links in the OEntity
-			        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(oEntity.getEntitySet().getName()), oEntity.getEntityKey(), oEntity.getProperties(), links);
+			        	OEntity oe = OEntities.create(entitySet, oEntity.getEntityKey(), oEntity.getProperties(), links);
 			        	newEntities.add(oe);
 					}
-					CollectionResource<OEntity> rebuilt = new CollectionResource<OEntity>(cr.getEntitySetName(), newEntities, null) {};
+					CollectionResource<OEntity> rebuilt = new CollectionResource<OEntity>(entitySetName, newEntities, null) {};
 		        	resource = rebuilt.getGenericEntity();
 				}
 	    	}	    	

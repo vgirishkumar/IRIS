@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.odata4j.core.OEntity;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmMultiplicity;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.format.xml.XmlFormatWriter;
@@ -91,8 +91,11 @@ public class ResourceRegistry implements HateoasContext {
 		 *  populate the map with other resource states as these RIMs will be added
 		 *  here also 
 		 */
-		// TODO use state name for link id?
-		linkTransitionMap.put(rim.getCurrentState().getId(), new Transition(null, new TransitionCommandSpec("GET", rim.getFQResourcePath()), rim.getCurrentState()));
+		Transition selfTransition = new Transition(null, new TransitionCommandSpec("GET", rim.getFQResourcePath()), rim.getCurrentState());
+		Transition previousSelfTransitionValue = linkTransitionMap.put(rim.getCurrentState().getId(), selfTransition);
+		if (previousSelfTransitionValue != null && !previousSelfTransitionValue.equals(selfTransition)) {
+			logger.warn("We are replacing the link registered for a transition to 'self':  previous [" + previousSelfTransitionValue.getCommand() + "], new [" + selfTransition.getCommand() + "]");
+		}
 		statePathMap.put(rim.getCurrentState(), rim.getFQResourcePath());
 		Collection<ResourceState> resourceStates = rim.getCurrentState().getAllTargets();
 		for (ResourceState childState : resourceStates) {
@@ -119,8 +122,8 @@ public class ResourceRegistry implements HateoasContext {
 		}
 	}
 	
-	public EdmEntitySet getEntitySet(String entityName) {
-		return edmDataServices.getEdmEntitySet(entityName);
+	public EdmEntitySet getEntitySet(String entitySetName) {
+		return edmDataServices.getEdmEntitySet(entitySetName);
 	}
 	
 	public String getEntityResourcePath(String entityName) {
@@ -153,43 +156,37 @@ public class ResourceRegistry implements HateoasContext {
 	 * @param entity
 	 * @param currentState
 	 * @return
-	 * @precondition non null OEntity
-	 * @precondition a resource for {@link OEntity.getEntitySetName()} must have been 
+	 * @precondition non null entityTypeName
+	 * @precondition a resource for all associated entities must have been 
 	 * 		previously added {@link ResourceRegistry.add())} to this registry
-	 * @postcondition a list of the OEntity's links to other entities
+	 * @postcondition a list of the supplied entity types' links to other entities
 	 * @invariant the resource registry will not be modified
 	 */
-	public List<OLink> getNavigationLinks(OEntity entity) {
-		assert(entity != null);
+	public List<OLink> getNavigationLinks(EdmEntityType entityType) {
+		assert(entityType != null);
 		// TODO change test so we can enable this assertion
 //		assert(entityResourcePathMap.get(entity.getEntitySetName()) != null);
 		// these are links to associated Entities
 		List<OLink> associatedLinks = new ArrayList<OLink>();
 
-		EdmEntitySet ees = getEntitySet(entity.getEntitySetName());
-		for (EdmNavigationProperty np : ees.getType().getNavigationProperties()) {
-			String otherEntity = np.getToRole().getType().getName();			
+		for (EdmNavigationProperty np : entityType.getNavigationProperties()) {
+			EdmEntityType otherType = np.getToRole().getType();
+	        String otherEntitySetName = edmDataServices.getEdmEntitySet(otherType).getName();
 			
 			// TODO get navigation value, and replace {id} with navigation property value
 			// TODO add our relations
-	        String rel = XmlFormatWriter.related + otherEntity;
+	        String rel = XmlFormatWriter.related + otherEntitySetName;
 
-	        
-			String pathOtherResource = getEntityResourcePath(otherEntity);
+			String pathOtherResource = getEntityResourcePath(otherEntitySetName);
 			if (pathOtherResource != null) {
 	            if (np.getToRole().getMultiplicity() == EdmMultiplicity.MANY) {
-					associatedLinks.add(OLinks.relatedEntities(rel, otherEntity, pathOtherResource));
+					associatedLinks.add(OLinks.relatedEntities(rel, otherEntitySetName, pathOtherResource));
 	              } else {
-	  				associatedLinks.add(OLinks.relatedEntity(rel, otherEntity, pathOtherResource));
+	  				associatedLinks.add(OLinks.relatedEntity(rel, otherEntitySetName, pathOtherResource));
 	              }
 			}
 		}
 		
-		// these are links supplied from the producer at runtime (not defined in the associations section of the EDMX file)
-		for (OLink link : entity.getLinks()) {
-			System.out.println("We need to do something: " + link.getHref());
-		}
-
 		// these are links or forms to transition to another state
 		List<OLink> transitionLinks = new ArrayList<OLink>();
 /*

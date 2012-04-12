@@ -7,17 +7,12 @@ import static org.mockito.Mockito.when;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
-import org.odata4j.core.OEntities;
-import org.odata4j.core.OEntity;
-import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
-import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.format.xml.EdmxFormatParser;
@@ -38,9 +33,10 @@ public class TestResourceRegistry {
 		assertEquals(0, set.size());
 	}
 
-	private HTTPDynaRIM createMockHTTPDynaRIM() {
+	private HTTPDynaRIM createMockHTTPDynaRIM(String id) {
 		HTTPDynaRIM rim1 = mock(HTTPDynaRIM.class);
 		ResourceState rs = mock(ResourceState.class);
+		when(rs.getId()).thenReturn(id);
 		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
 		when(rsm.getInitial()).thenReturn(rs);
 		when(rim1.getStateMachine()).thenReturn(rsm);
@@ -51,8 +47,8 @@ public class TestResourceRegistry {
 	@Test
 	public void testConstructedWithResourceSet() {
 		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
-		resourceSet.add(createMockHTTPDynaRIM());
-		HTTPDynaRIM rim2 = createMockHTTPDynaRIM();
+		resourceSet.add(createMockHTTPDynaRIM("a"));
+		HTTPDynaRIM rim2 = createMockHTTPDynaRIM("b");
 		when(rim2.getFQResourcePath()).thenReturn("rim2");
 		resourceSet.add(rim2);
 		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), resourceSet);
@@ -63,10 +59,10 @@ public class TestResourceRegistry {
 
 	@Test
 	public void testConstructedWithRootResource() {
-		HTTPDynaRIM parent = createMockHTTPDynaRIM();
+		HTTPDynaRIM parent = createMockHTTPDynaRIM("parent");
 		when(parent.getFQResourcePath()).thenReturn("parent");
-		HTTPDynaRIM child = createMockHTTPDynaRIM();
-		when(parent.getFQResourcePath()).thenReturn("child");
+		HTTPDynaRIM child = createMockHTTPDynaRIM("child");
+		when(child.getFQResourcePath()).thenReturn("child");
 
 		HashSet<ResourceInteractionModel> resourceSet = new HashSet<ResourceInteractionModel>();
 		resourceSet.add(child);
@@ -80,10 +76,10 @@ public class TestResourceRegistry {
 
 	@Test
 	public void testConstructedWithRootCircularResource() {
-		HTTPDynaRIM parent = createMockHTTPDynaRIM();
+		HTTPDynaRIM parent = createMockHTTPDynaRIM("parent");
 		when(parent.getFQResourcePath()).thenReturn("parent");
-		HTTPDynaRIM child = createMockHTTPDynaRIM();
-		when(parent.getFQResourcePath()).thenReturn("child");
+		HTTPDynaRIM child = createMockHTTPDynaRIM("child");
+		when(child.getFQResourcePath()).thenReturn("child");
 
 		HashSet<ResourceInteractionModel> parentResourceSet = new HashSet<ResourceInteractionModel>();
 		parentResourceSet.add(child);
@@ -107,7 +103,7 @@ public class TestResourceRegistry {
 		 */
 		String ENTITY_NAME = "TEST_ENTITY";
 		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
-		HTTPDynaRIM testResource = createMockHTTPDynaRIM();
+		HTTPDynaRIM testResource = createMockHTTPDynaRIM("test");
 		when(testResource.getCurrentState().getEntityName()).thenReturn(ENTITY_NAME);
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 		resourceSet.add(testResource);
@@ -125,22 +121,17 @@ public class TestResourceRegistry {
 		assertNotNull(ds.findEdmEntityType("AirlineModel.Flight"));
 
 		// Flight has a navigation property to FlightSchedule
-		EdmEntitySet entitySet = ds.findEdmEntitySet("Flight");
-		OEntityKey entityKey = OEntityKey.create("123");
-		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
-		List<OLink> links = new ArrayList<OLink>();
-		OEntity flightEntity = OEntities.create(entitySet, entityKey, properties, links);
-		
 		ResourceRegistry rr = new ResourceRegistry(ds, new HashSet<HTTPDynaRIM>());
 		// give the FlightSchedule resource a path
-		HTTPDynaRIM rim = createMockHTTPDynaRIM();
+		HTTPDynaRIM rim = createMockHTTPDynaRIM("test");
 		when(rim.getCurrentState().getEntityName()).thenReturn("FlightSchedule");
 		when(rim.getFQResourcePath()).thenReturn("/FS/{id}");
 		// register the resource
 		rr.add(rim);
 
 		// get the links for the Flight entity
-		List<OLink> entityLinks = rr.getNavigationLinks(flightEntity);
+		EdmEntitySet entitySet = ds.findEdmEntitySet("Flight");
+		List<OLink> entityLinks = rr.getNavigationLinks(entitySet.getType());
 		assertEquals(1, entityLinks.size());
 		assertEquals("/FS/{id}", entityLinks.get(0).getHref());
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FlightSchedule", entityLinks.get(0).getRelation());
@@ -165,7 +156,7 @@ public class TestResourceRegistry {
 	public void testLinkableSelf() {
 		String ENTITY_NAME = "TEST_ENTITY";
 		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
-		HTTPDynaRIM testResource = createMockHTTPDynaRIM();
+		HTTPDynaRIM testResource = createMockHTTPDynaRIM("test");
 		when(testResource.getCurrentState().getEntityName()).thenReturn(ENTITY_NAME);
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 		resourceSet.add(testResource);

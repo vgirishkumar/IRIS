@@ -48,15 +48,84 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	public void getPersonLinksToNote() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
 
-		OEntity person = consumer.getEntity("Person", 1).execute();
+		OEntity person = consumer.getEntity("Persons", 1).execute();
 		Integer id = (Integer) person.getProperty("Id").getValue();
 		assertEquals(1, (int) id);
 		assertEquals("example", person.getProperty("name").getValue());
 
 		// there should be one link to one note for this person
 		assertEquals(1, person.getLinks().size());
-		assertEquals("Person(1)/Note", person.getLinks().get(0).getHref());
-		
+		assertEquals("Persons(1)/Notes", person.getLinks().get(0).getHref());
+	}
+
+	@Test
+	/**
+	 * GET item, check link to another entity
+	 */
+	public void getNoteLinkToPerson() throws Exception {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+
+		OEntity note = consumer.getEntity("Notes", 1).execute();
+		Integer id = (Integer) note.getProperty("Id").getValue();
+		assertEquals(1, (int) id);
+		assertEquals("example", note.getProperty("body").getValue());
+
+		// there should be one link to one Person for this Note
+		assertEquals(1, note.getLinks().size());
+		assertEquals("Notes(1)/Persons", note.getLinks().get(0).getHref());
+	}
+
+	@Test
+	/**
+	 * GET item, follow link to another entity
+	 */
+	public void getPersonNotes() throws Exception {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+
+		// GET the notes for person '1'
+		Enumerable<OEntity> notes = consumer
+				.getEntities("Persons")
+				.nav(1, "Notes")
+				.execute();
+
+		// there should be one note for this person
+		assertEquals(1, notes.count());
+		assertEquals("example", notes.first().getProperty("body").getValue());
+	}
+
+	@Test
+	/**
+	 * GET item, follow link to another entity
+	 */
+	public void getNotePerson() throws Exception {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+
+		// GET the Person for Note '1'
+		OEntity person = consumer
+				.getEntity("Notes", 1)
+				.nav("Persons")
+				.execute();
+
+		// there should be one Person for this Note
+		assertEquals("example", person.getProperty("name").getValue());
+	}
+
+	@Test
+	/**
+	 * GET item, follow link to another entity
+	 */
+	public void getNotePersons() throws Exception {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+
+		// GET the Person for Note '1'
+		Enumerable<OEntity> persons = consumer
+				.getEntities("Notes")
+				.nav(1, "Persons")
+				.execute();
+
+		// there should be one Person for this Note
+		assertEquals(1, persons.count());
+		assertEquals("example", persons.first().getProperty("name").getValue());
 	}
 
 	@Test
@@ -67,7 +136,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
 
 		Enumerable<OEntity> persons = consumer
-				.getEntities("Person").execute();
+				.getEntities("Persons").execute();
 
 		// should be only one result, but test could be run multiple times
 		assertTrue(persons.count() > 0);
@@ -79,7 +148,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// there should be one link to one note for this person
 		assertEquals(1, person.getLinks().size());
-		assertEquals("Person(1)/Note", person.getLinks().get(0).getHref());
+		assertEquals("Persons(1)/Notes", person.getLinks().get(0).getHref());
 		
 	}
 

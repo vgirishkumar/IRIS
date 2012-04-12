@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -52,7 +53,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		UriInfo uriInfo = mock(UriInfo.class);
 		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl();
 		queryMap.add("$filter", "this+that");
-		when(uriInfo.getQueryParameters()).thenReturn(queryMap);
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(queryMap);
 		
 		r.get(null, "id", uriInfo);
 		verify(rgc).get(eq("id"), (MultivaluedMap<String, String>) argThat(new MultimapArgumentMatcher()));
