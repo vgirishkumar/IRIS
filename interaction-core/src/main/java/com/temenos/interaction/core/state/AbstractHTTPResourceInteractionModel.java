@@ -25,16 +25,11 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.core4j.Enumerable;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
-import org.odata4j.core.OProperties;
-import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
-import org.odata4j.edm.EdmNavigationProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,10 +168,10 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 
-			//Wrap response into a JAX-RS GenericEntity object 
+			// Wrap response into a JAX-RS GenericEntity object 
 			GenericEntity<?> resource = response.getResource().getGenericEntity();
 			
-			//Rebuild resource links if necessary
+			// Rebuild resource links if necessary
 			if (resourceRegistry != null) {
 				if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), EntityResource.class)) {
 					String entitySetName = getCurrentState().getEntityName();
@@ -213,7 +208,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	    	}	    	
 
 			// Create hypermedia representation for this resource
-	    	HateoasResponseBuilder builder = HateoasResponse.ok();
+	    	HateoasResponseBuilder builder = HateoasResponse.status(status);
 	    	if (getHateoasContext() != null) {
 	    		if (id != null) {
 		    		builder.selfLink(getHateoasContext(), getCurrentState().getId(), id);	    		
@@ -268,31 +263,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	RESTResponse response = null;
     	if (c instanceof ResourcePostCommand) {
     		ResourcePostCommand postCommand = (ResourcePostCommand) c;
-    		
-			GenericEntity<?> entity = resource.getGenericEntity();
-			if (entity != null) {
-				EntityResource<OEntity> er = (EntityResource<OEntity>) entity.getEntity();
-		    	OEntity oEntity = er.getEntity();
-		    	if (oEntity != null) {
-			    	List<OProperty<?>> oProperties = new ArrayList<OProperty<?>>();
-			    	oProperties.addAll(oEntity.getProperties());
-			    	if (oEntity.getLinks() != null && oEntity.getLinks().size() > 0) {
-				    	Enumerable<EdmNavigationProperty> enumnp = oEntity.getEntityType().getNavigationProperties();
-				    	for (EdmNavigationProperty np : enumnp.toList()) {
-				    		System.out.println("name=" + np.getName() + "; relName=" + np.getRelationship().getName() + "; rel=" + np.getRelationship().getFQNamespaceName());
-					    	// should use rel here
-					    	//EdmEntitySet relatedEntity = resourceRegistry.getEntitySet(id);
-				    		oProperties.add(OProperties.string(np.getName(), "1"));
-				    	}
-				    	for (OLink link : oEntity.getLinks()) {
-				    		System.out.println("Link rel=" + link.getRelation() + "; id=" + link.getHref());
-				    	}
-			    	}
-		        	OEntity oe = OEntities.create(resourceRegistry.getEntitySet(oEntity.getEntitySet().getName()), OEntityKey.create(""), oProperties, new ArrayList<OLink>());
-		        	resource = new EntityResource<OEntity>(oe) {};
-		    	}
-			}
-
         	response = postCommand.post(id, resource);
         	assert (response != null);
         	status = response.getStatus();
@@ -304,23 +274,41 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 			// Wrap response into a JAX-RS GenericEntity object 
-			GenericEntity<?> entity = response.getResource().getGenericEntity();
-			// Create response
-			ResponseBuilder builder = Response.status(status);
-			
+			GenericEntity<?> newResource = response.getResource().getGenericEntity();
+
+			// Rebuild resource links if necessary
+			if (resourceRegistry != null) {
+				if (ResourceTypeHelper.isType(newResource.getRawType(), newResource.getType(), EntityResource.class)) {
+					String entitySetName = getCurrentState().getEntityName();
+					EdmEntitySet entitySet = resourceRegistry.getEntitySet(entitySetName);
+					EdmEntityType entityType = entitySet.getType();
+
+					@SuppressWarnings("unchecked")
+					EntityResource<OEntity> er = (EntityResource<OEntity>) newResource.getEntity();
+		    		OEntity oEntity = er.getEntity();
+		        	
+		    		// get the links for this entity
+		    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
+		        	// create a new entity as at the moment we pass the resource links in the OEntity
+		        	OEntity oe = OEntities.create(entitySet, oEntity.getEntityKey(), oEntity.getProperties(), links);;
+		        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
+		        	newResource = rebuilt.getGenericEntity();
+				} else if (ResourceTypeHelper.isType(newResource.getRawType(), newResource.getType(), CollectionResource.class)) {
+					assert(false);  // don't expect a collection here
+				}
+	    	}	    	
+
 			// Create hypermedia representation for this resource
-/*
-			HateoasResponseBuilder builder = HateoasResponse.status(status);
+	    	HateoasResponseBuilder builder = HateoasResponse.status(status);
 	    	if (getHateoasContext() != null) {
 	    		if (id != null) {
-		    		builder.selfLink(getHateoasContext(), entityName, id);	    		
+		    		builder.selfLink(getHateoasContext(), getCurrentState().getId(), id);	    		
 	    		} else {
-		    		builder.selfLink(getHateoasContext(), entityName);
+		    		builder.selfLink(getHateoasContext(), getCurrentState().getId());
 	    		}
 	    	}
-*/
-			builder.entity(entity);
-
+	    	builder.entity(newResource);
+			
 			return HeaderHelper.allowHeader(builder, getInteractions()).build();
 		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);

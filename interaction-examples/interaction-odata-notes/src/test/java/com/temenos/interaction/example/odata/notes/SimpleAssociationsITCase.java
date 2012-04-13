@@ -152,15 +152,15 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		
 	}
 
-//	@Test
+	@Test
 	/**
 	 * Creation of entity with link to another entity
 	 */
-	public void createPersonSingleNote() throws Exception {
+	public void createPersonSingleNoteWithLink() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
 
 		OEntity person = consumer
-				.createEntity("Person")
+				.createEntity("Persons")
 				.properties(OProperties.string("name", "Noah"))
 				.execute();
 
@@ -168,17 +168,16 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertTrue(id > 0);
 		assertEquals("Noah", person.getProperty("name").getValue());
 
-		OEntity note = consumer
-				.createEntity("Note")
+ 		OEntity note = consumer
+				.createEntity("Notes")
 				.properties(OProperties.string("body", "test"))
-				.link("person", person)
+				.link("Persons", person)
 				.execute();
 
 		Integer noteId = (Integer) note.getProperty("Id").getValue();
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
 		assertEquals(1, note.getLinks().size());
-
 	}
 
 	/*

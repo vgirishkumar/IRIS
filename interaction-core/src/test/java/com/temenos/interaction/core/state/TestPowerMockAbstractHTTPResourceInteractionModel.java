@@ -8,6 +8,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
+import javax.ws.rs.core.Response.StatusType;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -43,7 +45,7 @@ public class TestPowerMockAbstractHTTPResourceInteractionModel {
 		when(mockBuilder.selfLink(any(HateoasContext.class), anyString(), anyString())).thenReturn(mockBuilder);
 		when(mockBuilder.entity(any(EntityResource.class))).thenReturn(mockBuilder);
 		when(mockBuilder.header(anyString(), anyString())).thenReturn(mockBuilder);
-		when(HateoasResponse.ok()).thenReturn(mockBuilder);
+		when(HateoasResponse.status(any(StatusType.class))).thenReturn(mockBuilder);
 		
 		r.get(null, "123", null);
 		
@@ -72,7 +74,7 @@ public class TestPowerMockAbstractHTTPResourceInteractionModel {
 		when(mockBuilder.selfLink(any(HateoasContext.class), anyString(), anyString())).thenReturn(mockBuilder);
 		when(mockBuilder.entity(any(EntityResource.class))).thenReturn(mockBuilder);
 		when(mockBuilder.header(anyString(), anyString())).thenReturn(mockBuilder);
-		when(HateoasResponse.ok()).thenReturn(mockBuilder);
+		when(HateoasResponse.status(any(StatusType.class))).thenReturn(mockBuilder);
 		
 		r.get(null, "123", null);
 		

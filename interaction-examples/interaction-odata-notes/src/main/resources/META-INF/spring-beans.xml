@@ -314,7 +314,7 @@
                     <key><value>GET+/Notes({id})/Persons</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
                         <constructor-arg name="entity" value="Note" />
-                        <constructor-arg name="navProperty" value="person" />
+                        <constructor-arg name="navProperty" value="Persons" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>

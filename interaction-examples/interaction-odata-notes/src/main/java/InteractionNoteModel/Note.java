@@ -22,11 +22,9 @@ public class Note {
 	private String body;
 	
 	/* link to the person whose note this belongs to */
-	private Integer personId;
-	
 	@ManyToOne
 	@JoinColumn(name = "PERSONID")
-	private Person person;
+	private Person Persons;
 	
 	public Note() {}
 }
