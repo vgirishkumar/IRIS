@@ -25,8 +25,6 @@ import com.sun.jersey.test.framework.JerseyTest;
  */
 public class SimpleAssociationsITCase extends JerseyTest {
 
-	protected static final String endpointUri = "http://localhost:8080/example/interaction-odata-notes.svc/";
-
 	public SimpleAssociationsITCase() throws Exception {
 		super();
 	}
@@ -35,7 +33,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	public void initTest() {
 		// TODO make this configurable
 		// test with external server 
-    	webResource = Client.create().resource(endpointUri); 
+    	webResource = Client.create().resource(Configuration.TEST_ENDPOINT_URI); 
 	}
 
 	@After
@@ -46,7 +44,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	 * GET item, check link to another entity
 	 */
 	public void getPersonLinksToNote() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity person = consumer.getEntity("Persons", 1).execute();
 		Integer id = (Integer) person.getProperty("Id").getValue();
@@ -63,7 +61,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	 * GET item, check link to another entity
 	 */
 	public void getNoteLinkToPerson() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity note = consumer.getEntity("Notes", 1).execute();
 		Integer id = (Integer) note.getProperty("Id").getValue();
@@ -80,7 +78,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	 * GET item, follow link to another entity
 	 */
 	public void getPersonNotes() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		// GET the notes for person '1'
 		Enumerable<OEntity> notes = consumer
@@ -88,8 +86,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 				.nav(1, "Notes")
 				.execute();
 
-		// there should be one note for this person
-		assertEquals(1, notes.count());
+		// there should be two notes for this person
+		assertEquals(2, notes.count());
 		assertEquals("example", notes.first().getProperty("body").getValue());
 	}
 
@@ -98,7 +96,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	 * GET item, follow link to another entity
 	 */
 	public void getNotePerson() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		// GET the Person for Note '1'
 		OEntity person = consumer
@@ -115,7 +113,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	 * GET item, follow link to another entity
 	 */
 	public void getNotePersons() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		// GET the Person for Note '1'
 		Enumerable<OEntity> persons = consumer
@@ -133,7 +131,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	 * GET collection, check link to another entity
 	 */
 	public void getPersonsLinksToNotes() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		Enumerable<OEntity> persons = consumer
 				.getEntities("Persons").execute();
@@ -157,7 +155,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	 * Creation of entity with link to another entity
 	 */
 	public void createPersonSingleNoteWithLink() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity person = consumer
 				.createEntity("Persons")

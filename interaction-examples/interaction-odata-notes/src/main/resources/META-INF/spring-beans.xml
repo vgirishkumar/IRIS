@@ -247,7 +247,10 @@
                 </entry>
                 <entry>
                     <key><value>DELETE+/Notes({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
+                    <bean class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
+                        <constructor-arg name="entity" value="Note" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
                 </entry>
                 <entry>
                     <key><value>GET+/Persons</value></key>
