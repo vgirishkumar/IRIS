@@ -14,7 +14,7 @@ public class CountryRIM extends SHARDIResourceInteractionModel {
 	private final static String RESOURCE_PATH = "/countries/{id}";
 	
 	public CountryRIM() {
-		super(ENTITY_NAME, RESOURCE_PATH);
+		super(RESOURCE_PATH);
 		/*
 		 * Not required when wired with Spring and not a Country producer at the moment
 		 */
@@ -24,7 +24,7 @@ public class CountryRIM extends SHARDIResourceInteractionModel {
 	}
 	
 	public CountryRIM(ODataProducer producer) {
-		super(ENTITY_NAME, RESOURCE_PATH);
+		super(RESOURCE_PATH);
 		initialise(producer);
 	}
   		

@@ -49,11 +49,9 @@ public abstract class SHARDIResourceInteractionModel implements ResourceInteract
 
 //    private @Context UriInfo uriInfo;
 	private CommandController commandController;
-	private String entityName = null;
 	private String resourcePath = null;
 	
-	public SHARDIResourceInteractionModel(String entityName, String resourcePath) {
-		this.entityName = entityName;
+	public SHARDIResourceInteractionModel(String resourcePath) {
 		this.resourcePath = resourcePath;
 		this.commandController = new CommandController();
 	}
