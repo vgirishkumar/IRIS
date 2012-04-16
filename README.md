@@ -7,6 +7,7 @@ A runtime for Interaction Resources & Information Services
 Quickly and easily create REST APIs for use by humans and machines.
 
 The project allow you to:
+
 * create web based services according to RESTful constraints
 * aggregate / mashup multiple resource managers into a single interaction service
 * program Hypermedia (HATEOAS) interactions with a state machine domain specific language (DSL)
