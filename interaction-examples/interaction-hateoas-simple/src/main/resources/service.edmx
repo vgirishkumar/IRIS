@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+    <edmx:DataServices m:DataServiceVersion="1.0">
+        <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="com.temenos.interaction.example.hateoas.simple">
+            <EntityType Name="Profile">
+                <Key>
+                    <PropertyRef Name="userID"></PropertyRef>
+                </Key>
+                <Property Name="userID" Type="Edm.String" Nullable="false"></Property>
+                <Property Name="name" Type="Edm.String" Nullable="false"></Property>
+                <Property Name="DOB" Type="Edm.DateTime" Nullable="false"></Property>
+                <Property Name="location" Type="Edm.String" Nullable="true"></Property>
+                <Property Name="pictureTaken" Type="Edm.DateTime" Nullable="true"></Property>
+<!--				
+                <NavigationProperty Name="Preferences" Relationship="com.temenos.interaction.example.hateoas.simple.FK_Profile_Preferences" FromRole="Profile" ToRole="Preferences"></NavigationProperty>
+-->
+			</EntityType>
+            <EntityType Name="Preferences">
+                <Key>
+                    <PropertyRef Name="userID"></PropertyRef>
+                </Key>
+                <Property Name="userID" Type="Edm.String" Nullable="false"></Property>
+                <Property Name="currency" Type="Edm.String" Nullable="false"></Property>
+                <Property Name="language" Type="Edm.String" Nullable="true"></Property>
+            </EntityType>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>
