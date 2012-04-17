@@ -50,36 +50,24 @@
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
-    	<constructor-arg name="resource">
-    	    <set>
-<!-- 
-                <ref bean="ServiceDocument" />
--->
-                <ref bean="Profile" />
-                <ref bean="Preferences" />
-            </set>
-        </constructor-arg>
+    	<!-- Supply the root document and all resources are created dynamically from here -->
+        <constructor-arg name="root" ref="ServiceRoot" />
+    </bean>
+
+    <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
+    <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
+    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
+    	<constructor-arg name="initialState" ref="interaction" />
     </bean>
 
     <!-- Resources -->
-<!-- 
-    <bean id="ServiceDocument" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="stateMachine">
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="initialState">
-    				<bean class="com.temenos.interaction.core.link.ResourceState">
-    					<constructor-arg name="entityName" value="ServiceDocument" />
-    					<constructor-arg name="name" value="initial" />
-    				</bean>
-    			</constructor-arg>
-    		</bean>
-    	</constructor-arg>
+    <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    	<constructor-arg name="stateMachine" ref="stateMachine" />
     	<constructor-arg name="path" value="/" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
--->
-
+<!--
     <bean id="Profile" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine">
     		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
@@ -111,51 +99,46 @@
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
-    
+-->    
 
     <!-- Commands -->
     <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
     	<constructor-arg name="commands">
             <map>
-<!--
                 <entry>
                     <key><value>GET+/</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="entity" value="ServiceDocument" />
-                        <constructor-arg name="resourceMetadata" ref="edmDataServices" />
-                    </bean>
+                    <bean class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
                 </entry>
--->
                 <entry>
-                    <key><value>GET+/Profile/{id}</value></key>
+                    <key><value>GET+/profile</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
                 <entry>
-                    <key><value>POST+/Profile/{id}</value></key>
+                    <key><value>POST+/profile</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
                 </entry>
                 <entry>
-                    <key><value>PUT+/Profile/{id}</value></key>
+                    <key><value>PUT+/profile</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
                 </entry>
                 <entry>
-                    <key><value>DELETE+/Profile/{id}</value></key>
+                    <key><value>DELETE+/profile</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
                 </entry>
                 <entry>
-                    <key><value>GET+/Preferences/{id}</value></key>
+                    <key><value>GET+/preferences</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
                 <entry>
-                    <key><value>POST+/Preferences/{id}</value></key>
+                    <key><value>POST+/preferences</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
                 </entry>
                 <entry>
-                    <key><value>PUT+/Preferences/{id}</value></key>
+                    <key><value>PUT+/preferences</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
                 </entry>
                 <entry>
-                    <key><value>DELETE+/Preferences/{id}</value></key>
+                    <key><value>DELETE+/preferences</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
                 </entry>
             </map>
