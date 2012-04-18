@@ -149,11 +149,15 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			ResourceStateMachine childSM = stateMachine;
 			// get the child state
 			ResourceState childState = resourceStates.get(childPath);
+			HTTPDynaRIM child = null;
 			if (!childState.getEntityName().equals(stateMachine.getInitial().getEntityName())) {
 				// TODO shouldn't really need to create it again
 				childSM = new ResourceStateMachine(childState);
+				// this is a new resource
+				child = new HTTPDynaRIM(childSM, childState.getPath(), getResourceRegistry(), getCommandController());
+			} else {
+				child = new HTTPDynaRIM(this, childSM, childState.getPath(), childState, getResourceRegistry(), getCommandController());
 			}
-			HTTPDynaRIM child = new HTTPDynaRIM(this, childSM, childState.getPath(), childState, getResourceRegistry(), getCommandController());
 			result.add(child);
 		}
 		return result;

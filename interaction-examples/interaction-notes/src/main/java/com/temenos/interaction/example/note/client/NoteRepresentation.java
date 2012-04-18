@@ -11,12 +11,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.temenos.interaction.core.media.hal.Link;
-import com.temenos.interaction.core.media.hal.Representation;
-
 @XmlRootElement(name = "resource")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class NoteRepresentation extends Representation {
+public class NoteRepresentation {
 
 	public static final String RELATIONS_URI = "http://relations.interactionexample.com/";
 
@@ -58,14 +55,6 @@ public class NoteRepresentation extends Representation {
         }
     }
 
-    public Link getDeleteLink() {
-        return getLinkByName(RELATIONS_URI + "delete");
-    }
-
-    public Link getSelfLink() {
-        return getLinkByName("self");
-    }
-    
     public String getBody() {
         return note.getBody();
     }

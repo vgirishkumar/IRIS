@@ -1,39 +1,30 @@
-package com.temenos.interaction.core.media.hal.stax;
+package com.temenos.interaction.core.media.hal;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -45,20 +36,23 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
+import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.jayway.jaxrs.hateoas.core.HateoasLnk;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
+import com.theoryinpractise.halbuilder.ResourceFactory;
+import com.theoryinpractise.halbuilder.spi.Resource;
 
 @Provider
-@Consumes({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-@Produces({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+@Consumes({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+@Produces({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 public class HALProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(HALProvider.class);
 
+	@Context
+	private UriInfo uriInfo;
 	private EdmDataServices edmDataServices;
 
 	public HALProvider(EdmDataServices edmDataServices) {
@@ -88,8 +82,6 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	 * @postcondition non null HAL XML document written to OutputStream
 	 * @invariant valid OutputStream
 	 */
-	@SuppressWarnings("unchecked")
-	// TODO implment writeTo with Stax
 	@Override
 	public void writeTo(RESTResource resource, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
@@ -97,87 +89,61 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			OutputStream entityStream) throws IOException,
 			WebApplicationException {
 		assert (resource != null);
-
+		logger.debug("Writing " + mediaType);
+		
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
-		try {
-			DocumentBuilderFactory dbfac = DocumentBuilderFactory
-					.newInstance();
-			DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
-			Document doc = docBuilder.newDocument();
-
-			// //////////////////////
-			// Creating the XML tree
-
-			// create the root element and add it to the document
-			Element root = doc.createElement("resource");
-			doc.appendChild(root);
-
-			EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-			if (entityResource.getEntity() != null) {
-				// create child element for data, and add to root
-				Element dataObject = doc.createElement(entityResource.getEntity().getEntitySet().getName());
-				for (OProperty<?> property : entityResource.getEntity()
-						.getProperties()) {
-					Element dataElement = doc.createElement(property.getName());
-					dataElement.appendChild(doc.createTextNode(property.getValue().toString()));
-					dataObject.appendChild(dataElement);
-				}
-
-				root.appendChild(dataObject);
-
-				// create child element for links, and add to root
-				Element links = doc.createElement("links");
-				for (OLink link : entityResource.getEntity().getLinks()) {
-					Element linkElement = doc.createElement("link");
-					linkElement.setAttribute("href", link.getHref());
-					linkElement.setAttribute("rel", link.getRelation());
-					linkElement.setAttribute("title", link.getTitle());
-					links.appendChild(linkElement);
-				}
-				root.appendChild(links);
+		ResourceFactory resourceFactory = new ResourceFactory();
+		Resource halResource = resourceFactory.newResource(uriInfo.getBaseUri().toASCIIString());
+		// add contents of supplied entity
+		if (resource.getGenericEntity() != null) {
+			EntityResource<?> entityResource = (EntityResource<?>) resource.getGenericEntity().getEntity();
+			if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
+				@SuppressWarnings("unchecked")
+				EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) entityResource;
+				buildFromOEntity(halResource, oentityResource.getEntity());
+			} else if (entityResource.getEntity() != null) {
+				// regular java bean
+//				halResource.withBean(entityResource.getEntity());
 			}
-
-			// ///////////////
-			// Output the XML
-
-			// set up a transformer
-			TransformerFactory transfac = TransformerFactory.newInstance();
-			Transformer trans = transfac.newTransformer();
-			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-			trans.setOutputProperty(OutputKeys.INDENT, "no");
-
-			// create string from xml tree
-			StringWriter sw = new StringWriter();
-			StreamResult result = new StreamResult(sw);
-			DOMSource source = new DOMSource(doc);
-			trans.transform(source, result);
-			final String xmlString = sw.toString();
-
-			entityStream.write(xmlString.getBytes("UTF-8"));
-			entityStream.flush();
-		} catch (DOMException e) {
-			logger.error("Error while generating xml", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
-		} catch (TransformerConfigurationException e) {
-			logger.error("Error while generating xml", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
-		} catch (IllegalArgumentException e) {
-			logger.error("Error while generating xml", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
-		} catch (ParserConfigurationException e) {
-			logger.error("Error while generating xml", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
-		} catch (TransformerFactoryConfigurationError e) {
-			logger.error("Error while generating xml", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
-		} catch (TransformerException e) {
-			logger.error("Error while generating xml", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
+			
+			if (entityResource.getResourceLinks() != null) {
+				for (HateoasLink l : entityResource.getResourceLinks()) {
+					System.out.println("l = id[" + l.getId() + "] rel[" + l.getRel() + " href[" + l.getHref() + "]");
+					halResource.withLink(l.getHref(), l.getRel());
+				}
+			}
+			
+			// add links
+			if (entityResource.getLinks() != null) {
+				for (Map<String, Object> linkMap : entityResource.getLinks()) {
+//					halResource.withLink((String) linkMap.get("href"), (String) linkMap.get("rel"));
+//					for (String id : linkMap.keySet()) {
+//						System.out.println("id = " + id);
+//					}
+					
+				}
+			}
 		}
+		
+		String representation = null;
+		if (mediaType.equals(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
+			representation = halResource.asRenderableResource().renderContent(ResourceFactory.HAL_XML);
+		} else {
+			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		}
+		assert(representation != null);
+		// TODO handle requested encoding?
+		entityStream.write(representation.getBytes("UTF-8"));
 	}
 
+	public void buildFromOEntity(Resource halResource, OEntity entity) {
+		for (OProperty<?> property : entity.getProperties()) {
+			halResource.withProperty(property.getName(), property.getValue());
+		}
+	}
+	
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
@@ -269,4 +235,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 
 		return properties;
 	}
+	
+	/* Ugly testing support :-( */
+	protected void setUriInfo(UriInfo uriInfo) {
+		this.uriInfo = uriInfo;
+	}
+
 }

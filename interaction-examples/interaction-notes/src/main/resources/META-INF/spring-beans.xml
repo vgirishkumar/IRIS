@@ -35,7 +35,7 @@
 		<property name="singletons">
         	<set>
         		<ref local="jaxbContextResolver" />
-				<ref local="staxHALProvider" />
+				<ref local="halProvider" />
 				<ref local="atomProvider" />
  			</set>
    		</property>
@@ -60,7 +60,7 @@
 	</bean>
 
 	<bean id="jaxbContextResolver" class="com.temenos.interaction.example.app.JAXBContextResolver" />
-	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
+	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 	</bean>
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">

@@ -1,10 +1,17 @@
 package com.temenos.interaction.core.resource;
 
+import java.util.Collection;
+import java.util.Map;
+
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.jayway.jaxrs.hateoas.HateoasLinkBean;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
@@ -15,10 +22,16 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "resource")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EntityResource<T> implements RESTResource {
+public class EntityResource<T> implements RESTResource, HateoasLinkBean {
 	@XmlAnyElement(lax=true)
 	private T entity;
-	
+
+	/* see HateoasLinkBean */
+	@XmlTransient
+    private Collection<Map<String, Object>> linksMap;
+	@XmlTransient
+    private Collection<HateoasLink> links;
+
 	public EntityResource() {
 	}
 	
@@ -34,4 +47,22 @@ public class EntityResource<T> implements RESTResource {
 	public GenericEntity<EntityResource<T>> getGenericEntity() {
 		return new GenericEntity<EntityResource<T>>(this, this.getClass().getGenericSuperclass());
 	}
+
+    @Override
+    public Collection<Map<String, Object>> getLinks() {
+        return this.linksMap;
+    }
+
+    @Override
+    public void setLinks(Collection<Map<String, Object>> linksMap) {
+        this.linksMap = linksMap;
+    }
+    
+    public Collection<HateoasLink> getResourceLinks() {
+    	return this.links;
+    }
+    
+    public void setResourceLinks(Collection<HateoasLink> links) {
+    	this.links = links;
+    }
 }

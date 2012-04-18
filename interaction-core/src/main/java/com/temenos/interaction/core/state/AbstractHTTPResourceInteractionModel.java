@@ -50,6 +50,8 @@ import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 import com.temenos.interaction.core.command.ResourceStatusCommand;
 import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.link.TransitionCommandSpec;
 
 /**
  * <P>
@@ -143,7 +145,12 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	@SuppressWarnings("unchecked")
 	@Override
 	@GET
-    @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+    @Produces({MediaType.APPLICATION_ATOM_XML, 
+    	MediaType.APPLICATION_XML, 
+    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.debug("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
@@ -173,7 +180,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			
 			// Rebuild resource links if necessary
 			if (resourceRegistry != null) {
-				if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), EntityResource.class)) {
+				if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), EntityResource.class, OEntity.class)) {
 					String entitySetName = getCurrentState().getEntityName();
 					EdmEntitySet entitySet = resourceRegistry.getEntitySet(entitySetName);
 					EdmEntityType entityType = entitySet.getType();
@@ -215,6 +222,16 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	    		} else {
 		    		builder.selfLink(getHateoasContext(), getCurrentState().getId());
 	    		}
+	    		
+				Collection<ResourceState> targetStates = getCurrentState().getAllTargets();
+				for (ResourceState s : targetStates) {
+					TransitionCommandSpec cs = getCurrentState().getTransition(s).getCommand();
+					// TODO remove this workaround, at the minute we don't support links that require dynamic value (URITemplates)
+					if (cs.getPath() != null && !cs.getPath().contains("{")) {
+						builder.link(getHateoasContext(), s.getId(), "rel=" + s.getId() + "+method=" + cs.getMethod());
+					}
+				}
+
 	    	}
 	    	builder.entity(resource);
 	    	

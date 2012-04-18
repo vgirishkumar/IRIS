@@ -5,7 +5,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
-import com.temenos.interaction.core.media.hal.stax.HALProvider;
+import com.temenos.interaction.core.media.hal.HALProvider;
 import com.temenos.interaction.example.country.CountryRIM;
 import com.temenos.interaction.example.note.JAXBNoteRIM;
 import com.temenos.interaction.example.note.NewNoteRIM;
