@@ -359,16 +359,18 @@ public abstract class AbstractNorthwindRuntimeTest extends AbstractRuntimeTest {
 					resultValue = resultValue.replace("Suppliers", "Supplier");
 					resultValue = resultValue.replace("Orders", "Order");
 					resultValue = resultValue.replace("Customers", "Customer");
-					resultValue = resultValue.replace("Order_Details",
-							"Order_Detail");
+					resultValue = resultValue.replace("Order_Details", "Order_Detail");
 				} else if ("link".equals(expected.getNodeName())
 						&& "next".equals(((Attr) expected.getAttributes()
 								.getNamedItem("rel")).getNodeValue())
 								&& "href".equals(attr.getName())) {
 					resultValue = expectedValue; // we are using a different
 					// $skiptoken mechanism
+				} else if ("link".equals(expected.getNodeName())
+						&& ((Attr) expected.getAttributes().getNamedItem("rel")).getNodeValue().startsWith("http://schemas")) {
+					//Ignore lines such as "<link rel="http://schemas..."
+					resultValue = expectedValue;
 				}
-
 				Assert.assertEquals(expectedValue, resultValue);
 			}
 		}
