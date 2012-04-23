@@ -4,6 +4,7 @@ import javax.ws.rs.Path;
 
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.commands.odata.POSTNewCommand;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
@@ -45,7 +46,7 @@ public class NewNoteRIM extends AbstractHTTPResourceInteractionModel {
 		 */
 		CommandController commandController = getCommandController();
 		commandController.setGetCommand(RESOURCE_PATH, new GETNewNoteCommand(DOMAIN_OBJECT_NAME, producer));
-		commandController.addStateTransitionCommand(RESOURCE_PATH, new POSTNewNoteCommand(this, DOMAIN_OBJECT_NAME, OEntityNoteRIM.RESOURCE_PATH, producer));
+		commandController.addStateTransitionCommand(RESOURCE_PATH, new POSTNewCommand(ENTITY_NAME, DOMAIN_OBJECT_NAME, OEntityNoteRIM.RESOURCE_PATH, producer));
 	}
 
 	public ResourceState getCurrentState() {

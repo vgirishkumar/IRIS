@@ -37,7 +37,7 @@ import com.temenos.interaction.core.state.ResourceInteractionModel;
 public class POSTNewCommand implements ResourcePostCommand {
 
 	/* Command configuration */
-	private ResourceInteractionModel resourceInteraction;
+	private String entitySetName;
 	private String domainObjectName;
 	// the resource that we will generate a new id link to, must contain template {id}
 	private String targetResource;
@@ -45,8 +45,8 @@ public class POSTNewCommand implements ResourcePostCommand {
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
 
-	public POSTNewCommand(ResourceInteractionModel resourceInteraction, String domainObjectName, String targetResource, ODataProducer producer) {
-		this.resourceInteraction = resourceInteraction;
+	public POSTNewCommand(String entitySetName, String domainObjectName, String targetResource, ODataProducer producer) {
+		this.entitySetName = entitySetName;
 		this.domainObjectName = domainObjectName;
 		this.targetResource = targetResource;
 		this.producer = producer;
@@ -70,12 +70,14 @@ public class POSTNewCommand implements ResourcePostCommand {
 		assert(functionName.getReturnType() == EdmSimpleType.INT64);
 		
 		// TODO this could either be the type we are creating an ID for, or it could just be a transient type
-		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(resourceInteraction.getCurrentState().getEntityName());
+		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(entitySetName);
 		OEntityKey entityKey = OEntityKey.create("new");
+		ArrayList<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+		properties.add(((PropertyResponse)fr).getProperty());
 		List<OLink> links = new ArrayList<OLink>();
 		String replacement = ((PropertyResponse)fr).getProperty().getValue().toString();
 		links.add(OLinks.relatedEntity("_new", "NewNote", targetResource.replaceFirst("\\{id\\}", replacement)));
-		final OEntity entity = OEntities.create(noteEntitySet, entityKey, new ArrayList<OProperty<?>>(), links);
+		final OEntity entity = OEntities.create(noteEntitySet, entityKey, properties, links);
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
 		return new RESTResponse(Response.Status.OK, er);
 	}

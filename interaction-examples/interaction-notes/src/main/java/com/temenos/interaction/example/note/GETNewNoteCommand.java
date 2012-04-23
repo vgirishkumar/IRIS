@@ -33,7 +33,7 @@ public class GETNewNoteCommand implements ResourceGetCommand {
 		OEntityKey key = OEntityKey.create(domainObjectName);
 		EntityResponse eResp = producer.getEntity("ID", key, null);
 		OEntity oEntity = eResp.getEntity();
-		EntityResource<OEntity> er = new EntityResource<OEntity>(oEntity);
+		EntityResource<OEntity> er = new EntityResource<OEntity>(oEntity) {};
 		return new RESTResponse(Response.Status.OK, er);
 	}
 

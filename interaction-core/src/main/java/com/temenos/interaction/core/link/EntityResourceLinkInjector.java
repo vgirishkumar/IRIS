@@ -37,7 +37,7 @@ public class EntityResourceLinkInjector implements HateoasLinkInjector<Object> {
     	GenericEntity<?> ge = (GenericEntity<?>) entity;
     	// must be instance of EntityResource, see canInject
     	EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-    	er.setResourceLinks(linkProducer.getLinks(entity));
+    	er.setLinks(linkProducer.getLinks(entity));
     	
         return entity;
     }

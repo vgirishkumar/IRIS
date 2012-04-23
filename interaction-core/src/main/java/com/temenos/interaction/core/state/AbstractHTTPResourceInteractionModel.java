@@ -1,11 +1,14 @@
 package com.temenos.interaction.core.state;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -21,6 +24,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -28,6 +32,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OLink;
+import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.slf4j.Logger;
@@ -178,6 +183,9 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			// Wrap response into a JAX-RS GenericEntity object 
 			GenericEntity<?> resource = response.getResource().getGenericEntity();
 			
+			// map of properties to supply to link builder
+			Map<String, Object> map = null;
+			
 			// Rebuild resource links if necessary
 			if (resourceRegistry != null) {
 				if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), EntityResource.class, OEntity.class)) {
@@ -188,6 +196,9 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 					EntityResource<OEntity> er = (EntityResource<OEntity>) resource.getEntity();
 		    		OEntity oEntity = er.getEntity();
 		        	
+		    		// get the map of properties to supply to link builder
+		    		map = buildMapFromOEntity(oEntity.getProperties());
+		    		
 		    		// get the links for this entity
 		    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
 		        	// create a new entity as at the moment we pass the resource links in the OEntity
@@ -217,21 +228,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			// Create hypermedia representation for this resource
 	    	HateoasResponseBuilder builder = HateoasResponse.status(status);
 	    	if (getHateoasContext() != null) {
-	    		if (id != null) {
-		    		builder.selfLink(getHateoasContext(), getCurrentState().getId(), id);	    		
-	    		} else {
-		    		builder.selfLink(getHateoasContext(), getCurrentState().getId());
-	    		}
-	    		
-				Collection<ResourceState> targetStates = getCurrentState().getAllTargets();
-				for (ResourceState s : targetStates) {
-					TransitionCommandSpec cs = getCurrentState().getTransition(s).getCommand();
-					// TODO remove this workaround, at the minute we don't support links that require dynamic value (URITemplates)
-					if (cs.getPath() != null && !cs.getPath().contains("{")) {
-						builder.link(getHateoasContext(), s.getId(), "rel=" + s.getId() + "+method=" + cs.getMethod());
-					}
-				}
-
+	    		buildLinks(builder, id, map);
 	    	}
 	    	builder.entity(resource);
 	    	
@@ -241,6 +238,38 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		return Response.status(status).build();
     }
     
+	private void buildLinks(HateoasResponseBuilder builder, String id, Map<String, Object> map) {
+		if (id != null) {
+    		builder.selfLink(getHateoasContext(), getCurrentState().getId(), id);	    		
+		} else {
+    		builder.selfLink(getHateoasContext(), getCurrentState().getId());
+		}
+		
+		Collection<ResourceState> targetStates = getCurrentState().getAllTargets();
+		for (ResourceState s : targetStates) {
+			TransitionCommandSpec cs = getCurrentState().getTransition(s).getCommand();
+			// TODO remove this workaround, at the minute we don't support links that require dynamic value (URITemplates)
+			if (cs.getPath() != null && !cs.getPath().contains("{")) {
+				builder.link(getHateoasContext(), s.getId(), "rel=" + s.getId() + "+method=" + cs.getMethod());
+			} else if (map != null) {
+				UriBuilder linkTemplate = UriBuilder.fromPath(cs.getPath());
+				URI link = linkTemplate.buildFromMap(map);
+				System.out.println("Link: " +link.toString());
+				
+				builder.link(getHateoasContext(), s.getId(), s.getId(), map);
+			}
+		}
+	}
+	
+	protected Map<String, Object> buildMapFromOEntity(List<OProperty<?>> properties) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		for (OProperty<?> property : properties) {
+			map.put(property.getName(), property.getValue());				
+		}
+		return map;
+	}
+
+	
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
     	try {
@@ -293,6 +322,9 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			// Wrap response into a JAX-RS GenericEntity object 
 			GenericEntity<?> newResource = response.getResource().getGenericEntity();
 
+			// map of properties to supply to link builder
+			Map<String, Object> map = null;
+
 			// Rebuild resource links if necessary
 			if (resourceRegistry != null) {
 				if (ResourceTypeHelper.isType(newResource.getRawType(), newResource.getType(), EntityResource.class)) {
@@ -303,7 +335,10 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 					@SuppressWarnings("unchecked")
 					EntityResource<OEntity> er = (EntityResource<OEntity>) newResource.getEntity();
 		    		OEntity oEntity = er.getEntity();
-		        	
+		        			        	
+		    		// get the map of properties to supply to link builder
+		    		map = buildMapFromOEntity(oEntity.getProperties());
+
 		    		// get the links for this entity
 		    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
 		        	// create a new entity as at the moment we pass the resource links in the OEntity
@@ -318,11 +353,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			// Create hypermedia representation for this resource
 	    	HateoasResponseBuilder builder = HateoasResponse.status(status);
 	    	if (getHateoasContext() != null) {
-	    		if (id != null) {
-		    		builder.selfLink(getHateoasContext(), getCurrentState().getId(), id);	    		
-	    		} else {
-		    		builder.selfLink(getHateoasContext(), getCurrentState().getId());
-	    		}
+	    		buildLinks(builder, id, map);
 	    	}
 	    	builder.entity(newResource);
 			

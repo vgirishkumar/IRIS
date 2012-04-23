@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,12 +38,14 @@ import org.odata4j.edm.EdmEntitySet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.jayway.jaxrs.hateoas.HateoasLink;
-import com.jayway.jaxrs.hateoas.core.HateoasLnk;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.theoryinpractise.halbuilder.ResourceFactory;
+import com.theoryinpractise.halbuilder.spi.ReadableResource;
 import com.theoryinpractise.halbuilder.spi.Resource;
 
 @Provider
@@ -94,39 +97,39 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
+		// build the HAL representation
 		ResourceFactory resourceFactory = new ResourceFactory();
 		Resource halResource = resourceFactory.newResource(uriInfo.getBaseUri().toASCIIString());
-		// add contents of supplied entity
+
+		Map<String, Object> propertyMap = new HashMap<String, Object>();
 		if (resource.getGenericEntity() != null) {
 			EntityResource<?> entityResource = (EntityResource<?>) resource.getGenericEntity().getEntity();
+
+			// add contents of supplied entity to the property map
 			if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				@SuppressWarnings("unchecked")
 				EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) entityResource;
-				buildFromOEntity(halResource, oentityResource.getEntity());
+				buildFromOEntity(propertyMap, oentityResource.getEntity());
 			} else if (entityResource.getEntity() != null) {
 				// regular java bean
 //				halResource.withBean(entityResource.getEntity());
 			}
-			
-			if (entityResource.getResourceLinks() != null) {
-				for (HateoasLink l : entityResource.getResourceLinks()) {
-					System.out.println("l = id[" + l.getId() + "] rel[" + l.getRel() + " href[" + l.getHref() + "]");
-					halResource.withLink(l.getHref(), l.getRel());
-				}
+			// add properties to HAL resource
+			for (String key : propertyMap.keySet()) {
+				halResource.withProperty(key, propertyMap.get(key));
 			}
-			
-			// add links
+
+			// add our links
 			if (entityResource.getLinks() != null) {
-				for (Map<String, Object> linkMap : entityResource.getLinks()) {
-//					halResource.withLink((String) linkMap.get("href"), (String) linkMap.get("rel"));
-//					for (String id : linkMap.keySet()) {
-//						System.out.println("id = " + id);
-//					}
-					
+				for (HateoasLink l : entityResource.getLinks()) {
+					System.out.println("l = id[" + l.getId() + "] rel[" + l.getRel() + "] href[" + l.getHref() + "]");
+					halResource.withLink(l.getHref(), l.getRel(), 
+							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getId()), Optional.<String>absent(), Optional.<String>absent());
 				}
 			}
+			
 		}
-		
+				
 		String representation = null;
 		if (mediaType.equals(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
 			representation = halResource.asRenderableResource().renderContent(ResourceFactory.HAL_XML);
@@ -134,13 +137,17 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
 		assert(representation != null);
+		logger.debug("Produced [" + representation + "]");
 		// TODO handle requested encoding?
 		entityStream.write(representation.getBytes("UTF-8"));
 	}
 
-	public void buildFromOEntity(Resource halResource, OEntity entity) {
+	protected void buildFromOEntity(Map<String, Object> map, OEntity entity) {
 		for (OProperty<?> property : entity.getProperties()) {
-			halResource.withProperty(property.getName(), property.getValue());
+			EdmEntitySet ees = edmDataServices.getEdmEntitySet(entity.getEntityType());
+			if (ees.getType().findProperty(property.getName()) != null) {
+				map.put(property.getName(), property.getValue());				
+			}
 		}
 	}
 	
