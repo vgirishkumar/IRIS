@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,15 +98,31 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
-		// build the HAL representation
-		ResourceFactory resourceFactory = new ResourceFactory();
-		Resource halResource = resourceFactory.newResource(uriInfo.getBaseUri().toASCIIString());
-
-		Map<String, Object> propertyMap = new HashMap<String, Object>();
+		// create the hal resource
+		ResourceFactory resourceFactory = new ResourceFactory(uriInfo.getBaseUri().toASCIIString());
+		Resource halResource = resourceFactory.newResource("");
 		if (resource.getGenericEntity() != null) {
 			EntityResource<?> entityResource = (EntityResource<?>) resource.getGenericEntity().getEntity();
 
+			// get the links
+			Collection<HateoasLink> links= entityResource.getLinks();
+			HateoasLink selfLink = findSelfLink(links);
+			
+			// build the HAL representation with self link
+			if (selfLink != null)
+				halResource = resourceFactory.newResource(selfLink.getHref());
+
+			// add our links
+			if (links != null) {
+				for (HateoasLink l : links) {
+					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] href=[" + l.getHref() + "]");
+					halResource.withLink(l.getHref(), l.getRel(), 
+							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getId()), Optional.<String>absent(), Optional.<String>absent());
+				}
+			}
+			
 			// add contents of supplied entity to the property map
+			Map<String, Object> propertyMap = new HashMap<String, Object>();
 			if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				@SuppressWarnings("unchecked")
 				EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) entityResource;
@@ -114,24 +131,16 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				// regular java bean
 //				halResource.withBean(entityResource.getEntity());
 			}
+
 			// add properties to HAL resource
 			for (String key : propertyMap.keySet()) {
 				halResource.withProperty(key, propertyMap.get(key));
 			}
 
-			// add our links
-			if (entityResource.getLinks() != null) {
-				for (HateoasLink l : entityResource.getLinks()) {
-					System.out.println("l = id[" + l.getId() + "] rel[" + l.getRel() + "] href[" + l.getHref() + "]");
-					halResource.withLink(l.getHref(), l.getRel(), 
-							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getId()), Optional.<String>absent(), Optional.<String>absent());
-				}
-			}
-			
 		}
 				
 		String representation = null;
-		if (mediaType.equals(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
+		if (halResource != null && mediaType.equals(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
 			representation = halResource.asRenderableResource().renderContent(ResourceFactory.HAL_XML);
 		} else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -140,6 +149,17 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		logger.debug("Produced [" + representation + "]");
 		// TODO handle requested encoding?
 		entityStream.write(representation.getBytes("UTF-8"));
+	}
+
+	protected HateoasLink findSelfLink(Collection<HateoasLink> links) {
+		HateoasLink selfLink = null;
+		if (links != null) {
+			for (HateoasLink l : links) {
+				if (l.getRel().equals("self"))
+					selfLink = l;
+			}
+		}
+		return selfLink;
 	}
 
 	protected void buildFromOEntity(Map<String, Object> map, OEntity entity) {

@@ -2,7 +2,9 @@ package com.temenos.interaction.core.link;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
@@ -56,6 +58,21 @@ public class TestResourceState {
 		assertEquals("{id}", begin.getTransition(exists).getCommand().getPath());
 	}
 
+	@Test
+	public void testAddTransitionLinkageMap() {
+		// define a linkage map (target URI element, source entity element)
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		// uri defines a template with {id}, our entity needs to supply {NoteId} as the id
+		uriLinkageMap.put("id", "NoteId");
+
+		String ENTITY_NAME = "entity";
+		ResourceState begin = new ResourceState("SomeEntity", "initial");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "/test/{id}");
+		begin.addTransition("PUT", exists, uriLinkageMap);
+		assertEquals("/test/{NoteId}", begin.getTransition(exists).getCommand().getPath());
+
+	}
+	
 	@Test
 	public void testTransitionToStateMachine() {
 		String ENTITY_NAME1 = "entity1";

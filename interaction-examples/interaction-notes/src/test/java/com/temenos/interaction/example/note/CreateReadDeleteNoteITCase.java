@@ -3,6 +3,8 @@ package com.temenos.interaction.example.note;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.StringReader;
+
 import javax.ws.rs.core.MediaType;
 
 import org.junit.After;
@@ -13,6 +15,8 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.example.note.client.NoteRepresentation;
+import com.theoryinpractise.halbuilder.ResourceFactory;
+import com.theoryinpractise.halbuilder.spi.ReadableResource;
 
 public class CreateReadDeleteNoteITCase extends JerseyTest {
 
@@ -111,9 +115,11 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
         ClientResponse getResponse = webResource.path(noteUri).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         assertEquals(200, getResponse.getStatus());
         String noteHALRepresentation = getResponse.getEntity(String.class);
-//      NoteRepresentation nr = getResponse.getEntity(NoteRepresentation.class);
-        NoteRepresentation nr = NoteRepresentation.fromXmlString(noteHALRepresentation);
-        assertEquals("Beverages", nr.getBody());
+        
+        ResourceFactory resourceFactory = new ResourceFactory();
+        ReadableResource halResource = resourceFactory.newResource(new StringReader(noteHALRepresentation));
+        
+        assertEquals("Beverages", halResource.get("body").get());
 	}
 
     /*
@@ -136,9 +142,11 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
         ClientResponse getResponse = webResource.path(noteUri).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         assertEquals(200, getResponse.getStatus());
         String noteHALRepresentation = getResponse.getEntity(String.class);
-//      NoteRepresentation nr = getResponse.getEntity(NoteRepresentation.class);
-        NoteRepresentation nr = NoteRepresentation.fromXmlString(noteHALRepresentation);
-        assertEquals("test note", nr.getBody());
+        
+        ResourceFactory resourceFactory = new ResourceFactory();
+        ReadableResource halResource = resourceFactory.newResource(new StringReader(noteHALRepresentation));
+        
+        assertEquals("test note", halResource.get("body").get());
 	}
 
 }

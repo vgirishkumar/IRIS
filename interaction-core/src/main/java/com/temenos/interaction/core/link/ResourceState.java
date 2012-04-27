@@ -60,13 +60,28 @@ public class ResourceState {
 	 * @param httpMethod
 	 * @param targetState
 	 */
+	/**
+	 * Normal transitions, transition this entities state to another state.
+	 * @param httpMethod
+	 * @param targetState
+	 */
 	public void addTransition(String httpMethod, ResourceState targetState) {
+		addTransition(httpMethod, targetState, null);
+	}
+	
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
 		assert null != targetState;
 		String resourcePath = targetState.getPath();
 		// a destructive command acts on this state, a constructive command acts on the target state
 		// TODO define set of destructive methods
 		if (httpMethod.equals("DELETE")) {
 			resourcePath = getPath();
+		}
+		// replace uri elements with linkage entity element name
+		if (uriLinkageMap != null) {
+			for (String templateElement : uriLinkageMap.keySet()) {
+				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
+			}
 		}
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath);
 		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));

@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import javax.ws.rs.core.MediaType;
 
 import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -115,7 +114,7 @@ public class NewNoteITCase extends JerseyTest {
         InputStream getRespIS = getResponse.getEntityInputStream();
         
         RenderableResource halResource = new ResourceFactory().newResource(new InputStreamReader(getRespIS)).asRenderableResource();
-        String lastIdStr = halResource.get("id").get().toString();
+        String lastIdStr = halResource.get("lastId").get().toString();
         long lastId = Long.valueOf(lastIdStr).longValue();
  
         // work out what the next id should be
@@ -128,8 +127,8 @@ public class NewNoteITCase extends JerseyTest {
         assertEquals(200, postResponse.getStatus());
 		// next note ID should be 2
         String actualXML = createFlatXML(postResponse.getEntity(String.class));
-		String expectedXML = "<resource href=\"http://localhost:8080/example/rest/notes/new\"><link href=\"http://localhost:8080/example/rest/notes/" + nextIDStr + "\" rel=\"_new\" name=\"note.exists\"/><id>" + nextIDStr + "</id></resource>";
-
+		String expectedXML = "<resource href=\"http://localhost:8080/example/rest/notes/new\"><link href=\"http://localhost:8080/example/rest/notes/" + nextIDStr + "\" rel=\"note.exists\" name=\"ID.new.note.exists\"/><lastId>" + nextIDStr + "</lastId></resource>";
+		
 		Diff diff = new Diff(expectedXML, actualXML);
 		// don't worry about the order of the elements in the xml
 		assertTrue(diff.similar());

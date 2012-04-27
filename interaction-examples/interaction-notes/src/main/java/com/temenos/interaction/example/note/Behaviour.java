@@ -1,5 +1,10 @@
 package com.temenos.interaction.example.note;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import com.temenos.interaction.core.link.ResourceState;
 
 public class Behaviour {
@@ -18,12 +23,18 @@ public class Behaviour {
 		initialState.addTransition("PUT", exists);		
 		initialState.addTransition("PUT", newNoteState);		
 
-		// a link 
-		newNoteState.addTransition("PUT", exists);
+		// a link (target URI element, source entity element)
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "lastId");
+		Set<String> relations = new HashSet<String>();
+		relations.add("_new");
+		newNoteState.addTransition("PUT", exists, uriLinkageMap);
 		
 		// note item
-		exists.addTransition("PUT", exists);		
-		exists.addTransition("DELETE", finalState);
+		uriLinkageMap.clear();
+		uriLinkageMap.put("id", "noteID");
+		exists.addTransition("PUT", exists, uriLinkageMap);		
+		exists.addTransition("DELETE", finalState, uriLinkageMap);
 		return initialState;
 	}
 

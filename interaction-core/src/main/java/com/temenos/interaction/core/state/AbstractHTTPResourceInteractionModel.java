@@ -251,12 +251,12 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			// TODO remove this workaround, at the minute we don't support links that require dynamic value (URITemplates)
 			if (cs.getPath() != null && !cs.getPath().contains("{")) {
 				builder.link(getHateoasContext(), s.getId(), "rel=" + s.getId() + "+method=" + cs.getMethod());
-			} else if (map != null) {
+			} else if (map != null && cs.getPath() != null) {
 				UriBuilder linkTemplate = UriBuilder.fromPath(cs.getPath());
 				URI link = linkTemplate.buildFromMap(map);
 				System.out.println("Link: " +link.toString());
 				
-				builder.link(getHateoasContext(), s.getId(), s.getId(), map);
+				builder.link(getHateoasContext(), getCurrentState().getId() + "." + s.getId(), s.getId(), map);
 			}
 		}
 	}

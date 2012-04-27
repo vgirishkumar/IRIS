@@ -14,13 +14,13 @@ public class ID {
 	@Basic(optional = false)
     private String domainObjectName;
 	@Column(name="LastId")
-	private Long id;
+	private Long lastId;
 
     /* Hibernate */
     public ID() {}
     
 	public Long getID() {
-		return id;
+		return lastId;
 	}
 
     public String getDomainObjectName() {

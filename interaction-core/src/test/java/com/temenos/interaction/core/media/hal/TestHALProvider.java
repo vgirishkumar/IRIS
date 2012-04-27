@@ -106,12 +106,12 @@ public class TestHALProvider {
 		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
 		HALProvider hp = new HALProvider(edmDS);
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/children"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/children\"><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
@@ -152,6 +152,24 @@ public class TestHALProvider {
 	}
 
 	@Test
+	public void testBaseUri() throws Exception {
+		EntityResource<?> er = mock(EntityResource.class);
+		when(er.getEntity()).thenReturn(null);
+		
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		// java 1.6 bug getBaseUri returns absolute path
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"></resource>";
+		String responseString = createFlatXML(bos);
+		XMLAssert.assertXMLEqual(expectedXML, responseString);		
+	}
+
+	@Test
 	public void testSerialiseResourceWithLinks() throws Exception {
 		// the test key
 		OEntityKey entityKey = OEntityKey.create("123");
@@ -161,8 +179,8 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 		// the test links
 		List<HateoasLink> links = new ArrayList<HateoasLink>();
-		links.add(mockLink("father", "_person", "/humans/31"));
-		links.add(mockLink("mother", "_person", "/humans/32"));
+		links.add(mockLink("father", "_person", "humans/31"));
+		links.add(mockLink("mother", "_person", "/rest.svc/humans/32"));
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
@@ -172,12 +190,12 @@ public class TestHALProvider {
 		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
 		HALProvider hp = new HALProvider(edmDS);
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com\"><link href=\"http://www.temenos.com/humans/31\" rel=\"_person\" name=\"father\"/><link href=\"http://www.temenos.com/humans/32\" rel=\"_person\" name=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\"/><link href=\"http://www.temenos.com/rest.svc/humans/32\" rel=\"_person\" name=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
@@ -200,9 +218,9 @@ public class TestHALProvider {
 		 * TODO add tests for 'inline' links
 		 */
 		List<HateoasLink> links = new ArrayList<HateoasLink>();
-		links.add(mockLink("father", "_person", "/humans/31"));
-		links.add(mockLink("mother", "_person", "/humans/32"));
-		links.add(mockLink("siblings", "_family", "/humans/phetheans"));
+		links.add(mockLink("father", "_person", "humans/31"));
+		links.add(mockLink("mother", "_person", "humans/32"));
+		links.add(mockLink("siblings", "_family", "humans/phetheans"));
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
@@ -212,12 +230,12 @@ public class TestHALProvider {
 		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
 		HALProvider hp = new HALProvider(edmDS);
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com\"><link href=\"http://www.temenos.com/humans/phetheans\" rel=\"_family\" name=\"siblings\"/><link href=\"http://www.temenos.com/humans/31\" rel=\"_person\" name=\"father\"/><link href=\"http://www.temenos.com/humans/32\" rel=\"_person\" name=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);

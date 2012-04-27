@@ -1,5 +1,8 @@
 package com.interaction.example.odata.airline;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.link.ResourceStateMachine;
 
@@ -20,7 +23,9 @@ public class Behaviour {
 		ResourceState flightSchedules = new ResourceState("FlightSchedule", "flightschedules", "/FlightSchedule");
 		ResourceState flightSchedule = new ResourceState("FlightSchedule", "flightschedule", "/FlightSchedule({id})");
 		// add collection transition to individual
-		flightSchedules.addTransition("GET", flightSchedule);
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "flightScheduleID");
+		flightSchedules.addTransition("GET", flightSchedule, uriLinkageMap);
 		
 		initialState.addTransition("GET", metadata);
 		initialState.addTransition("GET", new ResourceStateMachine(flights));

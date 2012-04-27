@@ -115,7 +115,7 @@ public class ResourceRegistry implements HateoasContext {
 		if (rim.getCurrentState() != null) {
 			for (ResourceState targetState : rim.getCurrentState().getAllTargets()) {
 				// linkKey = the target entity name and state name
-				String linkKey = targetState.getEntityName() + "." + targetState.getName();
+				String linkKey = rim.getCurrentState().getId() + "." + targetState.getId();
 				Transition transition = rim.getCurrentState().getTransition(targetState);
 				linkTransitionMap.put(linkKey, transition);
 			}
@@ -225,7 +225,8 @@ public class ResourceRegistry implements HateoasContext {
 		String label = "lookup label from EDMX";  // TODO get from entityDataServices
 		String description = "lookup description from EDMX";  // TODO get from entityDataServices, in Accept-Language
 		String method = (transition != null ? transition.getCommand().getMethod() : "GET");
-		LinkableInfo link = new LinkableInfo(linkKey, rim.getFQResourcePath(), method, null, null, label, description, null);
+		String path = (transition != null && transition.getCommand().getPath() != null ? transition.getCommand().getPath() : rim.getFQResourcePath());
+		LinkableInfo link = new LinkableInfo(linkKey, path, method, null, null, label, description, null);
 		
 		assert(link != null);
 		return link;
