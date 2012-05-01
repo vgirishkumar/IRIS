@@ -218,6 +218,8 @@ public class JPAResponderGen {
 			javaType = "java.util.Date";
 		} else if (EdmSimpleType.TIME == type) {
 			javaType = "java.util.Date";
+		} else if (EdmSimpleType.DECIMAL == type) {
+			javaType = "java.math.BigDecimal";
 		} else {
 			// TODO support types other than Long and String
 			throw new RuntimeException("Entity property type not supported");
