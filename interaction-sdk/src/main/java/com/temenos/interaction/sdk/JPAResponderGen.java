@@ -94,7 +94,7 @@ public class JPAResponderGen {
 			String fqOutputDir = srcOutputPath.getPath() + "/" + entityInfo.getPackageAsPath();
 			new File(fqOutputDir).mkdirs();
 			if (writeClass(formClassFilename(srcOutputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
-				String resourcePath = "/" + entityInfo.getClazz() + "/{id}";
+				String resourcePath = "/" + entityInfo.getClazz() + "({id})";
 				String commandType = "com.temenos.interaction.commands.odata.GETEntityCommand"; 
 				resourcesInfo.add(new ResourceInfo(resourcePath, entityInfo, commandType));
 				
