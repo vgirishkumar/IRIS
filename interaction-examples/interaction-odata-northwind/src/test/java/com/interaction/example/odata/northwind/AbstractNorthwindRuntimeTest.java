@@ -636,4 +636,8 @@ public abstract class AbstractNorthwindRuntimeTest extends AbstractRuntimeTest {
 	public String getCount(String endpointUri, String uri) {
 		return this.rtFacade.acceptAndReturn(endpointUri + uri, MediaType.APPLICATION_ATOM_XML_TYPE);
 	}
+	
+	public String getWebResourceAtomXML(String uri) {
+		return this.rtFacade.getWebResource(uri, "application/atom+xml");
+	}
 }

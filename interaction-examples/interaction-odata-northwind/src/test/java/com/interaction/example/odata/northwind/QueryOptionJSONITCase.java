@@ -3,13 +3,17 @@ package com.interaction.example.odata.northwind;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class QueryOptionITCase extends AbstractNorthwindRuntimeTest {
+public class QueryOptionJSONITCase extends AbstractNorthwindRuntimeTest {
 
-	public QueryOptionITCase(RuntimeFacadeType type) {
+	public QueryOptionJSONITCase(RuntimeFacadeType type) {
 		super(type);
 	}
 
-  //@Test
+	@Test
+	public void SystemQueryOptionSimpleTest() {
+	}
+
+//@Test
   public void SystemQueryOptionOrderByTest() {
     String inp = "SystemQueryOptionOrderByTest";
     String uri = "Products?$orderby=ProductID";
@@ -559,13 +563,6 @@ public class QueryOptionITCase extends AbstractNorthwindRuntimeTest {
     String inp = "ExpandOnSingleEntityTest";
     String uri = "Products(1)?$expand=Category";
     testJSONResult(endpointUri, uri, inp);
-  }
-
-  @Test
-  public void SelectTopZeroEntitiesTest() {
-    String inp = "SelectTopZeroEntitiesTest";
-    String uri = "Products?$top=0";
-    testAtomResult(endpointUri, uri, inp);
   }
 
   //@Test

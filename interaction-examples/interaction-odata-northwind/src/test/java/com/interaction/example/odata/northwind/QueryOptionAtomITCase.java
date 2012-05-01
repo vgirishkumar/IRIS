@@ -15,7 +15,7 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionOrderByDescTest() {
     String inp = "SystemQueryOptionOrderByDescTest";
     String uri = "Products?$top=10&$orderby=ProductID desc";
@@ -29,7 +29,7 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionOrderByTopTest() {
     String inp = "SystemQueryOptionOrderByTopTest";
     String uri = "Products?$top=5&$orderby=ProductName desc";
@@ -50,21 +50,14 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  // @Test
-  // public void SystemQueryOptionTop5000Test() {
-  // String inp = "SystemQueryOptionTop5000Test";
-  // String uri = "Products?$top=5000";
-  // TestUtils.testAtomResult(endpointUri, uri, inp);
-  // }
-
-  //@Test
+  @Test
   public void SystemQueryOptionSkipTokenTest() {
     String inp = "SystemQueryOptionSkipTokenTest";
     String uri = "Customers?$top=5&$skiptoken='ANATR'";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionSkipTokenComplexKeyTest() {
     String inp = "SystemQueryOptionSkipTokenComplexKeyTest";
     String uri = "Order_Details?$top=5&$skiptoken=OrderID=10248,ProductID=11";
@@ -78,28 +71,28 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionFilterEqualTest() {
     String inp = "SystemQueryOptionFilterEqualTest";
     String uri = "Suppliers?$filter=Country eq 'Brazil'";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionFilterGreaterThanTest() {
     String inp = "SystemQueryOptionFilterGreaterThanTest";
     String uri = "Products?$top=20&$filter=UnitPrice gt 20";
     testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionFilterGreaterThanOrEqualTest() {
     String inp = "SystemQueryOptionFilterGreaterThanOrEqualTest";
     String uri = "Products?$top=20&$filter=UnitPrice ge 10";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionFilterLessThanTest() {
     String inp = "SystemQueryOptionFilterLessThanTest";
     String uri = "Products?$top=20&$filter=UnitPrice lt 20";
@@ -120,14 +113,14 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionFilterLogicalOrTest() {
     String inp = "SystemQueryOptionFilterLogicalOrTest";
     String uri = "Products?$filter=UnitPrice le 3.5 or UnitPrice gt 200";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionFilterGroupingLogicalAndTest() {
     String inp = "SystemQueryOptionFilterGroupingLogicalAndTest";
     String uri = "Products?$top=10&$filter=(UnitPrice gt 5) and (UnitPrice lt 20)";
@@ -145,17 +138,17 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
   public void SystemQueryOptionExpand1Test() {
     String inp = "SystemQueryOptionExpand1Test";
     String uri = "Categories?$expand=Products";
-   testAtomResult(endpointUri, uri, inp);
+    testAtomResult(endpointUri, uri, inp);
   }
 
-  // @Test
-  // public void SystemQueryOptionExpand2Test() {
-  // String inp = "SystemQueryOptionExpand2Test";
-  // String uri = "Categories?$expand=Products/Supplier";
-  // NorthwindTestUtils.testAtomResult(endpointUri, uri, inp);
-  // }
+  //@Test
+  public void SystemQueryOptionExpand2Test() {
+	  String inp = "SystemQueryOptionExpand2Test";
+	  String uri = "Categories?$expand=Products/Supplier";
+	  testAtomResult(endpointUri, uri, inp);
+  }
 
- // @Test
+  //@Test
   public void SystemQueryOptionExpand3Test() {
     String inp = "SystemQueryOptionExpand3Test";
     String uri = "Products?$expand=Category,Supplier";
@@ -197,4 +190,10 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
+  @Test
+  public void SelectTopZeroEntitiesTest() {
+    String inp = "SelectTopZeroEntitiesTest";
+    String uri = "Products?$top=0";
+    testAtomResult(endpointUri, uri, inp);
+  }
 }
