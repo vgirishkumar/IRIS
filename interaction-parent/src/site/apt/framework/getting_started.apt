@@ -9,17 +9,16 @@
 Building IRIS
 ~~~~~~~~~~~~~~~~~~~~
 
-  [[1]] Get the latest odata4j 0.6.0 snaphot (currently requires pulling the source with HG and
-  building with maven)
+  [[1]] Get the latest jax-rs-hateoas snapshot from Github (use GIT (e.g. TortoiseGIT with mysis GIT) to clone and
+  sync a local copy)
   
-	<<https://code.google.com/p/odata4j>>
+	<<https://github.com/aphethean/jax-rs-hateoas.git>>
 	
-  [[2]]	Build and install odata4j to the local maven repository
+  [[2]]	Build and install jax-rs-hateoas to the local maven repository
   
 	<<$ mvn clean install>>
   
-  [[3]] Get the latest IRIS snapshot (use GIT (e.g. TortoiseGIT with mysis GIT) to clone and
-  sync a local copy of IRIS
+  [[3]] Get the latest IRIS snapshot
   
 	<<https://github.com/aphethean/IRIS>>
 	
@@ -28,14 +27,14 @@ Building IRIS
 	<<$ mvn clean install>>
 
 
-* Running integration tests
+* Skipping integration tests
 ~~~~~~~~~~~~~~~~~~~~
-  The interaction examples provide a set of unit tests and integration tests which can be run with the following command:
+  <<mvn install>> by default runs integration tests. To skip integration tests specify the <<debug>> property:
   
-  <<$ mvn verify>>
-  
+  <<$ mvn install -Ddebug>>
 
-Creating a mock responder
+  
+Creating a sample responder
 ~~~~~~~~~~~~~~~~~~~~
   This section describes how use the interaction SDK to facilitate the creation of resource
   instances for the resource model. The interaction SDK depends on the interaction framework
@@ -43,9 +42,9 @@ Creating a mock responder
   into the local repository. Either install them manually or build the IRIS project manually
   as described in the previous section.
 
-  [[1]]	Create a mock responder project, e.g. FlightResponder
+  [[1]]	Create a mock responder project, e.g. <FlightResponder> with package name <com.mycorp.airtraffic>:
 
-	<<$ mvn archetype:generate -DgroupId=com.mycorp.airtraffic -DartifactId=FlightResponder -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false>>
+	<<$ mvn archetype:generate -DgroupId=>><com.mycorp.airtraffic><< -DartifactId=>><FlightResponder><< -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false>>
 
 	This command will create a subdirectory named FlightResponder which contains a maven project
 	with the following artifacts:
@@ -107,16 +106,20 @@ Creating a mock responder
     [Note:] The JPA classes, persistence.xml and responder_insert.sql apply to the <<JPA producer>>.
     If we wire up our resources to a different producer these artifacts would not be required. 
 
-  [[4]] Start the FlightReponder with Jetty
+  [[4]] Start the FlightReponder with an in-built Jetty web server
   
 	<<$ mvn jetty:run>>
 
   [[5]] Access the FlightReponder
   
-	<<http://localhost:8080/responder/rest/Flight/1>>
-
-	[Note:] IRIS does not yet expose the service metadata document. Use a tool such as
-	WizTools.org REST client to view the OData feeds and entries. 
+    [[A]] Service document:        {{http://localhost:8080/responder/FlightResponder.svc}}
+    
+    [[B]] Metadata document:       {{http://localhost:8080/responder/FlightResponder.svc/$metadata}}
+    
+    [[C]] Flights feed:            {{http://localhost:8080/responder/FlightResponder.svc/Flight}}
+    
+    [[D]] Flight entry:            {{http://localhost:8080/responder/FlightResponder.svc/Flight(1)}}
+    
 
   [[6]] Create the FlightResponder web application archive
   
