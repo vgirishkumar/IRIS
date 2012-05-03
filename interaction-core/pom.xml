@@ -100,10 +100,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>jackson</groupId>
-			<artifactId>jackson-asl</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
