@@ -7,12 +7,6 @@
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
 		<property name="persistenceUnitName" value="NoteServiceHibernate" />		
 	</bean>
-	<!-- 
-	<bean id="sharedEntityManagerFactory" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
-		<property name="entityManagerFactory" ref="springEntityManagerFactory" />  
-	</bean>	
-	<bean id="entityManagerFactory" factory-bean="sharedEntityManagerFactory" factory-method="getEntityManagerFactory"/>
-	 -->
 	<!-- Create the MockResponder factory, at the moment this also initialises the Mock database -->
 	<bean id="mockResponderFactory" class="com.temenos.interaction.example.note.NoteProducerFactory" />
 	<!-- MockResponder JPA Producer -->
@@ -39,21 +33,9 @@
 				<ref local="atomProvider" />
  			</set>
    		</property>
-   		<property name="classes">
-			<set value-type="java.lang.Class">
-				<value>com.temenos.interaction.example.sandbox.SandboxRIM</value>
-<!--  
-				<value>com.temenos.interaction.example.note.NoteRIM</value>
-				<value>com.temenos.interaction.example.note.NewNoteRIM</value>
--->
-			</set>
-		</property>
 		<property name="instances">
 			<set>
-<!-- 				<ref bean="NOTES" /> -->
 				<ref bean="JAXB-NOTE" />
-<!-- 				<ref bean="NEW_NOTE" />  -->
-				<ref bean="COUNTRY" />
 			</set>
 		</property>
 		<property name="resourceRegistry" ref="resourceRegistry" />
@@ -138,30 +120,10 @@
         </constructor-arg>
     </bean>
 
-    <!-- 
-    <bean id="DYNA_NEW_NOTE" class="com.temenos.interaction.core.dynaresource.DynaTRANSIENTRIM">
-    	<constructor-arg name="path" value="/nnnnnotes/new" />
-    	<property name="producer" ref="functionsProducer" />
-    </bean>
-	-->
-    
-    <!-- 
-    <bean id="NOTES" class="com.temenos.interaction.example.note.NotesRIM">
-    	<constructor-arg name="producer" ref="producer" />
-    </bean>
- -->
      <bean id="OEntity-NOTE" class="com.temenos.interaction.example.note.OEntityNoteRIM">
     	<constructor-arg name="producer" ref="producer" />
     </bean>
     <bean id="JAXB-NOTE" class="com.temenos.interaction.example.note.JAXBNoteRIM">
-    	<constructor-arg name="producer" ref="producer" />
-    </bean>
-<!--
-    <bean id="NEW_NOTE" class="com.temenos.interaction.example.note.NewNoteRIM">
-    	<constructor-arg name="producer" ref="functionsProducer" />
-    </bean>
--->
-    <bean id="COUNTRY" class="com.temenos.interaction.example.country.CountryRIM">
     	<constructor-arg name="producer" ref="producer" />
     </bean>
 
