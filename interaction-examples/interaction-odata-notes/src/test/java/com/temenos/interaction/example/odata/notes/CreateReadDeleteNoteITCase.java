@@ -34,9 +34,15 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
 		// test with external server 
     	webResource = Client.create().resource(Configuration.TEST_ENDPOINT_URI); 
 
-    	// Create note 3 for person 1 if it doesn't exist
+    	// Create note 3, linked to person 2 if it doesn't exist
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
-		OEntity person = consumer.getEntity("Persons", 1).execute();
+		OEntity person = consumer.getEntity("Persons", 2).execute();
+		if (person == null) {
+			person = consumer
+						.createEntity("Persons")
+						.properties(OProperties.string("name", "Ron"))
+						.execute();
+		}
 		OEntity note = consumer.getEntity("Notes", 3).execute();
 		if (note == null) {
 			note = consumer
