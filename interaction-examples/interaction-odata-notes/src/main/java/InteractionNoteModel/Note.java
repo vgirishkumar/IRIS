@@ -17,7 +17,7 @@ public class Note {
 	/* Added this GeneratedValue annotation to auto create ids, otherwise this class in generated from the EDMX */
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Basic(optional = false)
-	private Integer Id;
+	private Integer id;
 	
 	private String body;
 	

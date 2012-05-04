@@ -47,7 +47,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity person = consumer.getEntity("Persons", 1).execute();
-		Integer id = (Integer) person.getProperty("Id").getValue();
+		Integer id = (Integer) person.getProperty("id").getValue();
 		assertEquals(1, (int) id);
 		assertEquals("example", person.getProperty("name").getValue());
 
@@ -64,7 +64,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity note = consumer.getEntity("Notes", 1).execute();
-		Integer id = (Integer) note.getProperty("Id").getValue();
+		Integer id = (Integer) note.getProperty("id").getValue();
 		assertEquals(1, (int) id);
 		assertEquals("example", note.getProperty("body").getValue());
 
@@ -140,7 +140,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertTrue(persons.count() > 0);
 		
 		OEntity person = persons.first();
-		Integer id = (Integer) person.getProperty("Id").getValue();
+		Integer id = (Integer) person.getProperty("id").getValue();
 		assertEquals(1, (int) id);
 		assertEquals("example", person.getProperty("name").getValue());
 
@@ -162,7 +162,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 				.properties(OProperties.string("name", "Noah"))
 				.execute();
 
-		Integer id = (Integer) person.getProperty("Id").getValue();
+		Integer id = (Integer) person.getProperty("id").getValue();
 		assertTrue(id > 0);
 		assertEquals("Noah", person.getProperty("name").getValue());
 
@@ -172,7 +172,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 				.link("Persons", person)
 				.execute();
 
-		Integer noteId = (Integer) note.getProperty("Id").getValue();
+		Integer noteId = (Integer) note.getProperty("id").getValue();
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
 		assertEquals(1, note.getLinks().size());
