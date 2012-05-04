@@ -44,4 +44,12 @@ public class TestTransition {
 
 	}
 	
+	@Test
+	public void testGetId() {
+		ResourceState begin = new ResourceState("entity", "begin");
+		ResourceState end = new ResourceState("entity", "end");
+
+		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff"), end);
+		assertEquals("entity.begin>entity.end", t.getId());
+	}
 }

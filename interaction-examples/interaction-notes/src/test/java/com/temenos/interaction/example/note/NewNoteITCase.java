@@ -127,7 +127,7 @@ public class NewNoteITCase extends JerseyTest {
         assertEquals(200, postResponse.getStatus());
 		// next note ID should be 2
         String actualXML = createFlatXML(postResponse.getEntity(String.class));
-		String expectedXML = "<resource href=\"http://localhost:8080/example/rest/notes/new\"><link href=\"http://localhost:8080/example/rest/notes/" + nextIDStr + "\" rel=\"note.exists\" name=\"ID.new.note.exists\"/><lastId>" + nextIDStr + "</lastId></resource>";
+		String expectedXML = "<resource href=\"http://localhost:8080/example/rest/notes/new\"><link href=\"http://localhost:8080/example/rest/notes/" + nextIDStr + "\" rel=\"note.exists\" name=\"ID.new>note.exists\"/><lastId>" + nextIDStr + "</lastId></resource>";
 		
 		Diff diff = new Diff(expectedXML, actualXML);
 		// don't worry about the order of the elements in the xml

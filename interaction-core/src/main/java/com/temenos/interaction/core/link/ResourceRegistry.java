@@ -114,9 +114,9 @@ public class ResourceRegistry implements HateoasContext {
 		 */
 		if (rim.getCurrentState() != null) {
 			for (ResourceState targetState : rim.getCurrentState().getAllTargets()) {
-				// linkKey = the target entity name and state name
-				String linkKey = rim.getCurrentState().getId() + "." + targetState.getId();
 				Transition transition = rim.getCurrentState().getTransition(targetState);
+				// linkKey is the unique name of the link from this entity (in this state) to another entity or state
+				String linkKey = transition.getId();
 				linkTransitionMap.put(linkKey, transition);
 			}
 		}

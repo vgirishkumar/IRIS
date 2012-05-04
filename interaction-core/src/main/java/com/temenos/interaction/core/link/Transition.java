@@ -23,6 +23,10 @@ public class Transition {
 		return command;
 	}
 	
+	public String getId() {
+		return source.getId() + ">" + target.getId();
+	}
+	
 	public boolean equals(Object other) {
 		//check for self-comparison
 	    if ( this == other ) return true;

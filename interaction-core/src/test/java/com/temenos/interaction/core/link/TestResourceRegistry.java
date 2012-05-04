@@ -203,16 +203,16 @@ public class TestResourceRegistry {
 		assertEquals("/blah/test", link.getMethodPath());
 
 		// link to update
-		LinkableInfo updateLink = rr.getLinkableInfo("TEST_ENTITY.exists.TEST_ENTITY.exists");
+		LinkableInfo updateLink = rr.getLinkableInfo("TEST_ENTITY.exists>TEST_ENTITY.exists");
 		assertNotNull(updateLink);
-		assertEquals("TEST_ENTITY.exists.TEST_ENTITY.exists", updateLink.getId());
+		assertEquals("TEST_ENTITY.exists>TEST_ENTITY.exists", updateLink.getId());
 		assertEquals("PUT", updateLink.getHttpMethod());
 		assertEquals("/blah/test", updateLink.getMethodPath());
 
 		// link to delete
-		LinkableInfo deleteLink = rr.getLinkableInfo("TEST_ENTITY.exists.TEST_ENTITY.deleted");
+		LinkableInfo deleteLink = rr.getLinkableInfo("TEST_ENTITY.exists>TEST_ENTITY.deleted");
 		assertNotNull(deleteLink);
-		assertEquals("TEST_ENTITY.exists.TEST_ENTITY.deleted", deleteLink.getId());
+		assertEquals("TEST_ENTITY.exists>TEST_ENTITY.deleted", deleteLink.getId());
 		assertEquals("DELETE", deleteLink.getHttpMethod());
 		assertEquals("/blah/test", deleteLink.getMethodPath());
 		
