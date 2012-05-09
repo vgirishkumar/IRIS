@@ -59,6 +59,30 @@ public class TestAbstractHTTPResourceInteractionModel {
 		verify(rgc).get(eq("id"), (MultivaluedMap<String, String>) argThat(new MultimapArgumentMatcher()));
 	}
 
+	/* We decode the query parameters to workaround an issue in Wink */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testDecodeQueryParametersNullValue() {
+		String resourcePath = "/test";
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() {
+				return null;
+			}
+		};
+		CommandController cc = r.getCommandController();
+		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
+		when(rgc.get(anyString(), any(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null));
+		cc.setGetCommand(resourcePath, rgc);
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl();
+		queryMap.add(null, null);
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(queryMap);
+		
+		// should get past here without a NullPointerException
+		r.get(null, "id", uriInfo);
+	}
+
 	@SuppressWarnings("rawtypes")
 	class MultimapArgumentMatcher extends ArgumentMatcher {
 		@SuppressWarnings("unchecked")

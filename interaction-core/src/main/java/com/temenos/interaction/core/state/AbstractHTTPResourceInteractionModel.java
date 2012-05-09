@@ -293,7 +293,8 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 				if (values != null) {
 					List<String> newValues = new ArrayList<String>();
 				    for (String value : values) {
-				    	newValues.add(ud.decode(value, "UTF-8"));
+				    	if (value != null)
+				    		newValues.add(ud.decode(value, "UTF-8"));
 				    }
 				    queryParameters.put(key, newValues);
 				}
