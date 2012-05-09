@@ -170,6 +170,43 @@ public class TestHALProvider {
 	}
 
 	@Test
+	public void testJSONMediaTypeWithCharset() throws Exception {
+		EntityResource<?> er = mock(EntityResource.class);
+		when(er.getEntity()).thenReturn(null);
+		
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		// java 1.6 bug getBaseUri returns absolute path
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		hp.writeTo(er, EntityResource.class, null, null, javax.ws.rs.core.MediaType.valueOf("application/hal+json; charset=utf-8"), null, bos);
+
+		String expectedXML = "{  \"_links\" : {    \"self\" : {      \"href\" : \"http://www.temenos.com/rest.svc/\"    }  }}";
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		responseString = responseString.replaceAll(System.getProperty("line.separator"), "");
+		assertEquals(expectedXML, responseString);
+	}
+
+	@Test
+	public void testXMLMediaTypeWithCharset() throws Exception {
+		EntityResource<?> er = mock(EntityResource.class);
+		when(er.getEntity()).thenReturn(null);
+		
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		// java 1.6 bug getBaseUri returns absolute path
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		hp.writeTo(er, EntityResource.class, null, null, javax.ws.rs.core.MediaType.valueOf("application/hal+xml; charset=utf-8"), null, bos);
+
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"></resource>";
+		String responseString = createFlatXML(bos);
+		XMLAssert.assertXMLEqual(expectedXML, responseString);		
+	}
+
+	@Test
 	public void testSerialiseResourceWithLinks() throws Exception {
 		// the test key
 		OEntityKey entityKey = OEntityKey.create("123");

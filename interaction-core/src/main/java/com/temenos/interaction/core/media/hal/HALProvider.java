@@ -140,9 +140,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 				
 		String representation = null;
-		if (halResource != null && mediaType.equals(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
+		if (halResource != null && mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
 			representation = halResource.asRenderableResource().renderContent(ResourceFactory.HAL_XML);
-		} else if (halResource != null && mediaType.equals(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
+		} else if (halResource != null && mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
 			representation = halResource.asRenderableResource().renderContent(ResourceFactory.HAL_JSON);
 		} else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
