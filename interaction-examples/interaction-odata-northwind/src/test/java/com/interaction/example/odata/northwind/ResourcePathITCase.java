@@ -15,7 +15,7 @@ public class ResourcePathITCase extends AbstractNorthwindRuntimeTest {
 	public void ResourcePathCollectionTest() {
 		String inp = "ResourcePathCollectionTest";
 		String uri = "Categories";
-		//utils.testJSONResult(endpointUri, uri, inp);
+		//testJSONResult(endpointUri, uri, inp);
 		testAtomResult(endpointUri, uri, inp);
 	}
 

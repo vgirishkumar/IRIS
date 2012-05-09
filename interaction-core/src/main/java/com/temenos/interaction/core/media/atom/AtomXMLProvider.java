@@ -108,7 +108,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 				OEntity oentity = entityResource.getEntity();
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(oentity.getEntitySetName());
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(oentity), entitySet);
+				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
 				List<OEntity> entities = (List<OEntity>) cr.getEntities();
@@ -116,7 +116,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entities(entities, entitySet, inlineCount, skipToken));
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entities(entities, entitySet, inlineCount, skipToken));
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

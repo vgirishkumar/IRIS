@@ -94,7 +94,7 @@ public class JPAResponderGen {
 			String fqOutputDir = srcOutputPath.getPath() + "/" + entityInfo.getPackageAsPath();
 			new File(fqOutputDir).mkdirs();
 			if (writeClass(formClassFilename(srcOutputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
-				String resourcePath = "/" + entityInfo.getClazz() + "/{id}";
+				String resourcePath = "/" + entityInfo.getClazz() + "({id})";
 				String commandType = "com.temenos.interaction.commands.odata.GETEntityCommand"; 
 				resourcesInfo.add(new ResourceInfo(resourcePath, entityInfo, commandType));
 				
@@ -218,6 +218,8 @@ public class JPAResponderGen {
 			javaType = "java.util.Date";
 		} else if (EdmSimpleType.TIME == type) {
 			javaType = "java.util.Date";
+		} else if (EdmSimpleType.DECIMAL == type) {
+			javaType = "java.math.BigDecimal";
 		} else {
 			// TODO support types other than Long and String
 			throw new RuntimeException("Entity property type not supported");
