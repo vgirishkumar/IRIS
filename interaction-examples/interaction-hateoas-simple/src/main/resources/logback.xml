@@ -11,6 +11,12 @@
   <logger name="com.temenos.interaction.core.link">
     <level value="DEBUG" />
   </logger>
+  <logger name="com.temenos.interaction.core.media.hal">
+    <level value="DEBUG" />
+  </logger>
+  <logger name="com.temenos.interaction.core.dynaresource">
+    <level value="INFO" />
+  </logger>
 
   <!-- Log all resource endpoints -->
   <logger name="org.apache.wink.server.internal.log.Resources">

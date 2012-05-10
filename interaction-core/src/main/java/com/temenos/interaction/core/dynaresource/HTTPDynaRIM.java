@@ -86,8 +86,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		assert(stateMachine != null);
 		assert(currentState != null);
 		if (parent == null && stateMachine.getInitial() != null) {
-			logger.info("Checking state machine for [" + this.toString() + "]");
-			logger.info(new ASTValidation().graph(stateMachine));
+			logger.info("State graph for [" + this.toString() + "] [" + new ASTValidation().graph(stateMachine) + "]");
 		}
 		bootstrap();
 	}
