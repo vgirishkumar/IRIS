@@ -246,29 +246,36 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     		builder.selfLink(getHateoasContext(), getCurrentState().getId());
 		}
 		
-    	// TODO add support for collections, map is only null when we have a collection
-		if (map != null) {
-			Collection<ResourceState> targetStates = getCurrentState().getAllTargets();
-			for (ResourceState s : targetStates) {
-				Transition transition = getCurrentState().getTransition(s);
-				// add link using jax-rs-hateoas builder (uses our resource registry)
-				String linkId = transition.getId();
-				String rel = s.getId();
+		Collection<ResourceState> targetStates = getCurrentState().getAllTargets();
+		for (ResourceState s : targetStates) {
+			Transition transition = getCurrentState().getTransition(s);
+			// add link using jax-rs-hateoas builder (uses our resource registry)
+			String linkId = transition.getId();
+			String rel = s.getId();
+	    	// TODO add support for collections, map can be null when we have a collection, or link to another statemachine
+			if (map != null) {
 				builder.link(getHateoasContext(), linkId, rel, map);
+			} else {
+				builder.link(getHateoasContext(), linkId, rel);
+			}
 
-				// TODO could add link directly as we have the transition command available
-				TransitionCommandSpec cs = transition.getCommand();
-				/* 
-				 * TODO remove this little (getPath != null) as this happens when 
-				 * a transition is a POST, PUT, DELETE is to this resource, it smells
-				 * of a problem with the TransitionCommandSpec creation.
-				 */
-				if (cs.getPath() != null) {
-					UriBuilder linkTemplate = UriBuilder.fromPath(cs.getPath());
-					URI href = linkTemplate.buildFromMap(map);
-					String method = cs.getMethod();
-					logger.debug("Link added to [" + getFQResourcePath() + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "]");
+			// TODO could add link directly as we have the transition command available
+			TransitionCommandSpec cs = transition.getCommand();
+			/* 
+			 * TODO remove this little (getPath != null) as this happens when 
+			 * a transition is a POST, PUT, DELETE is to this resource, it smells
+			 * of a problem with the TransitionCommandSpec creation.
+			 */
+			if (cs.getPath() != null) {
+				UriBuilder linkTemplate = UriBuilder.fromPath(cs.getPath());
+				URI href = null;
+				if (map != null) {
+					href = linkTemplate.buildFromMap(map);
+				} else {
+					href = linkTemplate.build();
 				}
+				String method = cs.getMethod();
+				logger.debug("Link added to [" + getFQResourcePath() + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "]");
 			}
 		}
 	}
