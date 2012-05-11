@@ -22,6 +22,7 @@
 		<constructor-arg name="namespace" value="MockResponderSDK" />		
 		<constructor-arg name="maxResults" value="100" />				
 	</bean>
+	<!-- <bean id="myProducer" class="com.interaction.producer.example.MyProducer"/> -->
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -55,10 +56,10 @@
                 <ref bean="ServiceDocument" />
                 <ref bean="Metadata" />
 #foreach ( $resourceInfo in $resourcesInfo )
-#if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
-                <ref bean="$resourceInfo.getJPAEntityInfo().getClazz()" />
+#if (!$resourceInfo.getEntityInfo().isFeedEntity()) 
+                <ref bean="$resourceInfo.getEntityInfo().getClazz()" />
 #else
-                <ref bean="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" />
+                <ref bean="${resourceInfo.getEntityInfo().getClazz()}Feed" />
 #end
 #end
             </set>
@@ -99,17 +100,17 @@
     </bean>
 
 #foreach ( $resourceInfo in $resourcesInfo )
-#if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
-    <bean id="$resourceInfo.getJPAEntityInfo().getClazz()" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+#if (!$resourceInfo.getEntityInfo().isFeedEntity()) 
+    <bean id="$resourceInfo.getEntityInfo().getClazz()" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
 #else
-    <bean id="${resourceInfo.getJPAEntityInfo().getClazz()}Feed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    <bean id="${resourceInfo.getEntityInfo().getClazz()}Feed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
 #end
     	<constructor-arg name="stateMachine">
     		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
     			<constructor-arg name="initialState">
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    					<constructor-arg name="entityName" value="$resourceInfo.getJPAEntityInfo().getClazz()" />
-#if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
+    					<constructor-arg name="entityName" value="$resourceInfo.getEntityInfo().getClazz()" />
+#if (!$resourceInfo.getEntityInfo().isFeedEntity()) 
     					<constructor-arg name="resourceName" value="item" />
 #else
     					<constructor-arg name="resourceName" value="collection" />
@@ -147,8 +148,12 @@
                 <entry>
                     <key><value>GET+$resourceInfo.getResourcePath()</value></key>
                     <bean class="$resourceInfo.getCommandType()">
-                        <constructor-arg name="entity" value="$resourceInfo.getJPAEntityInfo().getClazz()" />
+                        <constructor-arg name="entity" value="$resourceInfo.getEntityInfo().getClazz()" />
+#if ($resourceInfo.getEntityInfo().isJpaEntity()) 
                         <constructor-arg name="producer" ref="mockProducer" />
+#else
+                        <constructor-arg name="producer" ref="myProducer" />
+#end
                     </bean>
                 </entry>
                 <entry>
