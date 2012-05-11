@@ -12,6 +12,7 @@
 		<module>../interaction-core</module>
 		<module>../interaction-winkext</module>
 		<module>../interaction-commands-odata</module>
+		<module>../interaction-commands-odata-bridge</module>
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
 		<module>../interaction-sdk-archetype</module>
