@@ -1,7 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+           classpath:org/springframework/beans/factory/xml/spring-beans-2.5.xsd">
 
 	<!-- Initialise JPA for MockResponder -->
 	<bean id="entityManagerFactory"
@@ -18,10 +18,15 @@
 	
 	<!-- Producers -->
 	<bean id="mockProducer" class="org.odata4j.producer.jpa.JPAProducer">
-		<constructor-arg name="emf" ref="entityManagerFactory" />
-		<constructor-arg name="namespace" value="MockResponderSDK" />		
-		<constructor-arg name="maxResults" value="100" />				
+		<constructor-arg ref="entityManagerFactory" />
+		<constructor-arg value="MockResponderSDK" />		
+		<constructor-arg value="100" />				
 	</bean>
+	<bean id="functionsProducer" class="com.temenos.interaction.example.note.NewFunctionProducer">
+        <constructor-arg ref="entityManagerFactory" />       
+        <constructor-arg value="InteractionExample" />
+        <constructor-arg ref="mockProducer" />               
+    </bean>
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -39,71 +44,38 @@
 	</bean>
 
 	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
-    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+    	<constructor-arg ref="edmDataServices" />
 	</bean>	
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
-    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
-		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+    	<constructor-arg ref="edmDataServices" />
+		<constructor-arg ref="resourceRegistry" />
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
-    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+    	<constructor-arg ref="edmDataServices" />
     	<!-- Supply the root document and all resources are created dynamically from here -->
-        <constructor-arg name="root" ref="ServiceRoot" />
+        <constructor-arg ref="ServiceRoot" />
     </bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
     <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
-    	<constructor-arg name="initialState" ref="interaction" />
+    	<constructor-arg ref="interaction" />
     </bean>
 
     <!-- Resources -->
     <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="stateMachine" ref="stateMachine" />
-    	<constructor-arg name="path" value="/" />
-    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
-    	<constructor-arg name="commandController" ref="commands" />
+    	<constructor-arg ref="stateMachine" />
+    	<constructor-arg value="/" />
+    	<constructor-arg><null/></constructor-arg>
+    	<constructor-arg ref="commands" />
     </bean>
-<!--
-    <bean id="Profile" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="stateMachine">
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="initialState">
-    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    					<constructor-arg name="entityName" value="Profile" />
-    					<constructor-arg name="resourceName" value="item" />
-    				</bean>
-    			</constructor-arg>
-    		</bean>
-    	</constructor-arg>
-    	<constructor-arg name="path" value="/Profile/{id}" />
-    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
-    	<constructor-arg name="commandController" ref="commands" />
-    </bean>
-    
-    <bean id="Preferences" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="stateMachine">
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="initialState">
-    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    					<constructor-arg name="entityName" value="Preferences" />
-    					<constructor-arg name="resourceName" value="item" />
-    				</bean>
-    			</constructor-arg>
-    		</bean>
-    	</constructor-arg>
-    	<constructor-arg name="path" value="/Preferences/{id}" />
-    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
-    	<constructor-arg name="commandController" ref="commands" />
-    </bean>
--->    
 
     <!-- Commands -->
     <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
-    	<constructor-arg name="commands">
+    	<constructor-arg>
             <map>
                 <entry>
                     <key><value>GET+/</value></key>
@@ -114,32 +86,56 @@
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
                 <entry>
-                    <key><value>POST+/profile</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/profile</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/profile</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
                     <key><value>GET+/preferences</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
+               <entry>
+                    <key><value>GET+/notes</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg value="note" />
+                        <constructor-arg ref="mockProducer" />
+                    </bean>
+                 </entry>
+                 <entry>
+                    <key><value>GET+/notes/{id}</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
+                        <constructor-arg value="note" />
+                        <constructor-arg ref="mockProducer" />
+                    </bean>
+                </entry>
                 <entry>
-                    <key><value>POST+/preferences</value></key>
+                    <key><value>PUT+/notes/{id}</value></key>
+                    <bean class="com.temenos.interaction.example.note.OEntityPutNoteCommand">
+                        <constructor-arg ref="mockProducer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>DELETE+/notes/{id}</value></key>
+                    <bean class="com.temenos.interaction.example.note.DeleteNoteCommand">
+                        <constructor-arg ref="mockProducer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>GET+/notes/new</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
+                    <!--
+                    <bean class="com.temenos.interaction.example.note.GETNewNoteCommand">
+                        <constructor-arg name="domainObjectName" value="NOTE" />
+                        <constructor-arg name="producer" ref="functionsProducer" />
+                    </bean>
+                    -->
+                </entry>
+                <entry>
+                    <key><value>POST+/notes/new</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/preferences</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/preferences</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
+                    <!--
+                    <bean class="com.temenos.interaction.commands.odata.POSTNewCommand">
+                        <constructor-arg value="ID" />
+                        <constructor-arg value="NOTE" />
+                        <constructor-arg value="test" />
+                        <constructor-arg ref="functionsProducer" />
+                    </bean>
+                    -->
                 </entry>
             </map>
         </constructor-arg>

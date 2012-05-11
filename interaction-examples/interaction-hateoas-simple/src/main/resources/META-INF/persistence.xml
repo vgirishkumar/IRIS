@@ -9,6 +9,7 @@
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<class>com.temenos.interaction.example.hateoas.simple.Profile</class>
 		<class>com.temenos.interaction.example.hateoas.simple.Preferences</class>
+        <class>com.temenos.interaction.example.hateoas.simple.Note</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="javax.persistence.jdbc.driver" value="org.hsqldb.jdbcDriver" />
