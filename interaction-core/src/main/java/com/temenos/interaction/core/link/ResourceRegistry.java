@@ -123,7 +123,12 @@ public class ResourceRegistry implements HateoasContext {
 	}
 	
 	public EdmEntitySet getEntitySet(String entitySetName) {
-		return edmDataServices.getEdmEntitySet(entitySetName);
+		try {
+			return edmDataServices.getEdmEntitySet(entitySetName);
+		} catch (RuntimeException e) {
+			logger.error("An error occurred while retrieving metadata for entity [" + entitySetName + "]", e);
+			throw e;
+		}
 	}
 	
 	public String getEntityResourcePath(String entityName) {
