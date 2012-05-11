@@ -24,11 +24,11 @@ public class TestJPAResponderGen {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		EdmType t = mock(EdmType.class);
-		assertNull(rg.createJPAEntityInfoFromEdmEntityType(t));
+		assertNull(rg.createEntityInfoFromEdmEntityType(t));
 	}
 	
 	@Test
-	public void testJPAEntityInfo() {
+	public void testEntityInfo() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		List<String> keys = new ArrayList<String>();
@@ -42,7 +42,7 @@ public class TestJPAResponderGen {
 		entityTypeBuilder.addKeys(keys);
 		entityTypeBuilder.addProperties(properties);
 		EdmEntityType t = entityTypeBuilder.build();
-		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
+		EntityInfo p = rg.createEntityInfoFromEdmEntityType(t);
 		
 		assertEquals("Flight", p.getClazz());
 		assertEquals("AirlineModel", p.getPackage());
@@ -64,7 +64,7 @@ public class TestJPAResponderGen {
 		entityTypeBuilder.addKeys(keys);
 		entityTypeBuilder.addProperties(properties);
 		EdmEntityType t = entityTypeBuilder.build();
-		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
+		EntityInfo p = rg.createEntityInfoFromEdmEntityType(t);
 		
 		assertEquals("flightID", p.getKeyInfo().getName());
 		assertEquals("Long", p.getKeyInfo().getType());
@@ -94,7 +94,7 @@ public class TestJPAResponderGen {
 		entityTypeBuilder.addKeys(keys);
 		entityTypeBuilder.addProperties(properties);
 		EdmEntityType t = entityTypeBuilder.build();
-		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
+		EntityInfo p = rg.createEntityInfoFromEdmEntityType(t);
 		
 		assertEquals(7, p.getFieldInfos().size());
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("flightID", "Long", null)));
@@ -137,7 +137,7 @@ private Date lastDeparture;
 		entityTypeBuilder.addKeys(keys);
 		entityTypeBuilder.addProperties(properties);
 		EdmEntityType t = entityTypeBuilder.build();
-		JPAEntityInfo p = rg.createJPAEntityInfoFromEdmEntityType(t);
+		EntityInfo p = rg.createEntityInfoFromEdmEntityType(t);
 
 		// Annotations
 		FieldInfo dateFI = p.getFieldInfos().get(0);
@@ -172,7 +172,7 @@ private Date lastDeparture;
 		
 		properties.add(new FieldInfo("dinnerServed", "java.sql.Timestamp", null));
 		
-		JPAEntityInfo jpaEntity = new JPAEntityInfo("Flight", "AirlineModel", keyInfo, properties);
+		EntityInfo jpaEntity = new EntityInfo("Flight", "AirlineModel", keyInfo, properties);
 		String generatedClass = rg.generateJPAEntityClass(jpaEntity);
 		
 		assertTrue(generatedClass.contains("package AirlineModel;"));
@@ -200,9 +200,9 @@ private Date lastDeparture;
 		JPAResponderGen rg = new JPAResponderGen();
 		
 		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
-		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new JPAEntityInfo("Flight", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new JPAEntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new EntityInfo("Flight", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new EntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new EntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
 		String generatedPersistenceConfig = rg.generateJPAConfiguration(resourcesInfo);
 		
 		assertTrue(generatedPersistenceConfig.contains("<!-- Generated JPA configuration for IRIS MockResponder -->"));
@@ -221,9 +221,9 @@ private Date lastDeparture;
 		properties.add(new FieldInfo("number", "Long", null));
 		properties.add(new FieldInfo("fitHostiesName", "String", null));
 		properties.add(new FieldInfo("runway", "String", null));
-		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new JPAEntityInfo("Flight", "AirlineModel", null, properties), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new JPAEntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new JPAEntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new EntityInfo("Flight", "AirlineModel", null, properties), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new EntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
+		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new EntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
 		String generatedResponderDML = rg.generateResponderDML(resourcesInfo);
 		
 		assertTrue(generatedResponderDML.contains("#INSERT INTO `Flight`(`number` , `fitHostiesName` , `runway`) VALUES('1' , 'example' , 'example');"));
@@ -233,7 +233,7 @@ private Date lastDeparture;
 
 	@Test
 	public void testFormClassFilename() {
-		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah", new JPAEntityInfo("SomeClass", "com.some.package", null, null)));
+		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah", new EntityInfo("SomeClass", "com.some.package", null, null)));
 	}
 	
 }

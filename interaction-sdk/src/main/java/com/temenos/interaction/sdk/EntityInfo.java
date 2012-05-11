@@ -10,19 +10,25 @@ import org.odata4j.core.OEntity;
  * @author aphethean
  *
  */
-public class JPAEntityInfo {
+public class EntityInfo {
 
 	private String clazz;
 	private String pckge;
 	private FieldInfo keyInfo;
 	private List<FieldInfo> properties;
 	private boolean isFeed = false;
+	private boolean isJpaEntity = true;
+
+	public EntityInfo(String clazz, String pckge, FieldInfo keyInfo, List<FieldInfo> properties) {
+		this(clazz, pckge, keyInfo, properties, true);
+	}
 	
-	public JPAEntityInfo(String clazz, String pckge, FieldInfo keyInfo, List<FieldInfo> properties) {
+	public EntityInfo(String clazz, String pckge, FieldInfo keyInfo, List<FieldInfo> properties, boolean isJpaEntity) {
 		this.clazz = clazz;
 		this.pckge = pckge;
 		this.keyInfo = keyInfo;
 		this.properties = properties;
+		this.isJpaEntity = isJpaEntity;
 	}
 
 	/**
@@ -79,5 +85,9 @@ public class JPAEntityInfo {
 	
 	public boolean isFeedEntity() {
 		return isFeed;
+	}
+
+	public boolean isJpaEntity() {
+		return isJpaEntity;
 	}
 }
