@@ -44,6 +44,7 @@ public class EntityResource<T> implements RESTResource {
 		return new GenericEntity<EntityResource<T>>(this, this.getClass().getGenericSuperclass());
 	}
 
+	@Override
     public Collection<HateoasLink> getLinks() {
     	return this.links;
     }

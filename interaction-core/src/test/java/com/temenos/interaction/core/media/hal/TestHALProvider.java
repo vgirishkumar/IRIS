@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 
 import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -112,6 +114,38 @@ public class TestHALProvider {
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><name>noah</name><age>2</age></resource>";
+		String responseString = createFlatXML(bos);
+		
+		Diff diff = new Diff(expectedXML, responseString);
+		// don't worry about the order of the elements in the xml
+		assertTrue(diff.similar());
+	}
+
+	@Test
+	public void testSerialiseCollectionResource() throws Exception {
+		// the test key
+		OEntityKey entityKey = OEntityKey.create("123");
+		// the test properties
+		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+		properties.add(OProperties.string("name", "noah"));
+		properties.add(OProperties.string("age", "2"));
+
+		Collection<OEntity> entities = new ArrayList<OEntity>();
+		entities.add(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>()));
+		entities.add(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>()));
+		entities.add(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>()));
+		CollectionResource<OEntity> er = new CollectionResource<OEntity>("EntitySetName", entities, null);
+		
+		EdmDataServices edmDS = mock(EdmDataServices.class);
+		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
+		HALProvider hp = new HALProvider(edmDS);
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		hp.writeTo(er, CollectionResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/\" rel=\"Children item self\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/\" rel=\"Children item self\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/\" rel=\"Children item self\"><age>2</age><name>noah</name></resource></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);

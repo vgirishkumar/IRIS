@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
@@ -67,7 +68,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
+				|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
 	}
 
 	@Override
@@ -95,17 +97,18 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		assert (resource != null);
 		logger.debug("Writing " + mediaType);
 		
-		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
+		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class)
+				&& !ResourceTypeHelper.isType(type, genericType, CollectionResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
 		// create the hal resource
 		ResourceFactory resourceFactory = new ResourceFactory(uriInfo.getBaseUri().toASCIIString());
 		Resource halResource = resourceFactory.newResource("");
 		if (resource.getGenericEntity() != null) {
-			EntityResource<?> entityResource = (EntityResource<?>) resource.getGenericEntity().getEntity();
+			RESTResource rResource = (RESTResource) resource.getGenericEntity().getEntity();
 
 			// get the links
-			Collection<HateoasLink> links= entityResource.getLinks();
+			Collection<HateoasLink> links = rResource.getLinks();
 			HateoasLink selfLink = findSelfLink(links);
 			
 			// build the HAL representation with self link
@@ -122,19 +125,42 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			}
 			
 			// add contents of supplied entity to the property map
-			Map<String, Object> propertyMap = new HashMap<String, Object>();
 			if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				@SuppressWarnings("unchecked")
-				EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) entityResource;
+				EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) resource;
+				Map<String, Object> propertyMap = new HashMap<String, Object>();
 				buildFromOEntity(propertyMap, oentityResource.getEntity());
-			} else if (entityResource.getEntity() != null) {
-				// regular java bean
-//				halResource.withBean(entityResource.getEntity());
-			}
-
-			// add properties to HAL resource
-			for (String key : propertyMap.keySet()) {
-				halResource.withProperty(key, propertyMap.get(key));
+				// add properties to HAL resource
+				for (String key : propertyMap.keySet()) {
+					halResource.withProperty(key, propertyMap.get(key));
+				}
+			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
+				EntityResource<?> entityResource = (EntityResource<?>) resource;
+				if (entityResource.getEntity() != null) {
+					// regular java bean
+//					halResource.withBean(entityResource.getEntity());
+				}
+			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
+				@SuppressWarnings("unchecked")
+				CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource;
+				List<OEntity> entities = (List<OEntity>) cr.getEntities();
+				for (OEntity entity : entities) {
+					// the subresource is an item
+					String rel = entity.getEntityType().getName() + " " + "item";
+					// the properties
+					Map<String, Object> propertyMap = new HashMap<String, Object>();
+					buildFromOEntity(propertyMap, entity);
+					// add properties to HAL sub resource
+					Resource subResource = resourceFactory.newResource("");  // TODO need href for item
+					for (String key : propertyMap.keySet()) {
+						subResource.withProperty(key, propertyMap.get(key));
+					}
+					
+					halResource.withSubresource(rel, subResource);
+				}
+			} else {
+				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 			}
 
 		}

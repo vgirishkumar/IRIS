@@ -2,7 +2,6 @@ package com.temenos.interaction.core.resource;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -11,8 +10,9 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.odata4j.core.OLink;
 import org.odata4j.core.OProperty;
+
+import com.jayway.jaxrs.hateoas.HateoasLink;
 
 /**
  * A CollectionResource is the RESTful representation of a collection of
@@ -36,10 +36,9 @@ public class CollectionResource<T> implements RESTResource {
 	@XmlTransient
 	private List<OProperty<?>> properties;
 
-	// TODO implement links from a collection
-	@SuppressWarnings("unused")
+	// links from a collection
 	@XmlTransient
-	private Set<OLink> links;
+    private Collection<HateoasLink> links;
 	
 	public CollectionResource() {}
 
@@ -61,4 +60,14 @@ public class CollectionResource<T> implements RESTResource {
 	public GenericEntity<CollectionResource<T>> getGenericEntity() {
 		return new GenericEntity<CollectionResource<T>>(this, this.getClass().getGenericSuperclass());
 	}
+
+	@Override
+    public Collection<HateoasLink> getLinks() {
+    	return this.links;
+    }
+    
+    public void setLinks(Collection<HateoasLink> links) {
+    	this.links = links;
+    }
+
 }
