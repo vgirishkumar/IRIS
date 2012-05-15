@@ -4,6 +4,7 @@
         <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="com.temenos.interaction.example.hateoas.simple">
             <EntityContainer Name="Entities" m:IsDefaultEntityContainer="true">
                 <EntitySet Name="note" EntityType="com.temenos.interaction.example.hateoas.simple.note"/>
+                <EntitySet Name="Preferences" EntityType="com.temenos.interaction.example.hateoas.simple.Preferences"/>
             </EntityContainer>
             <EntityType Name="Profile">
                 <Key>

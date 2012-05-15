@@ -87,7 +87,7 @@
                 </entry>
                 <entry>
                     <key><value>GET+/preferences</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
+                    <bean class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
                 </entry>
                <entry>
                     <key><value>GET+/notes</value></key>

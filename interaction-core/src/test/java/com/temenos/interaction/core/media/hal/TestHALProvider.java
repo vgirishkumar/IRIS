@@ -153,6 +153,45 @@ public class TestHALProvider {
 		assertTrue(diff.similar());
 	}
 
+	@Test
+	public void testSerialiseBeanResource() throws Exception {
+		// the test bean, with elements that should not be serialised
+		Children person = new Children("noah", 2, "42");
+		EntityResource<Children> er = new EntityResource<Children>(person);
+
+		EdmDataServices edmDS = mock(EdmDataServices.class);
+		// mock entity type includes name, age
+		when(edmDS.getEdmEntitySet(eq("Children"))).thenReturn(createMockChildrenEntitySet());
+		HALProvider hp = new HALProvider(edmDS);
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		hp.writeTo(er, EntityResource.class, Children.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><name>noah</name><age>2</age></resource>";
+		String responseString = createFlatXML(bos);
+		
+		Diff diff = new Diff(expectedXML, responseString);
+		// don't worry about the order of the elements in the xml
+		assertTrue(diff.similar());
+	}
+
+	@Test
+	public void testSerialiseNullBeanResource() throws Exception {
+		// null object
+		EntityResource<Object> er = new EntityResource<Object>(null);
+
+		EdmDataServices edmDS = mock(EdmDataServices.class);
+		// mock entity type includes name, age
+		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
+		HALProvider hp = new HALProvider(edmDS);
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		hp.writeTo(er, EntityResource.class, Object.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
+	}
+
 	private String createFlatXML(ByteArrayOutputStream bos) throws Exception {
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		responseString = responseString.replaceAll(System.getProperty("line.separator"), "");

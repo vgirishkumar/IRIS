@@ -1,9 +1,14 @@
 package com.temenos.interaction.core.media.hal;
 
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -136,9 +141,18 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				}
 			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				EntityResource<?> entityResource = (EntityResource<?>) resource;
-				if (entityResource.getEntity() != null) {
-					// regular java bean
-//					halResource.withBean(entityResource.getEntity());
+				Object entity = entityResource.getEntity();
+				if (entity != null) {
+					/*
+					 * // regular java bean
+					 * halResource.withBean(entity);
+					 */
+					// java bean, now limited to just the properties specified in the metadata entity model
+					Map<String, Object> propertyMap = new HashMap<String, Object>();
+					buildFromBean(propertyMap, entity);
+					for (String key : propertyMap.keySet()) {
+						halResource.withProperty(key, propertyMap.get(key));
+					}
 				}
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				@SuppressWarnings("unchecked")
@@ -204,6 +218,34 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 	
+	protected void buildFromBean(Map<String, Object> map, Object bean) {
+		try {
+			// TODO we should look up the entity here, but the entity set is much easier to lookup
+			String beanName = bean.getClass().getSimpleName(); 
+			EdmEntitySet ees = edmDataServices.getEdmEntitySet(beanName);
+			if (ees != null) {
+				BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
+				for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
+				    String propertyName = propertyDesc.getName();
+					if (ees.getType().findProperty(propertyName) != null) {
+					    Object value = propertyDesc.getReadMethod().invoke(bean);
+						map.put(propertyName, value);				
+					}
+				}
+			} else {
+				logger.warn("EdmEntitySet not found using bean [" + beanName + "]");
+			}
+		} catch (IllegalArgumentException e) {
+			logger.error("Error accessing bean property", e);
+		} catch (IntrospectionException e) {
+			logger.error("Error accessing bean property", e);
+		} catch (IllegalAccessException e) {
+			logger.error("Error accessing bean property", e);
+		} catch (InvocationTargetException e) {
+			logger.error("Error accessing bean property", e);
+		}
+	}
+
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
