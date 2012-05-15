@@ -9,7 +9,6 @@
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
-  <groupId>com.temenos.interaction</groupId>
   <artifactId>interaction-hateoas-simple</artifactId>
   <packaging>war</packaging>
 
@@ -74,9 +73,8 @@
   
     <!-- Add dependency for our javascript user-agent -->
     <dependency>
-        <groupId>com.jayway.jax-rs-hateoas</groupId>
-        <artifactId>generic-javascript-client</artifactId>
-        <version>0.5-SNAPSHOT</version>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>useragent-generic-javascript</artifactId>
         <type>war</type>
     </dependency>
 
@@ -85,13 +83,6 @@
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-core</artifactId>
     	<type>jar</type>
-    	<scope>runtime</scope>
-    	<exclusions>
-    		<exclusion>
-    			<artifactId>stax-api</artifactId>
-				<groupId>javax.xml.stream</groupId>
-			</exclusion>
-		</exclusions>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>

@@ -21,7 +21,7 @@ public class Behaviour {
 
 		// notes collection
 		initialState.addTransition("PUT", exists);		
-		initialState.addTransition("PUT", newNoteState);		
+		initialState.addTransition("POST", newNoteState);		
 
 		// a link (target URI element, source entity element)
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();

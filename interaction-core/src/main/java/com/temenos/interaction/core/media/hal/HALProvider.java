@@ -145,8 +145,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource;
 				List<OEntity> entities = (List<OEntity>) cr.getEntities();
 				for (OEntity entity : entities) {
-					// the subresource is an item
-					String rel = entity.getEntityType().getName() + " " + "item";
+					// the subresource is a collection
+					String rel = "collection" + " " + entity.getEntitySetName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
