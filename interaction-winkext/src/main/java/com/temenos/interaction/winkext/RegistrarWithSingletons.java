@@ -18,6 +18,7 @@ import com.jayway.jaxrs.hateoas.support.DefaultHateoasViewFactory;
 import com.jayway.jaxrs.hateoas.support.HateoasLinkBeanLinkInjector;
 import com.jayway.jaxrs.hateoas.support.StrategyBasedLinkInjector;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
+import com.temenos.interaction.core.link.CollectionResourceLinkInjector;
 import com.temenos.interaction.core.link.EntityResourceLinkInjector;
 import com.temenos.interaction.core.link.GenericEntityHateoasLinkBeanLinkInjector;
 import com.temenos.interaction.core.link.NaiveLinkInjector;
@@ -45,6 +46,8 @@ public class RegistrarWithSingletons extends Registrar {
     	strategies.add(new GenericEntityHateoasLinkBeanLinkInjector());
     	// add the link injector for an individual/item resource
     	strategies.add(new EntityResourceLinkInjector());
+    	// add the link injector for an collection resource
+    	strategies.add(new CollectionResourceLinkInjector());
     	strategies.add(new NaiveLinkInjector());
 		HateoasResponseBuilder.configure(new StrategyBasedLinkInjector(strategies), new DefaultCollectionWrapperStrategy(), new DefaultHateoasViewFactory());
 
