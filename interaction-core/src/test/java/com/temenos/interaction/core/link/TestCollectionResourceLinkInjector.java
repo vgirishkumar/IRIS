@@ -14,7 +14,7 @@ public class TestCollectionResourceLinkInjector {
 	public void testCanInjectRESTResource() {
 
 		CollectionResourceLinkInjector injector = new CollectionResourceLinkInjector();
-		CollectionResource<Object> resource = new CollectionResource<Object>("EntitySet", null, null);
+		CollectionResource<Object> resource = new CollectionResource<Object>("EntitySet", null);
 		GenericEntity<?> ge = resource.getGenericEntity();
 
 		assertTrue(injector.canInject(ge));

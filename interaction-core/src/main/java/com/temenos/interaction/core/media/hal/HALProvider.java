@@ -143,15 +143,18 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				@SuppressWarnings("unchecked")
 				CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource;
-				List<OEntity> entities = (List<OEntity>) cr.getEntities();
-				for (OEntity entity : entities) {
+				List<EntityResource<OEntity>> entities = (List<EntityResource<OEntity>>) cr.getEntities();
+				for (EntityResource<OEntity> er : entities) {
+					OEntity entity = er.getEntity();
 					// the subresource is a collection
 					String rel = "collection" + " " + entity.getEntitySetName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
-					// add properties to HAL sub resource
+					// create hal resource and add link for self
 					Resource subResource = resourceFactory.newResource("");  // TODO need href for item
+					//subResource.withLink(url, rel)
+					// add properties to HAL sub resource
 					for (String key : propertyMap.keySet()) {
 						subResource.withProperty(key, propertyMap.get(key));
 					}
@@ -183,8 +186,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		HateoasLink selfLink = null;
 		if (links != null) {
 			for (HateoasLink l : links) {
-				if (l.getRel().equals("self"))
+				if (l.getRel().equals("self")) {
 					selfLink = l;
+					break;
+				}
 			}
 		}
 		return selfLink;

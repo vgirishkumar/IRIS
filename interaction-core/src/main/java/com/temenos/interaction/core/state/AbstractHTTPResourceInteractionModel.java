@@ -212,16 +212,17 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 					EdmEntityType entityType = entitySet.getType();
 
 					CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource.getEntity();
-					List<OEntity> entities = (List<OEntity>) cr.getEntities();
-					List<OEntity> newEntities = new ArrayList<OEntity>();
-					for (OEntity oEntity : entities) {
+					List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) cr.getEntities();
+					List<EntityResource<OEntity>> newEntities = new ArrayList<EntityResource<OEntity>>();
+					for (EntityResource<OEntity> er : resources) {
+						OEntity oEntity = er.getEntity();
 			    		// get the links for this entity
 			    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
 			        	// create a new entity as at the moment we pass the resource links in the OEntity
 			        	OEntity oe = OEntities.create(entitySet, oEntity.getEntityKey(), oEntity.getProperties(), links);
-			        	newEntities.add(oe);
+			        	newEntities.add(new EntityResource<OEntity>(oe));
 					}
-					CollectionResource<OEntity> rebuilt = new CollectionResource<OEntity>(entitySetName, newEntities, null) {};
+					CollectionResource<OEntity> rebuilt = new CollectionResource<OEntity>(entitySetName, newEntities) {};
 		        	resource = rebuilt.getGenericEntity();
 				}
 	    	}	    	

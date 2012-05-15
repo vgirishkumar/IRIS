@@ -1,5 +1,6 @@
 package com.temenos.interaction.commands.odata;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.odata4j.core.OEntityKey;
@@ -32,7 +33,10 @@ public class CommandHelper {
 	 * @return collection resource
 	 */
 	public static<OEntity> CollectionResource<OEntity> createCollectionResource(String entitySetName, List<OEntity> entities) {
-		return new CollectionResource<OEntity>(entitySetName, entities, null) {};
+		List<EntityResource<OEntity>> subResources = new ArrayList<EntityResource<OEntity>>();
+		for (OEntity entity : entities)
+			subResources.add(createEntityResource(entity));
+		return new CollectionResource<OEntity>(entitySetName, subResources) {};
 	}
 
 	/**

@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -111,7 +112,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(oentity), entitySet);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
-				List<OEntity> entities = (List<OEntity>) cr.getEntities();
+				List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) cr.getEntities();
+				List<OEntity> entities = new ArrayList<OEntity>();
+				for (EntityResource<OEntity> er : resources) {
+					entities.add(er.getEntity());
+				}
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;

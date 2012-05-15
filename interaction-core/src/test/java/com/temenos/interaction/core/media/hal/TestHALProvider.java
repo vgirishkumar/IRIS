@@ -130,11 +130,11 @@ public class TestHALProvider {
 		properties.add(OProperties.string("name", "noah"));
 		properties.add(OProperties.string("age", "2"));
 
-		Collection<OEntity> entities = new ArrayList<OEntity>();
-		entities.add(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>()));
-		entities.add(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>()));
-		entities.add(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>()));
-		CollectionResource<OEntity> er = new CollectionResource<OEntity>("EntitySetName", entities, null);
+		Collection<EntityResource<OEntity>> entities = new ArrayList<EntityResource<OEntity>>();
+		entities.add(new EntityResource<OEntity>(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>())));
+		entities.add(new EntityResource<OEntity>(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>())));
+		entities.add(new EntityResource<OEntity>(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>())));
+		CollectionResource<OEntity> er = new CollectionResource<OEntity>("EntitySetName", entities);
 		
 		EdmDataServices edmDS = mock(EdmDataServices.class);
 		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
