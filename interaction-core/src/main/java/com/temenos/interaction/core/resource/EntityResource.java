@@ -48,7 +48,12 @@ public class EntityResource<T> implements RESTResource {
     public Collection<HateoasLink> getLinks() {
     	return this.links;
     }
-    
+
+    /**
+     * Called during resource building phase to set the links for
+     * serialization by the provider.
+     * @param links
+     */
     public void setLinks(Collection<HateoasLink> links) {
     	this.links = links;
     }
