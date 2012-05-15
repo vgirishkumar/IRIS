@@ -14,8 +14,11 @@ public class ResourceState {
 	private final String name;
 	/* the path to the create the resource which represents this state of the entity */
 	private final String path;
+	/* is an intial state */
+	private boolean initial;
 	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
 
+	
 	/**
 	 * Construct a 'self' ResourceState.  A transition to one's self will not create a new resource.
 	 * @param name
@@ -33,6 +36,7 @@ public class ResourceState {
 		this.entityName = entityName;
 		this.name = name;
 		this.path = path;
+		this.initial = false;
 	}
 
 	public String getEntityName() {
@@ -53,6 +57,14 @@ public class ResourceState {
 
 	public boolean isSelfState() {
 		return (path == null);
+	}
+	
+	public boolean isInitial() {
+		return initial;
+	}
+	
+	public void setInitial(boolean flag) {
+		initial = flag;
 	}
 	
 	/**

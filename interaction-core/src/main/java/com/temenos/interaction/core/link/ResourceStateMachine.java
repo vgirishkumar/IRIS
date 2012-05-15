@@ -18,6 +18,7 @@ public class ResourceStateMachine {
 		
 	public ResourceStateMachine(ResourceState initialState) {
 		this.initial = initialState;
+		this.initial.setInitial(true);
 	}
 	
 	public ResourceState getInitial() {

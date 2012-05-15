@@ -55,7 +55,7 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOT() {
-		String expected = "digraph G {\n    initial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    initial->exists[label=\"PUT {id}\"]\n    exists->deleted[label=\"DELETE {id}\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    deleted->final[label=\"\"]\n}";
+		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gexists[label=\"PUT {id}\"]\n    Gexists->Gdeleted[label=\"DELETE {id}\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "G";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "{id}");
@@ -73,11 +73,14 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOTMultipleFinalStates() {
-		String expected = "digraph CRUD_ENTITY {\n    initial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    initial->exists[label=\"PUT\"]\n    exists->deleted[label=\"DELETE\"]\n    exists->archived[label=\"PUT /archived\"]\n"
+		String expected = "digraph CRUD_ENTITY {\n    CRUD_ENTITYinitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    CRUD_ENTITYexists[label=\"CRUD_ENTITY.exists\"]\n    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted\"]\n    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived\"]\n"
+			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived\"]\n"
 			+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-			+ "    deleted->final[label=\"\"]\n"
+			+ "    CRUD_ENTITYdeleted->final[label=\"\"]\n"
 			+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-			+ "    archived->final1[label=\"\"]\n}";
+			+ "    CRUD_ENTITYarchived->final1[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "CRUD_ENTITY";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial");
@@ -97,9 +100,68 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOTTransitionToStateMachine() {
-		String PROCESS_ENTITY_NAME = "process";
-		String TASK_ENTITY_NAME = "task";
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home");
+		ResourceStateMachine processSM = getProcessSM();
+		home.addTransition("GET", processSM);
+		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
+		
+		System.out.println(new ASTValidation().graph(serviceDocumentSM));
 
+		String expected = "digraph SERVICE_ROOT {\n"
+				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
+			    + "    processprocesses[label=\"process.processes\"]\n"
+			    + "    processnew[label=\"process.new\"]\n"
+			    + "    processinitialProcess[label=\"process.initialProcess\"]\n"
+			    + "    processstarted[label=\"process.started\"]\n"
+			    + "    processcompletedProcess[label=\"process.completedProcess\"]\n"
+			    + "    processtaskAvailable[label=\"process.taskAvailable\"]\n"
+			    + "    taskacquired[label=\"task.acquired\"]\n"
+			    + "    taskcomplete[label=\"task.complete\"]\n"
+			    + "    taskabandoned[label=\"task.abandoned\"]\n"
+				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
+				+ "    processprocesses->processnew[label=\"POST /new\"]\n"
+				+ "    processnew->processinitialProcess[label=\"PUT\"]\n"
+				+ "    processinitialProcess->processstarted[label=\"PUT\"]\n"
+				+ "    processstarted->processcompletedProcess[label=\"DELETE\"]\n"
+				+ "    processstarted->processtaskAvailable[label=\"GET /nextTask\"]\n"
+				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
+				+ "    processcompletedProcess->final[label=\"\"]\n"
+				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
+				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
+				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired\"]\n"
+				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
+				+ "    taskcomplete->final1[label=\"\"]\n"
+				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
+				+ "    taskabandoned->final2[label=\"\"]\n"
+				+ "}";
+		assertEquals(expected, new ASTValidation().graph(serviceDocumentSM));
+	}
+
+	@Test
+	public void testDOTGraphOneLevel() {
+
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home");
+		// processes
+		ResourceStateMachine processSM = getProcessSM();
+		home.addTransition("GET", processSM);
+		// notes
+		ResourceStateMachine notesSM = new ResourceStateMachine(new ResourceState("notes", "initial", "/notes"));
+		home.addTransition("GET", notesSM);
+		
+		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
+		String expected = "digraph SERVICE_ROOT {\n"
+				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
+			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
+			    + "    processprocesses[shape=square, width=.25, label=\"process.processes\"]\n"
+			    + "    taskacquired[shape=square, width=.25, label=\"task.acquired\"]\n"
+				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
+				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
+				+ "}";
+		assertEquals(expected, new ASTValidation().graphEntityNextStates(serviceDocumentSM));
+	}
+
+	private ResourceStateMachine getProcessSM() {
+		String PROCESS_ENTITY_NAME = "process";
 		// process behaviour
 		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", "/processes");
 		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", "/new");
@@ -119,8 +181,17 @@ public class TestASTValidation {
 		// finish the process
 		processStarted.addTransition("DELETE", processCompleted);
 
-		ResourceStateMachine processSM = new ResourceStateMachine(processes);
+		/*
+		 * acquire task by a PUT to the initial state of the task state machine (acquired)
+		 */
+		ResourceStateMachine taskSM = getTaskSM();
+		nextTask.addTransition("PUT", taskSM);
 
+		return new ResourceStateMachine(processes);
+	}
+	
+	private ResourceStateMachine getTaskSM() {
+		String TASK_ENTITY_NAME = "task";
 		// Task states
 		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
 		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", "/completed");
@@ -130,37 +201,6 @@ public class TestASTValidation {
 		// complete task
 		taskAcquired.addTransition("PUT", taskComplete);
 
-		ResourceStateMachine taskSM = new ResourceStateMachine(taskAcquired);
-		/*
-		 * acquire task by a PUT to the initial state of the task state machine (acquired)
-		 */
-		nextTask.addTransition("PUT", taskSM);
-
-		ResourceState home = new ResourceState("SERVICE_ROOT", "home");
-		home.addTransition("GET", processSM);
-		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
-		
-		System.out.println(new ASTValidation().graph(serviceDocumentSM));
-
-		String expected = "digraph SERVICE_ROOT {\n"
-				+ "    home[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
-				+ "    home->processes[label=\"GET /processes\"]\n"
-				+ "    processes->new[label=\"POST /new\"]\n"
-				+ "    new->initialProcess[label=\"PUT\"]\n"
-				+ "    initialProcess->started[label=\"PUT\"]\n"
-				+ "    started->completedProcess[label=\"DELETE\"]\n"
-				+ "    started->taskAvailable[label=\"GET /nextTask\"]\n"
-				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-				+ "    completedProcess->final[label=\"\"]\n"
-				+ "    taskAvailable->acquired[label=\"PUT /acquired\"]\n"
-				+ "    acquired->complete[label=\"PUT /completed\"]\n"
-				+ "    acquired->abandoned[label=\"DELETE /acquired\"]\n"
-				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-				+ "    complete->final1[label=\"\"]\n"
-				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-				+ "    abandoned->final2[label=\"\"]\n"
-				+ "}";
-		assertEquals(expected, new ASTValidation().graph(serviceDocumentSM));
+		return new ResourceStateMachine(taskAcquired);
 	}
-
 }
