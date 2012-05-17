@@ -48,7 +48,7 @@
         <constructor-arg name="root" ref="ServiceRoot" />
     </bean>
 
-
+    <!-- Behaviour -->
     <bean id="behaviour" class="com.interaction.example.odata.airline.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
     <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
