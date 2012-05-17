@@ -34,7 +34,17 @@ import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 
 public class TestAbstractHTTPResourceInteractionModel {
-
+	
+	@Test
+	public void testCommandControllerInitialised() {
+		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("") {
+			public ResourceState getCurrentState() {
+				return null;
+			}
+		};
+		assertNotNull(r.getCommandController());
+	}
+	
 	/* We decode the query parameters to workaround an issue in Wink */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
@@ -64,15 +74,12 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testDecodeQueryParametersNullValue() {
 		String resourcePath = "/test";
-		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
-		};
-		CommandController cc = r.getCommandController();
+		AbstractHTTPResourceInteractionModel r = mock(AbstractHTTPResourceInteractionModel.class);
+		CommandController cc = new CommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
 		when(rgc.get(anyString(), any(MultivaluedMap.class))).thenReturn(new RESTResponse(Response.Status.FORBIDDEN, null));
 		cc.setGetCommand(resourcePath, rgc);
+		when(r.getCommandController()).thenReturn(cc);
 		
 		UriInfo uriInfo = mock(UriInfo.class);
 		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl();
@@ -100,8 +107,11 @@ public class TestAbstractHTTPResourceInteractionModel {
 
 	@Test
 	public void testFQResourcePath() {
-		final AbstractHTTPResourceInteractionModel parent = mock(AbstractHTTPResourceInteractionModel.class);
-		when(parent.getResourcePath()).thenReturn("/root");
+		final AbstractHTTPResourceInteractionModel parent = new AbstractHTTPResourceInteractionModel("/root") {
+			public ResourceState getCurrentState() {
+				return null;
+			}
+		};
 		AbstractHTTPResourceInteractionModel child = new AbstractHTTPResourceInteractionModel("/child") {
 			public ResourceInteractionModel getParent() {
 				return parent;
