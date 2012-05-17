@@ -27,7 +27,6 @@ import org.odata4j.producer.PropertyResponse;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourcePostCommand;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
 
 /**
  * A POST command that will create a new ID for the supplied domain object.  It is implemented
