@@ -1,5 +1,6 @@
 package com.temenos.interaction.example.note;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -7,8 +8,10 @@ import javax.ws.rs.Path;
 
 import org.odata4j.producer.ODataProducer;
 
+import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
 /**
@@ -54,8 +57,7 @@ public class JAXBNoteRIM extends AbstractHTTPResourceInteractionModel {
 		return states;
 	}
 
-	public ResourceState getCurrentState() {
-		return null;
-	}
+	public ResourceState getCurrentState() { return null; }
+	public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 
 }

@@ -11,13 +11,16 @@ import javax.ws.rs.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.MethodNotAllowedCommand;
 import com.temenos.interaction.core.command.ResourceCommand;
 import com.temenos.interaction.core.link.ASTValidation;
+import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.link.ResourceStateMachine;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -33,14 +36,14 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
     private final ResourceStateMachine stateMachine;
     private final ResourceState currentState;
     
-	public static ResourceState createPseudoStateMachine(String entityName, String resourceName) {
+	public static ResourceState createPseudoStateMachine(String entityName, String resourceName, String resourcePath) {
 		/*
 		 * any interaction might be possible for a dynamic resource created without the 
 		 * assistance of a state machine, therefore add all possible transitions.
 		 */
-		ResourceState initial = new ResourceState(entityName, resourceName + ".pseudo.initial");
-		ResourceState pseudo = new ResourceState(entityName, resourceName + ".pseudo.created");
-		ResourceState deleted = new ResourceState(entityName, resourceName + ".pseudo.deleted");
+		ResourceState initial = new ResourceState(entityName, resourceName + ".pseudo.initial", resourcePath);
+		ResourceState pseudo = new ResourceState(initial, resourceName + ".pseudo.created");
+		ResourceState deleted = new ResourceState(initial, resourceName + ".pseudo.deleted");
 		initial.addTransition("POST", pseudo);
 		pseudo.addTransition("PUT", pseudo);
 		pseudo.addTransition("DELETE", deleted);
@@ -58,8 +61,8 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 * @param commandController
 	 * 			All commands for all resources.
 	 */
-	public HTTPDynaRIM(ResourceStateMachine stateMachine, String path, ResourceRegistry resourceRegistry, CommandController commandController) {
-		this(null, stateMachine, path, stateMachine.getInitial(), resourceRegistry, commandController);
+	public HTTPDynaRIM(ResourceStateMachine stateMachine, ResourceRegistry resourceRegistry, CommandController commandController) {
+		this(null, stateMachine, stateMachine.getInitial(), resourceRegistry, commandController);
 	}
 
 	/**
@@ -77,9 +80,9 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 * @param commandController
 	 * 			All commands for all resources.
 	 */
-	protected HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, String path, ResourceState currentState, 
+	protected HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, ResourceState currentState, 
 			ResourceRegistry resourceRegistry, CommandController commandController) {
-		super(path, resourceRegistry, commandController);
+		super(currentState.getPath(), resourceRegistry, commandController);
 		this.parent = parent;
 		this.stateMachine = stateMachine;
 		this.currentState = currentState;
@@ -135,6 +138,14 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		return currentState;
 	}
 	
+	@Override
+	public Collection<HateoasLink> getLinks(RESTResource entity) {
+		List<HateoasLink> links = new ArrayList<HateoasLink>();
+		// add link to GET 'self'
+		links.add(new Link(getCurrentState().getId(), "self", getFQResourcePath(), null, null, "GET", "label", "description", null));
+		return links;
+	}
+
 	public ResourceStateMachine getStateMachine() {
 		return stateMachine;
 	}
@@ -153,9 +164,9 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 				// TODO shouldn't really need to create it again
 				childSM = new ResourceStateMachine(childState);
 				// this is a new resource
-				child = new HTTPDynaRIM(childSM, childState.getPath(), getResourceRegistry(), getCommandController());
+				child = new HTTPDynaRIM(childSM, getResourceRegistry(), getCommandController());
 			} else {
-				child = new HTTPDynaRIM(this, childSM, childState.getPath(), childState, getResourceRegistry(), getCommandController());
+				child = new HTTPDynaRIM(this, childSM, childState, getResourceRegistry(), getCommandController());
 			}
 			result.add(child);
 		}

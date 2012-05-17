@@ -8,6 +8,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
+import java.util.Collection;
+
 import javax.ws.rs.core.Response.StatusType;
 
 import org.junit.Test;
@@ -16,10 +18,12 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
+import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.NoopGETCommand;
 
@@ -32,9 +36,8 @@ public class TestPowerMockAbstractHTTPResourceInteractionModel {
 	public void testGETWithNoHateoasContext() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand("/test", new NoopGETCommand());
@@ -64,6 +67,7 @@ public class TestPowerMockAbstractHTTPResourceInteractionModel {
 			public ResourceState getCurrentState() {
 				return mock(ResourceState.class);
 			}
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand("/test", new NoopGETCommand());

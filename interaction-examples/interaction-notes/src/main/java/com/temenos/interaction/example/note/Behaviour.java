@@ -14,10 +14,10 @@ public class Behaviour {
 	
 	public ResourceState getNotesResoruceInteractionModel() {
 		
-		ResourceState initialState = new ResourceState("", "begin");
+		ResourceState initialState = new ResourceState("", "begin", "/notes");
 		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "new", "/notes/new");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "/notes/{id}");
-		ResourceState finalState = new ResourceState("", "end");
+		ResourceState finalState = new ResourceState(initialState, "end");
 
 		// notes collection
 		initialState.addTransition("PUT", exists);		

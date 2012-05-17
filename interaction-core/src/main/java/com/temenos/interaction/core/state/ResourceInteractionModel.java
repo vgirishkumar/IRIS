@@ -7,7 +7,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
+import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.resource.RESTResource;
 
 public interface ResourceInteractionModel {
 
@@ -16,6 +18,11 @@ public interface ResourceInteractionModel {
      * @return
      */
     public ResourceState getCurrentState();
+    /**
+     * The links from this application state.
+     * @return
+     */
+    public Collection<HateoasLink> getLinks(RESTResource entity);
     /**
 	 * The path to this resource
 	 * @return

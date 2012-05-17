@@ -57,6 +57,7 @@ public class CollectionResource<T> implements RESTResource {
      * serialization by the provider.
      * @param links
      */
+	@Override
     public void setLinks(Collection<HateoasLink> links) {
     	this.links = links;
     }

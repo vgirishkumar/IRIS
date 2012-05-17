@@ -9,9 +9,11 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.wink.common.DynamicResource;
 
 import com.jayway.jaxrs.hateoas.HateoasContext;
+import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -102,6 +104,11 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 		return resource.getCurrentState();
 	}
 
+	@Override
+	public Collection<HateoasLink> getLinks(RESTResource entity) {
+		return resource.getLinks(entity); 
+	}
+	
 	@Override
 	public String getResourcePath() {
 		return resource.getResourcePath();

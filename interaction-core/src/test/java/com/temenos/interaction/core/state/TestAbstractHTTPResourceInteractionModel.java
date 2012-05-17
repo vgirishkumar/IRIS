@@ -11,18 +11,24 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
+import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -35,12 +41,42 @@ import com.temenos.interaction.core.command.ResourcePutCommand;
 
 public class TestAbstractHTTPResourceInteractionModel {
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testResponseWithLinks() {
+		String resourcePath = "/test";
+		
+		ResourceGetCommand testCommand = mock(ResourceGetCommand.class);
+		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
+		when(testCommand.get(anyString(), any(MultivaluedMap.class))).thenReturn(new RESTResponse(Status.OK, testResponseEntity));
+		
+		AbstractHTTPResourceInteractionModel resource = new AbstractHTTPResourceInteractionModel(resourcePath) {
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) {
+				List<HateoasLink> links = new ArrayList<HateoasLink>();
+				links.add(new Link("id", "self", "href", null, null, "GET", "label", "description", null));
+				return links;
+			}
+		};
+		CommandController cc = resource.getCommandController();
+		cc.setGetCommand(resourcePath, testCommand);
+
+		// call the get and populate the links
+		Response response = resource.get(null, "id", null);
+		RESTResource resourceWithLinks = (RESTResource) ((GenericEntity) response.getEntity()).getEntity();
+		assertNotNull(resourceWithLinks.getLinks());
+		assertFalse(resourceWithLinks.getLinks().isEmpty());
+		assertEquals(1, resourceWithLinks.getLinks().size());
+		HateoasLink link = (HateoasLink) resourceWithLinks.getLinks().toArray()[0];
+		assertEquals("self", link.getRel());
+
+	}
+	
 	@Test
 	public void testCommandControllerInitialised() {
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("") {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		assertNotNull(r.getCommandController());
 	}
@@ -51,9 +87,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testDecodeQueryParameters() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -108,17 +143,15 @@ public class TestAbstractHTTPResourceInteractionModel {
 	@Test
 	public void testFQResourcePath() {
 		final AbstractHTTPResourceInteractionModel parent = new AbstractHTTPResourceInteractionModel("/root") {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		AbstractHTTPResourceInteractionModel child = new AbstractHTTPResourceInteractionModel("/child") {
 			public ResourceInteractionModel getParent() {
 				return parent;
 			}
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 
 		assertEquals("/child", child.getResourcePath());
@@ -131,9 +164,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testGETCommandStatus() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -148,9 +180,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testGETStatusNull() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand(resourcePath, mock(ResourceGetCommand.class));
@@ -162,9 +193,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testGETNoCommand() {
 		String resourcePath = "/test";
 		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		r.get(null, "123", null);
 	}
@@ -175,9 +205,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testGET200NoResource() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -191,9 +220,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testDELETECommandStatus() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rpc = mock(ResourceDeleteCommand.class);
@@ -209,9 +237,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testDELETEStatusNull() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rdc = mock(ResourceDeleteCommand.class);
@@ -225,9 +252,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testDELETENoCommand() {
 		String resourcePath = "/test";
 		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		Response resp = r.delete(null, "123");
 		assertTrue(resp.getStatus() == 405);
@@ -239,9 +265,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		
 		Response response = r.delete(mock(HttpHeaders.class), "123");
@@ -259,9 +284,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testPOSTCommandStatus() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -277,9 +301,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testPOSTStatusNull() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -293,9 +316,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testPOSTNoCommand() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		Response resp = r.post(null, "123", null);
 		assertTrue(resp.getStatus() == 405);
@@ -306,9 +328,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testPOST200NoResource() {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -324,9 +345,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -350,9 +370,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		
 		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
@@ -391,9 +410,8 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
-			public ResourceState getCurrentState() {
-				return null;
-			}
+			public ResourceState getCurrentState() { return null; }
+			public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 		};
 		
 		Response response = r.put(mock(HttpHeaders.class), "123", mock(EntityResource.class));

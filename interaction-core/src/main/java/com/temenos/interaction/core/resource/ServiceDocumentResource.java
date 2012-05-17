@@ -46,5 +46,6 @@ public class ServiceDocumentResource<T> implements RESTResource {
     public Collection<HateoasLink> getLinks() {
     	return null;
     }
+	public void setLinks(Collection<HateoasLink> links) {}
 
 }

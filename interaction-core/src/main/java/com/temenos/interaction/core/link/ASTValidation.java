@@ -1,7 +1,10 @@
 package com.temenos.interaction.core.link;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ASTValidation {
@@ -25,7 +28,10 @@ public class ASTValidation {
 	 * @return
 	 */
 	public String graph(ResourceStateMachine sm) {
-		Collection<ResourceState> states = sm.getStates();
+		List<ResourceState> states = new ArrayList<ResourceState>(sm.getStates());
+		// sort the states for a predictable output
+		Collections.sort(states);
+		
 		StringBuffer sb = new StringBuffer();
 		sb.append("digraph ").append(sm.getInitial().getEntityName()).append(" {\n");
 		// declare the initial state circle

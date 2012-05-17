@@ -43,6 +43,7 @@ import com.jayway.jaxrs.hateoas.core.HateoasResponse;
 import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResponse;
@@ -97,9 +98,9 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	public String getFQResourcePath() {
 		String result = "";
 		if (getParent() != null)
-			result += getParent().getResourcePath();
+			result = getParent().getResourcePath();
 			
-		return result += getResourcePath();
+		return result + getResourcePath();
 	}
 
 	@Override
@@ -225,12 +226,18 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 					CollectionResource<OEntity> rebuilt = new CollectionResource<OEntity>(entitySetName, newEntities) {};
 		        	resource = rebuilt.getGenericEntity();
 				}
-	    	}	    	
+			}
 
 			// Create hypermedia representation for this resource
 	    	HateoasResponseBuilder builder = HateoasResponse.status(status);
 	    	if (getHateoasContext() != null) {
 	    		buildLinks(builder, id, map);
+	    	} else {
+				/*
+				 * Add links without the hateoas context
+				 */
+	    		RESTResource entity = (RESTResource) resource.getEntity();
+	    		entity.setLinks(getLinks(entity));
 	    	}
 	    	builder.entity(resource);
 	    	

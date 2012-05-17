@@ -1,12 +1,16 @@
 package com.temenos.interaction.example.note;
 
+import java.util.Collection;
+
 import javax.ws.rs.Path;
 
 import org.odata4j.producer.ODataProducer;
 
+import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.temenos.interaction.commands.odata.GETEntitiesCommand;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
 @Path("/notes")
@@ -37,8 +41,7 @@ public class NotesRIM extends AbstractHTTPResourceInteractionModel {
 		commandController.setGetCommand(RESOURCE_PATH, new GETEntitiesCommand(ENTITYSET_NAME, producer));
 	}
 
-	public ResourceState getCurrentState() {
-		return null;
-	}
+	public ResourceState getCurrentState() { return null; }
+	public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
 
 }

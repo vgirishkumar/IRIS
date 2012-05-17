@@ -17,7 +17,7 @@ public class Behaviour {
 
 	public ResourceState getInteractionModel() {
 		// this will be the service root
-		ResourceState initialState = new ResourceState("", "initial", "");
+		ResourceState initialState = new ResourceState("home", "initial", "");
 		
 		ResourceState profile = new ResourceState("Profile", "profile", "/profile");
 		ResourceState preferences = new ResourceState("Preferences", "preferences", "/preferences");
@@ -33,7 +33,7 @@ public class Behaviour {
 		ResourceState initialState = new ResourceState(NOTE_ENTITY_NAME, "initial", "/notes");
 		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "new", "/notes/new");
 		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", "/notes/{id}");
-		ResourceState finalState = new ResourceState(NOTE_ENTITY_NAME, "end");
+		ResourceState finalState = new ResourceState(initialState, "end");
 
 		// a linkage map (target URI element, source entity element)
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -48,10 +48,10 @@ public class Behaviour {
 		relations.add("_new");
 		newNoteState.addTransition("PUT", exists, uriLinkageMap);
 		
-		// a link on each note in the collection to delete the note
+		// a link on each note in the collection to get view the note
 		uriLinkageMap.clear();
 		uriLinkageMap.put("id", "noteID");
-//		initialState.addTransition("DELETE", exists);		
+		initialState.addTransition("GET", exists, uriLinkageMap);		
 
 		// update / delete note item (same linkage map)
 		exists.addTransition("PUT", exists, uriLinkageMap);		

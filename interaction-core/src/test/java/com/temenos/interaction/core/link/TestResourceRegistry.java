@@ -183,8 +183,9 @@ public class TestResourceRegistry {
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
 
 		// create a little CRUD state machine
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/blah/test");
+		ResourceState exists = new ResourceState(initial, "exists");
+		ResourceState deleted = new ResourceState(initial, "deleted");
 		// update
 		exists.addTransition("PUT", exists);
 		// delete

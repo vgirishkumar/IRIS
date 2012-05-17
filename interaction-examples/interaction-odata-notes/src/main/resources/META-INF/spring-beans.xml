@@ -67,11 +67,11 @@
     				<bean class="com.temenos.interaction.core.link.ResourceState">
     					<constructor-arg name="entityName" value="ServiceDocument" />
     					<constructor-arg name="name" value="initial" />
+                        <constructor-arg name="path" value="/" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg name="path" value="/" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
@@ -83,11 +83,11 @@
     				<bean class="com.temenos.interaction.core.link.ResourceState">
     					<constructor-arg name="entityName" value="Metadata" />
     					<constructor-arg name="name" value="initial" />
+                        <constructor-arg name="path" value="/$metadata" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg name="path" value="/$metadata" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
@@ -99,11 +99,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg name="entityName" value="Notes" />
     					<constructor-arg name="resourceName" value="collection" />
+                        <constructor-arg name="path" value="/Notes" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg name="path" value="/Notes" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
@@ -114,11 +114,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg name="entityName" value="Notes" />
     					<constructor-arg name="resourceName" value="item" />
+                        <constructor-arg name="path" value="/Notes({id})" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg name="path" value="/Notes({id})" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
@@ -130,11 +130,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg name="entityName" value="Persons" />
     					<constructor-arg name="resourceName" value="collection" />
+                        <constructor-arg name="path" value="/Persons" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg name="path" value="/Persons" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
@@ -145,11 +145,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg name="entityName" value="Persons" />
     					<constructor-arg name="resourceName" value="item" />
+                        <constructor-arg name="path" value="/Persons({id})" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg name="path" value="/Persons({id})" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
@@ -161,11 +161,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg name="entityName" value="Notes" />
     					<constructor-arg name="resourceName" value="PersonNotes" />
+                        <constructor-arg name="path" value="/Persons({id})/Notes" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg name="path" value="/Persons({id})/Notes" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
@@ -177,11 +177,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg name="entityName" value="Persons" />
     					<constructor-arg name="resourceName" value="NotePerson" />
+                        <constructor-arg name="path" value="/Notes({id})/Persons" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg name="path" value="/Notes({id})/Persons" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>

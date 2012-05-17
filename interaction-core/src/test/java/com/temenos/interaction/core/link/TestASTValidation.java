@@ -83,10 +83,10 @@ public class TestASTValidation {
 			+ "    CRUD_ENTITYarchived->final1[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "CRUD_ENTITY";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "");
+		ResourceState exists = new ResourceState(initial, "exists");
 		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", "/archived");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted");
+		ResourceState deleted = new ResourceState(initial, "deleted");
 	
 		initial.addTransition("PUT", exists);		
 		exists.addTransition("PUT", archived);
@@ -100,7 +100,7 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOTTransitionToStateMachine() {
-		ResourceState home = new ResourceState("SERVICE_ROOT", "home");
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home", "");
 		ResourceStateMachine processSM = getProcessSM();
 		home.addTransition("GET", processSM);
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
@@ -109,30 +109,28 @@ public class TestASTValidation {
 
 		String expected = "digraph SERVICE_ROOT {\n"
 				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
-			    + "    processprocesses[label=\"process.processes\"]\n"
-			    + "    processnew[label=\"process.new\"]\n"
-			    + "    processinitialProcess[label=\"process.initialProcess\"]\n"
-			    + "    processstarted[label=\"process.started\"]\n"
-			    + "    processcompletedProcess[label=\"process.completedProcess\"]\n"
-			    + "    processtaskAvailable[label=\"process.taskAvailable\"]\n"
-			    + "    taskacquired[label=\"task.acquired\"]\n"
-			    + "    taskcomplete[label=\"task.complete\"]\n"
-			    + "    taskabandoned[label=\"task.abandoned\"]\n"
-				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
-				+ "    processprocesses->processnew[label=\"POST /new\"]\n"
-				+ "    processnew->processinitialProcess[label=\"PUT\"]\n"
-				+ "    processinitialProcess->processstarted[label=\"PUT\"]\n"
-				+ "    processstarted->processcompletedProcess[label=\"DELETE\"]\n"
-				+ "    processstarted->processtaskAvailable[label=\"GET /nextTask\"]\n"
+				+ "    taskcomplete[label=\"task.complete\"]\n"
+				+ "    taskacquired[label=\"task.acquired\"]\n"
+				+ "    taskabandoned[label=\"task.abandoned\"]\n"
+				+ "    processtaskAvailable[label=\"process.taskAvailable\"]\n"
+				+ "    processprocesses[label=\"process.processes\"]\n"
+				+ "    processnew[label=\"process.new\"]\n"
+				+ "    processinitialProcess[label=\"process.initialProcess\"]\n"
+				+ "    processcompletedProcess[label=\"process.completedProcess\"]\n"
 				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-				+ "    processcompletedProcess->final[label=\"\"]\n"
-				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
+				+ "    taskcomplete->final[label=\"\"]\n"
 				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
 				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired\"]\n"
 				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-				+ "    taskcomplete->final1[label=\"\"]\n"
+				+ "    taskabandoned->final1[label=\"\"]\n"
+				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
+				+ "    processprocesses->processnew[label=\"POST /processes/new\"]\n"
+				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id}\"]\n"
+				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n"
+				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
 				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-				+ "    taskabandoned->final2[label=\"\"]\n"
+			    + "    processcompletedProcess->final2[label=\"\"]\n"
+			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
 				+ "}";
 		assertEquals(expected, new ASTValidation().graph(serviceDocumentSM));
 	}
@@ -140,7 +138,7 @@ public class TestASTValidation {
 	@Test
 	public void testDOTGraphOneLevel() {
 
-		ResourceState home = new ResourceState("SERVICE_ROOT", "home");
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home", "");
 		// processes
 		ResourceStateMachine processSM = getProcessSM();
 		home.addTransition("GET", processSM);
@@ -164,22 +162,20 @@ public class TestASTValidation {
 		String PROCESS_ENTITY_NAME = "process";
 		// process behaviour
 		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", "/processes");
-		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", "/new");
+		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", "/processes/new");
 		// create new process
 		processes.addTransition("POST", newProcess);
 
 		// Process states
-		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess");
-		ResourceState processStarted = new ResourceState(PROCESS_ENTITY_NAME, "started");
-		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", "/nextTask");
-		ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME,	"completedProcess");
+		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", "/processes/{id}");
+		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", "/processes/nextTask");
+		ResourceState processCompleted = new ResourceState(processInitial, "completedProcess");
 		// start new process
 		newProcess.addTransition("PUT", processInitial);
-		processInitial.addTransition("PUT", processStarted);
 		// do a task
-		processStarted.addTransition("GET", nextTask);
+		processInitial.addTransition("GET", nextTask);
 		// finish the process
-		processStarted.addTransition("DELETE", processCompleted);
+		processInitial.addTransition("DELETE", processCompleted);
 
 		/*
 		 * acquire task by a PUT to the initial state of the task state machine (acquired)
@@ -195,7 +191,7 @@ public class TestASTValidation {
 		// Task states
 		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
 		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", "/completed");
-		ResourceState taskAbandoned = new ResourceState(TASK_ENTITY_NAME, "abandoned");
+		ResourceState taskAbandoned = new ResourceState(taskAcquired, "abandoned");
 		// abandon task
 		taskAcquired.addTransition("DELETE", taskAbandoned);
 		// complete task

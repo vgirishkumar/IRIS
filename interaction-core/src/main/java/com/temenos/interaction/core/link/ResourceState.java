@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ResourceState {
+public class ResourceState implements Comparable<ResourceState> {
 
 	/* the name of the entity which this is a state of */
 	private final String entityName;
@@ -14,6 +14,8 @@ public class ResourceState {
 	private final String name;
 	/* the path to the create the resource which represents this state of the entity */
 	private final String path;
+	/* a child state of the same entity */
+	private final boolean selfState;
 	/* is an intial state */
 	private boolean initial;
 	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
@@ -23,8 +25,8 @@ public class ResourceState {
 	 * Construct a 'self' ResourceState.  A transition to one's self will not create a new resource.
 	 * @param name
 	 */
-	public ResourceState(String entityName, String name) {
-		this(entityName, name, null);
+	public ResourceState(ResourceState parent, String name) {
+		this(parent.getEntityName(), name, parent.getPath(), true);
 	}
 
 	/**
@@ -32,11 +34,16 @@ public class ResourceState {
 	 * @param name
 	 */
 	public ResourceState(String entityName, String name, String path) {
+		this(entityName, name, path, false);
+	}
+
+	private ResourceState(String entityName, String name, String path, boolean selfState) {
 		assert(name != null);
 		this.entityName = entityName;
 		this.name = name;
 		this.path = path;
 		this.initial = false;
+		this.selfState = selfState;
 	}
 
 	public String getEntityName() {
@@ -56,7 +63,7 @@ public class ResourceState {
 	}
 
 	public boolean isSelfState() {
-		return (path == null);
+		return selfState;
 	}
 	
 	public boolean isInitial() {
@@ -161,5 +168,11 @@ public class ResourceState {
 	
 	public String toString() {
 		return entityName + "." + name;
+	}
+
+	@Override
+	public int compareTo(ResourceState other) {
+	    if ( this == other ) return 0;
+		return other.getId().compareTo(getId());
 	}
 }

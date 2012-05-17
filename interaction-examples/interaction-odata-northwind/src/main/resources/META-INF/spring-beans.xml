@@ -76,11 +76,11 @@
     				<bean class="com.temenos.interaction.core.link.ResourceState">
     					<constructor-arg value="ServiceDocument" />
     					<constructor-arg value="initial" />
+                        <constructor-arg value="/" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -92,11 +92,11 @@
     				<bean class="com.temenos.interaction.core.link.ResourceState">
     					<constructor-arg value="Metadata" />
     					<constructor-arg value="initial" />
+                        <constructor-arg value="/$metadata" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/$metadata" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -108,11 +108,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Suppliers" />
     					<constructor-arg value="item" />
+                        <constructor-arg value="/Suppliers/{id}" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Suppliers/{id}" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -123,11 +123,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Suppliers" />
     					<constructor-arg value="collection" />
+                        <constructor-arg value="/Suppliers" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Suppliers" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -139,11 +139,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Order_Details" />
     					<constructor-arg value="item" />
+                        <constructor-arg value="/Order_Details/{id}" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Order_Details/{id}" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -154,11 +154,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Order_Details" />
     					<constructor-arg value="collection" />
+                        <constructor-arg value="/Order_Details" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Order_Details" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -170,11 +170,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Categories" />
     					<constructor-arg value="item" />
+                        <constructor-arg value="/Categories/{id}" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Categories/{id}" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -185,11 +185,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Categories" />
     					<constructor-arg value="collection" />
+                        <constructor-arg value="/Categories" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Categories" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -201,11 +201,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Customers" />
     					<constructor-arg value="item" />
+                        <constructor-arg value="/Customers/{id}" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Customers/{id}" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -216,11 +216,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Customers" />
     					<constructor-arg value="collection" />
+                        <constructor-arg value="/Customers" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Customers" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -232,11 +232,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Products" />
     					<constructor-arg value="item" />
+                        <constructor-arg value="/Products/{id}" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Products/{id}" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -247,11 +247,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Products" />
     					<constructor-arg value="collection" />
+                        <constructor-arg value="/Products" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Products" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -263,11 +263,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Employees" />
     					<constructor-arg value="item" />
+                        <constructor-arg value="/Employees/{id}" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Employees/{id}" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -278,11 +278,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Employees" />
     					<constructor-arg value="collection" />
+                        <constructor-arg value="/Employees" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Employees" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -294,11 +294,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Orders" />
     					<constructor-arg value="item" />
+                        <constructor-arg value="/Orders/{id}" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Orders/{id}" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
@@ -309,11 +309,11 @@
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Orders" />
     					<constructor-arg value="collection" />
+                        <constructor-arg value="/Orders" />
     				</bean>
     			</constructor-arg>
     		</bean>
     	</constructor-arg>
-    	<constructor-arg value="/Orders" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>

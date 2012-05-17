@@ -23,4 +23,12 @@ public interface RESTResource {
 	 * @return Collection<HateoasLink>
 	 */
     public Collection<HateoasLink> getLinks();
-}
+
+    /**
+     * Called during resource building phase to set the links for
+     * serialization by the provider.
+     * @param links
+     */
+    public void setLinks(Collection<HateoasLink> links);
+
+}  
