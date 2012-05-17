@@ -106,7 +106,7 @@
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-core</artifactId>
     	<type>jar</type>
-    	<scope>runtime</scope>
+    	<scope>compile</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
