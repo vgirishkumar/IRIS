@@ -68,7 +68,6 @@
     <!-- Resources -->
     <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg ref="stateMachine" />
-    	<constructor-arg value="/" />
     	<constructor-arg><null/></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>

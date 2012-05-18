@@ -39,14 +39,16 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 	@POST
 	@Consumes({
 		MediaType.APPLICATION_ATOM_XML,
-		MediaType.APPLICATION_XML,
-		MediaType.APPLICATION_JSON,
-		com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+    	MediaType.APPLICATION_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 	@Produces({
 		MediaType.APPLICATION_ATOM_XML,
-		MediaType.APPLICATION_XML,
-		MediaType.APPLICATION_JSON,
-		com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+    	MediaType.APPLICATION_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 	public abstract Response post(@Context HttpHeaders headers,
 			@PathParam("id") String id,
 			EntityResource<?> resource);
@@ -57,9 +59,10 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 	@PUT
 	@Consumes({
 		MediaType.APPLICATION_ATOM_XML,
-		MediaType.APPLICATION_XML,
-		MediaType.APPLICATION_JSON,
-		com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+    	MediaType.APPLICATION_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 	public abstract Response put(@Context HttpHeaders headers,
 			@PathParam("id") String id, EntityResource<?> resource);
 

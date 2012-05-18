@@ -249,7 +249,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		// this class can only deserialise EntityResource with OEntity.
+		// this class can only deserialise EntityResource
 		return ResourceTypeHelper.isType(type, genericType, EntityResource.class);
 	}
 
@@ -270,6 +270,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		
+		if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
+			// TODO implement this properly
+		} else if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
+			// TODO implement this
+			return new EntityResource<Object>(null);
+		} else {
+			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		}
 		try {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLStreamReader parser = factory.createXMLStreamReader(entityStream);

@@ -17,7 +17,7 @@ public class Behaviour {
 
 	public ResourceState getInteractionModel() {
 		// this will be the service root
-		ResourceState initialState = new ResourceState("home", "initial", "");
+		ResourceState initialState = new ResourceState("home", "initial", "/");
 		
 		ResourceState profile = new ResourceState("Profile", "profile", "/profile");
 		ResourceState preferences = new ResourceState("Preferences", "preferences", "/preferences");
