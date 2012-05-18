@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.dynaresource;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +22,12 @@ import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.link.ResourceStateMachine;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.link.Transition;
+import com.temenos.interaction.core.link.TransitionCommandSpec;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.web.RequestContext;
 
 /**
  * Define a Dynamic HTTP based Resource Interaction Model for an individual resource.
@@ -142,7 +147,38 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	public Collection<HateoasLink> getLinks(RESTResource entity) {
 		List<HateoasLink> links = new ArrayList<HateoasLink>();
 		// add link to GET 'self'
-		links.add(new Link(getCurrentState().getId(), "self", getFQResourcePath(), null, null, "GET", "label", "description", null));
+		String selfUri = RequestContext.getRequestContext().getBasePath().path(getFQResourcePath()).build(entity).toASCIIString();
+		links.add(new Link(getCurrentState().getId(), "self", selfUri, null, null, "GET", "label", "description", null));
+
+		/*
+		 * Add links to other application states (resources)
+		 */
+		Collection<ResourceState> targetStates = getCurrentState().getAllTargets();
+		for (ResourceState s : targetStates) {
+			Transition transition = getCurrentState().getTransition(s);
+			TransitionCommandSpec cs = transition.getCommand();
+			String linkId = transition.getId();
+			// TODO get rels properly
+			String rel = s.getId();
+			
+			String method = cs.getMethod();
+			String path = cs.getPath();
+			URI href = null;			
+			/* 
+			 * build link and add to list of links
+			 */
+			UriBuilder linkTemplate = RequestContext.getRequestContext().getBasePath().path(path);
+			href = linkTemplate.build();
+			/*
+			if (map != null) {
+				href = linkTemplate.buildFromMap(map);
+			} else {
+				href = linkTemplate.build();
+			}
+			 */
+			links.add(new Link(linkId, rel, href.toASCIIString(), null, null, method, "label", "description", null));
+			logger.debug("Link added to [" + getFQResourcePath() + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");
+		}
 		return links;
 	}
 

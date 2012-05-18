@@ -4,7 +4,9 @@ import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.apache.wink.common.DynamicResource;
 import org.junit.Test;
@@ -40,6 +42,47 @@ public class TestRegistrarWithSingletons {
 		when(rim.getResourcePath()).thenReturn(path);
 		when(rim.getFQResourcePath()).thenCallRealMethod();
 		return rim;
+	}
+
+	@Test
+	public void testSimpleServiceRoot() {
+		HTTPDynaRIM serviceRoot = createMockHTTPDynaRIM("notes", "/notes");
+		RegistrarWithSingletons rs = new RegistrarWithSingletons();
+		rs.setServiceRoot(serviceRoot);
+		assertNotNull(rs.getInstances());
+		assertEquals(1, rs.getInstances().size());
+	}
+
+	@Test
+	public void testHierarchyServiceRoot() throws Exception {
+		HTTPDynaRIM serviceRoot = createMockHTTPDynaRIM("notes", "/notes");
+		List<ResourceInteractionModel> children = new ArrayList<ResourceInteractionModel>();
+		children.add(createMockHTTPDynaRIM("draftNote", "/draft/{id}"));
+		children.add(createMockHTTPDynaRIM("note", "/{id}"));
+		when(serviceRoot.getChildren()).thenReturn(children);
+		
+		whenNew(DynamicResourceDelegate.class).withParameterTypes(HTTPResourceInteractionModel.class, HTTPDynaRIM.class).withArguments(any(DynamicResource.class), any(ResourceInteractionModel.class)).thenAnswer(new Answer<Object>() {
+				public Object answer(InvocationOnMock invocation) throws Throwable {
+					return new DynamicResourceDelegate((HTTPResourceInteractionModel) invocation.getArguments()[0], (HTTPDynaRIM) invocation.getArguments()[1]);
+				}
+		});
+		RegistrarWithSingletons rs = new RegistrarWithSingletons();
+		rs.setServiceRoot(serviceRoot);
+		assertNotNull(rs.getInstances());
+		assertEquals(3, rs.getInstances().size());
+		
+		// should have the same parent
+		DynamicResourceDelegate parent = null;
+		for (Object obj : rs.getInstances()) {
+			DynamicResourceDelegate rd = (DynamicResourceDelegate) obj;
+			if (rd.getParent() != null && parent == null)
+				parent = (DynamicResourceDelegate) rd.getParent();
+			else
+				assertEquals(parent, rd.getParent());
+		}
+		
+		// verify resource delegate created 3 times
+		verifyNew(DynamicResourceDelegate.class, times(3)).withArguments(any(HTTPDynaRIM.class), any(HTTPDynaRIM.class));
 	}
 
 	@Test

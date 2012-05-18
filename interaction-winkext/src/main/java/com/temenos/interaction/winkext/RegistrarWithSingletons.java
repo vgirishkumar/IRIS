@@ -1,6 +1,7 @@
 package com.temenos.interaction.winkext;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,6 +76,21 @@ public class RegistrarWithSingletons extends Registrar {
         for (ResourceInteractionModel rim : interactions) {
         	addDynamicResource(rim);
         }
+    }
+    
+    public void setServiceRoot(HTTPDynaRIM rootRIM) {
+    	if (this.getInstances() == null) {
+        	this.setInstances(new HashSet<Object>());
+    	}
+    	addAllDynamicResource(rootRIM);
+    }
+    
+    private void addAllDynamicResource(ResourceInteractionModel rim) {
+    	addDynamicResource(rim);
+    	Collection<ResourceInteractionModel> children = rim.getChildren();
+    	for (ResourceInteractionModel child : children) {
+    		addDynamicResource(child);
+    	}
     }
     
     private void addDynamicResource(ResourceInteractionModel rim) {

@@ -34,30 +34,15 @@
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
-				<ref local="serviceDocumentProvider" />
-				<ref local="edmxProvider" />
 				<ref local="halProvider" />
-				<ref local="atomProvider" />
  			</set>
    		</property>
-		<property name="resourceRegistry" ref="resourceRegistry" />
+		<property name="serviceRoot" ref="ServiceRoot" />
 	</bean>
 
 	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
     	<constructor-arg ref="edmDataServices" />
-	</bean>	
-	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
-    	<constructor-arg ref="edmDataServices" />
-		<constructor-arg ref="resourceRegistry" />
 	</bean>
-	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
-	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
-
-    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
-    	<constructor-arg ref="edmDataServices" />
-    	<!-- Supply the root document and all resources are created dynamically from here -->
-        <constructor-arg ref="ServiceRoot" />
-    </bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
