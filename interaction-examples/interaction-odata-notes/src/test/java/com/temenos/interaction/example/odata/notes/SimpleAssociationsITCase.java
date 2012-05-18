@@ -39,10 +39,10 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	@After
 	public void tearDown() {}
 
-	@Test
 	/**
 	 * GET item, check link to another entity
 	 */
+	@Test
 	public void getPersonLinksToNote() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
@@ -56,10 +56,10 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("Persons(1)/Notes", person.getLinks().get(0).getHref());
 	}
 
-	@Test
 	/**
 	 * GET item, check link to another entity
 	 */
+	@Test
 	public void getNoteLinkToPerson() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
@@ -73,10 +73,10 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("Notes(1)/Persons", note.getLinks().get(0).getHref());
 	}
 
-	@Test
 	/**
 	 * GET item, follow link to another entity
 	 */
+	@Test
 	public void getPersonNotes() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
@@ -91,10 +91,10 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", notes.first().getProperty("body").getValue());
 	}
 
-	@Test
 	/**
 	 * GET item, follow link to another entity
 	 */
+	@Test
 	public void getNotePerson() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
@@ -108,10 +108,10 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", person.getProperty("name").getValue());
 	}
 
-	@Test
 	/**
 	 * GET item, follow link to another entity
 	 */
+	@Test
 	public void getNotePersons() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
@@ -126,10 +126,10 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", persons.first().getProperty("name").getValue());
 	}
 
-	@Test
 	/**
 	 * GET collection, check link to another entity
 	 */
+	@Test
 	public void getPersonsLinksToNotes() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
@@ -150,10 +150,10 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		
 	}
 
-	@Test
 	/**
 	 * Creation of entity with link to another entity
 	 */
+	@Test
 	public void createPersonSingleNoteWithLink() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
@@ -178,18 +178,13 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals(1, note.getLinks().size());
 	}
 
-	/*
-	 *  TODO enable test when we start to use the resource state machine in the mockresponders
-	 *  At the moment we use the pseudo state machine which simple adds the requirement for all 
-	 *  http method interaction, but then we bind noop command as the implementation.
-	 */
-//	@Test
 	/**
 	 * Attempt a DELETE to the entity set (collection resource)
 	 */
+	@Test
 	public void deletePersonMethodNotAllowed() throws Exception {
 		// attempt to delete the Person root, rather than an individual
-		ClientResponse response = webResource.path("/Person").delete(ClientResponse.class);
+		ClientResponse response = webResource.path("/Persons").delete(ClientResponse.class);
         assertEquals(405, response.getStatus());
 
         assertEquals(4, response.getAllow().size());
@@ -199,18 +194,13 @@ public class SimpleAssociationsITCase extends JerseyTest {
         assertTrue(response.getAllow().contains("HEAD"));
 	}
 
-	/*
-	 *  TODO enable test when we start to use the resource state machine in the mockresponders
-	 *  At the moment we use the pseudo state machine which simple adds the requirement for all 
-	 *  http method interaction, but then we bind noop command as the implementation.
-	 */
-//	@Test
 	/**
 	 * Attempt a PUT to the entity set (collection resource)
 	 */
+	@Test
 	public void putPersonMethodNotAllowed() throws Exception {
-		// attempt to delete the Person root, rather than an individual
-		ClientResponse response = webResource.path("/Person").type(MediaType.APPLICATION_ATOM_XML).put(ClientResponse.class, "<?xml version='1.0' encoding='utf-8'?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><title type=\"text\" /><updated>2012-04-02T10:33:39Z</updated><author><name /></author><category term=\"InteractionNoteModel.Person\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" /><content type=\"application/xml\"><m:properties><d:name>Noah</d:name></m:properties></content></entry>");
+		// attempt to put to the Persons root, rather than an individual
+		ClientResponse response = webResource.path("/Persons").type(MediaType.APPLICATION_ATOM_XML).put(ClientResponse.class, "<?xml version='1.0' encoding='utf-8'?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><title type=\"text\" /><updated>2012-04-02T10:33:39Z</updated><author><name /></author><category term=\"InteractionNoteModel.Person\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" /><content type=\"application/xml\"><m:properties><d:name>Noah</d:name></m:properties></content></entry>");
         assertEquals(405, response.getStatus());
 
         assertEquals(4, response.getAllow().size());
