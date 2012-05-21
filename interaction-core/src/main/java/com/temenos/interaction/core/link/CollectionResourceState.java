@@ -9,7 +9,7 @@ public class CollectionResourceState extends ResourceState {
 	}
 
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		
+		addTransition(httpMethod, targetState, uriLinkageMap, targetState.getPath(), true);
 	}
 
 }

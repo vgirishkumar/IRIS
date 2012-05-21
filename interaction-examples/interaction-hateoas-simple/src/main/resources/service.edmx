@@ -3,7 +3,7 @@
     <edmx:DataServices m:DataServiceVersion="1.0">
         <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="com.temenos.interaction.example.hateoas.simple">
             <EntityContainer Name="Entities" m:IsDefaultEntityContainer="true">
-                <EntitySet Name="note" EntityType="com.temenos.interaction.example.hateoas.simple.note"/>
+                <EntitySet Name="Note" EntityType="com.temenos.interaction.example.hateoas.simple.Note"/>
                 <EntitySet Name="Preferences" EntityType="com.temenos.interaction.example.hateoas.simple.Preferences"/>
             </EntityContainer>
             <EntityType Name="Profile">
@@ -27,11 +27,11 @@
                 <Property Name="currency" Type="Edm.String" Nullable="false"></Property>
                 <Property Name="language" Type="Edm.String" Nullable="true"></Property>
             </EntityType>
-            <EntityType Name="note">
+            <EntityType Name="Note">
                 <Key>
-                    <PropertyRef Name="Id" />
+                    <PropertyRef Name="noteID" />
                 </Key>
-                <Property Type="Edm.Int32" Name="Id" Nullable="false" />
+                <Property Type="Edm.Int32" Name="noteID" Nullable="false" />
                 <Property Type="Edm.String" Name="body" Nullable="false" />
             </EntityType>
         </Schema>

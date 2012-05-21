@@ -161,20 +161,48 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<OEntity> er : entities) {
 					OEntity entity = er.getEntity();
 					// the subresource is a collection
-					String rel = "collection" + " " + entity.getEntitySetName();
+					String rel = "collection " + cr.getEntitySetName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
 					// create hal resource and add link for self
-					Resource subResource = resourceFactory.newResource("");  // TODO need href for item
-					//subResource.withLink(url, rel)
-					// add properties to HAL sub resource
-					for (String key : propertyMap.keySet()) {
-						subResource.withProperty(key, propertyMap.get(key));
+					HateoasLink itemSelfLink = findSelfLink(er.getLinks());
+					if (itemSelfLink != null) {
+						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());  // TODO need href for item
+						//subResource.withLink(url, rel)
+						// add properties to HAL sub resource
+						for (String key : propertyMap.keySet()) {
+							subResource.withProperty(key, propertyMap.get(key));
+						}
+						halResource.withSubresource(rel, subResource);
 					}
 					
-					halResource.withSubresource(rel, subResource);
 				}
+			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
+				@SuppressWarnings("unchecked")
+				CollectionResource<Object> cr = (CollectionResource<Object>) resource;
+				List<EntityResource<Object>> entities = (List<EntityResource<Object>>) cr.getEntities();
+				for (EntityResource<Object> er : entities) {
+					Object entity = er.getEntity();
+					// the subresource is part of a collection (maybe this link rel should be an 'item')
+					String rel = "collection " + cr.getEntitySetName();
+					// the properties
+					Map<String, Object> propertyMap = new HashMap<String, Object>();
+					buildFromBean(propertyMap, entity);
+					// create hal resource and add link for self
+					HateoasLink itemSelfLink = findSelfLink(er.getLinks());
+					if (itemSelfLink != null) {
+						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());  // TODO need href for item
+						//subResource.withLink(url, rel)
+						// add properties to HAL sub resource
+						for (String key : propertyMap.keySet()) {
+							subResource.withProperty(key, propertyMap.get(key));
+						}
+						halResource.withSubresource(rel, subResource);
+					}
+					
+				}
+				
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -211,7 +239,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 
 	protected void buildFromOEntity(Map<String, Object> map, OEntity entity) {
 		for (OProperty<?> property : entity.getProperties()) {
-			EdmEntitySet ees = edmDataServices.getEdmEntitySet(entity.getEntityType());
+			EdmEntitySet ees = edmDataServices.getEdmEntitySet(entity.getEntitySetName());
 			if (ees.getType().findProperty(property.getName()) != null) {
 				map.put(property.getName(), property.getValue());				
 			}
@@ -222,18 +250,22 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		try {
 			// TODO we should look up the entity here, but the entity set is much easier to lookup
 			String beanName = bean.getClass().getSimpleName(); 
-			EdmEntitySet ees = edmDataServices.getEdmEntitySet(beanName);
-			if (ees != null) {
-				BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
-				for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
-				    String propertyName = propertyDesc.getName();
-					if (ees.getType().findProperty(propertyName) != null) {
-					    Object value = propertyDesc.getReadMethod().invoke(bean);
-						map.put(propertyName, value);				
+			try {
+				EdmEntitySet ees = edmDataServices.getEdmEntitySet(beanName);
+				if (ees != null) {
+					BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
+					for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
+					    String propertyName = propertyDesc.getName();
+						if (ees.getType().findProperty(propertyName) != null) {
+						    Object value = propertyDesc.getReadMethod().invoke(bean);
+							map.put(propertyName, value);				
+						}
 					}
+				} else {
+					logger.warn("EdmEntitySet not found using bean [" + beanName + "]");
 				}
-			} else {
-				logger.warn("EdmEntitySet not found using bean [" + beanName + "]");
+			} catch (RuntimeException re) {
+				logger.error("EdmEntitySet not found using bean [" + beanName + "]", re);
 			}
 		} catch (IllegalArgumentException e) {
 			logger.error("Error accessing bean property", e);

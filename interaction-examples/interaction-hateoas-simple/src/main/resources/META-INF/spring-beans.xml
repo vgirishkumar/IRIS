@@ -16,18 +16,6 @@
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
 	
-	<!-- Producers -->
-	<bean id="mockProducer" class="org.odata4j.producer.jpa.JPAProducer">
-		<constructor-arg ref="entityManagerFactory" />
-		<constructor-arg value="MockResponderSDK" />		
-		<constructor-arg value="100" />				
-	</bean>
-	<bean id="functionsProducer" class="com.temenos.interaction.example.note.NewFunctionProducer">
-        <constructor-arg ref="entityManagerFactory" />       
-        <constructor-arg value="InteractionExample" />
-        <constructor-arg ref="mockProducer" />               
-    </bean>
-	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
     -->
@@ -53,7 +41,7 @@
     <!-- Resources -->
     <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg ref="stateMachine" />
-    	<constructor-arg><null/></constructor-arg>
+    	<constructor-arg><bean class="com.temenos.interaction.core.dynaresource.BeanTransformer" /></constructor-arg>
     	<constructor-arg ref="commands" />
     </bean>
 
@@ -75,51 +63,27 @@
                 </entry>
                <entry>
                     <key><value>GET+/notes</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="note" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
+                    <bean class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand" />
                  </entry>
                  <entry>
-                    <key><value>GET+/notes/{id}</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg value="note" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
+                    <key><value>GET+/notes/{noteID}</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand" />
                 </entry>
                 <entry>
-                    <key><value>PUT+/notes/{id}</value></key>
-                    <bean class="com.temenos.interaction.example.note.OEntityPutNoteCommand">
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
+                    <key><value>PUT+/notes/{noteID}</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
                 </entry>
                 <entry>
-                    <key><value>DELETE+/notes/{id}</value></key>
-                    <bean class="com.temenos.interaction.example.note.DeleteNoteCommand">
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
+                    <key><value>DELETE+/notes/{noteID}</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
                 </entry>
                 <entry>
                     <key><value>GET+/notes/new</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                    <!--
-                    <bean class="com.temenos.interaction.example.note.GETNewNoteCommand">
-                        <constructor-arg name="domainObjectName" value="NOTE" />
-                        <constructor-arg name="producer" ref="functionsProducer" />
-                    </bean>
-                    -->
                 </entry>
                 <entry>
                     <key><value>POST+/notes/new</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                    <!--
-                    <bean class="com.temenos.interaction.commands.odata.POSTNewCommand">
-                        <constructor-arg value="ID" />
-                        <constructor-arg value="NOTE" />
-                        <constructor-arg value="test" />
-                        <constructor-arg ref="functionsProducer" />
-                    </bean>
-                    -->
                 </entry>
             </map>
         </constructor-arg>

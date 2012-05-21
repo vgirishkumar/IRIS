@@ -42,6 +42,6 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>IRIS</servlet-name>
-		<url-pattern>/interaction-hateoas-simple.svc/*</url-pattern>
+		<url-pattern>/api/*</url-pattern>
 	</servlet-mapping>
  </web-app>

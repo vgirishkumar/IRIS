@@ -36,6 +36,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.media.hal.HALProvider;
 import com.temenos.interaction.core.media.hal.MediaType;
 
@@ -105,7 +106,7 @@ public class TestHALProvider {
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
 		
 		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
+		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
 		HALProvider hp = new HALProvider(edmDS);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -131,13 +132,13 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 
 		Collection<EntityResource<OEntity>> entities = new ArrayList<EntityResource<OEntity>>();
-		entities.add(new EntityResource<OEntity>(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>())));
-		entities.add(new EntityResource<OEntity>(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>())));
-		entities.add(new EntityResource<OEntity>(OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>())));
-		CollectionResource<OEntity> er = new CollectionResource<OEntity>("EntitySetName", entities);
+		entities.add(createEntityResourceWithSelfLink(entityKey, properties, "http://www.temenos.com/rest.svc/children/1"));
+		entities.add(createEntityResourceWithSelfLink(entityKey, properties, "http://www.temenos.com/rest.svc/children/2"));
+		entities.add(createEntityResourceWithSelfLink(entityKey, properties, "http://www.temenos.com/rest.svc/children/3"));
+		CollectionResource<OEntity> er = new CollectionResource<OEntity>("Children", entities);
 		
 		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
+		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
 		HALProvider hp = new HALProvider(edmDS);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -145,7 +146,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, CollectionResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/children/1\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/2\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/3\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
@@ -153,6 +154,15 @@ public class TestHALProvider {
 		assertTrue(diff.similar());
 	}
 
+	private EntityResource<OEntity> createEntityResourceWithSelfLink(OEntityKey entityKey, List<OProperty<?>> properties, String selfLink) {
+		OEntity oentity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
+		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(oentity);
+		Collection<HateoasLink> links = new ArrayList<HateoasLink>();
+		links.add(new Link("id", "self", selfLink, null, null, "GET", "description", "label", null));
+		entityResource.setLinks(links);
+		return entityResource;
+	}
+	
 	@Test
 	public void testSerialiseBeanResource() throws Exception {
 		// the test bean, with elements that should not be serialised
@@ -297,7 +307,7 @@ public class TestHALProvider {
 		er.setLinks(links);
 		
 		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
+		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
 		HALProvider hp = new HALProvider(edmDS);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -337,7 +347,7 @@ public class TestHALProvider {
 		er.setLinks(links);
 		
 		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
+		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
 		HALProvider hp = new HALProvider(edmDS);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -356,7 +366,7 @@ public class TestHALProvider {
 	@Test
 	public void testBuildMapFromOEntity() {
 		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(createMockChildrenEntitySet());
+		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
 		HALProvider hp = new HALProvider(edmDS);
 		
 		/* 

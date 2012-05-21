@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.temenos.interaction.core.link.CollectionResourceState;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.link.ResourceStateMachine;
 
@@ -30,9 +31,9 @@ public class Behaviour {
 
 	public ResourceStateMachine getNotesInteractionModel() {
 		
-		ResourceState initialState = new ResourceState(NOTE_ENTITY_NAME, "initial", "/notes");
+		CollectionResourceState initialState = new CollectionResourceState(NOTE_ENTITY_NAME, "initial", "/notes");
 		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "new", "/notes/new");
-		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", "/notes/{id}");
+		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", "/notes/{noteID}");
 		ResourceState finalState = new ResourceState(initialState, "end");
 
 		// a linkage map (target URI element, source entity element)
@@ -48,10 +49,12 @@ public class Behaviour {
 		relations.add("_new");
 		newNoteState.addTransition("PUT", exists, uriLinkageMap);
 		
-		// a link on each note in the collection to get view the note
+		/* 
+		 * a link on each note in the collection to get view the note
+		 * no linkage map as target URI element (self) must exist in source entity element (also self)
+		 */
 		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "noteID");
-		initialState.addTransition("GET", exists, uriLinkageMap);		
+		initialState.addTransitionForEachItem("GET", exists, uriLinkageMap);		
 
 		// update / delete note item (same linkage map)
 		exists.addTransition("PUT", exists, uriLinkageMap);		

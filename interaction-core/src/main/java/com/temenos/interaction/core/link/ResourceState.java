@@ -75,10 +75,13 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 	
 	/**
-	 * Normal transitions, transition this entities state to another state.
-	 * @param httpMethod
-	 * @param targetState
-	 */
+	 * Return the transition to get to this state.
+	 * @return
+	 */	
+	public Transition getSelfTransition() {
+		return new Transition(this, new TransitionCommandSpec("GET", getPath()), this);
+	}
+	
 	/**
 	 * Normal transitions, transition this entities state to another state.
 	 * @param httpMethod
@@ -89,20 +92,26 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 	
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		assert null != targetState;
 		String resourcePath = targetState.getPath();
 		// a destructive command acts on this state, a constructive command acts on the target state
 		// TODO define set of destructive methods
 		if (httpMethod.equals("DELETE")) {
 			resourcePath = getPath();
 		}
+		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, false);
+	}
+	
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {
+		assert null != targetState;
+//		if (resourcePath == null)
+//			resourcePath = targetState.getPath();
 		// replace uri elements with linkage entity element name
 		if (uriLinkageMap != null) {
 			for (String templateElement : uriLinkageMap.keySet()) {
 				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
 			}
 		}
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, forEach);
 		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
 	}
 

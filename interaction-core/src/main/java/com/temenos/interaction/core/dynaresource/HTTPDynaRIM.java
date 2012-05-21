@@ -9,6 +9,7 @@ import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriBuilderException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,8 @@ import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.link.Transition;
 import com.temenos.interaction.core.link.TransitionCommandSpec;
+import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
@@ -40,6 +43,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
     private HTTPDynaRIM parent;
     private final ResourceStateMachine stateMachine;
     private final ResourceState currentState;
+    private final Transformer transformer;
     
 	public static ResourceState createPseudoStateMachine(String entityName, String resourceName, String resourcePath) {
 		/*
@@ -61,15 +65,16 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 * 			All application states.
 	 * @param path 			
 	 * 			The path to this resource, when concatenated to the parent path forms the fully qualified URI. 
-	 * @param resourceRegistry
-	 * 			A registry of all resources.
+	 * @param transformer
+	 * 			The class that handles transformation from the entity to an object usable during
+	 * 				URI construction.
 	 * @param commandController
 	 * 			All commands for all resources.
 	 */
-	public HTTPDynaRIM(ResourceStateMachine stateMachine, ResourceRegistry resourceRegistry, CommandController commandController) {
-		this(null, stateMachine, stateMachine.getInitial(), resourceRegistry, commandController);
+	public HTTPDynaRIM(ResourceStateMachine stateMachine, Transformer transformer, CommandController commandController) {
+		this(null, stateMachine, stateMachine.getInitial(), null, transformer, commandController);
 	}
-
+	
 	/**
 	 * Create a dynamic resource for resource state interaction.
 	 * @param parent
@@ -82,15 +87,23 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	 * 			The current application state when accessing this resource.
 	 * @param resourceRegistry
 	 * 			A registry of all resources.
+	 * @param transformer
+	 * 			The class that handles transformation from the entity to an object usable during
+	 * 				URI construction.
 	 * @param commandController
 	 * 			All commands for all resources.
 	 */
 	protected HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, ResourceState currentState, 
-			ResourceRegistry resourceRegistry, CommandController commandController) {
+			Transformer transformer, CommandController commandController) {
+		this(parent, stateMachine, currentState, null, transformer, commandController);
+	}
+	protected HTTPDynaRIM(HTTPDynaRIM parent, ResourceStateMachine stateMachine, ResourceState currentState, 
+			ResourceRegistry resourceRegistry, Transformer transformer, CommandController commandController) {
 		super(currentState.getPath(), resourceRegistry, commandController);
 		this.parent = parent;
 		this.stateMachine = stateMachine;
 		this.currentState = currentState;
+		this.transformer = transformer;
 		assert(stateMachine != null);
 		assert(currentState != null);
 		if (parent == null && stateMachine.getInitial() != null) {
@@ -144,44 +157,90 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	}
 	
 	@Override
-	public Collection<HateoasLink> getLinks(RESTResource entity) {
+	public Collection<HateoasLink> getLinks(RESTResource resourceEntity) {
+		return getLinks(resourceEntity, getCurrentState());
+	}
+		
+	private Collection<HateoasLink> getLinks(RESTResource resourceEntity, ResourceState state) {
 		List<HateoasLink> links = new ArrayList<HateoasLink>();
+		
+		Object entity = null;
+		if (resourceEntity instanceof EntityResource) {
+			entity = ((EntityResource<?>) resourceEntity).getEntity();
+		} else if (resourceEntity instanceof CollectionResource) {
+			// TODO add support for properties on collections
+			logger.warn("I hope you don't need to build a link from a template for links from this collection, no properties on the collection at the moment");
+		} else {
+			throw new RuntimeException("Unable to get links, an error occurred");
+		}
+		
 		// add link to GET 'self'
-		String selfUri = RequestContext.getRequestContext().getBasePath().path(getFQResourcePath()).build(entity).toASCIIString();
-		links.add(new Link(getCurrentState().getId(), "self", selfUri, null, null, "GET", "label", "description", null));
+		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(state.getPath());
+		links.add(createLink(selfUriTemplate, state.getSelfTransition(), entity));
 
 		/*
 		 * Add links to other application states (resources)
 		 */
-		Collection<ResourceState> targetStates = getCurrentState().getAllTargets();
+		Collection<ResourceState> targetStates = state.getAllTargets();
 		for (ResourceState s : targetStates) {
-			Transition transition = getCurrentState().getTransition(s);
+			Transition transition = state.getTransition(s);
 			TransitionCommandSpec cs = transition.getCommand();
-			String linkId = transition.getId();
-			// TODO get rels properly
-			String rel = s.getId();
-			
-			String method = cs.getMethod();
-			String path = cs.getPath();
-			URI href = null;			
 			/* 
 			 * build link and add to list of links
 			 */
-			UriBuilder linkTemplate = RequestContext.getRequestContext().getBasePath().path(path);
-			href = linkTemplate.build();
-			/*
-			if (map != null) {
-				href = linkTemplate.buildFromMap(map);
+			UriBuilder linkTemplate = RequestContext.getRequestContext().getBasePath().path(cs.getPath());
+			if (cs.isForEach()) {
+				if (resourceEntity instanceof CollectionResource) {
+					CollectionResource<?> collectionResource = (CollectionResource<?>) resourceEntity;
+					for (EntityResource<?> er : collectionResource.getEntities()) {
+						Collection<HateoasLink> eLinks = getLinks(er, s);
+//						if (eLinks == null) {
+//							eLinks = new ArrayList<HateoasLink>();
+//						}
+//						eLinks.add(createLink(linkTemplate, transition, er.getEntity()));
+						er.setLinks(eLinks);
+					}
+				}
 			} else {
-				href = linkTemplate.build();
+				links.add(createLink(linkTemplate, transition, entity));
 			}
-			 */
-			links.add(new Link(linkId, rel, href.toASCIIString(), null, null, method, "label", "description", null));
-			logger.debug("Link added to [" + getFQResourcePath() + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");
 		}
 		return links;
 	}
 
+	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity) {
+		TransitionCommandSpec cs = transition.getCommand();
+		try {
+			String linkId = transition.getId();
+			// TODO get rels properly
+			String rel = transition.getTarget().getId();
+			if (transition.getSource().equals(transition.getTarget())) {
+				rel = "self";
+			}
+			
+			String method = cs.getMethod();
+			URI href = null;			
+			if (entity != null) {
+				if (transformer != null) {
+					href = linkTemplate.buildFromMap(transformer.transform(entity));
+				} else {
+					href = linkTemplate.build(entity);
+				}
+			} else {
+				href = linkTemplate.build();
+			}
+			Link link = new Link(linkId, rel, href.toASCIIString(), null, null, method, "label", "description", null);
+			logger.debug("Created link [" + getFQResourcePath() + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");
+			return link;
+		} catch (IllegalArgumentException e) {
+			logger.error("An error occurred while creating link [" +  cs.getPath() + "]", e);
+			throw e;
+		} catch (UriBuilderException e) {
+			logger.error("An error occurred while creating link [" + cs.getPath() + "]", e);
+			throw e;
+		}
+	}
+	
 	public ResourceStateMachine getStateMachine() {
 		return stateMachine;
 	}
@@ -200,9 +259,10 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 				// TODO shouldn't really need to create it again
 				childSM = new ResourceStateMachine(childState);
 				// this is a new resource
-				child = new HTTPDynaRIM(childSM, getResourceRegistry(), getCommandController());
+				child = new HTTPDynaRIM(null, childSM, childState, getResourceRegistry(), this.transformer, getCommandController());
 			} else {
-				child = new HTTPDynaRIM(this, childSM, childState, getResourceRegistry(), getCommandController());
+				// same entity, same transformer
+				child = new HTTPDynaRIM(this, childSM, childState, this.transformer, getCommandController());
 			}
 			result.add(child);
 		}
