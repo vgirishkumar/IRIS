@@ -62,26 +62,41 @@ class @ResourceView extends View
     div = @createDiv clazz
     ol = @createOl('nav-bar').appendTo div
 
-    _.each model._links, (linkModel) =>
-      linkModel.method = "GET"
-      console.log("rel: " + linkModel.name + ", href: " + linkModel.href + ", method: " + linkModel.method)
-      if @isEntryPoint()
-        ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
-      else if @hasRows model
-        ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
-      else if isListItem
-        ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
+    _.each model._links, (relModel) =>
+      if (relModel.length)
+        _.each relModel, (linkModel) =>
+          @renderLink(model, ol, isListItem, isNav, linkModel)
       else
-        if isNav
-          if linkModel.name is 'self' then ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
-        else
-          if linkModel.name isnt 'self' then ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
+        @renderLink(model, ol, isListItem, isNav, relModel)
 
+    # render the Json link
     if isNav && not @isEntryPoint()
       li = @createLi('nav-bar-item right').append @renderResourceAsJsonLink()
       li.appendTo ol
-    div
 
+    div
+    
+  renderLink : (model, ol, isListItem, isNav, linkModel) =>
+    if (!linkModel.method?)
+      if (linkModel.href.substring(0,4) == "http")
+        linkModel.method = "GET"
+      else
+        elements = linkModel.href.split(" ")
+        linkModel.method = elements[0]
+        linkModel.href = elements[1]
+
+    console.log("rel: " + linkModel.name + ", href: " + linkModel.href + ", method: " + linkModel.method)
+    if @isEntryPoint()
+      ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
+    else if @hasRows model
+      ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
+    else if isListItem
+      ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
+    else
+      if isNav
+        if linkModel.name is 'self' then ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
+      else
+        if linkModel.name isnt 'self' then ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
 
   renderPropertyList: (model, clazz="", editable=false) =>
     div = @createDiv clazz
