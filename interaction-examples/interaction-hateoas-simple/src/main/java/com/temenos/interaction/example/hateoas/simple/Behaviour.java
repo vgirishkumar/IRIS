@@ -33,7 +33,7 @@ public class Behaviour {
 		
 		CollectionResourceState initialState = new CollectionResourceState(NOTE_ENTITY_NAME, "initial", "/notes");
 		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "new", "/notes/new");
-		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", "/notes/{noteID}");
+		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", "/notes/{noteID}", "noteID");
 		ResourceState finalState = new ResourceState(initialState, "end");
 
 		// a linkage map (target URI element, source entity element)
@@ -44,7 +44,7 @@ public class Behaviour {
 
 		// link from new note id to save the note
 		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "lastId");
+		uriLinkageMap.put("noteID", "lastId");
 		Set<String> relations = new HashSet<String>();
 		relations.add("_new");
 		newNoteState.addTransition("PUT", exists, uriLinkageMap);

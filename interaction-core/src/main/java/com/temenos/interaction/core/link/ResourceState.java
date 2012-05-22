@@ -14,6 +14,8 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final String name;
 	/* the path to the create the resource which represents this state of the entity */
 	private final String path;
+	/* the path parameter to use as the resource identifier */
+	private final String pathIdParameter;
 	/* a child state of the same entity */
 	private final boolean selfState;
 	/* is an intial state */
@@ -23,25 +25,41 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	/**
 	 * Construct a 'self' ResourceState.  A transition to one's self will not create a new resource.
-	 * @param name
+	 * @param entityName the name of the entity that this object is a state of
+	 * @param name this states name
+	 * @param path the uri to this state
 	 */
 	public ResourceState(ResourceState parent, String name) {
-		this(parent.getEntityName(), name, parent.getPath(), true);
+		this(parent.getEntityName(), name, parent.getPath(), null, true);
 	}
 
 	/**
 	 * Construct a substate ResourceState.  A transition to a substate state will create a new resource.
-	 * @param name
+	 * @param entityName the name of the entity that this object is a state of
+	 * @param name this states name
+	 * @param path the uri to this state
 	 */
 	public ResourceState(String entityName, String name, String path) {
-		this(entityName, name, path, false);
+		this(entityName, name, path, null, false);
 	}
 
-	private ResourceState(String entityName, String name, String path, boolean selfState) {
+	/**
+	 * Construct a substate ResourceState.  A transition to a substate state will create a new resource.
+	 * @param entityName the name of the entity that this object is a state of
+	 * @param name this states name
+	 * @param path the uri to this state
+	 * @param pathIdParameter override the default {id} path parameter and use the value instead
+	 */
+	public ResourceState(String entityName, String name, String path, String pathIdParameter) {
+		this(entityName, name, path, pathIdParameter, false);
+	}
+
+	private ResourceState(String entityName, String name, String path, String pathIdParameter, boolean selfState) {
 		assert(name != null);
 		this.entityName = entityName;
 		this.name = name;
 		this.path = path;
+		this.pathIdParameter = pathIdParameter;
 		this.initial = false;
 		this.selfState = selfState;
 	}
@@ -60,6 +78,10 @@ public class ResourceState implements Comparable<ResourceState> {
 
 	public String getPath() {
 		return path;
+	}
+
+	public String getPathIdParameter() {
+		return pathIdParameter;
 	}
 
 	public boolean isSelfState() {
