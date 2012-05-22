@@ -23,8 +23,6 @@ class @Link
         @successHandler = (model, textStatus, jqXHR) => new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
 
   cloneModel: (model)->
-    alert("what is this clone used for?")
-    debugger
     clone = {}
     $.extend true, clone, model
     if clone.links? then delete clone.links
