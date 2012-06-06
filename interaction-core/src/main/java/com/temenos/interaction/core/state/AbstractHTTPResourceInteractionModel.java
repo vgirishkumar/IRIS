@@ -169,7 +169,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	// debugging
     	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
     	if (pathParameters != null) {
-    		if (getCurrentState().getPathIdParameter() != null) {
+    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
     			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
     		}
         	for (String pathParam : pathParameters.keySet()) {
