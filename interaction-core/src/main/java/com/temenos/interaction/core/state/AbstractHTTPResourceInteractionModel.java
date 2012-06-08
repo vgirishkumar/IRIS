@@ -1,7 +1,6 @@
 package com.temenos.interaction.core.state;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +23,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -38,9 +36,6 @@ import org.odata4j.edm.EdmEntityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jayway.jaxrs.hateoas.HateoasContext;
-import com.jayway.jaxrs.hateoas.core.HateoasResponse;
-import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -56,9 +51,6 @@ import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 import com.temenos.interaction.core.command.ResourceStatusCommand;
 import com.temenos.interaction.core.link.ResourceRegistry;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.Transition;
-import com.temenos.interaction.core.link.TransitionCommandSpec;
 
 /**
  * <P>
@@ -113,17 +105,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		return null;
 	}
 
-	/**
-	 * We use links (also called hypermedia) for controlling / describing application 
-	 * state.  This method returns a context object for the application state at the 
-	 * time this resource was viewed.
-	 */
-	@Override
-	public HateoasContext getHateoasContext() {
-		return getResourceRegistry();
-	}
-    
-		
     /*
      * The registry of all resources / application states in this application.
      */
@@ -232,16 +213,12 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			}
 
 			// Create hypermedia representation for this resource
-	    	HateoasResponseBuilder builder = HateoasResponse.status(status);
-	    	if (getHateoasContext() != null) {
-	    		buildLinks(builder, id, map);
-	    	} else {
-				/*
-				 * Add links without the hateoas context
-				 */
-	    		RESTResource entity = (RESTResource) resource.getEntity();
-	    		entity.setLinks(getLinks(entity));
-	    	}
+	    	ResponseBuilder builder = Response.status(status);
+			/*
+			 * Add links
+			 */
+    		RESTResource entity = (RESTResource) resource.getEntity();
+    		entity.setLinks(getLinks(pathParameters, entity));
 	    	builder.entity(resource);
 	    	
 			// Create the Response for this resource GET (representation created by the jax-rs Provider)
@@ -249,52 +226,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		}
 		return Response.status(status).build();
     }
-    
-	private void buildLinks(HateoasResponseBuilder builder, String id, Map<String, Object> map) {
-		if (id != null) {
-    		builder.selfLink(getHateoasContext(), getCurrentState().getId(), id);	    		
-		} else {
-    		builder.selfLink(getHateoasContext(), getCurrentState().getId());
-		}
-		
-		Collection<ResourceState> targetStates = getCurrentState().getAllTargets();
-		for (ResourceState s : targetStates) {
-			Transition transition = getCurrentState().getTransition(s);
-			if ((transition.getCommand().getPath() == null || transition.getCommand().getPath().contains("{")) && map == null) {
-				// TODO convert all odata examples to use state machine transitions for links
-				logger.warn("Link has a template, but no map for values.  This has occurred because no map was configured for the transition.");
-			} else {
-				// add link using jax-rs-hateoas builder (uses our resource registry)
-				String linkId = transition.getId();
-				String rel = s.getId();
-		    	// TODO add support for collections, map can be null when we have a collection, or link to another statemachine
-				if (map != null) {
-					builder.link(getHateoasContext(), linkId, rel, map);
-				} else {
-					builder.link(getHateoasContext(), linkId, rel);
-				}
-
-				// TODO could add link directly as we have the transition command available
-				TransitionCommandSpec cs = transition.getCommand();
-				/* 
-				 * TODO remove this little (getPath != null) as this happens when 
-				 * a transition is a POST, PUT, DELETE is to this resource, it smells
-				 * of a problem with the TransitionCommandSpec creation.
-				 */
-				if (cs.getPath() != null) {
-					UriBuilder linkTemplate = UriBuilder.fromPath(cs.getPath());
-					URI href = null;
-					if (map != null) {
-						href = linkTemplate.buildFromMap(map);
-					} else {
-						href = linkTemplate.build();
-					}
-					String method = cs.getMethod();
-					logger.debug("Link added to [" + getFQResourcePath() + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "]");
-				}
-			}
-		}
-	}
 	
 	protected Map<String, Object> buildMapFromOEntity(List<OProperty<?>> properties) {
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -303,7 +234,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		}
 		return map;
 	}
-
 	
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
@@ -346,7 +276,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	MediaType.APPLICATION_JSON, 
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
-    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource<?> resource ) {
+    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.debug("POST " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("POST", getFQResourcePath());
@@ -397,10 +327,12 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	    	}	    	
 
 			// Create hypermedia representation for this resource
-	    	HateoasResponseBuilder builder = HateoasResponse.status(status);
-	    	if (getHateoasContext() != null) {
-	    		buildLinks(builder, id, map);
-	    	}
+	    	ResponseBuilder builder = Response.status(status);
+			/*
+			 * Add links
+			 */
+    		RESTResource entity = (RESTResource) newResource.getEntity();
+    		entity.setLinks(getLinks(null, entity));
 	    	builder.entity(newResource);
 			
 			return HeaderHelper.allowHeader(builder, getInteractions()).build();
@@ -426,7 +358,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	MediaType.APPLICATION_JSON, 
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
-    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource<?> resource ) {
+    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.debug("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("PUT", getFQResourcePath());
@@ -441,7 +373,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		assert (status != null);  // not a valid put command
 		
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
-        	return get(headers, id, null);
+        	return get(headers, id, uriInfo);
 		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();

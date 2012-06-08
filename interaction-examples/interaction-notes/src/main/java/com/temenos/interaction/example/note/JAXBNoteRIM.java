@@ -5,11 +5,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.odata4j.producer.ODataProducer;
 
-import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
@@ -58,6 +59,6 @@ public class JAXBNoteRIM extends AbstractHTTPResourceInteractionModel {
 	}
 
 	public ResourceState getCurrentState() { return null; }
-	public Collection<HateoasLink> getLinks(RESTResource entity) { return null; }
+	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 
 }

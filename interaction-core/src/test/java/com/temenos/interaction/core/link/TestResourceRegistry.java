@@ -19,7 +19,6 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
-import com.jayway.jaxrs.hateoas.LinkableInfo;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -136,86 +135,6 @@ public class TestResourceRegistry {
 		assertEquals("/FS/{id}", entityLinks.get(0).getHref());
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FlightSchedule", entityLinks.get(0).getRelation());
 		assertEquals("FlightSchedule", entityLinks.get(0).getTitle());
-		
-	}
-
-	@Test (expected = AssertionError.class)
-	public void testNotImplementedMapClass() {
-		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
-		// this method is used to map the Linkable annotation, we don't use that
-		rr.mapClass(String.class);
-	}
-
-	@Test (expected = AssertionError.class)
-	public void testLinkableNotRegistered() {
-		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
-		rr.getLinkableInfo("test");
-	}
-
-	@Test
-	public void testLinkableSelf() {
-		String ENTITY_NAME = "TEST_ENTITY";
-		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
-		HTTPDynaRIM testResource = createMockHTTPDynaRIM("test");
-		when(testResource.getCurrentState().getEntityName()).thenReturn(ENTITY_NAME);
-		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
-		resourceSet.add(testResource);
-		
-		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), resourceSet);
-		LinkableInfo link = rr.getLinkableInfo(ENTITY_NAME);
-		assertNotNull(link);
-		assertEquals("TEST_ENTITY", link.getId());
-		assertEquals("GET", link.getHttpMethod());
-		assertEquals("/blah/test", link.getMethodPath());
-        assertEquals("lookup label from EDMX", link.getLabel());
-        assertEquals("lookup description from EDMX", link.getDescription());
-        assertNull(link.getConsumes());	
-        assertNull(link.getProduces());	
-        assertNull(link.getTemplateClass());	
-    }
-
-	@Test
-	public void testLinkableStateTransition() {
-		String ENTITY_NAME = "TEST_ENTITY";
-		
-		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
-		HTTPDynaRIM testResource = mock(HTTPDynaRIM.class);
-		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
-
-		// create a little CRUD state machine
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/blah/test");
-		ResourceState exists = new ResourceState(initial, "exists");
-		ResourceState deleted = new ResourceState(initial, "deleted");
-		// update
-		exists.addTransition("PUT", exists);
-		// delete
-		exists.addTransition("DELETE", deleted);
-		
-		when(testResource.getStateMachine()).thenReturn(new ResourceStateMachine(exists));
-		when(testResource.getCurrentState()).thenReturn(exists);
-		resourceSet.add(testResource);
-		
-		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), resourceSet);
-		// link to self
-		LinkableInfo link = rr.getLinkableInfo("TEST_ENTITY");
-		assertNotNull(link);
-		assertEquals("TEST_ENTITY", link.getId());
-		assertEquals("GET", link.getHttpMethod());
-		assertEquals("/blah/test", link.getMethodPath());
-
-		// link to update
-		LinkableInfo updateLink = rr.getLinkableInfo("TEST_ENTITY.exists>TEST_ENTITY.exists");
-		assertNotNull(updateLink);
-		assertEquals("TEST_ENTITY.exists>TEST_ENTITY.exists", updateLink.getId());
-		assertEquals("PUT", updateLink.getHttpMethod());
-		assertEquals("/blah/test", updateLink.getMethodPath());
-
-		// link to delete
-		LinkableInfo deleteLink = rr.getLinkableInfo("TEST_ENTITY.exists>TEST_ENTITY.deleted");
-		assertNotNull(deleteLink);
-		assertEquals("TEST_ENTITY.exists>TEST_ENTITY.deleted", deleteLink.getId());
-		assertEquals("DELETE", deleteLink.getHttpMethod());
-		assertEquals("/blah/test", deleteLink.getMethodPath());
 		
 	}
 

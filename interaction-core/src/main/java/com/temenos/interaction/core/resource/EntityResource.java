@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.temenos.interaction.core.link.Link;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
@@ -26,7 +26,7 @@ public class EntityResource<T> implements RESTResource {
 
 	/* injected by HateoasResponse */
 	@XmlTransient
-    private Collection<HateoasLink> links;
+    private Collection<Link> links;
 
 	public EntityResource() {
 	}
@@ -45,7 +45,7 @@ public class EntityResource<T> implements RESTResource {
 	}
 
 	@Override
-    public Collection<HateoasLink> getLinks() {
+    public Collection<Link> getLinks() {
     	return this.links;
     }
 
@@ -55,7 +55,7 @@ public class EntityResource<T> implements RESTResource {
      * @param links
      */
 	@Override
-    public void setLinks(Collection<HateoasLink> links) {
+    public void setLinks(Collection<Link> links) {
     	this.links = links;
     }
 }

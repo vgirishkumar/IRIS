@@ -19,12 +19,10 @@ import org.odata4j.format.xml.XmlFormatWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jayway.jaxrs.hateoas.HateoasContext;
-import com.jayway.jaxrs.hateoas.LinkableInfo;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
-public class ResourceRegistry implements HateoasContext {
+public class ResourceRegistry {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceRegistry.class);
 
 	// the resource metadata
@@ -208,33 +206,6 @@ public class ResourceRegistry implements HateoasContext {
 		links.addAll(associatedLinks);
 		links.addAll(transitionLinks);
 		return links;
-	}
-
-	@Override
-	public void mapClass(Class<?> clazz) {
-		// we do not implement this part of HateoasContext
-		assert(false);
-	}
-
-	@Override
-	public LinkableInfo getLinkableInfo(String linkKey) {
-		Transition transition = linkTransitionMap.get(linkKey);
-		// no transition, must be a transition to self
-		String fqPath = (transition != null ? statePathMap.get(transition.getTarget()) :  entityResourcePathMap.get(linkKey));
-		// there should not be any way to define linkKey's without defining a transition and resource
-		assert(fqPath != null);
-		ResourceInteractionModel rim = rimMap.get(fqPath);
-		assert(rim != null);
-		
-		// TODO need to lookup from link registry, mock up GET link for now
-		String label = "lookup label from EDMX";  // TODO get from entityDataServices
-		String description = "lookup description from EDMX";  // TODO get from entityDataServices, in Accept-Language
-		String method = (transition != null ? transition.getCommand().getMethod() : "GET");
-		String path = (transition != null && transition.getCommand().getPath() != null ? transition.getCommand().getPath() : rim.getFQResourcePath());
-		LinkableInfo link = new LinkableInfo(linkKey, path, method, null, null, label, description, null);
-		
-		assert(link != null);
-		return link;
 	}
 
 }

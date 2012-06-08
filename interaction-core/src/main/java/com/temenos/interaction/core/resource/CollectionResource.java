@@ -5,7 +5,7 @@ import java.util.Collection;
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.temenos.interaction.core.link.Link;
 
 /**
  * A CollectionResource is the RESTful representation of a collection of
@@ -25,7 +25,7 @@ public class CollectionResource<T> implements RESTResource {
 
 	// links from a collection
 	@XmlTransient
-    private Collection<HateoasLink> links;
+    private Collection<Link> links;
 	
 	public CollectionResource() {}
 
@@ -48,7 +48,7 @@ public class CollectionResource<T> implements RESTResource {
 	}
 
 	@Override
-    public Collection<HateoasLink> getLinks() {
+    public Collection<Link> getLinks() {
     	return this.links;
     }
     
@@ -58,7 +58,7 @@ public class CollectionResource<T> implements RESTResource {
      * @param links
      */
 	@Override
-    public void setLinks(Collection<HateoasLink> links) {
+    public void setLinks(Collection<Link> links) {
     	this.links = links;
     }
 
