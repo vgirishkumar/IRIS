@@ -169,7 +169,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	// debugging
     	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
     	if (pathParameters != null) {
-    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
+    		if ((id == null || id.equals("")) && getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
     			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
     		}
         	for (String pathParam : pathParameters.keySet()) {
@@ -400,6 +400,10 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	    	HateoasResponseBuilder builder = HateoasResponse.status(status);
 	    	if (getHateoasContext() != null) {
 	    		buildLinks(builder, id, map);
+	    	} else {
+				// Add links without the hateoas context
+	    		RESTResource entity = (RESTResource) newResource.getEntity();
+	    		entity.setLinks(getLinks(entity));
 	    	}
 	    	builder.entity(newResource);
 			

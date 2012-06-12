@@ -32,6 +32,7 @@ import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.NestedObject;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;
@@ -289,7 +290,9 @@ public class TestAbstractHTTPResourceInteractionModel {
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
-		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(RESTResource.class)));
+		NestedObject no = mock(NestedObject.class);
+		EntityResource<NestedObject> er = new EntityResource<NestedObject>(no);
+		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, er));
 		when(rpc.getMethod()).thenReturn("POST");
 		cc.addStateTransitionCommand(resourcePath, rpc);
 		Response response = r.post(mock(HttpHeaders.class), "123", mock(EntityResource.class));
@@ -350,7 +353,9 @@ public class TestAbstractHTTPResourceInteractionModel {
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
-		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, mock(EntityResource.class)));
+		NestedObject no = mock(NestedObject.class);
+		EntityResource<NestedObject> er = new EntityResource<NestedObject>(no);
+		when(rpc.post(anyString(), any(EntityResource.class))).thenReturn(new RESTResponse(Response.Status.ACCEPTED, er));
 		when(rpc.getMethod()).thenReturn("POST");
 		cc.addStateTransitionCommand(resourcePath, rpc);
 

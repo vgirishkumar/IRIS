@@ -41,7 +41,8 @@ class @View
 
   createButton: (value, link = null) ->
     btn = $("<input type='button' value='#{value}'/>")
-    if link? then btn.click -> link.trigger()
+#    if link? then btn.click -> link.trigger()
+    if link? then btn.click -> link.triggerXML()
     btn
 
   createFormForModel: (formModel, buttons...) ->
@@ -63,5 +64,13 @@ class @View
       p.append @createValue value
     p
 
-
-
+  getLink: (resource, linkModel, data) =>
+    if (!linkModel.method?)
+      if (linkModel.href.substring(0,4) == "http")
+        linkModel.method = "GET"
+      else
+        elements = linkModel.href.split(" ")
+        linkModel.method = elements[0]
+        linkModel.href = elements[1]
+    linkModel.body = data
+    @commitLink = @createLink(resource, linkModel)

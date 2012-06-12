@@ -17,10 +17,13 @@ class @Link
         @hyperLink.click => @doPut()
         @formModel = @cloneModel @resource.model
         @successHandler = (model, textStatus, jqXHR) => new ResourceView(@resource.selfLink)
+#      when 'POST'
+#        @hyperLink.click => @doPost()
+#        @formModel = @model.template
+#        @successHandler = (model, textStatus, jqXHR) => new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
       when 'POST'
         @hyperLink.click => @doPost()
-        @formModel = @model.template
-        @successHandler = (model, textStatus, jqXHR) => new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
+        @successHandler = (model, textStatus, jqXHR) => @handlePOSTResponse(model)
 
   cloneModel: (model)->
     clone = {}
@@ -32,6 +35,7 @@ class @Link
     $.ajax {
       headers: { 
           Accept : "application/hal+json; charset=utf-8"
+          "Content-Type" : "application/hal+json; charset=utf-8"
       }
       url: @model.href,
       data: JSON.stringify(@formModel),
@@ -49,11 +53,43 @@ class @Link
     @resource.renderForm(this)
     false
 
-  doPost: =>
-    @resource.renderForm(this)
-    false
+#  doPost: =>
+#    @resource.renderForm(this)
+#    false
 
   doDelete: =>
     if confirm("R U sure?") then @trigger()
     false
 
+  doPost: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+json; charset=utf-8"
+      }
+      url: @model.href,
+      data: "{ 'body' : 'FT0001', 'id' : 1}",
+      type: "POST",
+      contentType: "application/hal+json; charset=utf-8",
+      success: @successHandler
+      error: @errorHandler
+    }
+    false
+
+  handlePOSTResponse: (model)->
+    @resource.renderPOSTResponseForm(model)
+    false
+
+  triggerXML: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+xml; charset=utf-8"
+          "Content-Type" : "application/hal+xml; charset=utf-8"
+      }
+      url: @model.href,
+      data: @model.body,
+      type: @model.method,
+      contentType: @model.consumes,
+      success: @successHandler,
+      error: @errorHandler
+    }
+    
