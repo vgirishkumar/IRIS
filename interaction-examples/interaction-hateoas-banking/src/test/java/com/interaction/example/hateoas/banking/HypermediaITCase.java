@@ -99,11 +99,10 @@ public class HypermediaITCase extends JerseyTest {
 	}
 
 	/**
-	 * Attempt a DELETE to the notes resource (a collection resource)
+	 * Attempt a DELETE to the resource (a collection resource)
 	 */
 	@Test
-	public void deletePersonMethodNotAllowed() throws Exception {
-		// attempt to delete the Person root, rather than an individual
+	public void deleteFundTransferMethodNotAllowed() throws Exception {
 		ClientResponse response = webResource.path("/fundtransfers").delete(ClientResponse.class);
         assertEquals(405, response.getStatus());
 
@@ -114,12 +113,11 @@ public class HypermediaITCase extends JerseyTest {
 	}
 
 	/**
-	 * Attempt a PUT to the notes resource (a collection resource)
+	 * Attempt a PUT to the resource (a collection resource)
 	 */
 	@Test
-	public void putPersonMethodNotAllowed() throws Exception {
+	public void putFundTransferMethodNotAllowed() throws Exception {
 		String halRequest = "";
-		// attempt to put to the notes collection, rather than an individual
 		ClientResponse response = webResource.path("/fundtransfers").type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
         assertEquals(405, response.getStatus());
 
@@ -129,4 +127,16 @@ public class HypermediaITCase extends JerseyTest {
         assertTrue(response.getAllow().contains("HEAD"));
 	}
 
+	/**
+	 * Attempt a PUT to the resource (entity resource)
+	 */
+	@Test
+	public void putFundTransferHalXML() throws Exception {
+		String halRequest = "<resource><FundTransfer><id>123</id><body>Funds tranfer issued at 01/01/2012</body></FundTransfer><links></links></resource>";
+		ClientResponse response = webResource.path("/fundtransfers/123").accept(MediaType.APPLICATION_HAL_XML).type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
+        assertEquals(200, response.getStatus());
+
+		response = webResource.path("/fundtransfers/123").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+	}
 }

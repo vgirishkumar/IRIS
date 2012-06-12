@@ -150,7 +150,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	// debugging
     	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
     	if (pathParameters != null) {
-    		if ((id == null || id.equals("")) && getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
+    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
     			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
     		}
         	for (String pathParam : pathParameters.keySet()) {
@@ -363,6 +363,14 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("PUT", getFQResourcePath());
 
+    	//Get the id from the URI
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	if (pathParameters != null) {
+    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
+    			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
+    		}
+    	}
+    	
     	StatusType status = null;
     	if (c instanceof ResourcePutCommand) {
     		ResourcePutCommand putCommand = (ResourcePutCommand) c;
