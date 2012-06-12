@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -23,20 +22,17 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.odata4j.edm.EdmDataServices;
 
-import com.jayway.jaxrs.hateoas.HateoasContext;
-import com.jayway.jaxrs.hateoas.HateoasLink;
-import com.jayway.jaxrs.hateoas.LinkableInfo;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.link.CollectionResourceState;
-import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.link.ResourceStateMachine;
 import com.temenos.interaction.core.resource.CollectionResource;
@@ -237,7 +233,7 @@ public class TestHTTPDynaRIM {
 		assertNotNull(resourceWithLinks.getLinks());
 		assertFalse(resourceWithLinks.getLinks().isEmpty());
 		assertEquals(1, resourceWithLinks.getLinks().size());
-		HateoasLink link = (HateoasLink) resourceWithLinks.getLinks().toArray()[0];
+		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/new", link.getHref());
 		assertEquals("NOTE.initial>NOTE.initial", link.getId());
@@ -245,9 +241,52 @@ public class TestHTTPDynaRIM {
 
 	/*
 	 * We use links (hypermedia) for controlling / describing application 
+	 * state.  Test we return the link to 'self' correctly for our test 
+	 * resource; in this self link we have used a path parameter.
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testGetLinksSelfPathParameters() {
+		String ENTITY_NAME = "NOTE";
+		String resourcePath = "/notes/{id}/reviewers";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
+		CommandController cc = new CommandController();
+		
+		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
+		ResourceGetCommand testCommand = mock(ResourceGetCommand.class);
+		when(testCommand.get(anyString(), any(MultivaluedMap.class))).thenReturn(new RESTResponse(Status.OK, testResponseEntity));
+		
+		/* 
+		 * Create the dynamic resource (no parent).
+		 */
+		cc.setGetCommand(resourcePath, testCommand);
+		HTTPDynaRIM resource = new HTTPDynaRIM(new ResourceStateMachine(initial), null, cc);
+
+		/*
+		 * Mock the path parameters returned from the UriInfo
+		 */
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		MultivaluedMap<String, String> mockPathparameters = new MockMultivaluedMap<String>();
+		mockPathparameters.add("id", "123");
+		when(mockUriInfo.getPathParameters(anyBoolean())).thenReturn(mockPathparameters);
+		
+		// call the get and populate the links
+		Response response = resource.get(null, "123", mockUriInfo);
+		RESTResource resourceWithLinks = (RESTResource) ((GenericEntity) response.getEntity()).getEntity();
+		assertNotNull(resourceWithLinks.getLinks());
+		assertFalse(resourceWithLinks.getLinks().isEmpty());
+		assertEquals(1, resourceWithLinks.getLinks().size());
+		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
+		assertEquals("self", link.getRel());
+		assertEquals("/baseuri/notes/123/reviewers", link.getHref());
+		assertEquals("NOTE.initial>NOTE.initial", link.getId());
+	}
+
+	/*
+	 * We use links (hypermedia) for controlling / describing application 
 	 * state.  Test we return the link to 'self' correctly for our test resource.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes", "unused" })
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testGetLinksSelfTemplate() {
 		String ENTITY_NAME = "NOTE";
@@ -255,10 +294,7 @@ public class TestHTTPDynaRIM {
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
 		CommandController cc = new CommandController();
 		
-		Object tc = new Object() {
-			public String getId() { return "123"; }
-		};
-		EntityResource<Object> testResponseEntity = new EntityResource<Object>(tc);
+		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		ResourceGetCommand testCommand = mock(ResourceGetCommand.class);
 		when(testCommand.get(anyString(), any(MultivaluedMap.class))).thenReturn(new RESTResponse(Status.OK, testResponseEntity));
 		
@@ -269,14 +305,22 @@ public class TestHTTPDynaRIM {
 		 */
 		cc.setGetCommand(resourcePath, testCommand);
 		HTTPDynaRIM resource = new HTTPDynaRIM(new ResourceStateMachine(initial), new BeanTransformer(), cc);
-				
+
+		/*
+		 * Mock the path parameters returned from the UriInfo
+		 */
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		MultivaluedMap<String, String> mockPathparameters = new MockMultivaluedMap<String>();
+		mockPathparameters.add("id", "123");
+		when(mockUriInfo.getPathParameters(anyBoolean())).thenReturn(mockPathparameters);
+
 		// call the get and populate the links
-		Response response = resource.get(null, null, null);
+		Response response = resource.get(null, null, mockUriInfo);
 		RESTResource resourceWithLinks = (RESTResource) ((GenericEntity) response.getEntity()).getEntity();
 		assertNotNull(resourceWithLinks.getLinks());
 		assertFalse(resourceWithLinks.getLinks().isEmpty());
 		assertEquals(1, resourceWithLinks.getLinks().size());
-		HateoasLink link = (HateoasLink) resourceWithLinks.getLinks().toArray()[0];
+		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/123", link.getHref());
 		assertEquals("NOTE.initial>NOTE.initial", link.getId());
@@ -304,11 +348,11 @@ public class TestHTTPDynaRIM {
 		 * 'collection notes'
 		 * 'colleciton persons'
 		 */
-		List<HateoasLink> links = new ArrayList<HateoasLink>(resourceWithLinks.getLinks());
+		List<Link> links = new ArrayList<Link>(resourceWithLinks.getLinks());
 		// sort the links so we have a predictable order for this test
-		Collections.sort(links, new Comparator<HateoasLink>() {
+		Collections.sort(links, new Comparator<Link>() {
 			@Override
-			public int compare(HateoasLink o1, HateoasLink o2) {
+			public int compare(Link o1, Link o2) {
 				return o1.getId().compareTo(o2.getId());
 			}
 			
@@ -346,11 +390,11 @@ public class TestHTTPDynaRIM {
 		/*
 		 * expect 2 links - self and one to form to create new note
 		 */
-		List<HateoasLink> links = new ArrayList<HateoasLink>(resourceWithLinks.getLinks());
+		List<Link> links = new ArrayList<Link>(resourceWithLinks.getLinks());
 		// sort the links so we have a predictable order for this test
-		Collections.sort(links, new Comparator<HateoasLink>() {
+		Collections.sort(links, new Comparator<Link>() {
 			@Override
-			public int compare(HateoasLink o1, HateoasLink o2) {
+			public int compare(Link o1, Link o2) {
 				return o1.getId().compareTo(o2.getId());
 			}
 		});
@@ -384,7 +428,7 @@ public class TestHTTPDynaRIM {
 		Collection<EntityResource<Object>> entities = collectionRes.getEntities();
 		
 		/* collect the links defined in each entity */
-		List<HateoasLink> links = new ArrayList<HateoasLink>();
+		List<Link> links = new ArrayList<Link>();
 		for (EntityResource<Object> entity : entities) {
 			assertNotNull(entity.getLinks());
 			links.addAll(entity.getLinks());
@@ -396,9 +440,9 @@ public class TestHTTPDynaRIM {
 		assertFalse(links.isEmpty());
 		assertEquals(3, links.size());
 		// sort the links so we have a predictable order for this test
-		Collections.sort(links, new Comparator<HateoasLink>() {
+		Collections.sort(links, new Comparator<Link>() {
 			@Override
-			public int compare(HateoasLink o1, HateoasLink o2) {
+			public int compare(Link o1, Link o2) {
 				return o1.getId().compareTo(o2.getId());
 			}
 			
@@ -498,88 +542,6 @@ public class TestHTTPDynaRIM {
 				return noteId;
 			}
 		};
-	}
-	
-	/*
-	 * We use links (hypermedia) for controlling / describing application 
-	 * state.  Test we return the hateoas context correctly for our test resource.
-	 */
-	@Test
-	public void testLinksSelf() {
-		String ENTITY_NAME = "NOTE";
-		String resourcePath = "/notes/{id}";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
-		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
-		CommandController cc = mock(CommandController.class);
-		
-		// create the dynamic resource, this also registers itself with the ResourceRegistry
-		HTTPDynaRIM resource = new HTTPDynaRIM(null, new ResourceStateMachine(initial), initial, rr, null, cc);
-		HateoasContext context = resource.getHateoasContext();
-		
-		// every dynamic resource should have the information to link to itself
-        LinkableInfo result = context.getLinkableInfo(ENTITY_NAME);
-        assertNotNull(result);
-        assertEquals("NOTE", result.getId());
-        assertEquals("GET", result.getHttpMethod());
-        assertEquals("/notes/{id}", result.getMethodPath());
-        assertEquals("lookup label from EDMX", result.getLabel());
-        assertEquals("lookup description from EDMX", result.getDescription());
-	}
-
-	@Test
-	public void testLinksApplicationState() {
-		String ENTITY_NAME = "SERVICE";
-		ResourceState serviceRoot = new ResourceState(ENTITY_NAME, "home", "");
-
-		ResourceState customers = new ResourceState("CUSTOMER", "customers", "/customers");
-		ResourceStateMachine customerSM = new ResourceStateMachine(customers);
-		ResourceState accounts = new ResourceState("ACCOUNT", "accounts", "/accounts");
-		ResourceStateMachine accountSM = new ResourceStateMachine(accounts);
-		ResourceState transactions = new ResourceState("TRANSACTION", "transactions", "/txns");
-		ResourceStateMachine txnSM = new ResourceStateMachine(transactions);
-
-		// Create links from service root
-		serviceRoot.addTransition("GET", customerSM);
-		serviceRoot.addTransition("GET", accountSM);
-		serviceRoot.addTransition("GET", txnSM);
-
-		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
-		CommandController cc = mock(CommandController.class);
-		
-		// create the dynamic resource, this also registers itself with the ResourceRegistry
-		HTTPDynaRIM resource = new HTTPDynaRIM(null, new ResourceStateMachine(serviceRoot), serviceRoot, rr, null, cc);
-		// this creates and registers the child resources / links
-		resource.getChildren();
-		
-		HateoasContext context = resource.getHateoasContext();
-		// every dynamic resource should have the information to link to itself
-        LinkableInfo result = context.getLinkableInfo(ENTITY_NAME);
-        assertNotNull(result);
-        assertEquals("SERVICE", result.getId());
-        assertEquals("GET", result.getHttpMethod());
-        assertEquals("", result.getMethodPath());
-
-        // customers
-        LinkableInfo linkToCustomers = context.getLinkableInfo("CUSTOMER.customers");
-        assertNotNull(linkToCustomers);
-        assertEquals("CUSTOMER.customers", linkToCustomers.getId());
-        assertEquals("GET", linkToCustomers.getHttpMethod());
-        assertEquals("/customers", linkToCustomers.getMethodPath());
-
-        // accounts
-        LinkableInfo linkToAccounts = context.getLinkableInfo("ACCOUNT.accounts");
-        assertNotNull(linkToAccounts);
-        assertEquals("ACCOUNT.accounts", linkToAccounts.getId());
-        assertEquals("GET", linkToAccounts.getHttpMethod());
-        assertEquals("/accounts", linkToAccounts.getMethodPath());
-
-        // transactions
-        LinkableInfo linkToTxns = context.getLinkableInfo("TRANSACTION.transactions");
-        assertNotNull(linkToTxns);
-        assertEquals("TRANSACTION.transactions", linkToTxns.getId());
-        assertEquals("GET", linkToTxns.getHttpMethod());
-        assertEquals("/txns", linkToTxns.getMethodPath());
-
 	}
 
 	@Test

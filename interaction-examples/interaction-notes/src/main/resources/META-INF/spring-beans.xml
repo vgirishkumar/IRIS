@@ -66,7 +66,7 @@
 
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg ref="stateMachine" />
-    	<constructor-arg><null/></constructor-arg>
+    	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
     	<constructor-arg ref="noteCommands" />
     </bean>
     

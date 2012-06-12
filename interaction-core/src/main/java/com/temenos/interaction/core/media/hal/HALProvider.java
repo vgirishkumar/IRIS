@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -113,8 +113,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			RESTResource rResource = (RESTResource) resource.getGenericEntity().getEntity();
 
 			// get the links
-			Collection<HateoasLink> links = rResource.getLinks();
-			HateoasLink selfLink = findSelfLink(links);
+			Collection<Link> links = rResource.getLinks();
+			Link selfLink = findSelfLink(links);
 			
 			// build the HAL representation with self link
 			if (selfLink != null)
@@ -122,7 +122,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 
 			// add our links
 			if (links != null) {
-				for (HateoasLink l : links) {
+				for (Link l : links) {
 					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] href=[" + l.getHref() + "]");
 					String href = l.getHref();
 					// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
@@ -171,7 +171,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
 					// create hal resource and add link for self
-					HateoasLink itemSelfLink = findSelfLink(er.getLinks());
+					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
 						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());  // TODO need href for item
 						//subResource.withLink(url, rel)
@@ -195,7 +195,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromBean(propertyMap, entity);
 					// create hal resource and add link for self
-					HateoasLink itemSelfLink = findSelfLink(er.getLinks());
+					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
 						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());  // TODO need href for item
 						//subResource.withLink(url, rel)
@@ -229,10 +229,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		entityStream.write(representation.getBytes("UTF-8"));
 	}
 
-	protected HateoasLink findSelfLink(Collection<HateoasLink> links) {
-		HateoasLink selfLink = null;
+	protected Link findSelfLink(Collection<Link> links) {
+		Link selfLink = null;
 		if (links != null) {
-			for (HateoasLink l : links) {
+			for (Link l : links) {
 				if (l.getRel().equals("self")) {
 					selfLink = l;
 					break;

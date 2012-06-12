@@ -31,7 +31,6 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 
-import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -157,7 +156,7 @@ public class TestHALProvider {
 	private EntityResource<OEntity> createEntityResourceWithSelfLink(OEntityKey entityKey, List<OProperty<?>> properties, String selfLink) {
 		OEntity oentity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(oentity);
-		Collection<HateoasLink> links = new ArrayList<HateoasLink>();
+		Collection<Link> links = new ArrayList<Link>();
 		links.add(new Link("id", "self", selfLink, null, null, "GET", "description", "label", null));
 		entityResource.setLinks(links);
 		return entityResource;
@@ -209,8 +208,8 @@ public class TestHALProvider {
 		return responseString;
 	}
 	
-	private HateoasLink mockLink(String id, String rel, String href) {
-		HateoasLink link = mock(HateoasLink.class);
+	private Link mockLink(String id, String rel, String href) {
+		Link link = mock(Link.class);
 		when(link.getId()).thenReturn(id);
 		when(link.getRel()).thenReturn(rel);
 		when(link.getHref()).thenReturn(href);
@@ -298,7 +297,7 @@ public class TestHALProvider {
 		properties.add(OProperties.string("name", "noah"));
 		properties.add(OProperties.string("age", "2"));
 		// the test links
-		List<HateoasLink> links = new ArrayList<HateoasLink>();
+		List<Link> links = new ArrayList<Link>();
 		links.add(mockLink("father", "_person", "humans/31"));
 		links.add(mockLink("mother", "_person", "/rest.svc/humans/32"));
 		
@@ -337,7 +336,7 @@ public class TestHALProvider {
 		 * However, a relatedEntity also has the relatedEntityInline capability.
 		 * TODO add tests for 'inline' links
 		 */
-		List<HateoasLink> links = new ArrayList<HateoasLink>();
+		List<Link> links = new ArrayList<Link>();
 		links.add(mockLink("father", "_person", "humans/31"));
 		links.add(mockLink("mother", "_person", "humans/32"));
 		links.add(mockLink("siblings", "_family", "humans/phetheans"));

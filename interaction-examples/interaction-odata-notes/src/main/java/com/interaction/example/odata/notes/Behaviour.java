@@ -1,5 +1,9 @@
 package com.interaction.example.odata.notes;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.temenos.interaction.core.link.CollectionResourceState;
 import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.link.ResourceStateMachine;
 
@@ -24,12 +28,15 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getNotesSM() {
-		ResourceState notes = new ResourceState("Notes", "collection", "/Notes");
+		CollectionResourceState notes = new CollectionResourceState("Notes", "collection", "/Notes");
 		ResourceState pseudo = new ResourceState(notes, "Notes.pseudo.created");
 		ResourceState note = new ResourceState("Notes", "item", "/Notes({id})");
 		ResourceState notePerson = new ResourceState("Persons", "NotesPerson", "/Notes({id})/Persons");
 		
-		notes.addTransition("GET", note);
+		// add collection transition to individual items
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "Id");
+		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
 		notes.addTransition("POST", pseudo);
 		note.addTransition("GET", notePerson);
 		note.addTransition("DELETE", note);
@@ -38,14 +45,17 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getPersonsSM() {
-		ResourceState persons = new ResourceState("Persons", "collection", "/Persons");
+		CollectionResourceState persons = new CollectionResourceState("Persons", "collection", "/Persons");
 		ResourceState pseudo = new ResourceState(persons, "Persons.pseudo.created");
 		ResourceState person = new ResourceState("Persons", "item", "/Persons({id})");
 		ResourceState personNotes = new ResourceState("Notes", "PersonNotes", "/Persons({id})/Notes");
 		
-		persons.addTransition("GET", person);
+		// add collection transition to individual items
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "Id");
+		persons.addTransitionForEachItem("GET", person, uriLinkageMap);
 		persons.addTransition("POST", pseudo);
-		person.addTransition("GET", personNotes);
+		person.addTransition("GET", personNotes, uriLinkageMap);
 
 		return new ResourceStateMachine(persons);
 	}

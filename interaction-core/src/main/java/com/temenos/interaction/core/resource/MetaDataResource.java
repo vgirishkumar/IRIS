@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.temenos.interaction.core.link.Link;
 
 /**
  * A MetaDataResource is resource that describes another resource.
@@ -34,9 +34,9 @@ public class MetaDataResource<T> implements RESTResource {
 	}
 	
 	@Override
-    public Collection<HateoasLink> getLinks() {
+    public Collection<Link> getLinks() {
     	return null;
     }
-	public void setLinks(Collection<HateoasLink> links) {}
+	public void setLinks(Collection<Link> links) {}
 	
 }

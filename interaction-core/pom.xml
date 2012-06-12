@@ -80,6 +80,10 @@
 			<artifactId>jsr311-api</artifactId>
 		</dependency>
         <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
@@ -137,12 +141,6 @@
 			<artifactId>odata4j-jersey</artifactId>
 			<scope>test</scope>
 	    </dependency>
-		<dependency>
-			<groupId>com.jayway.jax-rs-hateoas</groupId>
-			<artifactId>jax-rs-hateoas-core</artifactId>
-<!--  			<version>0.4.2</version> -->
-			<version>0.5-SNAPSHOT</version>
-		</dependency>
 		<dependency>
 			<groupId>com.theoryinpractise</groupId>
 			<artifactId>halbuilder</artifactId>

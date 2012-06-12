@@ -3,18 +3,19 @@ package com.temenos.interaction.core.dynaresource;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jayway.jaxrs.hateoas.HateoasLink;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.MethodNotAllowedCommand;
 import com.temenos.interaction.core.command.ResourceCommand;
@@ -27,6 +28,7 @@ import com.temenos.interaction.core.link.Transition;
 import com.temenos.interaction.core.link.TransitionCommandSpec;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
@@ -157,26 +159,32 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	}
 	
 	@Override
-	public Collection<HateoasLink> getLinks(RESTResource resourceEntity) {
-		return getLinks(resourceEntity, getCurrentState());
+	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity) {
+		return getLinks(pathParameters, resourceEntity, getCurrentState());
 	}
 		
-	private Collection<HateoasLink> getLinks(RESTResource resourceEntity, ResourceState state) {
-		List<HateoasLink> links = new ArrayList<HateoasLink>();
+	private Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState state) {
+		List<Link> links = new ArrayList<Link>();
 		
 		Object entity = null;
+		CollectionResource<?> collectionResource = null;
 		if (resourceEntity instanceof EntityResource) {
 			entity = ((EntityResource<?>) resourceEntity).getEntity();
 		} else if (resourceEntity instanceof CollectionResource) {
+			collectionResource = (CollectionResource<?>) resourceEntity;
 			// TODO add support for properties on collections
 			logger.warn("I hope you don't need to build a link from a template for links from this collection, no properties on the collection at the moment");
+		} else if (resourceEntity instanceof MetaDataResource) {
+			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
+			logger.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
+			return links;
 		} else {
 			throw new RuntimeException("Unable to get links, an error occurred");
 		}
 		
 		// add link to GET 'self'
 		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(state.getPath());
-		links.add(createLink(selfUriTemplate, state.getSelfTransition(), entity));
+		links.add(createLink(selfUriTemplate, state.getSelfTransition(), entity, pathParameters));
 
 		/*
 		 * Add links to other application states (resources)
@@ -190,10 +198,9 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			 */
 			UriBuilder linkTemplate = RequestContext.getRequestContext().getBasePath().path(cs.getPath());
 			if (cs.isForEach()) {
-				if (resourceEntity instanceof CollectionResource) {
-					CollectionResource<?> collectionResource = (CollectionResource<?>) resourceEntity;
+				if (collectionResource != null) {
 					for (EntityResource<?> er : collectionResource.getEntities()) {
-						Collection<HateoasLink> eLinks = getLinks(er, s);
+						Collection<Link> eLinks = getLinks(null, er, s);
 //						if (eLinks == null) {
 //							eLinks = new ArrayList<HateoasLink>();
 //						}
@@ -202,13 +209,13 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 					}
 				}
 			} else {
-				links.add(createLink(linkTemplate, transition, entity));
+				links.add(createLink(linkTemplate, transition, entity, null));
 			}
 		}
 		return links;
 	}
 
-	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity) {
+	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity, MultivaluedMap<String, String> map) {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
 			String linkId = transition.getId();
@@ -219,15 +226,22 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			}
 			
 			String method = cs.getMethod();
-			URI href = null;			
+			URI href = null;
+			Map<String, Object> properties = new HashMap<String, Object>();
+			if (map != null) {
+				for (String key : map.keySet()) {
+					properties.put(key, map.getFirst(key));
+				}
+			}
 			if (entity != null) {
 				if (transformer != null) {
-					href = linkTemplate.buildFromMap(transformer.transform(entity));
+					properties.putAll(transformer.transform(entity));
+					href = linkTemplate.buildFromMap(properties);
 				} else {
 					href = linkTemplate.build(entity);
 				}
 			} else {
-				href = linkTemplate.build();
+				href = linkTemplate.buildFromMap(properties);
 			}
 			Link link = new Link(linkId, rel, href.toASCIIString(), null, null, method, "label", "description", null);
 			logger.debug("Created link [" + getFQResourcePath() + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");

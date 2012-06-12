@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import javax.ws.rs.core.GenericEntity;
 
-import com.jayway.jaxrs.hateoas.HateoasLink;
+import com.temenos.interaction.core.link.Link;
 
 /**
  * A RESTResource is the base interface for all types of resources.
@@ -20,15 +20,15 @@ public interface RESTResource {
 	
 	/**
 	 * Return the links from this resource to another.
-	 * @return Collection<HateoasLink>
+	 * @return Collection<Link>
 	 */
-    public Collection<HateoasLink> getLinks();
+    public Collection<Link> getLinks();
 
     /**
      * Called during resource building phase to set the links for
      * serialization by the provider.
      * @param links
      */
-    public void setLinks(Collection<HateoasLink> links);
+    public void setLinks(Collection<Link> links);
 
 }  
