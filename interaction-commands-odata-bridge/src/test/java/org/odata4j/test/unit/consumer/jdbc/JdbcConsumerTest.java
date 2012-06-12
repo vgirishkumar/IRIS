@@ -16,15 +16,12 @@ import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.consumer.ODataConsumerAdapter;
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OEntityId;
 import org.odata4j.core.OEntityIds;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OProperties;
 import org.odata4j.core.OQueryRequest;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.expression.BoolCommonExpression;
-import org.odata4j.expression.Expression;
 import org.odata4j.producer.command.ProducerCommandContext;
 import org.odata4j.producer.exceptions.NotFoundException;
 import org.odata4j.producer.jdbc.JdbcModelToMetadata;
@@ -103,10 +100,6 @@ public class JdbcConsumerTest {
     // getEntity - not found
     Asserts.assertThrows(NotFoundException.class, getEntity(consumer, CUSTOMER, OEntityKey.create(-1), null));
 
-    // getEntity - found, but filtered out
-    BoolCommonExpression filter = Expression.boolean_(false);
-    //Asserts.assertThrows(NotFoundException.class, getEntity(consumer, CUSTOMER, OEntityKey.create(1), "false"));
-
     // getEntity - complex key
     entity = consumer.getEntity(CUSTOMER_PRODUCT, OEntityKey.create("CustomerId", 1, "ProductId", 1)).execute();
     Assert.assertNotNull(entity);
@@ -121,7 +114,6 @@ public class JdbcConsumerTest {
     Asserts.assertThrows(NotFoundException.class, getEntities(consumer, "badEntitySet", null));
 
     // getEntities - id = 1
-    filter = Expression.eq(Expression.simpleProperty(CUSTOMER_ID), Expression.literal(1));
     entities = consumer.getEntities(CUSTOMER).filter(CUSTOMER_ID + " eq 1").execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(1, entities.count());
@@ -134,45 +126,38 @@ public class JdbcConsumerTest {
     Assert.assertEquals("Customer Two", entities.first().getProperty(CUSTOMER_NAME).getValue());
 
     // getEntities - 1 = id
-    filter = Expression.eq(Expression.literal(1), Expression.simpleProperty(CUSTOMER_ID));
     entities = consumer.getEntities(CUSTOMER).filter(CUSTOMER_ID + " eq 1").execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(1, entities.count());
     Assert.assertEquals("Customer One", entities.first().getProperty(CUSTOMER_NAME).getValue());
 
     // getEntities - no results
-    filter = Expression.eq(Expression.simpleProperty(CUSTOMER_ID), Expression.literal(-1));
     entities = consumer.getEntities(CUSTOMER).filter(CUSTOMER_ID + " eq -1").execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(0, entities.count());
 
     // getEntities - id <> 1
-    filter = Expression.ne(Expression.simpleProperty(CUSTOMER_ID), Expression.literal(1));
     entities = consumer.getEntities(CUSTOMER).filter(CUSTOMER_ID + " ne 1").execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(1, entities.count());
     Assert.assertEquals("Customer Two", entities.first().getProperty(CUSTOMER_NAME).getValue());
 
     // getEntities - id > 1
-    filter = Expression.gt(Expression.simpleProperty(CUSTOMER_ID), Expression.literal(1));
     entities = consumer.getEntities(CUSTOMER).filter(CUSTOMER_ID + " gt 1").execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(1, entities.count());
 
     // getEntities - id >= 1
-    filter = Expression.ge(Expression.simpleProperty(CUSTOMER_ID), Expression.literal(1));
     entities = consumer.getEntities(CUSTOMER).filter(CUSTOMER_ID + " ge 1").execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(2, entities.count());
 
     // getEntities - id < 2
-    filter = Expression.lt(Expression.simpleProperty(CUSTOMER_ID), Expression.literal(2));
     entities = consumer.getEntities(CUSTOMER).filter(CUSTOMER_ID + " lt 2").execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(1, entities.count());
 
     // getEntities - id <= 2
-    filter = Expression.le(Expression.simpleProperty(CUSTOMER_ID), Expression.literal(2));
     entities = consumer.getEntities(CUSTOMER).filter(CUSTOMER_ID + " le 2").execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(2, entities.count());

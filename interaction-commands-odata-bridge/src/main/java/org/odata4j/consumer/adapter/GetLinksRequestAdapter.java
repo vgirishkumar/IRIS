@@ -22,7 +22,8 @@ public class GetLinksRequestAdapter<T> extends AbstractOQueryRequestAdapter<T>
     this.navProperty = navProperty;
   }
 
-  @Override
+  @SuppressWarnings("unchecked")
+@Override
   public Enumerable<T> execute() {
     EntityIdResponse response = getProducer().getLinks(sourceEntityId,
             navProperty);

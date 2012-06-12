@@ -28,7 +28,8 @@ public class GetEntitiesRequestAdapter<T> extends
     this.entitySetHref = entitySetHref;
   }
 
-  @Override
+  @SuppressWarnings("unchecked")
+@Override
   public Enumerable<T> execute() {
     QueryInfo queryInfo = buildQueryInfo();
 

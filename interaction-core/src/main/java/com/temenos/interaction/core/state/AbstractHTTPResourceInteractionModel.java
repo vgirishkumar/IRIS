@@ -169,9 +169,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			// Wrap response into a JAX-RS GenericEntity object 
 			GenericEntity<?> resource = response.getResource().getGenericEntity();
 			
-			// map of properties to supply to link builder
-			Map<String, Object> map = null;
-			
 			// Rebuild resource links if necessary
 			if (resourceRegistry != null) {
 				if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), EntityResource.class, OEntity.class)) {
@@ -182,9 +179,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 					EntityResource<OEntity> er = (EntityResource<OEntity>) resource.getEntity();
 		    		OEntity oEntity = er.getEntity();
 		        	
-		    		// get the map of properties to supply to link builder
-		    		map = buildMapFromOEntity(oEntity.getProperties());
-		    		
 		    		// get the links for this entity
 		    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
 		        	// create a new entity as at the moment we pass the resource links in the OEntity
@@ -298,9 +292,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			// Wrap response into a JAX-RS GenericEntity object 
 			GenericEntity<?> newResource = response.getResource().getGenericEntity();
 
-			// map of properties to supply to link builder
-			Map<String, Object> map = null;
-
 			// Rebuild resource links if necessary
 			if (resourceRegistry != null) {
 				if (ResourceTypeHelper.isType(newResource.getRawType(), newResource.getType(), EntityResource.class)) {
@@ -312,9 +303,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 					EntityResource<OEntity> er = (EntityResource<OEntity>) newResource.getEntity();
 		    		OEntity oEntity = er.getEntity();
 		        			        	
-		    		// get the map of properties to supply to link builder
-		    		map = buildMapFromOEntity(oEntity.getProperties());
-
 		    		// get the links for this entity
 		    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
 		        	// create a new entity as at the moment we pass the resource links in the OEntity

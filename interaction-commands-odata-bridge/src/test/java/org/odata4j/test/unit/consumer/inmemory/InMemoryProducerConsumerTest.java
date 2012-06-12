@@ -7,7 +7,6 @@ import org.core4j.Func;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.consumer.ODataConsumerAdapter;
-import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.producer.inmemory.InMemoryProducer;
 
@@ -61,6 +60,7 @@ public class InMemoryProducerConsumerTest {
     Assert.assertNotNull(p.getMetadata().findEdmEntityType(namespace + ".entityTypeName"));
   }
     
+  @SuppressWarnings("unused")
   private static class SimpleEntity {
     private final int integer;
 
@@ -76,7 +76,7 @@ public class InMemoryProducerConsumerTest {
       return String.valueOf(System.identityHashCode(this));
     }
 
-    public String getString() {
+	public String getString() {
       return "string-" + getId();
     }
 

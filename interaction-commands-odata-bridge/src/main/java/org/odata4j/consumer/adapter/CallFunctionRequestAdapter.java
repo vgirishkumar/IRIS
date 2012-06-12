@@ -15,7 +15,6 @@ import org.odata4j.core.OFunctionRequest;
 import org.odata4j.core.OObject;
 import org.odata4j.core.OSimpleObjects;
 import org.odata4j.core.UnsignedByte;
-import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.exceptions.NotImplementedException;
@@ -24,12 +23,10 @@ public class CallFunctionRequestAdapter<T> extends
         AbstractOQueryRequestAdapter<T> implements OFunctionRequest<T> {
 
   private final List<OFunctionParameter> params = new LinkedList<OFunctionParameter>();
-  private final EdmFunctionImport function;
 
   public CallFunctionRequestAdapter(ODataProducer producer,
           String serviceRootUri, String functionName) {
     super(producer, serviceRootUri);
-    this.function = producer.getMetadata().findEdmFunctionImport(functionName);
   }
 
   @Override

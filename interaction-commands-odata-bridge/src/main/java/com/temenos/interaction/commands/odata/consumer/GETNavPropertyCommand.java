@@ -14,15 +14,11 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.producer.EntitiesResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
 public class GETNavPropertyCommand implements ResourceGetCommand {
-	private final Logger logger = LoggerFactory.getLogger(GETNavPropertyCommand.class);
-
 	// Command configuration
 	private String entitySetName;
 	private String navProperty;
