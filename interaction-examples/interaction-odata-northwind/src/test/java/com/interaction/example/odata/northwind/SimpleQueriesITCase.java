@@ -10,11 +10,9 @@ import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 
 public class SimpleQueriesITCase {
-
 	protected static final String endpointUri = "http://localhost:8080/northwind/Northwind.svc/";
 
-	public SimpleQueriesITCase() throws Exception {
-		super();
+	public SimpleQueriesITCase() {
 	}
 	
 	@Test
@@ -39,4 +37,17 @@ public class SimpleQueriesITCase {
 		Assert.assertEquals(7, customers.count());
 	}
 
+	@Test
+	public void getCategory() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		OEntity category = consumer.getEntity("Categories", 1).execute();
+		Assert.assertEquals(1, category.getEntityKey().asSingleValue());
+	}
+
+	@Test
+	public void getCategoryName() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		OEntity category = consumer.getEntity("Categories", 1).execute();
+		Assert.assertEquals("Beverages", category.getProperty("CategoryName").getValue());
+	}
 }
