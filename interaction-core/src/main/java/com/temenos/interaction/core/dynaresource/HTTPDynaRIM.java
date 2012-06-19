@@ -183,8 +183,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		}
 		
 		// add link to GET 'self'
-		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(state.getPath());
-		links.add(createLink(selfUriTemplate, state.getSelfTransition(), entity, pathParameters));
+		links.add(createSelfLink(state, entity, pathParameters));
 
 		/*
 		 * Add links to other application states (resources)
@@ -200,11 +199,12 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			if (cs.isForEach()) {
 				if (collectionResource != null) {
 					for (EntityResource<?> er : collectionResource.getEntities()) {
-						Collection<Link> eLinks = getLinks(null, er, s);
-//						if (eLinks == null) {
-//							eLinks = new ArrayList<HateoasLink>();
-//						}
-//						eLinks.add(createLink(linkTemplate, transition, er.getEntity()));
+						Collection<Link> eLinks = er.getLinks();
+						if (eLinks == null) {
+							eLinks = new ArrayList<Link>();
+//							eLinks.add(createSelfLink(s, er.getEntity(), null));
+						}
+						eLinks.add(createLink(linkTemplate, transition, er.getEntity(), null));
 						er.setLinks(eLinks);
 					}
 				}
@@ -215,12 +215,17 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		return links;
 	}
 
+	private Link createSelfLink(ResourceState state, Object entity, MultivaluedMap<String, String> pathParameters) {
+		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(state.getPath());
+		return createLink(selfUriTemplate, state.getSelfTransition(), entity, pathParameters);
+	}
+	
 	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity, MultivaluedMap<String, String> map) {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
 			String linkId = transition.getId();
 			// TODO get rels properly
-			String rel = transition.getTarget().getId();
+			String rel = transition.getTarget().getRel();
 			if (transition.getSource().equals(transition.getTarget())) {
 				rel = "self";
 			}

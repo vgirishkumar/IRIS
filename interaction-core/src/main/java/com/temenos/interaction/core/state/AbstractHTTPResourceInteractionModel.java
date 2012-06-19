@@ -144,20 +144,15 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	assert(getResourcePath() != null);
     	ResourceGetCommand getCommand = getCommandController().fetchGetCommand(getFQResourcePath());
     	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
     	
-    	// debugging
-    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-    	if (pathParameters != null) {
-    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
-    			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
-    		}
-        	for (String pathParam : pathParameters.keySet()) {
-        		System.out.println("PathParam " + pathParam + ":" + pathParameters.get(pathParam));
-        	}
-    	}
-    	
+    	// resolve id from path parameters if necessary
+    	id = resolveIdFromPathParameters(id, pathParameters);
+
+    	// execute GET command
     	RESTResponse response = getCommand.get(id, queryParameters);
 
     	assert (response != null);
@@ -251,7 +246,21 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		}
     }
     
-	/**
+    private String resolveIdFromPathParameters(String id, MultivaluedMap<String, String> pathParameters) {
+    	if (pathParameters != null) {
+    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
+    			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
+    		}
+    		if (logger.isDebugEnabled()) {
+            	for (String pathParam : pathParameters.keySet()) {
+            		logger.debug("PathParam " + pathParam + ":" + pathParameters.get(pathParam));
+            	}
+    		}
+    	}
+    	return id;
+    }
+
+    /**
 	 * POST a document to a resource.
 	 * @precondition a valid POST command for this resourcePath + id must be registered with the command controller
 	 * @postcondition a Response with non null Status must be returned
@@ -274,6 +283,9 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	logger.debug("POST " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("POST", getFQResourcePath());
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	// resolve id from path parameters if necessary
+    	id = resolveIdFromPathParameters(id, pathParameters);
 
     	StatusType status = null;
     	RESTResponse response = null;
@@ -350,14 +362,9 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
     	logger.debug("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("PUT", getFQResourcePath());
-
-    	//Get the id from the URI
     	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-    	if (pathParameters != null) {
-    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
-    			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
-    		}
-    	}
+    	// resolve id from path parameters if necessary
+    	id = resolveIdFromPathParameters(id, pathParameters);
     	
     	StatusType status = null;
     	if (c instanceof ResourcePutCommand) {
@@ -386,10 +393,14 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 */
     @Override
 	@DELETE
-    public Response delete( @Context HttpHeaders headers, @PathParam("id") String id ) {
+    public Response delete( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
     	logger.debug("DELETE " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("DELETE", getFQResourcePath());
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	// resolve id from path parameters if necessary
+    	id = resolveIdFromPathParameters(id, pathParameters);
+
     	StatusType status = null;
     	if (c instanceof ResourceDeleteCommand) {
         	ResourceDeleteCommand deleteCommand = (ResourceDeleteCommand) c;
@@ -398,7 +409,8 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
        		status = ((ResourceStatusCommand) c).getStatus();    		
 		}
 		assert (status != null);  // not a valid delete command
-    	if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
+    	// TODO add support for Location header see 3xx status codes
+		if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();
     	} else {

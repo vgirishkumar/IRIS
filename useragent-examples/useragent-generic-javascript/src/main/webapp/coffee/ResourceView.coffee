@@ -9,8 +9,7 @@ class @ResourceView extends View
         }
         url: @selfLink.model.href, 
         error: (jqXHR, textStatus, errorThrown) ->
-            debugger
-            console.log("HTTP Error: #{jqXHR.status} #{this.url} (#{errorThrown})")
+            console.log("HTTP GET #{this.url} Error: #{jqXHR.status} (#{errorThrown})")
             alert("HTTP Error: #{jqXHR.status} #{this.url} (#{errorThrown})")
         success: @render
     }
@@ -137,7 +136,6 @@ class @ResourceView extends View
 
 # Render a form with the response data obtained from a POST command 
   renderPOSTResponseForm: (model) =>
-    #debugger
     #assume there's only one link on this POST resource
     _.each model._links, (relModel) =>
       if (relModel.length)

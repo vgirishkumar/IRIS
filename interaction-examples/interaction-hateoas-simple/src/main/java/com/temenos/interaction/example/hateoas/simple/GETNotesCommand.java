@@ -10,15 +10,24 @@ import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.example.hateoas.simple.model.Note;
 
 public class GETNotesCommand implements ResourceGetCommand {
 
+	private Persistence persistence;
+	
+	public GETNotesCommand(Persistence p) {
+		persistence = p;
+	}
+	
 	@Override
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		List<EntityResource<Note>> notes = new ArrayList<EntityResource<Note>>();
-		notes.add(new EntityResource<Note>(new Note(1L, "Test note one")));
-		notes.add(new EntityResource<Note>(new Note(2L, "Test note two")));
-		CollectionResource<Note> notesResource = new CollectionResource<Note>("note", notes);
+		List<EntityResource<Note>> noteEntities = new ArrayList<EntityResource<Note>>();
+		List<Note> notes = persistence.getNotes();
+		for (Note n : notes) {
+			noteEntities.add(new EntityResource<Note>(n));
+		}
+		CollectionResource<Note> notesResource = new CollectionResource<Note>("note", noteEntities);
 		return new RESTResponse(Status.OK, notesResource);
 	}
 

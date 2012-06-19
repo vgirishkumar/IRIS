@@ -12,7 +12,11 @@ class @Link
         @successHandler = (model, textStatus, jqXHR) => new ResourceView(this)
       when 'DELETE'
         @hyperLink.click => @doDelete()
-        @successHandler = (model, textStatus, jqXHR) => new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
+        @successHandler = (model, textStatus, jqXHR) => 
+            if jqXHR.status is (205 or 404)
+                new ResourceView({rel: 'self', href: this.resource.selfLink.model.href, method: 'GET'})
+            else
+                new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
       when 'PUT'
         @hyperLink.click => @doPut()
         @formModel = @cloneModel @resource.model

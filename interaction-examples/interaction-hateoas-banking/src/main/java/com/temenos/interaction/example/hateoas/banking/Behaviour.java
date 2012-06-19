@@ -22,7 +22,7 @@ public class Behaviour {
 	public ResourceStateMachine getFundsTransferInteractionModel() {
 		CollectionResourceState initialState = new CollectionResourceState("FundsTransfer", "initial", "/fundtransfers");
 		ResourceState newFtState = new ResourceState("FundsTransfer", "new", "/fundtransfers/new");
-		ResourceState exists = new ResourceState("FundsTransfer", "exists", "/fundtransfers/{id}", "id");
+		ResourceState exists = new ResourceState("FundsTransfer", "exists", "/fundtransfers/{id}", "id", "self".split(" "));
 		ResourceState finalState = new ResourceState(initialState, "end");
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
