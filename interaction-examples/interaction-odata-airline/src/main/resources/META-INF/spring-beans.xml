@@ -11,13 +11,16 @@
 	<!-- Initialise responder database -->
 	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
 	
+	<!-- Metadata -->	
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
+
 	<!-- MockResponder JPA Producer -->
 	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />
 		<constructor-arg name="namespace" value="MockResponderSDK" />		
 		<constructor-arg name="maxResults" value="100" />				
 	</bean>
-	<bean id="edmDataServices" factory-bean="producer" factory-method="getMetadata"/>
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -25,7 +28,6 @@
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
-				<ref local="staxHALProvider" />
 				<ref local="atomProvider" />
 				<ref local="edmxProvider" />
 				<ref local="serviceDocumentProvider" />
@@ -34,9 +36,6 @@
 		<property name="resourceRegistry" ref="resourceRegistry" />
 	</bean>
 
-	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
-    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
-	</bean>
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
     	<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
@@ -45,21 +44,20 @@
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
-         <constructor-arg name="root" ref="ServiceRoot" />
+        <constructor-arg name="edmDataServices" ref="edmDataServices" />
+        <constructor-arg name="root" ref="ServiceRoot" />
     </bean>
 
-
+    <!-- Behaviour -->
     <bean id="behaviour" class="com.interaction.example.odata.airline.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
     <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
-    	<constructor-arg name="entityName" value="" />
     	<constructor-arg name="initialState" ref="interaction" />
     </bean>
 
     <!-- Resources -->
     <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine" ref="stateMachine" />
-    	<constructor-arg name="path" value="" />
     	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
@@ -72,14 +70,14 @@
                     <key><value>GET+</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
                         <constructor-arg name="entity" value="ServiceDocument" />
-                        <constructor-arg name="producer" ref="producer" />
+                        <constructor-arg name="edmDataServices" ref="edmDataServices" />
                     </bean>
                 </entry>
                 <entry>
                     <key><value>GET+/$metadata</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
                         <constructor-arg name="entity" value="Metadata" />
-                        <constructor-arg name="producer" ref="producer" />
+                        <constructor-arg name="edmDataServices" ref="edmDataServices" />
                     </bean>
                 </entry>
                 <entry>

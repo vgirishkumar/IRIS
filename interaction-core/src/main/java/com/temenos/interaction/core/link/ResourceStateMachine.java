@@ -14,17 +14,11 @@ import org.slf4j.LoggerFactory;
 public class ResourceStateMachine {
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
 
-	public final String entityName;
 	public final ResourceState initial;
 		
-	public ResourceStateMachine(String entityName, ResourceState initialState) {
-		assert(entityName.equals(initialState.getEntityName()));
-		this.entityName = entityName;
+	public ResourceStateMachine(ResourceState initialState) {
 		this.initial = initialState;
-	}
-	
-	public String getEntityName() {
-		return entityName;
+		this.initial.setInitial(true);
 	}
 	
 	public ResourceState getInitial() {

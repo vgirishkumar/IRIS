@@ -1,12 +1,18 @@
 package com.temenos.interaction.example.note;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MultivaluedMap;
+
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
 /**
@@ -21,7 +27,7 @@ public class OEntityNoteRIM extends AbstractHTTPResourceInteractionModel {
 	public final static String ENTITY_NAME = "note";
 
 	public OEntityNoteRIM() {
-		super(ENTITY_NAME, RESOURCE_PATH);
+		super(RESOURCE_PATH);
 		/*
 		 * Not required when wired with Spring
 		 */
@@ -30,7 +36,7 @@ public class OEntityNoteRIM extends AbstractHTTPResourceInteractionModel {
 	}
 	
 	public OEntityNoteRIM(ODataProducer producer) {
-		super(ENTITY_NAME, RESOURCE_PATH);
+		super(RESOURCE_PATH);
 		initialise(producer);
 	}
 	
@@ -50,5 +56,8 @@ public class OEntityNoteRIM extends AbstractHTTPResourceInteractionModel {
 		states.add("HEAD");
 		return states;
 	}
+
+	public ResourceState getCurrentState() { return null; }
+	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 
 }

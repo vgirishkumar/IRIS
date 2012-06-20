@@ -1,10 +1,14 @@
 package com.temenos.interaction.core.resource;
 
+import java.util.Collection;
+
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.temenos.interaction.core.link.Link;
 
 /**
  * A ServiceDocumentResource is a resource that lists other resources to aid
@@ -37,4 +41,11 @@ public class ServiceDocumentResource<T> implements RESTResource {
 	public GenericEntity<ServiceDocumentResource<T>> getGenericEntity() {
 		return new GenericEntity<ServiceDocumentResource<T>>(this, this.getClass().getGenericSuperclass());
 	}
+	
+	@Override
+    public Collection<Link> getLinks() {
+    	return null;
+    }
+	public void setLinks(Collection<Link> links) {}
+
 }

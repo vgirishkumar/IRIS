@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ResourceState {
+public class ResourceState implements Comparable<ResourceState> {
 
 	/* the name of the entity which this is a state of */
 	private final String entityName;
@@ -14,25 +14,54 @@ public class ResourceState {
 	private final String name;
 	/* the path to the create the resource which represents this state of the entity */
 	private final String path;
+	/* the path parameter to use as the resource identifier */
+	private final String pathIdParameter;
+	/* a child state of the same entity */
+	private final boolean selfState;
+	/* is an intial state */
+	private boolean initial;
 	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
 
+	
 	/**
 	 * Construct a 'self' ResourceState.  A transition to one's self will not create a new resource.
-	 * @param name
+	 * @param entityName the name of the entity that this object is a state of
+	 * @param name this states name
+	 * @param path the uri to this state
 	 */
-	public ResourceState(String entityName, String name) {
-		this(entityName, name, null);
+	public ResourceState(ResourceState parent, String name) {
+		this(parent.getEntityName(), name, parent.getPath(), null, true);
 	}
 
 	/**
 	 * Construct a substate ResourceState.  A transition to a substate state will create a new resource.
-	 * @param name
+	 * @param entityName the name of the entity that this object is a state of
+	 * @param name this states name
+	 * @param path the uri to this state
 	 */
 	public ResourceState(String entityName, String name, String path) {
+		this(entityName, name, path, null, false);
+	}
+
+	/**
+	 * Construct a substate ResourceState.  A transition to a substate state will create a new resource.
+	 * @param entityName the name of the entity that this object is a state of
+	 * @param name this states name
+	 * @param path the uri to this state
+	 * @param pathIdParameter override the default {id} path parameter and use the value instead
+	 */
+	public ResourceState(String entityName, String name, String path, String pathIdParameter) {
+		this(entityName, name, path, pathIdParameter, false);
+	}
+
+	private ResourceState(String entityName, String name, String path, String pathIdParameter, boolean selfState) {
 		assert(name != null);
 		this.entityName = entityName;
 		this.name = name;
 		this.path = path;
+		this.pathIdParameter = pathIdParameter;
+		this.initial = false;
+		this.selfState = selfState;
 	}
 
 	public String getEntityName() {
@@ -43,12 +72,36 @@ public class ResourceState {
 		return name;
 	}
 
+	public String getId() {
+		return entityName + "." + name;
+	}
+
 	public String getPath() {
 		return path;
 	}
 
+	public String getPathIdParameter() {
+		return pathIdParameter;
+	}
+
 	public boolean isSelfState() {
-		return (path == null);
+		return selfState;
+	}
+	
+	public boolean isInitial() {
+		return initial;
+	}
+	
+	public void setInitial(boolean flag) {
+		initial = flag;
+	}
+	
+	/**
+	 * Return the transition to get to this state.
+	 * @return
+	 */	
+	public Transition getSelfTransition() {
+		return new Transition(this, new TransitionCommandSpec("GET", getPath()), this);
 	}
 	
 	/**
@@ -57,14 +110,30 @@ public class ResourceState {
 	 * @param targetState
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState) {
-		assert null != targetState;
+		addTransition(httpMethod, targetState, null);
+	}
+	
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
 		String resourcePath = targetState.getPath();
 		// a destructive command acts on this state, a constructive command acts on the target state
 		// TODO define set of destructive methods
 		if (httpMethod.equals("DELETE")) {
 			resourcePath = getPath();
 		}
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath);
+		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, false);
+	}
+	
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {
+		assert null != targetState;
+//		if (resourcePath == null)
+//			resourcePath = targetState.getPath();
+		// replace uri elements with linkage entity element name
+		if (uriLinkageMap != null) {
+			for (String templateElement : uriLinkageMap.keySet()) {
+				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
+			}
+		}
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, forEach);
 		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
 	}
 
@@ -130,5 +199,11 @@ public class ResourceState {
 	
 	public String toString() {
 		return entityName + "." + name;
+	}
+
+	@Override
+	public int compareTo(ResourceState other) {
+	    if ( this == other ) return 0;
+		return other.getId().compareTo(getId());
 	}
 }

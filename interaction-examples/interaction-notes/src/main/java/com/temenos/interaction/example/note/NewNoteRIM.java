@@ -1,10 +1,17 @@
 package com.temenos.interaction.example.note;
 
+import java.util.Collection;
+
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.commands.odata.POSTNewCommand;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
 /**
@@ -20,9 +27,11 @@ public class NewNoteRIM extends AbstractHTTPResourceInteractionModel {
 	private final static String ENTITY_NAME = "ID";
 	private final static String DOMAIN_OBJECT_NAME = "NOTE";
 	
+	private final ResourceState initial;
+	
 	public NewNoteRIM() {
-		super(ENTITY_NAME, RESOURCE_PATH);
-
+		super(RESOURCE_PATH);
+		initial = new ResourceState(ENTITY_NAME, "initial", RESOURCE_PATH);
 		/*
 		 * Not required when wired with Spring
 		 */
@@ -31,7 +40,8 @@ public class NewNoteRIM extends AbstractHTTPResourceInteractionModel {
 	}
 		  	
 	public NewNoteRIM(ODataProducer producer) {
-		super(ENTITY_NAME, RESOURCE_PATH);
+		super(RESOURCE_PATH);
+		initial = new ResourceState(ENTITY_NAME, "initial", RESOURCE_PATH);
 		initialise(producer);
 	}
 	
@@ -41,7 +51,12 @@ public class NewNoteRIM extends AbstractHTTPResourceInteractionModel {
 		 */
 		CommandController commandController = getCommandController();
 		commandController.setGetCommand(RESOURCE_PATH, new GETNewNoteCommand(DOMAIN_OBJECT_NAME, producer));
-		commandController.addStateTransitionCommand(RESOURCE_PATH, new POSTNewNoteCommand(this, DOMAIN_OBJECT_NAME, OEntityNoteRIM.RESOURCE_PATH, producer));
+		commandController.addStateTransitionCommand(RESOURCE_PATH, new POSTNewCommand(ENTITY_NAME, DOMAIN_OBJECT_NAME, OEntityNoteRIM.RESOURCE_PATH, producer));
 	}
+
+	public ResourceState getCurrentState() {
+		return initial;
+	}
+	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 
 }

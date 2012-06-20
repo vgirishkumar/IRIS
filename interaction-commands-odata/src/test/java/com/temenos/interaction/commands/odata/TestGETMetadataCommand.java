@@ -29,7 +29,7 @@ public class TestGETMetadataCommand {
 	public void testMetadataResource() {
 		ODataProducer mockProducer = createMockODataProducer("A");
 		
-		GETMetadataCommand command = new GETMetadataCommand("Metadata", mockProducer);
+		GETMetadataCommand command = new GETMetadataCommand("Metadata", mockProducer.getMetadata());
 		RESTResponse rr = command.get("1", null);
 		assertNotNull(rr);
 		assertTrue(rr.getResource() instanceof MetaDataResource);
@@ -39,7 +39,7 @@ public class TestGETMetadataCommand {
 	public void testServiceDocumentResource() {
 		ODataProducer mockProducer = createMockODataProducer("A");
 		
-		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", mockProducer);
+		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", mockProducer.getMetadata());
 		RESTResponse rr = command.get("1", null);
 		assertNotNull(rr);
 		assertTrue(rr.getResource() instanceof ServiceDocumentResource);

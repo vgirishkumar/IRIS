@@ -5,11 +5,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.temenos.interaction.core.media.hal.Representation;
-
 @XmlRootElement(name = "resource")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class NewNoteRepresentation extends Representation {
+public class NewNoteRepresentation {
 
 	public static final String RELATIONS_URI = "http://relations.interactionexample.com/";
 

@@ -87,37 +87,41 @@ public class JPAResponderGen {
 		
 		boolean ok = true;
 		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
-		
+
 		// generate JPA classes
 		for (EdmEntityType t : ds.getEntityTypes()) {
-			JPAEntityInfo entityInfo = createJPAEntityInfoFromEdmEntityType(t);
-			String fqOutputDir = srcOutputPath.getPath() + "/" + entityInfo.getPackageAsPath();
-			new File(fqOutputDir).mkdirs();
-			if (writeClass(formClassFilename(srcOutputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
-				String resourcePath = "/" + entityInfo.getClazz() + "/{id}";
-				String commandType = "com.temenos.interaction.commands.odata.GETEntityCommand"; 
-				resourcesInfo.add(new ResourceInfo(resourcePath, entityInfo, commandType));
-				
-				//Navigation properties linking to itself with multiplicity are considered to relate a resource with a collection resource
-				if(t.getNavigationProperties() != null) {
-					for (EdmNavigationProperty np : t.getNavigationProperties()) {
-						EdmAssociation ea = np.getRelationship();
-						EdmAssociationEnd end1 = ea.getEnd1();
-						EdmAssociationEnd end2 = ea.getEnd2();
-						if(end1.getType().equals(end2.getType()) && (
-								end1.getMultiplicity().equals(EdmMultiplicity.MANY) ||
-								end2.getMultiplicity().equals(EdmMultiplicity.MANY))) {
-							JPAEntityInfo entityFeedInfo = createJPAEntityInfoFromEdmEntityType(t);
-							entityFeedInfo.setFeedEntity();		//This is a feed of OEntities and should not exist as a JPA entity 
-							resourcePath = "/" + entityFeedInfo.getClazz();
-							commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
-							resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
-						}					
-					}
+			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t);
+			
+			//Generate JPA class
+			if(entityInfo.isJpaEntity()) {
+				String fqOutputDir = srcOutputPath.getPath() + "/" + entityInfo.getPackageAsPath();
+				new File(fqOutputDir).mkdirs();
+				if (!writeClass(formClassFilename(srcOutputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
+					return false;
 				}
-					
-			} else {
-				ok = false;
+			}
+			
+			//Obtain resource information
+			String resourcePath = "/" + entityInfo.getClazz() + "({id})";
+			String commandType = "com.temenos.interaction.commands.odata.GETEntityCommand"; 
+			resourcesInfo.add(new ResourceInfo(resourcePath, entityInfo, commandType));
+			
+			//Navigation properties linking to itself with multiplicity are considered to relate a resource with a collection resource
+			if(t.getNavigationProperties() != null) {
+				for (EdmNavigationProperty np : t.getNavigationProperties()) {
+					EdmAssociation ea = np.getRelationship();
+					EdmAssociationEnd end1 = ea.getEnd1();
+					EdmAssociationEnd end2 = ea.getEnd2();
+					if(end1.getType().equals(end2.getType()) && (
+							end1.getMultiplicity().equals(EdmMultiplicity.MANY) ||
+							end2.getMultiplicity().equals(EdmMultiplicity.MANY))) {
+						EntityInfo entityFeedInfo = createEntityInfoFromEdmEntityType(t);
+						entityFeedInfo.setFeedEntity();		//This is a feed of OEntities and should not exist as a JPA entity 
+						resourcePath = "/" + entityFeedInfo.getClazz();
+						commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
+						resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
+					}					
+				}
 			}
 		}
 		
@@ -145,7 +149,7 @@ public class JPAResponderGen {
 	 * @param entityInfo
 	 * @return
 	 */
-	public static String formClassFilename(String srcTargetDir, JPAEntityInfo entityInfo) {
+	public static String formClassFilename(String srcTargetDir, EntityInfo entityInfo) {
 		return srcTargetDir + "/" + entityInfo.getPackageAsPath() + "/" + entityInfo.getClazz() + ".java";
 	}
 	
@@ -169,7 +173,7 @@ public class JPAResponderGen {
 		return true;
 	}
 	
-	public JPAEntityInfo createJPAEntityInfoFromEdmEntityType(EdmType type) {
+	public EntityInfo createEntityInfoFromEdmEntityType(EdmType type) {
 		if (!(type instanceof EdmEntityType))
 			return null;
 		
@@ -201,7 +205,10 @@ public class JPAResponderGen {
 			properties.add(field);
 		}
 		
-		return new JPAEntityInfo(entityType.getName(), entityType.getNamespace(), keyInfo, properties);
+		//Check if user has specified the name of the JPA entities
+		String jpaNamespace = System.getProperty("jpaNamespace");
+		boolean isJpaEntity = (jpaNamespace == null || jpaNamespace.equals(entityType.getNamespace()));
+		return new EntityInfo(entityType.getName(), entityType.getNamespace(), keyInfo, properties, isJpaEntity);
 	}
 	
 	private String javaType(EdmType type) {
@@ -219,7 +226,7 @@ public class JPAResponderGen {
 		} else if (EdmSimpleType.TIME == type) {
 			javaType = "java.util.Date";
 		} else if (EdmSimpleType.DECIMAL == type) {
-			javaType = "Float";
+			javaType = "java.math.BigDecimal";
 		} else {
 			// TODO support types other than Long and String
 			throw new RuntimeException("Entity property type not supported");
@@ -296,14 +303,14 @@ public class JPAResponderGen {
 	
 	/**
 	 * Generate a JPA Entity from the provided info
-	 * @precondition {@link JPAEntityInfo} non null
-	 * @precondition {@link JPAEntityInfo} contain a valid package, class name, key, and fields
+	 * @precondition {@link EntityInfo} non null
+	 * @precondition {@link EntityInfo} contain a valid package, class name, key, and fields
 	 * @postcondition A valid java class, that may be serialised and compiled, or pushed into
 	 * the {@link ClassLoader.defineClass}
 	 * @param jpaEntityClass
 	 * @return
 	 */
-	public String generateJPAEntityClass(JPAEntityInfo jpaEntityClass) {
+	public String generateJPAEntityClass(EntityInfo jpaEntityClass) {
 		assert(jpaEntityClass != null);
 		
 		VelocityContext context = new VelocityContext();

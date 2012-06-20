@@ -4,18 +4,26 @@ import java.util.Collection;
 
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import com.jayway.jaxrs.hateoas.HateoasContext;
+import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.resource.RESTResource;
 
 public interface ResourceInteractionModel {
 
-	/**
-	 * The name of resource definition that this interaction model deals with
-	 * @return
-	 */
-	public String getEntityName();
-	/**
+    /**
+     * The current application state.
+     * @return
+     */
+    public ResourceState getCurrentState();
+    /**
+     * The links from this application state.
+     * @return
+     */
+    public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity);
+    /**
 	 * The path to this resource
 	 * @return
 	 */
@@ -27,8 +35,6 @@ public interface ResourceInteractionModel {
 	public String getFQResourcePath();
 	public ResourceInteractionModel getParent();
 	public Collection<ResourceInteractionModel> getChildren();
-	
-	public HateoasContext getHateoasContext();
 	
     @OPTIONS
     public Response options( @PathParam("id") String id );

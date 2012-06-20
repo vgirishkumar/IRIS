@@ -27,7 +27,8 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 			MediaType.APPLICATION_XML,
 			ExtendedMediaTypes.APPLICATION_ATOMSVC_XML,
 			MediaType.APPLICATION_JSON,
-			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML,
+			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 	public abstract Response get(@Context HttpHeaders headers,
 			@PathParam("id") String id,
 			@Context UriInfo uriInfo);
@@ -38,16 +39,19 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 	@POST
 	@Consumes({
 		MediaType.APPLICATION_ATOM_XML,
-		MediaType.APPLICATION_XML,
-		MediaType.APPLICATION_JSON,
-		com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+    	MediaType.APPLICATION_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 	@Produces({
-			MediaType.APPLICATION_ATOM_XML,
-			MediaType.APPLICATION_XML,
-			MediaType.APPLICATION_JSON,
-			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+		MediaType.APPLICATION_ATOM_XML,
+    	MediaType.APPLICATION_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 	public abstract Response post(@Context HttpHeaders headers,
 			@PathParam("id") String id,
+			@Context UriInfo uriInfo,
 			EntityResource<?> resource);
 
 	/**
@@ -55,11 +59,15 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 	 */
 	@PUT
 	@Consumes({
-			MediaType.APPLICATION_XML,
-			MediaType.APPLICATION_JSON,
-			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML })
+		MediaType.APPLICATION_ATOM_XML,
+    	MediaType.APPLICATION_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 	public abstract Response put(@Context HttpHeaders headers,
-			@PathParam("id") String id, EntityResource<?> resource);
+			@PathParam("id") String id,
+			@Context UriInfo uriInfo,
+			EntityResource<?> resource);
 
 	/**
 	 * DELETE a resource.

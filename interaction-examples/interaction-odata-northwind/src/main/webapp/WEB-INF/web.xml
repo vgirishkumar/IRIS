@@ -10,6 +10,17 @@
 			classpath:META-INF/spring-beans.xml
 		</param-value>
 	</context-param>
+
+    <filter>
+        <filter-name>request-context</filter-name>
+        <description>This filter sets the request context for the interaction framework.</description>
+        <filter-class>com.temenos.interaction.core.web.RequestContextFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>request-context</filter-name>
+        <servlet-name>IRIS</servlet-name>
+    </filter-mapping>
+
 	<servlet>
 		<servlet-name>context</servlet-name>
 		<servlet-class>org.springframework.web.context.ContextLoaderServlet</servlet-class>

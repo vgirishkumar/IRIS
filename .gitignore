@@ -13,6 +13,7 @@
 /interaction-sdk-archetype/target
 /interaction-examples/interaction-notes/target
 /interaction-commands-odata/target
+/interaction-commands-odata-bridge/target
 /useragent-examples/useragent-examples-simple/target
 /target
 /interaction-examples/interaction-jpa/target
@@ -20,3 +21,10 @@
 /interaction-parent/target
 /interaction-examples/interaction-odata-airline/target
 /interaction-examples/interaction-odata-northwind/target
+/interaction-examples/interaction-odata-notes/target
+/interaction-examples/interaction-hateoas-simple/target
+/interaction-examples/interaction-hateoas-banking/target
+/useragent-examples/useragent-generic-javascript/target
+/useragent-examples/useragent-generic-javascript/src/main/webapp/lib
+/interaction-core/test-output
+/useragent-examples/useragent-hal-inspector/target

@@ -2,13 +2,22 @@ package com.temenos.interaction.core.link;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
 
 public class TestResourceState {
 
+	@Test
+	public void testId() {
+		String ENTITY_NAME = "entity";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "");
+		assertEquals("entity.begin", initial.getId());
+	}
+	
 	@Test
 	public void testCollection() {
 		String ENTITY_NAME = "entity";
@@ -33,9 +42,11 @@ public class TestResourceState {
 	@Test
 	public void testSelfState() {
 		String ENTITY_NAME = "entity";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/test");
+		ResourceState exists = new ResourceState(initial, "initial");
 		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", "/archived");
-		assertTrue(initial.isSelfState());
+		assertFalse(initial.isSelfState());
+		assertTrue(exists.isSelfState());
 		assertFalse(archived.isSelfState());
 	}
 	
@@ -50,28 +61,43 @@ public class TestResourceState {
 	}
 
 	@Test
+	public void testAddTransitionLinkageMap() {
+		// define a linkage map (target URI element, source entity element)
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		// uri defines a template with {id}, our entity needs to supply {NoteId} as the id
+		uriLinkageMap.put("id", "NoteId");
+
+		String ENTITY_NAME = "entity";
+		ResourceState begin = new ResourceState("SomeEntity", "initial", "/tests");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "/test/{id}");
+		begin.addTransition("PUT", exists, uriLinkageMap);
+		assertEquals("/test/{NoteId}", begin.getTransition(exists).getCommand().getPath());
+
+	}
+	
+	@Test
 	public void testTransitionToStateMachine() {
 		String ENTITY_NAME1 = "entity1";
-		ResourceState initial = new ResourceState(ENTITY_NAME1, "initial");
-		ResourceState exists = new ResourceState(ENTITY_NAME1, "exists");
-		ResourceState deleted = new ResourceState(ENTITY_NAME1, "deleted");
+		ResourceState initial = new ResourceState(ENTITY_NAME1, "initial", "/test/{id}");
+		ResourceState exists = new ResourceState(initial, "exists");
+		ResourceState deleted = new ResourceState(initial, "deleted");
 		initial.addTransition("PUT", exists);
 		exists.addTransition("DELETE", deleted);
 		
 		String ENTITY_NAME2 = "entity2";
-		ResourceState initial2 = new ResourceState(ENTITY_NAME2, "initial");
-		ResourceState exists2 = new ResourceState(ENTITY_NAME2, "exists");
-		ResourceState deleted2 = new ResourceState(ENTITY_NAME2, "deleted");
+		ResourceState initial2 = new ResourceState(ENTITY_NAME2, "initial", "/entity/2");
+		ResourceState exists2 = new ResourceState(initial2, "exists");
+		ResourceState deleted2 = new ResourceState(initial2, "deleted");
 		initial2.addTransition("PUT", exists2);
 		exists2.addTransition("DELETE", deleted2);
 		
-		ResourceStateMachine rsm1 = new ResourceStateMachine(ENTITY_NAME1, initial);
-		ResourceStateMachine rsm2 = new ResourceStateMachine(ENTITY_NAME2, initial2);
+		ResourceStateMachine rsm1 = new ResourceStateMachine(initial);
+		ResourceStateMachine rsm2 = new ResourceStateMachine(initial2);
 		exists.addTransition("GET", rsm2);
 		exists2.addTransition("GET", rsm1);
 		
 		assertEquals("GET", exists.getTransition(initial2).getCommand().getMethod());
-		assertEquals(null, exists.getTransition(initial2).getCommand().getPath());
+		assertEquals("/entity/2", exists.getTransition(initial2).getCommand().getPath());
 	}
 	
 	@Test

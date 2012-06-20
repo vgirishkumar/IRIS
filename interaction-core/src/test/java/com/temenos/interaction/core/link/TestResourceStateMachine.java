@@ -32,7 +32,7 @@ public class TestResourceStateMachine {
 		history.addTransition("PUT", reversed);
 		
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, begin);
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		assertEquals(6, sm.getStates().size());
 		
 		Set<ResourceState> testStates = new HashSet<ResourceState>();
@@ -60,7 +60,7 @@ public class TestResourceStateMachine {
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, begin);
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		Collection<ResourceState> states = sm.getStates();
 		assertEquals("Number of states", 3, states.size());
 		assertTrue(states.contains(begin));
@@ -79,7 +79,7 @@ public class TestResourceStateMachine {
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, begin);
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
 		Map<String, Set<String>> interactionMap = sm.getInteractionMap();
 		assertEquals("Number of resources", 1, interactionMap.size());
@@ -102,7 +102,7 @@ public class TestResourceStateMachine {
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, begin);
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
 		Set<String> interactions = sm.getInteractions(begin);
 		assertEquals("Number of interactions", 2, interactions.size());
@@ -113,10 +113,10 @@ public class TestResourceStateMachine {
 	@Test
 	public void testSubstateInteractions() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
 		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/published");
 		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted");
+		ResourceState deleted = new ResourceState(initial, "deleted");
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -129,7 +129,7 @@ public class TestResourceStateMachine {
 		// delete published
 		published.addTransition("DELETE", deleted);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, initial);
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
 		Set<String> initialInteractions = sm.getInteractions(initial);
 		assertNull("Number of interactions", initialInteractions);
@@ -152,10 +152,10 @@ public class TestResourceStateMachine {
 	@Test
 	public void testStateMap() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
 		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/published");
 		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted");
+		ResourceState deleted = new ResourceState(initial, "deleted");
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -168,7 +168,7 @@ public class TestResourceStateMachine {
 		// delete published
 		published.addTransition("DELETE", deleted);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, initial);
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
 		Map<String, ResourceState> stateMap = sm.getStateMap();
 		assertEquals("Number of states", 2, stateMap.size());
@@ -182,10 +182,10 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetState() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
 		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/published");
 		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted");
+		ResourceState deleted = new ResourceState(initial, "deleted");
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -198,7 +198,7 @@ public class TestResourceStateMachine {
 		// delete published
 		published.addTransition("DELETE", deleted);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, initial);
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
 		assertEquals(initial, sm.getState(null));
 		assertEquals(published, sm.getState("/published"));
@@ -216,9 +216,9 @@ public class TestResourceStateMachine {
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
 		
-		ResourceStateMachine sm = new ResourceStateMachine(ENTITY_NAME, begin);
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
-		ResourceState other = new ResourceState("other", "/other");
+		ResourceState other = new ResourceState("other", "initial", "/other");
 		sm.getInteractions(other);
 	}
 
@@ -234,10 +234,10 @@ public class TestResourceStateMachine {
 		processes.addTransition("POST", newProcess);
 
 		// Process states
-		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess");
-		ResourceState processStarted = new ResourceState(PROCESS_ENTITY_NAME, "started");
+		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", "/processes/{id}");
+		ResourceState processStarted = new ResourceState(processInitial, "started");
 		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", "/nextTask");
-		ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME,	"completedProcess");
+		ResourceState processCompleted = new ResourceState(processInitial,	"completedProcess");
 		// start new process
 		newProcess.addTransition("PUT", processInitial);
 		processInitial.addTransition("PUT", processStarted);
@@ -246,26 +246,26 @@ public class TestResourceStateMachine {
 		// finish the process
 		processStarted.addTransition("DELETE", processCompleted);
 
-		ResourceStateMachine processSM = new ResourceStateMachine(PROCESS_ENTITY_NAME,	processes);
+		ResourceStateMachine processSM = new ResourceStateMachine(processes);
 
 		// Task states
 		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
 		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", "/completed");
-		ResourceState taskAbandoned = new ResourceState(TASK_ENTITY_NAME, "abandoned");
+		ResourceState taskAbandoned = new ResourceState(taskAcquired, "abandoned");
 		// abandon task
 		taskAcquired.addTransition("DELETE", taskAbandoned);
 		// complete task
 		taskAcquired.addTransition("PUT", taskComplete);
 
-		ResourceStateMachine taskSM = new ResourceStateMachine(TASK_ENTITY_NAME, taskAcquired);
+		ResourceStateMachine taskSM = new ResourceStateMachine(taskAcquired);
 		/*
 		 * acquire task by a PUT to the initial state of the task state machine (acquired)
 		 */
 		nextTask.addTransition("PUT", taskSM);
 
-		ResourceState home = new ResourceState("", "home");
+		ResourceState home = new ResourceState("", "home", "/");
 		home.addTransition("GET", processSM);
-		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine("", home);
+		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
 		
 		Map<String, Set<String>> interactionMap = serviceDocumentSM.getInteractionMap();
 		// no interactions for this entity

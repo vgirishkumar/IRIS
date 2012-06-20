@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+    <edmx:DataServices m:DataServiceVersion="1.0">
+        <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="InteractionNoteModel">
+			<EntityContainer Name="InteractionNotes">
+				<EntitySet Name="Notes" EntityType="InteractionNoteModel.Note" />
+				<EntitySet Name="Persons" EntityType="InteractionNoteModel.Person" />
+				<AssociationSet Name="PersonNotes" Association="InteractionNoteModel.PersonNotes">
+					<End Role="Person" EntitySet="Persons" />
+					<End Role="Note" EntitySet="Notes" />
+				</AssociationSet>
+			</EntityContainer>
+			<EntityType Name="Note">
+				<Key>
+					<PropertyRef Name="Id" />
+				</Key>
+				<Property Type="Edm.Int32" Name="Id" Nullable="false" />
+				<Property Type="Edm.String" Name="body" Nullable="false" />
+				<NavigationProperty Name="Persons" Relationship="InteractionNoteModel.PersonNotes" FromRole="Note" ToRole="Person" />
+			</EntityType>
+			<EntityType Name="Person">
+				<Key>
+					<PropertyRef Name="Id" />
+				</Key>
+				<Property Type="Edm.Int32" Name="Id" Nullable="false" />
+				<Property Type="Edm.String" Name="name" Nullable="false" />
+				<NavigationProperty Name="Notes" Relationship="InteractionNoteModel.PersonNotes" FromRole="Person" ToRole="Note" />
+			</EntityType>
+			<Association Name="PersonNotes">
+				<End Type="InteractionNoteModel.Note" Role="Note" Multiplicity="*" />
+				<End Type="InteractionNoteModel.Person" Role="Person" Multiplicity="0..1" />
+			</Association>
+		</Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

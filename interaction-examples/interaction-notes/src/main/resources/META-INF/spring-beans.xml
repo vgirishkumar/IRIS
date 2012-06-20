@@ -7,12 +7,6 @@
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
 		<property name="persistenceUnitName" value="NoteServiceHibernate" />		
 	</bean>
-	<!-- 
-	<bean id="sharedEntityManagerFactory" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
-		<property name="entityManagerFactory" ref="springEntityManagerFactory" />  
-	</bean>	
-	<bean id="entityManagerFactory" factory-bean="sharedEntityManagerFactory" factory-method="getEntityManagerFactory"/>
-	 -->
 	<!-- Create the MockResponder factory, at the moment this also initialises the Mock database -->
 	<bean id="mockResponderFactory" class="com.temenos.interaction.example.note.NoteProducerFactory" />
 	<!-- MockResponder JPA Producer -->
@@ -35,98 +29,100 @@
 		<property name="singletons">
         	<set>
         		<ref local="jaxbContextResolver" />
-				<ref local="staxHALProvider" />
+				<ref local="halProvider" />
 				<ref local="atomProvider" />
  			</set>
    		</property>
-   		<property name="classes">
-			<set value-type="java.lang.Class">
-				<value>com.temenos.interaction.example.sandbox.SandboxRIM</value>
-<!--  
-				<value>com.temenos.interaction.example.note.NoteRIM</value>
-				<value>com.temenos.interaction.example.note.NewNoteRIM</value>
--->
-			</set>
-		</property>
 		<property name="instances">
 			<set>
-				<ref bean="NOTES" />
 				<ref bean="JAXB-NOTE" />
-				<ref bean="NEW_NOTE" />
-				<ref bean="COUNTRY" />
 			</set>
 		</property>
 		<property name="resourceRegistry" ref="resourceRegistry" />
 	</bean>
 
 	<bean id="jaxbContextResolver" class="com.temenos.interaction.example.app.JAXBContextResolver" />
-	<bean id="staxHALProvider" class="com.temenos.interaction.core.media.hal.stax.HALProvider">
+	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 	</bean>
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
 	</bean>
 
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
       	<constructor-arg name="root" ref="DYNA_NOTE" />
     </bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.note.Behaviour" />
-    <bean id="initialNoteState" factory-bean="behaviour" factory-method="getCRUDResourceStateModel"/>
+    <bean id="initialNoteState" factory-bean="behaviour" factory-method="getNotesResoruceInteractionModel"/>
 
     <!-- Simple Notes resource state model -->
     <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
-    	<constructor-arg name="entityName" value="NOTE" />
     	<constructor-arg name="initialState" ref="initialNoteState" />
     </bean>
 
     <bean id="DYNA_NOTE" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="stateMachine" ref="stateMachine" />
-    	<constructor-arg name="path" value="/notes/{id}" />
-    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
-    	<constructor-arg name="commandController" ref="noteCommands" />
+    	<constructor-arg ref="stateMachine" />
+    	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
+    	<constructor-arg ref="noteCommands" />
     </bean>
     
     <bean id="noteCommands" class="com.temenos.interaction.core.command.CommandController">
-    	<constructor-arg name="resourcePath" value="/notes/{id}" />
-    	<constructor-arg name="getCommand">
-    		<bean class="com.temenos.interaction.example.note.OEntityGetNoteCommand">
-    			<constructor-arg name="producer" ref="producer" />
-    		</bean>
-   		</constructor-arg>
-    	<constructor-arg name="stateTransitionCommands">
-    		<set>
-	    		<bean class="com.temenos.interaction.example.note.OEntityPutNoteCommand">
-    				<constructor-arg name="producer" ref="producer" />
-    			</bean>
-	    		<bean class="com.temenos.interaction.example.note.DeleteNoteCommand">
-    				<constructor-arg name="producer" ref="producer" />
-    			</bean>
-   			</set>
-   		</constructor-arg>
+        <constructor-arg name="commands">
+            <map>
+                 <entry>
+                    <key><value>GET+/notes</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="entitySetName" value="note" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                 </entry>
+                 <entry>
+                    <key><value>GET+/notes/{id}</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
+                        <constructor-arg name="entity" value="note" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>PUT+/notes/{id}</value></key>
+                    <bean class="com.temenos.interaction.example.note.OEntityPutNoteCommand">
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>DELETE+/notes/{id}</value></key>
+                    <bean class="com.temenos.interaction.example.note.DeleteNoteCommand">
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>GET+/notes/new</value></key>
+                    <bean class="com.temenos.interaction.example.note.GETNewNoteCommand">
+                        <constructor-arg name="domainObjectName" value="NOTE" />
+                        <constructor-arg name="producer" ref="functionsProducer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>POST+/notes/new</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.POSTNewCommand">
+                        <constructor-arg name="entitySetName" value="ID" />
+                        <constructor-arg name="domainObjectName" value="NOTE" />
+                        <constructor-arg name="targetResource" value="test" />
+                        <constructor-arg name="producer" ref="functionsProducer" />
+                    </bean>
+                </entry>
+            </map>
+        </constructor-arg>
     </bean>
 
-    <!-- 
-    <bean id="DYNA_NEW_NOTE" class="com.temenos.interaction.core.dynaresource.DynaTRANSIENTRIM">
-    	<constructor-arg name="path" value="/nnnnnotes/new" />
-    	<property name="producer" ref="functionsProducer" />
-    </bean>
-	-->
-    
-    <bean id="NOTES" class="com.temenos.interaction.example.note.NotesRIM">
-    	<constructor-arg name="producer" ref="producer" />
-    </bean>
-    <bean id="OEntity-NOTE" class="com.temenos.interaction.example.note.OEntityNoteRIM">
+     <bean id="OEntity-NOTE" class="com.temenos.interaction.example.note.OEntityNoteRIM">
     	<constructor-arg name="producer" ref="producer" />
     </bean>
     <bean id="JAXB-NOTE" class="com.temenos.interaction.example.note.JAXBNoteRIM">
-    	<constructor-arg name="producer" ref="producer" />
-    </bean>
-    <bean id="NEW_NOTE" class="com.temenos.interaction.example.note.NewNoteRIM">
-    	<constructor-arg name="producer" ref="functionsProducer" />
-    </bean>
-    <bean id="COUNTRY" class="com.temenos.interaction.example.country.CountryRIM">
     	<constructor-arg name="producer" ref="producer" />
     </bean>
 

@@ -1,18 +1,11 @@
 package com.temenos.interaction.core.resource;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 import javax.ws.rs.core.GenericEntity;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.odata4j.core.OLink;
-import org.odata4j.core.OProperty;
+import com.temenos.interaction.core.link.Link;
 
 /**
  * A CollectionResource is the RESTful representation of a collection of
@@ -21,39 +14,31 @@ import org.odata4j.core.OProperty;
  * of links to find other resources linked to this resource.
  * @author aphethean
  */
-@XmlRootElement(name = "collection-resource")
-@XmlAccessorType(XmlAccessType.FIELD)
 public class CollectionResource<T> implements RESTResource {
-	@XmlTransient
 	private String entitySetName;
 	
-	@XmlAnyElement(lax=true)
-	private Collection<T> entities;
+	private Collection<EntityResource<T>> entities;
 
 	// TODO implement collection properties, used for things like inlinecount and skiptoken
 	// TODO implement JAXB Adapter for OProperty
-	@SuppressWarnings("unused")
-	@XmlTransient
-	private List<OProperty<?>> properties;
+//	private List<OProperty<?>> properties;
 
-	// TODO implement links from a collection
-	@SuppressWarnings("unused")
+	// links from a collection
 	@XmlTransient
-	private Set<OLink> links;
+    private Collection<Link> links;
 	
 	public CollectionResource() {}
 
-	public CollectionResource(String entitySetName, Collection<T> entities, List<OProperty<?>> properties) {
+	public CollectionResource(String entitySetName, Collection<EntityResource<T>> entities) {
 		this.entitySetName = entitySetName;
 		this.entities = entities;
-		this.properties = properties;		
 	}
 
 	public String getEntitySetName() {
 		return entitySetName;
 	}
 	
-	public Collection<T> getEntities() {
+	public Collection<EntityResource<T>> getEntities() {
 		return entities;
 	}
 	
@@ -61,4 +46,20 @@ public class CollectionResource<T> implements RESTResource {
 	public GenericEntity<CollectionResource<T>> getGenericEntity() {
 		return new GenericEntity<CollectionResource<T>>(this, this.getClass().getGenericSuperclass());
 	}
+
+	@Override
+    public Collection<Link> getLinks() {
+    	return this.links;
+    }
+    
+    /**
+     * Called during resource building phase to set the links for
+     * serialization by the provider.
+     * @param links
+     */
+	@Override
+    public void setLinks(Collection<Link> links) {
+    	this.links = links;
+    }
+
 }

@@ -8,8 +8,8 @@
 		transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 #foreach ( $resourceInfo in $resourcesInfo )
-#if (!$resourceInfo.getJPAEntityInfo().isFeedEntity()) 
-		<class>$resourceInfo.getJPAEntityInfo().getFQTypeName()</class>
+#if (!$resourceInfo.getEntityInfo().isFeedEntity() && $resourceInfo.getEntityInfo().isJpaEntity()) 
+		<class>$resourceInfo.getEntityInfo().getFQTypeName()</class>
 #end
 #end
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>

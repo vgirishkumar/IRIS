@@ -1,0 +1,99 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           classpath:org/springframework/beans/factory/xml/spring-beans-2.5.xsd">
+
+	<!-- Initialise JPA for MockResponder -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	</bean>
+	
+	<!-- Initialise responder database -->
+	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+
+	<!-- DaoManager -->
+	<bean id="daoHibernate" class="com.temenos.interaction.example.hateoas.banking.DaoHibernate" >
+		<constructor-arg ref="entityManagerFactory" />
+	</bean>
+
+	<!-- Metadata -->	
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
+	
+    <!--
+	  An extension of org.apache.wink.spring.Registrar with support for singletons.
+    -->
+	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
+		<property name="singletons">
+        	<set>
+				<ref local="halProvider" />
+ 			</set>
+   		</property>
+		<property name="serviceRoot" ref="ServiceRoot" />
+	</bean>
+
+	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
+    	<constructor-arg ref="edmDataServices" />
+	</bean>
+
+    <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />
+    <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
+    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
+    	<constructor-arg ref="interaction" />
+    </bean>
+
+    <!-- Resources -->
+    <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
+    	<constructor-arg ref="stateMachine" />
+    	<constructor-arg><bean class="com.temenos.interaction.core.dynaresource.BeanTransformer" /></constructor-arg>
+    	<constructor-arg ref="commands" />
+    </bean>
+
+    <!-- Commands -->
+    <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
+    	<constructor-arg>
+            <map>
+                <entry>
+                    <key><value>GET+/</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
+                </entry>
+                <entry>
+                    <key><value>GET+/preferences</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.banking.GETPreferencesCommand" />
+                </entry>
+               <entry>
+                    <key><value>GET+/fundtransfers</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.banking.GETFundTransfersCommand">
+                        <constructor-arg ref="daoHibernate" />
+                    </bean>
+                 </entry>
+                 <entry>
+                    <key><value>GET+/fundtransfers/{id}</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.banking.GETFundTransferCommand">
+                        <constructor-arg ref="daoHibernate" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>PUT+/fundtransfers/{id}</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.banking.PUTFundTransferCommand">
+                        <constructor-arg ref="daoHibernate" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>DELETE+/fundtransfers/{id}</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
+                </entry>
+                <entry>
+                    <key><value>GET+/fundtransfers/new</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
+                </entry>
+                <entry>
+                    <key><value>POST+/fundtransfers/new</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.banking.POSTFundTransferCommand" />
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+</beans>

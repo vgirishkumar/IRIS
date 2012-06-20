@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,18 +59,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private final ResourceRegistry resourceRegistry;
 
 	/**
-	 * Construct the jax-rs Provider for OData media type.  This constructor would
-	 * only support writing as without the ResourceRegistry it cannot create any
-	 * entities.
-	 * @param edmDataServices
-	 * 		The entity metadata for reading and writing OData entities.
-	 * @param edmDataServices
-	 */
-	public AtomXMLProvider(EdmDataServices edmDataServices) {
-		this(edmDataServices, new ResourceRegistry());
-	}
-
-	/**
 	 * Construct the jax-rs Provider for OData media type.
 	 * @param edmDataServices
 	 * 		The entity metadata for reading and writing OData entities.
@@ -118,15 +107,21 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		try {
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entity(entityResource.getEntity()));
+				OEntity oentity = entityResource.getEntity();
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(oentity.getEntitySetName());
+				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
-				List<OEntity> entities = (List<OEntity>) cr.getEntities();
+				List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) cr.getEntities();
+				List<OEntity> entities = new ArrayList<OEntity>();
+				for (EntityResource<OEntity> er : resources) {
+					entities.add(er.getEntity());
+				}
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream), Responses.entities(entities, entitySet, inlineCount, skipToken));
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entities(entities, entitySet, inlineCount, skipToken));
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -199,7 +194,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 			// parse the request content
 			Reader reader = new InputStreamReader(entityStream);
-			Entry e = new AtomEntryFormatParser(edmDataServices, rim.getEntityName(), entityKey, null).parse(reader);
+			Entry e = new AtomEntryFormatParser(edmDataServices, rim.getCurrentState().getEntityName(), entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} else {

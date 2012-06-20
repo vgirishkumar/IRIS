@@ -1,10 +1,14 @@
 package com.temenos.interaction.core.resource;
 
+import java.util.Collection;
+
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.temenos.interaction.core.link.Link;
 
 /**
  * A MetaDataResource is resource that describes another resource.
@@ -28,4 +32,11 @@ public class MetaDataResource<T> implements RESTResource {
 	public GenericEntity<MetaDataResource<T>> getGenericEntity() {
 		return new GenericEntity<MetaDataResource<T>>(this, this.getClass().getGenericSuperclass());
 	}
+	
+	@Override
+    public Collection<Link> getLinks() {
+    	return null;
+    }
+	public void setLinks(Collection<Link> links) {}
+	
 }

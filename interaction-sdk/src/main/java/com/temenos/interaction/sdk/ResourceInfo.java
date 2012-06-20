@@ -5,13 +5,13 @@ package com.temenos.interaction.sdk;
  */
 public class ResourceInfo {
 
-	private JPAEntityInfo jpaEntityInfo;
+	private EntityInfo entityInfo;
 	private String resourcePath;
 	private String commandType;
 	
-	public ResourceInfo(String resourcePath, JPAEntityInfo jpaEntityInfo, String commandType) {
+	public ResourceInfo(String resourcePath, EntityInfo entityInfo, String commandType) {
 		this.resourcePath = resourcePath;
-		this.jpaEntityInfo = jpaEntityInfo;
+		this.entityInfo = entityInfo;
 		this.commandType = commandType;
 	}
 	
@@ -23,7 +23,7 @@ public class ResourceInfo {
 		return commandType;
 	}
 	
-	public JPAEntityInfo getJPAEntityInfo() {
-		return jpaEntityInfo;
+	public EntityInfo getEntityInfo() {
+		return entityInfo;
 	}
 }

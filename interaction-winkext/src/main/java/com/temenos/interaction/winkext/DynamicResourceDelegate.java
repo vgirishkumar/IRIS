@@ -3,14 +3,17 @@ package com.temenos.interaction.winkext;
 import java.util.Collection;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.DynamicResource;
 
-import com.jayway.jaxrs.hateoas.HateoasContext;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
+import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.link.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 
@@ -26,7 +29,7 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 
 	@Override
     public String getBeanName() {
-        return resource.getEntityName();
+        return resource.getCurrentState().getId();
     }
 
 	@Override
@@ -68,23 +71,18 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
     }
 
 	@Override
-    public HateoasContext getHateoasContext() {
-        return resource.getHateoasContext();
-    }
-
-	@Override
 	public Response get(HttpHeaders headers, String id, UriInfo uriInfo) {
 		return resource.get(headers, id, uriInfo);
 	}
 
 	@Override
-	public Response post(HttpHeaders headers, String id, EntityResource<?> eresource) {
-		return resource.post(headers, id, eresource);
+	public Response post(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
+		return resource.post(headers, id, uriInfo, eresource);
 	}
 
 	@Override
-	public Response put(HttpHeaders headers, String id, EntityResource<?> eresource) {
-		return resource.put(headers, id, eresource);
+	public Response put(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
+		return resource.put(headers, id, uriInfo, eresource);
 	}
 
 	@Override
@@ -97,10 +95,15 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
-	public String getEntityName() {
-		return resource.getEntityName();
+	public ResourceState getCurrentState() {
+		return resource.getCurrentState();
 	}
 
+	@Override
+	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) {
+		return resource.getLinks(pathParameters, entity); 
+	}
+	
 	@Override
 	public String getResourcePath() {
 		return resource.getResourcePath();

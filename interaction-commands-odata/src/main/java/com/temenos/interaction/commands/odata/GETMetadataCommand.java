@@ -4,7 +4,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.odata4j.edm.EdmDataServices;
-import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
@@ -19,16 +18,6 @@ public class GETMetadataCommand implements ResourceGetCommand {
 
 	private EdmDataServices edmDataServices;
 	private String entity;
-
-	/**
-	 * Construct an instance of this command
-	 * @param entity Entity name
-	 * @param producer Producer
-	 */
-	public GETMetadataCommand(String entity, ODataProducer producer) {
-		this.entity = entity;
-		this.edmDataServices = producer.getMetadata();
-	}
 
 	/**
 	 * Construct an instance of this command

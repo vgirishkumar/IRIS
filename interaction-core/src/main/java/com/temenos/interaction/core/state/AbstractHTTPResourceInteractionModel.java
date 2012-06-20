@@ -4,8 +4,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -25,13 +27,19 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.odata4j.core.OEntities;
+import org.odata4j.core.OEntity;
+import org.odata4j.core.OLink;
+import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmEntityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jayway.jaxrs.hateoas.HateoasContext;
-import com.jayway.jaxrs.hateoas.core.HateoasResponse;
-import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
+import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
@@ -43,7 +51,6 @@ import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 import com.temenos.interaction.core.command.ResourceStatusCommand;
 import com.temenos.interaction.core.link.ResourceRegistry;
-import com.temenos.interaction.core.link.ResourceState;
 
 /**
  * <P>
@@ -60,26 +67,20 @@ import com.temenos.interaction.core.link.ResourceState;
 public abstract class AbstractHTTPResourceInteractionModel implements HTTPResourceInteractionModel {
 	private final static Logger logger = LoggerFactory.getLogger(AbstractHTTPResourceInteractionModel.class);
 
-	private String entityName;
 	private String resourcePath;
 	private ResourceRegistry resourceRegistry;
 	private CommandController commandController;
 		
-	public AbstractHTTPResourceInteractionModel(String entityName, String resourcePath) {
-		this(entityName, resourcePath, null, new CommandController());
+	public AbstractHTTPResourceInteractionModel(String resourcePath) {
+		this(resourcePath, null, new CommandController());
 	}
 
-	public AbstractHTTPResourceInteractionModel(String entityName, String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
-		this.entityName = entityName;
+	public AbstractHTTPResourceInteractionModel(String resourcePath, ResourceRegistry resourceRegistry, CommandController commandController) {
 		this.resourcePath = resourcePath;
 		// TODO extract resource registry into HTTPDynaRIM
 		this.resourceRegistry = resourceRegistry;
 		this.commandController = commandController;
 		assert(this.commandController != null);
-	}
-
-	public String getEntityName() {
-		return entityName;
 	}
 
 	public String getResourcePath() {
@@ -89,9 +90,9 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	public String getFQResourcePath() {
 		String result = "";
 		if (getParent() != null)
-			result += getParent().getResourcePath();
+			result = getParent().getResourcePath();
 			
-		return result += getResourcePath();
+		return result + getResourcePath();
 	}
 
 	@Override
@@ -104,25 +105,6 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		return null;
 	}
 
-    /**
-     * The current application state.
-     * @return
-     */
-    public ResourceState getCurrentState() {
-    	return null;
-    }
-    
-	/**
-	 * We use links (also called hypermedia) for controlling / describing application 
-	 * state.  This method returns a context object for the application state at the 
-	 * time this resource was viewed.
-	 */
-	@Override
-	public HateoasContext getHateoasContext() {
-		return getResourceRegistry();
-	}
-    
-		
     /*
      * The registry of all resources / application states in this application.
      */
@@ -148,16 +130,34 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @invariant resourcePath not null
 	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModel#get(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	@GET
-    @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
+    @Produces({MediaType.APPLICATION_ATOM_XML, 
+    	MediaType.APPLICATION_XML, 
+    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.debug("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceGetCommand getCommand = getCommandController().fetchGetCommand(getFQResourcePath());
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters() : null;
+    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
+    	
+    	// debugging
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	if (pathParameters != null) {
+    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
+    			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
+    		}
+        	for (String pathParam : pathParameters.keySet()) {
+        		System.out.println("PathParam " + pathParam + ":" + pathParameters.get(pathParam));
+        	}
+    	}
+    	
     	RESTResponse response = getCommand.get(id, queryParameters);
 
     	assert (response != null);
@@ -166,36 +166,69 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 
-			//Wrap response into a JAX-RS GenericEntity object 
-			GenericEntity<?> entity = response.getResource().getGenericEntity();
+			// Wrap response into a JAX-RS GenericEntity object 
+			GenericEntity<?> resource = response.getResource().getGenericEntity();
 			
-			//Rebuild resource links if necessary
-/*
-			if (resourceRegistry != null &&
-	    			ResourceTypeHelper.isType(entity.getRawType(), entity.getType(), EntityResource.class)) {
-	    		EntityResource<OEntity> er = (EntityResource<OEntity>) entity.getEntity();
-	        	OEntity oe = resourceRegistry.rebuildOEntityLinks(er.getEntity(), getCurrentState());
-	        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
-	        	entity = rebuilt.getGenericEntity();
-	    	}	    	
-*/			
+			// Rebuild resource links if necessary
+			if (resourceRegistry != null) {
+				if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), EntityResource.class, OEntity.class)) {
+					String entitySetName = getCurrentState().getEntityName();
+					EdmEntitySet entitySet = resourceRegistry.getEntitySet(entitySetName);
+					EdmEntityType entityType = entitySet.getType();
+
+					EntityResource<OEntity> er = (EntityResource<OEntity>) resource.getEntity();
+		    		OEntity oEntity = er.getEntity();
+		        	
+		    		// get the links for this entity
+		    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
+		        	// create a new entity as at the moment we pass the resource links in the OEntity
+		        	OEntity oe = OEntities.create(entitySet, oEntity.getEntityKey(), oEntity.getProperties(), links);;
+		        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
+		        	resource = rebuilt.getGenericEntity();
+				} else if (ResourceTypeHelper.isType(resource.getRawType(), resource.getType(), CollectionResource.class)) {
+					String entitySetName = getCurrentState().getEntityName();
+					EdmEntitySet entitySet = resourceRegistry.getEntitySet(entitySetName);
+					EdmEntityType entityType = entitySet.getType();
+
+					CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource.getEntity();
+					List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) cr.getEntities();
+					List<EntityResource<OEntity>> newEntities = new ArrayList<EntityResource<OEntity>>();
+					for (EntityResource<OEntity> er : resources) {
+						OEntity oEntity = er.getEntity();
+			    		// get the links for this entity
+			    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
+			        	// create a new entity as at the moment we pass the resource links in the OEntity
+			        	OEntity oe = OEntities.create(entitySet, oEntity.getEntityKey(), oEntity.getProperties(), links);
+			        	newEntities.add(new EntityResource<OEntity>(oe));
+					}
+					CollectionResource<OEntity> rebuilt = new CollectionResource<OEntity>(entitySetName, newEntities) {};
+		        	resource = rebuilt.getGenericEntity();
+				}
+			}
+
 			// Create hypermedia representation for this resource
-	    	HateoasResponseBuilder builder = HateoasResponse.ok();
-	    	if (getHateoasContext() != null) {
-	    		if (id != null) {
-		    		builder.selfLink(getHateoasContext(), (getCurrentState() != null ? entityName + "." + getCurrentState().getName() : entityName), id);	    		
-	    		} else {
-		    		builder.selfLink(getHateoasContext(), (getCurrentState() != null ? entityName + "." + getCurrentState().getName() : entityName));
-	    		}
-	    	}
-	    	builder.entity(entity);
+	    	ResponseBuilder builder = Response.status(status);
+			/*
+			 * Add links
+			 */
+    		RESTResource entity = (RESTResource) resource.getEntity();
+    		entity.setLinks(getLinks(pathParameters, entity));
+	    	builder.entity(resource);
 	    	
 			// Create the Response for this resource GET (representation created by the jax-rs Provider)
 			return HeaderHelper.allowHeader(builder, getInteractions()).build();
 		}
 		return Response.status(status).build();
     }
-    
+	
+	protected Map<String, Object> buildMapFromOEntity(List<OProperty<?>> properties) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		for (OProperty<?> property : properties) {
+			map.put(property.getName(), property.getValue());				
+		}
+		return map;
+	}
+	
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
     	try {
@@ -207,7 +240,8 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 				if (values != null) {
 					List<String> newValues = new ArrayList<String>();
 				    for (String value : values) {
-				    	newValues.add(ud.decode(value, "UTF-8"));
+				    	if (value != null)
+				    		newValues.add(ud.decode(value, "UTF-8"));
 				    }
 				    queryParameters.put(key, newValues);
 				}
@@ -224,9 +258,19 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @invariant resourcePath not null
 	 */
     @POST
-    @Consumes({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-    @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource<?> resource ) {
+    @Consumes({MediaType.APPLICATION_ATOM_XML, 
+    	MediaType.APPLICATION_XML, 
+    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+    @Produces({MediaType.APPLICATION_ATOM_XML, 
+    	MediaType.APPLICATION_XML, 
+    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.debug("POST " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("POST", getFQResourcePath());
@@ -246,23 +290,39 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 			// Wrap response into a JAX-RS GenericEntity object 
-			GenericEntity<?> entity = response.getResource().getGenericEntity();
-			// Create response
-			ResponseBuilder builder = Response.status(status);
-			
-			// Create hypermedia representation for this resource
-/*
-			HateoasResponseBuilder builder = HateoasResponse.status(status);
-	    	if (getHateoasContext() != null) {
-	    		if (id != null) {
-		    		builder.selfLink(getHateoasContext(), entityName, id);	    		
-	    		} else {
-		    		builder.selfLink(getHateoasContext(), entityName);
-	    		}
-	    	}
-*/
-			builder.entity(entity);
+			GenericEntity<?> newResource = response.getResource().getGenericEntity();
 
+			// Rebuild resource links if necessary
+			if (resourceRegistry != null) {
+				if (ResourceTypeHelper.isType(newResource.getRawType(), newResource.getType(), EntityResource.class)) {
+					String entitySetName = getCurrentState().getEntityName();
+					EdmEntitySet entitySet = resourceRegistry.getEntitySet(entitySetName);
+					EdmEntityType entityType = entitySet.getType();
+
+					@SuppressWarnings("unchecked")
+					EntityResource<OEntity> er = (EntityResource<OEntity>) newResource.getEntity();
+		    		OEntity oEntity = er.getEntity();
+		        			        	
+		    		// get the links for this entity
+		    		List<OLink> links = resourceRegistry.getNavigationLinks(entityType);
+		        	// create a new entity as at the moment we pass the resource links in the OEntity
+		        	OEntity oe = OEntities.create(entitySet, oEntity.getEntityKey(), oEntity.getProperties(), links);;
+		        	EntityResource<OEntity> rebuilt = new EntityResource<OEntity>(oe) {};
+		        	newResource = rebuilt.getGenericEntity();
+				} else if (ResourceTypeHelper.isType(newResource.getRawType(), newResource.getType(), CollectionResource.class)) {
+					assert(false);  // don't expect a collection here
+				}
+	    	}	    	
+
+			// Create hypermedia representation for this resource
+	    	ResponseBuilder builder = Response.status(status);
+			/*
+			 * Add links
+			 */
+    		RESTResource entity = (RESTResource) newResource.getEntity();
+    		entity.setLinks(getLinks(null, entity));
+	    	builder.entity(newResource);
+			
 			return HeaderHelper.allowHeader(builder, getInteractions()).build();
 		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);
@@ -280,12 +340,25 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 */
     @Override
 	@PUT
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML})
-    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, EntityResource<?> resource ) {
+    @Consumes({MediaType.APPLICATION_ATOM_XML, 
+    	MediaType.APPLICATION_XML, 
+    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
+    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+    public Response put( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.debug("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceCommand c = getCommandController().fetchStateTransitionCommand("PUT", getFQResourcePath());
 
+    	//Get the id from the URI
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	if (pathParameters != null) {
+    		if (getCurrentState() != null && getCurrentState().getPathIdParameter() != null) {
+    			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
+    		}
+    	}
+    	
     	StatusType status = null;
     	if (c instanceof ResourcePutCommand) {
     		ResourcePutCommand putCommand = (ResourcePutCommand) c;
@@ -296,7 +369,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		assert (status != null);  // not a valid put command
 		
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
-        	return get(headers, id, null);
+        	return get(headers, id, uriInfo);
 		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();

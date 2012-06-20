@@ -1,24 +1,16 @@
 package com.temenos.interaction.winkext;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.wink.common.DynamicResource;
 import org.apache.wink.spring.Registrar;
 
-import com.jayway.jaxrs.hateoas.HateoasLinkInjector;
-import com.jayway.jaxrs.hateoas.core.HateoasResponse.HateoasResponseBuilder;
-import com.jayway.jaxrs.hateoas.support.DefaultCollectionWrapperStrategy;
-import com.jayway.jaxrs.hateoas.support.DefaultHateoasViewFactory;
-import com.jayway.jaxrs.hateoas.support.HateoasLinkBeanLinkInjector;
-import com.jayway.jaxrs.hateoas.support.StrategyBasedLinkInjector;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
-import com.temenos.interaction.core.link.NaiveLinkInjector;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
@@ -35,14 +27,8 @@ public class RegistrarWithSingletons extends Registrar {
     // key = resourcePath
     private Map<String, DynamicResourceDelegate> resources = new HashMap<String, DynamicResourceDelegate>();
         
-    public RegistrarWithSingletons() {
-    	// TODO, bit dodge we need to configure jax-rs-hateoas a bit better than this
-    	List<HateoasLinkInjector<Object>> strategies = new ArrayList<HateoasLinkInjector<Object>>();
-    	strategies.add(new HateoasLinkBeanLinkInjector());
-    	strategies.add(new NaiveLinkInjector());
-		HateoasResponseBuilder.configure(new StrategyBasedLinkInjector(strategies), new DefaultCollectionWrapperStrategy(), new DefaultHateoasViewFactory());
-
-    }
+    public RegistrarWithSingletons() {}
+    
     @Override
     public Set<Object> getSingletons() {
         return singletons;
@@ -66,6 +52,21 @@ public class RegistrarWithSingletons extends Registrar {
         for (ResourceInteractionModel rim : interactions) {
         	addDynamicResource(rim);
         }
+    }
+    
+    public void setServiceRoot(HTTPDynaRIM rootRIM) {
+    	if (this.getInstances() == null) {
+        	this.setInstances(new HashSet<Object>());
+    	}
+    	addAllDynamicResource(rootRIM);
+    }
+    
+    private void addAllDynamicResource(ResourceInteractionModel rim) {
+    	addDynamicResource(rim);
+    	Collection<ResourceInteractionModel> children = rim.getChildren();
+    	for (ResourceInteractionModel child : children) {
+    		addDynamicResource(child);
+    	}
     }
     
     private void addDynamicResource(ResourceInteractionModel rim) {

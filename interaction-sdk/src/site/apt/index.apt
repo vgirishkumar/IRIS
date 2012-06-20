@@ -10,6 +10,15 @@
 
   A user agent can be developed against the resource interaction model as designed in the
   SDK and the values of the Entity(s) and EntitySet(s) can be mocked in the database as
-  accessed by generated JPA POJO's.  A resource manager (e.g. a banking application system)
-  can the be wired up to the resources at a later date.  Thus providing a simple way to develop
-  user agents, or applications without needing a full blown system.
+  accessed by generated JPA POJO's.  
+  
+  The InteractionSDK is able to read EDMX files which may have schemas defining entities
+  to other resource managers. Users can provide the <<jpaNamespace>> system property as an 
+  argument to indicate which schema contains the JPA entities:
+  
+  		<<$ mvn interaction-sdk:gen -DjpaNamespace=com.interaction.example>> 
+  
+  Entities in other schemas will not be generated as JPA classes. By default, entities in
+  all schemas will be treated as JPA classes.
+
+  

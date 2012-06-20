@@ -11,15 +11,15 @@
 		</param-value>
 	</context-param>
 	
-	<filter>
-		<filter-name>jax-rs-hateoas</filter-name>
-		<description>This filter sets the request context for jax-rs-hateoas (TODO - should not be required)</description>
-		<filter-class>com.jayway.jaxrs.hateoas.web.RequestContextFilter</filter-class>
-	</filter>
-	<filter-mapping>
-		<filter-name>jax-rs-hateoas</filter-name>
-		<servlet-name>StateTransition</servlet-name>
-	</filter-mapping>
+    <filter>
+        <filter-name>request-context</filter-name>
+        <description>This filter sets the request context for the interaction framework.</description>
+        <filter-class>com.temenos.interaction.core.web.RequestContextFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>request-context</filter-name>
+        <servlet-name>IRIS</servlet-name>
+    </filter-mapping>
 	
 <!-- 
   DOESN'T WORK.  "Cannot initialize context because there is already a root application context present - check whether you have multiple ContextLoader* definitions in your web.xml!"
@@ -36,7 +36,7 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet>
-		<servlet-name>StateTransition</servlet-name>
+		<servlet-name>IRIS</servlet-name>
 		<servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>
 <!-- 
 		<init-param>
@@ -56,7 +56,7 @@
 		<url-pattern>/admin</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>StateTransition</servlet-name>
+		<servlet-name>IRIS</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
 	</servlet-mapping>
  </web-app>

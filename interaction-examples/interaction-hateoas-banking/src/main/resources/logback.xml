@@ -1,0 +1,58 @@
+<!-- Logback configuration -->
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </layout>
+  </appender>
+
+  <!-- Log debug information about links -->
+  <logger name="com.temenos.interaction.core.link">
+    <level value="DEBUG" />
+  </logger>
+  <logger name="com.temenos.interaction.core.media.hal">
+    <level value="DEBUG" />
+  </logger>
+  <logger name="com.temenos.interaction.core.dynaresource">
+    <level value="INFO" />
+  </logger>
+
+  <!-- Log all resource endpoints -->
+  <logger name="org.apache.wink.server.internal.log.Resources">
+    <level value="DEBUG" />
+  </logger>
+  <!-- Log all requests -->
+  <logger name="org.apache.wink.server.internal.log.Requests">
+    <level value="DEBUG" />
+  </logger>
+
+  <logger name="org.apache.wink.common">
+    <level value="WARN" />
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
+  <!-- Log all SQL DML statements as they are executed -->
+  <logger name="org.hibernate.SQL">
+    <level value="INFO" />
+    <appender-ref ref="STDOUT"/>
+  </logger>  
+  
+  <!-- Log all second-level cache activity -->
+  <logger name="org.hibernate.cache">
+    <level value="WARN" />
+    <appender-ref ref="STDOUT"/>
+  </logger>   
+  
+  <!-- Log everything -->
+  <logger name="org.hibernate">
+    <level value="WARN" />
+    <appender-ref ref="STDOUT"/>
+  </logger>
+  
+  <root> 
+    <level value="WARN" />
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
+
