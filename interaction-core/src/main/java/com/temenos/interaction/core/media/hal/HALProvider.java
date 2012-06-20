@@ -123,7 +123,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add our links
 			if (links != null) {
 				for (Link l : links) {
-					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] href=[" + l.getHref() + "]");
+					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
 					String href = l.getHref();
 					// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 					if (l.getMethod() != null && !l.getMethod().equals("GET")) {
