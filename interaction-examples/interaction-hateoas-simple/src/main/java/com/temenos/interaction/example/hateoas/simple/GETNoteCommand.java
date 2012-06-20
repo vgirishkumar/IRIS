@@ -19,7 +19,12 @@ public class GETNoteCommand implements ResourceGetCommand {
 	@Override
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		// retrieve from a database, etc.
-		return new RESTResponse(Status.OK, new EntityResource<Note>(persistence.getNote(new Long(id))));
+		Note note = persistence.getNote(new Long(id));
+		if (note != null) {
+			return new RESTResponse(Status.OK, new EntityResource<Note>(note));
+		} else {
+			return new RESTResponse(Status.NOT_FOUND, null);
+		}
 	}
 
 }

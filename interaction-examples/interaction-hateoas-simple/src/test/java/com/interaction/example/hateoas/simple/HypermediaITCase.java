@@ -107,6 +107,16 @@ public class HypermediaITCase extends JerseyTest {
 		}
 	}
 
+	/**
+	 * Found a small issue where a GET to a non-existent resource still generated the links and this
+	 * resulted in a server side error (500)
+	 */
+	@Test
+	public void testGET404() {
+		ClientResponse response = webResource.path("/notes/666").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(404, response.getStatus());
+	}
+
 	@Test
 	public void testFollowDeleteItemLink() {
 		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
