@@ -30,6 +30,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.resource.ServiceDocumentResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
 import com.temenos.interaction.core.web.RequestContext;
@@ -177,6 +178,10 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		} else if (resourceEntity instanceof MetaDataResource) {
 			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
 			logger.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
+			return links;
+		} else if (resourceEntity instanceof ServiceDocumentResource) {
+			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
+			logger.debug("Returning from the call to getLinks for a ServiceDocumentResource without doing anything");
 			return links;
 		} else {
 			throw new RuntimeException("Unable to get links, an error occurred");
