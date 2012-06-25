@@ -146,5 +146,10 @@
 			<artifactId>halbuilder</artifactId>
 			<version>1.0.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jettison</groupId>
+			<artifactId>jettison</artifactId>
+			<version>1.0.1</version>
+		</dependency>
 	</dependencies>
 </project>

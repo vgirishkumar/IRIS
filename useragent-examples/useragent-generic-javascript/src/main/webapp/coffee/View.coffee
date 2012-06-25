@@ -42,7 +42,8 @@ class @View
   createButton: (value, link = null) ->
     btn = $("<input type='button' value='#{value}'/>")
 #    if link? then btn.click -> link.trigger()
-    if link? then btn.click -> link.triggerXML()
+#    if link? then btn.click -> link.triggerXML()
+    if link? then btn.click -> link.triggerJSON()
     btn
 
   createFormForModel: (formModel, buttons...) ->

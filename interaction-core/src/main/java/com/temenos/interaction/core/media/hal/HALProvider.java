@@ -4,8 +4,10 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -13,6 +15,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +36,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -46,6 +50,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.temenos.interaction.core.entity.Entity;
+import com.temenos.interaction.core.entity.EntityProperties;
+import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -64,6 +74,13 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	@Context
 	private UriInfo uriInfo;
 	private EdmDataServices edmDataServices;
+	private Metadata metadata = null;
+
+	public HALProvider(EdmDataServices edmDataServices, Metadata metadata) {
+		this.edmDataServices = edmDataServices;
+		assert(edmDataServices != null);
+		this.metadata = metadata;
+	}
 
 	public HALProvider(EdmDataServices edmDataServices) {
 		this.edmDataServices = edmDataServices;
@@ -308,13 +325,84 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		
 		if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
-			// TODO implement this properly
-		} else if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
-			// TODO implement this
-			return new EntityResource<Object>(null);
-		} else {
+			//Parse hal+xml into an OEntity object
+			OEntity oentity = buildOEntityFromHalXML(entityStream);
+			return new EntityResource<OEntity>(oentity);
+		} 
+		else if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
+			//Parse hal+json into an OEntity object
+			Entity entity = buildOEntityFromHalJSON(entityStream);
+			return new EntityResource<Entity>(entity);
+		} 
+		else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	private Entity buildOEntityFromHalJSON(InputStream entityStream) {
+		Entity entity = null;
+		try {
+			//Read input stream into string
+			BufferedReader br = new BufferedReader(new InputStreamReader(entityStream, "UTF-8"));
+			StringBuilder sb = new StringBuilder();
+			String line;
+	    	while ((line = br.readLine()) != null) {
+	    		sb.append(line);
+	    	} 
+    	
+	    	//Parse json string into JSON object
+	    	String s = sb.toString();
+	    	JSONObject jsonObject = new JSONObject(s);
+	    	Iterator<?> it = jsonObject.keys();
+	    	while(it.hasNext()) {
+	    		String key = (String) it.next();
+				if (!key.equals("!links")) {
+					logger.debug("Parsing HAL+JSON into Entity object: " + key);
+			    	EntityMetadata entityMetadata = metadata.getEntityMetadata(key);
+			    	if(entityMetadata != null) {
+						EntityProperties entityFields = new EntityProperties();
+						JSONObject field = jsonObject.optJSONObject(key);
+						if(field == null) {
+							if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getString().equals(TermValueType.TEXT)) {
+								entityFields.setProperty(new EntityProperty(key, jsonObject.getString(key)));
+							}
+							else if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getString().equals(TermValueType.NUMBER)) {
+								entityFields.setProperty(new EntityProperty(key, jsonObject.getLong(key)));
+							}
+							else {
+								entityFields.setProperty(new EntityProperty(key, jsonObject.getString(key)));
+							}
+						}
+						else {
+					    	Iterator<?> itFields = field.keys();
+					    	while(itFields.hasNext()) {
+					    		String keyField = (String) itFields.next();
+								if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getString().equals(TermValueType.TEXT)) {
+									entityFields.setProperty(new EntityProperty(keyField, field.getString(keyField)));
+								}
+								else if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getString().equals(TermValueType.NUMBER)) {
+									entityFields.setProperty(new EntityProperty(keyField, field.getLong(keyField)));
+								}
+								else {
+									entityFields.setProperty(new EntityProperty(keyField, field.getString(keyField)));
+								}
+					    		
+					    	}
+						}
+						entity = new Entity(key, entityFields);
+			    	}
+				}
+	    		
+	    	}
+		} catch (Exception e) {
+			logger.error("Error while parsing hal+json document", e);
+			throw new WebApplicationException(Response.Status.BAD_REQUEST);
+		}
+		return entity;
+	}
+	
+	private OEntity buildOEntityFromHalXML(InputStream entityStream) {
+		OEntity oEntity = null;
 		try {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLStreamReader parser = factory.createXMLStreamReader(entityStream);
@@ -340,7 +428,6 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			} // end for loop
 			parser.close();
 			
-			OEntity oEntity = null;
 			if (entitySet != null) {
 				// TODO figure out if we need to do anything with OEntityKey
 				OEntityKey key = OEntityKey.create("");
@@ -348,8 +435,6 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			} else {
 				logger.debug("");
 			}
-			
-			return new EntityResource<OEntity>(oEntity);
 		} catch (FactoryConfigurationError e) {
 			logger.error("Error while parsing xml", e);
 			throw new WebApplicationException(Response.Status.BAD_REQUEST);
@@ -357,7 +442,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			logger.error("Error while parsing xml", e);
 			throw new WebApplicationException(Response.Status.BAD_REQUEST);
 		}
-		//throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		return oEntity;
 	}
 	
 	protected List<OProperty<?>> processOEntity(String entityName, XMLStreamReader parser)
