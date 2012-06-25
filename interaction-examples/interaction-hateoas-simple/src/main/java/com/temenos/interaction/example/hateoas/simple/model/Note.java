@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.hateoas.simple;
+package com.temenos.interaction.example.hateoas.simple.model;
 
 import javax.persistence.Basic;
 import javax.persistence.Entity;

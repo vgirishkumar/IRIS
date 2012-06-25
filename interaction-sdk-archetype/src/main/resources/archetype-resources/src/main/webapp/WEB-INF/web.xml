@@ -12,12 +12,12 @@
 	</context-param>
 	
 	<filter>
-		<filter-name>jax-rs-hateoas</filter-name>
-		<description>This filter sets the request context for jax-rs-hateoas (TODO - should not be required)</description>
-		<filter-class>com.jayway.jaxrs.hateoas.web.RequestContextFilter</filter-class>
+		<filter-name>request-context</filter-name>
+		<description>This filter sets the request context for the interaction framework.</description>
+		<filter-class>com.temenos.interaction.core.web.RequestContextFilter</filter-class>
 	</filter>
 	<filter-mapping>
-		<filter-name>jax-rs-hateoas</filter-name>
+		<filter-name>request-context</filter-name>
 		<servlet-name>IRIS</servlet-name>
 	</filter-mapping>
 	

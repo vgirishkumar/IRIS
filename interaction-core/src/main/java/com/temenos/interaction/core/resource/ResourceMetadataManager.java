@@ -11,6 +11,8 @@ import org.odata4j.stax2.XMLEventReader2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.entity.Metadata;
+
 
 /**
  * This class provides EDM metadata for the current service.
@@ -19,22 +21,41 @@ public class ResourceMetadataManager {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceMetadataManager.class);
 
 	private final static String EDMX_FILENAME = "service.edmx";
-	private EdmDataServices metadata = null;
+	private EdmDataServices edmMetadata = null;
+	
+	private Metadata metadata = null;
+
+	/**
+	 * Construct the odata metadata object
+	 */
+	public ResourceMetadataManager(Metadata metadata)
+	{
+		this.metadata = metadata;
+		edmMetadata = parseEdmx();
+	}
 
 	/**
 	 * Construct the odata metadata object
 	 */
 	public ResourceMetadataManager()
 	{
-		metadata = parseEdmx();
+		edmMetadata = parseEdmx();
 	}
 	
 	/**
-	 * Return the metadata
+	 * Return the entity model metadata
+	 * @return metadata
+	 */
+	public Metadata getResourceMetadata() {
+		return this.metadata;
+	}
+	
+	/**
+	 * Return the odata4j metadata
 	 * @return metadata
 	 */
 	public EdmDataServices getMetadata() {
-		return this.metadata;
+		return this.edmMetadata;
 	}
 
 	/*

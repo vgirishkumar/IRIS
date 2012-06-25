@@ -13,6 +13,12 @@ import com.temenos.interaction.core.link.Link;
  */
 public interface RESTResource {
 	/**
+	 * Return the name of the entity.
+	 * @return String entityName
+	 */
+//	public String getEntityName();
+
+	/**
 	 * Wrap this resource into a JAX-RS GenericEntity object
 	 * @return GenericEntity object
 	 */

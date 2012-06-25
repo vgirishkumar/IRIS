@@ -12,7 +12,11 @@ class @Link
         @successHandler = (model, textStatus, jqXHR) => new ResourceView(this)
       when 'DELETE'
         @hyperLink.click => @doDelete()
-        @successHandler = (model, textStatus, jqXHR) => new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
+        @successHandler = (model, textStatus, jqXHR) => 
+            if jqXHR.status is (205 or 404)
+                new ResourceView({rel: 'self', href: this.resource.selfLink.model.href, method: 'GET'})
+            else
+                new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
       when 'PUT'
         @hyperLink.click => @doPut()
         @formModel = @cloneModel @resource.model
@@ -92,4 +96,17 @@ class @Link
       success: @successHandler,
       error: @errorHandler
     }
-    
+
+  triggerJSON: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+json; charset=utf-8"
+          "Content-Type" : "application/hal+json; charset=utf-8"
+      }
+      url: @model.href,
+      data: @model.body,
+      type: @model.method,
+      contentType: @model.consumes,
+      success: @successHandler,
+      error: @errorHandler
+    }

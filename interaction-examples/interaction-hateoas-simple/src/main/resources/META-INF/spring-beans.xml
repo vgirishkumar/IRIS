@@ -11,6 +11,10 @@
 	
 	<!-- Initialise responder database -->
 	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+    <!-- Persistence manager -->
+    <bean id="persistence" class="com.temenos.interaction.example.hateoas.simple.Persistence" >
+        <constructor-arg ref="entityManagerFactory" />
+    </bean>
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
@@ -63,11 +67,15 @@
                 </entry>
                <entry>
                     <key><value>GET+/notes</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand" />
+                    <bean class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand">
+                        <constructor-arg ref="persistence" />
+                    </bean>
                  </entry>
                  <entry>
                     <key><value>GET+/notes/{noteID}</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand" />
+                    <bean class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand">
+                        <constructor-arg ref="persistence" />
+                    </bean>
                 </entry>
                 <entry>
                     <key><value>PUT+/notes/{noteID}</value></key>
@@ -75,7 +83,9 @@
                 </entry>
                 <entry>
                     <key><value>DELETE+/notes/{noteID}</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
+                    <bean class="com.temenos.interaction.example.hateoas.simple.DELETENoteCommand">
+                        <constructor-arg ref="persistence" />
+                    </bean>
                 </entry>
                 <entry>
                     <key><value>GET+/notes/new</value></key>

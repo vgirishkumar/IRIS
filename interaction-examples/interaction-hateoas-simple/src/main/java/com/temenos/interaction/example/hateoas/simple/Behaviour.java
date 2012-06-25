@@ -33,8 +33,8 @@ public class Behaviour {
 		
 		CollectionResourceState initialState = new CollectionResourceState(NOTE_ENTITY_NAME, "initial", "/notes");
 		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "new", "/notes/new");
-		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", "/notes/{noteID}", "noteID");
-		ResourceState finalState = new ResourceState(initialState, "end");
+		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", "/notes/{noteID}", "noteID", "self".split(" "));
+		ResourceState finalState = new ResourceState(NOTE_ENTITY_NAME, "end", "/notes/{noteID}", "noteID");
 
 		// a linkage map (target URI element, source entity element)
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -55,9 +55,10 @@ public class Behaviour {
 		 */
 		uriLinkageMap.clear();
 		initialState.addTransitionForEachItem("GET", exists, uriLinkageMap);		
+		initialState.addTransitionForEachItem("DELETE", finalState, uriLinkageMap);
 
 		// update / delete note item (same linkage map)
-		exists.addTransition("PUT", exists, uriLinkageMap);		
+		exists.addTransition("PUT", exists, uriLinkageMap);
 		exists.addTransition("DELETE", finalState, uriLinkageMap);
 		return new ResourceStateMachine(initialState);
 	}

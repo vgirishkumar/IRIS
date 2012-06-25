@@ -12,6 +12,31 @@ import org.junit.Test;
 public class TestResourceState {
 
 	@Test
+	public void testRels() {
+		String ENTITY_NAME = "entity";
+		String linkRels = "self geospatial";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "", linkRels.split(" "));
+		assertEquals(2, initial.getRels().length);
+		assertEquals("self", initial.getRels()[0]);
+		assertEquals("geospatial", initial.getRels()[1]);
+	}
+
+	@Test
+	public void testRel() {
+		String ENTITY_NAME = "entity";
+		String linkRels = "self geospatial";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "", linkRels.split(" "));
+		assertEquals("self geospatial", initial.getRel());
+	}
+
+	@Test
+	public void testDefaultRel() {
+		String ENTITY_NAME = "entity";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "");
+		assertEquals("entity.begin", initial.getRel());
+	}
+
+	@Test
 	public void testId() {
 		String ENTITY_NAME = "entity";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "");

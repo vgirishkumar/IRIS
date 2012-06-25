@@ -228,7 +228,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		when(rpc.delete(anyString())).thenReturn(Response.Status.ACCEPTED);
 		when(rpc.getMethod()).thenReturn("DELETE");
 		cc.addStateTransitionCommand(resourcePath, rpc);
-		Response response = r.delete(mock(HttpHeaders.class), "123");
+		Response response = r.delete(mock(HttpHeaders.class), "123", null);
 		assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
 	}
 
@@ -244,7 +244,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		ResourceDeleteCommand rdc = mock(ResourceDeleteCommand.class);
 		when(rdc.getMethod()).thenReturn("DELETE");
 		cc.addStateTransitionCommand(resourcePath, rdc);
-		r.delete(null, "123");
+		r.delete(null, "123", null);
 	}
 
 	/* No real need to test for this exception, responsibility of CommandConntroller */
@@ -255,7 +255,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 			public ResourceState getCurrentState() { return null; }
 			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
-		Response resp = r.delete(null, "123");
+		Response resp = r.delete(null, "123", null);
 		assertTrue(resp.getStatus() == 405);
 	}
 
@@ -269,7 +269,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		
-		Response response = r.delete(mock(HttpHeaders.class), "123");
+		Response response = r.delete(mock(HttpHeaders.class), "123", null);
 		assertEquals(405, response.getStatus());
 		
         // as per the http spec, 405 MUST include an Allow header
