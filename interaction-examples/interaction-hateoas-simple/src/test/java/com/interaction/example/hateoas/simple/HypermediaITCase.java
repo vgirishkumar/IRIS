@@ -89,20 +89,69 @@ public class HypermediaITCase extends JerseyTest {
 			}
 		}
 		
-		// the links on each item
+		// the items, and links on each item
 		List<Resource> subresources = resource.getResources();
 		assertNotNull(subresources);
-		assertEquals(2, subresources.size());
 		for (Resource item : subresources) {
 			List<Link> itemLinks = item.getLinks();
-			assertEquals(1, itemLinks.size());
+			assertEquals(2, itemLinks.size());
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"), link.getHref());
+				} else if (link.getRel().contains("note.end")) {
+					assertEquals("DELETE " + Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"), link.getHref());
 				} else {
 					fail("unexpected link");
 				}
 			}
+		}
+	}
+
+	/**
+	 * Found a small issue where a GET to a non-existent resource still generated the links and this
+	 * resulted in a server side error (500)
+	 */
+	@Test
+	public void testGET404() {
+		ClientResponse response = webResource.path("/notes/666").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(404, response.getStatus());
+	}
+
+	@Test
+	public void testFollowDeleteItemLink() {
+		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+
+		ResourceFactory resourceFactory = new ResourceFactory();
+		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		
+		// the items in the collection
+		List<Resource> subresources = resource.getResources();
+		assertNotNull(subresources);
+		
+		// follow the link to delete the first in the collection
+		if (subresources.size() == 0) {
+			// we might have run the integration tests more times than we have rows in our table
+		} else {
+			Resource item = subresources.get(0);
+			List<Link> itemLinks = item.getLinks();
+			assertEquals(2, itemLinks.size());
+			Link deleteLink = null;
+			for (Link link : itemLinks) {
+				if (link.getRel().contains("note.end")) {
+					deleteLink = link;
+				}
+			}
+			assertNotNull(deleteLink);
+			String[] hrefElements = deleteLink.getHref().split(" ");
+			String method = hrefElements[0];
+			assertEquals("DELETE", method);
+			String uri = hrefElements[1];
+
+			// execute delete
+			ClientResponse deleteResponse = Client.create().resource(uri).accept(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
+	        // 205 "Reset Content" instructs user agent to reload the resource that contained this link
+	        assertEquals(205, deleteResponse.getStatus());
 		}
 	}
 

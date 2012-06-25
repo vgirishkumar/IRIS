@@ -20,6 +20,8 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final boolean selfState;
 	/* is an intial state */
 	private boolean initial;
+	/* link relations */
+	private final String[] rels;
 	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
 
 	
@@ -30,7 +32,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param path the uri to this state
 	 */
 	public ResourceState(ResourceState parent, String name) {
-		this(parent.getEntityName(), name, parent.getPath(), null, true);
+		this(parent.getEntityName(), name, parent.getPath(), null, true, null);
 	}
 
 	/**
@@ -40,7 +42,10 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param path the uri to this state
 	 */
 	public ResourceState(String entityName, String name, String path) {
-		this(entityName, name, path, null, false);
+		this(entityName, name, path, null, false, null);
+	}
+	public ResourceState(String entityName, String name, String path, String[] rels) {
+		this(entityName, name, path, null, false, rels);
 	}
 
 	/**
@@ -51,10 +56,13 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param pathIdParameter override the default {id} path parameter and use the value instead
 	 */
 	public ResourceState(String entityName, String name, String path, String pathIdParameter) {
-		this(entityName, name, path, pathIdParameter, false);
+		this(entityName, name, path, pathIdParameter, false, null);
+	}
+	public ResourceState(String entityName, String name, String path, String pathIdParameter, String[] rels) {
+		this(entityName, name, path, pathIdParameter, false, rels);
 	}
 
-	private ResourceState(String entityName, String name, String path, String pathIdParameter, boolean selfState) {
+	private ResourceState(String entityName, String name, String path, String pathIdParameter, boolean selfState, String[] rels) {
 		assert(name != null);
 		this.entityName = entityName;
 		this.name = name;
@@ -62,6 +70,12 @@ public class ResourceState implements Comparable<ResourceState> {
 		this.pathIdParameter = pathIdParameter;
 		this.initial = false;
 		this.selfState = selfState;
+		if (rels == null) {
+			this.rels = getId().split(" ");
+		} else {
+			this.rels = rels;
+		}
+		assert(this.rels != null);
 	}
 
 	public String getEntityName() {
@@ -94,6 +108,17 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public void setInitial(boolean flag) {
 		initial = flag;
+	}
+	
+	public String getRel() {
+		StringBuffer sb = new StringBuffer();
+		for (String r : rels)
+			sb.append(r).append(" ");
+		return sb.deleteCharAt(sb.lastIndexOf(" ")).toString();
+	}
+	
+	public String[] getRels() {
+		return rels;
 	}
 	
 	/**

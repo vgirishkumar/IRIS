@@ -2,6 +2,7 @@ package com.temenos.interaction.winkext;
 
 import java.util.Collection;
 
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -86,8 +87,8 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
-	public Response delete(HttpHeaders headers, String id) {
-		return resource.delete(headers, id);
+	public Response delete(HttpHeaders headers, String id, UriInfo uriInfo) {
+		return resource.delete(headers, id, uriInfo);
 	}
 
 	public Response options(String id) {

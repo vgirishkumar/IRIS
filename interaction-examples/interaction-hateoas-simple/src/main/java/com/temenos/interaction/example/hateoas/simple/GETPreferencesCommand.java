@@ -6,6 +6,7 @@ import javax.ws.rs.core.Response.Status;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.example.hateoas.simple.model.Preferences;
 
 public class GETPreferencesCommand implements ResourceGetCommand {
 

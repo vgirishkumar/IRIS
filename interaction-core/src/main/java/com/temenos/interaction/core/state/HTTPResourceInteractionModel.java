@@ -74,7 +74,8 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 	 */
 	@DELETE
 	public abstract Response delete(@Context HttpHeaders headers,
-			@PathParam("id") String id);
+			@PathParam("id") String id,
+			@Context UriInfo uriInfo);
 
 
 }

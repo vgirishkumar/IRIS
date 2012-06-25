@@ -140,7 +140,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add our links
 			if (links != null) {
 				for (Link l : links) {
-					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] href=[" + l.getHref() + "]");
+					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
 					String href = l.getHref();
 					// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 					if (l.getMethod() != null && !l.getMethod().equals("GET")) {
@@ -190,8 +190,15 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					// create hal resource and add link for self
 					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
-						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());  // TODO need href for item
-						//subResource.withLink(url, rel)
+						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());
+						for (Link el : er.getLinks()) {
+							String itemHref = el.getHref();
+							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
+							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
+								itemHref = el.getMethod() + " " + itemHref;
+							}
+							subResource.withLink(itemHref, el.getRel());
+						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {
 							subResource.withProperty(key, propertyMap.get(key));
@@ -215,7 +222,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
 						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());  // TODO need href for item
-						//subResource.withLink(url, rel)
+						for (Link el : er.getLinks()) {
+							String itemHref = el.getHref();
+							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
+							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
+								itemHref = el.getMethod() + " " + itemHref;
+							}
+							subResource.withLink(itemHref, el.getRel());
+						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {
 							subResource.withProperty(key, propertyMap.get(key));
