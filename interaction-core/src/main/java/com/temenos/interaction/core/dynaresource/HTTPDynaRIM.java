@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
@@ -148,7 +149,6 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			getResourceRegistry().add(this);
 	}
 	
-
 	@Override
     public ResourceInteractionModel getParent() {
         return parent;
@@ -160,7 +160,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	}
 	
 	@Override
-	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity) {
+	public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity) {
 		return getLinks(pathParameters, resourceEntity, getCurrentState());
 	}
 		

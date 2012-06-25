@@ -2,7 +2,6 @@ package com.temenos.interaction.winkext;
 
 import java.util.Collection;
 
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -101,8 +100,8 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
-	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) {
-		return resource.getLinks(pathParameters, entity); 
+	public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) {
+		return resource.getLinks(headers, pathParameters, entity); 
 	}
 	
 	@Override

@@ -52,7 +52,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		
 		AbstractHTTPResourceInteractionModel resource = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) {
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) {
 				List<Link> links = new ArrayList<Link>();
 				links.add(new Link("id", "self", "href", null, null, "GET", "label", "description", null));
 				return links;
@@ -76,7 +76,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testCommandControllerInitialised() {
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel("") {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		assertNotNull(r.getCommandController());
 	}
@@ -88,7 +88,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -144,14 +144,14 @@ public class TestAbstractHTTPResourceInteractionModel {
 	public void testFQResourcePath() {
 		final AbstractHTTPResourceInteractionModel parent = new AbstractHTTPResourceInteractionModel("/root") {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		AbstractHTTPResourceInteractionModel child = new AbstractHTTPResourceInteractionModel("/child") {
 			public ResourceInteractionModel getParent() {
 				return parent;
 			}
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 
 		assertEquals("/child", child.getResourcePath());
@@ -165,7 +165,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -181,7 +181,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		cc.setGetCommand(resourcePath, mock(ResourceGetCommand.class));
@@ -194,7 +194,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		r.get(null, "123", null);
 	}
@@ -206,7 +206,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceGetCommand rgc = mock(ResourceGetCommand.class);
@@ -221,7 +221,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rpc = mock(ResourceDeleteCommand.class);
@@ -238,7 +238,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourceDeleteCommand rdc = mock(ResourceDeleteCommand.class);
@@ -253,7 +253,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		HTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		Response resp = r.delete(null, "123", null);
 		assertTrue(resp.getStatus() == 405);
@@ -266,7 +266,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		
 		Response response = r.delete(mock(HttpHeaders.class), "123", null);
@@ -285,7 +285,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -304,7 +304,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -319,7 +319,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		Response resp = r.post(null, "123", null, null);
 		assertTrue(resp.getStatus() == 405);
@@ -331,7 +331,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		String resourcePath = "/test";
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -348,7 +348,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		CommandController cc = r.getCommandController();
 		ResourcePostCommand rpc = mock(ResourcePostCommand.class);
@@ -375,7 +375,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		
 		Response response = r.post(mock(HttpHeaders.class), "123", null, mock(EntityResource.class));
@@ -415,7 +415,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 		
 		AbstractHTTPResourceInteractionModel r = new AbstractHTTPResourceInteractionModel(resourcePath) {
 			public ResourceState getCurrentState() { return null; }
-			public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 		};
 		
 		Response response = r.put(mock(HttpHeaders.class), "123", null, mock(EntityResource.class));

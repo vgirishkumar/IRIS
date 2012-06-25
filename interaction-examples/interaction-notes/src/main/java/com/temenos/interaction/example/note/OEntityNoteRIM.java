@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.odata4j.producer.ODataProducer;
@@ -58,6 +59,6 @@ public class OEntityNoteRIM extends AbstractHTTPResourceInteractionModel {
 	}
 
 	public ResourceState getCurrentState() { return null; }
-	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+	public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 
 }

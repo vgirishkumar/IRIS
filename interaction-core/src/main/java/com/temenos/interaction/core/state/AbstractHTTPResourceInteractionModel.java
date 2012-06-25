@@ -207,7 +207,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			 * Add links
 			 */
     		RESTResource entity = (RESTResource) resource.getEntity();
-    		entity.setLinks(getLinks(pathParameters, entity));
+    		entity.setLinks(getLinks(headers, pathParameters, entity));
 	    	builder.entity(resource);
 	    	
 			// Create the Response for this resource GET (representation created by the jax-rs Provider)
@@ -332,7 +332,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 			 * Add links
 			 */
     		RESTResource entity = (RESTResource) newResource.getEntity();
-    		entity.setLinks(getLinks(null, entity));
+    		entity.setLinks(getLinks(headers, null, entity));
 	    	builder.entity(newResource);
 			
 			return HeaderHelper.allowHeader(builder, getInteractions()).build();
