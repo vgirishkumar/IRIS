@@ -425,7 +425,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @invariant resourcePath not null
 	 */
     @Override
-    public Response options(String id) {
+    public Response options(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
     	logger.debug("OPTIONS " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	ResourceGetCommand getCommand = getCommandController().fetchGetCommand(getFQResourcePath());
