@@ -53,6 +53,7 @@ public class EdmTimeTemporalITCase {
 		OEntity flightSchedule = consumer
 				.createEntity("FlightSchedule")
 				.properties(OProperties.string("flightNo", "LH460"))
+				.properties(OProperties.string("arrivalAirportCode", "MUC"))
 				.properties(
 						OProperties.time("departureTime", new LocalTime(9, 30,
 								0)))
@@ -60,6 +61,7 @@ public class EdmTimeTemporalITCase {
 						OProperties.time("arrivalTime", DateFormat
 								.getTimeInstance(DateFormat.SHORT, Locale.US)
 								.parse("2:10 pm")))
+				.properties(OProperties.string("departureAirportCode", "JFK"))
 				.properties(
 						OProperties.datetime("firstDeparture",
 								new LocalDateTime(2011, 03, 28, 9, 30)))

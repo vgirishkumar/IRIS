@@ -27,15 +27,19 @@ import javax.ws.rs.ext.Provider;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OLink;
+import org.odata4j.core.OLinks;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParser;
+import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.producer.Responses;
 import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -108,8 +112,20 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 				OEntity oentity = entityResource.getEntity();
+
+				//Convert Links to list of OLink
+				List<OLink> olinks = new ArrayList<OLink>();
+				for(Link link : entityResource.getLinks()) {
+					String otherEntitySetName = link.getRel();
+					String pathOtherResource = link.getHref();
+					String rel = XmlFormatWriter.related + otherEntitySetName;
+					OLink olink = OLinks.relatedEntity(rel, otherEntitySetName, pathOtherResource);
+					olinks.add(olink);
+				}
+				
+				//Write entry
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(oentity.getEntitySetName());
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet);
+				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
 				List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) cr.getEntities();

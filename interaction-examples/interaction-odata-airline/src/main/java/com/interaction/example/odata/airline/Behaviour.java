@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.temenos.interaction.core.link.CollectionResourceState;
 import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.ResourceStateMachine;
 
 public class Behaviour {
 
@@ -19,19 +18,36 @@ public class Behaviour {
 		 */
 		ResourceState metadata = new ResourceState("", "metadata", "/$metadata");
 		ResourceState flights = new ResourceState("Flight", "flights", "/Flight");
-		ResourceState airport = new ResourceState("Airport", "airports", "/Airport");
-		
-		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "flightschedules", "/FlightSchedule");
-		ResourceState flightSchedule = new ResourceState("FlightSchedule", "flightschedule", "/FlightSchedule({id})");
-		// add collection transition to individual
+
+		//Airport collection and entities
+		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", "/Airport");
+		ResourceState airport = new ResourceState("Airport", "airport", "/Airport({id})");
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "code");
+		airports.addTransitionForEachItem("GET", airport, uriLinkageMap);
+
+		//Transition from Flight schedule to Airport
+		ResourceState flightSchedule = new ResourceState("FlightSchedule", "flightschedule", "/FlightSchedule({id})");
+		ResourceState departureAirport = new ResourceState("Airport", "departureAirport", "/Airport({id})");
+		uriLinkageMap.clear();
+		uriLinkageMap.put("id", "departureAirportCode");
+		flightSchedule.addTransition("GET", departureAirport, uriLinkageMap);
+		ResourceState arrivalAirport = new ResourceState("Airport", "arrivalAirport", "/Airport({id})");
+		uriLinkageMap.clear();
+		uriLinkageMap.put("id", "arrivalAirportCode");
+		flightSchedule.addTransition("GET", arrivalAirport, uriLinkageMap);
+
+		//Flight schedule collection and entities
+		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "flightschedules", "/FlightSchedule");
+		uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "flightScheduleID");
 		flightSchedules.addTransitionForEachItem("GET", flightSchedule, uriLinkageMap);
 		
 		initialState.addTransition("GET", metadata);
-		initialState.addTransition("GET", new ResourceStateMachine(flights));
-		initialState.addTransition("GET", new ResourceStateMachine(airport));
-		initialState.addTransition("GET", new ResourceStateMachine(flightSchedules));
+		initialState.addTransition("GET", flights);
+		initialState.addTransition("GET", airports);
+		initialState.addTransition("GET", flightSchedules);
+		
 		return initialState;
 	}
 

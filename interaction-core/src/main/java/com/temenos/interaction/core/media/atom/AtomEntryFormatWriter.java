@@ -1,6 +1,7 @@
 package com.temenos.interaction.core.media.atom;
 
 import java.io.Writer;
+import java.util.List;
 
 import javax.ws.rs.core.UriInfo;
 
@@ -9,6 +10,7 @@ import org.joda.time.DateTimeZone;
 import org.odata4j.core.ODataConstants;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OLink;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.format.Entry;
 import org.odata4j.format.FormatWriter;
@@ -53,7 +55,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     return ODataConstants.APPLICATION_ATOM_XML_CHARSET_UTF8;
   }
 
-  public void write(UriInfo uriInfo, Writer w, EntityResponse target, EdmEntitySet entitySet) {
+  public void write(UriInfo uriInfo, Writer w, EntityResponse target, EdmEntitySet entitySet, List<OLink> olinks) {
     String baseUri = uriInfo.getBaseUri().toString();
 
     DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
@@ -69,7 +71,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 
     // this darn writer sometimes uses the EdmEntitySet we pass in and sometimes uses OEntity.getEntitySet
     OEntity origOE = target.getEntity() ;   
-    OEntity newOE = OEntities.create(entitySet, origOE.getEntityKey(), origOE.getProperties(), origOE.getLinks());;
+    OEntity newOE = OEntities.create(entitySet, origOE.getEntityKey(), origOE.getProperties(), olinks);
 
     writeEntry(writer, newOE, newOE.getProperties(), newOE.getLinks(), baseUri, updated, entitySet, true);
     writer.endDocument();
@@ -80,6 +82,6 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
   // the original implementation that uses the OEntity EdmEntitySet
   public void write(UriInfo uriInfo, Writer w, EntityResponse target) {
 	    EdmEntitySet ees = target.getEntity().getEntitySet();
-	    write(uriInfo, w, target, ees);
+	    write(uriInfo, w, target, ees, target.getEntity().getLinks());
   }
 }

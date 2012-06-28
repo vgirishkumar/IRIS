@@ -52,8 +52,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", person.getProperty("name").getValue());
 
 		// there should be one link to one note for this person
-		assertEquals(1, person.getLinks().size());
-		assertEquals("Persons(1)/Notes", person.getLinks().get(0).getHref());
+		assertEquals(2, person.getLinks().size());
+		assertEquals("Persons(1)/Notes.PersonNotes", person.getLinks().get(1).getHref());
 	}
 
 	/**
@@ -69,8 +69,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", note.getProperty("body").getValue());
 
 		// there should be one link to one Person for this Note
-		assertEquals(1, note.getLinks().size());
-		assertEquals("Notes(1)/Persons", note.getLinks().get(0).getHref());
+		assertEquals(3, note.getLinks().size());
+		assertEquals("Notes(1)/Persons.NotesPerson", note.getLinks().get(1).getHref());
 	}
 
 	/**
@@ -175,7 +175,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		Integer noteId = (Integer) note.getProperty("id").getValue();
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
-		assertEquals(1, note.getLinks().size());
+		assertEquals(2, note.getLinks().size());
 	}
 
 	/**

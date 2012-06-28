@@ -58,7 +58,7 @@
     <!-- Resources -->
     <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg name="stateMachine" ref="stateMachine" />
-    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
+    	<constructor-arg><bean class="com.temenos.interaction.core.dynaresource.EntityTransformer" /></constructor-arg>
     	<constructor-arg name="commandController" ref="commands" />
     </bean>
     
@@ -95,7 +95,7 @@
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/Airport/{id}</value></key>
+                    <key><value>GET+/Airport({id})</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
                         <constructor-arg name="entity" value="Airport" />
                         <constructor-arg name="producer" ref="producer" />

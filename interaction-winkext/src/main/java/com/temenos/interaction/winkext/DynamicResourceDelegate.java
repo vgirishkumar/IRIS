@@ -2,7 +2,6 @@ package com.temenos.interaction.winkext;
 
 import java.util.Collection;
 
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
