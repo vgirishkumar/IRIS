@@ -35,10 +35,10 @@ public class Behaviour {
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "Id");
+		uriLinkageMap.put("id", "id");
 		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
 		notes.addTransition("POST", pseudo);
-		note.addTransition("GET", notePerson);
+		note.addTransition("GET", notePerson, uriLinkageMap);
 		note.addTransition("DELETE", note);
 
 		return new ResourceStateMachine(notes);
@@ -52,7 +52,7 @@ public class Behaviour {
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "Id");
+		uriLinkageMap.put("id", "id");
 		persons.addTransitionForEachItem("GET", person, uriLinkageMap);
 		persons.addTransition("POST", pseudo);
 		person.addTransition("GET", personNotes, uriLinkageMap);

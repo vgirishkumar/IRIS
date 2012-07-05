@@ -67,7 +67,7 @@
     	<constructor-arg name="commands">
             <map>
                <entry>
-                    <key><value>GET+</value></key>
+                    <key><value>GET+/</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
                         <constructor-arg name="entity" value="ServiceDocument" />
                         <constructor-arg name="edmDataServices" ref="edmDataServices" />
@@ -81,7 +81,7 @@
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/Flight/{id}</value></key>
+                    <key><value>GET+/Flight({id})</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
                         <constructor-arg name="entity" value="Flight" />
                         <constructor-arg name="producer" ref="producer" />
@@ -122,11 +122,28 @@
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>
-                <!-- Bind a POST command -->
                 <entry>
                     <key><value>POST+/FlightSchedule</value></key>
                     <bean class="com.temenos.interaction.commands.odata.CreateEntityCommand">
                         <constructor-arg name="entity" value="FlightSchedule" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>GET+/FlightSchedule({id})/arrivalAirport</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
+                        <constructor-arg name="entity" value="FlightSchedule" />
+                        <constructor-arg name="linkProperty" value="arrivalAirportCode" />
+                        <constructor-arg name="linkEntity" value="Airport" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>GET+/FlightSchedule({id})/departureAirport</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
+                        <constructor-arg name="entity" value="FlightSchedule" />
+                        <constructor-arg name="linkProperty" value="departureAirportCode" />
+                        <constructor-arg name="linkEntity" value="Airport" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>

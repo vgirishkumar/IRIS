@@ -12,17 +12,17 @@
 			</EntityContainer>
 			<EntityType Name="Note">
 				<Key>
-					<PropertyRef Name="Id" />
+					<PropertyRef Name="id" />
 				</Key>
-				<Property Type="Edm.Int32" Name="Id" Nullable="false" />
+				<Property Type="Edm.Int32" Name="id" Nullable="false" />
 				<Property Type="Edm.String" Name="body" Nullable="false" />
 				<NavigationProperty Name="Persons" Relationship="InteractionNoteModel.PersonNotes" FromRole="Note" ToRole="Person" />
 			</EntityType>
 			<EntityType Name="Person">
 				<Key>
-					<PropertyRef Name="Id" />
+					<PropertyRef Name="id" />
 				</Key>
-				<Property Type="Edm.Int32" Name="Id" Nullable="false" />
+				<Property Type="Edm.Int32" Name="id" Nullable="false" />
 				<Property Type="Edm.String" Name="name" Nullable="false" />
 				<NavigationProperty Name="Notes" Relationship="InteractionNoteModel.PersonNotes" FromRole="Person" ToRole="Note" />
 			</EntityType>
