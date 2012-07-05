@@ -21,7 +21,6 @@ import java.util.Map;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.Status;
 
@@ -47,9 +46,8 @@ public class TestHTTPDynaRIM {
 	@Before
 	public void setup() {
 		// initialise the thread local request context with requestUri and baseUri
-		UriBuilder baseUri = UriBuilder.fromUri("/baseuri");
 		String requestUri = "/baseuri/";
-        RequestContext ctx = new RequestContext(baseUri, requestUri, null);
+        RequestContext ctx = new RequestContext("/baseuri", requestUri, null);
         RequestContext.setRequestContext(ctx);
 	}
 	

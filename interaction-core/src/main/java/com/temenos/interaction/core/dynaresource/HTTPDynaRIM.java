@@ -200,7 +200,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			/* 
 			 * build link and add to list of links
 			 */
-			UriBuilder linkTemplate = RequestContext.getRequestContext().getBasePath().path(cs.getPath());
+			UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
 			if (cs.isForEach()) {
 				if (collectionResource != null) {
 					for (EntityResource<?> er : collectionResource.getEntities()) {
@@ -221,7 +221,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	}
 
 	private Link createSelfLink(ResourceState state, Object entity, MultivaluedMap<String, String> pathParameters) {
-		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(state.getPath());
+		UriBuilder selfUriTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(state.getPath());
 		return createLink(selfUriTemplate, state.getSelfTransition(), entity, pathParameters);
 	}
 	

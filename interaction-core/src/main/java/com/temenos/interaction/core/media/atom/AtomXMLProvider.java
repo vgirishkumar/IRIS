@@ -46,6 +46,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.web.RequestContext;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})
@@ -114,10 +115,15 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				OEntity oentity = entityResource.getEntity();
 
 				//Convert Links to list of OLink
+				RequestContext requestContext = RequestContext.getRequestContext();
 				List<OLink> olinks = new ArrayList<OLink>();
 				for(Link link : entityResource.getLinks()) {
 					String otherEntitySetName = link.getRel();
 					String pathOtherResource = link.getHref();
+					if(requestContext != null) {
+						//Extract the transition fragment from the URI path
+						pathOtherResource = link.getHrefTransition(requestContext.getBasePath());
+					}
 					String rel = XmlFormatWriter.related + otherEntitySetName;
 					OLink olink = OLinks.relatedEntity(rel, otherEntitySetName, pathOtherResource);
 					olinks.add(olink);

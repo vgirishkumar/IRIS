@@ -53,7 +53,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// there should be one link to one note for this person
 		assertEquals(2, person.getLinks().size());
-		assertEquals(Configuration.TEST_ENDPOINT_URI + "Persons(1)/Notes", person.getLinks().get(1).getHref());
+		assertEquals("Persons(1)/Notes", person.getLinks().get(1).getHref());
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// there should be one link to one Person for this Note
 		assertEquals(3, note.getLinks().size());
-		assertEquals(Configuration.TEST_ENDPOINT_URI + "Notes(1)/Persons", note.getLinks().get(1).getHref());
+		assertEquals("Notes(1)/Persons", note.getLinks().get(1).getHref());
 	}
 
 	/**
