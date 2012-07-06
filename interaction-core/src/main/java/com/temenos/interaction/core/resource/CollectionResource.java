@@ -5,7 +5,7 @@ import java.util.Collection;
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 
 /**
  * A CollectionResource is the RESTful representation of a collection of

@@ -1,19 +1,16 @@
 package com.temenos.interaction.core.command;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.StatusType;
 
 import com.temenos.interaction.core.resource.EntityResource;
 
-public class NoopPUTCommand implements ResourcePutCommand, InteractionCommand {
+/**
+ * A command that does nothing.  Can be useful for laying out a straw
+ * man of resources and not needing to implement them all initially.
+ * @author aphethean
+ */
+public class NoopInteractionCommand implements InteractionCommand {
 
-	@Override
-	public StatusType put(String id, EntityResource<?> resource) {
-		return HttpStatusTypes.METHOD_NOT_ALLOWED;
-	}
-	
-	/* Implement InteractionCommand interface */
-	
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
@@ -23,8 +20,7 @@ public class NoopPUTCommand implements ResourcePutCommand, InteractionCommand {
 
 	@Override
 	public String getMethod() {
-		return HttpMethod.PUT;
+		return HttpMethod.GET;
 	}
-	
-};
 
+}

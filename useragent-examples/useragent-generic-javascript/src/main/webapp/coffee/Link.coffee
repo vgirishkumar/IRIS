@@ -12,7 +12,8 @@ class @Link
         @successHandler = (model, textStatus, jqXHR) => new ResourceView(this)
       when 'DELETE'
         @hyperLink.click => @doDelete()
-        @successHandler = (model, textStatus, jqXHR) => 
+        @successHandler = (model, textStatus, jqXHR) =>
+            debugger
             if jqXHR.status is (205 or 404)
                 new ResourceView({rel: 'self', href: this.resource.selfLink.model.href, method: 'GET'})
             else
@@ -40,6 +41,7 @@ class @Link
       headers: { 
           Accept : "application/hal+json; charset=utf-8"
           "Content-Type" : "application/hal+json; charset=utf-8"
+          "Link" : "<" + @model.href + "> ;rel=" + @model.name 
       }
       url: @model.href,
       data: JSON.stringify(@formModel),

@@ -8,7 +8,7 @@ import org.odata4j.core.OProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.dynaresource.Transformer;
+import com.temenos.interaction.core.hypermedia.Transformer;
 
 /**
  * Implements transformations from regular Java beans (POJOs)

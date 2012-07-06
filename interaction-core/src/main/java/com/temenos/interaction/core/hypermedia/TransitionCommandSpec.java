@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.link;
+package com.temenos.interaction.core.hypermedia;
 
 import java.util.List;
 

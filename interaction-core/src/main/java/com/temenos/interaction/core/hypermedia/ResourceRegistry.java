@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.link;
+package com.temenos.interaction.core.hypermedia;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,8 +19,8 @@ import org.odata4j.format.xml.XmlFormatWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
 public class ResourceRegistry {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceRegistry.class);
@@ -28,7 +28,7 @@ public class ResourceRegistry {
 	// the resource metadata
 	private EdmDataServices edmDataServices;
 	// map of resource path to interaction model
-	private Map<String, HTTPDynaRIM> rimMap = new HashMap<String, HTTPDynaRIM>();
+	private Map<String, HTTPResourceInteractionModel> rimMap = new HashMap<String, HTTPResourceInteractionModel>();
 	// map of entity name to resource path
 	private Map<String, String> entityResourcePathMap = new HashMap<String, String>();
 	// map of resource state to resource path
@@ -41,7 +41,7 @@ public class ResourceRegistry {
 	 * there should be no way to reach a resource unless it has a link from another resource.
 	 * @param root
 	 */
-	public ResourceRegistry(EdmDataServices edmDataServices, HTTPDynaRIM root) {
+	public ResourceRegistry(EdmDataServices edmDataServices, HTTPResourceInteractionModel root) {
 		assert(edmDataServices != null);
 		this.edmDataServices = edmDataServices;
 		collectResources(root);
@@ -49,8 +49,8 @@ public class ResourceRegistry {
 
 	private void collectResources(ResourceInteractionModel resource) {
 		// the registry can only be constructed with HTTPDynaRIM, no way to have children of any other type
-		assert(resource instanceof HTTPDynaRIM);
-		add((HTTPDynaRIM) resource);
+		assert(resource instanceof HTTPResourceInteractionModel);
+		add((HTTPResourceInteractionModel) resource);
 		for (ResourceInteractionModel r : resource.getChildren()) {
 			if (!rimMap.containsKey(r.getFQResourcePath())) {
 				collectResources(r);
@@ -62,28 +62,26 @@ public class ResourceRegistry {
 	 * Construct and fill the resource registry with a set of resources.
 	 * @param resources
 	 */
-	public ResourceRegistry(EdmDataServices edmDataServices, Set<HTTPDynaRIM> resources) {
+	public ResourceRegistry(EdmDataServices edmDataServices, Set<HTTPResourceInteractionModel> resources) {
 		assert(edmDataServices != null);
 		this.edmDataServices = edmDataServices;
-		for (HTTPDynaRIM r : resources)
+		for (HTTPResourceInteractionModel r : resources)
 			add(r);
 	}
 
-	public void add(HTTPDynaRIM rim) {
+	public void add(HTTPResourceInteractionModel rim) {
 		logger.debug("Registering new resource " + rim);
 		// TODO dodgy - need to change this to a context object that can be initialised and passed to all dynamic resources
-		rim.setResourceRegistry(this);
+//		rim.setResourceRegistry(this);
 		rimMap.put(rim.getFQResourcePath(), rim);
 		
 		// populate a map of resources and their paths, and resource states and their paths 
-		ResourceStateMachine stateMachine = rim.getStateMachine();
-
+//		ResourceStateMachine stateMachine = rim.getStateMachine();
 		// do not update entity resource path if this resource is a child state
-		if (stateMachine.getInitial().equals(rim.getCurrentState())) {
-			
-			
-			entityResourcePathMap.put(rim.getCurrentState().getEntityName(), rim.getFQResourcePath());
-		}
+//		if (stateMachine.getInitial().equals(rim.getCurrentState())) {
+//			entityResourcePathMap.put(rim.getCurrentState().getEntityName(), rim.getFQResourcePath());
+//		}
+		
 		/*
 		 *  create the state-path map for "self state" and child states, not necessary to
 		 *  populate the map with other resource states as these RIMs will be added

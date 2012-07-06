@@ -40,17 +40,20 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.rim.HeaderHelper;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.command.MethodNotAllowedCommand;
+import com.temenos.interaction.core.command.HttpStatusTypes;
 import com.temenos.interaction.core.command.ResourceCommand;
 import com.temenos.interaction.core.command.ResourceDeleteCommand;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 import com.temenos.interaction.core.command.ResourcePutCommand;
 import com.temenos.interaction.core.command.ResourceStatusCommand;
-import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 
 /**
  * <P>
@@ -128,7 +131,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @precondition a valid GET command for this resourcePath + id must be registered with the command controller
 	 * @postcondition a Response with non null Status must be returned
 	 * @invariant resourcePath not null
-	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModel#get(javax.ws.rs.core.HttpHeaders, java.lang.String)
+	 * @see com.temenos.interaction.core.rim.HTTPResourceInteractionModel#get(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -336,7 +339,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	    	builder.entity(newResource);
 			
 			return HeaderHelper.allowHeader(builder, getInteractions()).build();
-		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
+		} else if (status.equals(HttpStatusTypes.METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();
 		}
@@ -348,7 +351,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @precondition a valid PUT command for this resourcePath + id must be registered with the command controller
 	 * @postcondition a Response with non null Status must be returned
 	 * @invariant resourcePath not null
-	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModel#put(javax.ws.rs.core.HttpHeaders, java.lang.String, com.temenos.interaction.core.EntityResource)
+	 * @see com.temenos.interaction.core.rim.HTTPResourceInteractionModel#put(javax.ws.rs.core.HttpHeaders, java.lang.String, com.temenos.interaction.core.EntityResource)
 	 */
     @Override
 	@PUT
@@ -377,7 +380,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		
 		if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
         	return get(headers, id, uriInfo);
-		} else if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
+		} else if (status.equals(HttpStatusTypes.METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();
     	}
@@ -389,7 +392,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 	 * @precondition a valid DELETE command for this resourcePath + id must be registered with the command controller
 	 * @postcondition a Response with non null Status must be returned
 	 * @invariant resourcePath not null
-	 * @see com.temenos.interaction.core.state.HTTPResourceInteractionModel#delete(javax.ws.rs.core.HttpHeaders, java.lang.String)
+	 * @see com.temenos.interaction.core.rim.HTTPResourceInteractionModel#delete(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
     @Override
 	@DELETE
@@ -410,7 +413,7 @@ public abstract class AbstractHTTPResourceInteractionModel implements HTTPResour
 		}
 		assert (status != null);  // not a valid delete command
     	// TODO add support for Location header see 3xx status codes
-		if (status.equals(MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED)) {
+		if (status.equals(HttpStatusTypes.METHOD_NOT_ALLOWED)) {
 			ResponseBuilder rb = Response.status(status);
 			return HeaderHelper.allowHeader(rb, getInteractions()).build();
     	} else {

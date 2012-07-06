@@ -3,7 +3,6 @@ package com.temenos.interaction.core.dynaresource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -14,9 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MultivaluedMap;
@@ -31,14 +28,15 @@ import org.junit.Test;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
-import com.temenos.interaction.core.link.CollectionResourceState;
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.ResourceStateMachine;
-import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.core.hypermedia.BeanTransformer;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 import com.temenos.interaction.core.web.RequestContext;
 
 
@@ -358,11 +356,11 @@ public class TestHTTPDynaRIM {
 			
 		});
 		// notes
-		assertEquals("NOTE.collection", links.get(0).getRel());
+		assertEquals("collection", links.get(0).getRel());
 		assertEquals("/baseuri/notes", links.get(0).getHref());
 		assertEquals("root.initial>NOTE.collection", links.get(0).getId());
 		// persons
-		assertEquals("PERSON.collection", links.get(1).getRel());
+		assertEquals("collection", links.get(1).getRel());
 		assertEquals("/baseuri/persons", links.get(1).getHref());
 		assertEquals("root.initial>PERSON.collection", links.get(1).getId());
 		// service root
@@ -371,177 +369,16 @@ public class TestHTTPDynaRIM {
 		assertEquals("root.initial>root.initial", links.get(2).getId());
 	}
 
-	/*
-	 * We use links (hypermedia) for controlling / describing application 
-	 * state.  Test we return the links for the collection itself.
-	 */
-	@SuppressWarnings({ "rawtypes" })
-	@Test
-	public void testGetLinksCollection() {
-		HTTPDynaRIM resource = createDynaResourceWithCollectionLinks();
-				
-		// call the get and populate the links
-		Response response = resource.get(null, null, null);
-		
-		RESTResource resourceWithLinks = (RESTResource) ((GenericEntity) response.getEntity()).getEntity();
-		assertNotNull(resourceWithLinks.getLinks());
-		assertFalse(resourceWithLinks.getLinks().isEmpty());
-		assertEquals(2, resourceWithLinks.getLinks().size());
-		/*
-		 * expect 2 links - self and one to form to create new note
-		 */
-		List<Link> links = new ArrayList<Link>(resourceWithLinks.getLinks());
-		// sort the links so we have a predictable order for this test
-		Collections.sort(links, new Comparator<Link>() {
-			@Override
-			public int compare(Link o1, Link o2) {
-				return o1.getId().compareTo(o2.getId());
-			}
-		});
-		// notes resource
-		assertEquals("GET", links.get(0).getMethod());
-		assertEquals("self", links.get(0).getRel());
-		assertEquals("/baseuri/notes", links.get(0).getHref());
-		assertEquals("NOTE.collection>NOTE.collection", links.get(0).getId());
-		// notes
-		assertEquals("POST", links.get(1).getMethod());
-		assertEquals("stack.new", links.get(1).getRel());
-		assertEquals("/baseuri/notes/new", links.get(1).getHref());
-		assertEquals("NOTE.collection>stack.new", links.get(1).getId());
-	}
-
-	/*
-	 * We use links (hypermedia) for controlling / describing application 
-	 * state.  Test we return the links to self for items in the collection.
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Test
-	public void testGetLinksCollectionItemsSelf() {
-		HTTPDynaRIM dynaResource = createDynaResourceWithCollectionLinks();
-				
-		// call the get and populate the links
-		Response response = dynaResource.get(null, "id", null);
-		
-		RESTResource resource = (RESTResource) ((GenericEntity) response.getEntity()).getEntity();
-		assertTrue(resource instanceof CollectionResource);
-		CollectionResource<Object> collectionRes = (CollectionResource<Object>) resource;
-		Collection<EntityResource<Object>> entities = collectionRes.getEntities();
-		
-		/* collect the links defined in each entity */
-		List<Link> links = new ArrayList<Link>();
-		for (EntityResource<Object> entity : entities) {
-			assertNotNull(entity.getLinks());
-			links.addAll(entity.getLinks());
-		}
-		
-		/*
-		 * expect 3 links - one to each note for 'collection notes'
-		 */
-		assertFalse(links.isEmpty());
-		assertEquals(3, links.size());
-		// sort the links so we have a predictable order for this test
-		Collections.sort(links, new Comparator<Link>() {
-			@Override
-			public int compare(Link o1, Link o2) {
-				return o1.getId().compareTo(o2.getId());
-			}
-			
-		});
-		// link to note '1'
-// TODO with better rel support we should have self and NOTE.item
-//		assertEquals("self NOTE.item", links.get(0).getRel());
-		assertEquals("NOTE.item", links.get(0).getRel());
-		assertEquals("/baseuri/notes/1", links.get(0).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(0).getId());
-		// link to note '2'
-		assertEquals("NOTE.item", links.get(1).getRel());
-		assertEquals("/baseuri/notes/2", links.get(1).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(1).getId());
-		// link to note '6'
-		assertEquals("NOTE.item", links.get(2).getRel());
-		assertEquals("/baseuri/notes/6", links.get(2).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(2).getId());
-	}
-
-	/*
-	 * We use links (hypermedia) for controlling / describing application 
-	 * state.  Test we return the links for items in the collection.
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Test
-	public void testGetLinksCollectionItems() {
-		HTTPDynaRIM dynaResource = createDynaResourceWithCollectionDeleteLink();
-				
-		// call the get and populate the links
-		Response response = dynaResource.get(null, "id", null);
-		
-		RESTResource resource = (RESTResource) ((GenericEntity) response.getEntity()).getEntity();
-		assertTrue(resource instanceof CollectionResource);
-		CollectionResource<Object> collectionRes = (CollectionResource<Object>) resource;
-		Collection<EntityResource<Object>> entities = collectionRes.getEntities();
-		
-		/* collect the links defined in each entity */
-		List<Link> links = new ArrayList<Link>();
-		for (EntityResource<Object> entity : entities) {
-			assertNotNull(entity.getLinks());
-			links.addAll(entity.getLinks());
-		}
-		
-		/*
-		 * expect 6 links - one to self for each note for 'collection notes', one to DELETE each note
-		 */
-		assertFalse(links.isEmpty());
-		assertEquals(6, links.size());
-		// sort the links so we have a predictable order for this test
-		Collections.sort(links, new Comparator<Link>() {
-			@Override
-			public int compare(Link o1, Link o2) {
-				return o1.getId().compareTo(o2.getId());
-			}
-			
-		});
-		// link to DELETE note '1'
-		assertEquals("NOTE.final", links.get(0).getRel());
-		assertEquals("/baseuri/notes/1", links.get(0).getHref());
-		assertEquals("NOTE.collection>NOTE.final", links.get(0).getId());
-		assertEquals("DELETE", links.get(0).getMethod());
-		// link to DELETE note '2'
-		assertEquals("NOTE.final", links.get(1).getRel());
-		assertEquals("/baseuri/notes/2", links.get(1).getHref());
-		assertEquals("NOTE.collection>NOTE.final", links.get(1).getId());
-		assertEquals("DELETE", links.get(1).getMethod());
-		// link to DELETE note '6'
-		assertEquals("NOTE.final", links.get(2).getRel());
-		assertEquals("/baseuri/notes/6", links.get(2).getHref());
-		assertEquals("NOTE.collection>NOTE.final", links.get(2).getId());
-		assertEquals("DELETE", links.get(0).getMethod());
-		// link to GET note '1'
-		assertEquals("NOTE.item", links.get(3).getRel());
-		assertEquals("/baseuri/notes/1", links.get(3).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(3).getId());
-		assertEquals("GET", links.get(3).getMethod());
-		// link to GET note '2'
-		assertEquals("NOTE.item", links.get(4).getRel());
-		assertEquals("/baseuri/notes/2", links.get(4).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(4).getId());
-		assertEquals("GET", links.get(4).getMethod());
-		// link to GET note '6'
-		assertEquals("NOTE.item", links.get(5).getRel());
-		assertEquals("/baseuri/notes/6", links.get(5).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(5).getId());
-		assertEquals("GET", links.get(5).getMethod());
-	}
-
 	@SuppressWarnings({ "unchecked" })
 	private HTTPDynaRIM createDynaResourceWithLinks() {
 		String rootResourcePath = "/";
 		ResourceState initial = new ResourceState("root", "initial", rootResourcePath);
 		String NOTE_ENTITY = "NOTE";
 		String notesResourcePath = "/notes";
-		ResourceState notesResource = new ResourceState(NOTE_ENTITY, "collection", notesResourcePath);
+		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", notesResourcePath);
 		String PERSON_ENTITY = "PERSON";
 		String personResourcePath = "/persons";
-		ResourceState personsResource = new ResourceState(PERSON_ENTITY, "collection", personResourcePath);
+		CollectionResourceState personsResource = new CollectionResourceState(PERSON_ENTITY, "collection", personResourcePath);
 		
 		// create the transitions (links)
 		initial.addTransition("GET", notesResource);
@@ -561,86 +398,6 @@ public class TestHTTPDynaRIM {
 		cc.setGetCommand(notesResourcePath, testCommand);
 		cc.setGetCommand(personResourcePath, testCommand);
 		HTTPDynaRIM resource = new HTTPDynaRIM(new ResourceStateMachine(initial), new BeanTransformer(), cc);
-		return resource;
-	}
-
-	@SuppressWarnings({ "unchecked" })
-	private HTTPDynaRIM createDynaResourceWithCollectionLinks() {
-		String NOTE_ENTITY = "NOTE";
-		String notesResourcePath = "/notes";
-		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", notesResourcePath);
-		
-		String noteItemResourcePath = "/notes/{noteId}";
-		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", noteItemResourcePath);
-		
-		/* create the transitions (links) */
-		// link to form to create new note
-		notesResource.addTransition("POST", new ResourceState("stack", "new", "/notes/new"));
-		/*
-		 * define transition to view each item of the note collection
-		 * no linkage map as target URI element (self) must exist in source entity element (also self)
-		 */
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		notesResource.addTransitionForEachItem("GET", noteResource, uriLinkageMap);
-		
-		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
-		entities.add(new EntityResource<Object>(createTestNote("1")));
-		entities.add(new EntityResource<Object>(createTestNote("2")));
-		entities.add(new EntityResource<Object>(createTestNote("6")));
-		CollectionResource<Object> testResponseEntity = new CollectionResource<Object>("notes", entities);
-		ResourceGetCommand testCommand = mock(ResourceGetCommand.class);
-		when(testCommand.get(anyString(), any(MultivaluedMap.class))).thenReturn(new RESTResponse(Status.OK, testResponseEntity));
-		
-		/* 
-		 * Create the dynamic resource (no parent).
-		 * No resource registry indicates we'll set the links on the resource
-		 * and not use the HateoasContext.
-		 */
-		CommandController cc = new CommandController();
-		cc.setGetCommand(notesResourcePath, testCommand);
-		cc.setGetCommand(noteItemResourcePath, testCommand);
-		HTTPDynaRIM resource = new HTTPDynaRIM(new ResourceStateMachine(notesResource), new BeanTransformer(), cc);
-		return resource;
-	}
-
-	@SuppressWarnings({ "unchecked" })
-	private HTTPDynaRIM createDynaResourceWithCollectionDeleteLink() {
-		String NOTE_ENTITY = "NOTE";
-		String notesResourcePath = "/notes";
-		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", notesResourcePath);
-		
-		String noteItemResourcePath = "/notes/{noteId}";
-		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", noteItemResourcePath);
-		ResourceState noteFinalState = new ResourceState(NOTE_ENTITY, "final", noteItemResourcePath);
-		
-		/* create the transitions (links) */
-		// link to form to create new note
-		notesResource.addTransition("POST", new ResourceState("stack", "new", "/notes/new"));
-		/*
-		 * define transition to view each item of the note collection
-		 * no linkage map as target URI element (self) must exist in source entity element (also self)
-		 */
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		notesResource.addTransitionForEachItem("GET", noteResource, uriLinkageMap);
-		notesResource.addTransitionForEachItem("DELETE", noteFinalState, uriLinkageMap);
-		
-		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
-		entities.add(new EntityResource<Object>(createTestNote("1")));
-		entities.add(new EntityResource<Object>(createTestNote("2")));
-		entities.add(new EntityResource<Object>(createTestNote("6")));
-		CollectionResource<Object> testResponseEntity = new CollectionResource<Object>("notes", entities);
-		ResourceGetCommand testCommand = mock(ResourceGetCommand.class);
-		when(testCommand.get(anyString(), any(MultivaluedMap.class))).thenReturn(new RESTResponse(Status.OK, testResponseEntity));
-		
-		/* 
-		 * Create the dynamic resource (no parent).
-		 * No resource registry indicates we'll set the links on the resource
-		 * and not use the HateoasContext.
-		 */
-		CommandController cc = new CommandController();
-		cc.setGetCommand(notesResourcePath, testCommand);
-		cc.setGetCommand(noteItemResourcePath, testCommand);
-		HTTPDynaRIM resource = new HTTPDynaRIM(new ResourceStateMachine(notesResource), new BeanTransformer(), cc);
 		return resource;
 	}
 

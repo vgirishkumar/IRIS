@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.state;
+package com.temenos.interaction.core.rim;
 
 import java.util.Collection;
 
@@ -10,8 +10,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.RESTResource;
 
 public interface ResourceInteractionModel {

@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.link;
+package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -8,6 +8,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
+
+import com.temenos.interaction.core.hypermedia.ASTValidation;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestASTValidation {
 

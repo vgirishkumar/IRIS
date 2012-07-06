@@ -1,8 +1,12 @@
-package com.temenos.interaction.core.link;
+package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.hypermedia.TransitionCommandSpec;
 
 public class TestTransition {
 

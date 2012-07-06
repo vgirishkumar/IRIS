@@ -1,9 +1,7 @@
 package com.temenos.interaction.core.dynaresource;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,8 +9,6 @@ import java.util.Set;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriBuilderException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,21 +16,15 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.MethodNotAllowedCommand;
 import com.temenos.interaction.core.command.ResourceCommand;
-import com.temenos.interaction.core.link.ASTValidation;
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceStateMachine;
-import com.temenos.interaction.core.link.ResourceRegistry;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.Transition;
-import com.temenos.interaction.core.link.TransitionCommandSpec;
-import com.temenos.interaction.core.resource.CollectionResource;
-import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.hypermedia.ASTValidation;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
-import com.temenos.interaction.core.web.RequestContext;
 
 /**
  * Define a Dynamic HTTP based Resource Interaction Model for an individual resource.
@@ -47,7 +37,6 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
     private HTTPDynaRIM parent;
     private final ResourceStateMachine stateMachine;
     private final ResourceState currentState;
-    private final Transformer transformer;
     
 	public static ResourceState createPseudoStateMachine(String entityName, String resourceName, String resourcePath) {
 		/*
@@ -105,9 +94,8 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			ResourceRegistry resourceRegistry, Transformer transformer, CommandController commandController) {
 		super(currentState.getPath(), resourceRegistry, commandController);
 		this.parent = parent;
-		this.stateMachine = stateMachine;
+		this.stateMachine = new ResourceStateMachine(stateMachine.getInitial(), transformer);
 		this.currentState = currentState;
-		this.transformer = transformer;
 		assert(stateMachine != null);
 		assert(currentState != null);
 		if (parent == null && stateMachine.getInitial() != null) {
@@ -161,109 +149,9 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	
 	@Override
 	public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity) {
-		return getLinks(pathParameters, resourceEntity, getCurrentState());
+		return stateMachine.getLinks(pathParameters, resourceEntity, getCurrentState(), null);
 	}
 		
-	private Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState state) {
-		List<Link> links = new ArrayList<Link>();
-		
-		Object entity = null;
-		CollectionResource<?> collectionResource = null;
-		if (resourceEntity instanceof EntityResource) {
-			entity = ((EntityResource<?>) resourceEntity).getEntity();
-		} else if (resourceEntity instanceof CollectionResource) {
-			collectionResource = (CollectionResource<?>) resourceEntity;
-			// TODO add support for properties on collections
-			logger.warn("I hope you don't need to build a link from a template for links from this collection, no properties on the collection at the moment");
-		} else if (resourceEntity instanceof MetaDataResource) {
-			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
-			logger.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
-			return links;
-		} else if (resourceEntity instanceof ServiceDocumentResource) {
-			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
-			logger.debug("Returning from the call to getLinks for a ServiceDocumentResource without doing anything");
-			return links;
-		} else {
-			throw new RuntimeException("Unable to get links, an error occurred");
-		}
-		
-		// add link to GET 'self'
-		links.add(createSelfLink(state, entity, pathParameters));
-
-		/*
-		 * Add links to other application states (resources)
-		 */
-		Collection<ResourceState> targetStates = state.getAllTargets();
-		for (ResourceState s : targetStates) {
-			Transition transition = state.getTransition(s);
-			TransitionCommandSpec cs = transition.getCommand();
-			/* 
-			 * build link and add to list of links
-			 */
-			UriBuilder linkTemplate = RequestContext.getRequestContext().getBasePath().path(cs.getPath());
-			if (cs.isForEach()) {
-				if (collectionResource != null) {
-					for (EntityResource<?> er : collectionResource.getEntities()) {
-						Collection<Link> eLinks = er.getLinks();
-						if (eLinks == null) {
-							eLinks = new ArrayList<Link>();
-//							eLinks.add(createSelfLink(s, er.getEntity(), null));
-						}
-						eLinks.add(createLink(linkTemplate, transition, er.getEntity(), null));
-						er.setLinks(eLinks);
-					}
-				}
-			} else {
-				links.add(createLink(linkTemplate, transition, entity, null));
-			}
-		}
-		return links;
-	}
-
-	private Link createSelfLink(ResourceState state, Object entity, MultivaluedMap<String, String> pathParameters) {
-		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(state.getPath());
-		return createLink(selfUriTemplate, state.getSelfTransition(), entity, pathParameters);
-	}
-	
-	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity, MultivaluedMap<String, String> map) {
-		TransitionCommandSpec cs = transition.getCommand();
-		try {
-			String linkId = transition.getId();
-			// TODO get rels properly
-			String rel = transition.getTarget().getRel();
-			if (transition.getSource().equals(transition.getTarget())) {
-				rel = "self";
-			}
-			
-			String method = cs.getMethod();
-			URI href = null;
-			Map<String, Object> properties = new HashMap<String, Object>();
-			if (map != null) {
-				for (String key : map.keySet()) {
-					properties.put(key, map.getFirst(key));
-				}
-			}
-			if (entity != null) {
-				if (transformer != null) {
-					properties.putAll(transformer.transform(entity));
-					href = linkTemplate.buildFromMap(properties);
-				} else {
-					href = linkTemplate.build(entity);
-				}
-			} else {
-				href = linkTemplate.buildFromMap(properties);
-			}
-			Link link = new Link(linkId, rel, href.toASCIIString(), null, null, method, "label", "description", null);
-			logger.debug("Created link [" + getFQResourcePath() + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");
-			return link;
-		} catch (IllegalArgumentException e) {
-			logger.error("An error occurred while creating link [" +  cs.getPath() + "]", e);
-			throw e;
-		} catch (UriBuilderException e) {
-			logger.error("An error occurred while creating link [" + cs.getPath() + "]", e);
-			throw e;
-		}
-	}
 	
 	public ResourceStateMachine getStateMachine() {
 		return stateMachine;
@@ -281,12 +169,12 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 			HTTPDynaRIM child = null;
 			if (!childState.getEntityName().equals(stateMachine.getInitial().getEntityName())) {
 				// TODO shouldn't really need to create it again
-				childSM = new ResourceStateMachine(childState);
+				childSM = new ResourceStateMachine(childState, stateMachine.getTransformer());
 				// this is a new resource
-				child = new HTTPDynaRIM(null, childSM, childState, getResourceRegistry(), this.transformer, getCommandController());
+				child = new HTTPDynaRIM(null, childSM, childState, getResourceRegistry(), childSM.getTransformer(), getCommandController());
 			} else {
 				// same entity, same transformer
-				child = new HTTPDynaRIM(this, childSM, childState, this.transformer, getCommandController());
+				child = new HTTPDynaRIM(this, childSM, childState, childSM.getTransformer(), getCommandController());
 			}
 			result.add(child);
 		}

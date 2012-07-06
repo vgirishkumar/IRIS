@@ -11,20 +11,19 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.DynamicResource;
 
-import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
 public class DynamicResourceDelegate implements HTTPResourceInteractionModel, DynamicResource {
 
 	private final HTTPResourceInteractionModel parent;
-	private final HTTPDynaRIM resource;
+	private final HTTPResourceInteractionModel resource;
 	
-	public DynamicResourceDelegate(HTTPResourceInteractionModel parent, HTTPDynaRIM resource) {
+	public DynamicResourceDelegate(HTTPResourceInteractionModel parent, HTTPResourceInteractionModel resource) {
 		this.parent = parent;
 		this.resource = resource;
 	}

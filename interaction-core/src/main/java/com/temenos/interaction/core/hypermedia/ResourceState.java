@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.link;
+package com.temenos.interaction.core.hypermedia;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,7 +71,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		this.initial = false;
 		this.selfState = selfState;
 		if (rels == null) {
-			this.rels = getId().split(" ");
+			this.rels = "item".split(" ");
 		} else {
 			this.rels = rels;
 		}

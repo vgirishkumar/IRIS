@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.state;
+package com.temenos.interaction.core.rim;
 
 import java.util.Set;
 
@@ -15,6 +15,14 @@ public class HeaderHelper {
                 result.append(",");
         	}
         	return rb.header("Allow", (result.length() > 0 ? result.substring(1, result.length() - 1) : ""));
+    	}
+    	return rb;
+    }
+
+    public static ResponseBuilder locationHeader(ResponseBuilder rb, String target) {
+    	// RequestContext.getRequestContext().getBasePath().path(nextState.getPath())
+    	if (target != null) {
+        	return rb.header("Location", target);
     	}
     	return rb;
     }

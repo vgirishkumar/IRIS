@@ -1,7 +1,5 @@
 package com.temenos.interaction.core.command;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.Response.StatusType;
 
 /**
@@ -16,26 +14,10 @@ import javax.ws.rs.core.Response.StatusType;
  */
 public final class MethodNotAllowedCommand implements ResourceStatusCommand {
 
-	public final static String HTTP_STATUS_METHOD_NOT_ALLOWED_MSG = "Method Not Allowed";
-	public final static StatusType HTTP_STATUS_METHOD_NOT_ALLOWED = new StatusType() {
-
-		public int getStatusCode() {
-			return 405;
-		}
-
-		public Family getFamily() {
-			return Response.Status.Family.SERVER_ERROR;
-		}
-
-		public String getReasonPhrase() {
-			return "Method Not Allowed";
-		}
-		
-	};
 	
 	@Override
 	public StatusType getStatus() {
-		return HTTP_STATUS_METHOD_NOT_ALLOWED;
+		return HttpStatusTypes.METHOD_NOT_ALLOWED;
 	}
 	
 }

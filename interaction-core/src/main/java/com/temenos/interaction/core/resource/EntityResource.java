@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our

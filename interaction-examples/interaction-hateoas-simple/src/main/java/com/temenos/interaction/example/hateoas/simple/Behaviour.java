@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.temenos.interaction.core.link.CollectionResourceState;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class Behaviour {
 
@@ -59,7 +59,7 @@ public class Behaviour {
 
 		// update / delete note item (same linkage map)
 		exists.addTransition("PUT", exists, uriLinkageMap);
-		exists.addTransition("DELETE", finalState, uriLinkageMap);
+		exists.addTransition("DELETE", initialState, uriLinkageMap);
 		return new ResourceStateMachine(initialState);
 	}
 

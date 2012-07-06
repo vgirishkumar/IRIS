@@ -10,7 +10,7 @@ public class NoopDELETECommand implements ResourceDeleteCommand {
 	}
 	@Override
 	public StatusType delete(String id) {
-		return MethodNotAllowedCommand.HTTP_STATUS_METHOD_NOT_ALLOWED;
+		return HttpStatusTypes.METHOD_NOT_ALLOWED;
 	}
 };
 

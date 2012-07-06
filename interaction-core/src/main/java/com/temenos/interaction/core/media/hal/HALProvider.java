@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -204,14 +204,15 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					// create hal resource and add link for self
 					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
-						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());  // TODO need href for item
+						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());
 						for (Link el : er.getLinks()) {
 							String itemHref = el.getHref();
 							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
 								itemHref = el.getMethod() + " " + itemHref;
 							}
-							subResource.withLink(itemHref, el.getRel());
+							subResource.withLink(itemHref, el.getRel(), 
+									Optional.<Predicate<ReadableResource>>absent(), Optional.of(el.getId()), Optional.<String>absent(), Optional.<String>absent());
 						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {

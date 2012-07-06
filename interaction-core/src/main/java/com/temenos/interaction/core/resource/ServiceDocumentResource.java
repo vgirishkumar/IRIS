@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 
 /**
  * A ServiceDocumentResource is a resource that lists other resources to aid

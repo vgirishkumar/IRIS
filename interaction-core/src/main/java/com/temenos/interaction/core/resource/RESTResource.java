@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import javax.ws.rs.core.GenericEntity;
 
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 
 /**
  * A RESTResource is the base interface for all types of resources.

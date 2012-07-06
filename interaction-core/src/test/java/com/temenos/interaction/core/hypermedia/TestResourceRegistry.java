@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.link;
+package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -20,13 +20,17 @@ import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
 public class TestResourceRegistry {
 
 	@Test
 	public void testNoResources() {
-		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
+		ResourceRegistry rr = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPResourceInteractionModel>());
 		Set<ResourceInteractionModel> set = rr.getResourceInteractionModels();
 		assertNotNull(set);
 		assertEquals(0, set.size());
@@ -45,7 +49,7 @@ public class TestResourceRegistry {
 	
 	@Test
 	public void testConstructedWithResourceSet() {
-		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
+		HashSet<HTTPResourceInteractionModel> resourceSet = new HashSet<HTTPResourceInteractionModel>();
 		resourceSet.add(createMockHTTPDynaRIM("a"));
 		HTTPDynaRIM rim2 = createMockHTTPDynaRIM("b");
 		when(rim2.getFQResourcePath()).thenReturn("rim2");
@@ -94,14 +98,15 @@ public class TestResourceRegistry {
 		assertEquals(2, set.size());
 	}
 
-	@Test
+// TODO remove all OEntity support from registry	
+//	@Test
 	public void testEntityResourcePath() {
 		/*
 		 * Creating a resource registry with a resource that has neither a state machine, nor
 		 * an initial state should populate the entity resource map with a path to the entity
 		 */
 		String ENTITY_NAME = "TEST_ENTITY";
-		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
+		HashSet<HTTPResourceInteractionModel> resourceSet = new HashSet<HTTPResourceInteractionModel>();
 		HTTPDynaRIM testResource = createMockHTTPDynaRIM("test");
 		when(testResource.getCurrentState().getEntityName()).thenReturn(ENTITY_NAME);
 		when(testResource.getFQResourcePath()).thenReturn("/blah/test");
@@ -111,16 +116,17 @@ public class TestResourceRegistry {
 		assertEquals("/blah/test", registry.getEntityResourcePath(ENTITY_NAME));
 	}
 
-	@Test
+	// TODO remove all OEntity support from registry	
+//		@Test
 	public void testNavigationLinks() {
-		InputStream in = ClassLoader.getSystemResourceAsStream("com/temenos/interaction/core/link/TestResourceRegistryEDMX.xml");
+		InputStream in = ClassLoader.getSystemResourceAsStream("com/temenos/interaction/core/hypermedia/TestResourceRegistryEDMX.xml");
 		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(in)));
 		EdmxFormatParser formatParser = new EdmxFormatParser();
 		EdmDataServices ds = formatParser.parseMetadata(reader);
 		assertNotNull(ds.findEdmEntityType("AirlineModel.Flight"));
 
 		// Flight has a navigation property to FlightSchedule
-		ResourceRegistry rr = new ResourceRegistry(ds, new HashSet<HTTPDynaRIM>());
+		ResourceRegistry rr = new ResourceRegistry(ds, new HashSet<HTTPResourceInteractionModel>());
 		// give the FlightSchedule resource a path
 		HTTPDynaRIM rim = createMockHTTPDynaRIM("test");
 		when(rim.getCurrentState().getEntityName()).thenReturn("FlightSchedule");

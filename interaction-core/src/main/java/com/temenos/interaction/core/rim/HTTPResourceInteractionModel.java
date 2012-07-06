@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.state;
+package com.temenos.interaction.core.rim;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;

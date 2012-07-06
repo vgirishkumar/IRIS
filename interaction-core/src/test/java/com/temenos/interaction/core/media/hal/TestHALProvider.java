@@ -35,7 +35,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.media.hal.HALProvider;
 import com.temenos.interaction.core.media.hal.MediaType;
 

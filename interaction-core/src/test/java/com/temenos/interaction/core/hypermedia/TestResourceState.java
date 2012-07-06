@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.link;
+package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.*;
 
@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
+
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestResourceState {
 
@@ -33,7 +36,7 @@ public class TestResourceState {
 	public void testDefaultRel() {
 		String ENTITY_NAME = "entity";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "");
-		assertEquals("entity.begin", initial.getRel());
+		assertEquals("item", initial.getRel());
 	}
 
 	@Test

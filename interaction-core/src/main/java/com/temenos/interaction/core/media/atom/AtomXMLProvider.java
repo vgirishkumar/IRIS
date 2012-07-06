@@ -36,12 +36,12 @@ import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})

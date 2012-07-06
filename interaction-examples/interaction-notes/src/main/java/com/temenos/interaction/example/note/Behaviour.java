@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 
 public class Behaviour {
 

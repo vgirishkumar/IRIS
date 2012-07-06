@@ -3,9 +3,9 @@ package com.temenos.interaction.example.hateoas.banking;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.temenos.interaction.core.link.CollectionResourceState;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class Behaviour {
 

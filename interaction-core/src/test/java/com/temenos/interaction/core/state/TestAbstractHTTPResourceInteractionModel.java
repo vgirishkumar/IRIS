@@ -27,10 +27,12 @@ import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 import com.temenos.interaction.core.NestedObject;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;

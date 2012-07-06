@@ -11,8 +11,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 

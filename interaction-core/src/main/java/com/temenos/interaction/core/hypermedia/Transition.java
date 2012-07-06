@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.link;
+package com.temenos.interaction.core.hypermedia;
 
 public class Transition {
 
@@ -45,4 +45,8 @@ public class Transition {
 			command.hashCode();
 	}
 
+	public String toString() {
+		return getId();
+	}
+	
 }

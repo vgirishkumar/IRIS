@@ -1,10 +1,13 @@
-package com.temenos.interaction.core.dynaresource;
+package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.*;
 
 import java.util.Map;
 
 import org.junit.Test;
+
+import com.temenos.interaction.core.hypermedia.BeanTransformer;
+import com.temenos.interaction.core.hypermedia.Transformer;
 
 public class TestBeanTransformer {
 
