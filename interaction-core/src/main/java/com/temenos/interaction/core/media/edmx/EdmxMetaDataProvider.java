@@ -20,8 +20,8 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
 import org.odata4j.edm.EdmDataServices;
-import org.odata4j.format.xml.EdmxFormatWriter;
 
+import com.temenos.interaction.core.link.ResourceRegistry;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
@@ -40,7 +40,11 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	@Context
 	private UriInfo uriInfo;
 	
-	public EdmxMetaDataProvider() {
+	private final ResourceRegistry resourceRegistry;
+	
+	public EdmxMetaDataProvider(ResourceRegistry resourceRegistry) {
+		this.resourceRegistry = resourceRegistry;
+		assert(resourceRegistry != null);
 	}
 
 	@Override
@@ -76,7 +80,7 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 		if(ResourceTypeHelper.isType(type, genericType, MetaDataResource.class, EdmDataServices.class)) {
 			MetaDataResource<EdmDataServices> metadataResource = (MetaDataResource<EdmDataServices>) resource;
 			StringWriter sw = new StringWriter();
-			EdmxFormatWriter.write(metadataResource.getMetadata(), sw);
+			EdmxMetaDataWriter.write(metadataResource.getMetadata(), sw, resourceRegistry);
 			edmxString = sw.toString();
 		}
 		else {

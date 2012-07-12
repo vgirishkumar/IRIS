@@ -35,6 +35,8 @@ public class ResourceRegistry {
 	private Map<ResourceState, String> statePathMap = new HashMap<ResourceState, String>();
 	// map of link key to transition
 	private Map<String, Transition> linkTransitionMap = new HashMap<String, Transition>();
+	// map of entity name to a list of transition
+	private Map<String, List<Transition>> entityTransitionMap = new HashMap<String, List<Transition>>();
 	
 	/**
 	 * Construct and fill the resource registry from a single root resource.  In a RESTful interaction
@@ -90,7 +92,7 @@ public class ResourceRegistry {
 		 *  here also 
 		 */
 		Transition selfTransition = new Transition(null, new TransitionCommandSpec("GET", rim.getFQResourcePath()), rim.getCurrentState());
-		Transition previousSelfTransitionValue = linkTransitionMap.put(rim.getCurrentState().getId(), selfTransition);
+		Transition previousSelfTransitionValue = linkTransitionMap.put(selfTransition.getId(), selfTransition);
 		if (previousSelfTransitionValue != null && !previousSelfTransitionValue.equals(selfTransition)) {
 			logger.warn("We are replacing the link registered for a transition to 'self':  previous [" + previousSelfTransitionValue.getCommand() + "], new [" + selfTransition.getCommand() + "]");
 		}
@@ -101,6 +103,14 @@ public class ResourceRegistry {
 				statePathMap.put(childState, rim.getFQResourcePath());
 			} else if (!childState.getEntityName().equals(rim.getCurrentState().getEntityName())) {
 				statePathMap.put(childState, childState.getPath());
+				
+				//Keep track of relations between entities
+				String entityName = rim.getCurrentState().getEntityName();
+				if(entityTransitionMap.get(entityName) == null) {
+					entityTransitionMap.put(entityName, new ArrayList<Transition>());
+				}
+				List<Transition> transitions = entityTransitionMap.get(entityName); 
+				transitions.add(rim.getCurrentState().getTransition(childState));
 			}
 		}
 		
@@ -131,6 +141,25 @@ public class ResourceRegistry {
 	
 	public String getEntityResourcePath(String entityName) {
 		return entityResourcePathMap.get(entityName);
+	}
+	
+	/**
+	 * Returns the transitions for a given entity
+	 * @param entityName Entity name
+	 * @return list of transition
+	 */
+	public List<Transition> getEntityTransitions(String entityName) {
+		return entityTransitionMap.get(entityName);
+	}
+	
+	/**
+	 * Returns the transition for a given link.
+	 * This method can return null for self links.
+	 * @param linkId Link id
+	 * @return transition
+	 */
+	public Transition getLinkTransition(String linkId) {
+		return linkTransitionMap.get(linkId);		
 	}
 	
 	/**

@@ -39,8 +39,10 @@ import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.link.CollectionResourceState;
 import com.temenos.interaction.core.link.Link;
 import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.link.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -112,7 +114,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		try {
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-				OEntity oentity = entityResource.getEntity();
 
 				//Convert Links to list of OLink
 				RequestContext requestContext = RequestContext.getRequestContext();
@@ -125,21 +126,30 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 						pathOtherResource = link.getHrefTransition(requestContext.getBasePath());
 					}
 					String rel = XmlFormatWriter.related + otherEntitySetName;
-					OLink olink = OLinks.relatedEntity(rel, otherEntitySetName, pathOtherResource);
+					OLink olink;
+					Transition linkTransition = resourceRegistry.getLinkTransition(link.getId());
+					if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
+						olink = OLinks.relatedEntities(rel, otherEntitySetName, pathOtherResource);
+					}
+					else {
+						olink = OLinks.relatedEntity(rel, otherEntitySetName, pathOtherResource);
+					}
 					olinks.add(olink);
 				}
 				
 				//Write entry
+				OEntity oentity = entityResource.getEntity();
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(oentity.getEntitySetName());
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
-				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
-				List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) cr.getEntities();
+				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
+				List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
 				for (EntityResource<OEntity> er : resources) {
 					entities.add(er.getEntity());
 				}
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
+				
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(collectionResource.getEntitySetName());
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;

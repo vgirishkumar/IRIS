@@ -24,7 +24,12 @@ public class Transition {
 	}
 	
 	public String getId() {
-		return source.getId() + ">" + target.getId();
+		if(source == null) {
+			return target.getId() + ">" + target.getId();		//transition to itself
+		}
+		else {
+			return source.getId() + ">" + target.getId();
+		}
 	}
 	
 	public boolean equals(Object other) {

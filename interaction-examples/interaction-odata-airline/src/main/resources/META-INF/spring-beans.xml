@@ -40,7 +40,9 @@
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
     	<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
 	</bean>
-	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
+	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
+		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
     <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
@@ -105,6 +107,13 @@
                     <key><value>GET+/Airport</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
                         <constructor-arg name="entity" value="Airport" />
+                        <constructor-arg name="producer" ref="producer" />
+                    </bean>
+                </entry>
+                <entry>
+                    <key><value>GET+/Airport({id})/flightSchedules</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="entity" value="FlightSchedule" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>

@@ -48,7 +48,7 @@ public class Behaviour {
 		CollectionResourceState persons = new CollectionResourceState("Persons", "collection", "/Persons");
 		ResourceState pseudo = new ResourceState(persons, "Persons.pseudo.created");
 		ResourceState person = new ResourceState("Persons", "item", "/Persons({id})");
-		ResourceState personNotes = new ResourceState("Notes", "PersonNotes", "/Persons({id})/Notes");
+		CollectionResourceState personNotes = new CollectionResourceState("Notes", "PersonNotes", "/Persons({id})/Notes");
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
