@@ -226,10 +226,10 @@ public class TestHTTPHypermediaRIM {
 		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
 		
 		rim.put(mock(HttpHeaders.class), "id", uriInfo, new EntityResource<Object>("test resource"));
-		verify(mockCommand).execute((InteractionContext) argThat(new InteractionContextPUTArgumentMatcher()));
+		verify(mockCommand).execute((InteractionContext) argThat(new CommandReceivesResourceArgumentMatcher()));
 	}
 
-	class InteractionContextPUTArgumentMatcher extends ArgumentMatcher<InteractionContext> {
+	class CommandReceivesResourceArgumentMatcher extends ArgumentMatcher<InteractionContext> {
 		public boolean matches(Object o) {
 			if (o instanceof InteractionContext) {
 				InteractionContext ctx = (InteractionContext) o;
@@ -240,6 +240,32 @@ public class TestHTTPHypermediaRIM {
             return false;
         }
     }
+
+	/* Test the contract for POST commands.
+	 * A POST command should could receive an InteractionContext that has the new
+	 * resource set; enabling the command to getResource.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPOSTCommandReceivesResource() {
+		ResourceState initialState = new ResourceState("entity", "state", "/test");
+		// create a mock command to test the context is initialised correctly
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		// create mock command controller
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.isValidCommand("POST", "/test")).thenReturn(true);
+		when(mockCommandController.fetchCommand("POST", "/test")).thenReturn(mockCommand);
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		
+		rim.post(mock(HttpHeaders.class), "id", uriInfo, new EntityResource<Object>("test resource"));
+		verify(mockCommand).execute((InteractionContext) argThat(new CommandReceivesResourceArgumentMatcher()));
+	}
+
 	
 	@Test(expected = RuntimeException.class)
 	public void testBootstrapInvalidCommandControllerConfiguration() {
