@@ -15,9 +15,17 @@ class @Link
         @successHandler = (model, textStatus, jqXHR) =>
             debugger
             if jqXHR.status is (205 or 404)
+#
+# reload current view
+#
                 new ResourceView({rel: 'self', href: this.resource.selfLink.model.href, method: 'GET'})
             else
-                new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
+# switching resource self link to 'self' link from new model response
+                this.resource.selfLink.model.href = model._links.self.href
+#
+# render view from delete response (DELETE will return 303, ajax call will handle redirect to 'Location'
+#
+                @resource.render(model, textStatus, jqXHR)
       when 'PUT'
         @hyperLink.click => @doPut()
         @formModel = @cloneModel @resource.model
