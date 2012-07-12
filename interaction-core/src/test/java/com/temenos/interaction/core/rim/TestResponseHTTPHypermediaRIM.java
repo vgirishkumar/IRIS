@@ -130,22 +130,34 @@ public class TestResponseHTTPHypermediaRIM {
 	 * that there is no new information to display, continue with the current
 	 * view of this resource.
 	 */
-	@SuppressWarnings({ "unchecked", })
 	@Test
 	public void testBuildResponseWithNoContent() throws Exception {
+		ResourceState initialState = new ResourceState("entity", "state", "/path");
 		/*
-		 * construct an InteractionContext that simply mocks the result of 
+		 * construct an InteractionCommand that simply mocks the result of 
 		 * storing a resource, with no updated resource for the user agent
 		 * to re-display
 		 */
-		ResourceState initialState = new ResourceState("entity", "state", "/path");
-		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState);
-		testContext.setResource(null);
-		// mock 'new InteractionContext()' in call to put
-		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class)).thenReturn(testContext);
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) {
+				// this is how a command indicates No Content
+				ctx.setResource(null);
+				return Result.SUCCESS;
+			}
+			@Override
+			public String getMethod() {
+				return null;
+			}
+		};
 		
-		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState));
+		// create mock command controller
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.isValidCommand("PUT", "/path")).thenReturn(true);
+		when(mockCommandController.fetchCommand("PUT", "/path")).thenReturn(mockCommand);
+
+		// RIM with command controller that issues our mock InteractionCommand
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
 		Response response = rim.put(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
 		
 		// null resource for no content

@@ -362,6 +362,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	decodeQueryParams(queryParameters);
     	// create the interaction context
     	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState());
+    	// set the resource for the command to access and PUT
+    	ctx.setResource(resource);
     	// execute commands
     	InteractionCommand.Result result = putCommand.execute(ctx);
     	/*

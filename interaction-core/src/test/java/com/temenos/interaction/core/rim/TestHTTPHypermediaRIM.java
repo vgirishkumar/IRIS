@@ -54,7 +54,7 @@ public class TestHTTPHypermediaRIM {
 	}
 
 	/* We decode the query parameters to workaround an issue in Wink */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testDecodeQueryParameters() {
 		ResourceState initialState = new ResourceState("entity", "state", "/test");
@@ -69,7 +69,7 @@ public class TestHTTPHypermediaRIM {
 		
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
-		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl();
+		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl<String, String>();
 		queryMap.add("$filter", "this+that");
 		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(queryMap);
 		
@@ -77,8 +77,7 @@ public class TestHTTPHypermediaRIM {
 		verify(mockCommand).execute((InteractionContext) argThat(new InteractionContextArgumentMatcher()));
 	}
 
-	@SuppressWarnings("rawtypes")
-	class InteractionContextArgumentMatcher extends ArgumentMatcher {
+	class InteractionContextArgumentMatcher extends ArgumentMatcher<InteractionContext> {
 		public boolean matches(Object o) {
 			if (o instanceof InteractionContext) {
 				InteractionContext ctx = (InteractionContext) o;
@@ -205,6 +204,43 @@ public class TestHTTPHypermediaRIM {
 		rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 	}
 
+	/* Test the contract for PUT commands.
+	 * A PUT command should should receive an InteractionContext that has the new
+	 * resource set; enabling the command to getResource.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPutCommandReceivesResource() {
+		ResourceState initialState = new ResourceState("entity", "state", "/test");
+		// create a mock command to test the context is initialised correctly
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		// create mock command controller
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.isValidCommand("PUT", "/test")).thenReturn(true);
+		when(mockCommandController.fetchCommand("PUT", "/test")).thenReturn(mockCommand);
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		
+		rim.put(mock(HttpHeaders.class), "id", uriInfo, new EntityResource<Object>("test resource"));
+		verify(mockCommand).execute((InteractionContext) argThat(new InteractionContextPUTArgumentMatcher()));
+	}
+
+	class InteractionContextPUTArgumentMatcher extends ArgumentMatcher<InteractionContext> {
+		public boolean matches(Object o) {
+			if (o instanceof InteractionContext) {
+				InteractionContext ctx = (InteractionContext) o;
+				if (ctx.getResource() == null)
+					return false;
+				return true;
+			}
+            return false;
+        }
+    }
+	
 	@Test(expected = RuntimeException.class)
 	public void testBootstrapInvalidCommandControllerConfiguration() {
 		String resourcePath = "/notes/{id}";
