@@ -1,19 +1,28 @@
 package com.temenos.interaction.example.hateoas.banking;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.HttpMethod;
 
-import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.EntityResource;
 
-public class GETServiceRootCommand implements ResourceGetCommand {
+/**
+ * Implement GET service root.  (NOTE - this is identical to {@link com.temenos.interaction.core.command.NoopGETCommand}
+ * @author aphethean
+ */
+public class GETServiceRootCommand implements InteractionCommand {
 
 	@Override
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
 		EntityResource<Object> resource = new EntityResource<Object>(null);
-		RESTResponse rr = new RESTResponse(Response.Status.OK, resource);
-		return rr;
+		ctx.setResource(resource);
+		return Result.SUCCESS;
+	}
+
+	@Override
+	public String getMethod() {
+		return HttpMethod.GET;
 	}
 
 }

@@ -1,31 +1,35 @@
 package com.temenos.interaction.example.hateoas.banking;
 
+
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.StatusType;
 
 import org.odata4j.core.OEntity;
 
 import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.command.ResourcePutCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 
-public class PUTFundTransferCommand implements ResourcePutCommand {
+public class PUTFundTransferCommand implements InteractionCommand {
 	private DaoHibernate daoHibernate;
 	
 	public PUTFundTransferCommand(DaoHibernate daoHibernate) {
 		this.daoHibernate = daoHibernate;
 	}
 
-	@SuppressWarnings("unchecked")
-	public StatusType put(String id, EntityResource<?> resource) {
-		//TODO change HALProvider to support jaxb
-		EntityResource<OEntity> er = (EntityResource<OEntity>) resource;
+	/* Implement InteractionCommand interface */
+
+	@Override
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		assert(ctx.getResource() != null);
+		assert(ctx.getId() != null);
+		EntityResource<OEntity> er = (EntityResource<OEntity>) ctx.getResource();
 		OEntity oe = er.getEntity();
-		//String id = (String) oe.getProperty("id").getValue();
 		String body = (String) oe.getProperty("body").getValue();
-		FundTransfer ft = new FundTransfer(new Long(id), body);
+		FundTransfer ft = new FundTransfer(new Long(ctx.getId()), body);
 		daoHibernate.putFundTransfer(ft);
-		return Response.Status.OK;
+		ctx.setResource(new EntityResource<FundTransfer>(ft));
+		return Result.SUCCESS;
 	}
 
 	public String getMethod() {
