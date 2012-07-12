@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -276,7 +277,7 @@ public class TestResponseHTTPHypermediaRIM {
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), hypermediaEngine);
 		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		
-		RESTResource resourceWithLinks = (RESTResource) response.getEntity();
+		RESTResource resourceWithLinks = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
 		assertNotNull(resourceWithLinks.getLinks());
 		assertFalse(resourceWithLinks.getLinks().isEmpty());
 		assertEquals(1, resourceWithLinks.getLinks().size());

@@ -254,7 +254,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			 * Add hypermedia information to this resource
 			 */
     		resource.setLinks(links);
-    		responseBuilder.entity(resource);
+    		/*
+    		 * Wrap response into a JAX-RS GenericEntity object to ensure we have the type 
+    		 * information available to the Providers
+    		 */
+    		responseBuilder.entity(resource.getGenericEntity());
     		responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
     	} else {
         	// TODO add support for other status codes
@@ -326,6 +330,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	decodeQueryParams(queryParameters);
     	// create the interaction context
     	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState());
+    	// set the resource for the command to access
+    	ctx.setResource(resource);
     	// execute commands
     	InteractionCommand.Result result = postCommand.execute(ctx);
     	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
@@ -362,7 +368,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	decodeQueryParams(queryParameters);
     	// create the interaction context
     	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState());
-    	// set the resource for the command to access and PUT
+    	// set the resource for the command to access
     	ctx.setResource(resource);
     	// execute commands
     	InteractionCommand.Result result = putCommand.execute(ctx);
