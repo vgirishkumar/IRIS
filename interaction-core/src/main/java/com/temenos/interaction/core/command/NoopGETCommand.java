@@ -20,7 +20,6 @@ public final class NoopGETCommand implements ResourceGetCommand, InteractionComm
 		return new RESTResponse(Response.Status.OK, new EntityResource<String>(""));
 	}
 
-	
 	/* Implement InteractionCommand interface */
 	
 	@Override

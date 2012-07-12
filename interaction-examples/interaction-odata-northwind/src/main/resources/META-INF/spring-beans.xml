@@ -44,7 +44,7 @@
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
-    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+    <bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
         <constructor-arg ref="edmDataServices" />
     	<constructor-arg>
     	    <set>
@@ -71,9 +71,9 @@
     <!-- Resources -->
     <bean id="ServiceDocument" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
-    				<bean class="com.temenos.interaction.core.link.ResourceState">
+    				<bean class="com.temenos.interaction.core.hypermedia.ResourceState">
     					<constructor-arg value="ServiceDocument" />
     					<constructor-arg value="initial" />
                         <constructor-arg value="/" />
@@ -87,9 +87,9 @@
 
     <bean id="Metadata" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
-    				<bean class="com.temenos.interaction.core.link.ResourceState">
+    				<bean class="com.temenos.interaction.core.hypermedia.ResourceState">
     					<constructor-arg value="Metadata" />
     					<constructor-arg value="initial" />
                         <constructor-arg value="/$metadata" />
@@ -103,7 +103,7 @@
 
     <bean id="Supplier" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Suppliers" />
@@ -118,7 +118,7 @@
     </bean>
     <bean id="Suppliers" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Suppliers" />
@@ -134,7 +134,7 @@
 
     <bean id="Order_Detail" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Order_Details" />
@@ -149,7 +149,7 @@
     </bean>
     <bean id="Order_Details" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Order_Details" />
@@ -165,7 +165,7 @@
 
     <bean id="Category" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Categories" />
@@ -180,7 +180,7 @@
     </bean>
     <bean id="Categories" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Categories" />
@@ -196,7 +196,7 @@
     
     <bean id="Customer" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Customers" />
@@ -211,7 +211,7 @@
     </bean>
     <bean id="Customers" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Customers" />
@@ -227,7 +227,7 @@
 
     <bean id="Product" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Products" />
@@ -242,7 +242,7 @@
     </bean>
     <bean id="Products" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Products" />
@@ -258,7 +258,7 @@
 
     <bean id="Employee" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Employees" />
@@ -273,7 +273,7 @@
     </bean>
     <bean id="Employees" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Employees" />
@@ -289,7 +289,7 @@
 
     <bean id="Order" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Orders" />
@@ -304,7 +304,7 @@
     </bean>
     <bean id="Orders" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     	<constructor-arg>
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
+    		<bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     			<constructor-arg>
     				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
     					<constructor-arg value="Orders" />
