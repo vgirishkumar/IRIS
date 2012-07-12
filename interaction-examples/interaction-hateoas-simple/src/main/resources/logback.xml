@@ -14,7 +14,8 @@
   <logger name="com.temenos.interaction.core.media.hal">
     <level value="DEBUG" />
   </logger>
-  <logger name="com.temenos.interaction.core.dynaresource">
+  <!-- Log debug information about resource interactions -->
+  <logger name="com.temenos.interaction.core.rim">
     <level value="INFO" />
   </logger>
 
