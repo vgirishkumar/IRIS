@@ -35,7 +35,7 @@ public class ResourceRegistry {
 	private Map<ResourceState, String> statePathMap = new HashMap<ResourceState, String>();
 	// map of link key to transition
 	private Map<String, Transition> linkTransitionMap = new HashMap<String, Transition>();
-	// map of entity name to a list of transition
+	// map of entity name to a list of transition (transitions to resources of specific entity)
 	private Map<String, List<Transition>> entityTransitionMap = new HashMap<String, List<Transition>>();
 	
 	/**

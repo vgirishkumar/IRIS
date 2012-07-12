@@ -50,9 +50,9 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
-			} else if (link.getRel().equals("Preferences.preferences")) {
+			} else if (link.getRel().equals("preferences")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/preferences", link.getHref());
-			} else if (link.getRel().equals("FundsTransfer.initial")) {
+			} else if (link.getRel().equals("initial")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers", link.getHref());
 			} else {
 				fail("unexpected link");
@@ -74,7 +74,7 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers", link.getHref());
-			} else if (link.getRel().equals("FundsTransfer.new")) {
+			} else if (link.getRel().equals("new")) {
 				assertEquals("POST " + Configuration.TEST_ENDPOINT_URI + "/fundtransfers/new", link.getHref());
 			} else {
 				fail("unexpected link");

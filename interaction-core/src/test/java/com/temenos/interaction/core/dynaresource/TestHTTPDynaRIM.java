@@ -356,11 +356,11 @@ public class TestHTTPDynaRIM {
 			
 		});
 		// notes
-		assertEquals("NOTE.collection", links.get(0).getRel());
+		assertEquals("collection", links.get(0).getRel());
 		assertEquals("/baseuri/notes", links.get(0).getHref());
 		assertEquals("root.initial>NOTE.collection", links.get(0).getId());
 		// persons
-		assertEquals("PERSON.collection", links.get(1).getRel());
+		assertEquals("collection", links.get(1).getRel());
 		assertEquals("/baseuri/persons", links.get(1).getHref());
 		assertEquals("root.initial>PERSON.collection", links.get(1).getId());
 		// service root
@@ -403,7 +403,7 @@ public class TestHTTPDynaRIM {
 		assertEquals("NOTE.collection>NOTE.collection", links.get(0).getId());
 		// notes
 		assertEquals("POST", links.get(1).getMethod());
-		assertEquals("stack.new", links.get(1).getRel());
+		assertEquals("new", links.get(1).getRel());
 		assertEquals("/baseuri/notes/new", links.get(1).getHref());
 		assertEquals("NOTE.collection>stack.new", links.get(1).getId());
 	}
@@ -448,15 +448,15 @@ public class TestHTTPDynaRIM {
 		// link to note '1'
 // TODO with better rel support we should have self and NOTE.item
 //		assertEquals("self NOTE.item", links.get(0).getRel());
-		assertEquals("NOTE.item", links.get(0).getRel());
+		assertEquals("item", links.get(0).getRel());
 		assertEquals("/baseuri/notes/1", links.get(0).getHref());
 		assertEquals("NOTE.collection>NOTE.item", links.get(0).getId());
 		// link to note '2'
-		assertEquals("NOTE.item", links.get(1).getRel());
+		assertEquals("item", links.get(1).getRel());
 		assertEquals("/baseuri/notes/2", links.get(1).getHref());
 		assertEquals("NOTE.collection>NOTE.item", links.get(1).getId());
 		// link to note '6'
-		assertEquals("NOTE.item", links.get(2).getRel());
+		assertEquals("item", links.get(2).getRel());
 		assertEquals("/baseuri/notes/6", links.get(2).getHref());
 		assertEquals("NOTE.collection>NOTE.item", links.get(2).getId());
 	}
@@ -499,32 +499,32 @@ public class TestHTTPDynaRIM {
 			
 		});
 		// link to DELETE note '1'
-		assertEquals("NOTE.final", links.get(0).getRel());
+		assertEquals("final", links.get(0).getRel());
 		assertEquals("/baseuri/notes/1", links.get(0).getHref());
 		assertEquals("NOTE.collection>NOTE.final", links.get(0).getId());
 		assertEquals("DELETE", links.get(0).getMethod());
 		// link to DELETE note '2'
-		assertEquals("NOTE.final", links.get(1).getRel());
+		assertEquals("final", links.get(1).getRel());
 		assertEquals("/baseuri/notes/2", links.get(1).getHref());
 		assertEquals("NOTE.collection>NOTE.final", links.get(1).getId());
 		assertEquals("DELETE", links.get(1).getMethod());
 		// link to DELETE note '6'
-		assertEquals("NOTE.final", links.get(2).getRel());
+		assertEquals("final", links.get(2).getRel());
 		assertEquals("/baseuri/notes/6", links.get(2).getHref());
 		assertEquals("NOTE.collection>NOTE.final", links.get(2).getId());
 		assertEquals("DELETE", links.get(0).getMethod());
 		// link to GET note '1'
-		assertEquals("NOTE.item", links.get(3).getRel());
+		assertEquals("item", links.get(3).getRel());
 		assertEquals("/baseuri/notes/1", links.get(3).getHref());
 		assertEquals("NOTE.collection>NOTE.item", links.get(3).getId());
 		assertEquals("GET", links.get(3).getMethod());
 		// link to GET note '2'
-		assertEquals("NOTE.item", links.get(4).getRel());
+		assertEquals("item", links.get(4).getRel());
 		assertEquals("/baseuri/notes/2", links.get(4).getHref());
 		assertEquals("NOTE.collection>NOTE.item", links.get(4).getId());
 		assertEquals("GET", links.get(4).getMethod());
 		// link to GET note '6'
-		assertEquals("NOTE.item", links.get(5).getRel());
+		assertEquals("item", links.get(5).getRel());
 		assertEquals("/baseuri/notes/6", links.get(5).getHref());
 		assertEquals("NOTE.collection>NOTE.item", links.get(5).getId());
 		assertEquals("GET", links.get(5).getMethod());

@@ -9,7 +9,9 @@ import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -116,25 +118,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 
 				//Convert Links to list of OLink
-				RequestContext requestContext = RequestContext.getRequestContext();
 				List<OLink> olinks = new ArrayList<OLink>();
 				for(Link link : entityResource.getLinks()) {
-					String otherEntitySetName = link.getRel();
-					String pathOtherResource = link.getHref();
-					if(requestContext != null) {
-						//Extract the transition fragment from the URI path
-						pathOtherResource = link.getHrefTransition(requestContext.getBasePath());
-					}
-					String rel = XmlFormatWriter.related + otherEntitySetName;
-					OLink olink;
-					Transition linkTransition = resourceRegistry.getLinkTransition(link.getId());
-					if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
-						olink = OLinks.relatedEntities(rel, otherEntitySetName, pathOtherResource);
-					}
-					else {
-						olink = OLinks.relatedEntity(rel, otherEntitySetName, pathOtherResource);
-					}
-					olinks.add(olink);
+					addLinkToOLinks(olinks, link);
 				}
 				
 				//Write entry
@@ -143,17 +129,26 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
-				List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) collectionResource.getEntities();
+				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
-				for (EntityResource<OEntity> er : resources) {
-					entities.add(er.getEntity());
+				Map<String, List<OLink>> entityOlinks = new HashMap<String, List<OLink>>();
+				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
+					OEntity entity = collectionEntity.getEntity();
+					
+					//Add entity links
+					List<OLink> olinks = new ArrayList<OLink>();
+					for(Link link : collectionEntity.getLinks()) {
+						addLinkToOLinks(olinks, link);
+					}		
+					entityOlinks.put(entity.getEntitySetName(), olinks);					
+					entities.add(entity);
 				}
 				
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(collectionResource.getEntitySetName());
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entities(entities, entitySet, inlineCount, skipToken));
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks);
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -161,6 +156,27 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		} catch (ODataException e) {
 			logger.error("An error occurred while writing " + mediaType + " resource representation", e);
 		}
+	}
+	
+	public void addLinkToOLinks(List<OLink> olinks, Link link) {
+		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
+		
+		String otherEntitySetName = link.getRel();
+		String pathOtherResource = link.getHref();
+		if(requestContext != null) {
+			//Extract the transition fragment from the URI path
+			pathOtherResource = link.getHrefTransition(requestContext.getBasePath());
+		}
+		String rel = XmlFormatWriter.related + otherEntitySetName;
+		OLink olink;
+		Transition linkTransition = resourceRegistry.getLinkTransition(link.getId());
+		if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
+			olink = OLinks.relatedEntities(rel, otherEntitySetName, pathOtherResource);
+		}
+		else {
+			olink = OLinks.relatedEntity(rel, otherEntitySetName, pathOtherResource);
+		}
+		olinks.add(olink);
 	}
 
 	@Override

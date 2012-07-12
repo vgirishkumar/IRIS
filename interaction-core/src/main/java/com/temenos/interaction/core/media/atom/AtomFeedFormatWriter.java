@@ -1,6 +1,9 @@
 package com.temenos.interaction.core.media.atom;
 
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.UriInfo;
 
@@ -8,6 +11,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.odata4j.core.ODataConstants;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OLink;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.xml.XmlFormatWriter;
@@ -24,7 +28,12 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     return ODataConstants.APPLICATION_ATOM_XML_CHARSET_UTF8;
   }
 
+  @Override
   public void write(UriInfo uriInfo, Writer w, EntitiesResponse response) {
+	  write(uriInfo, w, response, null);
+  }
+  
+  public void write(UriInfo uriInfo, Writer w, EntitiesResponse response, Map<String, List<OLink>> entityOlinks) {
     String baseUri = uriInfo.getBaseUri().toString();
 
     EdmEntitySet ees = response.getEntitySet();
@@ -53,8 +62,17 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     }
 
     for (OEntity entity : response.getEntities()) {
+    	//Obtain olinks for this entity
+    	List<OLink> olinks;
+    	if(entityOlinks != null) {
+    		olinks = entityOlinks.get(entitySetName);
+    	}
+    	else {
+    		olinks = new ArrayList<OLink>();    		
+    	}
+    	
       writer.startElement("entry");
-      writeEntry(writer, entity, entity.getProperties(), entity.getLinks(), baseUri, updated, ees, true);
+      writeEntry(writer, entity, entity.getProperties(), olinks, baseUri, updated, ees, true);
       writer.endElement("entry");
     }
 

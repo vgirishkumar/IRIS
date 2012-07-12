@@ -2,8 +2,10 @@ package com.temenos.interaction.core.media.edmx;
 
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.odata4j.core.NamespacedAnnotation;
 import org.odata4j.core.PrefixedNamespace;
@@ -108,6 +110,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
         writeProperties(eet.getDeclaredProperties(), writer);
 
         //Obtain the relation between entities and write navigation properties
+        Set<String> npNames = new HashSet<String>();
         List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entityName);
 		if(entityTransitions != null) {
 			for(Transition entityTransition : entityTransitions) {
@@ -130,14 +133,16 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 				}
 
 				//Write the navigation properties
-				String pathChunks[] = entityTransition.getCommand().getPath().split("/");
-				String npName = pathChunks.length > 0 ? pathChunks[pathChunks.length - 1] : targetState.getName();
-				writer.startElement(new QName2("NavigationProperty"));
-	            writer.writeAttribute("Name", npName);
-	            writer.writeAttribute("Relationship", relation.getNamespace() + "." + relation.getName());
-	            writer.writeAttribute("FromRole", relation.getSourceEntityName());
-	            writer.writeAttribute("ToRole", relation.getTargetEntityName());
-	            writer.endElement("NavigationProperty");
+				if(!npNames.contains(targetState.getName())) {		//We can have transitions to a resource state from multiple source states
+					String npName = targetState.getName();
+					writer.startElement(new QName2("NavigationProperty"));
+		            writer.writeAttribute("Name", npName);
+		            writer.writeAttribute("Relationship", relation.getNamespace() + "." + relation.getName());
+		            writer.writeAttribute("FromRole", relation.getSourceEntityName());
+		            writer.writeAttribute("ToRole", relation.getTargetEntityName());
+		            writer.endElement("NavigationProperty");
+		            npNames.add(npName);
+				}
 			}
 		}
         
