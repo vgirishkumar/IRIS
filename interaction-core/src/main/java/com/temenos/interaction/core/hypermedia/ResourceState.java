@@ -6,7 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ResourceState implements Comparable<ResourceState> {
+	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
 
 	/* the name of the entity which this is a state of */
 	private final String entityName;
@@ -182,6 +186,8 @@ public class ResourceState implements Comparable<ResourceState> {
 		Transition foundTransition = null;
 		for (Transition t : transitions.values()) {
 			if (t.getTarget().equals(targetState)) {
+				if (foundTransition == null)
+					logger.error("Duplicate transition definition [" + t + "]");
 				assert(foundTransition == null);  // transition must be defined more than once
 				foundTransition = t;
 			}
