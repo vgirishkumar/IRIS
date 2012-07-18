@@ -33,7 +33,7 @@
 				<ref local="serviceDocumentProvider" />
  			</set>
    		</property>
-		<property name="resourceRegistry" ref="resourceRegistry" />
+        <property name="serviceRoot" ref="ServiceRoot" />
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">

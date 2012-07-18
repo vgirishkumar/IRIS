@@ -67,6 +67,23 @@ public class TestResourceState {
 		assertEquals(0, states.size());
 	}
 
+	/**
+	 * Each resource state must have a unique path.  Test the constructor
+	 * that uses the state name as the path.
+	 */
+	@Test
+	public void testSelfStatePath() {
+		String ENTITY_NAME = "entity";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/test");
+		ResourceState exists = new ResourceState(initial, "exists");
+		ResourceState root = new ResourceState(ENTITY_NAME, "root", "");
+		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", "/archived");
+		assertEquals("/test", initial.getPath());
+		assertEquals("/test/exists", exists.getPath());
+		assertEquals("", root.getPath());
+		assertEquals("/archived", archived.getPath());
+	}
+
 	@Test
 	public void testSelfState() {
 		String ENTITY_NAME = "entity";
@@ -200,6 +217,16 @@ public class TestResourceState {
 		begin.addTransition("DELETE", end);
 		assertFalse(begin.isFinalState());
 		assertTrue(end.isFinalState());
+	}
+
+	/**
+	 * A pseudo state is a resource state without a resource to represent its state.
+	 * e.g. a deleted state is a state of an entity resource.
+	 */
+	@Test
+	public void testPseudoState() {
+		ResourceState deleted = new ResourceState("entity", "deleted", null);
+		assertTrue(deleted.isPseudoState());
 	}
 
 }

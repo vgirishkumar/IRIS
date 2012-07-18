@@ -29,8 +29,9 @@ public class Behaviour {
 
 	public ResourceStateMachine getNotesSM() {
 		CollectionResourceState notes = new CollectionResourceState("Notes", "collection", "/Notes");
-		ResourceState pseudo = new ResourceState(notes, "Notes.pseudo.created");
-		ResourceState note = new ResourceState("Notes", "item", "/Notes({id})");
+		ResourceState pseudo = new ResourceState(notes, "PseudoCreated", null);
+		// Option 1 for configuring the interaction - use another state as a parent
+		ResourceState note = new ResourceState(notes, "item", "({id})");
 		ResourceState notePerson = new ResourceState("Persons", "NotesPerson", "/Notes({id})/Persons");
 		
 		// add collection transition to individual items
@@ -39,14 +40,15 @@ public class Behaviour {
 		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
 		notes.addTransition("POST", pseudo);
 		note.addTransition("GET", notePerson);
-		note.addTransition("DELETE", note);
+		note.addTransition("DELETE", ResourceState.FINAL);
 
 		return new ResourceStateMachine(notes);
 	}
 
 	public ResourceStateMachine getPersonsSM() {
 		CollectionResourceState persons = new CollectionResourceState("Persons", "collection", "/Persons");
-		ResourceState pseudo = new ResourceState(persons, "Persons.pseudo.created");
+		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", null);
+		// Option 2 for configuring the interaction - specify the entity, state, and fully qualified path
 		ResourceState person = new ResourceState("Persons", "item", "/Persons({id})");
 		ResourceState personNotes = new ResourceState("Notes", "PersonNotes", "/Persons({id})/Notes");
 		

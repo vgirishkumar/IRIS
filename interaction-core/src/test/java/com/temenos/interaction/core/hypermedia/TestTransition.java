@@ -15,8 +15,8 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("begin", "", "/");
 		ResourceState begin2 = new ResourceState("begin", "", "/");
 
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff"), begin2);
-		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff"), begin2);
+		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), begin2);
+		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), begin2);
 		assertEquals(t, t2);
 		assertEquals(t.hashCode(), t2.hashCode());
 	}
@@ -24,8 +24,8 @@ public class TestTransition {
 	@Test
 	public void testEqualityNullSource() {
 		ResourceState begin2 = new ResourceState("begin", "", "/");
-		Transition t = new Transition(null, new TransitionCommandSpec("PUT", "stuff"), begin2);
-		Transition t2 = new Transition(null, new TransitionCommandSpec("PUT", "stuff"), begin2);
+		Transition t = new Transition(null, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), begin2);
+		Transition t2 = new Transition(null, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), begin2);
 		assertEquals(t, t2);
 		assertEquals(t.hashCode(), t2.hashCode());
 	}
@@ -36,13 +36,13 @@ public class TestTransition {
 		ResourceState exists = new ResourceState("entity", "exists", "{id}");
 		ResourceState end = new ResourceState("entity", "end", "");
 
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff"), end);
-		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff"), exists);
+		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), end);
+		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), exists);
 		assertFalse(t.equals(t2));
 		assertFalse(t.hashCode() == t2.hashCode());
 		
-		Transition t3 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff"), end);
-		Transition t4 = new Transition(begin, new TransitionCommandSpec("PUT", "stuffed"), end);
+		Transition t3 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), end);
+		Transition t4 = new Transition(begin, new TransitionCommandSpec("PUT", "stuffed", Transition.RESET_CONTENT), end);
 		assertFalse(t3.equals(t4));
 		assertFalse(t3.hashCode() == t4.hashCode());
 
@@ -53,7 +53,17 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("entity", "begin", "{id}");
 		ResourceState end = new ResourceState("entity", "end", "{id}");
 
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff"), end);
+		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
 		assertEquals("entity.begin>entity.end", t.getId());
 	}
+
+	@Test
+	public void testToString() {
+		ResourceState begin = new ResourceState("entity", "begin", "/begin");
+		ResourceState end = new ResourceState("entity", "end", "/end");
+
+		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
+		assertEquals("entity.begin>entity.end", t.toString());
+	}
+
 }

@@ -65,8 +65,8 @@ public class TestHTTPDynaRIM {
 		String ENTITY_NAME = "NOTE";
 		String resourcePath = "/notes/{id}";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
-		ResourceState exists = new ResourceState(initial, "exists");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", resourcePath);
+		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted", resourcePath);
 
 		// create
 		initial.addTransition("PUT", exists);
@@ -91,8 +91,8 @@ public class TestHTTPDynaRIM {
 		String resourcePath = "/notes/{id}";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
 		ResourceState exists = new ResourceState(initial, "exists");
-		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/notes/{id}/draft");
+		ResourceState deleted = new ResourceState(initial, "deleted", null);
 	
 		// create
 		initial.addTransition("PUT", exists);
@@ -112,13 +112,14 @@ public class TestHTTPDynaRIM {
 		HTTPDynaRIM parent = new HTTPDynaRIM(null, stateMachine, initial, mock(Transformer.class), cc);
 		verify(cc).fetchGetCommand("/notes/{id}");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
-		assertEquals(1, resources.size());
+		assertEquals(2, resources.size());
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
+		verify(cc, times(1)).fetchGetCommand("/notes/{id}/exists");
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}/draft");
-		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}");
+		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/exists");
 		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/draft");
 		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/draft");
-		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}");
+		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/exists");
 	}
 
 	@Test
@@ -126,9 +127,9 @@ public class TestHTTPDynaRIM {
 		String ENTITY_NAME = "PublishNote";
 		String resourcePath = "/notes/{id}";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
-		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/published");
-		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/notes/{id}/published");
+		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/notes/{id}/draft");
+		ResourceState deleted = new ResourceState(initial, "deleted", null);
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -159,22 +160,22 @@ public class TestHTTPDynaRIM {
 	@Test
 	public void testRIMsMultipleSubstates1() {
 		String ENTITY_NAME = "BOOKING";
-		String resourcePath = "/bookings/{id}";
+		String resourcePath = "/bookings";
 		
 		// the booking
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", resourcePath);
-  		ResourceState bookingCreated = new ResourceState(begin, "bookingCreated");
-  		ResourceState bookingCancellation = new ResourceState(ENTITY_NAME, "cancellation", "/cancellation");
-  		ResourceState deleted = new ResourceState(begin, "deleted");
+  		ResourceState bookingCreated = new ResourceState(begin, "bookingCreated", "/{id}");
+  		ResourceState bookingCancellation = new ResourceState(bookingCreated, "cancellation", "/cancellation");
+  		ResourceState deleted = new ResourceState(bookingCreated, "deleted", null);
 
 		begin.addTransition("PUT", bookingCreated);
 		bookingCreated.addTransition("PUT", bookingCancellation);
 		bookingCancellation.addTransition("DELETE", deleted);
 
 		// the payment
-		ResourceState payment = new ResourceState(ENTITY_NAME, "payment", "/payment");
-		ResourceState confirmation = new ResourceState(ENTITY_NAME, "pconfirmation", "/payment/pconfirmation");
-		ResourceState waitingForConfirmation = new ResourceState(ENTITY_NAME, "pwaiting", "/payment/pwaiting");
+		ResourceState payment = new ResourceState(bookingCreated, "payment", "/payment");
+		ResourceState confirmation = new ResourceState(payment, "pconfirmation", "/pconfirmation");
+		ResourceState waitingForConfirmation = new ResourceState(payment, "pwaiting", "/pwaiting");
 
 		payment.addTransition("PUT", waitingForConfirmation);
 		payment.addTransition("PUT", confirmation);
@@ -186,9 +187,9 @@ public class TestHTTPDynaRIM {
 		
 		CommandController cc = mock(CommandController.class);
 		HTTPDynaRIM parent = new HTTPDynaRIM(null, new ResourceStateMachine(begin), begin, mock(Transformer.class), cc);
-		verify(cc, times(1)).fetchGetCommand("/bookings/{id}");
+		verify(cc, times(1)).fetchGetCommand("/bookings");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
-		assertEquals(4, resources.size());
+		assertEquals(5, resources.size());
 		verify(cc, times(1)).fetchGetCommand("/bookings/{id}");
 		verify(cc, times(1)).fetchGetCommand("/bookings/{id}/cancellation");
 		verify(cc, times(1)).fetchGetCommand("/bookings/{id}/payment");
@@ -235,7 +236,7 @@ public class TestHTTPDynaRIM {
 		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/new", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getId());
+		assertEquals("NOTE.initial>NOTE.initial", link.getTitle());
 	}
 
 	/*
@@ -278,7 +279,7 @@ public class TestHTTPDynaRIM {
 		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/123/reviewers", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getId());
+		assertEquals("NOTE.initial>NOTE.initial", link.getTitle());
 	}
 
 	/*
@@ -322,7 +323,7 @@ public class TestHTTPDynaRIM {
 		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/123", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getId());
+		assertEquals("NOTE.initial>NOTE.initial", link.getTitle());
 	}
 
 	/*
@@ -352,22 +353,22 @@ public class TestHTTPDynaRIM {
 		Collections.sort(links, new Comparator<Link>() {
 			@Override
 			public int compare(Link o1, Link o2) {
-				return o1.getId().compareTo(o2.getId());
+				return o1.getTitle().compareTo(o2.getTitle());
 			}
 			
 		});
 		// notes
 		assertEquals("collection", links.get(0).getRel());
 		assertEquals("/baseuri/notes", links.get(0).getHref());
-		assertEquals("root.initial>NOTE.collection", links.get(0).getId());
+		assertEquals("root.initial>NOTE.collection", links.get(0).getTitle());
 		// persons
 		assertEquals("collection", links.get(1).getRel());
 		assertEquals("/baseuri/persons", links.get(1).getHref());
-		assertEquals("root.initial>PERSON.collection", links.get(1).getId());
+		assertEquals("root.initial>PERSON.collection", links.get(1).getTitle());
 		// service root
 		assertEquals("self", links.get(2).getRel());
 		assertEquals("/baseuri/", links.get(2).getHref());
-		assertEquals("root.initial>root.initial", links.get(2).getId());
+		assertEquals("root.initial>root.initial", links.get(2).getTitle());
 	}
 
 	@SuppressWarnings({ "unchecked" })

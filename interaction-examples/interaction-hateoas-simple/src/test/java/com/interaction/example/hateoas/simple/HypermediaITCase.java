@@ -148,13 +148,60 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals("DELETE", method);
 			String uri = hrefElements[1];
 
-			// execute delete
-			ClientResponse deleteResponse = Client.create().resource(uri).accept(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
+			// create http client
+			Client client = Client.create();
+			// do not follow the Location redirect
+			client.setFollowRedirects(false);
+			// execute delete without custom link relation, will find the only DELETE transition from entity
+			ClientResponse deleteResponse = client.resource(uri).accept(MediaType.APPLICATION_HAL_JSON)
+					.delete(ClientResponse.class);
+	        // 303 "See Other" instructs user agent to fetch another resource as specified by the 'Location' header
+	        assertEquals(303, deleteResponse.getStatus());
+	        assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", deleteResponse.getHeaders().getFirst("Location"));
+		}
+	}
+
+	@Test
+	public void testFollowDeleteItemLinkRelation() {
+		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+
+		ResourceFactory resourceFactory = new ResourceFactory();
+		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		
+		// the items in the collection
+		List<Resource> subresources = resource.getResources();
+		assertNotNull(subresources);
+		
+		// follow the link to delete the first in the collection
+		if (subresources.size() == 0) {
+			// we might have run the integration tests more times than we have rows in our table
+		} else {
+			Resource item = subresources.get(0);
+			List<Link> itemLinks = item.getLinks();
+			assertEquals(2, itemLinks.size());
+			Link deleteLink = null;
+			for (Link link : itemLinks) {
+				if (link.getName().get().contains("note.initial>note.end")) {
+					deleteLink = link;
+				}
+			}
+			assertNotNull(deleteLink);
+			String[] hrefElements = deleteLink.getHref().split(" ");
+			String method = hrefElements[0];
+			assertEquals("DELETE", method);
+			String uri = hrefElements[1];
+
+			// execute delete with custom link relation (see rfc5988)
+			ClientResponse deleteResponse = Client.create().resource(uri)
+					.header("Link", "<" + uri + ">; rel=\"" + deleteLink.getName().get() + "\"")
+					.accept(MediaType.APPLICATION_HAL_JSON)
+					.delete(ClientResponse.class);
 	        // 205 "Reset Content" instructs user agent to reload the resource that contained this link
 	        assertEquals(205, deleteResponse.getStatus());
 		}
 	}
-
+	
 	@Test
 	public void testFollowDeleteLinkWithLinkRel() {
 		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);

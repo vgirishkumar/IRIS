@@ -56,7 +56,7 @@ public class TestAbstractHTTPResourceInteractionModel {
 			public ResourceState getCurrentState() { return null; }
 			public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) {
 				List<Link> links = new ArrayList<Link>();
-				links.add(new Link("id", "self", "href", null, null, "GET", "label", "description", null));
+				links.add(new Link("id", "self", "href", null, null));
 				return links;
 			}
 		};

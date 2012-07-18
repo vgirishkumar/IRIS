@@ -59,7 +59,7 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOT() {
-		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gexists[label=\"PUT {id}\"]\n    Gexists->Gdeleted[label=\"DELETE {id}\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
+		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gexists[label=\"PUT {id} (0)\"]\n    Gexists->Gdeleted[label=\"DELETE {id} (0)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "G";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "{id}");
@@ -78,9 +78,9 @@ public class TestASTValidation {
 	@Test
 	public void testDOTMultipleFinalStates() {
 		String expected = "digraph CRUD_ENTITY {\n    CRUD_ENTITYinitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    CRUD_ENTITYexists[label=\"CRUD_ENTITY.exists\"]\n    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted\"]\n    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived\"]\n"
-			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT\"]\n"
-			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE\"]\n"
-			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived\"]\n"
+			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT (0)\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE (0)\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived (0)\"]\n"
 			+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			+ "    CRUD_ENTITYdeleted->final[label=\"\"]\n"
 			+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
@@ -88,9 +88,9 @@ public class TestASTValidation {
 		
 		String ENTITY_NAME = "CRUD_ENTITY";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "");
-		ResourceState exists = new ResourceState(initial, "exists");
+		ResourceState exists = new ResourceState(initial, "exists", null);
 		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", "/archived");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState deleted = new ResourceState(initial, "deleted", null);
 	
 		initial.addTransition("PUT", exists);		
 		exists.addTransition("PUT", archived);
@@ -123,18 +123,18 @@ public class TestASTValidation {
 				+ "    processcompletedProcess[label=\"process.completedProcess\"]\n"
 				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskcomplete->final[label=\"\"]\n"
-				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
-				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired\"]\n"
+				+ "    taskacquired->taskcomplete[label=\"PUT /completed (0)\"]\n"
+				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired (0)\"]\n"
 				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskabandoned->final1[label=\"\"]\n"
-				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
-				+ "    processprocesses->processnew[label=\"POST /processes/new\"]\n"
-				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id}\"]\n"
-				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n"
-				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
+				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired (0)\"]\n"
+				+ "    processprocesses->processnew[label=\"POST /processes/new (0)\"]\n"
+				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id} (0)\"]\n"
+				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask (0)\"]\n"
+				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id} (0)\"]\n"
 				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			    + "    processcompletedProcess->final2[label=\"\"]\n"
-			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
+			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes (0)\"]\n"
 				+ "}";
 		assertEquals(expected, new ASTValidation().graph(serviceDocumentSM));
 	}
@@ -156,8 +156,8 @@ public class TestASTValidation {
 			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
 			    + "    processprocesses[shape=square, width=.25, label=\"process.processes\"]\n"
 			    + "    taskacquired[shape=square, width=.25, label=\"task.acquired\"]\n"
-				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
-				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
+				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes (0)\"]\n"
+				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes (0)\"]\n"
 				+ "}";
 		assertEquals(expected, new ASTValidation().graphEntityNextStates(serviceDocumentSM));
 	}

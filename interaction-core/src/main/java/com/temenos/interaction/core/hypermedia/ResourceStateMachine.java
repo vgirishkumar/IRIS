@@ -34,7 +34,11 @@ public class ResourceStateMachine {
 
 	public final ResourceState initial;
 	public final Transformer transformer;
-		
+	
+	// optimised access
+	private Map<String,Transition> transitionsById = new HashMap<String,Transition>();
+	private List<ResourceState> allStates = new ArrayList<ResourceState>();
+	
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null);
 	}
@@ -43,8 +47,14 @@ public class ResourceStateMachine {
 		this.initial = initialState;
 		this.initial.setInitial(true);
 		this.transformer = transformer;
+		build();
 	}
 
+	private void build() {
+		collectStates(allStates, initial);
+		collectTransitionsById(transitionsById);
+	}
+	
 	public ResourceState getInitial() {
 		return initial;
 	}
@@ -54,9 +64,7 @@ public class ResourceStateMachine {
 	}
 
 	public Collection<ResourceState> getStates() {
-		List<ResourceState> result = new ArrayList<ResourceState>();
-		collectStates(result, initial);
-		return result;
+		return allStates;
 	}
 
 	private void collectStates(Collection<ResourceState> result, ResourceState currentState) {
@@ -70,6 +78,15 @@ public class ResourceStateMachine {
 		
 	}
 
+	private void collectTransitionsById(Map<String,Transition> transitions) {
+		for (ResourceState s : getStates()) {
+			for (ResourceState target : s.getAllTargets()) {
+				Transition transition = s.getTransition(target);
+				transitions.put(transition.getId(), transition);
+			}
+		}
+	}
+	
 	/**
 	 * Return a map of all the paths (states), and interactions with other states
 	 * @return
@@ -140,12 +157,12 @@ public class ResourceStateMachine {
 		if (currentState == null || states.contains(currentState)) return;
 		states.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
-			if (!next.isSelfState()) {
+			if (!next.equals(currentState)
+					&& !next.isPseudoState()
+					&& !next.getPath().equals(currentState.getPath())) {
 				String path = next.getPath();
-				
 				if (result.get(path) != null)
-					logger.debug("Replacing ResourceState[" + path + "] " + result.get(path));
-				
+					logger.warn("Replacing ResourceState[" + path + "] " + result.get(path) + " with " + next + ", this could result in unexpected transitions.");
 				result.put(path, next);
 			}
 			collectStates(result, states, next);
@@ -198,7 +215,7 @@ public class ResourceStateMachine {
 		}
 		
 		// add link to GET 'self'
-		links.add(createSelfLink(state, entity, pathParameters));
+		links.add(createSelfLink(state.getSelfTransition(), entity, pathParameters));
 
 		/*
 		 * Add links to other application states (resources)
@@ -232,40 +249,76 @@ public class ResourceStateMachine {
 	/**
 	 * Create a Link to a target state if the supplied custom 
 	 * link relation resolves to a valid transition.
-	 * @param customLinkRelations
+	 * @param pathParameters
 	 * @param resourceEntity
 	 * @param currentState
+	 * @param customLinkRelations
 	 * @return
 	 */
-	public Link getLinkFromRelations(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState currentState, List<String> customLinkRelations) {
+	public Link getLinkFromRelations(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState currentState, LinkHeader linkHeader) {
 		Link target = null;
 		// Was a custom link relation supplied, informing us which link was used?
-		if (customLinkRelations != null) {
-			for (String link : customLinkRelations) {
-				for (ResourceState nextState : currentState.getAllTargets()) {
-					Transition transition = currentState.getTransition(nextState);
-					if (link.contains(transition.getId())) {
-						target = createSelfLink(transition.getTarget(), resourceEntity, pathParameters);
-					}
+		if (linkHeader != null) {
+			Set<String> relationships = linkHeader.getLinksByRelationship().keySet();
+			for (String related : relationships) {
+				Transition transition = getTransitionsById().get(related);
+				if (transition != null) {
+					target = createLinkToTarget(transition, resourceEntity, pathParameters);
 				}
 			}
 		}
 		return target;
 	}
+
+	public Map<String,Transition> getTransitionsById() {
+		return transitionsById;
+	}
 	
+	/**
+	 * Create a Link to a target state if the supplied method 
+	 * resolves to a valid transition.
+	 * @param pathParameters
+	 * @param resourceEntity
+	 * @param currentState
+	 * @param method
+	 * @return
+	 * @invariant method != null
+	 */
+	public Link getLink(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState currentState, String method) {
+		assert(method != null);
+		Link target = null;
+		for (ResourceState nextState : currentState.getAllTargets()) {
+			Transition transition = currentState.getTransition(nextState);
+			if (method.contains(transition.getCommand().getMethod())) {
+				// do not create link if this a pseudo state, effectively no state
+				if (!transition.getTarget().isPseudoState())
+					target = createLinkToTarget(transition, resourceEntity, pathParameters);
+			}
+		}
+		return target;
+	}
+
 	/*
 	 * @invariant {@link RequestContext} must have been initialised
 	 */
-	private Link createSelfLink(ResourceState state, Object entity, MultivaluedMap<String, String> pathParameters) {
+	private Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		assert(RequestContext.getRequestContext() != null);
-		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(state.getPath());
-		return createLink(selfUriTemplate, state.getSelfTransition(), entity, pathParameters);
+		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(transition.getTarget().getPath());
+		return createLink(selfUriTemplate, transition, entity, pathParameters);
 	}
-	
+
+	/*
+	 * @invariant {@link RequestContext} must have been initialised
+	 */
+	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
+		assert(RequestContext.getRequestContext() != null);
+		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(transition.getCommand().getPath());
+		return createLink(selfUriTemplate, transition, entity, pathParameters);
+	}
+
 	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity, MultivaluedMap<String, String> map) {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
-			String linkId = transition.getId();
 			// TODO get rels properly
 			String rel = transition.getTarget().getRel();
 			if (transition.getSource().equals(transition.getTarget())) {
@@ -290,14 +343,14 @@ public class ResourceStateMachine {
 			} else {
 				href = linkTemplate.buildFromMap(properties);
 			}
-			Link link = new Link(linkId, rel, href.toASCIIString(), null, null, method, "label", "description", null);
-			logger.debug("Created link for transition [" + transition + "] [id=" + linkId+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");
+			Link link = new Link(transition, rel, href.toASCIIString(), method);
+			logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId()+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");
 			return link;
 		} catch (IllegalArgumentException e) {
-			logger.error("An error occurred while creating link [" +  cs.getPath() + "]", e);
+			logger.error("An error occurred while creating link [" +  transition + "]", e);
 			throw e;
 		} catch (UriBuilderException e) {
-			logger.error("An error occurred while creating link [" + cs.getPath() + "]", e);
+			logger.error("An error occurred while creating link [" + transition + "]", e);
 			throw e;
 		}
 	}

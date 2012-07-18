@@ -2,6 +2,9 @@ package com.temenos.interaction.core.hypermedia;
 
 public class Transition {
 
+	public static final int FOR_EACH = 1;  // add transition to every item in collection
+	public static final int RESET_CONTENT = 2;  // inform the user agent they need to 205 Reset Content following this transition
+
 	private final ResourceState source, target;
 	private final TransitionCommandSpec command;
 	

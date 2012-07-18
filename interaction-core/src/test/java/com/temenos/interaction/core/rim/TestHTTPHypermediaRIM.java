@@ -284,8 +284,8 @@ public class TestHTTPHypermediaRIM {
 		String ENTITY_NAME = "NOTE";
 		String resourcePath = "/notes/{id}";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
-		ResourceState exists = new ResourceState(initial, "exists");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", resourcePath);
+		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted", resourcePath);
 
 		// create
 		initial.addTransition("PUT", exists);
@@ -313,8 +313,8 @@ public class TestHTTPHypermediaRIM {
 		String resourcePath = "/notes/{id}";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
 		ResourceState exists = new ResourceState(initial, "exists");
-		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState draft = new ResourceState(initial, "draft", "/draft");
+		ResourceState deleted = new ResourceState(initial, "deleted", null);
 	
 		// create
 		initial.addTransition("PUT", exists);
@@ -337,11 +337,11 @@ public class TestHTTPHypermediaRIM {
 		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(cc, stateMachine);
 		verify(cc).fetchCommand("GET", "/notes/{id}");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
-		assertEquals(1, resources.size());
+		assertEquals(2, resources.size());
 		assertEquals(draft, resources.iterator().next().getCurrentState());
-		verify(cc, times(1)).fetchCommand("GET", "/notes/{id}");
-		verify(cc).fetchCommand("DELETE", "/notes/{id}");
-		verify(cc).fetchCommand("PUT", "/notes/{id}");
+		verify(cc, times(1)).fetchCommand("GET", "/notes/{id}/exists");
+		verify(cc).fetchCommand("DELETE", "/notes/{id}/exists");
+		verify(cc).fetchCommand("PUT", "/notes/{id}/exists");
 		verify(cc, times(1)).fetchCommand("GET", "/notes/{id}/draft");
 		verify(cc).fetchCommand("DELETE", "/notes/{id}/draft");
 		verify(cc).fetchCommand("PUT", "/notes/{id}/draft");
@@ -352,9 +352,9 @@ public class TestHTTPHypermediaRIM {
 		String ENTITY_NAME = "PublishNote";
 		String resourcePath = "/notes/{id}";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
-		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/published");
-		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState published = new ResourceState(initial, "published", "/published");
+		ResourceState draft = new ResourceState(initial, "draft", "/draft");
+		ResourceState deleted = new ResourceState(initial, "deleted", null);
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -388,22 +388,22 @@ public class TestHTTPHypermediaRIM {
 	@Test
 	public void testBootstrapRIMsMultipleSubstates1() {
 		String ENTITY_NAME = "BOOKING";
-		String resourcePath = "/bookings/{id}";
+		String resourcePath = "/bookings";
 		
 		// the booking
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", resourcePath);
-  		ResourceState bookingCreated = new ResourceState(begin, "bookingCreated");
-  		ResourceState bookingCancellation = new ResourceState(ENTITY_NAME, "cancellation", "/cancellation");
-  		ResourceState deleted = new ResourceState(begin, "deleted");
+  		ResourceState bookingCreated = new ResourceState(begin, "bookingCreated", "/{id}");
+  		ResourceState bookingCancellation = new ResourceState(bookingCreated, "cancellation", "/cancellation");
+  		ResourceState deleted = new ResourceState(bookingCreated, "deleted", null);
 
 		begin.addTransition("PUT", bookingCreated);
 		bookingCreated.addTransition("PUT", bookingCancellation);
 		bookingCancellation.addTransition("DELETE", deleted);
 
 		// the payment
-		ResourceState payment = new ResourceState(ENTITY_NAME, "payment", "/payment");
-		ResourceState confirmation = new ResourceState(ENTITY_NAME, "pconfirmation", "/payment/pconfirmation");
-		ResourceState waitingForConfirmation = new ResourceState(ENTITY_NAME, "pwaiting", "/payment/pwaiting");
+		ResourceState payment = new ResourceState(bookingCreated, "payment", "/payment");
+		ResourceState confirmation = new ResourceState(payment, "pconfirmation", "/pconfirmation");
+		ResourceState waitingForConfirmation = new ResourceState(payment, "pwaiting", "/pwaiting");
 
 		payment.addTransition("PUT", waitingForConfirmation);
 		payment.addTransition("PUT", confirmation);
@@ -418,20 +418,20 @@ public class TestHTTPHypermediaRIM {
 		when(cc.fetchCommand(anyString(), anyString())).thenReturn(mock(InteractionCommand.class));
 		
 		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(cc, new ResourceStateMachine(begin));
-		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}");
+		verify(cc, times(1)).fetchCommand("GET", "/bookings");
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
-		assertEquals(4, resources.size());
+		assertEquals(5, resources.size());
 		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}");
-		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}/cancellation");
-		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}/payment");
-		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}/payment/pconfirmation");
-		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}/payment/pwaiting");
 		verify(cc).fetchCommand("PUT", "/bookings/{id}");
-		verify(cc).fetchCommand("PUT", "/bookings/{id}/cancellation");
-		verify(cc).fetchCommand("PUT", "/bookings/{id}/payment");
-		verify(cc).fetchCommand("PUT", "/bookings/{id}/payment/pwaiting");
-		verify(cc).fetchCommand("PUT", "/bookings/{id}/payment/pconfirmation");
+		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}/cancellation");
 		verify(cc).fetchCommand("DELETE", "/bookings/{id}/cancellation");
+		verify(cc).fetchCommand("PUT", "/bookings/{id}/cancellation");
+		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}/payment");
+		verify(cc).fetchCommand("PUT", "/bookings/{id}/payment");
+		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}/payment/pconfirmation");
+		verify(cc).fetchCommand("PUT", "/bookings/{id}/payment/pconfirmation");
+		verify(cc, times(1)).fetchCommand("GET", "/bookings/{id}/payment/pwaiting");
+		verify(cc).fetchCommand("PUT", "/bookings/{id}/payment/pwaiting");
 	}
 
 	@Test

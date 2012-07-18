@@ -30,10 +30,10 @@
         	<set>
 				<ref local="serviceDocumentProvider" />
 				<ref local="edmxProvider" />
-				<ref local="atomProvider" />
+ 				<ref local="atomProvider" />
  			</set>
    		</property>
-		<property name="resourceRegistry" ref="resourceRegistry" />
+        <property name="serviceRoot" ref="ServiceRoot" />
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
@@ -42,28 +42,27 @@
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
-
-    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+ 
+    <bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
         <constructor-arg name="edmDataServices" ref="edmDataServices" />
         <constructor-arg name="root" ref="ServiceRoot" />
     </bean>
-
+ 
     <!-- Behaviour -->
     <bean id="behaviour" class="com.interaction.example.odata.notes.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
-    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
+    <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
         <constructor-arg name="initialState" ref="interaction" />
     </bean>
 
     <!-- Resources -->
-    <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-        <constructor-arg name="stateMachine" ref="stateMachine" />
-        <constructor-arg name="resourceRegistry"><null/></constructor-arg>
-        <constructor-arg name="commandController" ref="commands" />
+    <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg ref="stateMachine" />
     </bean>
-
+     
     <!-- Commands -->
-    <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
+    <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
     	<constructor-arg name="commands">
             <map>
                 <entry>

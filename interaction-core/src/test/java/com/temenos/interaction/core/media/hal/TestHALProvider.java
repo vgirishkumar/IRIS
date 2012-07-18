@@ -159,7 +159,7 @@ public class TestHALProvider {
 		OEntity oentity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(oentity);
 		Collection<Link> links = new ArrayList<Link>();
-		links.add(new Link("id", "self", selfLink, null, null, "GET", "description", "label", null));
+		links.add(new Link("id", "self", selfLink, null, null));
 		entityResource.setLinks(links);
 		return entityResource;
 	}
@@ -212,7 +212,7 @@ public class TestHALProvider {
 	
 	private Link mockLink(String id, String rel, String href) {
 		Link link = mock(Link.class);
-		when(link.getId()).thenReturn(id);
+		when(link.getTitle()).thenReturn(id);
 		when(link.getRel()).thenReturn(rel);
 		when(link.getHref()).thenReturn(href);
         return link;

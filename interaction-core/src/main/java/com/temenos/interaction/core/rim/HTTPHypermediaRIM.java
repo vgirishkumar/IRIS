@@ -43,6 +43,7 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.hypermedia.ASTValidation;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.LinkHeader;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
@@ -176,14 +177,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			// get the child state
 			ResourceState childState = resourceStates.get(childPath);
 			HTTPHypermediaRIM child = null;
-			if (!childState.getEntityName().equals(hypermediaEngine.getInitial().getEntityName())) {
-				childSM = new ResourceStateMachine(childState, hypermediaEngine.getTransformer());
+			if (childState.equals(getCurrentState()) || childState.getPath().equals(getCurrentState().getPath())) {
+				continue;
+			} else if (!childState.isSelfState()) {
 				// this is a new resource for a different entity
-				child = new HTTPHypermediaRIM(null, getCommandController(), childSM, childState);
-			} else {
-				// a new resource for a state of the same entity
-				child = new HTTPHypermediaRIM(this, getCommandController(), childSM, childState);
+				childSM = new ResourceStateMachine(childState, hypermediaEngine.getTransformer());
 			}
+			child = new HTTPHypermediaRIM(null, getCommandController(), childSM, childState);
 			result.add(child);
 		}
 		return result;
@@ -428,11 +428,34 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	StatusType status = null;
     	Link target = null;
     	if (result == Result.SUCCESS) {
-    		target = hypermediaEngine.getLinkFromRelations(pathParameters, ctx.getResource(), currentState, headers.getRequestHeader("Link"));
+    		LinkHeader linkHeader = null;
+    		List<String> linkHeaders = headers.getRequestHeader("Link");
+    		if (linkHeaders != null && linkHeaders.size() > 0) {
+        		// there must be only one Link header
+        		assert(linkHeaders.size() == 1);
+    			linkHeader = LinkHeader.valueOf(linkHeaders.get(0));
+    		}
+    		target = hypermediaEngine.getLinkFromRelations(pathParameters,
+    				ctx.getResource(), currentState, linkHeader);
+    		/*
+    		 * No target found using link relations, try to find a transition from ourself
+    		 */
+    		if (target == null) {
+    			target = hypermediaEngine.getLink(pathParameters, ctx.getResource(), currentState, "DELETE");
+    		}
     		if (target != null) {
-        		status = Status.SEE_OTHER;
+    			if (target.getTransition().getCommand().isResetRequired()) {
+            		// this transition has been configured to reset content
+               		status = HttpStatusTypes.RESET_CONTENT;
+    			} else if (target.getTransition().getTarget().isPseudoState() || target.getTransition().getTarget().equals(currentState)) {
+        			// did we delete ourselves or pseudo final state, both are transitions to No Content
+            		status = Response.Status.NO_CONTENT;
+        		} else {
+        			status = Status.SEE_OTHER;
+        		}
     		} else {
-        		status = HttpStatusTypes.RESET_CONTENT;
+    			// null target (pseudo final state) is effectively a transition to No Content
+        		status = Response.Status.NO_CONTENT;
     		}
     	} else {
     		status = Status.NOT_FOUND;
@@ -513,7 +536,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	}
 
 	public String toString() {
-		return ("HTTPCommandBasedRIM " + hypermediaEngine.getInitial().getId() + "[" + getFQResourcePath() + "]");
+		return ("HTTPHypermediaRIM " + hypermediaEngine.getInitial().getId() + "[" + getFQResourcePath() + "]");
 	}
 
 }

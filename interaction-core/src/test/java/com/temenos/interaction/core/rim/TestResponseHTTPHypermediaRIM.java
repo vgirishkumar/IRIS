@@ -28,6 +28,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.web.RequestContext;
@@ -169,7 +170,70 @@ public class TestResponseHTTPHypermediaRIM {
 	}
 
 	/*
-	 * This test is for a DELETE request that returns HttpStatus 405 "Content Reset"
+	 * This test is for a DELETE request that returns HttpStatus 204 "No Content"
+	 * A successful DELETE command does not return a new resource; where a target state
+	 * is not found we'll inform the user agent that everything went OK, but there is 
+	 * nothing more to display i.e. No Content.
+	 */
+	@SuppressWarnings({ "unchecked", })
+	@Test
+	public void testBuildResponseWith204NoContentNoTransition() throws Exception {
+		/*
+		 * construct an InteractionContext that simply mocks the result of 
+		 * deleting a resource, with no updated resource for the user agent
+		 * to re-display
+		 */
+		ResourceState initialState = new ResourceState("entity", "state", "/path");
+		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState);
+		testContext.setResource(null);
+		// mock 'new InteractionContext()' in call to delete
+		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class)).thenReturn(testContext);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState));
+		Response response = rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		
+		// null resource
+		RESTResource resource = (RESTResource) response.getEntity();
+		assertNull(resource);
+		// 204 http status for No Content
+		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+	}
+
+	/*
+	 * This test is for a DELETE request that returns HttpStatus 204 "No Content"
+	 * A successful DELETE command does not return a new resource; where a target state
+	 * is a psuedo final state (effectively no target) we'll inform the user agent
+	 * that everything went OK, but there is nothing more to display i.e. No Content.
+	 */
+	@SuppressWarnings({ "unchecked", })
+	@Test
+	public void testBuildResponseWith204NoContent() throws Exception {
+		/*
+		 * construct an InteractionContext that simply mocks the result of 
+		 * deleting a resource, with no updated resource for the user agent
+		 * to re-display
+		 */
+		ResourceState initialState = new ResourceState("entity", "state", "/path");
+		initialState.addTransition("DELETE", ResourceState.FINAL);
+		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState);
+		testContext.setResource(null);
+		// mock 'new InteractionContext()' in call to delete
+		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class)).thenReturn(testContext);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState));
+		Response response = rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		
+		// null resource
+		RESTResource resource = (RESTResource) response.getEntity();
+		assertNull(resource);
+		// 204 http status for No Content
+		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+	}
+
+	/*
+	 * This test is for a DELETE request that returns HttpStatus 205 "Content Reset"
 	 * A successful DELETE command does not return a new resource and should inform
 	 * the user agent to refresh the current view.
 	 */
@@ -182,6 +246,7 @@ public class TestResponseHTTPHypermediaRIM {
 		 * to re-display
 		 */
 		ResourceState initialState = new ResourceState("entity", "state", "/path");
+		initialState.addTransition("DELETE", initialState, null, initialState.getPath(), Transition.RESET_CONTENT);
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState);
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
@@ -232,7 +297,7 @@ public class TestResponseHTTPHypermediaRIM {
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState));
 		Collection<ResourceInteractionModel> children = rim.getChildren();
-		// find the draft resource interaction model
+		// find the resource interaction model for the 'cooking' state
 		HTTPHypermediaRIM draftRIM = null;
 		for (ResourceInteractionModel r : children) {
 			if (r.getCurrentState().getId().equals("toaster.cooking")) {
@@ -268,7 +333,7 @@ public class TestResponseHTTPHypermediaRIM {
 		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class)).thenReturn(testContext);
 		
 		List<Link> links = new ArrayList<Link>();
-		links.add(new Link("id", "self", "href", null, null, "GET", "label", "description", null));
+		links.add(new Link("id", "self", "href", null, null));
 		ResourceStateMachine hypermediaEngine = mock(ResourceStateMachine.class);
 		when(hypermediaEngine.getInitial()).thenReturn(initialState);
 		when(hypermediaEngine.getLinks(any(MultivaluedMap.class), any(RESTResource.class), any(ResourceState.class), any(List.class)))
