@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.dynaresource;
+package com.temenos.interaction.core;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-public class MockMultivaluedMap<T> extends HashMap<String, List<T>> implements
+public class MultivaluedMapImpl<T> extends HashMap<String, List<T>> implements
 		MultivaluedMap<String, T> {
 
 	private static final long serialVersionUID = 2743101209228906279L;

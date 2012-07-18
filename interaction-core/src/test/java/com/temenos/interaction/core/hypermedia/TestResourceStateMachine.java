@@ -19,7 +19,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.core.dynaresource.MockMultivaluedMap;
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.hypermedia.ASTValidation;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -393,7 +393,7 @@ public class TestResourceStateMachine {
 		/*
 		 * Mock the path parameters with the default 'id' element
 		 */
-		MultivaluedMap<String, String> mockPathparameters = new MockMultivaluedMap<String>();
+		MultivaluedMap<String, String> mockPathparameters = new MultivaluedMapImpl<String>();
 		mockPathparameters.add("id", "123");
 		
 		// initialise and get the application state (links)
@@ -423,7 +423,7 @@ public class TestResourceStateMachine {
 		/*
 		 * Mock the path parameters with default 'id' path element
 		 */
-		MultivaluedMap<String, String> mockPathparameters = new MockMultivaluedMap<String>();
+		MultivaluedMap<String, String> mockPathparameters = new MultivaluedMapImpl<String>();
 		mockPathparameters.add("id", "123");
 
 		// initialise and get the application state (links)

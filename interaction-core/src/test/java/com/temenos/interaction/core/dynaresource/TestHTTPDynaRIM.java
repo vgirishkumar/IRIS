@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.ResourceGetCommand;
@@ -264,7 +265,7 @@ public class TestHTTPDynaRIM {
 		 * Mock the path parameters returned from the UriInfo
 		 */
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		MultivaluedMap<String, String> mockPathparameters = new MockMultivaluedMap<String>();
+		MultivaluedMap<String, String> mockPathparameters = new MultivaluedMapImpl<String>();
 		mockPathparameters.add("id", "123");
 		when(mockUriInfo.getPathParameters(anyBoolean())).thenReturn(mockPathparameters);
 		
@@ -308,7 +309,7 @@ public class TestHTTPDynaRIM {
 		 * Mock the path parameters returned from the UriInfo
 		 */
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		MultivaluedMap<String, String> mockPathparameters = new MockMultivaluedMap<String>();
+		MultivaluedMap<String, String> mockPathparameters = new MultivaluedMapImpl<String>();
 		mockPathparameters.add("id", "123");
 		when(mockUriInfo.getPathParameters(anyBoolean())).thenReturn(mockPathparameters);
 
