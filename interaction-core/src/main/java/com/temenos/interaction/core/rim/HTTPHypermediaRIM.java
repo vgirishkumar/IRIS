@@ -212,7 +212,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
-    	logger.debug("GET " + getFQResourcePath());
+    	logger.info("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	if (!getCommandController().isValidCommand("GET", getFQResourcePath())) {
     		return buildResponse(headers, Status.NOT_FOUND, null, null, getInteractions(), null);
@@ -268,6 +268,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         	// TODO add support for other status codes
     	}
 
+		logger.info("Building response " + status.getStatusCode() + " " + status.getReasonPhrase());
 		return responseBuilder.build();
     }
 	
@@ -321,7 +322,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
-    	logger.debug("POST " + getFQResourcePath());
+    	logger.info("POST " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	if (!getCommandController().isValidCommand("POST", getFQResourcePath())) {
     		return buildResponse(headers, HttpStatusTypes.METHOD_NOT_ALLOWED, null, null, getInteractions(), null);
@@ -359,7 +360,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
     	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
-    	logger.debug("PUT " + getFQResourcePath());
+    	logger.info("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	if (!getCommandController().isValidCommand("PUT", getFQResourcePath())) {
     		return buildResponse(headers, HttpStatusTypes.METHOD_NOT_ALLOWED, null, null, getInteractions(), null);
@@ -408,7 +409,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     @Override
 	@DELETE
     public Response delete( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
-    	logger.debug("DELETE " + getFQResourcePath());
+    	logger.info("DELETE " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	if (!getCommandController().isValidCommand("DELETE", getFQResourcePath())) {
     		return buildResponse(headers, HttpStatusTypes.METHOD_NOT_ALLOWED, null, null, getInteractions(), null);
@@ -472,7 +473,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 */
     @Override
     public Response options( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
-    	logger.debug("OPTIONS " + getFQResourcePath());
+    	logger.info("OPTIONS " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	InteractionCommand getCommand = getCommandController().fetchCommand("GET", getFQResourcePath());
     	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;

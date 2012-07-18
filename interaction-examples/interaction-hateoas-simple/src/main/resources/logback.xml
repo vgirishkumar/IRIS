@@ -16,7 +16,7 @@
   </logger>
   <!-- Log debug information about resource interactions -->
   <logger name="com.temenos.interaction.core.rim">
-    <level value="INFO" />
+    <level value="DEBUG" />
   </logger>
 
   <!-- Log all resource endpoints -->
