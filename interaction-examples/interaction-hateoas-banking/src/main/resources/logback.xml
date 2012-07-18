@@ -14,7 +14,7 @@
   <logger name="com.temenos.interaction.core.media.hal">
     <level value="DEBUG" />
   </logger>
-  <logger name="com.temenos.interaction.core.dynaresource">
+  <logger name="com.temenos.interaction.core.rim">
     <level value="INFO" />
   </logger>
 
