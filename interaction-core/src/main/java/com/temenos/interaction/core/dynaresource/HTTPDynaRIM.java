@@ -1,8 +1,7 @@
 package com.temenos.interaction.core.dynaresource;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -159,7 +158,7 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 	
 	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
-		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
+		Map<String, ResourceInteractionModel> result = new HashMap<String, ResourceInteractionModel>();
 		
 		Map<String, ResourceState> resourceStates = stateMachine.getStateMap(this.currentState);
 		for (String childPath : resourceStates.keySet()) {
@@ -173,12 +172,14 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 				// this is a new resource
 				child = new HTTPDynaRIM(null, childSM, childState, getResourceRegistry(), childSM.getTransformer(), getCommandController());
 			} else {
+				if (childState.equals(getCurrentState()) || childState.getPath().equals(getCurrentState().getPath()))
+					continue;
 				// same entity, same transformer
-				child = new HTTPDynaRIM(this, childSM, childState, childSM.getTransformer(), getCommandController());
+				child = new HTTPDynaRIM(null, childSM, childState, childSM.getTransformer(), getCommandController());
 			}
-			result.add(child);
+			result.put(child.getFQResourcePath(), child);
 		}
-		return result;
+		return result.values();
 	}
 
 	public boolean equals(Object other) {
