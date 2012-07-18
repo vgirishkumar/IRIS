@@ -285,6 +285,24 @@ public class TestResponseHTTPHypermediaRIM {
 		assertEquals("self", link.getRel());
 	}
 
+	@SuppressWarnings({ "unchecked", })
+	@Test
+	public void testBuildResponseEntityName() throws Exception {
+		// construct an InteractionContext that simply mocks the result of loading a resource
+		ResourceState initialState = new ResourceState("entity", "state", "/path");
+		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState);
+		testContext.setResource(new EntityResource<Object>(null));
+		// mock 'new InteractionContext()' in call to get
+		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class)).thenReturn(testContext);
+		
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState));
+		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		
+		RESTResource resource = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
+		assertNotNull(resource.getEntityName());
+		assertEquals("entity", resource.getEntityName());
+	}
+
 	@SuppressWarnings({ "unchecked" })
 	private UriInfo mockEmptyUriInfo() {
 		UriInfo uriInfo = mock(UriInfo.class);

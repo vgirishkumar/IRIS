@@ -135,6 +135,8 @@ public class TestHALProvider {
 		entities.add(createEntityResourceWithSelfLink(entityKey, properties, "http://www.temenos.com/rest.svc/children/2"));
 		entities.add(createEntityResourceWithSelfLink(entityKey, properties, "http://www.temenos.com/rest.svc/children/3"));
 		CollectionResource<OEntity> er = new CollectionResource<OEntity>("Children", entities);
+		// mock setting entity name
+		er.setEntityName("Children");
 		
 		EdmDataServices edmDS = mock(EdmDataServices.class);
 		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());

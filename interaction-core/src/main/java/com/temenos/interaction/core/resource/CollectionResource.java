@@ -15,6 +15,8 @@ import com.temenos.interaction.core.hypermedia.Link;
  * @author aphethean
  */
 public class CollectionResource<T> implements RESTResource {
+	
+	// TODO deprecate (we now use entityName)
 	private String entitySetName;
 	
 	private Collection<EntityResource<T>> entities;
@@ -23,6 +25,8 @@ public class CollectionResource<T> implements RESTResource {
 	// TODO implement JAXB Adapter for OProperty
 //	private List<OProperty<?>> properties;
 
+	@XmlTransient
+    private String entityName;
 	// links from a collection
 	@XmlTransient
     private Collection<Link> links;
@@ -61,5 +65,15 @@ public class CollectionResource<T> implements RESTResource {
     public void setLinks(Collection<Link> links) {
     	this.links = links;
     }
+
+	@Override
+	public String getEntityName() {
+		return entityName;
+	}
+
+	@Override
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
 
 }

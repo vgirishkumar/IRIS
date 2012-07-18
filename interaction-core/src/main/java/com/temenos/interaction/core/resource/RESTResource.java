@@ -37,4 +37,17 @@ public interface RESTResource {
      */
     public void setLinks(Collection<Link> links);
 
+	/**
+	 * Return the entity name for this resource.
+	 * @return String
+	 */
+    public String getEntityName();
+
+    /**
+     * Called during resource building phase to set the entity name for 
+     * use by the provider.
+     * @param links
+     */
+    public void setEntityName(String entityName);
+
 }  
