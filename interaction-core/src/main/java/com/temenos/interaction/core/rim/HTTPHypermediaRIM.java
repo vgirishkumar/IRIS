@@ -171,7 +171,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	public Collection<ResourceInteractionModel> getChildren() {
 		List<ResourceInteractionModel> result = new ArrayList<ResourceInteractionModel>();
 		
-		Map<String, ResourceState> resourceStates = hypermediaEngine.getStateMap(this.currentState);
+		Map<String, ResourceState> resourceStates = hypermediaEngine.getResourceStatesByPath(this.currentState);
 		for (String childPath : resourceStates.keySet()) {
 			ResourceStateMachine childSM = hypermediaEngine;
 			// get the child state

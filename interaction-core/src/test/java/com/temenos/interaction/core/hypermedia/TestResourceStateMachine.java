@@ -220,7 +220,7 @@ public class TestResourceStateMachine {
 	}
 	
 	@Test
-	public void testInteractionMap() {
+	public void testInteractionByPath() {
 		String ENTITY_NAME = "";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
@@ -232,7 +232,46 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
-		Map<String, Set<String>> interactionMap = sm.getInteractionMap();
+		Map<String, Set<String>> interactionMap = sm.getInteractionByPath();
+		assertEquals("Number of resources", 1, interactionMap.size());
+		Set<String> entrySet = interactionMap.keySet();
+		assertTrue(entrySet.contains("{id}"));
+		Collection<String> interactions = interactionMap.get("{id}");
+		assertEquals("Number of interactions", 2, interactions.size());
+		assertTrue(interactions.contains("PUT"));
+		assertTrue(interactions.contains("DELETE"));
+	}
+
+	@Test
+	public void testInteractionByPathSingle() {
+		String ENTITY_NAME = "";
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "/root");
+		begin.addTransition("GET", begin);
+
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		
+		Map<String, Set<String>> interactionMap = sm.getInteractionByPath();
+		assertEquals("Number of resources", 1, interactionMap.size());
+		Set<String> entrySet = interactionMap.keySet();
+		assertTrue(entrySet.contains("/root"));
+		Collection<String> interactions = interactionMap.get("/root");
+		assertEquals("Number of interactions", 1, interactions.size());
+		assertTrue(interactions.contains("GET"));
+	
+	}
+
+	@Test
+	public void testInteractionByPathPsuedo() {
+		String ENTITY_NAME = "";
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", null);
+	
+		exists.addTransition("PUT", exists);
+		exists.addTransition("DELETE", end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(exists);
+
+		Map<String, Set<String>> interactionMap = sm.getInteractionByPath();
 		assertEquals("Number of resources", 1, interactionMap.size());
 		Set<String> entrySet = interactionMap.keySet();
 		assertTrue(entrySet.contains("{id}"));
@@ -301,7 +340,7 @@ public class TestResourceStateMachine {
 	}
 
 	@Test
-	public void testStateMap() {
+	public void testStateByPath() {
 		String ENTITY_NAME = "";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
 		ResourceState published = new ResourceState(initial, "published", "/published");
@@ -320,7 +359,77 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
-		Map<String, ResourceState> stateMap = sm.getStateMap();
+		Map<String, ResourceState> stateMap = sm.getResourceStatesByPath();
+		assertEquals("Number of states", 3, stateMap.size());
+		Set<String> entrySet = stateMap.keySet();
+		assertTrue(entrySet.contains("/entity"));
+		assertTrue(entrySet.contains("/entity/published"));
+		assertTrue(entrySet.contains("/entity/draft"));
+		assertEquals(initial, stateMap.get("/entity"));
+		assertEquals(published, stateMap.get("/entity/published"));
+		assertEquals(draft, stateMap.get("/entity/draft"));
+	}
+
+	@Test
+	public void testStateByPathSingle() {
+		String ENTITY_NAME = "";
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
+  		ResourceStateMachine sm = new ResourceStateMachine(initial);
+		Map<String, ResourceState> stateMap = sm.getResourceStatesByPath();
+		assertEquals("Number of states", 1, stateMap.size());
+		Set<String> entrySet = stateMap.keySet();
+		assertTrue(entrySet.contains("/entity"));
+	}
+
+	@Test
+	public void testStateByPathPseudo() {
+		String ENTITY_NAME = "";
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
+		ResourceState draft = new ResourceState(initial, "draft", "/draft");
+		ResourceState deleted = new ResourceState(initial, "deleted", null);
+	
+		// create draft
+		initial.addTransition("PUT", draft);
+		// updated draft
+		draft.addTransition("PUT", draft);
+		// delete draft
+		draft.addTransition("DELETE", deleted);
+		// delete entity
+		initial.addTransition("DELETE", deleted);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
+
+		Map<String, ResourceState> stateMap = sm.getResourceStatesByPath();
+		assertEquals("Number of states", 3, sm.getStates().size());
+		assertEquals("Number of real states", 2, stateMap.size());
+		Set<String> entrySet = stateMap.keySet();
+		assertTrue(entrySet.contains("/entity"));
+		assertEquals(initial, stateMap.get("/entity"));
+		assertTrue(entrySet.contains("/entity/draft"));
+		assertEquals(draft, stateMap.get("/entity/draft"));
+	}
+
+	@Test
+	public void testGetResourceStatesByPath() {
+		String ENTITY_NAME = "";
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
+		ResourceState published = new ResourceState(initial, "published", "/published");
+		ResourceState draft = new ResourceState(initial, "draft", "/draft");
+	
+		// create draft
+		initial.addTransition("PUT", draft);
+		// updated draft
+		draft.addTransition("PUT", draft);
+		// publish
+		draft.addTransition("PUT", published);
+		// delete draft
+		draft.addTransition("DELETE", ResourceState.FINAL);
+		// delete published
+		published.addTransition("DELETE", ResourceState.FINAL);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
+
+		Map<String, ResourceState> stateMap = sm.getResourceStatesByPath(draft);
 		assertEquals("Number of states", 2, stateMap.size());
 		Set<String> entrySet = stateMap.keySet();
 		assertTrue(entrySet.contains("/entity/published"));
@@ -417,7 +526,7 @@ public class TestResourceStateMachine {
 		home.addTransition("GET", processSM);
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
 		
-		Map<String, Set<String>> interactionMap = serviceDocumentSM.getInteractionMap();
+		Map<String, Set<String>> interactionMap = serviceDocumentSM.getInteractionByPath();
 		// no interactions for this entity
 		assertEquals(0, interactionMap.size());
 
