@@ -178,12 +178,15 @@ public class TestResourceStateMachine {
 		System.out.println(new ASTValidation().graph(sm));
 	}
 	
+	/**
+	 * Test {@link ResourceStateMachine#getStates() should return all states.}
+	 */
 	@Test
 	public void testGetStates() {
 		String ENTITY_NAME = "";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", null);
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -197,6 +200,25 @@ public class TestResourceStateMachine {
 		assertTrue(states.contains(end));
 	}
 
+	@Test
+	public void testGetTransitions() {
+		String ENTITY_NAME = "";
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", null);
+	
+		begin.addTransition("PUT", exists);
+		exists.addTransition("PUT", exists);
+		exists.addTransition("DELETE", end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(begin);
+		Map<String,Transition> transitions = sm.getTransitionsById();
+		assertEquals("Number of transistions", 3, transitions.size());
+		assertNotNull(transitions.get(".begin>.exists"));
+		assertNotNull(transitions.get(".exists>.exists"));
+		assertNotNull(transitions.get(".exists>.end"));
+	}
+	
 	@Test
 	public void testInteractionMap() {
 		String ENTITY_NAME = "";
