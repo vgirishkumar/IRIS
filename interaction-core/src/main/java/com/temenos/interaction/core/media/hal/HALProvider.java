@@ -166,7 +166,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<OEntity> er : entities) {
 					OEntity entity = er.getEntity();
 					// the subresource is a collection
-					String rel = "collection " + cr.getEntitySetName();
+					String rel = "collection " + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
@@ -197,7 +197,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<Object> er : entities) {
 					Object entity = er.getEntity();
 					// the subresource is part of a collection (maybe this link rel should be an 'item')
-					String rel = "collection " + cr.getEntitySetName();
+					String rel = "collection " + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromBean(propertyMap, entity);

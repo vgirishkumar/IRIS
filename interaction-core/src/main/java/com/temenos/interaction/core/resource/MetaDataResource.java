@@ -37,6 +37,14 @@ public class MetaDataResource<T> implements RESTResource {
     public Collection<Link> getLinks() {
     	return null;
     }
+	@Override
 	public void setLinks(Collection<Link> links) {}
+
+	@Override
+	public String getEntityName() {
+		return null;
+	}
+	@Override
+	public void setEntityName(String entityName) {}
 	
 }

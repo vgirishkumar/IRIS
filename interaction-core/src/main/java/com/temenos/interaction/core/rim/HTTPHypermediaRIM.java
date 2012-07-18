@@ -251,6 +251,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
 			/*
+			 * Add entity information to this resource
+			 */
+    		resource.setEntityName(getCurrentState().getEntityName());
+			/*
 			 * Add hypermedia information to this resource
 			 */
     		resource.setLinks(links);

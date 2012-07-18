@@ -24,7 +24,10 @@ public class EntityResource<T> implements RESTResource {
 	@XmlAnyElement(lax=true)
 	private T entity;
 
-	/* injected by HateoasResponse */
+	
+	/* injected by during build response phase */
+	@XmlTransient
+    private String entityName;
 	@XmlTransient
     private Collection<Link> links;
 
@@ -58,4 +61,14 @@ public class EntityResource<T> implements RESTResource {
     public void setLinks(Collection<Link> links) {
     	this.links = links;
     }
+
+	@Override
+	public String getEntityName() {
+		return entityName;
+	}
+
+	@Override
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
 }

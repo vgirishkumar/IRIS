@@ -48,4 +48,11 @@ public class ServiceDocumentResource<T> implements RESTResource {
     }
 	public void setLinks(Collection<Link> links) {}
 
+	@Override
+	public String getEntityName() {
+		return null;
+	}
+	@Override
+	public void setEntityName(String entityName) {}
+
 }

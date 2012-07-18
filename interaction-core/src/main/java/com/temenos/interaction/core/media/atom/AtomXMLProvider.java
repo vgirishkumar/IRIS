@@ -108,7 +108,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 				OEntity oentity = entityResource.getEntity();
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(oentity.getEntitySetName());
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? oentity.getEntitySetName() : entityResource.getEntityName()));
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
@@ -117,7 +117,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				for (EntityResource<OEntity> er : resources) {
 					entities.add(er.getEntity());
 				}
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(cr.getEntitySetName());
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((cr.getEntityName() == null ? cr.getEntitySetName() : cr.getEntityName()));
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
