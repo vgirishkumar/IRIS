@@ -59,7 +59,7 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOT204NoContent() {
-		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gexists[label=\"PUT /entities/{id} (0)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
+		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists /entities/{id}\"]\n    Gdeleted[label=\"G.deleted /entities/{id}\"]\n    Ginitial->Gexists[label=\"PUT /entities/{id} (0)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "G";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/");
@@ -79,7 +79,7 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOT205ResetContent() {
-		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gdeleted[label=\"DELETE /entities/{id} (1)\"]\n    Ginitial->Gexists[label=\"GET /entities/{id} (1)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gexists->final[label=\"\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
+		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists /entities/{id}\"]\n    Gdeleted[label=\"G.deleted /entities/{id}\"]\n    Ginitial->Gdeleted[label=\"DELETE /entities/{id} (1)\"]\n    Ginitial->Gexists[label=\"GET /entities/{id} (1)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gexists->final[label=\"\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
 		
 		String ENTITY_NAME = "G";
 		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", "/entities");
@@ -101,7 +101,7 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOT303SeeOther() {
-		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gexists[label=\"GET /entities/{id} (1)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
+		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists /entities/{id}\"]\n    Gdeleted[label=\"G.deleted /entities/{id}\"]\n    Ginitial->Gexists[label=\"GET /entities/{id} (1)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
 		
 		String ENTITY_NAME = "G";
 		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", "/entities");
@@ -123,7 +123,7 @@ public class TestASTValidation {
 
 	@Test
 	public void testDOTMultipleFinalStates() {
-		String expected = "digraph CRUD_ENTITY {\n    CRUD_ENTITYinitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    CRUD_ENTITYexists[label=\"CRUD_ENTITY.exists\"]\n    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted\"]\n    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived\"]\n"
+		String expected = "digraph CRUD_ENTITY {\n    CRUD_ENTITYinitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    CRUD_ENTITYexists[label=\"CRUD_ENTITY.exists\"]\n    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted\"]\n    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived /archived\"]\n"
 			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT (0)\"]\n"
 			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE (0)\"]\n"
 			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived (0)\"]\n"
@@ -160,14 +160,14 @@ public class TestASTValidation {
 
 		String expected = "digraph SERVICE_ROOT {\n"
 				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
-				+ "    taskcomplete[label=\"task.complete\"]\n"
-				+ "    taskacquired[label=\"task.acquired\"]\n"
-				+ "    taskabandoned[label=\"task.abandoned\"]\n"
-				+ "    processtaskAvailable[label=\"process.taskAvailable\"]\n"
-				+ "    processprocesses[label=\"process.processes\"]\n"
-				+ "    processnew[label=\"process.new\"]\n"
-				+ "    processinitialProcess[label=\"process.initialProcess\"]\n"
-				+ "    processcompletedProcess[label=\"process.completedProcess\"]\n"
+				+ "    taskcomplete[label=\"task.complete /completed\"]\n"
+				+ "    taskacquired[label=\"task.acquired /acquired\"]\n"
+				+ "    taskabandoned[label=\"task.abandoned /acquired\"]\n"
+				+ "    processtaskAvailable[label=\"process.taskAvailable /processes/nextTask\"]\n"
+				+ "    processprocesses[label=\"process.processes /processes\"]\n"
+				+ "    processnew[label=\"process.new /processes/new\"]\n"
+				+ "    processinitialProcess[label=\"process.initialProcess /processes/{id}\"]\n"
+				+ "    processcompletedProcess[label=\"process.completedProcess /processes/{id}\"]\n"
 				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskcomplete->final[label=\"\"]\n"
 				+ "    taskacquired->taskcomplete[label=\"PUT /completed (0)\"]\n"

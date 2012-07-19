@@ -39,7 +39,7 @@ public class ASTValidation {
 		// declare all the states and set a label
 		for (ResourceState s : states) {
 			if (!s.equals(sm.getInitial())) {
-				sb.append("    ").append(s.getEntityName() + s.getName()).append("[label=\"" + s.getId() + "\"]").append("\n");
+				sb.append("    ").append(s.getEntityName() + s.getName()).append("[label=\"" + s.getId() + (s.getPath().length() > 0 ? (" " + s.getPath()) : "") + "\"]").append("\n");
 			}
 		}
 		int countFinal = 0;
