@@ -1,18 +1,16 @@
 package com.temenos.interaction.core.hypermedia;
 
-import java.util.List;
-
 /**
  * Define how a transition from one state to another should occur.
  * @author aphethean
  */
 public class TransitionCommandSpec {
 
-	private String method;
-	private String path;
-	private int flags;
-	@SuppressWarnings("unused")
-	private List<String> queryParams;
+	private final String method;
+	private final String path;
+	private final int flags;
+	// TODO will need to define query params for transitions
+	//private final List<String> queryParams;
 	
 	protected TransitionCommandSpec(String method, String path) {
 		this(method, path, 0);
@@ -45,11 +43,11 @@ public class TransitionCommandSpec {
 	}
 	
 	/**
-	 * Is the user agent to reset the existing view following successful execution of this transition?
+	 * Is this transition and auto transition?
 	 * @return
 	 */
-	public boolean isResetRequired() {
-		return ((flags & Transition.RESET_CONTENT) == Transition.RESET_CONTENT);
+	public boolean isAutoTransition() {
+		return ((flags & Transition.AUTO) == Transition.AUTO);
 	}
 
 	public boolean equals(Object other) {

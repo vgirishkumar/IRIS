@@ -58,20 +58,66 @@ public class TestASTValidation {
 	}
 
 	@Test
-	public void testDOT() {
-		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gexists[label=\"PUT {id} (0)\"]\n    Gexists->Gdeleted[label=\"DELETE {id} (0)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
+	public void testDOT204NoContent() {
+		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gexists[label=\"PUT /entities/{id} (0)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "G";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted", "{id}");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "/entities/{id}");
+		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted", "/entities/{id}");
 	
-		initial.addTransition("PUT", exists);		
+		initial.addTransition("PUT", exists);
+		// a transition to a final state will result in 204 (No Content) at runtime
 		exists.addTransition("DELETE", deleted);
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		ASTValidation v = new ASTValidation();
 		String result = v.graph(sm);
+		System.out.println("DOTNoContent: \n" + result);
+		assertEquals(expected, result);	
+	}
+
+	@Test
+	public void testDOT205ResetContent() {
+		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gdeleted[label=\"DELETE /entities/{id} (1)\"]\n    Ginitial->Gexists[label=\"GET /entities/{id} (1)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gexists->final[label=\"\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
+		
+		String ENTITY_NAME = "G";
+		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", "/entities");
+		ResourceState exists = new ResourceState(initial, "exists", "/{id}");
+		ResourceState deleted = new ResourceState(initial, "deleted", "/{id}");
+	
+		initial.addTransitionForEachItem("GET", exists, null);		
+		// add an auto transition from deleted state to a different state
+		deleted.addTransition(initial);
+		// 205, as the auto transition is to the same state we expect to see a 205 (Reset Content) at runtime
+		initial.addTransitionForEachItem("DELETE", deleted, null, Transition.FOR_EACH);
+				
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
+		ASTValidation v = new ASTValidation();
+		String result = v.graph(sm);
+		System.out.println("DOTResetContent: \n" + result);
+		assertEquals(expected, result);	
+	}
+
+	@Test
+	public void testDOT303SeeOther() {
+		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists\"]\n    Gdeleted[label=\"G.deleted\"]\n    Ginitial->Gexists[label=\"GET /entities/{id} (1)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
+		
+		String ENTITY_NAME = "G";
+		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", "/entities");
+		ResourceState exists = new ResourceState(initial, "exists", "/{id}");
+		ResourceState deleted = new ResourceState(initial, "deleted", "/{id}");
+	
+		initial.addTransitionForEachItem("GET", exists, null);
+		// add an auto transition from deleted state to a different state
+		deleted.addTransition(initial);
+		// 303, as the auto transition is to a different state we expect to see a 303 (Redirect) at runtime
+		exists.addTransition("DELETE", deleted);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
+		ASTValidation v = new ASTValidation();
+		String result = v.graph(sm);
+		System.out.println("DOTSeeOther: \n" + result);
 		assertEquals(expected, result);	
 	}
 
@@ -109,7 +155,8 @@ public class TestASTValidation {
 		home.addTransition("GET", processSM);
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
 		
-		System.out.println(new ASTValidation().graph(serviceDocumentSM));
+		String result = new ASTValidation().graph(serviceDocumentSM);
+		System.out.println("DOTTransitionToStateMachine: \n" + result);
 
 		String expected = "digraph SERVICE_ROOT {\n"
 				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
@@ -136,7 +183,7 @@ public class TestASTValidation {
 			    + "    processcompletedProcess->final2[label=\"\"]\n"
 			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes (0)\"]\n"
 				+ "}";
-		assertEquals(expected, new ASTValidation().graph(serviceDocumentSM));
+		assertEquals(expected, result);
 	}
 
 	@Test
@@ -173,7 +220,7 @@ public class TestASTValidation {
 		// Process states
 		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", "/processes/{id}");
 		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", "/processes/nextTask");
-		ResourceState processCompleted = new ResourceState(processInitial, "completedProcess");
+		ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME, "completedProcess", "/processes/{id}");
 		// start new process
 		newProcess.addTransition("PUT", processInitial);
 		// do a task
@@ -195,7 +242,7 @@ public class TestASTValidation {
 		// Task states
 		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
 		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", "/completed");
-		ResourceState taskAbandoned = new ResourceState(taskAcquired, "abandoned");
+		ResourceState taskAbandoned = new ResourceState(TASK_ENTITY_NAME, "abandoned", "/acquired");
 		// abandon task
 		taskAcquired.addTransition("DELETE", taskAbandoned);
 		// complete task

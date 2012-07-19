@@ -239,10 +239,10 @@ public class HypermediaITCase extends JerseyTest {
 			assertNotNull(links);
 			assertEquals(3, links.size());
 			
-			// DELETE item link (note.exists->note.initial)
+			// DELETE item link (note.exists->note.end, note.end is an auto transition to note.initial)
 			Link deleteLink = null;
 			for (Link link : links) {
-				if (link.getName().get().contains("note.exists>note.initial")) {
+				if (link.getName().get().contains("note.exists>note.end")) {
 					deleteLink = link;
 				}
 			}

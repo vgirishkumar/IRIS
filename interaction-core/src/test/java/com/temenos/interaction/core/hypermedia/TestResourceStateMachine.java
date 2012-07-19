@@ -60,7 +60,7 @@ public class TestResourceStateMachine {
 		// mock the Link header
 		LinkHeader linkHeader = LinkHeader.valueOf("</path>; rel=\"toaster.cooking>toaster.exists\"");
 
-		Link targetLink = stateMachine.getLinkFromRelations(mock(MultivaluedMap.class), testResponseEntity, cookingState, linkHeader);
+		Link targetLink = stateMachine.getLinkFromRelations(mock(MultivaluedMap.class), testResponseEntity, linkHeader);
 
 		assertNotNull(targetLink);
 		assertEquals("/baseuri/machines/toaster", targetLink.getHref());
@@ -86,7 +86,7 @@ public class TestResourceStateMachine {
 		// initialise application state
 		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState);
 
-		Link targetLink = stateMachine.getLink(mock(MultivaluedMap.class), testResponseEntity, cookingState, "DELETE");
+		Link targetLink = stateMachine.getLinkFromMethod(mock(MultivaluedMap.class), testResponseEntity, cookingState, "DELETE");
 
 		assertNotNull(targetLink);
 		assertEquals("/baseuri/machines/toaster", targetLink.getHref());
@@ -108,7 +108,7 @@ public class TestResourceStateMachine {
 		// initialise application state
 		ResourceStateMachine stateMachine = new ResourceStateMachine(collectionState);
 
-		Link targetLink = stateMachine.getLink(mock(MultivaluedMap.class), testResponseEntity, collectionState, "POST");
+		Link targetLink = stateMachine.getLinkFromMethod(mock(MultivaluedMap.class), testResponseEntity, collectionState, "POST");
 
 		assertNotNull(targetLink);
 		// a target link the same as our current state equates to 205 Reset Content
@@ -125,7 +125,7 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetLinkForFinalPseudoState() {
 		ResourceState existsState = new ResourceState("toaster", "exists", "/machines/toaster/{id}");
-		ResourceState deletedState = new ResourceState("toaster", "cooking", null);
+		ResourceState deletedState = new ResourceState(existsState, "deleted");
 
 		// delete the toaster
 		existsState.addTransition("DELETE", deletedState);
@@ -134,7 +134,7 @@ public class TestResourceStateMachine {
 		// initialise application state
 		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState);
 
-		Link targetLink = stateMachine.getLink(mock(MultivaluedMap.class), testResponseEntity, existsState, "DELETE");
+		Link targetLink = stateMachine.getLinkFromMethod(mock(MultivaluedMap.class), testResponseEntity, existsState, "DELETE");
 
 		// no target link equates to 204 No Content
 		assertNull(targetLink);
@@ -186,7 +186,7 @@ public class TestResourceStateMachine {
 		String ENTITY_NAME = "";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", null);
+		ResourceState end = new ResourceState(exists, "end");
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -205,7 +205,7 @@ public class TestResourceStateMachine {
 		String ENTITY_NAME = "";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", null);
+		ResourceState end = new ResourceState(exists, "end");
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -264,10 +264,33 @@ public class TestResourceStateMachine {
 	public void testInteractionByPathPsuedo() {
 		String ENTITY_NAME = "";
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", null);
+		ResourceState end = new ResourceState(exists, "end");
 	
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(exists);
+
+		Map<String, Set<String>> interactionMap = sm.getInteractionByPath();
+		assertEquals("Number of resources", 1, interactionMap.size());
+		Set<String> entrySet = interactionMap.keySet();
+		assertTrue(entrySet.contains("{id}"));
+		Collection<String> interactions = interactionMap.get("{id}");
+		assertEquals("Number of interactions", 2, interactions.size());
+		assertTrue(interactions.contains("PUT"));
+		assertTrue(interactions.contains("DELETE"));
+	}
+
+	@Test
+	public void testInteractionByPathTransient() {
+		String ENTITY_NAME = "";
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
+		ResourceState deleted = new ResourceState(ENTITY_NAME, "end", "{id}");
+	
+		exists.addTransition("PUT", exists);
+		exists.addTransition("DELETE", deleted);
+		// auto transition
+		deleted.addTransition(exists);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(exists);
 
@@ -305,8 +328,9 @@ public class TestResourceStateMachine {
 		String ENTITY_NAME = "";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
 		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted");
 		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted");
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -315,9 +339,9 @@ public class TestResourceStateMachine {
 		// publish
 		draft.addTransition("PUT", published);
 		// delete draft
-		draft.addTransition("DELETE", deleted);
+		draft.addTransition("DELETE", draftDeleted);
 		// delete published
-		published.addTransition("DELETE", deleted);
+		published.addTransition("DELETE", publishedDeleted);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
@@ -334,8 +358,13 @@ public class TestResourceStateMachine {
 		assertTrue(publishInteractions.contains("PUT"));
 		assertTrue(publishInteractions.contains("DELETE"));
 
-		Set<String> deletedInteractions = sm.getInteractions(deleted);
-		assertNull("Number of interactions", deletedInteractions);
+		Set<String> deletedInteractions = sm.getInteractions(draftDeleted);
+		assertEquals("Number of interactions", 2, deletedInteractions.size());
+		assertTrue(deletedInteractions.contains("DELETE"));
+
+		Set<String> publishedDeletedInteractions = sm.getInteractions(publishedDeleted);
+		assertEquals("Number of interactions", 2, publishedDeletedInteractions.size());
+		assertTrue(publishedDeletedInteractions.contains("DELETE"));
 
 	}
 
@@ -344,7 +373,9 @@ public class TestResourceStateMachine {
 		String ENTITY_NAME = "";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
 		ResourceState published = new ResourceState(initial, "published", "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted");
 		ResourceState draft = new ResourceState(initial, "draft", "/draft");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted");
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -353,9 +384,9 @@ public class TestResourceStateMachine {
 		// publish
 		draft.addTransition("PUT", published);
 		// delete draft
-		draft.addTransition("DELETE", ResourceState.FINAL);
+		draft.addTransition("DELETE", draftDeleted);
 		// delete published
-		published.addTransition("DELETE", ResourceState.FINAL);
+		published.addTransition("DELETE", publishedDeleted);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
@@ -414,7 +445,9 @@ public class TestResourceStateMachine {
 		String ENTITY_NAME = "";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
 		ResourceState published = new ResourceState(initial, "published", "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted");
 		ResourceState draft = new ResourceState(initial, "draft", "/draft");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted");
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -423,9 +456,9 @@ public class TestResourceStateMachine {
 		// publish
 		draft.addTransition("PUT", published);
 		// delete draft
-		draft.addTransition("DELETE", ResourceState.FINAL);
+		draft.addTransition("DELETE", draftDeleted);
 		// delete published
-		published.addTransition("DELETE", ResourceState.FINAL);
+		published.addTransition("DELETE", publishedDeleted);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 

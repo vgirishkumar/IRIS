@@ -32,6 +32,7 @@ public class Behaviour {
 		ResourceState pseudo = new ResourceState(notes, "PseudoCreated", null);
 		// Option 1 for configuring the interaction - use another state as a parent
 		ResourceState note = new ResourceState(notes, "item", "({id})");
+		ResourceState noteDeleted = new ResourceState(note, "deleted");
 		ResourceState notePerson = new ResourceState("Persons", "NotesPerson", "/Notes({id})/Persons");
 		
 		// add collection transition to individual items
@@ -40,7 +41,7 @@ public class Behaviour {
 		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
 		notes.addTransition("POST", pseudo);
 		note.addTransition("GET", notePerson);
-		note.addTransition("DELETE", ResourceState.FINAL);
+		note.addTransition("DELETE", noteDeleted);
 
 		return new ResourceStateMachine(notes);
 	}

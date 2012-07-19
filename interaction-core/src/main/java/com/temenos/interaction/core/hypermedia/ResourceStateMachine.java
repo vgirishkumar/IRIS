@@ -125,7 +125,8 @@ public class ResourceStateMachine {
 				Set<String> interactions = result.get(path);
 				if (interactions == null)
 					interactions = new HashSet<String>();
-				interactions.add(command.getMethod());
+				if (command.getMethod() != null && ! command.isAutoTransition())
+					interactions.add(command.getMethod());
 				
 				result.put(path, interactions);
 				collectInteractionsByPath(result, states, next);
@@ -183,9 +184,7 @@ public class ResourceStateMachine {
 		if (currentState == null || states.contains(currentState)) return;
 		states.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
-			if (!next.equals(currentState)
-					&& !next.isPseudoState()
-					&& !next.getPath().equals(currentState.getPath())) {
+			if (!next.equals(currentState) && !next.isPseudoState()) {
 				String path = next.getPath();
 				if (result.get(path) != null)
 					logger.warn("Replacing ResourceState[" + path + "] " + result.get(path) + " with " + next + ", this could result in unexpected transitions.");
@@ -272,15 +271,14 @@ public class ResourceStateMachine {
 	}
 
 	/**
-	 * Create a Link to a target state if the supplied custom 
-	 * link relation resolves to a valid transition.
+	 * Find the transition that was used by evaluating the LinkHeader and 
+	 * create a a Link for that transition.
 	 * @param pathParameters
 	 * @param resourceEntity
-	 * @param currentState
 	 * @param customLinkRelations
 	 * @return
 	 */
-	public Link getLinkFromRelations(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState currentState, LinkHeader linkHeader) {
+	public Link getLinkFromRelations(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, LinkHeader linkHeader) {
 		Link target = null;
 		// Was a custom link relation supplied, informing us which link was used?
 		if (linkHeader != null) {
@@ -300,8 +298,8 @@ public class ResourceStateMachine {
 	}
 	
 	/**
-	 * Create a Link to a target state if the supplied method 
-	 * resolves to a valid transition.
+	 * Find the transition that was used by assuming the HTTP method was
+	 * applied to this state; create a a Link for that transition.
 	 * @param pathParameters
 	 * @param resourceEntity
 	 * @param currentState
@@ -309,7 +307,7 @@ public class ResourceStateMachine {
 	 * @return
 	 * @invariant method != null
 	 */
-	public Link getLink(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState currentState, String method) {
+	public Link getLinkFromMethod(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState currentState, String method) {
 		assert(method != null);
 		Link target = null;
 		for (ResourceState nextState : currentState.getAllTargets()) {
@@ -326,7 +324,7 @@ public class ResourceStateMachine {
 	/*
 	 * @invariant {@link RequestContext} must have been initialised
 	 */
-	private Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
+	public Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		assert(RequestContext.getRequestContext() != null);
 		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(transition.getTarget().getPath());
 		return createLink(selfUriTemplate, transition, entity, pathParameters);

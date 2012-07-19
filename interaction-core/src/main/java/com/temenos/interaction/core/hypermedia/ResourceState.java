@@ -12,11 +12,8 @@ import org.slf4j.LoggerFactory;
 public class ResourceState implements Comparable<ResourceState> {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
 
-	/**
-	 * Declare a default pseudo FINAL state.
-	 */
-	public final static ResourceState FINAL = new ResourceState("DEFAULT", "final", null);
-	
+	/* the parent state (same entity, pseudo state is same path) */
+	private final ResourceState parent;
 	/* the name of the entity which this is a state of */
 	private final String entityName;
 	/* the name for this state */
@@ -25,9 +22,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final String path;
 	/* the path parameter to use as the resource identifier */
 	private final String pathIdParameter;
-	/* a child state of the same entity */
-	private final boolean selfState;
-	/* a state not represented by a resource */
+	/* a state not represented by a resource, a state of the same entity (see parent) */
 	private final boolean pseudo;
 	/* is an initial state */
 	private boolean initial;
@@ -37,12 +32,12 @@ public class ResourceState implements Comparable<ResourceState> {
 
 	
 	/**
-	 * Construct a 'self' ResourceState.  A transition to one's self will not create a new resource.
-	 * @param entityName the name of the entity that this object is a state of
-	 * @param name this states name
+	 * Construct a pseudo ResourceState.  A transition to one's self will not create a new resource.
+	 * @param parent
+	 * @param name
 	 */
 	public ResourceState(ResourceState parent, String name) {
-		this(parent, name, "/" + name);
+		this(parent, name, null);
 	}
 	/**
 	 * {@link ResourceState(ResourceState, String)}
@@ -51,7 +46,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param path the partial URI to this state, will be prepended with supplied ResourceState path
 	 */
 	public ResourceState(ResourceState parent, String name, String path) {
-		this(parent.getEntityName(), name, parent.getPath() + (path == null ? "" : path), null, true, null, path == null);
+		this(parent, parent.getEntityName(), name, parent.getPath() + (path == null ? "" : path), null, null, path == null);
 	}
 
 	/**
@@ -61,10 +56,10 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param path the fully qualified URI to this state
 	 */
 	public ResourceState(String entityName, String name, String path) {
-		this(entityName, name, path, null, false, null, path == null);
+		this(null, entityName, name, path, null, null, false);
 	}
 	public ResourceState(String entityName, String name, String path, String[] rels) {
-		this(entityName, name, path, null, false, rels, path == null);
+		this(null, entityName, name, path, null, rels, false);
 	}
 
 	/**
@@ -75,20 +70,21 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param pathIdParameter override the default {id} path parameter and use the value instead
 	 */
 	public ResourceState(String entityName, String name, String path, String pathIdParameter) {
-		this(entityName, name, path, pathIdParameter, false, null, path == null);
+		this(null, entityName, name, path, pathIdParameter, null, false);
 	}
 	public ResourceState(String entityName, String name, String path, String pathIdParameter, String[] rels) {
-		this(entityName, name, path, pathIdParameter, false, rels, path == null);
+		this(null, entityName, name, path, pathIdParameter, rels, false);
 	}
 
-	private ResourceState(String entityName, String name, String path, String pathIdParameter, boolean selfState, String[] rels, boolean pseudo) {
+	private ResourceState(ResourceState parent, String entityName, String name, String path, String pathIdParameter, String[] rels, boolean pseudo) {
 		assert(name != null);
+		assert(path != null);
+		this.parent = parent;
 		this.entityName = entityName;
 		this.name = name;
 		this.path = path;
 		this.pathIdParameter = pathIdParameter;
 		this.initial = false;
-		this.selfState = selfState;
 		this.pseudo = pseudo;
 		if (rels == null) {
 			this.rels = "item".split(" ");
@@ -98,6 +94,10 @@ public class ResourceState implements Comparable<ResourceState> {
 		assert(this.rels != null);
 	}
 
+	public ResourceState getParent() {
+		return parent;
+	}
+	
 	public String getEntityName() {
 		return entityName;
 	}
@@ -118,12 +118,24 @@ public class ResourceState implements Comparable<ResourceState> {
 		return pathIdParameter;
 	}
 
-	public boolean isSelfState() {
-		return selfState;
-	}
-	
 	public boolean isPseudoState() {
 		return pseudo;
+	}
+	
+	public boolean isTransientState() {
+		return (getAllTargets().size() == 1 
+				&& getTransition(getAllTargets().iterator().next()).getCommand().isAutoTransition());
+	}
+
+	/**
+	 * A transient state is a resource state with a single AUTO transition, get the
+	 * auto {@link Transition}.
+	 * @return the auto transition for this transient state
+	 * @invariant this must be a transient state {@link ResourceState#isTransientState()}
+	 */
+	public Transition getAutoTransition() {
+		assert(isTransientState());
+		return getTransition(getAllTargets().iterator().next());
 	}
 	
 	public boolean isInitial() {
@@ -154,12 +166,23 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 	
 	/**
-	 * Normal transitions, transition this entities state to another state.
+	 * Auto transitions, transition from this resource state to target resource state via HTTP status codes 205 or 303.
+	 * @param targetState
+	 */
+	public void addTransition(ResourceState targetState) {
+		addTransition(null, targetState, Transition.AUTO);
+	}
+
+	/**
+	 * Normal transitions, transition from this resource state to target resource state by user agent following link.
 	 * @param httpMethod
 	 * @param targetState
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState) {
-		addTransition(httpMethod, targetState, null);
+		addTransition(httpMethod, targetState, 0);
+	}
+	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
+		addTransition(httpMethod, targetState, null, transitionFlags);
 	}
 	
 	/**
@@ -169,13 +192,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageMap
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
+		addTransition(httpMethod, targetState, uriLinkageMap, 0);
+	}
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags) {
 		String resourcePath = targetState.getPath();
-		// a destructive command acts on this state, a constructive command acts on the target state
-		// TODO define set of destructive methods
-		if (httpMethod.equals("DELETE")) {
-			resourcePath = getPath();
-		}
-		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, false);
+		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, transitionFlags);
 	}
 	
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, int transitionFlags) {

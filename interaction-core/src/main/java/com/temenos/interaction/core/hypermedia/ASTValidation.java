@@ -47,9 +47,17 @@ public class ASTValidation {
 			for (ResourceState targetState : s.getAllTargets()) {
 				Transition transition = s.getTransition(targetState);
 				sb.append("    ").append(s.getEntityName() + s.getName()).append("->").append(targetState.getEntityName() + targetState.getName())
-					.append("[label=\"")
+					.append("[");
+				if (transition.getCommand().getMethod() == null) {
+					// this is an auto transition
+					sb.append("style=\"dotted\"");
+				} else {
+					sb.append("label=\"")
 					.append(transition.getCommand())
-					.append("\"]").append("\n");
+					.append("\"");
+					
+				}
+				sb.append("]").append("\n");
 			}
 			if (s.isFinalState()) {
 				sb.append("    ").append(FINAL_STATE);

@@ -75,7 +75,7 @@ public class TestResourceState {
 	public void testSelfStatePath() {
 		String ENTITY_NAME = "entity";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/test");
-		ResourceState exists = new ResourceState(initial, "exists");
+		ResourceState exists = new ResourceState(initial, "exists", "/exists");
 		ResourceState root = new ResourceState(ENTITY_NAME, "root", "");
 		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", "/archived");
 		assertEquals("/test", initial.getPath());
@@ -84,17 +84,6 @@ public class TestResourceState {
 		assertEquals("/archived", archived.getPath());
 	}
 
-	@Test
-	public void testSelfState() {
-		String ENTITY_NAME = "entity";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/test");
-		ResourceState exists = new ResourceState(initial, "initial");
-		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", "/archived");
-		assertFalse(initial.isSelfState());
-		assertTrue(exists.isSelfState());
-		assertFalse(archived.isSelfState());
-	}
-	
 	@Test
 	public void testGetCommand() {
 		String ENTITY_NAME = "entity";
@@ -182,34 +171,6 @@ public class TestResourceState {
 	}
 
 	@Test
-	public void testEqualityNull() {
-		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", null);
-		ResourceState end = new ResourceState(ENTITY_NAME, "begin", null);
-		assertEquals(begin, end);
-		assertEquals(end, begin);
-		assertEquals(begin.hashCode(), end.hashCode());
-	}
-
-	@Test
-	public void testInequalityNull() {
-		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", null);
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "/test");
-		assertFalse(begin.equals(end));
-		assertFalse(begin.hashCode() == end.hashCode());
-	}
-
-	@Test
-	public void testInequalityBothNull() {
-		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", null);
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", null);
-		assertFalse(begin.equals(end));
-		assertFalse(begin.hashCode() == end.hashCode());
-	}
-
-	@Test
 	public void testEndState() {
 		String ENTITY_NAME = "entity";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "");
@@ -225,8 +186,34 @@ public class TestResourceState {
 	 */
 	@Test
 	public void testPseudoState() {
-		ResourceState deleted = new ResourceState("entity", "deleted", null);
+		ResourceState exists = new ResourceState("entity", "exists", "/exists");
+		ResourceState deleted = new ResourceState(exists, "deleted");
 		assertTrue(deleted.isPseudoState());
+	}
+
+	/**
+	 * A transient state is a resource state with a single AUTO transition.
+	 */
+	@Test
+	public void testTransientState() {
+		ResourceState home = new ResourceState("root", "root", "/");
+		ResourceState reboot = new ResourceState("entity", "reboot", "/reboot");
+		home.addTransition("POST", reboot);
+		reboot.addTransition(home);
+		assertTrue(reboot.isTransientState());
+	}
+
+	/**
+	 * A transient state is a resource state with a single AUTO transition, get the
+	 * target state.
+	 */
+	@Test
+	public void testTransientTarget() {
+		ResourceState home = new ResourceState("root", "root", "/");
+		ResourceState reboot = new ResourceState("entity", "reboot", "/reboot");
+		home.addTransition("POST", reboot);
+		reboot.addTransition(home);
+		assertEquals(home, reboot.getAutoTransition().getTarget());
 	}
 
 }

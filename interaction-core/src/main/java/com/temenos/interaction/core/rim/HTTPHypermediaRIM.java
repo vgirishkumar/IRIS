@@ -46,6 +46,7 @@ import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.LinkHeader;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 
 /**
  * <P>
@@ -173,17 +174,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		
 		Map<String, ResourceState> resourceStates = hypermediaEngine.getResourceStatesByPath(this.currentState);
 		for (String childPath : resourceStates.keySet()) {
-			ResourceStateMachine childSM = hypermediaEngine;
 			// get the child state
 			ResourceState childState = resourceStates.get(childPath);
 			HTTPHypermediaRIM child = null;
 			if (childState.equals(getCurrentState()) || childState.getPath().equals(getCurrentState().getPath())) {
 				continue;
-			} else if (!childState.isSelfState()) {
-				// this is a new resource for a different entity
-				childSM = new ResourceStateMachine(childState, hypermediaEngine.getTransformer());
 			}
-			child = new HTTPHypermediaRIM(null, getCommandController(), childSM, childState);
+			child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, childState);
 			result.add(child);
 		}
 		return result;
@@ -436,23 +433,30 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         		assert(linkHeaders.size() == 1);
     			linkHeader = LinkHeader.valueOf(linkHeaders.get(0));
     		}
-    		target = hypermediaEngine.getLinkFromRelations(pathParameters,
-    				ctx.getResource(), currentState, linkHeader);
+        	Link linkUsed = hypermediaEngine.getLinkFromRelations(pathParameters, null, linkHeader);
     		/*
     		 * No target found using link relations, try to find a transition from ourself
     		 */
-    		if (target == null) {
-    			target = hypermediaEngine.getLink(pathParameters, ctx.getResource(), currentState, "DELETE");
+    		if (linkUsed == null) {
+    			linkUsed = hypermediaEngine.getLinkFromMethod(pathParameters, null, currentState, "DELETE");
     		}
-    		if (target != null) {
-    			if (target.getTransition().getCommand().isResetRequired()) {
-            		// this transition has been configured to reset content
-               		status = HttpStatusTypes.RESET_CONTENT;
-    			} else if (target.getTransition().getTarget().isPseudoState() || target.getTransition().getTarget().equals(currentState)) {
+    		if (linkUsed != null) {
+    			ResourceState targetState = linkUsed.getTransition().getTarget();
+    			if (targetState.isTransientState()) {
+    				Transition autoTransition = targetState.getAutoTransition();
+    				if (autoTransition.getTarget().equals(linkUsed.getTransition().getSource())) {
+                		// this transition has been configured to reset content
+                   		status = HttpStatusTypes.RESET_CONTENT;
+            		} else {
+            			status = Status.SEE_OTHER;
+            			target = hypermediaEngine.createLinkToTarget(autoTransition, ctx.getResource(), pathParameters);
+            		}
+    			} else if (targetState.isPseudoState() || targetState.equals(currentState)) {
         			// did we delete ourselves or pseudo final state, both are transitions to No Content
             		status = Response.Status.NO_CONTENT;
         		} else {
-        			status = Status.SEE_OTHER;
+        			throw new IllegalArgumentException("Resource interaction exception, should not be " +
+        					"possible to use a link where target state is not our current state");
         		}
     		} else {
     			// null target (pseudo final state) is effectively a transition to No Content
@@ -537,7 +541,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	}
 
 	public String toString() {
-		return ("HTTPHypermediaRIM " + hypermediaEngine.getInitial().getId() + "[" + getFQResourcePath() + "]");
+		return ("HTTPHypermediaRIM " + currentState.getId() + "[" + getFQResourcePath() + "]");
 	}
 
 }

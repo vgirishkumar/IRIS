@@ -95,7 +95,7 @@ public class ResourceRegistry {
 		statePathMap.put(rim.getCurrentState(), rim.getFQResourcePath());
 		Collection<ResourceState> resourceStates = rim.getCurrentState().getAllTargets();
 		for (ResourceState childState : resourceStates) {
-			if (childState.isSelfState()) {
+			if (childState.isPseudoState()) {
 				statePathMap.put(childState, rim.getFQResourcePath());
 			} else if (!childState.getEntityName().equals(rim.getCurrentState().getEntityName())) {
 				statePathMap.put(childState, childState.getPath());

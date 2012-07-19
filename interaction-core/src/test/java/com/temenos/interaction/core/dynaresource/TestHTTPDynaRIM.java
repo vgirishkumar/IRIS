@@ -90,9 +90,10 @@ public class TestHTTPDynaRIM {
 		String ENTITY_NAME = "DraftNote";
 		String resourcePath = "/notes/{id}";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
-		ResourceState exists = new ResourceState(initial, "exists");
+		ResourceState exists = new ResourceState(initial, "exists", "/exists");
+		ResourceState deleted = new ResourceState(exists, "deleted", null);
 		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/notes/{id}/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted", null);
+		ResourceState deletedDraft = new ResourceState(draft, "deleted");
 	
 		// create
 		initial.addTransition("PUT", exists);
@@ -103,7 +104,7 @@ public class TestHTTPDynaRIM {
 		// publish
 		draft.addTransition("PUT", exists);
 		// delete draft
-		draft.addTransition("DELETE", deleted);
+		draft.addTransition("DELETE", deletedDraft);
 		// delete published
 		exists.addTransition("DELETE", deleted);
 		
@@ -114,12 +115,12 @@ public class TestHTTPDynaRIM {
 		Collection<ResourceInteractionModel> resources = parent.getChildren();
 		assertEquals(2, resources.size());
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}");
-		verify(cc, times(1)).fetchGetCommand("/notes/{id}/exists");
 		verify(cc, times(1)).fetchGetCommand("/notes/{id}/draft");
-		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/exists");
+		verify(cc, times(1)).fetchGetCommand("/notes/{id}/exists");
 		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/draft");
-		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/draft");
+		verify(cc).fetchStateTransitionCommand("PUT", "/notes/{id}/exists");
 		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/exists");
+		verify(cc).fetchStateTransitionCommand("DELETE", "/notes/{id}/draft");
 	}
 
 	@Test
@@ -128,8 +129,9 @@ public class TestHTTPDynaRIM {
 		String resourcePath = "/notes/{id}";
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
 		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/notes/{id}/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", null);
 		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/notes/{id}/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted", null);
+		ResourceState deletedDraft = new ResourceState(draft, "draftDeleted");
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -138,9 +140,9 @@ public class TestHTTPDynaRIM {
 		// publish
 		draft.addTransition("PUT", published);
 		// delete draft
-		draft.addTransition("DELETE", deleted);
+		draft.addTransition("DELETE", deletedDraft);
 		// delete published
-		published.addTransition("DELETE", deleted);
+		published.addTransition("DELETE", publishedDeleted);
 		
 		CommandController cc = mock(CommandController.class);
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
@@ -166,7 +168,7 @@ public class TestHTTPDynaRIM {
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", resourcePath);
   		ResourceState bookingCreated = new ResourceState(begin, "bookingCreated", "/{id}");
   		ResourceState bookingCancellation = new ResourceState(bookingCreated, "cancellation", "/cancellation");
-  		ResourceState deleted = new ResourceState(bookingCreated, "deleted", null);
+  		ResourceState deleted = new ResourceState(bookingCancellation, "deleted", null);
 
 		begin.addTransition("PUT", bookingCreated);
 		bookingCreated.addTransition("PUT", bookingCancellation);

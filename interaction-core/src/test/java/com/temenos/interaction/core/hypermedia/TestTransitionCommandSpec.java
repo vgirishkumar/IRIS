@@ -20,16 +20,16 @@ public class TestTransitionCommandSpec {
 	}
 
 	@Test
-	public void testResetRequired() {
-		TransitionCommandSpec cs = new TransitionCommandSpec("GET", "", Transition.RESET_CONTENT);
-		assertTrue(cs.isResetRequired());
+	public void testAutoForEach() {
+		TransitionCommandSpec cs = new TransitionCommandSpec("GET", "", Transition.AUTO | Transition.FOR_EACH);
+		assertTrue(cs.isAutoTransition());
+		assertTrue(cs.isForEach());
 	}
 
 	@Test
-	public void testResetForEach() {
-		TransitionCommandSpec cs = new TransitionCommandSpec("GET", "", Transition.RESET_CONTENT | Transition.FOR_EACH);
-		assertTrue(cs.isResetRequired());
-		assertTrue(cs.isForEach());
+	public void testAuto() {
+		TransitionCommandSpec cs = new TransitionCommandSpec(null, "/path", Transition.AUTO);
+		assertTrue(cs.isAutoTransition());
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class TestTransitionCommandSpec {
 	public void testInequality() {
 		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", "/test", 0);
 		TransitionCommandSpec tcs2 = new TransitionCommandSpec("PUT", "/test", 0);
-		TransitionCommandSpec tcs3 = new TransitionCommandSpec("GET", "/test", Transition.RESET_CONTENT);
+		TransitionCommandSpec tcs3 = new TransitionCommandSpec("GET", "/test", Transition.FOR_EACH);
 		TransitionCommandSpec tcs4 = new TransitionCommandSpec("GET", "/test2", 0);
 		assertFalse(tcs.equals(tcs2));
 		assertFalse(tcs.hashCode() == tcs2.hashCode());
@@ -80,9 +80,8 @@ public class TestTransitionCommandSpec {
 	@Test
 	public void testToString() {
 		assertEquals("GET (0)", new TransitionCommandSpec("GET", "", 0).toString());
-		assertEquals("GET /test (11)", new TransitionCommandSpec("GET", "/test", Transition.FOR_EACH | Transition.RESET_CONTENT).toString());
 		assertEquals("GET (1)", new TransitionCommandSpec("GET", null, Transition.FOR_EACH).toString());
-		assertEquals("GET (10)", new TransitionCommandSpec("GET", null, Transition.RESET_CONTENT).toString());
+		assertEquals("GET (10)", new TransitionCommandSpec("GET", null, Transition.AUTO).toString());
 	}
 
 }

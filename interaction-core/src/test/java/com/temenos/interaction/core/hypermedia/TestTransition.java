@@ -42,7 +42,7 @@ public class TestTransition {
 		assertFalse(t.hashCode() == t2.hashCode());
 		
 		Transition t3 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), end);
-		Transition t4 = new Transition(begin, new TransitionCommandSpec("PUT", "stuffed", Transition.RESET_CONTENT), end);
+		Transition t4 = new Transition(begin, new TransitionCommandSpec(null, "stuffed", Transition.AUTO), end);
 		assertFalse(t3.equals(t4));
 		assertFalse(t3.hashCode() == t4.hashCode());
 

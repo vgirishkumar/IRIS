@@ -2,8 +2,18 @@ package com.temenos.interaction.core.hypermedia;
 
 public class Transition {
 
-	public static final int FOR_EACH = 1;  // add transition to every item in collection
-	public static final int RESET_CONTENT = 2;  // inform the user agent they need to 205 Reset Content following this transition
+	/**
+	 * Add transition to every item in collection
+	 */
+	public static final int FOR_EACH = 1;
+	/**
+	 * This transition is an auto transition.<br>
+	 * A transition to this state from the same state as the auto target will result 
+	 * in a 205 Reset Content HTTP status at runtime.
+	 * A transition to this state from a different state to the auto target will result
+	 * in a 303 Redirect HTTP status at runtime.
+	 */
+	public static final int AUTO = 2;
 
 	private final ResourceState source, target;
 	private final TransitionCommandSpec command;
