@@ -69,6 +69,10 @@
                         <constructor-arg ref="persistence" />
                     </bean>
                 </entry>
+                 <entry>
+                    <key><value>GET+/tweets/{username}</value></key>
+                    <bean class="com.temenos.interaction.example.mashup.twitter.GETUserTwitterUpdatesCommand" />
+                </entry>
             </map>
         </constructor-arg>
     </bean>

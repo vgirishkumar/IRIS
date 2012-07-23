@@ -1,39 +1,41 @@
 package com.temenos.interaction.example.mashup.twitter.model;
 
 import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity(name = "user")
 @Table(name="USER")
-@XmlRootElement(name = "user")
-@XmlAccessorType(XmlAccessType.FIELD)
 public class User {
 
 	@Id
 	@Basic(optional = false)
 	private Long userID;
-    @XmlElement(name = "handle")
-    private String handle;
+	@Column(name = "FullName")
+	private String fullName;
+    @Column(name = "THandle")
+    private String twitterHandle;
     
-    /* Hibernate & JAXB */
+    /* Hibernate */
     public User() {}
     
-    public User(Long id, String handle) {
+    public User(Long id, String fullName, String handle) {
     	this.userID = id;
-    	this.handle = handle;
+    	this.fullName = fullName;
+    	this.twitterHandle = handle;
     }
     
 	public Long getUserID() {
 		return userID;
 	}
     
-    public String getHandle() {
-    	return handle;
+    public String getFullName() {
+    	return fullName;
+    }
+
+    public String getTwitterHandle() {
+    	return twitterHandle;
     }
 }

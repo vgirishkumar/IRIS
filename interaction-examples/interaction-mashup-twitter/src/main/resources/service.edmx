@@ -4,13 +4,22 @@
         <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="com.temenos.interaction.example.mashup.twitter">
             <EntityContainer Name="Entities" m:IsDefaultEntityContainer="true">
                 <EntitySet Name="User" EntityType="com.temenos.interaction.example.mashup.twitter.User"/>
+                <EntitySet Name="Tweet" EntityType="com.temenos.interaction.example.mashup.twitter.Tweet"/>
             </EntityContainer>
             <EntityType Name="User">
                 <Key>
                     <PropertyRef Name="userID"></PropertyRef>
                 </Key>
                 <Property Name="userID" Type="Edm.String" Nullable="false"></Property>
-                <Property Name="handle" Type="Edm.String" Nullable="false"></Property>
+                <Property Name="fullName" Type="Edm.String" Nullable="false"></Property>
+                <Property Name="twitterHandle" Type="Edm.String" Nullable="true"></Property>
+            </EntityType>
+            <EntityType Name="Tweet">
+                <Key>
+                    <PropertyRef Name="username"></PropertyRef>
+                </Key>
+                <Property Name="message" Type="Edm.String" Nullable="false"></Property>
+                <Property Name="geolocation" Type="Edm.String" Nullable="true"></Property>
             </EntityType>
         </Schema>
     </edmx:DataServices>
