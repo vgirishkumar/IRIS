@@ -33,6 +33,20 @@ public class CollectionResource<T> implements RESTResource {
 	
 	public CollectionResource() {}
 
+	/**
+	 * Construct a new instance of a CollectionResource.  EntitySetName will be set by the interaction-core
+	 * before passing to a Provider
+	 * @param entities
+	 */
+	public CollectionResource(Collection<EntityResource<T>> entities) {
+		this.entities = entities;
+	}
+
+	/**
+	 * This constructor expected to be used internally.
+	 * @param entitySetName
+	 * @param entities
+	 */
 	public CollectionResource(String entitySetName, Collection<EntityResource<T>> entities) {
 		this.entitySetName = entitySetName;
 		this.entities = entities;
