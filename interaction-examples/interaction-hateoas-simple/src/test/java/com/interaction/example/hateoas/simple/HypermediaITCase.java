@@ -98,7 +98,7 @@ public class HypermediaITCase extends JerseyTest {
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"), link.getHref());
-				} else if (link.getRel().contains("note.end")) {
+				} else if (link.getRel().contains("end")) {
 					assertEquals("DELETE " + Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"), link.getHref());
 				} else {
 					fail("unexpected link");
@@ -138,7 +138,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
 			for (Link link : itemLinks) {
-				if (link.getRel().contains("note.end")) {
+				if (link.getRel().contains("end")) {
 					deleteLink = link;
 				}
 			}

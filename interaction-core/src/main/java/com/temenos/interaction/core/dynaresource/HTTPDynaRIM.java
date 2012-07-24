@@ -229,9 +229,9 @@ public class HTTPDynaRIM extends AbstractHTTPResourceInteractionModel {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
 			String linkId = transition.getId();
-			String rel = transition.getTarget().getName();
-			if (transition.getSource().equals(transition.getTarget())) {
-				rel = "self";
+			String rel = "self";
+			if (!transition.getTarget().getRel().equals("self") && !transition.getSource().equals(transition.getTarget())) {
+				rel = transition.getTarget().getName();		//Not a self-link so use name of target state as relation name
 			}
 			
 			String method = cs.getMethod();
