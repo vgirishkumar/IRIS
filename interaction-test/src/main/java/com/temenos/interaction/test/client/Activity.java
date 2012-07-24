@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.app.client;
+package com.temenos.interaction.test.client;
 
 public abstract class Activity {
     

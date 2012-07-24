@@ -35,7 +35,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
-import com.temenos.interaction.example.AbstractRuntimeTest;
+import com.temenos.interaction.test.AbstractRuntimeTest;
 
 public abstract class AbstractNorthwindRuntimeTest extends AbstractRuntimeTest {
 

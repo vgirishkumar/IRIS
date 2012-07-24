@@ -1,8 +1,10 @@
-package com.temenos.interaction.example.app.client;
+package com.temenos.interaction.test.client;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+
+import com.temenos.interaction.test.client.Actions;
 
 public class ActionsTest {
     @Test

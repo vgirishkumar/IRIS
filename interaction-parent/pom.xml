@@ -16,6 +16,7 @@
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
 		<module>../interaction-sdk-archetype</module>
+        <module>../interaction-test</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
 		<module>../useragent-examples/useragent-hal-inspector</module>
 		<module>../interaction-examples/interaction-hateoas-simple</module>
@@ -107,6 +108,11 @@
 				<artifactId>interaction-sdk</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+            <dependency>
+                <groupId>com.temenos.interaction</groupId>
+                <artifactId>interaction-test</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 			<dependency>
 				<groupId>com.temenos.interaction</groupId>
 				<artifactId>useragent-generic-javascript</artifactId>

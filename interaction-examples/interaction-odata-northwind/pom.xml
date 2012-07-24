@@ -188,9 +188,8 @@
 
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
-    	<artifactId>interaction-core</artifactId>
-    	<version>${project.version}</version><!--$NO-MVN-MAN-VER$-->
-		<type>test-jar</type>
+    	<artifactId>interaction-test</artifactId>
+		<type>jar</type>
     	<scope>test</scope>
     </dependency>
 

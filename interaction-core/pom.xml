@@ -130,17 +130,6 @@
 			<artifactId>xmlunit</artifactId>
 			<scope>test</scope>
 		</dependency>
-	    <dependency>
-	    	<groupId>org.odata4j</groupId>
-	    	<artifactId>odata4j-cxf</artifactId>
-	    	<version>0.6.0</version>
-	    	<scope>test</scope>
-	    </dependency>
-	    <dependency>
-			<groupId>org.odata4j</groupId>
-			<artifactId>odata4j-jersey</artifactId>
-			<scope>test</scope>
-	    </dependency>
 		<dependency>
 			<groupId>com.theoryinpractise</groupId>
 			<artifactId>halbuilder</artifactId>

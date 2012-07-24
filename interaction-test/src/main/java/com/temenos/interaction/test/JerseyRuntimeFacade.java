@@ -1,4 +1,4 @@
-package com.temenos.interaction.example;
+package com.temenos.interaction.test;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.RuntimeDelegate;
