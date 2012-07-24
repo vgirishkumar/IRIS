@@ -8,28 +8,28 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
     super(type);
   }
 
-  @Test
+//  @Test
   public void SystemQueryOptionOrderByTest() {
     String inp = "SystemQueryOptionOrderByTest";
     String uri = "Products?$top=20&$orderby=ProductID";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+//  @Test
   public void SystemQueryOptionOrderByDescTest() {
     String inp = "SystemQueryOptionOrderByDescTest";
     String uri = "Products?$top=10&$orderby=ProductID desc";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionTopTest() {
     String inp = "SystemQueryOptionTopTest";
     String uri = "Products?$top=5";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionOrderByTopTest() {
     String inp = "SystemQueryOptionOrderByTopTest";
     String uri = "Products?$top=5&$orderby=ProductName desc";
@@ -43,7 +43,7 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionOrderBySkipTest() {
     String inp = "SystemQueryOptionOrderBySkipTest";
     String uri = "Products?$skip=2&$top=2&$orderby=ProductName";
@@ -57,7 +57,7 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionSkipTokenComplexKeyTest() {
     String inp = "SystemQueryOptionSkipTokenComplexKeyTest";
     String uri = "Order_Details?$top=5&$skiptoken=OrderID=10248,ProductID=11";
@@ -78,49 +78,49 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionFilterGreaterThanTest() {
     String inp = "SystemQueryOptionFilterGreaterThanTest";
     String uri = "Products?$top=20&$filter=UnitPrice gt 20";
     testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionFilterGreaterThanOrEqualTest() {
     String inp = "SystemQueryOptionFilterGreaterThanOrEqualTest";
     String uri = "Products?$top=20&$filter=UnitPrice ge 10";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionFilterLessThanTest() {
     String inp = "SystemQueryOptionFilterLessThanTest";
     String uri = "Products?$top=20&$filter=UnitPrice lt 20";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionFilterLessThanOrEqualTest() {
     String inp = "SystemQueryOptionFilterLessThanOrEqualTest";
     String uri = "Products?$top=20&$filter=UnitPrice le 100";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionFilterLogicalAndTest() {
     String inp = "SystemQueryOptionFilterLogicalAndTest";
     String uri = "Products?$top=20&$filter=UnitPrice le 200 and UnitPrice gt 3.5";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionFilterLogicalOrTest() {
     String inp = "SystemQueryOptionFilterLogicalOrTest";
     String uri = "Products?$filter=UnitPrice le 3.5 or UnitPrice gt 200";
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionFilterGroupingLogicalAndTest() {
     String inp = "SystemQueryOptionFilterGroupingLogicalAndTest";
     String uri = "Products?$top=10&$filter=(UnitPrice gt 5) and (UnitPrice lt 20)";
