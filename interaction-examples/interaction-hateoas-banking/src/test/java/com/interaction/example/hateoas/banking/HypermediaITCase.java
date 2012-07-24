@@ -43,7 +43,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(3, links.size());
@@ -66,7 +66,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -90,7 +90,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(1, itemLinks.size());
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
-					assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers/" + item.getProperties().get("id"), link.getHref());
+					assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers/" + item.getProperties().get("id").get(), link.getHref());
 				} else {
 					fail("unexpected link");
 				}

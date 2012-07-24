@@ -49,7 +49,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(4, links.size());
@@ -74,7 +74,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -97,9 +97,9 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
-					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"), link.getHref());
+					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID").get(), link.getHref());
 				} else if (link.getName().get().contains("note.end")) {
-					assertEquals("DELETE " + Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"), link.getHref());
+					assertEquals("DELETE " + Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID").get(), link.getHref());
 				} else {
 					fail("unexpected link [" + link.getName().get() + "]");
 				}
@@ -123,7 +123,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
 		List<Resource> subresources = resource.getResources();
@@ -167,7 +167,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
 		List<Resource> subresources = resource.getResources();
@@ -208,7 +208,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
 		List<Resource> subresources = resource.getResources();
@@ -234,7 +234,7 @@ public class HypermediaITCase extends JerseyTest {
 			ClientResponse getResponse = Client.create().resource(getLink.getHref()).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
 	        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(getResponse.getStatus()).getFamily());
 			// the item
-			ReadableResource itemResource = resourceFactory.newResource(new InputStreamReader(getResponse.getEntityInputStream()));
+			ReadableResource itemResource = resourceFactory.readResource(new InputStreamReader(getResponse.getEntityInputStream()));
 			List<Link> links = itemResource.getLinks();
 			assertNotNull(links);
 			assertEquals(3, links.size());
