@@ -41,8 +41,10 @@ import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceRegistry;
-import com.temenos.interaction.core.link.Transition;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -166,7 +168,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 		String rel = XmlFormatWriter.related + otherEntitySetName;
 		OLink olink;
-		Transition linkTransition = resourceRegistry.getLinkTransition(link.getId());
+		Transition linkTransition = resourceRegistry.getLinkTransition(link.getTransition().getId());
 		if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
 			olink = OLinks.relatedEntities(rel, otherEntitySetName, pathOtherResource);
 		}

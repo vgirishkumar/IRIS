@@ -15,7 +15,6 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
@@ -45,9 +44,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Before
 	public void setup() {
 		// initialise the thread local request context with requestUri and baseUri
-		UriBuilder baseUri = UriBuilder.fromUri("/baseuri");
-		String requestUri = "/baseuri/";
-        RequestContext ctx = new RequestContext(baseUri, requestUri, null);
+        RequestContext ctx = new RequestContext("/baseuri", "/requesturi", null);
         RequestContext.setRequestContext(ctx);
 	}
 

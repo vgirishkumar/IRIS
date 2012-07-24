@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,9 +31,7 @@ public class TestResourceStateMachine {
 	@Before
 	public void setup() {
 		// initialise the thread local request context with requestUri and baseUri
-		UriBuilder baseUri = UriBuilder.fromUri("/baseuri");
-		String requestUri = "/baseuri/";
-        RequestContext ctx = new RequestContext(baseUri, requestUri, null);
+        RequestContext ctx = new RequestContext("/baseuri", "/requesturi", null);
         RequestContext.setRequestContext(ctx);
 	}
 
@@ -879,17 +876,17 @@ public class TestResourceStateMachine {
 			
 		});
 		// link to DELETE note '1'
-		assertEquals("item", links.get(0).getRel());
+		assertEquals("final", links.get(0).getRel());
 		assertEquals("/baseuri/notes/1", links.get(0).getHref());
 		assertEquals("NOTE.collection>NOTE.final", links.get(0).getTitle());
 		assertEquals("DELETE", links.get(0).getMethod());
 		// link to DELETE note '2'
-		assertEquals("item", links.get(1).getRel());
+		assertEquals("final", links.get(1).getRel());
 		assertEquals("/baseuri/notes/2", links.get(1).getHref());
 		assertEquals("NOTE.collection>NOTE.final", links.get(1).getTitle());
 		assertEquals("DELETE", links.get(1).getMethod());
 		// link to DELETE note '6'
-		assertEquals("item", links.get(2).getRel());
+		assertEquals("final", links.get(2).getRel());
 		assertEquals("/baseuri/notes/6", links.get(2).getHref());
 		assertEquals("NOTE.collection>NOTE.final", links.get(2).getTitle());
 		assertEquals("DELETE", links.get(0).getMethod());

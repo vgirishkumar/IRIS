@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.dynaresource;
+package com.temenos.interaction.core.hypermedia;
 
 import java.util.HashMap;
 import java.util.Map;

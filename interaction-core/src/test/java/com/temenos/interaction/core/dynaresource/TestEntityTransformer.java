@@ -19,6 +19,9 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 
+import com.temenos.interaction.core.hypermedia.EntityTransformer;
+import com.temenos.interaction.core.hypermedia.Transformer;
+
 public class TestEntityTransformer {
 
 	@Test

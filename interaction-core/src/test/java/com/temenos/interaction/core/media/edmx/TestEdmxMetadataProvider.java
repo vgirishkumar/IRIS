@@ -20,9 +20,10 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
-import com.temenos.interaction.core.link.ResourceRegistry;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.resource.MetaDataResource;
 
 import static org.mockito.Mockito.mock;
@@ -41,7 +42,7 @@ public class TestEdmxMetadataProvider {
 		when(mr.getMetadata()).thenReturn(mockEDS);
 		
 		//Serialize metadata resource
-		EdmxMetaDataProvider p = new EdmxMetaDataProvider(new ResourceRegistry(mockEDS, new HashSet<HTTPDynaRIM>()));
+		EdmxMetaDataProvider p = new EdmxMetaDataProvider(new ResourceRegistry(mockEDS, new HashSet<HTTPResourceInteractionModel>()));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(mr, MetaDataResource.class, EdmDataServices.class, null, MediaType.APPLICATION_XML_TYPE, null, bos);
 
@@ -64,7 +65,7 @@ public class TestEdmxMetadataProvider {
 		GenericEntity<MetaDataResource<EdmDataServices>> ge = new GenericEntity<MetaDataResource<EdmDataServices>>(mr) {};
 		
 		//Serialize metadata resource
-		EdmxMetaDataProvider p = new EdmxMetaDataProvider(new ResourceRegistry(mockEDS, new HashSet<HTTPDynaRIM>()));
+		EdmxMetaDataProvider p = new EdmxMetaDataProvider(new ResourceRegistry(mockEDS, new HashSet<HTTPResourceInteractionModel>()));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_XML_TYPE, null, bos);
 
@@ -77,7 +78,7 @@ public class TestEdmxMetadataProvider {
 	//@Test
 	//TODO
 	public void testWriteMetadataResourceWithResourceSet() throws Exception {
-		HashSet<HTTPDynaRIM> resourceSet = new HashSet<HTTPDynaRIM>();
+		HashSet<HTTPResourceInteractionModel> resourceSet = new HashSet<HTTPResourceInteractionModel>();
 		MetaDataResource<EdmDataServices> mr = mock(MetaDataResource.class);
 		
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();

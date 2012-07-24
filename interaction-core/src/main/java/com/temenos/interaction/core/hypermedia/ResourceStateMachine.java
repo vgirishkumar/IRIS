@@ -251,7 +251,7 @@ public class ResourceStateMachine {
 			/* 
 			 * build link and add to list of links
 			 */
-			UriBuilder linkTemplate = RequestContext.getRequestContext().getBasePath().path(cs.getPath());
+			UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
 			if (cs.isForEach()) {
 				if (collectionResource != null) {
 					for (EntityResource<?> er : collectionResource.getEntities()) {
@@ -326,7 +326,7 @@ public class ResourceStateMachine {
 	 */
 	public Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		assert(RequestContext.getRequestContext() != null);
-		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(transition.getTarget().getPath());
+		UriBuilder selfUriTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getTarget().getPath());
 		return createLink(selfUriTemplate, transition, entity, pathParameters);
 	}
 
@@ -335,17 +335,16 @@ public class ResourceStateMachine {
 	 */
 	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		assert(RequestContext.getRequestContext() != null);
-		UriBuilder selfUriTemplate = RequestContext.getRequestContext().getBasePath().path(transition.getCommand().getPath());
+		UriBuilder selfUriTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
 		return createLink(selfUriTemplate, transition, entity, pathParameters);
 	}
 
 	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity, MultivaluedMap<String, String> map) {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
-			// TODO get rels properly
-			String rel = transition.getTarget().getRel();
-			if (transition.getSource().equals(transition.getTarget())) {
-				rel = "self";
+			String rel = "self";
+			if (!transition.getTarget().getRel().equals("self") && !transition.getSource().equals(transition.getTarget())) {
+				rel = transition.getTarget().getName();		//Not a self-link so use name of target state as relation name
 			}
 			
 			String method = cs.getMethod();

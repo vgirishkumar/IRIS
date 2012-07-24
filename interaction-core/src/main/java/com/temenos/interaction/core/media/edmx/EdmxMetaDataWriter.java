@@ -28,10 +28,10 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
-import com.temenos.interaction.core.link.CollectionResourceState;
-import com.temenos.interaction.core.link.ResourceRegistry;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.Transition;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.Transition;
 
 public class EdmxMetaDataWriter extends XmlFormatWriter {
 

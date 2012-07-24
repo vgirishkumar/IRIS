@@ -55,7 +55,7 @@
     <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
         <constructor-arg name="initialState" ref="interaction" />
-    	<constructor-arg><bean class="com.temenos.interaction.core.dynaresource.EntityTransformer" /></constructor-arg>
+    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
     </bean>
 
     <!-- Resources -->
