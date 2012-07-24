@@ -22,10 +22,10 @@
 		<module>../interaction-examples/interaction-hateoas-banking</module>
 		<module>../interaction-examples/interaction-odata-northwind</module>
 		<module>../interaction-examples/interaction-odata-airline</module>
-		<!-- 
+<!-- Disabled until the new Atom Provider that uses the resource interaction model becomes available.		
 		<module>../interaction-examples/interaction-odata-notes</module>
-		 -->
 		<module>../interaction-examples/interaction-notes</module>
+-->
 	</modules>
 
 	<distributionManagement>

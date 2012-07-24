@@ -46,7 +46,7 @@
 	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
-    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+    <bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
         <constructor-arg name="edmDataServices" ref="edmDataServices" />
         <constructor-arg name="root" ref="ServiceRoot" />
     </bean>

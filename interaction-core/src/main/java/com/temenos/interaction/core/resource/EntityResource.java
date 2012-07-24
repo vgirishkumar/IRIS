@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
@@ -24,7 +24,10 @@ public class EntityResource<T> implements RESTResource {
 	@XmlAnyElement(lax=true)
 	private T entity;
 
-	/* injected by HateoasResponse */
+	
+	/* injected by during build response phase */
+	@XmlTransient
+    private String entityName;
 	@XmlTransient
     private Collection<Link> links;
 
@@ -58,4 +61,14 @@ public class EntityResource<T> implements RESTResource {
     public void setLinks(Collection<Link> links) {
     	this.links = links;
     }
+
+	@Override
+	public String getEntityName() {
+		return entityName;
+	}
+
+	@Override
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
 }

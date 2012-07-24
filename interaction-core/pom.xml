@@ -23,11 +23,11 @@
 		<resources>
 			<resource>
 				<filtering>true</filtering>
-				<directory>${project.build.testSourceDirectory}/com/temenos/interaction/core/link</directory>
+				<directory>${project.build.testSourceDirectory}/com/temenos/interaction/core/hypermedia</directory>
 				<includes>
 					<include>TestResourceRegistryEDMX.xml</include>
 				</includes>
-				<targetPath>${project.build.testOutputDirectory}/com/temenos/interaction/core/link</targetPath>
+				<targetPath>${project.build.testOutputDirectory}/com/temenos/interaction/core/hypermedia</targetPath>
 			</resource>
 		</resources>
 		<plugins>
@@ -144,7 +144,7 @@
 		<dependency>
 			<groupId>com.theoryinpractise</groupId>
 			<artifactId>halbuilder</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.jettison</groupId>

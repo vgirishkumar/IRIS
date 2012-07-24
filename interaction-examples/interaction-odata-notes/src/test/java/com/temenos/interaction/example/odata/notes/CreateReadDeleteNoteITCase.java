@@ -3,6 +3,8 @@ package com.temenos.interaction.example.odata.notes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import javax.ws.rs.core.Response;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +70,7 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
 	public void testOptions() {
         String noteUri = NOTES_RESOURCE + "(1)";
         ClientResponse response = webResource.path(noteUri).options(ClientResponse.class);
-        assertEquals(200, response.getStatus());
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
         assertEquals(4, response.getAllow().size());
         assertTrue(response.getAllow().contains("GET"));
         assertTrue(response.getAllow().contains("DELETE"));

@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 
 /**
  * A MetaDataResource is resource that describes another resource.
@@ -37,6 +37,14 @@ public class MetaDataResource<T> implements RESTResource {
     public Collection<Link> getLinks() {
     	return null;
     }
+	@Override
 	public void setLinks(Collection<Link> links) {}
+
+	@Override
+	public String getEntityName() {
+		return null;
+	}
+	@Override
+	public void setEntityName(String entityName) {}
 	
 }

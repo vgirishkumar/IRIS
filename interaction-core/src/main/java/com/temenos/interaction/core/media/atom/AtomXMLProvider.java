@@ -41,15 +41,13 @@ import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.link.CollectionResourceState;
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.link.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 import com.temenos.interaction.core.web.RequestContext;
 
 @Provider
@@ -125,7 +123,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				
 				//Write entry
 				OEntity oentity = entityResource.getEntity();
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(oentity.getEntitySetName());
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? oentity.getEntitySetName() : entityResource.getEntityName()));
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
@@ -143,8 +141,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					entityOlinks.put(entity.getEntitySetName(), olinks);					
 					entities.add(entity);
 				}
-				
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(collectionResource.getEntitySetName());
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((collectionResource.getEntityName() == null ? collectionResource.getEntitySetName() : collectionResource.getEntityName()));
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;

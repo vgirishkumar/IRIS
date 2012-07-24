@@ -17,7 +17,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.theoryinpractise.halbuilder.ResourceFactory;
-import com.theoryinpractise.halbuilder.spi.RenderableResource;
+import com.theoryinpractise.halbuilder.spi.ReadableResource;
 
 public class NewNoteITCase extends JerseyTest {
 
@@ -113,7 +113,7 @@ public class NewNoteITCase extends JerseyTest {
         ClientResponse getResponse = webResource.path(newNoteUri).type(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         InputStream getRespIS = getResponse.getEntityInputStream();
         
-        RenderableResource halResource = new ResourceFactory().newResource(new InputStreamReader(getRespIS)).asRenderableResource();
+        ReadableResource halResource = new ResourceFactory().readResource(new InputStreamReader(getRespIS));
         String lastIdStr = halResource.get("lastId").get().toString();
         long lastId = Long.valueOf(lastIdStr).longValue();
  
@@ -127,7 +127,7 @@ public class NewNoteITCase extends JerseyTest {
         assertEquals(200, postResponse.getStatus());
 		// next note ID should be 2
         String actualXML = createFlatXML(postResponse.getEntity(String.class));
-		String expectedXML = "<resource href=\"http://localhost:8080/example/rest/notes/new\"><link href=\"PUT http://localhost:8080/example/rest/notes/" + nextIDStr + "\" rel=\"exists\" name=\"ID.new>note.exists\"/><lastId>" + nextIDStr + "</lastId></resource>";
+		String expectedXML = "<resource href=\"http://localhost:8080/example/rest/notes/new\"><link href=\"PUT http://localhost:8080/example/rest/notes/" + nextIDStr + "\" rel=\"item\" name=\"ID.new>note.exists\"/><lastId>" + nextIDStr + "</lastId></resource>";
 		
 		Diff diff = new Diff(expectedXML, actualXML);
 		// don't worry about the order of the elements in the xml

@@ -10,10 +10,9 @@ import java.util.Set;
 import org.apache.wink.common.DynamicResource;
 import org.apache.wink.spring.Registrar;
 
-import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
-import com.temenos.interaction.core.link.ResourceRegistry;
-import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
 /**
  * Extend the Wink Spring support to be able to bind Providers such as JAXB / JSON.
@@ -54,7 +53,7 @@ public class RegistrarWithSingletons extends Registrar {
         }
     }
     
-    public void setServiceRoot(HTTPDynaRIM rootRIM) {
+    public void setServiceRoot(HTTPResourceInteractionModel rootRIM) {
     	if (this.getInstances() == null) {
         	this.setInstances(new HashSet<Object>());
     	}
@@ -86,7 +85,7 @@ public class RegistrarWithSingletons extends Registrar {
     	}
     	
     	// TODO could do a lot better then this cast
-    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parent != null ? (HTTPResourceInteractionModel) parent : null, (HTTPDynaRIM) rim);
+    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parent != null ? (HTTPResourceInteractionModel) parent : null, (HTTPResourceInteractionModel) rim);
     	resources.put(rimKey, dr);
     	this.getInstances().add(dr);
    	

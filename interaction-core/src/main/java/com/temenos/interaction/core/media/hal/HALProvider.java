@@ -56,7 +56,7 @@ import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -140,14 +140,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add our links
 			if (links != null) {
 				for (Link l : links) {
-					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
+					logger.debug("Link: id=[" + l.getTitle() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
 					String href = l.getHref();
 					// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 					if (l.getMethod() != null && !l.getMethod().equals("GET")) {
 						href = l.getMethod() + " " + href;
 					}
 					halResource.withLink(href, l.getRel(), 
-							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getId()), Optional.<String>absent(), Optional.<String>absent());
+							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getTitle()), Optional.<String>absent(), Optional.<String>absent());
 				}
 			}
 			
@@ -183,7 +183,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<OEntity> er : entities) {
 					OEntity entity = er.getEntity();
 					// the subresource is a collection
-					String rel = "collection " + cr.getEntitySetName();
+					String rel = "collection " + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
@@ -214,21 +214,22 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<Object> er : entities) {
 					Object entity = er.getEntity();
 					// the subresource is part of a collection (maybe this link rel should be an 'item')
-					String rel = "collection " + cr.getEntitySetName();
+					String rel = "collection " + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromBean(propertyMap, entity);
 					// create hal resource and add link for self
 					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
-						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());  // TODO need href for item
+						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());
 						for (Link el : er.getLinks()) {
 							String itemHref = el.getHref();
 							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
 								itemHref = el.getMethod() + " " + itemHref;
 							}
-							subResource.withLink(itemHref, el.getRel());
+							subResource.withLink(itemHref, el.getRel(), 
+									Optional.<Predicate<ReadableResource>>absent(), Optional.of(el.getTitle()), Optional.<String>absent(), Optional.<String>absent());
 						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {
@@ -248,9 +249,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				
 		String representation = null;
 		if (halResource != null && mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
-			representation = halResource.asRenderableResource().renderContent(ResourceFactory.HAL_XML);
+			representation = halResource.renderContent(ResourceFactory.HAL_XML);
 		} else if (halResource != null && mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
-			representation = halResource.asRenderableResource().renderContent(ResourceFactory.HAL_JSON);
+			representation = halResource.renderContent(ResourceFactory.HAL_JSON);
 		} else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}

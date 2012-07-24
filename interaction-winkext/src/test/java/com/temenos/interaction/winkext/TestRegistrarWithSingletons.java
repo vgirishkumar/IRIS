@@ -17,12 +17,12 @@ import org.odata4j.edm.EdmDataServices;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.temenos.interaction.core.link.ResourceRegistry;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.ResourceStateMachine;
 import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
-import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 import com.temenos.interaction.winkext.DynamicResourceDelegate;
 import com.temenos.interaction.winkext.RegistrarWithSingletons;
 
@@ -30,7 +30,7 @@ import com.temenos.interaction.winkext.RegistrarWithSingletons;
 @PrepareForTest({RegistrarWithSingletons.class})
 public class TestRegistrarWithSingletons {
 
-	private HTTPDynaRIM createMockHTTPDynaRIM(String entityName, String path) {
+	private HTTPResourceInteractionModel createMockHTTPRIM(String entityName, String path) {
 		HTTPDynaRIM rim = mock(HTTPDynaRIM.class);
 		ResourceState rs = mock(ResourceState.class);
 		when(rs.getName()).thenReturn("");
@@ -46,7 +46,7 @@ public class TestRegistrarWithSingletons {
 
 	@Test
 	public void testSimpleServiceRoot() {
-		HTTPDynaRIM serviceRoot = createMockHTTPDynaRIM("notes", "/notes");
+		HTTPResourceInteractionModel serviceRoot = createMockHTTPRIM("notes", "/notes");
 		RegistrarWithSingletons rs = new RegistrarWithSingletons();
 		rs.setServiceRoot(serviceRoot);
 		assertNotNull(rs.getInstances());
@@ -55,15 +55,15 @@ public class TestRegistrarWithSingletons {
 
 	@Test
 	public void testHierarchyServiceRoot() throws Exception {
-		HTTPDynaRIM serviceRoot = createMockHTTPDynaRIM("notes", "/notes");
+		HTTPResourceInteractionModel serviceRoot = createMockHTTPRIM("notes", "/notes");
 		List<ResourceInteractionModel> children = new ArrayList<ResourceInteractionModel>();
-		children.add(createMockHTTPDynaRIM("draftNote", "/draft/{id}"));
-		children.add(createMockHTTPDynaRIM("note", "/{id}"));
+		children.add(createMockHTTPRIM("draftNote", "/draft/{id}"));
+		children.add(createMockHTTPRIM("note", "/{id}"));
 		when(serviceRoot.getChildren()).thenReturn(children);
 		
-		whenNew(DynamicResourceDelegate.class).withParameterTypes(HTTPResourceInteractionModel.class, HTTPDynaRIM.class).withArguments(any(DynamicResource.class), any(ResourceInteractionModel.class)).thenAnswer(new Answer<Object>() {
+		whenNew(DynamicResourceDelegate.class).withParameterTypes(HTTPResourceInteractionModel.class, HTTPResourceInteractionModel.class).withArguments(any(DynamicResource.class), any(ResourceInteractionModel.class)).thenAnswer(new Answer<Object>() {
 				public Object answer(InvocationOnMock invocation) throws Throwable {
-					return new DynamicResourceDelegate((HTTPResourceInteractionModel) invocation.getArguments()[0], (HTTPDynaRIM) invocation.getArguments()[1]);
+					return new DynamicResourceDelegate((HTTPResourceInteractionModel) invocation.getArguments()[0], (HTTPResourceInteractionModel) invocation.getArguments()[1]);
 				}
 		});
 		RegistrarWithSingletons rs = new RegistrarWithSingletons();
@@ -82,25 +82,25 @@ public class TestRegistrarWithSingletons {
 		}
 		
 		// verify resource delegate created 3 times
-		verifyNew(DynamicResourceDelegate.class, times(3)).withArguments(any(HTTPDynaRIM.class), any(HTTPDynaRIM.class));
+		verifyNew(DynamicResourceDelegate.class, times(3)).withArguments(any(HTTPResourceInteractionModel.class), any(HTTPResourceInteractionModel.class));
 	}
 
 	@Test
 	public void testHeirarchy() throws Exception {
 		// mock a few resources with a simple hierarchy in the resource registry
-		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
-		HTTPDynaRIM r1 = createMockHTTPDynaRIM("notes", "/notes");
+		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPResourceInteractionModel>());
+		HTTPResourceInteractionModel r1 = createMockHTTPRIM("notes", "/notes");
 		rRegistry.add(r1);
 		// child 1
-		HTTPDynaRIM cr1 = createMockHTTPDynaRIM("draftNote", "/draft/{id}");
+		HTTPResourceInteractionModel cr1 = createMockHTTPRIM("draftNote", "/draft/{id}");
 		rRegistry.add(cr1);
 		// child 2
-		HTTPDynaRIM cr2 = createMockHTTPDynaRIM("note", "/{id}");
+		HTTPResourceInteractionModel cr2 = createMockHTTPRIM("note", "/{id}");
 		rRegistry.add(cr2);
 	
-		whenNew(DynamicResourceDelegate.class).withParameterTypes(HTTPResourceInteractionModel.class, HTTPDynaRIM.class).withArguments(any(DynamicResource.class), any(ResourceInteractionModel.class)).thenAnswer(new Answer<Object>() {
+		whenNew(DynamicResourceDelegate.class).withParameterTypes(HTTPResourceInteractionModel.class, HTTPResourceInteractionModel.class).withArguments(any(DynamicResource.class), any(ResourceInteractionModel.class)).thenAnswer(new Answer<Object>() {
 				public Object answer(InvocationOnMock invocation) throws Throwable {
-					return new DynamicResourceDelegate((HTTPResourceInteractionModel) invocation.getArguments()[0], (HTTPDynaRIM) invocation.getArguments()[1]);
+					return new DynamicResourceDelegate((HTTPResourceInteractionModel) invocation.getArguments()[0], (HTTPResourceInteractionModel) invocation.getArguments()[1]);
 				}
 		});
 		RegistrarWithSingletons rs = new RegistrarWithSingletons();
@@ -119,19 +119,19 @@ public class TestRegistrarWithSingletons {
 		}
 		
 		// verify resource delegate created 3 times
-		verifyNew(DynamicResourceDelegate.class, times(3)).withArguments(any(HTTPDynaRIM.class), any(HTTPDynaRIM.class));
+		verifyNew(DynamicResourceDelegate.class, times(3)).withArguments(any(HTTPResourceInteractionModel.class), any(HTTPResourceInteractionModel.class));
 	}
 
 	@Test
 	public void testParachute() throws Exception {
 		// mock a few resources with a simple hierarchy, added out of order to test the climbing back up to the root
-		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPDynaRIM>());
-		HTTPDynaRIM r1 = createMockHTTPDynaRIM("home", "/");
+		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPResourceInteractionModel>());
+		HTTPResourceInteractionModel r1 = createMockHTTPRIM("home", "/");
 		// child 1
-		HTTPDynaRIM cr1 = createMockHTTPDynaRIM("notes", "/notes");
+		HTTPResourceInteractionModel cr1 = createMockHTTPRIM("notes", "/notes");
 		when(cr1.getParent()).thenReturn(r1);
 		// child 2
-		HTTPDynaRIM cr2 = createMockHTTPDynaRIM("note", "/{id}");
+		HTTPResourceInteractionModel cr2 = createMockHTTPRIM("note", "/{id}");
 		when(cr2.getParent()).thenReturn(cr1);
 
 		rRegistry.add(cr2);

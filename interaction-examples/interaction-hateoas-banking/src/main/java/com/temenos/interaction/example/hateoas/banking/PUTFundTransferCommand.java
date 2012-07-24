@@ -1,32 +1,35 @@
 package com.temenos.interaction.example.hateoas.banking;
 
+
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.StatusType;
 
 import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.command.ResourcePutCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperty;
 
-public class PUTFundTransferCommand implements ResourcePutCommand {
+public class PUTFundTransferCommand implements InteractionCommand {
 	private DaoHibernate daoHibernate;
 	
 	public PUTFundTransferCommand(DaoHibernate daoHibernate) {
 		this.daoHibernate = daoHibernate;
 	}
 
-	@SuppressWarnings("unchecked")
-	public StatusType put(String id, EntityResource<?> resource) {
-		EntityResource<Entity> er = (EntityResource<Entity>) resource;
-		Entity entity = er.getEntity();
-		EntityProperty body = (EntityProperty) entity.getProperties().getProperty("body");
-		String sBody = (String) body.getValue();
-		
-		
-		FundTransfer ft = new FundTransfer(new Long(id), sBody);
+	/* Implement InteractionCommand interface */
+
+	@Override
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		assert(ctx.getResource() != null);
+		assert(ctx.getId() != null);
+		EntityResource<OEntity> er = (EntityResource<OEntity>) ctx.getResource();
+		OEntity oe = er.getEntity();
+		String body = (String) oe.getProperty("body").getValue();
+		FundTransfer ft = new FundTransfer(new Long(ctx.getId()), body);
 		daoHibernate.putFundTransfer(ft);
-		return Response.Status.OK;
+		ctx.setResource(new EntityResource<FundTransfer>(ft));
+		return Result.SUCCESS;
 	}
 
 	public String getMethod() {

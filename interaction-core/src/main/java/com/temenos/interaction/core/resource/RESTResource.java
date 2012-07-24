@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import javax.ws.rs.core.GenericEntity;
 
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 
 /**
  * A RESTResource is the base interface for all types of resources.
@@ -36,5 +36,18 @@ public interface RESTResource {
      * @param links
      */
     public void setLinks(Collection<Link> links);
+
+	/**
+	 * Return the entity name for this resource.
+	 * @return String
+	 */
+    public String getEntityName();
+
+    /**
+     * Called during resource building phase to set the entity name for 
+     * use by the provider.
+     * @param links
+     */
+    public void setEntityName(String entityName);
 
 }  

@@ -1,5 +1,6 @@
 package com.temenos.interaction.commands.odata;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -15,9 +16,11 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.ResourceGetCommand;
 
-public class GETEntitiesCommand implements ResourceGetCommand {
+public class GETEntitiesCommand implements ResourceGetCommand, InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
 
 	// Command configuration
@@ -66,6 +69,49 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 		CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 		RESTResponse rr = new RESTResponse(Response.Status.OK, cr);
 		return rr;
+	}
+
+	/* Implement InteractionCommand interface */
+
+	@Override
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		logger.info("Getting entities for " + entitySet.getName());
+
+		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+		String inlineCount = queryParams.getFirst("$inlinecount");
+		String top = queryParams.getFirst("$top");
+		String skip = queryParams.getFirst("$skip");
+		String filter = queryParams.getFirst("$filter");
+		String orderBy = queryParams.getFirst("$orderby");
+// TODO what are format and callback used for
+//		String format = queryParams.getFirst("$format");
+//		String callback = queryParams.getFirst("$callback");
+		String skipToken = queryParams.getFirst("$skiptoken");
+		String expand = queryParams.getFirst("$expand");
+		String select = queryParams.getFirst("$select");
+	      
+		QueryInfo query = new QueryInfo(
+				OptionsQueryParser.parseInlineCount(inlineCount),
+				OptionsQueryParser.parseTop(top),
+				OptionsQueryParser.parseSkip(skip),
+				OptionsQueryParser.parseFilter(filter),
+				OptionsQueryParser.parseOrderBy(orderBy),
+				OptionsQueryParser.parseSkipToken(skipToken),
+				null,
+				OptionsQueryParser.parseExpand(expand),
+				OptionsQueryParser.parseSelect(select));
+		
+		EntitiesResponse response = producer.getEntities(entitySetName, query);
+		    
+		CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
+		ctx.setResource(cr);
+		return Result.SUCCESS;
+	}
+
+	@Override
+	public String getMethod() {
+		return HttpMethod.GET;
 	}
 
 }
