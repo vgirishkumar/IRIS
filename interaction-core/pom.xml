@@ -133,7 +133,6 @@
 		<dependency>
 			<groupId>com.theoryinpractise</groupId>
 			<artifactId>halbuilder</artifactId>
-			<version>1.0.5</version>
 		</dependency>
 	</dependencies>
 </project>

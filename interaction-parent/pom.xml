@@ -46,6 +46,7 @@
 		<slf4j.osgi.import.instruction>org.slf4j.*;version="[1.5,1.7)"</slf4j.osgi.import.instruction>
 
 		<odata4j.version>0.6.0</odata4j.version>
+        <halbuilder.version>1.0.5</halbuilder.version>
 		<powermock.version>1.4.11</powermock.version>
 		<wink.version>1.1.3-incubating</wink.version>
 		<slf4j.version>1.6.2</slf4j.version>
@@ -147,6 +148,13 @@
 				<artifactId>javax.persistence</artifactId>
 				<version>2.0.0</version>
 			</dependency>
+
+            <!-- Libraries to support media types -->
+            <dependency>
+                <groupId>com.theoryinpractise</groupId>
+                <artifactId>halbuilder</artifactId>
+                <version>1.0.5</version>
+            </dependency>
 
 			<!-- Frameworks -->
 			<dependency>
