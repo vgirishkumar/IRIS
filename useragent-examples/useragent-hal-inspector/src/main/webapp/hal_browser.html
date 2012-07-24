@@ -25,7 +25,7 @@
           <a class="brand">The HAL Browser</a>
           <div class="nav-collapse">
             <ul class="nav">
-              <li><a href="#/">Go To Root URI</a></li>
+              <li><a href="#api/">Go To Root URI</a></li>
               <li><a href="https://github.com/mikekelly/hal-browser">About The HAL Browser</a></li>
             </ul>
           </div><!--/.nav-collapse -->
@@ -255,7 +255,7 @@ Content-Type: application/json
 
   <script src="hal_browser.js"></script>
   <script>
-    router = new HAL.Router({ entryPoint: '/' });
+    router = new HAL.Router({ entryPoint: 'api/' });
     Backbone.history.start();
   </script>
 </body>
