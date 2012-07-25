@@ -12,6 +12,10 @@
   <description>This library supports our integration test execution.</description>
   
     <dependencies>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>jsr311-api</artifactId>
+		</dependency>
         <dependency>
             <groupId>com.theoryinpractise</groupId>
             <artifactId>halbuilder</artifactId>
@@ -19,23 +23,19 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.odata4j</groupId>
             <artifactId>odata4j-core</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.odata4j</groupId>
             <artifactId>odata4j-cxf</artifactId>
             <version>${odata4j.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.odata4j</groupId>
             <artifactId>odata4j-jersey</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
