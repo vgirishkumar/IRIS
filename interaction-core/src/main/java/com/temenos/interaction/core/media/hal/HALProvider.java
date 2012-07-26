@@ -140,14 +140,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add our links
 			if (links != null) {
 				for (Link l : links) {
-					logger.debug("Link: id=[" + l.getTitle() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
+					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
 					String href = l.getHref();
 					// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 					if (l.getMethod() != null && !l.getMethod().equals("GET")) {
 						href = l.getMethod() + " " + href;
 					}
 					halResource.withLink(href, l.getRel(), 
-							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getTitle()), Optional.<String>absent(), Optional.<String>absent());
+							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getId()), Optional.of(l.getTitle()), Optional.<String>absent());
 				}
 			}
 			
@@ -229,7 +229,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 								itemHref = el.getMethod() + " " + itemHref;
 							}
 							subResource.withLink(itemHref, el.getRel(), 
-									Optional.<Predicate<ReadableResource>>absent(), Optional.of(el.getTitle()), Optional.<String>absent(), Optional.<String>absent());
+									Optional.<Predicate<ReadableResource>>absent(), Optional.of(el.getId()), Optional.of(el.getTitle()), Optional.<String>absent());
 						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {

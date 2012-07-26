@@ -15,6 +15,8 @@ public class Link {
 
 	private final Transition transition;
 	
+	// id
+	private final String id;
 	// title (5.4 Target Attributes)
 	private final String title;
 	// rel (5.3 Relation Type)
@@ -46,12 +48,16 @@ public class Link {
 	 * @param transition
 	 */
 	public Link(Transition transition, String rel, String href, String method) {
-		this(transition, transition.getId(), rel, href, null, null, method, null);
+		this(transition, transition.getTarget().getName(), rel, href, null, null, method, null);
 	}
 
 	public Link(Transition transition, String title, String rel, String href, String[] consumes,
 			String[] produces, String method, MultivaluedMap<String, String> extensions) {
 		this.transition = transition;
+		if(title == null && transition != null) {
+			title = transition.getId();
+		}
+		id = transition != null ? transition.getId() : title;
 		this.title = title;
 		this.rel = rel;
 		this.href = href;
@@ -65,6 +71,10 @@ public class Link {
 		return transition;
 	}
 
+	public String getId() {
+		return id;
+	}
+	
 	public String getRel() {
 		return rel;
 	}

@@ -114,22 +114,17 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	    writeElement(writer, "name", oae.getAtomEntityAuthor());
 	    writer.endElement("author");
 
-	    if (isResponse) {
-	      writeElement(writer, "link", null, "rel", "edit", "title", ees.getType().getName(), "href", relid);
-	    }
-
 	    if (entityLinks != null) {
 	      if (isResponse) {
 	        // the producer has populated the link collection, we just what he gave us.
 	        for (OLink link : entityLinks) {
-	          String rel = related + link.getTitle();
 	          String type = (link.isCollection())
 	              ? atom_feed_content_type
 	              : atom_entry_content_type;
 	          String href = link.getHref();
 	          if (link.isInline()) {
 	            writer.startElement("link");
-	            writer.writeAttribute("rel", rel);
+	            writer.writeAttribute("rel", link.getRelation());
 	            writer.writeAttribute("type", type);
 	            writer.writeAttribute("title", link.getTitle());
 	            writer.writeAttribute("href", href);
@@ -140,7 +135,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	          } else {
 	            // deferred link.
 	            writeElement(writer, "link", null,
-	                "rel", rel,
+	                "rel", link.getRelation(),
 	                "type", type,
 	                "title", link.getTitle(),
 	                "href", href);

@@ -235,7 +235,7 @@ public class TestHTTPDynaRIM {
 		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/new", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getTitle());
+		assertEquals("NOTE.initial>NOTE.initial", link.getId());
 	}
 
 	/*
@@ -278,7 +278,7 @@ public class TestHTTPDynaRIM {
 		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/123/reviewers", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getTitle());
+		assertEquals("NOTE.initial>NOTE.initial", link.getId());
 	}
 
 	/*
@@ -322,7 +322,7 @@ public class TestHTTPDynaRIM {
 		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/123", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getTitle());
+		assertEquals("NOTE.initial>NOTE.initial", link.getId());
 	}
 
 	/*
@@ -352,22 +352,22 @@ public class TestHTTPDynaRIM {
 		Collections.sort(links, new Comparator<Link>() {
 			@Override
 			public int compare(Link o1, Link o2) {
-				return o1.getTitle().compareTo(o2.getTitle());
+				return o1.getId().compareTo(o2.getId());
 			}
 			
 		});
 		// notes
 		assertEquals("collection", links.get(0).getRel());
 		assertEquals("/baseuri/notes", links.get(0).getHref());
-		assertEquals("root.initial>NOTE.collection", links.get(0).getTitle());
+		assertEquals("root.initial>NOTE.collection", links.get(0).getId());
 		// persons
 		assertEquals("collection", links.get(1).getRel());
 		assertEquals("/baseuri/persons", links.get(1).getHref());
-		assertEquals("root.initial>PERSON.collection", links.get(1).getTitle());
+		assertEquals("root.initial>PERSON.collection", links.get(1).getId());
 		// service root
 		assertEquals("self", links.get(2).getRel());
 		assertEquals("/baseuri/", links.get(2).getHref());
-		assertEquals("root.initial>root.initial", links.get(2).getTitle());
+		assertEquals("root.initial>root.initial", links.get(2).getId());
 	}
 
 	@SuppressWarnings({ "unchecked" })

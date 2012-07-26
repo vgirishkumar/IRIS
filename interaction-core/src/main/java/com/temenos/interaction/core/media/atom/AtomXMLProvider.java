@@ -160,20 +160,20 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	public void addLinkToOLinks(List<OLink> olinks, Link link) {
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
 		
-		String otherEntitySetName = link.getRel();
-		String pathOtherResource = link.getHref();
+		String rel = XmlFormatWriter.related + link.getRel();
+		String href = link.getHref();
 		if(requestContext != null) {
 			//Extract the transition fragment from the URI path
-			pathOtherResource = link.getHrefTransition(requestContext.getBasePath());
+			href = link.getHrefTransition(requestContext.getBasePath());
 		}
-		String rel = XmlFormatWriter.related + otherEntitySetName;
+		String title = link.getTitle();
 		OLink olink;
 		Transition linkTransition = resourceRegistry.getLinkTransition(link.getTransition().getId());
 		if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
-			olink = OLinks.relatedEntities(rel, otherEntitySetName, pathOtherResource);
+			olink = OLinks.relatedEntities(rel, title, href);
 		}
 		else {
-			olink = OLinks.relatedEntity(rel, otherEntitySetName, pathOtherResource);
+			olink = OLinks.relatedEntity(rel, title, href);
 		}
 		olinks.add(olink);
 	}
