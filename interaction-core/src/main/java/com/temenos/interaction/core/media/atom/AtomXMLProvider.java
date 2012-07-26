@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -67,6 +70,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	private final EdmDataServices edmDataServices;
 	private final ResourceRegistry resourceRegistry;
+	private final Transformer transformer;
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
@@ -74,12 +78,16 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * 		The entity metadata for reading and writing OData entities.
 	 * @param resourceRegistry
 	 * 		The resource registry contains all the resource to entity mappings
+	 * @param transformer
+	 * 		Transformer to convert an entity to a properties map
 	 */
-	public AtomXMLProvider(EdmDataServices edmDataServices, ResourceRegistry resourceRegistry) {
+	public AtomXMLProvider(EdmDataServices edmDataServices, ResourceRegistry resourceRegistry, Transformer transformer) {
 		this.edmDataServices = edmDataServices;
 		this.resourceRegistry = resourceRegistry;
+		this.transformer = transformer;
 		assert(edmDataServices != null);
 		assert(resourceRegistry != null);
+		assert(transformer != null);
 	}
 
 	@Override
@@ -139,7 +147,23 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					//Add entity links
 					List<OLink> olinks = new ArrayList<OLink>();
 					for(Link link : collectionEntity.getLinks()) {
-						addLinkToOLinks(olinks, link);
+						addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
+						
+						//Links to other resources
+				        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
+				        if(entityTransitions != null) {
+					        for(Transition transition : entityTransitions) {
+					        	//Create Link from transition
+								String rel = transition.getTarget().getName();
+								UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
+								Map<String, Object> properties = new HashMap<String, Object>();
+								properties.putAll(transformer.transform(entity));
+								URI href = linkTemplate.buildFromMap(properties);
+								Link entityLink = new Link(transition, rel, href.toASCIIString(), "GET");
+								
+								addLinkToOLinks(olinks, entityLink);
+							}
+				        }
 					}		
 					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
 					entities.add(entity);

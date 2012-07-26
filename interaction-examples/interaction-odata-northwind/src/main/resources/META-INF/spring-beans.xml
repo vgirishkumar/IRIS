@@ -40,6 +40,7 @@
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg ref="edmDataServices" />
     	<constructor-arg ref="resourceRegistry" />
+    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
