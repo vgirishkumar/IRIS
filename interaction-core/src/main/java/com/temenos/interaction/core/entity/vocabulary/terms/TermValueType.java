@@ -18,12 +18,40 @@ public class TermValueType implements Term {
 	}
 	
 	@Override
-	public String getString() {
+	public String getValue() {
 		return valueType;
 	}
 	
+	/**
+	 * @return Whether the value is of type TEXT or not
+	 */
+	public boolean isText() {
+		if ( valueType.equals(TEXT) )
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	/**
+	 * @return Whether the value is of type NUMBER or not
+	 */
+	public boolean isNumber() {
+		if ( valueType.equals(NUMBER) )
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
 	@Override
-	public String getTermName() {
+	public String getName() {
 		return TERM_NAME;
 	}	
 	

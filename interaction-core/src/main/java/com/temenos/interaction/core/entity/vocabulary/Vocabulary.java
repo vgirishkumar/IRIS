@@ -24,6 +24,7 @@ public class Vocabulary {
 	 * @param term Term
 	 */
 	public void setTerm(Term term) {
-		terms.put(term.getTermName(), term);
+		terms.put(term.getName(), term);
 	}
+	
 }
