@@ -36,6 +36,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParser;
 import org.odata4j.format.xml.XmlFormatWriter;
+import org.odata4j.internal.InternalUtil;
 import org.odata4j.producer.Responses;
 import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
@@ -140,7 +141,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					for(Link link : collectionEntity.getLinks()) {
 						addLinkToOLinks(olinks, link);
 					}		
-					entityOlinks.put(entity.getEntitySetName(), olinks);					
+					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
 					entities.add(entity);
 				}
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((collectionResource.getEntityName() == null ? collectionResource.getEntitySetName() : collectionResource.getEntityName()));
@@ -159,8 +160,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	public void addLinkToOLinks(List<OLink> olinks, Link link) {
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
-		
-		String rel = XmlFormatWriter.related + link.getRel();
+		String rel = link.getRel();
+		if(!rel.equals("self")) {
+			rel = XmlFormatWriter.related + link.getRel();
+		}
 		String href = link.getHref();
 		if(requestContext != null) {
 			//Extract the transition fragment from the URI path

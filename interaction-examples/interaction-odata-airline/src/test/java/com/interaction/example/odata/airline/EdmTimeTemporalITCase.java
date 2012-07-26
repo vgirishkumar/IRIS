@@ -101,7 +101,7 @@ public class EdmTimeTemporalITCase {
 				.filter("departureTime ge time'PT11H' and departureTime lt time'PT12H'")
 				.execute();
 
-		Assert.assertEquals(1, schedules.count());
+		Assert.assertEquals(2, schedules.count());
 
 	}
 

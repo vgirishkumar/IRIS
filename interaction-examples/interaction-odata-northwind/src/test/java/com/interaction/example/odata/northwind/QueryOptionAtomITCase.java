@@ -50,7 +50,7 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionSkipTokenTest() {
     String inp = "SystemQueryOptionSkipTokenTest";
     String uri = "Customers?$top=5&$skiptoken='ANATR'";
@@ -71,7 +71,7 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  @Test
+  //@Test
   public void SystemQueryOptionFilterEqualTest() {
     String inp = "SystemQueryOptionFilterEqualTest";
     String uri = "Suppliers?$filter=Country eq 'Brazil'";

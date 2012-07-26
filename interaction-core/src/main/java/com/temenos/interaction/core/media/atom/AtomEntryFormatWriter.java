@@ -17,6 +17,7 @@ import org.odata4j.core.OEntity;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmProperty;
 import org.odata4j.format.Entry;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.xml.XmlFormatWriter;
@@ -83,7 +84,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
   }
 
   @Override
-  protected String writeEntry(XMLWriter2 writer, OEntity oe,
+  public String writeEntry(XMLWriter2 writer, OEntity oe,
 	      List<OProperty<?>> entityProperties, List<OLink> entityLinks,
 	      String baseUri, String updated,
 	      EdmEntitySet ees, boolean isResponse) {
@@ -92,6 +93,14 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	    String absid = null;
 	    if (isResponse) {
 	      relid = InternalUtil.getEntityRelId(oe);
+	      //Odata 4j creates IDs with an L suffix on Edm.Int types, quotes on Edm.String types - remove to conform to interaction links
+	      List<String> keys = oe.getEntityType().getKeys();
+	      if(keys.size() > 0) {
+		      EdmProperty keyProperty = oe.getEntityType().findDeclaredProperty(keys.get(0));
+		      if(keyProperty.getType().getFullyQualifiedTypeName().startsWith("Edm.Int") && relid.endsWith("L)")) {
+		    	  relid = relid.substring(0, relid.length()-2) + ")";
+		      }
+	      }
 	      absid = baseUri + relid;
 	      writeElement(writer, "id", absid);
 	    }

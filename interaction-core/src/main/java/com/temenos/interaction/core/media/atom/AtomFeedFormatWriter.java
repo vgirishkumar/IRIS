@@ -22,7 +22,8 @@ import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
 public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWriter<EntitiesResponse> {
-
+	private AtomEntryFormatWriter entryWriter = new AtomEntryFormatWriter();
+	
   @Override
   public String getContentType() {
     return ODataConstants.APPLICATION_ATOM_XML_CHARSET_UTF8;
@@ -65,14 +66,14 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     	//Obtain olinks for this entity
     	List<OLink> olinks;
     	if(entityOlinks != null) {
-    		olinks = entityOlinks.get(entitySetName);
+    		olinks = entityOlinks.get(InternalUtil.getEntityRelId(entity));
     	}
     	else {
     		olinks = new ArrayList<OLink>();    		
     	}
     	
       writer.startElement("entry");
-      writeEntry(writer, entity, entity.getProperties(), olinks, baseUri, updated, ees, true);
+      entryWriter.writeEntry(writer, entity, entity.getProperties(), olinks, baseUri, updated, ees, true);
       writer.endElement("entry");
     }
 
