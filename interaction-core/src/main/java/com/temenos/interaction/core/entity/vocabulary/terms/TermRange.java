@@ -33,12 +33,12 @@ public class TermRange implements Term {
 	}
 	
 	@Override
-	public String getString() {
+	public String getValue() {
 		return "[" + min + "," + max + "]";
 	}
 
 	@Override
-	public String getTermName() {
+	public String getName() {
 		return TERM_NAME;
 	}	
 }

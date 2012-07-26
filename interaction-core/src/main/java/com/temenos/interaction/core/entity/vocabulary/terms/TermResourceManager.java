@@ -15,12 +15,12 @@ public class TermResourceManager implements Term {
 	}
 	
 	@Override
-	public String getString() {
+	public String getValue() {
 		return resourceManager;
 	}
 
 	@Override
-	public String getTermName() {
+	public String getName() {
 		return TERM_NAME;
 	}	
 }

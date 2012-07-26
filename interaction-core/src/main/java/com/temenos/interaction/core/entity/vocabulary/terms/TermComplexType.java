@@ -23,12 +23,12 @@ public class TermComplexType implements Term {
 	}
 	
 	@Override
-	public String getString() {
+	public String getValue() {
 		return complexType ? "true" : "false";
 	}
 
 	@Override
-	public String getTermName() {
+	public String getName() {
 		return TERM_NAME;
 	}	
 }

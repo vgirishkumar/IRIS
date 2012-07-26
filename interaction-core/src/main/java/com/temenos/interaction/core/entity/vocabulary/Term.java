@@ -7,14 +7,14 @@ package com.temenos.interaction.core.entity.vocabulary;
 public interface Term {
 
 	/**
-	 * Return a text description of this Term
-	 * @return Term description
+	 * Return a text value of this Term
+	 * @return Term value
 	 */
-	public String getString();
+	public String getValue();
 
 	/**
 	 * Return the name of this Term
 	 * @return term name
 	 */
-	public String getTermName();
+	public String getName();
 }

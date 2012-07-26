@@ -51,9 +51,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.temenos.interaction.core.entity.Entity;
+import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
-import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.link.Link;
@@ -377,10 +377,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						EntityProperties entityFields = new EntityProperties();
 						JSONObject field = jsonObject.optJSONObject(key);
 						if(field == null) {
-							if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getString().equals(TermValueType.TEXT)) {
+							if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.TEXT)) {
 								entityFields.setProperty(new EntityProperty(key, jsonObject.getString(key)));
 							}
-							else if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getString().equals(TermValueType.NUMBER)) {
+							else if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.NUMBER)) {
 								entityFields.setProperty(new EntityProperty(key, jsonObject.getLong(key)));
 							}
 							else {
@@ -391,10 +391,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					    	Iterator<?> itFields = field.keys();
 					    	while(itFields.hasNext()) {
 					    		String keyField = (String) itFields.next();
-								if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getString().equals(TermValueType.TEXT)) {
+								if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.TEXT)) {
 									entityFields.setProperty(new EntityProperty(keyField, field.getString(keyField)));
 								}
-								else if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getString().equals(TermValueType.NUMBER)) {
+								else if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.NUMBER)) {
 									entityFields.setProperty(new EntityProperty(keyField, field.getLong(keyField)));
 								}
 								else {
