@@ -3,9 +3,9 @@ package com.temenos.interaction.example.hateoas.banking;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.temenos.interaction.core.link.CollectionResourceState;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class Behaviour {
 
@@ -21,7 +21,7 @@ public class Behaviour {
 
 	public ResourceStateMachine getFundsTransferInteractionModel() {
 		CollectionResourceState initialState = new CollectionResourceState("FundsTransfer", "initial", "/fundtransfers");
-		ResourceState newFtState = new ResourceState("FundsTransfer", "new", "/fundtransfers/new");
+		ResourceState newFtState = new ResourceState(initialState, "new", "/new");
 		ResourceState exists = new ResourceState("FundsTransfer", "exists", "/fundtransfers/{id}", "id", "self".split(" "));
 		ResourceState finalState = new ResourceState(initialState, "end");
 

@@ -30,40 +30,43 @@
         	<set>
 				<ref local="serviceDocumentProvider" />
 				<ref local="edmxProvider" />
-				<ref local="atomProvider" />
+ 				<ref local="atomProvider" />
  			</set>
    		</property>
-		<property name="resourceRegistry" ref="resourceRegistry" />
+        <property name="serviceRoot" ref="ServiceRoot" />
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
-	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
+	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
+		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
-
-    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+ 
+    <bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
         <constructor-arg name="edmDataServices" ref="edmDataServices" />
         <constructor-arg name="root" ref="ServiceRoot" />
     </bean>
-
+ 
     <!-- Behaviour -->
     <bean id="behaviour" class="com.interaction.example.odata.notes.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
-    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
+    <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
         <constructor-arg name="initialState" ref="interaction" />
+    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
     </bean>
 
     <!-- Resources -->
-    <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-        <constructor-arg name="stateMachine" ref="stateMachine" />
-        <constructor-arg name="resourceRegistry"><null/></constructor-arg>
-        <constructor-arg name="commandController" ref="commands" />
+    <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg ref="stateMachine" />
     </bean>
-
+     
     <!-- Commands -->
-    <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
+    <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
     	<constructor-arg name="commands">
             <map>
                 <entry>
@@ -131,17 +134,17 @@
                 </entry>
                 <entry>
                     <key><value>GET+/Persons({id})/Notes</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-                        <constructor-arg name="entity" value="Person" />
-                        <constructor-arg name="navProperty" value="notes" />
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="entity" value="Note" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>
                 <entry>
                     <key><value>GET+/Notes({id})/Persons</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+                    <bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
                         <constructor-arg name="entity" value="Note" />
-                        <constructor-arg name="navProperty" value="Persons" />
+                        <constructor-arg name="linkProperty" value="id" />
+                        <constructor-arg name="linkEntity" value="Person" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>

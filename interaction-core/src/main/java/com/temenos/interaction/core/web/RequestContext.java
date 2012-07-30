@@ -41,26 +41,26 @@ public class RequestContext {
     }
 
 
-    private final UriBuilder basePath;
+    private final String basePath;
     private final String requestUri;
     private final String verbosityHeader;
     private Principal userPrincipal;
 
-    public RequestContext(UriBuilder basePath, String requestUri, String verbosityHeader) {
+    public RequestContext(String basePath, String requestUri, String verbosityHeader) {
         this.basePath = basePath;
         this.requestUri = requestUri;
         this.verbosityHeader = verbosityHeader;
     }
 
-    public RequestContext(UriBuilder basePath, String requestUri, String verbosityHeader, Principal userPrincipal) {
+    public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal) {
         this.basePath = basePath;
         this.requestUri = requestUri;
         this.verbosityHeader = verbosityHeader;
         this.userPrincipal = userPrincipal;
     }
     
-    public UriBuilder getBasePath() {
-        return basePath.clone();
+    public String getBasePath() {
+        return basePath;
     }
 
     public String getRequestUri() {

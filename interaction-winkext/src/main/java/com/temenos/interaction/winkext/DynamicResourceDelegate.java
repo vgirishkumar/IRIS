@@ -2,6 +2,7 @@ package com.temenos.interaction.winkext;
 
 import java.util.Collection;
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -10,20 +11,19 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.DynamicResource;
 
-import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.state.HTTPResourceInteractionModel;
-import com.temenos.interaction.core.state.ResourceInteractionModel;
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
 public class DynamicResourceDelegate implements HTTPResourceInteractionModel, DynamicResource {
 
 	private final HTTPResourceInteractionModel parent;
-	private final HTTPDynaRIM resource;
+	private final HTTPResourceInteractionModel resource;
 	
-	public DynamicResourceDelegate(HTTPResourceInteractionModel parent, HTTPDynaRIM resource) {
+	public DynamicResourceDelegate(HTTPResourceInteractionModel parent, HTTPResourceInteractionModel resource) {
 		this.parent = parent;
 		this.resource = resource;
 	}
@@ -91,8 +91,9 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 		return resource.delete(headers, id, uriInfo);
 	}
 
-	public Response options(String id) {
-		return resource.options(id);
+	@Override
+	public Response options(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
+		return resource.options(headers, id, uriInfo);
 	}
 
 	@Override
@@ -101,8 +102,8 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
-	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) {
-		return resource.getLinks(pathParameters, entity); 
+	public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) {
+		return resource.getLinks(headers, pathParameters, entity); 
 	}
 	
 	@Override

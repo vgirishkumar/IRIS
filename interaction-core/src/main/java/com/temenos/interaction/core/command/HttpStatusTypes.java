@@ -21,9 +21,9 @@ public interface HttpStatusTypes {
 	 * action. The response MUST NOT include an entity.
 	 * </p>
 	 */
-	public final static String HTTP_STATUS_RESET_CONTENT_MSG = "Reset Content";
-	public final static StatusType HTTP_STATUS_RESET_CONTENT = new StatusType() {
-
+	public final static String RESET_CONTENT_MSG = "Reset Content";
+	public final static StatusType RESET_CONTENT = new StatusType() {
+		
 		public int getStatusCode() {
 			return 205;
 		}
@@ -34,6 +34,31 @@ public interface HttpStatusTypes {
 
 		public String getReasonPhrase() {
 			return "Reset Content";
+		}
+		
+	};
+
+	/**
+	 * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+	 * 10.4.6 405 Method Not Allowed
+	 * 
+	 * The method specified in the Request-Line is not allowed for the resource identified 
+	 * by the Request-URI. The response MUST include an Allow header containing a list of 
+	 * valid methods for the requested resource.
+	 */
+	public final static String METHOD_NOT_ALLOWED_MSG = "Method Not Allowed";
+	public final static StatusType METHOD_NOT_ALLOWED = new StatusType() {
+
+		public int getStatusCode() {
+			return 405;
+		}
+
+		public Family getFamily() {
+			return Response.Status.Family.SERVER_ERROR;
+		}
+
+		public String getReasonPhrase() {
+			return "Method Not Allowed";
 		}
 		
 	};

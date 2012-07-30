@@ -35,7 +35,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.media.hal.HALProvider;
 import com.temenos.interaction.core.media.hal.MediaType;
 
@@ -135,6 +135,8 @@ public class TestHALProvider {
 		entities.add(createEntityResourceWithSelfLink(entityKey, properties, "http://www.temenos.com/rest.svc/children/2"));
 		entities.add(createEntityResourceWithSelfLink(entityKey, properties, "http://www.temenos.com/rest.svc/children/3"));
 		CollectionResource<OEntity> er = new CollectionResource<OEntity>("Children", entities);
+		// mock setting entity name
+		er.setEntityName("Children");
 		
 		EdmDataServices edmDS = mock(EdmDataServices.class);
 		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
@@ -157,7 +159,7 @@ public class TestHALProvider {
 		OEntity oentity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(oentity);
 		Collection<Link> links = new ArrayList<Link>();
-		links.add(new Link("id", "self", selfLink, null, null, "GET", "description", "label", null));
+		links.add(new Link("id", "self", selfLink, null, null));
 		entityResource.setLinks(links);
 		return entityResource;
 	}
@@ -211,6 +213,7 @@ public class TestHALProvider {
 	private Link mockLink(String id, String rel, String href) {
 		Link link = mock(Link.class);
 		when(link.getId()).thenReturn(id);
+		when(link.getTitle()).thenReturn(id);
 		when(link.getRel()).thenReturn(rel);
 		when(link.getHref()).thenReturn(href);
         return link;
@@ -314,7 +317,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\"/><link href=\"http://www.temenos.com/rest.svc/humans/32\" rel=\"_person\" name=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"http://www.temenos.com/rest.svc/humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
@@ -354,7 +357,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\" title=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);

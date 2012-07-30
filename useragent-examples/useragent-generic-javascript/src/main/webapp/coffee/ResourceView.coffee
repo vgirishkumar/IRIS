@@ -136,11 +136,11 @@ class @ResourceView extends View
 
 # Render a form with the response data obtained from a POST command 
   renderPOSTResponseForm: (model) =>
-    #assume there's only one link on this POST resource
     _.each model._links, (relModel) =>
       if (relModel.length)
-        _.each relModel, (linkModel) =>
-        @commitLink = @getLink(this, linkModel, model.body)
+        for item in relModel
+          if (item.href.substring(0,3) == "PUT")
+            @commitLink = @getLink(this, item, model.body)
       else
         @commitLink = @getLink(this, relModel, model.body)
     #alert("Link = " + @commitLink.model.href)

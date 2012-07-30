@@ -5,7 +5,7 @@ import java.util.Collection;
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.temenos.interaction.core.link.Link;
+import com.temenos.interaction.core.hypermedia.Link;
 
 /**
  * A CollectionResource is the RESTful representation of a collection of
@@ -15,6 +15,8 @@ import com.temenos.interaction.core.link.Link;
  * @author aphethean
  */
 public class CollectionResource<T> implements RESTResource {
+	
+	// TODO deprecate (we now use entityName)
 	private String entitySetName;
 	
 	private Collection<EntityResource<T>> entities;
@@ -23,12 +25,28 @@ public class CollectionResource<T> implements RESTResource {
 	// TODO implement JAXB Adapter for OProperty
 //	private List<OProperty<?>> properties;
 
+	@XmlTransient
+    private String entityName;
 	// links from a collection
 	@XmlTransient
     private Collection<Link> links;
 	
 	public CollectionResource() {}
 
+	/**
+	 * Construct a new instance of a CollectionResource.  EntitySetName will be set by the interaction-core
+	 * before passing to a Provider
+	 * @param entities
+	 */
+	public CollectionResource(Collection<EntityResource<T>> entities) {
+		this.entities = entities;
+	}
+
+	/**
+	 * This constructor expected to be used internally.
+	 * @param entitySetName
+	 * @param entities
+	 */
 	public CollectionResource(String entitySetName, Collection<EntityResource<T>> entities) {
 		this.entitySetName = entitySetName;
 		this.entities = entities;
@@ -61,5 +79,15 @@ public class CollectionResource<T> implements RESTResource {
     public void setLinks(Collection<Link> links) {
     	this.links = links;
     }
+
+	@Override
+	public String getEntityName() {
+		return entityName;
+	}
+
+	@Override
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
 
 }

@@ -3,8 +3,6 @@ package com.temenos.interaction.example.note;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.StringReader;
-
 import javax.ws.rs.core.MediaType;
 
 import org.junit.After;
@@ -16,7 +14,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.example.note.client.NoteRepresentation;
 import com.theoryinpractise.halbuilder.ResourceFactory;
-import com.theoryinpractise.halbuilder.spi.ReadableResource;
+import com.theoryinpractise.halbuilder.spi.Resource;
 
 public class CreateReadDeleteNoteITCase extends JerseyTest {
 
@@ -117,7 +115,7 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
         String noteHALRepresentation = getResponse.getEntity(String.class);
         
         ResourceFactory resourceFactory = new ResourceFactory();
-        ReadableResource halResource = resourceFactory.newResource(new StringReader(noteHALRepresentation));
+        Resource halResource = resourceFactory.newResource(noteHALRepresentation);
         
         assertEquals("Beverages", halResource.get("body").get());
 	}
@@ -144,7 +142,7 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
         String noteHALRepresentation = getResponse.getEntity(String.class);
         
         ResourceFactory resourceFactory = new ResourceFactory();
-        ReadableResource halResource = resourceFactory.newResource(new StringReader(noteHALRepresentation));
+        Resource halResource = resourceFactory.newResource(noteHALRepresentation);
         
         assertEquals("test note", halResource.get("body").get());
 	}

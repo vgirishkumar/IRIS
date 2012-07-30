@@ -26,6 +26,8 @@ import org.odata4j.producer.PropertyResponse;
 
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 
 /**
@@ -33,7 +35,7 @@ import com.temenos.interaction.core.command.ResourcePostCommand;
  * by calling the 'NEW' function on the {@link ODataProducer).
  * @author aphethean
  */
-public class POSTNewCommand implements ResourcePostCommand {
+public class POSTNewCommand implements ResourcePostCommand, InteractionCommand {
 
 	/* Command configuration */
 	private String entitySetName;
@@ -79,6 +81,36 @@ public class POSTNewCommand implements ResourcePostCommand {
 		final OEntity entity = OEntities.create(noteEntitySet, entityKey, properties, links);
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
 		return new RESTResponse(Response.Status.OK, er);
+	}
+
+	/* Implement InteractionCommand interface */
+	
+	@Override
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		assert(ctx.getId() == null || "".equals(ctx.getId()));
+
+        // find the function that creates us new things
+        EdmFunctionImport functionName = edmDataServices.findEdmFunctionImport("NEW");
+        
+		Map<String, OFunctionParameter> params = new HashMap<String, OFunctionParameter>();
+		params.put("PARAM1", OFunctionParameters.create("DOMAIN_OBJECT_NAME", domainObjectName));
+		//EdmFunctionImport functionName = new EdmFunctionImport("NEW", null, returnType, "POST", params);
+		BaseResponse fr = producer.callFunction(functionName, params, null);
+		assert(functionName.getReturnType() == EdmSimpleType.INT64);
+		
+		// TODO this could either be the type we are creating an ID for, or it could just be a transient type
+		EdmEntitySet noteEntitySet = edmDataServices.findEdmEntitySet(entitySetName);
+		OEntityKey entityKey = OEntityKey.create("new");
+		ArrayList<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+		properties.add(((PropertyResponse)fr).getProperty());
+		List<OLink> links = new ArrayList<OLink>();
+		String replacement = ((PropertyResponse)fr).getProperty().getValue().toString();
+		links.add(OLinks.relatedEntity("_new", "NewNote", targetResource.replaceFirst("\\{id\\}", replacement)));
+		final OEntity entity = OEntities.create(noteEntitySet, entityKey, properties, links);
+		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
+		ctx.setResource(er);
+		return Result.SUCCESS;
 	}
 
 	public String getMethod() {

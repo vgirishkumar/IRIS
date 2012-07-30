@@ -17,9 +17,13 @@
 		<constructor-arg ref="entityManagerFactory" />
 	</bean>
 
-	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<!-- Metadata -->
+	<bean id="mockParsedMetadata" class="com.temenos.interaction.example.hateoas.banking.MockMetadata" />
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" >
+    	<constructor-arg ref="mockParsedMetadata" />
+	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getResourceMetadata"/>
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -35,23 +39,24 @@
 
 	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
     	<constructor-arg ref="edmDataServices" />
+    	<constructor-arg ref="edmMetadata" />
 	</bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
-    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
+    <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg ref="interaction" />
+        <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
     </bean>
 
     <!-- Resources -->
-    <bean id="ServiceRoot" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg ref="stateMachine" />
-    	<constructor-arg><bean class="com.temenos.interaction.core.dynaresource.BeanTransformer" /></constructor-arg>
-    	<constructor-arg ref="commands" />
+    <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg ref="stateMachine" />
     </bean>
 
     <!-- Commands -->
-    <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
+    <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
     	<constructor-arg>
             <map>
                 <entry>

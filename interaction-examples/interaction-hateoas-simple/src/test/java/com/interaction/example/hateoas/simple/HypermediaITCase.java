@@ -49,18 +49,18 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(4, links.size());
 		for (Link link : links) {
-			if (link.getRel().equals("self")) {
+			if (link.getRel().equals("self") && link.getName().get().equals("home.initial>home.initial")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
-			} else if (link.getRel().equals("Preferences.preferences")) {
+			} else if (link.getName().get().equals("home.initial>Preferences.preferences")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/preferences", link.getHref());
-			} else if (link.getRel().equals("Profile.profile")) {
+			} else if (link.getName().get().equals("home.initial>Profile.profile")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/profile", link.getHref());
-			} else if (link.getRel().equals("note.initial")) {
+			} else if (link.getName().get().equals("home.initial>note.initial")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
 			} else {
 				fail("unexpected link");
@@ -74,7 +74,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -82,10 +82,10 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
-			} else if (link.getRel().equals("ID.new")) {
+			} else if (link.getName().get().equals("note.initial>ID.new")) {
 				assertEquals("POST " + Configuration.TEST_ENDPOINT_URI + "/notes/new", link.getHref());
 			} else {
-				fail("unexpected link");
+				fail("unexpected link [" + link.getName().get() + "]");
 			}
 		}
 		
@@ -97,11 +97,11 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
-					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"), link.getHref());
-				} else if (link.getRel().contains("note.end")) {
-					assertEquals("DELETE " + Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"), link.getHref());
+					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID").get(), link.getHref());
+				} else if (link.getName().get().contains("note.end")) {
+					assertEquals("DELETE " + Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID").get(), link.getHref());
 				} else {
-					fail("unexpected link");
+					fail("unexpected link [" + link.getName().get() + "]");
 				}
 			}
 		}
@@ -123,7 +123,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.newResource(new InputStreamReader(response.getEntityInputStream()));
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
 		List<Resource> subresources = resource.getResources();
@@ -138,7 +138,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
 			for (Link link : itemLinks) {
-				if (link.getRel().contains("note.end")) {
+				if (link.getName().get().contains("note.initial>note.end")) {
 					deleteLink = link;
 				}
 			}
@@ -148,10 +148,122 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals("DELETE", method);
 			String uri = hrefElements[1];
 
-			// execute delete
-			ClientResponse deleteResponse = Client.create().resource(uri).accept(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
+			// create http client
+			Client client = Client.create();
+			// do not follow the Location redirect
+			client.setFollowRedirects(false);
+			// execute delete without custom link relation, will find the only DELETE transition from entity
+			ClientResponse deleteResponse = client.resource(uri).accept(MediaType.APPLICATION_HAL_JSON)
+					.delete(ClientResponse.class);
+	        // 303 "See Other" instructs user agent to fetch another resource as specified by the 'Location' header
+	        assertEquals(303, deleteResponse.getStatus());
+	        assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", deleteResponse.getHeaders().getFirst("Location"));
+		}
+	}
+
+	@Test
+	public void testFollowDeleteItemLinkRelation() {
+		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+
+		ResourceFactory resourceFactory = new ResourceFactory();
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		
+		// the items in the collection
+		List<Resource> subresources = resource.getResources();
+		assertNotNull(subresources);
+		
+		// follow the link to delete the first in the collection
+		if (subresources.size() == 0) {
+			// we might have run the integration tests more times than we have rows in our table
+		} else {
+			Resource item = subresources.get(0);
+			List<Link> itemLinks = item.getLinks();
+			assertEquals(2, itemLinks.size());
+			Link deleteLink = null;
+			for (Link link : itemLinks) {
+				if (link.getName().get().contains("note.initial>note.end")) {
+					deleteLink = link;
+				}
+			}
+			assertNotNull(deleteLink);
+			String[] hrefElements = deleteLink.getHref().split(" ");
+			String method = hrefElements[0];
+			assertEquals("DELETE", method);
+			String uri = hrefElements[1];
+
+			// execute delete with custom link relation (see rfc5988)
+			ClientResponse deleteResponse = Client.create().resource(uri)
+					.header("Link", "<" + uri + ">; rel=\"" + deleteLink.getName().get() + "\"")
+					.accept(MediaType.APPLICATION_HAL_JSON)
+					.delete(ClientResponse.class);
 	        // 205 "Reset Content" instructs user agent to reload the resource that contained this link
 	        assertEquals(205, deleteResponse.getStatus());
+		}
+	}
+	
+	@Test
+	public void testFollowDeleteLinkWithLinkRel() {
+		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+
+		ResourceFactory resourceFactory = new ResourceFactory();
+		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		
+		// the items in the collection
+		List<Resource> subresources = resource.getResources();
+		assertNotNull(subresources);
+		
+		// follow the link to delete the first in the collection
+		if (subresources.size() == 0) {
+			// we might have run the integration tests more times than we have rows in our table
+		} else {
+			Resource item = subresources.get(0);
+			List<Link> itemLinks = item.getLinks();
+			assertEquals(2, itemLinks.size());
+			
+			// GET item link (note.initial->note.exists)
+			Link getLink = null;
+			for (Link link : itemLinks) {
+				if (link.getRel().contains("self")) {
+					getLink = link;
+				}
+			}
+			// follow GET item link
+			assertNotNull(getLink);
+			ClientResponse getResponse = Client.create().resource(getLink.getHref()).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+	        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(getResponse.getStatus()).getFamily());
+			// the item
+			ReadableResource itemResource = resourceFactory.readResource(new InputStreamReader(getResponse.getEntityInputStream()));
+			List<Link> links = itemResource.getLinks();
+			assertNotNull(links);
+			assertEquals(3, links.size());
+			
+			// DELETE item link (note.exists->note.end, note.end is an auto transition to note.initial)
+			Link deleteLink = null;
+			for (Link link : links) {
+				if (link.getName().get().contains("note.exists>note.end")) {
+					deleteLink = link;
+				}
+			}
+			assertNotNull(deleteLink);
+			String[] hrefElements = deleteLink.getHref().split(" ");
+			String method = hrefElements[0];
+			assertEquals("DELETE", method);
+			String uri = hrefElements[1];
+
+			// create http client
+			Client client = Client.create();
+			// do not follow the Location redirect
+			client.setFollowRedirects(false);
+			// execute delete with custom link relation (see rfc5988)
+			ClientResponse deleteResponse = client.resource(uri)
+					.header("Link", "<" + uri + ">; rel=\"" + deleteLink.getName().get() + "\"")
+					.accept(MediaType.APPLICATION_HAL_JSON)
+					.delete(ClientResponse.class);
+	        // 303 "See Other" instructs user agent to fetch another resource as specified by the 'Location' header
+	        assertEquals(303, deleteResponse.getStatus());
+	        assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", deleteResponse.getHeaders().getFirst("Location"));
 		}
 	}
 
@@ -175,7 +287,7 @@ public class HypermediaITCase extends JerseyTest {
 	 */
 	@Test
 	public void putPersonMethodNotAllowed() throws Exception {
-		String halRequest = "";
+		String halRequest = "{}";
 		// attempt to put to the notes collection, rather than an individual
 		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
         assertEquals(405, response.getStatus());

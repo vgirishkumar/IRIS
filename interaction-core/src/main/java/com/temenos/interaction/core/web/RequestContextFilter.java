@@ -24,7 +24,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -45,14 +44,13 @@ public class RequestContextFilter implements Filter {
         String requestURI = servletRequest.getRequestURI();
         requestURI = StringUtils.removeStart(requestURI, servletRequest.getContextPath() + servletRequest.getServletPath());
         String baseURL = StringUtils.removeEnd(servletRequest.getRequestURL().toString(), requestURI);
-        UriBuilder uriBuilder = UriBuilder.fromUri(baseURL);
 
         RequestContext ctx;
         Principal userPrincipal = servletRequest.getUserPrincipal();
         if (userPrincipal != null) {
-        	ctx = new RequestContext(uriBuilder, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER), userPrincipal);
+        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER), userPrincipal);
         } else {
-        	ctx = new RequestContext(uriBuilder, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER));
+        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER));
         }
         	
         RequestContext.setRequestContext(ctx);

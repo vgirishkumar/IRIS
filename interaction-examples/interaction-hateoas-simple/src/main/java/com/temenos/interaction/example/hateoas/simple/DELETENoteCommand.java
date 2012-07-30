@@ -1,12 +1,11 @@
 package com.temenos.interaction.example.hateoas.simple;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.StatusType;
 
-import com.temenos.interaction.core.command.HttpStatusTypes;
-import com.temenos.interaction.core.command.ResourceDeleteCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 
-public class DELETENoteCommand implements ResourceDeleteCommand {
+public class DELETENoteCommand implements InteractionCommand {
 
 	private Persistence persistence;
 
@@ -14,16 +13,20 @@ public class DELETENoteCommand implements ResourceDeleteCommand {
 		this.persistence = p;
 	}
 	
+	/* Implement InteractionCommand interface */
+	
 	@Override
-	public String getMethod() {
-		return HttpMethod.DELETE;
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		// delete from a database, etc.
+		String id = ctx.getId();
+		persistence.removeNote(new Long(id));
+		return Result.SUCCESS;
 	}
 
 	@Override
-	public StatusType delete(String id) {
-		// delete from a database, etc.
-		persistence.removeNote(new Long(id));
-		return HttpStatusTypes.HTTP_STATUS_RESET_CONTENT;
+	public String getMethod() {
+		return HttpMethod.DELETE;
 	}
 
 }

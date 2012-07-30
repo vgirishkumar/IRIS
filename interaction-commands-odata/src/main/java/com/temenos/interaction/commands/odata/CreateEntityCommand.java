@@ -9,9 +9,11 @@ import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.ResourcePostCommand;
 
-public class CreateEntityCommand implements ResourcePostCommand {
+public class CreateEntityCommand implements ResourcePostCommand, InteractionCommand {
 
 	// Command configuration
 	private String entity;
@@ -41,6 +43,22 @@ public class CreateEntityCommand implements ResourcePostCommand {
 		
 		RESTResponse rr = new RESTResponse(Response.Status.CREATED, CommandHelper.createEntityResource(oEntity));
 		return rr;
+	}
+
+	/* Implement InteractionCommand interface */
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		
+		// create the entity
+		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) ctx.getResource();
+		EntityResponse er = producer.createEntity(entity, entityResource.getEntity());
+		OEntity oEntity = er.getEntity();
+		
+		ctx.setResource(CommandHelper.createEntityResource(oEntity));
+		return Result.SUCCESS;
 	}
 
 }

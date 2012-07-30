@@ -48,10 +48,11 @@
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
 
 
-    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
+    <bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
       	<constructor-arg name="root" ref="DYNA_NOTE" />
     </bean>
@@ -60,7 +61,7 @@
     <bean id="initialNoteState" factory-bean="behaviour" factory-method="getNotesResoruceInteractionModel"/>
 
     <!-- Simple Notes resource state model -->
-    <bean id="stateMachine" class="com.temenos.interaction.core.link.ResourceStateMachine">
+    <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg name="initialState" ref="initialNoteState" />
     </bean>
 

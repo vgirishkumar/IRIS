@@ -1,14 +1,13 @@
 package com.temenos.interaction.example.hateoas.simple;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.HttpMethod;
 
-import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.example.hateoas.simple.model.Note;
 
-public class GETNoteCommand implements ResourceGetCommand {
+public class GETNoteCommand implements InteractionCommand {
 
 	private Persistence persistence;
 	
@@ -16,15 +15,25 @@ public class GETNoteCommand implements ResourceGetCommand {
 		persistence = p;
 	}
 
+	/* Implement InteractionCommand interface */
+	
 	@Override
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
 		// retrieve from a database, etc.
+		String id = ctx.getId();
 		Note note = persistence.getNote(new Long(id));
 		if (note != null) {
-			return new RESTResponse(Status.OK, new EntityResource<Note>(note));
+			ctx.setResource(new EntityResource<Note>(note));
+			return Result.SUCCESS;
 		} else {
-			return new RESTResponse(Status.NOT_FOUND, null);
+			return Result.FAILURE;
 		}
+	}
+
+	@Override
+	public String getMethod() {
+		return HttpMethod.GET;
 	}
 
 }

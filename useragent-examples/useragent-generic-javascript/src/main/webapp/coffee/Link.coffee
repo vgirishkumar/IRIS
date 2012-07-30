@@ -12,11 +12,20 @@ class @Link
         @successHandler = (model, textStatus, jqXHR) => new ResourceView(this)
       when 'DELETE'
         @hyperLink.click => @doDelete()
-        @successHandler = (model, textStatus, jqXHR) => 
+        @successHandler = (model, textStatus, jqXHR) =>
+            debugger
             if jqXHR.status is (205 or 404)
+#
+# reload current view
+#
                 new ResourceView({rel: 'self', href: this.resource.selfLink.model.href, method: 'GET'})
             else
-                new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
+# switching resource self link to 'self' link from new model response
+                this.resource.selfLink.model.href = model._links.self.href
+#
+# render view from delete response (DELETE will return 303, ajax call will handle redirect to 'Location'
+#
+                @resource.render(model, textStatus, jqXHR)
       when 'PUT'
         @hyperLink.click => @doPut()
         @formModel = @cloneModel @resource.model
@@ -40,6 +49,7 @@ class @Link
       headers: { 
           Accept : "application/hal+json; charset=utf-8"
           "Content-Type" : "application/hal+json; charset=utf-8"
+          "Link" : "<" + @model.href + "> ;rel=" + @model.name 
       }
       url: @model.href,
       data: JSON.stringify(@formModel),
@@ -96,4 +106,17 @@ class @Link
       success: @successHandler,
       error: @errorHandler
     }
-    
+
+  triggerJSON: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+json; charset=utf-8"
+          "Content-Type" : "application/hal+json; charset=utf-8"
+      }
+      url: @model.href,
+      data: @model.body,
+      type: @model.method,
+      contentType: @model.consumes,
+      success: @successHandler,
+      error: @errorHandler
+    }

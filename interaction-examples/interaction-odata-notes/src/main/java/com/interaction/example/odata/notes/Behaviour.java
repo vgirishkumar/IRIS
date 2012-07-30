@@ -3,9 +3,9 @@ package com.interaction.example.odata.notes;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.temenos.interaction.core.link.CollectionResourceState;
-import com.temenos.interaction.core.link.ResourceState;
-import com.temenos.interaction.core.link.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class Behaviour {
 
@@ -29,30 +29,33 @@ public class Behaviour {
 
 	public ResourceStateMachine getNotesSM() {
 		CollectionResourceState notes = new CollectionResourceState("Notes", "collection", "/Notes");
-		ResourceState pseudo = new ResourceState(notes, "Notes.pseudo.created");
-		ResourceState note = new ResourceState("Notes", "item", "/Notes({id})");
+		ResourceState pseudo = new ResourceState(notes, "PseudoCreated", null);
+		// Option 1 for configuring the interaction - use another state as a parent
+		ResourceState note = new ResourceState(notes, "item", "({id})");
+		ResourceState noteDeleted = new ResourceState(note, "deleted");
 		ResourceState notePerson = new ResourceState("Persons", "NotesPerson", "/Notes({id})/Persons");
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "Id");
+		uriLinkageMap.put("id", "id");
 		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
 		notes.addTransition("POST", pseudo);
-		note.addTransition("GET", notePerson);
-		note.addTransition("DELETE", note);
+		note.addTransition("GET", notePerson, uriLinkageMap);
+		note.addTransition("DELETE", noteDeleted);
 
 		return new ResourceStateMachine(notes);
 	}
 
 	public ResourceStateMachine getPersonsSM() {
 		CollectionResourceState persons = new CollectionResourceState("Persons", "collection", "/Persons");
-		ResourceState pseudo = new ResourceState(persons, "Persons.pseudo.created");
+		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", null);
+		// Option 2 for configuring the interaction - specify the entity, state, and fully qualified path
 		ResourceState person = new ResourceState("Persons", "item", "/Persons({id})");
-		ResourceState personNotes = new ResourceState("Notes", "PersonNotes", "/Persons({id})/Notes");
+		CollectionResourceState personNotes = new CollectionResourceState("Notes", "PersonNotes", "/Persons({id})/Notes");
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "Id");
+		uriLinkageMap.put("id", "id");
 		persons.addTransitionForEachItem("GET", person, uriLinkageMap);
 		persons.addTransition("POST", pseudo);
 		person.addTransition("GET", personNotes, uriLinkageMap);

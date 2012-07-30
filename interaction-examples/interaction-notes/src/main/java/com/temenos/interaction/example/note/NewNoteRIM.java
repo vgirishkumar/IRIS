@@ -3,14 +3,15 @@ package com.temenos.interaction.example.note;
 import java.util.Collection;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.commands.odata.POSTNewCommand;
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.link.Link;
-import com.temenos.interaction.core.link.ResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.state.AbstractHTTPResourceInteractionModel;
 
@@ -57,6 +58,6 @@ public class NewNoteRIM extends AbstractHTTPResourceInteractionModel {
 	public ResourceState getCurrentState() {
 		return initial;
 	}
-	public Collection<Link> getLinks(MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
+	public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) { return null; }
 
 }
