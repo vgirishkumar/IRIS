@@ -16,8 +16,6 @@ package com.temenos.interaction.core.web;
 
 import java.security.Principal;
 
-import javax.ws.rs.core.UriBuilder;
-
 /**
  * @author Mattias Hellborg Arthursson
  * @author Kalle Stenflo
