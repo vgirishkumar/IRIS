@@ -14,6 +14,8 @@
  */
 package com.temenos.interaction.core.web;
 
+import java.security.Principal;
+
 import javax.ws.rs.core.UriBuilder;
 
 /**
@@ -42,6 +44,7 @@ public class RequestContext {
     private final UriBuilder basePath;
     private final String requestUri;
     private final String verbosityHeader;
+    private Principal userPrincipal;
 
     public RequestContext(UriBuilder basePath, String requestUri, String verbosityHeader) {
         this.basePath = basePath;
@@ -49,6 +52,13 @@ public class RequestContext {
         this.verbosityHeader = verbosityHeader;
     }
 
+    public RequestContext(UriBuilder basePath, String requestUri, String verbosityHeader, Principal userPrincipal) {
+        this.basePath = basePath;
+        this.requestUri = requestUri;
+        this.verbosityHeader = verbosityHeader;
+        this.userPrincipal = userPrincipal;
+    }
+    
     public UriBuilder getBasePath() {
         return basePath.clone();
     }
@@ -60,4 +70,9 @@ public class RequestContext {
     public String getVerbosityHeader() {
         return verbosityHeader;
     }
+    
+    public Principal getUserPrincipal(){
+    	return this.userPrincipal;
+    }
+    
 }
