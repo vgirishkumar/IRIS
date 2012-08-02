@@ -14,13 +14,14 @@ public class $jpaentity.getClazz() {
 	@Id
 	@Basic(optional = false)
 	private $jpaentity.getKeyInfo().getType() $jpaentity.getKeyInfo().getName();
-	
-	#foreach ( $fieldInfo in $jpaentity.getFieldInfos() )
-	#foreach ( $annotation in $fieldInfo.getAnnotations())
+
+#foreach ( $fieldInfo in $jpaentity.getFieldInfos() )
+#foreach ( $annotation in $fieldInfo.getAnnotations())
 	$annotation
-	#end
+#end
 	private $fieldInfo.getType() $fieldInfo.getName();
-	#end
-	
-	public $jpaentity.getClazz()() {}
+#end
+
+	public $jpaentity.getClazz()() {
+	}
 }

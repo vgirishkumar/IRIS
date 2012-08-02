@@ -4,8 +4,7 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence     http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
 
 	<!-- Generated JPA configuration for IRIS MockResponder -->
-	<persistence-unit name="ResponderServiceHibernate"
-		transaction-type="RESOURCE_LOCAL">
+	<persistence-unit name="ResponderServiceHibernate" transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 #foreach ( $resourceInfo in $resourcesInfo )
 #if (!$resourceInfo.getEntityInfo().isFeedEntity() && $resourceInfo.getEntityInfo().isJpaEntity()) 

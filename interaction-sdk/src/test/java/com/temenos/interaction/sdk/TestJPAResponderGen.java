@@ -172,10 +172,10 @@ private Date lastDeparture;
 		
 		properties.add(new FieldInfo("dinnerServed", "java.sql.Timestamp", null));
 		
-		EntityInfo jpaEntity = new EntityInfo("Flight", "AirlineModel", keyInfo, properties);
+		EntityInfo jpaEntity = new EntityInfo("Flight", "AirlineModel.model", keyInfo, properties);
 		String generatedClass = rg.generateJPAEntityClass(jpaEntity);
 		
-		assertTrue(generatedClass.contains("package AirlineModel;"));
+		assertTrue(generatedClass.contains("package AirlineModel.model;"));
 		assertTrue(generatedClass.contains("import javax.persistence.Entity;"));
 		assertTrue(generatedClass.contains("@Entity"));
 		assertTrue(generatedClass.contains("public class Flight {"));
@@ -192,7 +192,7 @@ private Date lastDeparture;
 		assertTrue(generatedClass.contains("private java.util.Date departureDT;"));
 
 		assertTrue(generatedClass.contains("private java.sql.Timestamp dinnerServed;"));
-		assertTrue(generatedClass.contains("public Flight() {}"));
+		assertTrue(generatedClass.contains("public Flight() {"));
 	}
 	
 	@Test

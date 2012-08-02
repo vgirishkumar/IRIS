@@ -4,9 +4,8 @@
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
 	<!-- Initialise JPA for MockResponder -->
-	<bean id="entityManagerFactory"
-		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
-			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	<bean id="entityManagerFactory"	class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+		<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
 	</bean>
 	
 	<!-- Initialise responder database -->
@@ -24,149 +23,79 @@
 	</bean>
 	<!-- <bean id="myProducer" class="com.interaction.producer.example.MyProducer"/> -->
 	
-    <!--
-	  An extension of org.apache.wink.spring.Registrar with support for singletons.
-    -->
+	<!-- An extension of org.apache.wink.spring.Registrar with support for singletons -->
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
-        	<set>
-				<ref local="serviceDocumentProvider" />
-				<ref local="edmxProvider" />
+			<set>
 				<ref local="atomProvider" />
+				<ref local="edmxProvider" />
+				<ref local="serviceDocumentProvider" />
  			</set>
    		</property>
-		<property name="resourceRegistry" ref="resourceRegistry" />
+		<property name="serviceRoot" ref="ServiceRoot" />
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
-    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+		<constructor-arg name="edmDataServices" ref="edmDataServices" />
+		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+		<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
+	</bean>
+	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
 	</bean>
-	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
-    <bean id="resourceRegistry" class="com.temenos.interaction.core.link.ResourceRegistry">
-    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
-    	<constructor-arg name="resource">
-    	    <set>
-                <ref bean="ServiceDocument" />
-                <ref bean="Metadata" />
+	<bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
+		<constructor-arg name="edmDataServices" ref="edmDataServices" />
+		<constructor-arg name="root" ref="ServiceRoot" />
+	</bean>
+
+	<!-- Behaviour -->
+	<bean id="behaviour" class="$behaviourClass" />
+	<bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
+	<bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+		<constructor-arg ref="interaction" />
+		<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
+	</bean>
+
+	<!-- Resources -->
+	<bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+		<constructor-arg ref="commands" />
+		<constructor-arg ref="stateMachine" />
+	</bean>
+
+	<!-- Commands -->
+	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
+		<constructor-arg name="commands">
+			<map>
+				<entry>
+					<key><value>GET+/</value></key>
+					<bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+						<constructor-arg name="entity" value="ServiceDocument" />
+						<constructor-arg name="edmDataServices" ref="edmDataServices" />
+					</bean>
+				</entry>
+				<entry>
+					<key><value>GET+/$metadata</value></key>
+					<bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+						<constructor-arg name="entity" value="Metadata" />
+						<constructor-arg name="edmDataServices" ref="edmDataServices" />
+					</bean>
+				</entry>
 #foreach ( $resourceInfo in $resourcesInfo )
-#if (!$resourceInfo.getEntityInfo().isFeedEntity()) 
-                <ref bean="$resourceInfo.getEntityInfo().getClazz()" />
-#else
-                <ref bean="${resourceInfo.getEntityInfo().getClazz()}Feed" />
-#end
-#end
-            </set>
-        </constructor-arg>
-    </bean>
-
-    <!-- Resources -->
-    <bean id="ServiceDocument" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="stateMachine">
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="initialState">
-    				<bean class="com.temenos.interaction.core.link.ResourceState">
-    					<constructor-arg name="entityName" value="ServiceDocument" />
-    					<constructor-arg name="name" value="initial" />
-                        <constructor-arg name="path" value="/" />
-    				</bean>
-    			</constructor-arg>
-    		</bean>
-    	</constructor-arg>
-    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
-    	<constructor-arg name="commandController" ref="commands" />
-    </bean>
-
-    <bean id="Metadata" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    	<constructor-arg name="stateMachine">
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="initialState">
-    				<bean class="com.temenos.interaction.core.link.ResourceState">
-    					<constructor-arg name="entityName" value="Metadata" />
-    					<constructor-arg name="name" value="initial" />
-                        <constructor-arg name="path" value="/$metadata" />
-    				</bean>
-    			</constructor-arg>
-    		</bean>
-    	</constructor-arg>
-    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
-    	<constructor-arg name="commandController" ref="commands" />
-    </bean>
-
-#foreach ( $resourceInfo in $resourcesInfo )
-#if (!$resourceInfo.getEntityInfo().isFeedEntity()) 
-    <bean id="$resourceInfo.getEntityInfo().getClazz()" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-#else
-    <bean id="${resourceInfo.getEntityInfo().getClazz()}Feed" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-#end
-    	<constructor-arg name="stateMachine">
-    		<bean class="com.temenos.interaction.core.link.ResourceStateMachine">
-    			<constructor-arg name="initialState">
-    				<bean factory-method="createPseudoStateMachine" class="com.temenos.interaction.core.dynaresource.HTTPDynaRIM">
-    					<constructor-arg name="entityName" value="$resourceInfo.getEntityInfo().getClazz()" />
-#if (!$resourceInfo.getEntityInfo().isFeedEntity()) 
-    					<constructor-arg name="resourceName" value="item" />
-#else
-    					<constructor-arg name="resourceName" value="collection" />
-#end
-                        <constructor-arg name="resourcePath" value="$resourceInfo.getResourcePath()" />
-    				</bean>
-    			</constructor-arg>
-    		</bean>
-    	</constructor-arg>
-    	<constructor-arg name="resourceRegistry"><null/></constructor-arg>
-    	<constructor-arg name="commandController" ref="commands" />
-    </bean>
-    
-#end
-
-    <!-- Commands -->
-    <bean id="commands" class="com.temenos.interaction.core.command.CommandController">
-    	<constructor-arg name="commands">
-            <map>
-                <entry>
-                    <key><value>GET+/</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="entity" value="ServiceDocument" />
-                        <constructor-arg name="resourceMetadata" ref="edmDataServices" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/$metadata</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="entity" value="Metadata" />
-                        <constructor-arg name="resourceMetadata" ref="edmDataServices" />
-                    </bean>
-                </entry>
-#foreach ( $resourceInfo in $resourcesInfo )
-                <entry>
-                    <key><value>GET+$resourceInfo.getResourcePath()</value></key>
-                    <bean class="$resourceInfo.getCommandType()">
-                        <constructor-arg name="entity" value="$resourceInfo.getEntityInfo().getClazz()" />
+				<entry>
+					<key><value>$resourceInfo.getResourcePath()</value></key>
+					<bean class="$resourceInfo.getCommandType()">
+						<constructor-arg name="entity" value="$resourceInfo.getEntityInfo().getClazz()" />
 #if ($resourceInfo.getEntityInfo().isJpaEntity()) 
-                        <constructor-arg name="producer" ref="mockProducer" />
+						<constructor-arg name="producer" ref="mockProducer" />
 #else
-                        <constructor-arg name="producer" ref="myProducer" />
+						<constructor-arg name="producer" ref="myProducer" />
 #end
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+$resourceInfo.getResourcePath()</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+$resourceInfo.getResourcePath()</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+$resourceInfo.getResourcePath()</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
+					</bean>
+				</entry>
 #end
-            </map>
-        </constructor-arg>
-    </bean>
-
+			</map>
+		</constructor-arg>
+	</bean>
 </beans>

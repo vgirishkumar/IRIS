@@ -16,18 +16,17 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.odata4j.edm.EdmAssociation;
-import org.odata4j.edm.EdmAssociationEnd;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntityType;
-import org.odata4j.edm.EdmMultiplicity;
-import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
 import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
+
+import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
+import com.temenos.interaction.sdk.interaction.InteractionModel;
 
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end
@@ -42,6 +41,7 @@ public class JPAResponderGen {
 	private final static String JPA_CONFIG_FILE = "persistence.xml";
 	private final static String SPRING_CONFIG_FILE = "spring-beans.xml";
 	private final static String RESPONDER_INSERT_FILE = "responder_insert.sql";
+	private final static String BEHAVIOUR_CLASS_FILE = "Behaviour.java";
 
 	/*
 	 *  create a new instance of the engine
@@ -88,6 +88,11 @@ public class JPAResponderGen {
 		boolean ok = true;
 		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
 
+		//Make sure we have at least one entity container
+		if(ds.getSchemas().size() == 0 || ds.getSchemas().get(0).getEntityContainers().size() == 0) {
+			return false;
+		}
+		
 		// generate JPA classes
 		for (EdmEntityType t : ds.getEntityTypes()) {
 			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t);
@@ -101,28 +106,17 @@ public class JPAResponderGen {
 				}
 			}
 			
-			//Obtain resource information
-			String resourcePath = "/" + entityInfo.getClazz() + "({id})";
+			//Entity resource
+			String resourcePath = "GET+/" + entityInfo.getClazz() + "({id})";
 			String commandType = "com.temenos.interaction.commands.odata.GETEntityCommand"; 
 			resourcesInfo.add(new ResourceInfo(resourcePath, entityInfo, commandType));
-			
-			//Navigation properties linking to itself with multiplicity are considered to relate a resource with a collection resource
-			if(t.getNavigationProperties() != null) {
-				for (EdmNavigationProperty np : t.getNavigationProperties()) {
-					EdmAssociation ea = np.getRelationship();
-					EdmAssociationEnd end1 = ea.getEnd1();
-					EdmAssociationEnd end2 = ea.getEnd2();
-					if(end1.getType().equals(end2.getType()) && (
-							end1.getMultiplicity().equals(EdmMultiplicity.MANY) ||
-							end2.getMultiplicity().equals(EdmMultiplicity.MANY))) {
-						EntityInfo entityFeedInfo = createEntityInfoFromEdmEntityType(t);
-						entityFeedInfo.setFeedEntity();		//This is a feed of OEntities and should not exist as a JPA entity 
-						resourcePath = "/" + entityFeedInfo.getClazz();
-						commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
-						resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
-					}					
-				}
-			}
+
+			//Collection resource 
+			EntityInfo entityFeedInfo = createEntityInfoFromEdmEntityType(t);
+			entityFeedInfo.setFeedEntity();		//This is a feed of OEntities and should not exist as a JPA entity 
+			resourcePath = "GET+/" + entityFeedInfo.getClazz();
+			commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
+			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
 		}
 		
 		// generate persistence.xml
@@ -131,7 +125,8 @@ public class JPAResponderGen {
 		}
 
 		// generate spring-beans.xml
-		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo))) {
+		String entityContainerNamespace = ds.getSchemas().get(0).getEntityContainers().get(0).getName();
+		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo, entityContainerNamespace))) {
 			ok = false;
 		}
 
@@ -140,6 +135,22 @@ public class JPAResponderGen {
 			ok = false;
 		}
 
+		// generate Behaviour class
+		InteractionModel interactionModel = new InteractionModel();
+		for (EdmEntityType entityType : ds.getEntityTypes()) {
+			String entityName = entityType.getName();
+			String collectionStateName = entityName.toLowerCase() + "s";
+			String entityStateName = entityName.toLowerCase();
+			String uriParam = "id";
+			String mappedEntityProperty = entityType.getKeys().size() > 0 ? entityType.getKeys().get(0) : "id";
+			IMResourceStateMachine rsm = new IMResourceStateMachine(entityName, collectionStateName, entityStateName, uriParam, mappedEntityProperty);
+			interactionModel.addResourceStateMachine(rsm);
+		}
+		String behaviourFilePath = srcOutputPath + "/" + entityContainerNamespace.replace(".", "/") + "/" + BEHAVIOUR_CLASS_FILE;
+		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(entityContainerNamespace, interactionModel))) {
+			ok = false;
+		}
+		
 		return ok;
 	}
 
@@ -301,6 +312,26 @@ public class JPAResponderGen {
 		return true;
 	}
 	
+	private boolean writeBehaviourClass(String path, String generatedBehaviourClass) {
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(new File(path));
+			fos.write(generatedBehaviourClass.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO add slf4j logger here
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				// don't hide original exception
+			}
+		}
+		return true;
+	}
+	
 	/**
 	 * Generate a JPA Entity from the provided info
 	 * @precondition {@link EntityInfo} non null
@@ -342,9 +373,10 @@ public class JPAResponderGen {
 	 * @param resourcesInfo
 	 * @return
 	 */
-	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo) {
+	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace) {
 		VelocityContext context = new VelocityContext();
 		context.put("resourcesInfo", resourcesInfo);
+		context.put("behaviourClass", entityContainerNamespace + ".Behaviour");
 		
 		Template t = ve.getTemplate("/spring-beans.vm");
 		StringWriter sw = new StringWriter();
@@ -367,6 +399,22 @@ public class JPAResponderGen {
 		return sw.toString();
 	}
 
+	/**
+	 * Generate the behaviour class.
+	 * @param resourcesInfo
+	 * @return
+	 */
+	public String generateBehaviourClass(String entityContainerNamespace, InteractionModel interactionModel) {
+		VelocityContext context = new VelocityContext();
+		context.put("behaviourNamespace", entityContainerNamespace);
+		context.put("interactionModel", interactionModel);
+		
+		Template t = ve.getTemplate("/behaviour.vm");
+		StringWriter sw = new StringWriter();
+		t.merge(context, sw);
+		return sw.toString();
+	}
+	
 	public static void main(String[] args) {
 		boolean ok = true;
 		if (args != null && args.length == 2) {

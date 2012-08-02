@@ -6,7 +6,7 @@
     <groupId>com.temenos.interaction</groupId>
     <artifactId>interaction-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../interaction-parent/pom.xml</relativePath>
+    <relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
   <artifactId>useragent-generic-javascript</artifactId>

@@ -1,0 +1,53 @@
+package $behaviourNamespace;
+
+import javax.persistence.Basic;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+
+public class Behaviour {
+
+	public ResourceState getSimpleODataInteractionModel() {
+		//Service root and metadata resource states
+		ResourceState initialState = new ResourceState("ServiceDocument", "begin", "/");
+		ResourceState metadata = new ResourceState("", "metadata", "/$metadata");
+
+		//Resource state machines
+#foreach ( $rsm in $interactionModel.getResourceStateMachines() )
+		ResourceStateMachine ${rsm.getCollectionStateName()} = get${rsm.getEntityName()}SM();
+#end
+
+		//Add transitions between RSMs
+		initialState.addTransition("GET", metadata);
+#foreach ( $rsm in $interactionModel.getResourceStateMachines() )
+		initialState.addTransition("GET", ${rsm.getCollectionStateName()});
+#end
+		
+		return initialState;
+	}
+	
+#foreach ( $rsm in $interactionModel.getResourceStateMachines() )
+	public ResourceStateMachine get${rsm.getEntityName()}SM() {
+		CollectionResourceState ${rsm.getCollectionStateName()} = new CollectionResourceState("${rsm.getEntityName()}", "${rsm.getCollectionStateName()}", "/${rsm.getEntityName()}");
+		ResourceState ${rsm.getEntityStateName()} = new ResourceState("${rsm.getEntityName()}", "${rsm.getEntityStateName()}", "/${rsm.getEntityName()}({id})");
+		
+		//Add state transitions
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("${rsm.getUriParam()}", "${rsm.getMappedEntityProperty()}");
+		${rsm.getCollectionStateName()}.addTransitionForEachItem("GET", ${rsm.getEntityStateName()}, uriLinkageMap);
+
+		return new ResourceStateMachine(${rsm.getCollectionStateName()});
+	}
+
+#end
+}
