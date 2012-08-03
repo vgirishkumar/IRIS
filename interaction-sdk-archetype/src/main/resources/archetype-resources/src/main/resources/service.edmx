@@ -14,6 +14,8 @@
                 <Property Name="flightScheduleID" Type="Edm.Int64" Nullable="false"/>
                 <Property Name="firstDeparture" Type="Edm.DateTime" Nullable="true"/>
                 <Property Name="lastDeparture" Type="Edm.DateTime" Nullable="true"/>
+                <NavigationProperty Name="departureAirport" Relationship="${groupId}.${artifactId}.model.FlightSchedule_Airport" FromRole="FlightSchedule" ToRole="Airport"/>
+                <NavigationProperty Name="arrivalAirport" Relationship="${groupId}.${artifactId}.model.FlightSchedule_Airport" FromRole="FlightSchedule" ToRole="Airport"/>
             </EntityType>
             <EntityType Name="Airport">
                 <Key>
@@ -22,6 +24,7 @@
                 <Property Name="name" Type="Edm.String" Nullable="true"/>
                 <Property Name="code" Type="Edm.String" Nullable="false"/>
                 <Property Name="country" Type="Edm.String" Nullable="true"/>
+                <NavigationProperty Name="flightSchedules" Relationship="${groupId}.${artifactId}.model.FlightSchedule_Airport" FromRole="Airport" ToRole="FlightSchedule"/>
             </EntityType>
             <EntityType Name="Flight">
                 <Key>
@@ -30,10 +33,18 @@
                 <Property Name="flightID" Type="Edm.Int64" Nullable="false"/>
                 <Property Name="takeoffTime" Type="Edm.DateTime" Nullable="true"/>
             </EntityType>
+            <Association Name="FlightSchedule_Airport">
+                <End Role="FlightSchedule" Type="${groupId}.${artifactId}.model.FlightSchedule" Multiplicity="*"/>
+                <End Role="Airport" Type="${groupId}.${artifactId}.model.Airport" Multiplicity="0..1"/>
+            </Association>
             <EntityContainer Name="${groupId}.${artifactId}" m:IsDefaultEntityContainer="true">
                 <EntitySet Name="FlightSchedule" EntityType="${groupId}.${artifactId}.model.FlightSchedule"/>
                 <EntitySet Name="Airport" EntityType="${groupId}.${artifactId}.model.Airport"/>
                 <EntitySet Name="Flight" EntityType="${groupId}.${artifactId}.model.Flight"/>
+                <AssociationSet Name="FlightSchedule_Airport" Association="${groupId}.${artifactId}.model.FlightSchedule_Airport">
+                    <End Role="FlightSchedule" EntitySet="FlightSchedule"/>
+                    <End Role="Airport" EntitySet="Airport"/>
+                </AssociationSet>
             </EntityContainer>
         </Schema>
     </edmx:DataServices>

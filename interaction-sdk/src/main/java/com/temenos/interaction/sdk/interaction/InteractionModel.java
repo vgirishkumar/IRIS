@@ -20,4 +20,13 @@ public class InteractionModel {
 	public List<IMResourceStateMachine> getResourceStateMachines() {
 		return resourceStateMachines;
 	}
+	
+	public IMResourceStateMachine findResourceStateMachine(String entityName) {
+		for(IMResourceStateMachine rsm : resourceStateMachines) {
+			if(rsm.getEntityName().equals(entityName)) {
+				return rsm;
+			}
+		}
+		return null;
+	}
 }

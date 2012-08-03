@@ -1,21 +1,24 @@
 package com.temenos.interaction.sdk.interaction;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This class holds information about a resource state machine
  */
 public class IMResourceStateMachine {
 
-	private String entityName;
-	private String collectionStateName;
-	private String entityStateName;
-	private String uriParam;
-	private String mappedEntityProperty;
+	private String entityName;											//Entity name
+	private String collectionStateName;									//Name of collection resource state
+	private String entityStateName;										//Name of individual entity resource state
+	private String mappedEntityProperty;								//Entity property to which the URI template parameter maps to
+	private List<IMTransition> transitions = new ArrayList<IMTransition>();		//Transitions
 	
-	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String uriParam, String mappedEntityProperty) {
+	
+	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String mappedEntityProperty) {
 		this.entityName = entityName;
 		this.collectionStateName = collectionStateName;
 		this.entityStateName = entityStateName;
-		this.uriParam = uriParam;
 		this.mappedEntityProperty = mappedEntityProperty;
 	}
 	
@@ -31,11 +34,15 @@ public class IMResourceStateMachine {
 		return entityStateName;
 	}
 	
-	public String getUriParam() {
-		return uriParam;
-	}
-	
 	public String getMappedEntityProperty() {
 		return mappedEntityProperty;
+	}
+	
+	public void addTransition(String targetEntityName, String targetStateName, boolean isCollectionState, IMResourceStateMachine targetResourceStateMachine) {
+		transitions.add(new IMTransition(targetEntityName, targetStateName, isCollectionState, targetResourceStateMachine));
+	}
+	
+	public List<IMTransition> getTransitions() {
+		return transitions;
 	}
 }

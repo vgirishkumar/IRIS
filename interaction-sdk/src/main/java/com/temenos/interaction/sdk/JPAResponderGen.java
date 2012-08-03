@@ -16,8 +16,11 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.odata4j.edm.EdmAssociationEnd;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntityType;
+import org.odata4j.edm.EdmMultiplicity;
+import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
@@ -119,6 +122,33 @@ public class JPAResponderGen {
 			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
 		}
 		
+		//Create interaction model
+		InteractionModel interactionModel = new InteractionModel();
+		for (EdmEntityType entityType : ds.getEntityTypes()) {
+			//ResourceStateMachine with one collection and one resource entity state
+			String entityName = entityType.getName();
+			String collectionStateName = entityName.toLowerCase() + "s";
+			String entityStateName = entityName.toLowerCase();
+			String mappedEntityProperty = entityType.getKeys().size() > 0 ? entityType.getKeys().get(0) : "id";
+			IMResourceStateMachine rsm = new IMResourceStateMachine(entityName, collectionStateName, entityStateName, mappedEntityProperty);
+			interactionModel.addResourceStateMachine(rsm);
+		}
+			
+		//Add navigation properties to interaction model
+		for (EdmEntityType entityType : ds.getEntityTypes()) {
+			IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityType.getName());
+			//Use navigation properties to define state transitions
+			if(entityType.getNavigationProperties() != null) {
+				for (EdmNavigationProperty np : entityType.getNavigationProperties()) {
+					EdmAssociationEnd targetEnd = np.getToRole();
+					boolean isTargetCollection = targetEnd.getMultiplicity().equals(EdmMultiplicity.MANY);
+					EdmEntityType targetEntityType = targetEnd.getType();
+					IMResourceStateMachine targetRsm = interactionModel.findResourceStateMachine(targetEntityType.getName());
+					rsm.addTransition(targetEnd.getType().getName(), np.getName(), isTargetCollection, targetRsm);
+				}
+			}			
+		}
+		
 		// generate persistence.xml
 		if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(resourcesInfo))) {
 			ok = false;
@@ -126,7 +156,7 @@ public class JPAResponderGen {
 
 		// generate spring-beans.xml
 		String entityContainerNamespace = ds.getSchemas().get(0).getEntityContainers().get(0).getName();
-		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo, entityContainerNamespace))) {
+		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo, entityContainerNamespace, interactionModel))) {
 			ok = false;
 		}
 
@@ -134,18 +164,8 @@ public class JPAResponderGen {
 		if (!writeResponderDML(configOutputPath, generateResponderDML(resourcesInfo))) {
 			ok = false;
 		}
-
+		
 		// generate Behaviour class
-		InteractionModel interactionModel = new InteractionModel();
-		for (EdmEntityType entityType : ds.getEntityTypes()) {
-			String entityName = entityType.getName();
-			String collectionStateName = entityName.toLowerCase() + "s";
-			String entityStateName = entityName.toLowerCase();
-			String uriParam = "id";
-			String mappedEntityProperty = entityType.getKeys().size() > 0 ? entityType.getKeys().get(0) : "id";
-			IMResourceStateMachine rsm = new IMResourceStateMachine(entityName, collectionStateName, entityStateName, uriParam, mappedEntityProperty);
-			interactionModel.addResourceStateMachine(rsm);
-		}
 		String behaviourFilePath = srcOutputPath + "/" + entityContainerNamespace.replace(".", "/") + "/" + BEHAVIOUR_CLASS_FILE;
 		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(entityContainerNamespace, interactionModel))) {
 			ok = false;
@@ -373,10 +393,11 @@ public class JPAResponderGen {
 	 * @param resourcesInfo
 	 * @return
 	 */
-	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace) {
+	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace, InteractionModel interactionModel) {
 		VelocityContext context = new VelocityContext();
 		context.put("resourcesInfo", resourcesInfo);
 		context.put("behaviourClass", entityContainerNamespace + ".Behaviour");
+		context.put("interactionModel", interactionModel);
 		
 		Template t = ve.getTemplate("/spring-beans.vm");
 		StringWriter sw = new StringWriter();

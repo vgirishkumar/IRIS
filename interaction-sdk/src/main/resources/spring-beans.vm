@@ -95,6 +95,26 @@
 					</bean>
 				</entry>
 #end
+#foreach ( $rsm in $interactionModel.getResourceStateMachines() )
+#foreach ( $transition in $rsm.getTransitions() )
+				<entry>
+					<key><value>GET+/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}</value></key>
+#if ($transition.isCollectionState()) 
+					<bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+						<constructor-arg name="entity" value="$transition.getTargetEntityName()" />
+						<constructor-arg name="producer" ref="mockProducer" />
+					</bean>
+#else
+					<bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
+						<constructor-arg name="entity" value="$rsm.getEntityName()" />
+						<constructor-arg name="linkProperty" value="$transition.getTargetEntityName()" />
+						<constructor-arg name="linkEntity" value="$transition.getTargetEntityName()" />
+						<constructor-arg name="producer" ref="mockProducer" />
+					</bean>
+#end
+				</entry>
+#end
+#end
 			</map>
 		</constructor-arg>
 	</bean>
