@@ -107,7 +107,7 @@
 #else
 					<bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
 						<constructor-arg name="entity" value="$rsm.getEntityName()" />
-						<constructor-arg name="linkProperty" value="$transition.getTargetEntityName()" />
+						<constructor-arg name="linkProperty" value="$transition.getLinkProperty()" />
 						<constructor-arg name="linkEntity" value="$transition.getTargetEntityName()" />
 						<constructor-arg name="producer" ref="mockProducer" />
 					</bean>

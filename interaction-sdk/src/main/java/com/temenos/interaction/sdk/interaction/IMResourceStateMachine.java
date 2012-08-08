@@ -38,8 +38,8 @@ public class IMResourceStateMachine {
 		return mappedEntityProperty;
 	}
 	
-	public void addTransition(String targetEntityName, String targetStateName, boolean isCollectionState, IMResourceStateMachine targetResourceStateMachine) {
-		transitions.add(new IMTransition(targetEntityName, targetStateName, isCollectionState, targetResourceStateMachine));
+	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine) {
+		transitions.add(new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine));
 	}
 	
 	public List<IMTransition> getTransitions() {

@@ -16,6 +16,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.odata4j.edm.EdmAssociation;
 import org.odata4j.edm.EdmAssociationEnd;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntityType;
@@ -30,6 +31,7 @@ import org.odata4j.stax2.XMLEventReader2;
 
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
+import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
 
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end
@@ -59,33 +61,20 @@ public class JPAResponderGen {
 	}
 
 	/**
-	 * @precondition File edmxFile exists on the file system
-	 * @postcondition JPA Entity classes written to file system as valid Java source
-	 * @postcondition JPA persistence.xml written to file system, configured to inmemory database
-	 * @postcondition a boolean flag indicating a successful result will be returned
-	 * @invariant enough free space on the file system
-	 * @param edmxFile
-	 * @param srcOutputPath
-	 * @param configOutputPath
-	 */
-	public boolean generateArtifacts(File edmxFile, File sourceOutputPath, File configOutputPath) {
-		try {
-			InputStream is = new FileInputStream(edmxFile);
-			return generateArtifacts(is, sourceOutputPath, configOutputPath);
-		} catch (FileNotFoundException e) {
-			return false;
-		}
-	}
-	
-	/**
 	 * Generate JPA responder artifacts.  Including JPA classes, persistence.xml, and DML bootstrapping.
 	 * @param is
 	 * @param srcOutputPath
 	 * @param configOutputPath
 	 * @return
 	 */
-	public boolean generateArtifacts(InputStream is, File srcOutputPath, File configOutputPath) {
-		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(is)));
+	public boolean generateArtifacts(String edmxFile, File srcOutputPath, File configOutputPath) {
+		InputStream isEdmx;
+		try {
+			isEdmx = new FileInputStream(edmxFile);
+		} catch (FileNotFoundException e) {
+			return false;
+		}		
+		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(isEdmx)));
 		EdmDataServices ds = new EdmxFormatParser().parseMetadata(reader);
 		
 		boolean ok = true;
@@ -136,15 +125,29 @@ public class JPAResponderGen {
 			
 		//Add navigation properties to interaction model
 		for (EdmEntityType entityType : ds.getEntityTypes()) {
-			IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityType.getName());
+			String entityName = entityType.getName();
+			IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityName);
 			//Use navigation properties to define state transitions
 			if(entityType.getNavigationProperties() != null) {
 				for (EdmNavigationProperty np : entityType.getNavigationProperties()) {
 					EdmAssociationEnd targetEnd = np.getToRole();
 					boolean isTargetCollection = targetEnd.getMultiplicity().equals(EdmMultiplicity.MANY);
 					EdmEntityType targetEntityType = targetEnd.getType();
-					IMResourceStateMachine targetRsm = interactionModel.findResourceStateMachine(targetEntityType.getName());
-					rsm.addTransition(targetEnd.getType().getName(), np.getName(), isTargetCollection, targetRsm);
+					String targetEntityName = targetEntityType.getName();
+					IMResourceStateMachine targetRsm = interactionModel.findResourceStateMachine(targetEntityName);
+					
+					EdmAssociation association = np.getRelationship();
+					String linkProperty = ReferentialConstraintParser.getLinkProperty(association.getName(), edmxFile);
+
+					//Reciprocal link state name
+					String reciprocalLinkState = "";
+					for(EdmNavigationProperty npTarget : targetEntityType.getNavigationProperties()) {
+						String targetNavPropTargetEntityName = npTarget.getToRole().getType().getName();
+						if(targetNavPropTargetEntityName.equals(entityName)) {
+							reciprocalLinkState = npTarget.getName();
+						}
+					}
+					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm);
 				}
 			}			
 		}
@@ -173,7 +176,7 @@ public class JPAResponderGen {
 		
 		return ok;
 	}
-
+	
 	/**
 	 * Utility method to form class filename.
 	 * @param srcTargetDir
@@ -457,7 +460,7 @@ public class JPAResponderGen {
 			if (ok) {
 				JPAResponderGen rg = new JPAResponderGen();
 				System.out.println("Writing source and configuration to [" + targetDirectory + "]");
-				ok = rg.generateArtifacts(edmxFile, targetDirectory, targetDirectory);
+				ok = rg.generateArtifacts(edmxFilePath, targetDirectory, targetDirectory);
 			}
 		} else {
 			ok = false;

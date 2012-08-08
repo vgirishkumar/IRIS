@@ -6,19 +6,27 @@ package com.temenos.interaction.sdk.interaction;
 public class IMTransition {
 
 	private String targetEntityName;		//Entity name associated to target state
+	private String linkProperty;			//The depend element of a referential constraint (i.e. the property that specifies the target resource)
 	private String targetStateName;			//Name of target state
 	private boolean isCollectionState;		//Indicates if target is a collection state
+	private String reciprocalLinkState;		//State which leads a target state back to the current state
 	private IMResourceStateMachine targetResourceStateMachine;	//Resource state machine of target state
 	
-	public IMTransition(String targetEntityName, String targetStateName, boolean isCollectionState, IMResourceStateMachine targetResourceStateMachine) {
+	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine) {
 		this.targetEntityName = targetEntityName;
+		this.linkProperty = linkProperty;
 		this.targetStateName = targetStateName;
 		this.isCollectionState = isCollectionState;
+		this.reciprocalLinkState = reciprocalLinkState;
 		this.targetResourceStateMachine = targetResourceStateMachine;
 	}
 	
 	public String getTargetEntityName() {
 		return targetEntityName;
+	}
+	
+	public String getLinkProperty() {
+		return linkProperty;
 	}
 
 	public String getTargetStateName() {
@@ -29,6 +37,10 @@ public class IMTransition {
 		return isCollectionState;
 	}
 
+	public String getReciprocalLinkState() {
+		return reciprocalLinkState;
+	}
+	
 	public IMResourceStateMachine getTargetResourceStateMachine() {
 		return targetResourceStateMachine;
 	}
