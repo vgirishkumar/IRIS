@@ -17,7 +17,7 @@ public class Behaviour {
 		ResourceState initialState = new ResourceState("home", "initial", "/");
 		
 		// work list
-//		initialState.addTransition("GET", getProcessSM());
+		initialState.addTransition("GET", getProcessSM());
 		
 		// users and what they are doing on Twitter
 		initialState.addTransition("GET", getUsersInteractionModel());
@@ -40,6 +40,11 @@ public class Behaviour {
 		 * a link on each user to their Twitter activity
 		 */
 		uriLinkageMap.put("username", "twitterHandle");
+		allUsers.addTransitionForEachItem("GET", tweets, uriLinkageMap);
+
+		/*
+		 * Add link from the user item (same linkage map as from collection of users to tweets
+		 */
 		userProfile.addTransition("GET", tweets, uriLinkageMap);
 		// TODO fix this dodgy self link, need this to add subresource in HAL
 		uriLinkageMap.clear();
