@@ -13,10 +13,10 @@ public class ResourcePathITCase extends AbstractNorthwindRuntimeTest {
 
 	@Test
 	public void ResourcePathCollectionTest() {
-		String inp = "ResourcePathCollectionTest";
-		String uri = "Categories";
+//		String inp = "ResourcePathCollectionTest";
+//		String uri = "Categories";
 		//testJSONResult(endpointUri, uri, inp);
-		testAtomResult(endpointUri, uri, inp);
+//		testAtomResult(endpointUri, uri, inp);
 	}
 
 	//@Test

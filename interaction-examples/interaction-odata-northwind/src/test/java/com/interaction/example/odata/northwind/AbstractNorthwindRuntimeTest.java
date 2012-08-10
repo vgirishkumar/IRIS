@@ -157,7 +157,9 @@ public abstract class AbstractNorthwindRuntimeTest extends AbstractRuntimeTest {
 			assertEquals(expectedDocument.getDocumentElement(),
 					resultDocument.getDocumentElement(), true);
 		} catch (Throwable ex) {
-			System.out.println("got document: ");
+			System.out.println("expected: ");
+			System.out.println(expect);
+			System.out.println("actual: ");
 			System.out.println(result);
 			ex.printStackTrace();
 			Assert.fail(ex.toString());

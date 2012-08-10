@@ -13,34 +13,6 @@ xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
                 <EntitySet Name="Categories" EntityType="NorthwindModel.Categories"/>
                 <EntitySet Name="Employees" EntityType="NorthwindModel.Employees"/>
                 <EntitySet Name="Products" EntityType="NorthwindModel.Products"/>
-                <AssociationSet Name="FK_Orders_Customers" Association="NorthwindModel.FK_Orders_Customers">
-                    <End Role="Orders" EntitySet="Orders"/>
-                    <End Role="Customers" EntitySet="Customers"/>
-                </AssociationSet>
-                <AssociationSet Name="FK_Orders_Employees" Association="NorthwindModel.FK_Orders_Employees">
-                    <End Role="Orders" EntitySet="Orders"/>
-                    <End Role="Employees" EntitySet="Employees"/>
-                </AssociationSet>
-                <AssociationSet Name="FK_Order_Details_Orders"
-                Association="NorthwindModel.FK_Order_Details_Orders">
-                    <End Role="Order_Details" EntitySet="Order_Details"/>
-                    <End Role="Orders" EntitySet="Orders"/>
-                </AssociationSet>
-                <AssociationSet Name="FK_Order_Details_Products"
-                Association="NorthwindModel.FK_Order_Details_Products">
-                    <End Role="Order_Details" EntitySet="Order_Details"/>
-                    <End Role="Products" EntitySet="Products"/>
-                </AssociationSet>
-                <AssociationSet Name="FK_Products_Categories"
-                Association="NorthwindModel.FK_Products_Categories">
-                    <End Role="Products" EntitySet="Products"/>
-                    <End Role="Categories" EntitySet="Categories"/>
-                </AssociationSet>
-                <AssociationSet Name="FK_Products_Suppliers"
-                Association="NorthwindModel.FK_Products_Suppliers">
-                    <End Role="Products" EntitySet="Products"/>
-                    <End Role="Suppliers" EntitySet="Suppliers"/>
-                </AssociationSet>
             </EntityContainer>
         </Schema>
         <Schema Namespace="NorthwindModel" xmlns="http://schemas.microsoft.com/ado/2006/04/edm">
@@ -77,8 +49,6 @@ xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
                 Nullable="false"/>
                 <Property Name="Region" Type="Edm.String" Nullable="true"
                 MaxLength="255"/>
-                <NavigationProperty Name="Products" Relationship="NorthwindModel.FK_Products_Suppliers"
-                FromRole="Suppliers" ToRole="Products"/>
             </EntityType>
             <EntityType Name="Orders">
                 <Key>
@@ -110,12 +80,6 @@ xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
                 Nullable="true" MaxLength="255"/>
                 <Property Name="ShippedDate" Type="Edm.DateTime"
                 Nullable="true"/>
-                <NavigationProperty Name="Customer" Relationship="NorthwindModel.FK_Orders_Customers"
-                FromRole="Orders" ToRole="Customers"/>
-                <NavigationProperty Name="Employee" Relationship="NorthwindModel.FK_Orders_Employees"
-                FromRole="Orders" ToRole="Employees"/>
-                <NavigationProperty Name="OrderDetails" Relationship="NorthwindModel.FK_Order_Details_Orders"
-                FromRole="Orders" ToRole="Order_Details"/>
             </EntityType>
             <EntityType Name="Order_Details">
                 <Key>
@@ -130,10 +94,6 @@ xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
                 <Property Name="UnitPrice" Type="Edm.Decimal"
                 Nullable="false"/>
                 <Property Name="Quantity" Type="Edm.Int16" Nullable="false"/>
-                <NavigationProperty Name="Order" Relationship="NorthwindModel.FK_Order_Details_Orders"
-                FromRole="Order_Details" ToRole="Orders"/>
-                <NavigationProperty Name="Product" Relationship="NorthwindModel.FK_Order_Details_Products"
-                FromRole="Order_Details" ToRole="Products"/>
             </EntityType>
             <EntityType Name="Customers">
                 <Key>
@@ -161,8 +121,6 @@ xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
                 MaxLength="255"/>
                 <Property Name="PostalCode" Type="Edm.String"
                 Nullable="true" MaxLength="255"/>
-                <NavigationProperty Name="Orders" Relationship="NorthwindModel.FK_Orders_Customers"
-                FromRole="Customers" ToRole="Orders"/>
             </EntityType>
             <EntityType Name="Categories">
                 <Key>
@@ -176,8 +134,6 @@ xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
                 Nullable="true" MaxLength="255"/>
                 <Property Name="Picture" Type="Edm.Binary" Nullable="true"
                 MaxLength="255"/>
-                <NavigationProperty Name="Products" Relationship="NorthwindModel.FK_Products_Categories"
-                FromRole="Categories" ToRole="Products"/>
             </EntityType>
             <EntityType Name="Employees">
                 <Key>
@@ -219,8 +175,6 @@ xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
                 Nullable="true" MaxLength="255"/>
                 <Property Name="Title" Type="Edm.String" Nullable="true"
                 MaxLength="255"/>
-                <NavigationProperty Name="Order" Relationship="NorthwindModel.FK_Orders_Employees"
-                FromRole="Employees" ToRole="Orders"/>
             </EntityType>
             <EntityType Name="Products">
                 <Key>
@@ -246,49 +200,7 @@ xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
                 Nullable="true"/>
                 <Property Name="UnitsOnOrder" Type="Edm.Int16"
                 Nullable="true"/>
-                <NavigationProperty Name="Category" Relationship="NorthwindModel.FK_Products_Categories"
-                FromRole="Products" ToRole="Categories"/>
-                <NavigationProperty Name="Supplier" Relationship="NorthwindModel.FK_Products_Suppliers"
-                FromRole="Products" ToRole="Suppliers"/>
-                <NavigationProperty Name="Order_Details" Relationship="NorthwindModel.FK_Order_Details_Products"
-                FromRole="Products" ToRole="Order_Details"/>
             </EntityType>
-            <Association Name="FK_Orders_Customers">
-                <End Role="Orders" Type="NorthwindModel.Orders"
-                Multiplicity="*"/>
-                <End Role="Customers" Type="NorthwindModel.Customers"
-                Multiplicity="0..1"/>
-            </Association>
-            <Association Name="FK_Orders_Employees">
-                <End Role="Orders" Type="NorthwindModel.Orders"
-                Multiplicity="*"/>
-                <End Role="Employees" Type="NorthwindModel.Employees"
-                Multiplicity="0..1"/>
-            </Association>
-            <Association Name="FK_Order_Details_Orders">
-                <End Role="Order_Details" Type="NorthwindModel.Order_Details"
-                Multiplicity="*"/>
-                <End Role="Orders" Type="NorthwindModel.Orders"
-                Multiplicity="0..1"/>
-            </Association>
-            <Association Name="FK_Order_Details_Products">
-                <End Role="Order_Details" Type="NorthwindModel.Order_Details"
-                Multiplicity="*"/>
-                <End Role="Products" Type="NorthwindModel.Products"
-                Multiplicity="0..1"/>
-            </Association>
-            <Association Name="FK_Products_Categories">
-                <End Role="Products" Type="NorthwindModel.Products"
-                Multiplicity="*"/>
-                <End Role="Categories" Type="NorthwindModel.Categories"
-                Multiplicity="0..1"/>
-            </Association>
-            <Association Name="FK_Products_Suppliers">
-                <End Role="Products" Type="NorthwindModel.Products"
-                Multiplicity="*"/>
-                <End Role="Suppliers" Type="NorthwindModel.Suppliers"
-                Multiplicity="0..1"/>
-            </Association>
         </Schema>
     </edmx:DataServices>
 </edmx:Edmx>

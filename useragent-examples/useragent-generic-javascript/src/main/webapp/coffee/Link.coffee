@@ -106,4 +106,17 @@ class @Link
       success: @successHandler,
       error: @errorHandler
     }
-    
+
+  triggerJSON: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+json; charset=utf-8"
+          "Content-Type" : "application/hal+json; charset=utf-8"
+      }
+      url: @model.href,
+      data: @model.body,
+      type: @model.method,
+      contentType: @model.consumes,
+      success: @successHandler,
+      error: @errorHandler
+    }

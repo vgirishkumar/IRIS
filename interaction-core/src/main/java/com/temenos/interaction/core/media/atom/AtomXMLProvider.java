@@ -8,8 +8,11 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +23,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
@@ -27,21 +31,30 @@ import javax.ws.rs.ext.Provider;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OLink;
+import org.odata4j.core.OLinks;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParser;
+import org.odata4j.format.xml.XmlFormatWriter;
+import org.odata4j.internal.InternalUtil;
 import org.odata4j.producer.Responses;
 import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.Transformer;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.rim.ResourceInteractionModel;
+import com.temenos.interaction.core.web.RequestContext;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})
@@ -57,6 +70,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	private final EdmDataServices edmDataServices;
 	private final ResourceRegistry resourceRegistry;
+	private final Transformer transformer;
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
@@ -64,12 +78,16 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * 		The entity metadata for reading and writing OData entities.
 	 * @param resourceRegistry
 	 * 		The resource registry contains all the resource to entity mappings
+	 * @param transformer
+	 * 		Transformer to convert an entity to a properties map
 	 */
-	public AtomXMLProvider(EdmDataServices edmDataServices, ResourceRegistry resourceRegistry) {
+	public AtomXMLProvider(EdmDataServices edmDataServices, ResourceRegistry resourceRegistry, Transformer transformer) {
 		this.edmDataServices = edmDataServices;
 		this.resourceRegistry = resourceRegistry;
+		this.transformer = transformer;
 		assert(edmDataServices != null);
 		assert(resourceRegistry != null);
+		assert(transformer != null);
 	}
 
 	@Override
@@ -107,21 +125,54 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		try {
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+
+				//Convert Links to list of OLink
+				List<OLink> olinks = new ArrayList<OLink>();
+				for(Link link : entityResource.getLinks()) {
+					addLinkToOLinks(olinks, link);
+				}
+				
+				//Write entry
 				OEntity oentity = entityResource.getEntity();
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? oentity.getEntitySetName() : entityResource.getEntityName()));
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet);
+				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
-				CollectionResource<OEntity> cr = ((CollectionResource<OEntity>) resource);
-				List<EntityResource<OEntity>> resources = (List<EntityResource<OEntity>>) cr.getEntities();
+				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
+				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
-				for (EntityResource<OEntity> er : resources) {
-					entities.add(er.getEntity());
+				Map<String, List<OLink>> entityOlinks = new HashMap<String, List<OLink>>();
+				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
+					OEntity entity = collectionEntity.getEntity();
+					
+					//Add entity links
+					List<OLink> olinks = new ArrayList<OLink>();
+					for(Link link : collectionEntity.getLinks()) {
+						addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
+						
+						//Links to other resources
+				        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
+				        if(entityTransitions != null) {
+					        for(Transition transition : entityTransitions) {
+					        	//Create Link from transition
+								String rel = transition.getTarget().getName();
+								UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
+								Map<String, Object> properties = new HashMap<String, Object>();
+								properties.putAll(transformer.transform(entity));
+								URI href = linkTemplate.buildFromMap(properties);
+								Link entityLink = new Link(transition, rel, href.toASCIIString(), "GET");
+								
+								addLinkToOLinks(olinks, entityLink);
+							}
+				        }
+					}		
+					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
+					entities.add(entity);
 				}
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((cr.getEntityName() == null ? cr.getEntitySetName() : cr.getEntityName()));
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((collectionResource.getEntityName() == null ? collectionResource.getEntitySetName() : collectionResource.getEntityName()));
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entities(entities, entitySet, inlineCount, skipToken));
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks);
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -129,6 +180,29 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		} catch (ODataException e) {
 			logger.error("An error occurred while writing " + mediaType + " resource representation", e);
 		}
+	}
+	
+	public void addLinkToOLinks(List<OLink> olinks, Link link) {
+		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
+		String rel = link.getRel();
+		if(!rel.equals("self")) {
+			rel = XmlFormatWriter.related + link.getRel();
+		}
+		String href = link.getHref();
+		if(requestContext != null) {
+			//Extract the transition fragment from the URI path
+			href = link.getHrefTransition(requestContext.getBasePath());
+		}
+		String title = link.getTitle();
+		OLink olink;
+		Transition linkTransition = resourceRegistry.getLinkTransition(link.getTransition().getId());
+		if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
+			olink = OLinks.relatedEntities(rel, title, href);
+		}
+		else {
+			olink = OLinks.relatedEntity(rel, title, href);
+		}
+		olinks.add(olink);
 	}
 
 	@Override

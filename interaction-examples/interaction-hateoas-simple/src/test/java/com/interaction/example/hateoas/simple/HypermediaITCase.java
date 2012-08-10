@@ -287,7 +287,7 @@ public class HypermediaITCase extends JerseyTest {
 	 */
 	@Test
 	public void putPersonMethodNotAllowed() throws Exception {
-		String halRequest = "";
+		String halRequest = "{}";
 		// attempt to put to the notes collection, rather than an individual
 		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
         assertEquals(405, response.getStatus());

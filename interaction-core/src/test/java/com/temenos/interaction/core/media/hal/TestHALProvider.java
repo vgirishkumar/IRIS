@@ -212,6 +212,7 @@ public class TestHALProvider {
 	
 	private Link mockLink(String id, String rel, String href) {
 		Link link = mock(Link.class);
+		when(link.getId()).thenReturn(id);
 		when(link.getTitle()).thenReturn(id);
 		when(link.getRel()).thenReturn(rel);
 		when(link.getHref()).thenReturn(href);
@@ -316,7 +317,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\"/><link href=\"http://www.temenos.com/rest.svc/humans/32\" rel=\"_person\" name=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"http://www.temenos.com/rest.svc/humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
@@ -356,7 +357,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\" title=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);

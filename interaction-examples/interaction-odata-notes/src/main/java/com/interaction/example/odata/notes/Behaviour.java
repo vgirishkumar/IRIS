@@ -37,10 +37,10 @@ public class Behaviour {
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "Id");
+		uriLinkageMap.put("id", "id");
 		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
 		notes.addTransition("POST", pseudo);
-		note.addTransition("GET", notePerson);
+		note.addTransition("GET", notePerson, uriLinkageMap);
 		note.addTransition("DELETE", noteDeleted);
 
 		return new ResourceStateMachine(notes);
@@ -51,11 +51,11 @@ public class Behaviour {
 		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", null);
 		// Option 2 for configuring the interaction - specify the entity, state, and fully qualified path
 		ResourceState person = new ResourceState("Persons", "item", "/Persons({id})");
-		ResourceState personNotes = new ResourceState("Notes", "PersonNotes", "/Persons({id})/Notes");
+		CollectionResourceState personNotes = new CollectionResourceState("Notes", "PersonNotes", "/Persons({id})/Notes");
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "Id");
+		uriLinkageMap.put("id", "id");
 		persons.addTransitionForEachItem("GET", person, uriLinkageMap);
 		persons.addTransition("POST", pseudo);
 		person.addTransition("GET", personNotes, uriLinkageMap);

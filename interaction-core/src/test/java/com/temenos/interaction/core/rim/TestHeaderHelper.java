@@ -7,7 +7,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,9 +19,7 @@ public class TestHeaderHelper {
 	@Before
 	public void setup() {
 		// initialise the thread local request context with requestUri and baseUri
-		UriBuilder baseUri = UriBuilder.fromUri("/baseuri");
-		String requestUri = "/baseuri/";
-        RequestContext ctx = new RequestContext(baseUri, requestUri, null);
+        RequestContext ctx = new RequestContext("http://localhost/myservice.svc", "/baseuri/", null);
         RequestContext.setRequestContext(ctx);
 	}
 

@@ -5,6 +5,9 @@ import java.util.Random;
 
 import javax.ws.rs.HttpMethod;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -20,8 +23,21 @@ public class POSTFundTransferCommand implements InteractionCommand {
 
 		Long key = Math.abs(new Random().nextLong() % Long.MAX_VALUE);
 		Date now = new Date();
-		
-		EntityResource<FundTransfer> er = new EntityResource<FundTransfer>(new FundTransfer(key, "<resource><FundTransfer><id>" + key + "</id><body>Funds tranfer issued at " + now + "</body></FundTransfer><links></links></resource>"));
+		String json = "";
+		json += "{";
+		json += "  \"FundTransfer\" : {";
+		json += "    \"id\" : \"" + key + "\",";
+		json += "    \"body\" : \"" + now + "\"";
+		json += "  }";
+		json += "}";
+		EntityResource<FundTransfer> er = null;
+		try {
+			JSONObject jsonObject = new JSONObject(json);
+			er = new EntityResource<FundTransfer>(new FundTransfer(key, jsonObject.toString()));
+		}
+		catch(JSONException je) {
+			je.printStackTrace();
+		}
 		ctx.setResource(er);
 		return Result.SUCCESS;
 	}

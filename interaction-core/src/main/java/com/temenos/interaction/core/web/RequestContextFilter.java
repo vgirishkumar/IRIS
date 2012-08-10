@@ -18,7 +18,6 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 
 /**
@@ -37,9 +36,8 @@ public class RequestContextFilter implements Filter {
         String requestURI = servletRequest.getRequestURI();
         requestURI = StringUtils.removeStart(requestURI, servletRequest.getContextPath() + servletRequest.getServletPath());
         String baseURL = StringUtils.removeEnd(servletRequest.getRequestURL().toString(), requestURI);
-        UriBuilder uriBuilder = UriBuilder.fromUri(baseURL);
 
-        RequestContext ctx = new RequestContext(uriBuilder, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER));
+        RequestContext ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER));
 
         RequestContext.setRequestContext(ctx);
         try {

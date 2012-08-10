@@ -14,8 +14,6 @@
  */
 package com.temenos.interaction.core.web;
 
-import javax.ws.rs.core.UriBuilder;
-
 /**
  * @author Mattias Hellborg Arthursson
  * @author Kalle Stenflo
@@ -39,18 +37,18 @@ public class RequestContext {
     }
 
 
-    private final UriBuilder basePath;
+    private final String basePath;
     private final String requestUri;
     private final String verbosityHeader;
 
-    public RequestContext(UriBuilder basePath, String requestUri, String verbosityHeader) {
+    public RequestContext(String basePath, String requestUri, String verbosityHeader) {
         this.basePath = basePath;
         this.requestUri = requestUri;
         this.verbosityHeader = verbosityHeader;
     }
 
-    public UriBuilder getBasePath() {
-        return basePath.clone();
+    public String getBasePath() {
+        return basePath;
     }
 
     public String getRequestUri() {

@@ -1,6 +1,8 @@
 package com.temenos.interaction.core.hypermedia;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
@@ -13,6 +15,8 @@ public class Link {
 
 	private final Transition transition;
 	
+	// id
+	private final String id;
 	// title (5.4 Target Attributes)
 	private final String title;
 	// rel (5.3 Relation Type)
@@ -44,12 +48,16 @@ public class Link {
 	 * @param transition
 	 */
 	public Link(Transition transition, String rel, String href, String method) {
-		this(transition, transition.getId(), rel, href, null, null, method, null);
+		this(transition, transition.getTarget().getName(), rel, href, null, null, method, null);
 	}
 
 	public Link(Transition transition, String title, String rel, String href, String[] consumes,
 			String[] produces, String method, MultivaluedMap<String, String> extensions) {
 		this.transition = transition;
+		if(title == null && transition != null) {
+			title = transition.getId();
+		}
+		id = transition != null ? transition.getId() : title;
 		this.title = title;
 		this.rel = rel;
 		this.href = href;
@@ -63,6 +71,10 @@ public class Link {
 		return transition;
 	}
 
+	public String getId() {
+		return id;
+	}
+	
 	public String getRel() {
 		return rel;
 	}
@@ -75,6 +87,23 @@ public class Link {
 		return href;
 	}
 
+	/**
+	 * Obtain the transition, i.e. the link relative to the REST service.
+	 * 
+	 * @param href Full URL
+	 * @param basePath  Path to REST service
+	 * @return Path of transition relative to REST service 
+	 */
+	public String getHrefTransition(String basePath) {
+		String regex = "(?<=" + basePath + "/)\\S+";
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(href);
+		while (m.find()) {
+			return m.group();
+		}    
+		return href;
+	}
+	 
 	public String[] getConsumes() {
 		return consumes;
 	}

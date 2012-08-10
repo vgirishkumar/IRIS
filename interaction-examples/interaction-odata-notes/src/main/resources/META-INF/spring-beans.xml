@@ -39,8 +39,11 @@
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
-	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
+	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
+		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
  
     <bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
@@ -53,6 +56,7 @@
     <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
         <constructor-arg name="initialState" ref="interaction" />
+    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
     </bean>
 
     <!-- Resources -->
@@ -130,17 +134,17 @@
                 </entry>
                 <entry>
                     <key><value>GET+/Persons({id})/Notes</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-                        <constructor-arg name="entity" value="Person" />
-                        <constructor-arg name="navProperty" value="notes" />
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="entity" value="Note" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>
                 <entry>
                     <key><value>GET+/Notes({id})/Persons</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+                    <bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
                         <constructor-arg name="entity" value="Note" />
-                        <constructor-arg name="navProperty" value="Persons" />
+                        <constructor-arg name="linkProperty" value="id" />
+                        <constructor-arg name="linkEntity" value="Person" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>
