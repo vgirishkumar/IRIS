@@ -8,7 +8,7 @@
   </appender>
 
   <!-- Log debug information about links -->
-  <logger name="com.temenos.interaction.core.link">
+  <logger name="com.temenos.interaction.core.hypermedia">
     <level value="DEBUG" />
   </logger>
 
