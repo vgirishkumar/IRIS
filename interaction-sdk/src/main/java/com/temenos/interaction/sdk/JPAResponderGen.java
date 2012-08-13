@@ -253,6 +253,8 @@ public class JPAResponderGen {
 			javaType = "Long";
 		} else if (EdmSimpleType.INT32 == type) {
 			javaType = "Integer";
+		} else if (EdmSimpleType.INT16 == type) {
+			javaType = "Integer";
 		} else if (EdmSimpleType.STRING == type) {
 			javaType = "String";
 		} else if (EdmSimpleType.DATETIME == type) {
@@ -261,9 +263,13 @@ public class JPAResponderGen {
 			javaType = "java.util.Date";
 		} else if (EdmSimpleType.DECIMAL == type) {
 			javaType = "java.math.BigDecimal";
+		} else if (EdmSimpleType.GUID == type) {
+			javaType = "String";
+		} else if (EdmSimpleType.BINARY == type) {
+			javaType = "String";
 		} else {
 			// TODO support types other than Long and String
-			throw new RuntimeException("Entity property type not supported");
+			throw new RuntimeException("Entity property type " + type.getFullyQualifiedTypeName() + " not supported");
 		}
 		return javaType;
 	}
