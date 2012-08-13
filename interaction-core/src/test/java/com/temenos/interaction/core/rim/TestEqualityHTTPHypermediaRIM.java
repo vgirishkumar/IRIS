@@ -3,9 +3,11 @@ package com.temenos.interaction.core.rim;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 
+import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -21,7 +23,9 @@ public class TestEqualityHTTPHypermediaRIM {
 		String OTHER_ENTITY_NAME = "DIFFERENT";
 		ResourceState begin2 = new ResourceState(OTHER_ENTITY_NAME, "begin2", resourcePath);
 		NewCommandController cc = mock(NewCommandController.class);
+		when(cc.fetchCommand("GET", "/notes")).thenReturn(mock(InteractionCommand.class));
 		NewCommandController cc2 = mock(NewCommandController.class);
+		when(cc2.fetchCommand("GET", "/notes")).thenReturn(mock(InteractionCommand.class));
 		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(cc, new ResourceStateMachine(begin));
 		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(cc2, new ResourceStateMachine(begin2));
 		
@@ -39,6 +43,8 @@ public class TestEqualityHTTPHypermediaRIM {
 		String DIFFERENT_ENTITY_NAME = "DIFFERENT";
 		ResourceState differentBegin = new ResourceState(DIFFERENT_ENTITY_NAME, "begin", "/{id}");
 		NewCommandController cc = mock(NewCommandController.class);
+		when(cc.fetchCommand("GET", "/notes")).thenReturn(mock(InteractionCommand.class));
+		when(cc.fetchCommand("GET", "/notes/{id}")).thenReturn(mock(InteractionCommand.class));
 		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(cc, new ResourceStateMachine(parentBegin));
 		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(parent, cc, new ResourceStateMachine(begin), begin);
 		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(parent, cc, new ResourceStateMachine(differentBegin), differentBegin);
@@ -57,6 +63,11 @@ public class TestEqualityHTTPHypermediaRIM {
 		ResourceState parentBegin = new ResourceState(PARENT_ENTITY_NAME, "begin", "/notes");
 		ResourceState parentDiffBegin = new ResourceState(PARENT_ENTITY_NAME, "begin", "/notes1");
 		NewCommandController cc = mock(NewCommandController.class);
+		when(cc.fetchCommand("GET", "/notes")).thenReturn(mock(InteractionCommand.class));
+		when(cc.fetchCommand("GET", "/notes/{id}")).thenReturn(mock(InteractionCommand.class));
+		when(cc.fetchCommand("GET", "/notes/{id}/different")).thenReturn(mock(InteractionCommand.class));
+		when(cc.fetchCommand("GET", "/notes1")).thenReturn(mock(InteractionCommand.class));
+		when(cc.fetchCommand("GET", "/{id}")).thenReturn(mock(InteractionCommand.class));
 		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(cc, new ResourceStateMachine(parentBegin));
 		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(parent, cc, new ResourceStateMachine(begin), begin);
 		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(parent, cc, new ResourceStateMachine(different), different);

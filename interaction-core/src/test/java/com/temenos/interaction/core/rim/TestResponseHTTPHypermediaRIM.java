@@ -55,7 +55,8 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testGETCommandNotRegistered() {
 		// our empty command controller
-		NewCommandController mockCommandController = new NewCommandController();
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/path")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", "/path");
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
@@ -70,7 +71,8 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testPUTCommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		NewCommandController mockCommandController = new NewCommandController();
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/path")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", "/path");
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
@@ -90,7 +92,8 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testPOSTCommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		NewCommandController mockCommandController = new NewCommandController();
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/path")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", "/path");
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
@@ -110,7 +113,8 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testDELETECommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		NewCommandController mockCommandController = new NewCommandController();
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/path")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", "/path");
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
@@ -152,6 +156,7 @@ public class TestResponseHTTPHypermediaRIM {
 		
 		// create mock command controller
 		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/path")).thenReturn(mock(InteractionCommand.class));
 		when(mockCommandController.isValidCommand("PUT", "/path")).thenReturn(true);
 		when(mockCommandController.fetchCommand("PUT", "/path")).thenReturn(mockCommand);
 

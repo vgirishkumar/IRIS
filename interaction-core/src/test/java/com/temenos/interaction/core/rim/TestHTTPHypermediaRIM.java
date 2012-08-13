@@ -46,7 +46,10 @@ public class TestHTTPHypermediaRIM {
 	public void testResourcePath() {
 		String ENTITY_NAME = "NOTE";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/notes/{id}");
-		HTTPHypermediaRIM resource = new HTTPHypermediaRIM(mock(NewCommandController.class), new ResourceStateMachine(initial));
+		// create mock command controller
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/notes/{id}")).thenReturn(mock(InteractionCommand.class));
+		HTTPHypermediaRIM resource = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initial));
 		assertEquals("/notes/{id}", resource.getResourcePath());
 	}
 
@@ -193,6 +196,7 @@ public class TestHTTPHypermediaRIM {
 
 		// create mock command controller
 		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/path")).thenReturn(mock(InteractionCommand.class));
 		when(mockCommandController.isValidCommand("DELETE", "/path")).thenReturn(true);
 		when(mockCommandController.fetchCommand("DELETE", "/path")).thenReturn(mockCommand);
 		
@@ -213,6 +217,7 @@ public class TestHTTPHypermediaRIM {
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
 		// create mock command controller
 		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/test")).thenReturn(mockCommand);
 		when(mockCommandController.isValidCommand("PUT", "/test")).thenReturn(true);
 		when(mockCommandController.fetchCommand("PUT", "/test")).thenReturn(mockCommand);
 		// RIM with command controller that issues commands that always return SUCCESS
@@ -250,6 +255,7 @@ public class TestHTTPHypermediaRIM {
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
 		// create mock command controller
 		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET", "/test")).thenReturn(mockCommand);
 		when(mockCommandController.isValidCommand("POST", "/test")).thenReturn(true);
 		when(mockCommandController.fetchCommand("POST", "/test")).thenReturn(mockCommand);
 		// RIM with command controller that issues commands that always return SUCCESS
@@ -265,15 +271,43 @@ public class TestHTTPHypermediaRIM {
 
 	
 	@Test(expected = RuntimeException.class)
-	public void testBootstrapInvalidCommandControllerConfiguration() {
+	public void testBootstrapInvalidCommandControllerConfigurationPUT() {
 		String resourcePath = "/notes/{id}";
 		ResourceState exists = new ResourceState("entity", "exists", resourcePath);
 		exists.addTransition("PUT", exists);
 		
 		NewCommandController cc = mock(NewCommandController.class);
-		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists));
-		verify(cc).fetchCommand("GET", resourcePath);
-		parent.getChildren();
+		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists));
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testBootstrapInvalidCommandControllerConfigurationPOST() {
+		String resourcePath = "/notes/{id}";
+		ResourceState exists = new ResourceState("entity", "exists", resourcePath);
+		exists.addTransition("POST", exists);
+		
+		NewCommandController cc = mock(NewCommandController.class);
+		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists));
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testBootstrapInvalidCommandControllerConfigurationDELETE() {
+		String resourcePath = "/notes/{id}";
+		ResourceState exists = new ResourceState("entity", "exists", resourcePath);
+		exists.addTransition("DELETE", exists);
+		
+		NewCommandController cc = mock(NewCommandController.class);
+		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists));
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testBootstrapInvalidCommandControllerConfigurationGET() {
+		String resourcePath = "/notes/{id}";
+		ResourceState exists = new ResourceState("entity", "exists", resourcePath);
+		exists.addTransition("GET", exists);
+		
+		NewCommandController cc = mock(NewCommandController.class);
+		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists));
 	}
 
 	@Test
