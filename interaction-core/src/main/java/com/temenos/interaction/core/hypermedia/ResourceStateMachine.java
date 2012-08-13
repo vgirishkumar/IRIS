@@ -357,16 +357,18 @@ public class ResourceStateMachine {
 			}
 			if (entity != null) {
 				if (transformer != null) {
+					logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
 					properties.putAll(transformer.transform(entity));
 					href = linkTemplate.buildFromMap(properties);
 				} else {
+					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
 					href = linkTemplate.build(entity);
 				}
 			} else {
 				href = linkTemplate.buildFromMap(properties);
 			}
 			Link link = new Link(transition, rel, href.toASCIIString(), method);
-			logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId()+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");
+			logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId()+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(ASCII=" + href.toASCIIString() + ")]");
 			return link;
 		} catch (IllegalArgumentException e) {
 			logger.error("An error occurred while creating link [" +  transition + "]", e);
