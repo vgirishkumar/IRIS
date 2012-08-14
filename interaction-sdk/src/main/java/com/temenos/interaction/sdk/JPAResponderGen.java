@@ -169,7 +169,7 @@ public class JPAResponderGen {
 		}
 		
 		// generate Behaviour class
-		String behaviourFilePath = srcOutputPath + "/" + entityContainerNamespace.replace(".", "/") + "/" + BEHAVIOUR_CLASS_FILE;
+		String behaviourFilePath = srcOutputPath + "/" + entityContainerNamespace.replace(".", "/") + "Model/" + BEHAVIOUR_CLASS_FILE;
 		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(entityContainerNamespace, interactionModel))) {
 			ok = false;
 		}
