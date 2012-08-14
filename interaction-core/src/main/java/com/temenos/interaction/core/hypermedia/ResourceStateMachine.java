@@ -186,7 +186,7 @@ public class ResourceStateMachine {
 		for (ResourceState next : currentState.getAllTargets()) {
 			if (!next.equals(currentState) && !next.isPseudoState()) {
 				String path = next.getPath();
-				if (result.get(path) != null)
+				if (result.get(path) != null && !result.get(path).equals(next))
 					logger.warn("Replacing ResourceState[" + path + "] " + result.get(path) + " with " + next + ", this could result in unexpected transitions.");
 				result.put(path, next);
 			}
