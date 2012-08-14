@@ -18,6 +18,8 @@ INSERT INTO `$resourceInfo.getEntityInfo().getClazz()`(##
 'abc'##
 #elseif ($fieldInfo.getType().equals("Long") || $fieldInfo.getType().equals("Integer"))
 '1'##
+#elseif ($fieldInfo.getType().equals("java.math.BigDecimal"))
+'1.11'##
 #elseif ($fieldInfo.getType().equals("java.util.Date") && $fieldInfo.getAnnotations().contains("@Temporal(TemporalType.TIME)"))
 '05:45:30'##
 #elseif ($fieldInfo.getType().equals("java.util.Date"))
