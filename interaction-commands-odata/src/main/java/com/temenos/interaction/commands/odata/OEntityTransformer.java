@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.hypermedia.Transformer;
 
 /**
- * Implements transformations from regular Java beans (POJOs)
+ * Implements transformations from OData4J OEntity objects.
  * @see {@link Transformer}
  * @author aphethean
  */
@@ -23,6 +23,15 @@ public class OEntityTransformer implements Transformer {
 	 */
 	@Override
 	public Map<String, Object> transform(Object entity) {
+		if(entity instanceof OEntity) {
+			return transform((OEntity) entity);
+		} else {
+			logger.error("Unable to transform entity: " + entity.toString());
+			return null;
+		}
+	}
+	
+	private Map<String, Object> transform(OEntity entity) {
 		assert(entity != null);
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
