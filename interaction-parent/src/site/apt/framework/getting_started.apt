@@ -125,3 +125,39 @@ Creating a sample responder
   
 	<<$ mvn package>>
 
+* Switching to an existing database 
+~~~~~~~~~~~~~~~~~~~~
+  This section describes the steps required to switch from an auto-populated in-memory HSQL database to an existing Oracle database.
+  
+  [[1]]	Download and install the <<Oracle JDBC driver>> into the Maven repository
+
+	<<mvn install:install-file -DgroupId=>><com.oracle><< -DartifactId=>><ojdbc6><< -Dversion=>><11.1.0.7.0><< -Dpackaging=jar -Dfile=>><ojdbc6.jar><< -DgeneratePom=true>>
+
+  [[2]]	Update <<pom.xml>> project dependencies to add the JDBC driver into the project.
+
+----------  
+	<dependency>
+		<groupId>com.oracle</groupId>
+		<artifactId>ojdbc6</artifactId>
+		<version>11.1.0.7.0</version>
+		<type>jar</type>
+		<scope>runtime</scope>
+	</dependency>
+----------  
+
+  [[3]]	Update <<persistence.xml>> to configure the database connection properties.
+
+----------  
+		<properties>
+			<property name="javax.persistence.jdbc.driver" value="oracle.jdbc.driver.OracleDriver" />
+			<property name="javax.persistence.jdbc.user" value="po" />
+			<property name="javax.persistence.jdbc.password" value="po" />
+			<property name="javax.persistence.jdbc.url" value="jdbc:oracle:thin:@10.44.5.93:1521:ABNPOC" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.OracleDialect" />
+			<property name="hibernate.show_sql" value="false" />
+			<property name="hibernate.hbm2ddl.auto" value="update" />
+		</properties>
+----------  
+		Note: Set hbm2ddl.auto to <validate> once the schema has been created to prevent hibernate from changing it.
+
+  [[4]] Remove all INSERT statements from the <<responder_insert.sql>> to avoid adding mock data to the existing database.
