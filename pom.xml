@@ -21,6 +21,19 @@
       </site>
     </distributionManagement>
 
+	<build>
+		<plugins>
+			<!--  Skip the deployment -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>  
+		</plugins>
+	</build>
+
     <reporting>
         <plugins>
             <plugin>
@@ -54,14 +67,6 @@
                 <version>1.0-alpha-3</version>
                 <inherited>true</inherited>
             </plugin>
-            <!--  Skip the deployment -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>  
         </plugins>
     </reporting>
 
