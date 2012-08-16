@@ -9,16 +9,7 @@
 Building IRIS
 ~~~~~~~~~~~~~~~~~~~~
 
-  [[1]] Get the latest jax-rs-hateoas snapshot from Github (use GIT (e.g. TortoiseGIT with mysis GIT) to clone and
-  sync a local copy)
-  
-	<<https://github.com/aphethean/jax-rs-hateoas.git>>
-	
-  [[2]]	Build and install jax-rs-hateoas to the local maven repository
-  
-	<<$ mvn clean install>>
-  
-  [[3]] Get the latest IRIS snapshot
+  [[1]] Get the latest IRIS snapshot
   
 	<<https://github.com/aphethean/IRIS>>
 	
