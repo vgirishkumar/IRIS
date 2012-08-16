@@ -4,7 +4,7 @@
 
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>interaction-parent</name>
 
@@ -29,11 +29,26 @@
 -->
 	</modules>
 
+	<repositories>
+		<repository>
+	    	<id>nexus-t24-dev</id>
+	      	<url>http://maven.oams.com/content/repositories/t24-snapshots/</url>
+	    </repository>
+	    <repository>
+	    	<id>nexus-t24-rep</id>
+	    	<url>http://maven.oams.com/content/groups/t24/</url>
+	    </repository>
+	</repositories>
+
 	<distributionManagement>
 		<site>
 			<id>interaction-site</id>
 			<url>file://localhost/c:/temp/iris/site</url>
 		</site>
+		<repository>
+			<id>nexus-t24-dev</id>
+			<url>http://maven.oams.com/content/repositories/t24-snapshots/</url>
+		</repository>
 	</distributionManagement>
 
 	<properties>

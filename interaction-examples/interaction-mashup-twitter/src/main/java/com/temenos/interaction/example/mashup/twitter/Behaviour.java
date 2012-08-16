@@ -62,6 +62,7 @@ public class Behaviour {
 		return new ResourceStateMachine(allUsers);
 	}
 
+	/*
 	private ResourceStateMachine getProcessSM() {
 		String PROCESS_ENTITY_NAME = "process";
 		// process behaviour
@@ -81,9 +82,7 @@ public class Behaviour {
 		// finish the process
 		processInitial.addTransition("DELETE", processCompleted);
 
-		/*
-		 * acquire task by a PUT to the initial state of the task state machine (acquired)
-		 */
+		// acquire task by a PUT to the initial state of the task state machine (acquired)
 		ResourceStateMachine taskSM = getTaskSM();
 		nextTask.addTransition("PUT", taskSM);
 
@@ -103,5 +102,6 @@ public class Behaviour {
 
 		return new ResourceStateMachine(taskAcquired);
 	}
+*/
 
 }

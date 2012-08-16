@@ -172,10 +172,10 @@ private Date lastDeparture;
 		
 		properties.add(new FieldInfo("dinnerServed", "java.sql.Timestamp", null));
 		
-		EntityInfo jpaEntity = new EntityInfo("Flight", "AirlineModel", keyInfo, properties);
+		EntityInfo jpaEntity = new EntityInfo("Flight", "AirlineModel.model", keyInfo, properties);
 		String generatedClass = rg.generateJPAEntityClass(jpaEntity);
 		
-		assertTrue(generatedClass.contains("package AirlineModel;"));
+		assertTrue(generatedClass.contains("package AirlineModel.model;"));
 		assertTrue(generatedClass.contains("import javax.persistence.Entity;"));
 		assertTrue(generatedClass.contains("@Entity"));
 		assertTrue(generatedClass.contains("public class Flight {"));
@@ -192,7 +192,7 @@ private Date lastDeparture;
 		assertTrue(generatedClass.contains("private java.util.Date departureDT;"));
 
 		assertTrue(generatedClass.contains("private java.sql.Timestamp dinnerServed;"));
-		assertTrue(generatedClass.contains("public Flight() {}"));
+		assertTrue(generatedClass.contains("public Flight() {"));
 	}
 	
 	@Test
@@ -226,9 +226,9 @@ private Date lastDeparture;
 		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new EntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
 		String generatedResponderDML = rg.generateResponderDML(resourcesInfo);
 		
-		assertTrue(generatedResponderDML.contains("#INSERT INTO `Flight`(`number` , `fitHostiesName` , `runway`) VALUES('1' , 'example' , 'example');"));
-		assertTrue(generatedResponderDML.contains("#INSERT INTO `Airport`() VALUES();"));
-		assertTrue(generatedResponderDML.contains("#INSERT INTO `FlightSchedule`() VALUES();"));
+		assertTrue(generatedResponderDML.contains("INSERT INTO `Flight`(`number` , `fitHostiesName` , `runway`) VALUES('1' , 'abc' , 'abc');"));
+		assertTrue(generatedResponderDML.contains("INSERT INTO `Airport`() VALUES();"));
+		assertTrue(generatedResponderDML.contains("INSERT INTO `FlightSchedule`() VALUES();"));
 		}
 
 	@Test

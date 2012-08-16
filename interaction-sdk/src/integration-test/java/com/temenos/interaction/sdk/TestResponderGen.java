@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.InputStream;
 
 import org.junit.Test;
 
@@ -12,14 +11,13 @@ public class TestResponderGen {
 
 	@Test
 	public void testSourceGenerationFromEDMX() {
-	    InputStream is = getClass().getResourceAsStream("/edmx.xml");
 	    File srcTargetDir = new File("./target/integration-test/java");
 	    srcTargetDir.mkdir();
 	    File configTargetDir = new File("./target/integration-test/resources");
 	    configTargetDir.mkdir();
 	    
 		JPAResponderGen rg = new JPAResponderGen();
-		assertTrue(rg.generateArtifacts(is, srcTargetDir, configTargetDir));
+		assertTrue(rg.generateArtifacts("/service.edmx", srcTargetDir, configTargetDir));
 		
 		assertEquals(6, countFiles(new File(srcTargetDir, "AirlineModel")));
 		assertEquals(3, countFiles(new File(configTargetDir, "META-INF")));

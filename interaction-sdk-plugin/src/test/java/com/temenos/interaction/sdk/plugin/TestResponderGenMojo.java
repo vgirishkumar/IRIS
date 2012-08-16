@@ -57,7 +57,7 @@ public class TestResponderGenMojo {
 
 	@Test(expected = MojoExecutionException.class)
 	public void testMojoExecuteEDMXFileNotFound() throws Exception {
-		suppress(method(JPAResponderGen.class, "generateArtifacts", File.class, File.class, File.class));
+		suppress(method(JPAResponderGen.class, "generateArtifacts", String.class, File.class, File.class));
 		
 		ResponderGenMojo rgm = new ResponderGenMojo();
 		
@@ -85,7 +85,7 @@ public class TestResponderGenMojo {
 		when(configDirMock.isDirectory()).thenReturn(true);
 		
 		JPAResponderGen mockResponderGen = mock(JPAResponderGen.class);
-		when(mockResponderGen.generateArtifacts(any(File.class), any(File.class), any(File.class))).thenReturn(true);
+		when(mockResponderGen.generateArtifacts(any(String.class), any(File.class), any(File.class))).thenReturn(true);
 		whenNew(JPAResponderGen.class).withNoArguments().thenReturn(mockResponderGen);
 
 		rgm.execute(edmxFileMock, srcDirMock, configDirMock);
@@ -95,7 +95,7 @@ public class TestResponderGenMojo {
 
 	@Test(expected = MojoExecutionException.class)
 	public void testMojoExecuteSrcNotDir() throws Exception {
-		suppress(method(JPAResponderGen.class, "generateArtifacts", File.class, File.class, File.class));
+		suppress(method(JPAResponderGen.class, "generateArtifacts", String.class, File.class, File.class));
 		
 		ResponderGenMojo rgm = new ResponderGenMojo();
 		
@@ -125,7 +125,7 @@ public class TestResponderGenMojo {
 		when(configDirMock.isDirectory()).thenReturn(true);
 		
 		JPAResponderGen mockResponderGen = mock(JPAResponderGen.class);
-		when(mockResponderGen.generateArtifacts(any(File.class), any(File.class), any(File.class))).thenReturn(true);
+		when(mockResponderGen.generateArtifacts(any(String.class), any(File.class), any(File.class))).thenReturn(true);
 		whenNew(JPAResponderGen.class).withNoArguments().thenReturn(mockResponderGen);
 		
 		rgm.execute(edmxFileMock, srcDirMock, configDirMock);
@@ -135,7 +135,7 @@ public class TestResponderGenMojo {
 
 	@Test(expected = MojoExecutionException.class)
 	public void testMojoExecuteConfigNotDir() throws Exception {
-		suppress(method(JPAResponderGen.class, "generateArtifacts", File.class, File.class, File.class));
+		suppress(method(JPAResponderGen.class, "generateArtifacts", String.class, File.class, File.class));
 		
 		ResponderGenMojo rgm = new ResponderGenMojo();
 		

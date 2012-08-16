@@ -65,10 +65,9 @@
     	<artifactId>interaction-core</artifactId>
     	<version>0.0.1-SNAPSHOT</version>
     	<type>jar</type>
-    	<scope>runtime</scope>
     	<exclusions>
-    		<exclusion>
-    			<artifactId>stax-api</artifactId>
+			<exclusion>
+				<artifactId>stax-api</artifactId>
 				<groupId>javax.xml.stream</groupId>
 			</exclusion>
 		</exclusions>

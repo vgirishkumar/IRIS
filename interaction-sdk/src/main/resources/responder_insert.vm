@@ -4,7 +4,7 @@
 # For example:
 #foreach ( $resourceInfo in $resourcesInfo )
 #if (!$resourceInfo.getEntityInfo().isFeedEntity() && $resourceInfo.getEntityInfo().isJpaEntity()) 
-#INSERT INTO `$resourceInfo.getEntityInfo().getClazz()`(##
+INSERT INTO `$resourceInfo.getEntityInfo().getClazz()`(##
 #foreach ( $fieldInfo in $resourceInfo.getEntityInfo().getAllFieldInfos() ) 
 `$fieldInfo.getName()`##
 #set ( $indexOfLastElement = $resourceInfo.getEntityInfo().getAllFieldInfos().size() - 1 )
@@ -15,13 +15,15 @@
 ) VALUES(##
 #foreach ( $fieldInfo in $resourceInfo.getEntityInfo().getAllFieldInfos() )
 #if ($fieldInfo.getType().equals("String")) 
-'example'##
+'abc'##
 #elseif ($fieldInfo.getType().equals("Long") || $fieldInfo.getType().equals("Integer"))
 '1'##
+#elseif ($fieldInfo.getType().equals("java.math.BigDecimal"))
+'1.11'##
+#elseif ($fieldInfo.getType().equals("java.util.Date") && $fieldInfo.getAnnotations().contains("@Temporal(TemporalType.TIME)"))
+'05:45:30'##
 #elseif ($fieldInfo.getType().equals("java.util.Date"))
-'1996-08-20 00:00:00'##
-#elseif ($fieldInfo.getType().equals("java.sql.Timestamp"))
-'00:00:00'##
+'2012-08-15 00:00:00'##
 #else
 'Type not supported'##
 #end
