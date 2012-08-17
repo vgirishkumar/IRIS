@@ -17,7 +17,7 @@ public class Behaviour {
 		ResourceState initialState = new ResourceState("home", "initial", "/");
 		
 		// work list
-		initialState.addTransition("GET", getProcessSM());
+//		initialState.addTransition("GET", getProcessSM());
 		
 		// users and what they are doing on Twitter
 		initialState.addTransition("GET", getUsersInteractionModel());
