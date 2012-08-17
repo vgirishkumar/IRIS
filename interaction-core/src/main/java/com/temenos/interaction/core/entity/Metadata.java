@@ -24,7 +24,7 @@ public class Metadata  {
 	 * @param entityName Entity name
 	 * @param entityMetadata Entity metadata
 	 */
-	public void setEntityMetadata(String entityName, EntityMetadata entityMetadata) {
-		entitiesMetadata.put(entityName, entityMetadata);
+	public void setEntityMetadata(EntityMetadata entityMetadata) {
+		entitiesMetadata.put(entityMetadata.getEntityName(), entityMetadata);
 	}
 }

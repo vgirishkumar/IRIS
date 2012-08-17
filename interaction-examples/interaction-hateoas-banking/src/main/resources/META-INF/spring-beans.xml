@@ -18,9 +18,8 @@
 	</bean>
 
 	<!-- Metadata -->
-	<bean id="mockParsedMetadata" class="com.temenos.interaction.example.hateoas.banking.MockMetadata" />
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" >
-    	<constructor-arg ref="mockParsedMetadata" />
+		<constructor-arg value="true" />
 	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getResourceMetadata"/>

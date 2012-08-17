@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.temenos.interaction.core.entity.vocabulary.Term;
+import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
@@ -13,12 +15,25 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
  * Metadata class holding vocabularies used to describe an entity.  
  */
 public class EntityMetadata  {
-	
+	private TermFactory termFactory = new TermFactory();
+	private String entityName;			//Entity name
 	private Vocabulary vocabulary;		//Entity Vocabulary
 
 	//Map of <Entity property, Vocabulary>
 	private Map<String, Vocabulary> propertyVocabularies = new HashMap<String, Vocabulary>();
 
+	public EntityMetadata(String entityName) {
+		this.entityName = entityName;
+	}
+	
+	/**
+	 * Returns the entity name associated to this metadata
+	 * @return entity name
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+	
 	/**
 	 * Gets the vocabulary associated to this entity.
 	 * @return Vocabulary
@@ -69,15 +84,11 @@ public class EntityMetadata  {
 	public boolean isPropertyComplex( String propertyName )
 	{
 		boolean complexType = false;
-		
-		try
-		{
-			complexType = ((TermComplexType)getPropertyVocabulary( propertyName ).getTerm(TermComplexType.TERM_NAME)).isComplexType(); 
+		Vocabulary voc = propertyVocabularies.get(propertyName);
+		if(voc != null) {
+			TermComplexType term = (TermComplexType) voc.getTerm(TermComplexType.TERM_NAME);
+			complexType = term != null && term.isComplexType();
 		}
-		catch( Exception e )
-		{
-		}
-		
 		return complexType;
 	}
 	
@@ -89,15 +100,11 @@ public class EntityMetadata  {
 	public String getPropertyComplexGroup( String propertyName )
 	{
 		String complexGroup = "";
-		
-		try
-		{
-			complexGroup = ((TermComplexGroup)getPropertyVocabulary( propertyName ).getTerm(TermComplexGroup.TERM_NAME)).getComplexGroup(); 
+		Vocabulary voc = propertyVocabularies.get(propertyName);
+		if(voc != null) {
+			TermComplexGroup term = (TermComplexGroup) voc.getTerm(TermComplexGroup.TERM_NAME);
+			complexGroup = (term != null ? term.getComplexGroup() : "");
 		}
-		catch( Exception e )
-		{
-		}
-		
 		return complexGroup;
 	}
 	
@@ -109,15 +116,11 @@ public class EntityMetadata  {
 	public boolean isPropertyText( String propertyName )
 	{
 		boolean textValue = true;
-		
-		try
-		{
-			textValue = ((TermValueType)getPropertyVocabulary( propertyName ).getTerm(TermValueType.TERM_NAME)).isText(); 
+		Vocabulary voc = propertyVocabularies.get(propertyName);
+		if(voc != null) {
+			TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
+			textValue = term == null || term.isText();
 		}
-		catch( Exception e )
-		{
-		}
-		
 		return textValue;
 	}
 	
@@ -129,15 +132,11 @@ public class EntityMetadata  {
 	public boolean isPropertyNumber( String propertyName )
 	{
 		boolean numberValue = false;
-		
-		try
-		{
-			numberValue = ((TermValueType)getPropertyVocabulary( propertyName ).getTerm(TermValueType.TERM_NAME)).isNumber(); 
+		Vocabulary voc = propertyVocabularies.get(propertyName);
+		if(voc != null) {
+			TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
+			numberValue = term != null && term.isNumber();
 		}
-		catch( Exception e )
-		{
-		}
-		
 		return numberValue;
 	}
 	
@@ -161,5 +160,24 @@ public class EntityMetadata  {
 		}
 		
 		return value;
+	}
+	
+	/**
+	 * Returns the value of a vocabulary term. 
+	 * If the term does not exist it returns it default value or null if it 
+	 * does not have a default value.
+	 * @param propertyName Property name
+	 * @param termName Vocabulary term name
+	 * @return The term value as a string or null if not available
+	 */
+	public String getTermValue(String propertyName, String termName) {
+		Vocabulary voc = getPropertyVocabulary(propertyName);
+		if(voc != null) {
+			Term term = voc.getTerm(termName);
+			if(term != null) {
+				return term.getValue();
+			}
+		}
+		return termFactory.getTermDefaultValue(termName);
 	}
 }

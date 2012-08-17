@@ -378,10 +378,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						EntityProperties entityFields = new EntityProperties();
 						JSONObject field = jsonObject.optJSONObject(key);
 						if(field == null) {
-							if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.TEXT)) {
+							String termValue = entityMetadata.getTermValue(key, TermValueType.TERM_NAME);
+							if(termValue.equals(TermValueType.TEXT)) {
 								entityFields.setProperty(new EntityProperty(key, jsonObject.getString(key)));
 							}
-							else if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.NUMBER)) {
+							else if(termValue.equals(TermValueType.NUMBER)) {
 								entityFields.setProperty(new EntityProperty(key, jsonObject.getLong(key)));
 							}
 							else {
@@ -392,10 +393,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					    	Iterator<?> itFields = field.keys();
 					    	while(itFields.hasNext()) {
 					    		String keyField = (String) itFields.next();
-								if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.TEXT)) {
+					    		String termValue = entityMetadata.getTermValue(keyField, TermValueType.TERM_NAME);
+								if(termValue.equals(TermValueType.TEXT)) {
 									entityFields.setProperty(new EntityProperty(keyField, field.getString(keyField)));
 								}
-								else if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.NUMBER)) {
+								else if(termValue.equals(TermValueType.NUMBER)) {
 									entityFields.setProperty(new EntityProperty(keyField, field.getLong(keyField)));
 								}
 								else {
