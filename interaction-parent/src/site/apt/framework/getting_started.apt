@@ -25,7 +25,8 @@ Building IRIS
   [[4]]	Build and install IRIS to the local maven repository
   
 	<<$ mvn clean install>>
-
+	
+    [Note:] It may be necessary to configure Maven memory settings:  <<set MAVEN_OPTS=-Xmx512M -XX:MaxPermSize=256M>> 
 
 * Skipping integration tests
 ~~~~~~~~~~~~~~~~~~~~
@@ -56,6 +57,9 @@ Creating a sample responder
 		[]
 
   [[2]]	Edit the sample EDMX file to define the entity model.
+  
+      [Note:] The entity name (on the container) currently has to match the name of the entity type. Schemas other than the conceptual model (i.e. data storage, design, etc. schemas) should be removed. 
+  
   
   [[3]] Build the FlightReponder
   
@@ -158,6 +162,6 @@ Creating a sample responder
 			<property name="hibernate.hbm2ddl.auto" value="update" />
 		</properties>
 ----------  
-		Note: Set hbm2ddl.auto to <validate> once the schema has been created to prevent hibernate from changing it.
+		[Note:] Set hbm2ddl.auto to <validate> once the schema has been created to prevent hibernate from changing it.
 
   [[4]] Remove all INSERT statements from the <<responder_insert.sql>> to avoid adding mock data to the existing database.
