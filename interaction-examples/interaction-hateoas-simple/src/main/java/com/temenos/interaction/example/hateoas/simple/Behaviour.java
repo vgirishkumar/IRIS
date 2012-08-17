@@ -14,7 +14,7 @@ public class Behaviour {
 	// the entity that generates new IDs
 	private final static String NEW_ENTITY_NAME = "ID";
 	// the entity that stores notes
-	private final static String NOTE_ENTITY_NAME = "note";
+	private final static String NOTE_ENTITY_NAME = "Note";
 
 	public ResourceState getInteractionModel() {
 		// this will be the service root

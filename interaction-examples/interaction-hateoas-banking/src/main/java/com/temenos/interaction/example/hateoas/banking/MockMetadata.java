@@ -19,6 +19,7 @@ public class MockMetadata extends Metadata {
 		Vocabulary vocBody = new Vocabulary();
 		vocBody.setTerm(new TermValueType(TermValueType.TEXT));
 		vocs.setPropertyVocabulary("body", vocBody);
-		super.setEntityMetadata("FundTransfer", vocs);
+		// must match entity name as defined in ResourceState
+		super.setEntityMetadata("FundsTransfer", vocs);
 	}
 }
