@@ -35,7 +35,7 @@ Creating a sample responder
 
   [[1]]	Create a mock responder project, e.g. <FlightResponder> with package name <com.mycorp.airtraffic>:
 
-	<<$ mvn archetype:generate -DgroupId=>><com.mycorp.airtraffic><< -DartifactId=>><FlightResponder><< -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DinteractiveMode=false>>
+	<<$ mvn archetype:generate -DgroupId=>><com.mycorp.airtraffic><< -DartifactId=>><FlightResponder><< -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.2-SNAPSHOT -DinteractiveMode=false>>
 
 	This command will create a subdirectory named FlightResponder which contains a maven project
 	with the following artifacts:
