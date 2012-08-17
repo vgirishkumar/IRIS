@@ -20,6 +20,8 @@ public class OEntityTransformer implements Transformer {
 	
 	/**
 	 * @precondition entity not null
+	 * @precondition entity of type {@link OEntity}
+	 * @postcondition return a map populated from supplied entity
 	 */
 	@Override
 	public Map<String, Object> transform(Object entity) {
