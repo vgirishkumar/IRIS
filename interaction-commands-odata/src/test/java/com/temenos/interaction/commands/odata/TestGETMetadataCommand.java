@@ -19,9 +19,9 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
 
 public class TestGETMetadataCommand {
 
@@ -42,7 +42,7 @@ public class TestGETMetadataCommand {
 		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", mockProducer.getMetadata());
 		RESTResponse rr = command.get("1", null);
 		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof ServiceDocumentResource);
+		assertTrue(rr.getResource() instanceof EntityResource);
 	}
 
 	@Test

@@ -1,5 +1,6 @@
 package com.temenos.interaction.commands.odata;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -21,8 +22,8 @@ import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.commands.odata.consumer.GETMetadataCommand;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
 
 public class TestGETMetadataCommand {
 
@@ -43,7 +44,10 @@ public class TestGETMetadataCommand {
 		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", mockProducer.getMetadata());
 		RESTResponse rr = command.get("1", null);
 		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof ServiceDocumentResource);
+		assertTrue(rr.getResource() instanceof EntityResource);
+		Object metadata = ((EntityResource<?>) rr.getResource()).getEntity();
+		assertTrue(metadata instanceof EdmDataServices);
+		assertEquals(metadata, mockProducer.getMetadata());
 	}
 
 	@Test

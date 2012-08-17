@@ -20,7 +20,7 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
+import com.temenos.interaction.core.resource.EntityResource;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,12 +35,12 @@ public class TestServiceDocumentProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testWriteServiceDocumentResource() throws Exception {
-		ServiceDocumentResource<EdmDataServices> mr = mock(ServiceDocumentResource.class);
+		EntityResource<EdmDataServices> mr = mock(EntityResource.class);
 		
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 
 		//Mock ServiceDocumentResource
-		when(mr.getServiceDocument()).thenReturn(mockEDS);
+		when(mr.getEntity()).thenReturn(mockEDS);
 		
 		//Serialize service document resource
 		MockServiceDocumentProvider p = new MockServiceDocumentProvider();
@@ -49,7 +49,7 @@ public class TestServiceDocumentProvider {
 		when(uriInfo.getBaseUri()).thenReturn(uri);
 		p.setUriInfo(uriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		p.writeTo(mr, ServiceDocumentResource.class, EdmDataServices.class, null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, null, bos);
+		p.writeTo(mr, EntityResource.class, EdmDataServices.class, null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, null, bos);
 
 		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><service xmlns=\"http://www.w3.org/2007/app\" xml:base=\"http://localhost:8080/responder/rest\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:app=\"http://www.w3.org/2007/app\"><workspace><atom:title>Default</atom:title><collection href=\"Flight\"><atom:title>Flight</atom:title></collection></workspace></service>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
@@ -59,15 +59,15 @@ public class TestServiceDocumentProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testWriteServiceDocumentResourceGenericEntity() throws Exception {
-		ServiceDocumentResource<EdmDataServices> mr = mock(ServiceDocumentResource.class);
+		EntityResource<EdmDataServices> mr = mock(EntityResource.class);
 		
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 
 		//Mock ServiceDocumentResource
-		when(mr.getServiceDocument()).thenReturn(mockEDS);
+		when(mr.getEntity()).thenReturn(mockEDS);
 		
         //Wrap entity resource into a JAX-RS GenericEntity instance
-		GenericEntity<ServiceDocumentResource<EdmDataServices>> ge = new GenericEntity<ServiceDocumentResource<EdmDataServices>>(mr) {};
+		GenericEntity<EntityResource<EdmDataServices>> ge = new GenericEntity<EntityResource<EdmDataServices>>(mr) {};
 		
 		//Serialize service document resource
 		MockServiceDocumentProvider p = new MockServiceDocumentProvider();

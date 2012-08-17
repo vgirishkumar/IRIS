@@ -20,7 +20,6 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
 import com.temenos.interaction.core.web.RequestContext;
 
 /**
@@ -230,10 +229,6 @@ public class ResourceStateMachine {
 			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
 			logger.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
 			return links;
-		} else if (resourceEntity instanceof ServiceDocumentResource) {
-			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
-			logger.debug("Returning from the call to getLinks for a ServiceDocumentResource without doing anything");
-			return links;
 		} else {
 			throw new RuntimeException("Unable to get links, an error occurred");
 		}
@@ -358,7 +353,9 @@ public class ResourceStateMachine {
 			if (entity != null) {
 				if (transformer != null) {
 					logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
-					properties.putAll(transformer.transform(entity));
+					Map<String, Object> props = transformer.transform(entity);
+					if (props != null)
+						properties.putAll(props);
 					href = linkTemplate.buildFromMap(properties);
 				} else {
 					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
