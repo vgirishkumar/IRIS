@@ -55,6 +55,12 @@
 	</build>
 
 	<dependencies>
+	    <dependency>
+	    	<groupId>com.temenos.interaction</groupId>
+	    	<artifactId>interaction-core</artifactId>
+	    	<type>jar</type>
+	    	<scope>compile</scope>
+	    </dependency>
 		<dependency>
 			<groupId>org.odata4j</groupId>
 			<artifactId>odata4j-core</artifactId>

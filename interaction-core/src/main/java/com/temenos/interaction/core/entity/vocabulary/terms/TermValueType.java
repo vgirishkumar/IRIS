@@ -10,6 +10,7 @@ public class TermValueType implements Term {
 	
 	public final static String TEXT = "TEXT";
 	public final static String NUMBER = "NUMBER";
+	public final static String TIMESTAMP = "TIMESTAMP";
 	
 	private String valueType;
 	

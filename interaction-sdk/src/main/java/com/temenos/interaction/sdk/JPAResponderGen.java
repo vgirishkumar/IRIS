@@ -29,9 +29,15 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
+import com.temenos.interaction.sdk.entity.EMEntity;
+import com.temenos.interaction.sdk.entity.EMProperty;
+import com.temenos.interaction.sdk.entity.EMTerm;
+import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end
@@ -47,6 +53,7 @@ public class JPAResponderGen {
 	private final static String SPRING_CONFIG_FILE = "spring-beans.xml";
 	private final static String RESPONDER_INSERT_FILE = "responder_insert.sql";
 	private final static String BEHAVIOUR_CLASS_FILE = "Behaviour.java";
+	private final static String METADATA_FILE = "metadata.xml";
 
 	/*
 	 *  create a new instance of the engine
@@ -79,6 +86,7 @@ public class JPAResponderGen {
 		
 		boolean ok = true;
 		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
+		EntityModel entityModel = new EntityModel();
 
 		//Make sure we have at least one entity container
 		if(ds.getSchemas().size() == 0 || ds.getSchemas().get(0).getEntityContainers().size() == 0) {
@@ -152,6 +160,15 @@ public class JPAResponderGen {
 			}			
 		}
 		
+		//Create the entity model
+		for (EdmEntityType entityType : ds.getEntityTypes()) {
+			EMEntity emEntity = new EMEntity(entityType.getName());
+			for (EdmProperty prop : entityType.getProperties()) {
+				emEntity.addProperty(createEMProperty(prop));
+			}
+			entityModel.addEntity(emEntity);
+		}
+		
 		// generate persistence.xml
 		if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(resourcesInfo))) {
 			ok = false;
@@ -171,6 +188,11 @@ public class JPAResponderGen {
 		// generate Behaviour class
 		String behaviourFilePath = srcOutputPath + "/" + entityContainerNamespace.replace(".", "/") + "Model/" + BEHAVIOUR_CLASS_FILE;
 		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(entityContainerNamespace, interactionModel))) {
+			ok = false;
+		}
+
+		// generate metadata.xml
+		if (!writeMetadata(configOutputPath, generateMetadata(entityModel))) {
 			ok = false;
 		}
 		
@@ -274,6 +296,29 @@ public class JPAResponderGen {
 		return javaType;
 	}
 	
+	/*
+	 * Create a property with vocabulary term from the Edmx property 
+	 */
+	private EMProperty createEMProperty(EdmProperty property) {
+		EMProperty emProperty = new EMProperty(property.getName());
+		if(property.isNullable()) {
+			emProperty.addVocabularyTerm(new EMTerm(TermMandatory.TERM_NAME, "true"));
+		}
+		
+		//Set the value type vocabulary term
+		EdmType type = property.getType();
+		if (type.equals(EdmSimpleType.DATETIME) || 
+			type.equals(EdmSimpleType.TIME)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.TIMESTAMP));
+		}
+		else if (type.equals(EdmSimpleType.INT64) || 
+				 type.equals(EdmSimpleType.INT32) ||
+				 type.equals(EdmSimpleType.INT16) ||
+				 type.equals(EdmSimpleType.DECIMAL)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.NUMBER));
+		}
+		return emProperty;
+	}	
 
 	private boolean writeJPAConfiguration(File sourceDir, String generatedPersistenceXML) {
 		FileOutputStream fos = null;
@@ -346,6 +391,28 @@ public class JPAResponderGen {
 		try {
 			fos = new FileOutputStream(new File(path));
 			fos.write(generatedBehaviourClass.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO add slf4j logger here
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				// don't hide original exception
+			}
+		}
+		return true;
+	}
+
+	private boolean writeMetadata(File sourceDir, String generatedMetadata) {
+		FileOutputStream fos = null;
+		try {
+			File metaInfDir = new File(sourceDir.getPath() + "/META-INF");
+			metaInfDir.mkdirs();
+			fos = new FileOutputStream(new File(metaInfDir, METADATA_FILE));
+			fos.write(generatedMetadata.getBytes("UTF-8"));
 		} catch (IOException e) {
 			// TODO add slf4j logger here
 			e.printStackTrace();
@@ -440,6 +507,21 @@ public class JPAResponderGen {
 		context.put("interactionModel", interactionModel);
 		
 		Template t = ve.getTemplate("/behaviour.vm");
+		StringWriter sw = new StringWriter();
+		t.merge(context, sw);
+		return sw.toString();
+	}
+
+	/**
+	 * Generate the metadata file
+	 * @param entityModel The entity model
+	 * @return The generated metadata
+	 */
+	public String generateMetadata(EntityModel entityModel) {
+		VelocityContext context = new VelocityContext();
+		context.put("entityModel", entityModel);
+		
+		Template t = ve.getTemplate("/metadata.vm");
 		StringWriter sw = new StringWriter();
 		t.merge(context, sw);
 		return sw.toString();
