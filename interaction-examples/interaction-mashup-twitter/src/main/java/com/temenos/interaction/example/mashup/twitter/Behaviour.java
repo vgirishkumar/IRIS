@@ -40,6 +40,11 @@ public class Behaviour {
 		 * a link on each user to their Twitter activity
 		 */
 		uriLinkageMap.put("username", "twitterHandle");
+		allUsers.addTransitionForEachItem("GET", tweets, uriLinkageMap);
+
+		/*
+		 * Add link from the user item (same linkage map as from collection of users to tweets
+		 */
 		userProfile.addTransition("GET", tweets, uriLinkageMap);
 		// TODO fix this dodgy self link, need this to add subresource in HAL
 		uriLinkageMap.clear();

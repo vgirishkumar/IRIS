@@ -199,8 +199,10 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, transitionFlags);
 	}
 	
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, int transitionFlags) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, int transitionFlags) {
 		assert null != targetState;
+		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
+			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
 		// replace uri elements with linkage entity element name
 		if (uriLinkageMap != null) {
 			for (String templateElement : uriLinkageMap.keySet()) {
@@ -208,7 +210,9 @@ public class ResourceState implements Comparable<ResourceState> {
 			}
 		}
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags);
-		transitions.put(commandSpec, new Transition(this, commandSpec, targetState));
+		Transition transition = new Transition(this, commandSpec, targetState);
+		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
+		transitions.put(commandSpec, transition);
 	}
 
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {

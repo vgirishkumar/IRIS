@@ -16,7 +16,7 @@ import com.temenos.interaction.core.hypermedia.Link;
  */
 @XmlRootElement(name = "metadata")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class MetaDataResource<T> implements RESTResource {
+public class MetaDataResource<T> extends EntityResource<T> {
 	@XmlAnyElement(lax=true)
 	private T metadata; 
 
@@ -29,8 +29,8 @@ public class MetaDataResource<T> implements RESTResource {
 	}
 	
 	@Override
-	public GenericEntity<MetaDataResource<T>> getGenericEntity() {
-		return new GenericEntity<MetaDataResource<T>>(this, this.getClass().getGenericSuperclass());
+	public GenericEntity<EntityResource<T>> getGenericEntity() {
+		return new GenericEntity<EntityResource<T>>(this, this.getClass().getGenericSuperclass());
 	}
 	
 	@Override

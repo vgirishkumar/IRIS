@@ -3,7 +3,7 @@
     <edmx:DataServices m:DataServiceVersion="1.0">
         <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="com.temenos.interaction.example.hateoas.banking">
             <EntityContainer Name="Entities" m:IsDefaultEntityContainer="true">
-                <EntitySet Name="FundTransfer" EntityType="com.temenos.interaction.example.hateoas.banking.FundTransfer"/>
+                <EntitySet Name="FundsTransfer" EntityType="com.temenos.interaction.example.hateoas.banking.FundTransfer"/>
                 <EntitySet Name="Preferences" EntityType="com.temenos.interaction.example.hateoas.banking.Preferences"/>
             </EntityContainer>
             <EntityType Name="Preferences">

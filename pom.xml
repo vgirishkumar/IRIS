@@ -4,7 +4,7 @@
 
     <groupId>com.temenos.interaction</groupId>
     <artifactId>interaction</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>IRIS</name>
@@ -20,6 +20,19 @@
         <url>file://localhost/c:/temp/iris/site</url>
       </site>
     </distributionManagement>
+
+	<build>
+		<plugins>
+			<!--  Skip the deployment -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>  
+		</plugins>
+	</build>
 
     <reporting>
         <plugins>

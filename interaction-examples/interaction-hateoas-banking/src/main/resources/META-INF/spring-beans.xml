@@ -39,6 +39,7 @@
 	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
     	<constructor-arg ref="edmDataServices" />
     	<constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="stateMachine" />
 	</bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />

@@ -1,0 +1,15 @@
+<archetype-descriptor name="basic">
+  <fileSets>
+    <fileSet filtered="true" packaged="false">
+      <directory></directory>
+      <includes>
+        <include>**/*</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <requiredProperties>
+    <requiredProperty key="irisVersion">
+      <defaultValue>${pom.version}</defaultValue>
+    </requiredProperty>
+  </requiredProperties>
+</archetype-descriptor>

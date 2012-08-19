@@ -14,6 +14,8 @@
  */
 package com.temenos.interaction.core.web;
 
+import java.security.Principal;
+
 /**
  * @author Mattias Hellborg Arthursson
  * @author Kalle Stenflo
@@ -40,6 +42,7 @@ public class RequestContext {
     private final String basePath;
     private final String requestUri;
     private final String verbosityHeader;
+    private Principal userPrincipal;
 
     public RequestContext(String basePath, String requestUri, String verbosityHeader) {
         this.basePath = basePath;
@@ -47,6 +50,13 @@ public class RequestContext {
         this.verbosityHeader = verbosityHeader;
     }
 
+    public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal) {
+        this.basePath = basePath;
+        this.requestUri = requestUri;
+        this.verbosityHeader = verbosityHeader;
+        this.userPrincipal = userPrincipal;
+    }
+    
     public String getBasePath() {
         return basePath;
     }
@@ -58,4 +68,9 @@ public class RequestContext {
     public String getVerbosityHeader() {
         return verbosityHeader;
     }
+    
+    public Principal getUserPrincipal(){
+    	return this.userPrincipal;
+    }
+    
 }

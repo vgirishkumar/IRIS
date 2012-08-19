@@ -149,6 +149,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					for(Link link : collectionEntity.getLinks()) {
 						addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
 						
+						/*
+						 * TODO we can remove this way of adding links to other resources once we support multiple transitions 
+						 * to a resource state.  https://github.com/aphethean/IRIS/issues/17
+						 */
 						//Links to other resources
 				        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
 				        if(entityTransitions != null) {

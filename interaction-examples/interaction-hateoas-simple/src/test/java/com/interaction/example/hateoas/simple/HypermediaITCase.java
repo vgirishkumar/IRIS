@@ -60,10 +60,10 @@ public class HypermediaITCase extends JerseyTest {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/preferences", link.getHref());
 			} else if (link.getName().get().equals("home.initial>Profile.profile")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/profile", link.getHref());
-			} else if (link.getName().get().equals("home.initial>note.initial")) {
+			} else if (link.getName().get().equals("home.initial>Note.initial")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
 			} else {
-				fail("unexpected link");
+				fail("unexpected link [" + link.getName().get() + "]");
 			}
 		}
 	}
@@ -82,7 +82,7 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
-			} else if (link.getName().get().equals("note.initial>ID.new")) {
+			} else if (link.getName().get().equals("Note.initial>ID.new")) {
 				assertEquals("POST " + Configuration.TEST_ENDPOINT_URI + "/notes/new", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
@@ -98,7 +98,7 @@ public class HypermediaITCase extends JerseyTest {
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID").get(), link.getHref());
-				} else if (link.getName().get().contains("note.end")) {
+				} else if (link.getName().get().contains("Note.end")) {
 					assertEquals("DELETE " + Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID").get(), link.getHref());
 				} else {
 					fail("unexpected link [" + link.getName().get() + "]");
@@ -138,7 +138,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
 			for (Link link : itemLinks) {
-				if (link.getName().get().contains("note.initial>note.end")) {
+				if (link.getName().get().contains("Note.initial>Note.end")) {
 					deleteLink = link;
 				}
 			}
@@ -182,7 +182,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
 			for (Link link : itemLinks) {
-				if (link.getName().get().contains("note.initial>note.end")) {
+				if (link.getName().get().contains("Note.initial>Note.end")) {
 					deleteLink = link;
 				}
 			}
@@ -242,7 +242,7 @@ public class HypermediaITCase extends JerseyTest {
 			// DELETE item link (note.exists->note.end, note.end is an auto transition to note.initial)
 			Link deleteLink = null;
 			for (Link link : links) {
-				if (link.getName().get().contains("note.exists>note.end")) {
+				if (link.getName().get().contains("Note.exists>Note.end")) {
 					deleteLink = link;
 				}
 			}
@@ -283,19 +283,14 @@ public class HypermediaITCase extends JerseyTest {
 	}
 
 	/**
-	 * Attempt a PUT to the notes resource (a collection resource)
+	 * Attempt a PUT an invalid notes resource (a collection resource)
 	 */
 	@Test
-	public void putPersonMethodNotAllowed() throws Exception {
+	public void putPersonBadRequest() throws Exception {
 		String halRequest = "{}";
 		// attempt to put to the notes collection, rather than an individual
 		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
-        assertEquals(405, response.getStatus());
-
-        assertEquals(3, response.getAllow().size());
-        assertTrue(response.getAllow().contains("GET"));
-        assertTrue(response.getAllow().contains("OPTIONS"));
-        assertTrue(response.getAllow().contains("HEAD"));
+        assertEquals(400, response.getStatus());
 	}
 
 }

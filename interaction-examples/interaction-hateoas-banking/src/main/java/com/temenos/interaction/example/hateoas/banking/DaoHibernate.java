@@ -35,7 +35,11 @@ public class DaoHibernate {
 			logger.severe("Failed to commit transaction - object is not an entity: " + iae.getMessage());
     	} catch(TransactionRequiredException tre) {
 			logger.severe("Failed to commit transaction - No transaction exists: " + tre.getMessage());
+    	} finally {
+    		if (entityManager.getTransaction().isActive())
+    			entityManager.getTransaction().rollback();
     	}
+    	
     }
 
 	@SuppressWarnings("unchecked")
