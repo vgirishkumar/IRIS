@@ -169,7 +169,7 @@
             <dependency>
                 <groupId>com.theoryinpractise</groupId>
                 <artifactId>halbuilder</artifactId>
-                <version>1.0.5</version>
+                <version>${halbuilder.version}</version>
             </dependency>
 
 			<!-- Frameworks -->

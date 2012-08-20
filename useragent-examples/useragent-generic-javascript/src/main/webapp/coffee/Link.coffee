@@ -81,7 +81,7 @@ class @Link
           Accept : "application/hal+json; charset=utf-8"
       }
       url: @model.href,
-      data: "{ 'body' : 'FT0001', 'id' : 1}",
+      data: "{ \"_links\": { \"self\": { \"href\": \"/fundtransfers/new\" } }, \"body\": \"FT0001\", \"id\": 1 }",
       type: "POST",
       contentType: "application/hal+json; charset=utf-8",
       success: @successHandler
