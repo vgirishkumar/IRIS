@@ -20,24 +20,21 @@ HATEOAS based REST application architecture - IRIS
   		* Modify the user agent to access these resources
   		
     	[]
-  The resource model is defined at design-time by DSL artifacts such as EDMX files which define
-  the entity model. There are different levels of REST applications, simple ones simply access
-  the data of a resource. More complex applications define a model with links between resources,
-  define resource behavior and provide resource representations in multiple media formats.
-  These type of application use hypermedia to drive the application state (HATEOAS).
+  The <<resource model>> is defined - in addition to resource specific information - by an <<entity model>> 
+  which specifies the structural part and by an <<interaction model>> which specifies the behaviour,
+  i.e. the interactions between resources. 
+
+  There are different levels of REST applications,
+  simple ones simply access the data of a resource. More complex applications define a model with 
+  links between resources, define resource behavior and provide resource representations in multiple 
+  media formats. These type of application use hypermedia to drive the application state (HATEOAS).
 
 
 * Approach
 ~~~~~~~~~~~~~~~~~~~~
 
-  This document presents an initial approach in accordance to IRIS phase 1 - exposing and
-  consuming read-only OData feeds.
-
-  The definition of the resource model is discussed in the following section.
-
-  To expose this resource model as OData feeds it is necessary to create instances of those
-  resources. The <interaction SDK> is intended to assist with this process and builds a mock
-  responder which can be used as an initial project for exposing those OData feeds.
+  This document discusses the resource model and presents the tooling intented to assist with creating
+  an application which exposes REST services.
 
 [../images/component_diagram.png] Components
 
@@ -50,7 +47,7 @@ HATEOAS based REST application architecture - IRIS
   the response. One of the fields returned by <getAddress()> is the <Country> field.
 
   It would make sense to create a resource model for this type of scenario with two separate
-  resources for Address and Country – and define an association between these resources. The
+  resources for Address and Country, and define an association between these resources. The
   resource path could be
   
 -------------
@@ -147,9 +144,9 @@ HATEOAS based REST application architecture - IRIS
   Ideally we would declare it as a complex type of type Country.
 
 
-* Creating a mock responder
+* Creating a sample application
 ~~~~~~~~~~~~~~~~~~~~
-  Use the interaction SDK to facilitate the creation of resource instances for the resource model
+  Use the <<Interaction SDK>> to facilitate the creation of resource instances for the resource model
   defined in the previous section. Refer to the <Getting started> page for further details on
   creating a mock responder.
 

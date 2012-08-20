@@ -56,11 +56,15 @@ Creating a sample responder
   
 	<<$ mvn interaction-sdk:gen>>
 
-	This command will generate the artefacts for
+	This command will generate the design-time artifacts mentioned in the <architecture> section.
+
+		* <<metadata.xml>> - define entities and their properties as vocabulary terms
+		
+		* <<Behaviour.java>> - defines the resource states and the transitions between those states 
 	
-		* [<<spring configuration file>>] Defines the resource model with the respective
-		  commands used to access the resource managers. This Interaction SDK creates a
-		  Mock responder with OData commands that access a JPA producer:
+		* <<spring-beans.xml>> - defines the runtime configuration of the resource model 
+		  with the respective commands used to access the resource managers. This Interaction SDK creates 
+		  a Mock responder with OData commands that access a JPA producer:
 		
 ----------  
  	 <bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
@@ -70,30 +74,11 @@ Creating a sample responder
 	  </bean>
 ----------  
 		  
-		* [<<JPA producer>>] These artefacts are JPA artefacts which are configured to provide
+		* <<JPA producer>> - JPA classes and configuration files (persistence.xml, responder_insert.sql) to provide
 		  a mock responder with data stored inside an in-memory HSQL database .
 		
 		[]
 		
-	Artefacts:
-	
-		* META-INF
-		
-			* Persistence.xml
-			
-			* responder_insert.sql
-			
-			* spring-beans.xml
-			
-			
-		* Test responder JPA classes
-		
-			* Flight.java
-			
-			* Airport.java
-			
-			* etc.
-			
 	It is useful to generate a JPA based mock responder for testing or providing out
 	generic  behaviour. Switching resource instances to use a different resource manager should be
 	as simple as changing the producer property in the spring configuration file.
