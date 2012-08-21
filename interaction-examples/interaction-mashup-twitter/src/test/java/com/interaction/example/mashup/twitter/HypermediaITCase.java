@@ -3,6 +3,7 @@ package com.interaction.example.mashup.twitter;
 import static org.junit.Assert.*;
 
 import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -17,10 +18,9 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.core.media.hal.MediaType;
 import com.temenos.interaction.example.mashup.twitter.OAuthRequestor;
 import com.temenos.interaction.example.mashup.twitter.Twitter4JConsumer;
-import com.theoryinpractise.halbuilder.ResourceFactory;
+import com.theoryinpractise.halbuilder.RepresentationFactory;
 import com.theoryinpractise.halbuilder.spi.Link;
-import com.theoryinpractise.halbuilder.spi.ReadableResource;
-import com.theoryinpractise.halbuilder.spi.Resource;
+import com.theoryinpractise.halbuilder.spi.ReadableRepresentation;
 
 /**
  * This test ensures that we can navigate from one application state
@@ -50,8 +50,8 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(2, links.size());
@@ -71,8 +71,8 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/users").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -86,9 +86,9 @@ public class HypermediaITCase extends JerseyTest {
 		}
 		
 		// the items, and links on each item
-		List<Resource> subresources = resource.getResources();
+		Collection<ReadableRepresentation> subresources = resource.getResources().values();
 		assertNotNull(subresources);
-		for (Resource item : subresources) {
+		for (ReadableRepresentation item : subresources) {
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(2, itemLinks.size());
 			for (Link link : itemLinks) {
@@ -113,8 +113,8 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/tweets/aphethean").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -128,9 +128,9 @@ public class HypermediaITCase extends JerseyTest {
 		}
 		
 		// the items, and links on each item
-		List<Resource> subresources = resource.getResources();
+		Collection<ReadableRepresentation> subresources = resource.getResources().values();
 		assertNotNull(subresources);
-		for (Resource item : subresources) {
+		for (ReadableRepresentation item : subresources) {
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(1, itemLinks.size());
 			for (Link link : itemLinks) {

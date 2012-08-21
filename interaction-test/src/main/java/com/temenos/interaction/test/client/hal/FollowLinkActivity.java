@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.temenos.interaction.test.client.Actions;
 import com.temenos.interaction.test.client.Activity;
-import com.theoryinpractise.halbuilder.spi.Resource;
+import com.theoryinpractise.halbuilder.spi.Representation;
 
 /**
  * This class implements an Activity that will follow a series of links 
@@ -31,7 +31,7 @@ public class FollowLinkActivity extends Activity {
 	/**
 	 * GET the supplied URI and process any {@link LinkEvent}s
 	 */
-	public Resource go(String startUri) {
+	public Representation go(String startUri) {
 		
 		return null;
 	}

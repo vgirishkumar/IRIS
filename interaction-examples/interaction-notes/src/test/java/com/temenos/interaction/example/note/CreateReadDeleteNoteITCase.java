@@ -13,8 +13,8 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.example.note.client.NoteRepresentation;
-import com.theoryinpractise.halbuilder.ResourceFactory;
-import com.theoryinpractise.halbuilder.spi.Resource;
+import com.theoryinpractise.halbuilder.RepresentationFactory;
+import com.theoryinpractise.halbuilder.spi.Representation;
 
 public class CreateReadDeleteNoteITCase extends JerseyTest {
 
@@ -114,8 +114,8 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
         assertEquals(200, getResponse.getStatus());
         String noteHALRepresentation = getResponse.getEntity(String.class);
         
-        ResourceFactory resourceFactory = new ResourceFactory();
-        Resource halResource = resourceFactory.newResource(noteHALRepresentation);
+        RepresentationFactory representationFactory = new RepresentationFactory();
+        Representation halResource = representationFactory.newRepresentation(noteHALRepresentation);
         
         assertEquals("Beverages", halResource.get("body").get());
 	}
@@ -141,8 +141,8 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
         assertEquals(200, getResponse.getStatus());
         String noteHALRepresentation = getResponse.getEntity(String.class);
         
-        ResourceFactory resourceFactory = new ResourceFactory();
-        Resource halResource = resourceFactory.newResource(noteHALRepresentation);
+        RepresentationFactory representationFactory = new RepresentationFactory();
+        Representation halResource = representationFactory.newRepresentation(noteHALRepresentation);
         
         assertEquals("test note", halResource.get("body").get());
 	}
