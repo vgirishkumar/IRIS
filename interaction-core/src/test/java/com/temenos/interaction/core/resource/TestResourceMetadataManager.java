@@ -25,7 +25,7 @@ public class TestResourceMetadataManager {
 	@Test
 	public void testMetadata() throws Exception {
 		final ODataProducer producerA = createMockODataProducer("A");
-		ResourceMetadataManager mdProducer = new ResourceMetadataManager() {
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager(false) {
 			protected EdmDataServices parseEdmx() {
 				return producerA.getMetadata();
 			}			
@@ -40,7 +40,7 @@ public class TestResourceMetadataManager {
 	@Test
 	public void testEntityType() throws Exception {
 		final ODataProducer producerA = createMockODataProducer("A");
-		ResourceMetadataManager mdProducer = new ResourceMetadataManager() {
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager(false) {
 			protected EdmDataServices parseEdmx() {
 				return producerA.getMetadata();
 			}			

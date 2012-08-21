@@ -18,9 +18,8 @@
 	</bean>
 
 	<!-- Metadata -->
-	<bean id="mockParsedMetadata" class="com.temenos.interaction.example.hateoas.banking.MockMetadata" />
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" >
-    	<constructor-arg ref="mockParsedMetadata" />
+		<constructor-arg value="true" />
 	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getResourceMetadata"/>
@@ -40,6 +39,7 @@
 	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
     	<constructor-arg ref="edmDataServices" />
     	<constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="stateMachine" />
 	</bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />

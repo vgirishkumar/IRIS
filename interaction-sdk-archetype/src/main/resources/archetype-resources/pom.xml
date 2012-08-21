@@ -15,7 +15,7 @@
       <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-plugin</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>${irisVersion}</version>
         <configuration>
           <edmxFile>\${basedir}/src/main/resources/service.edmx</edmxFile>
           <srcTargetDirectory>\${basedir}/src/main/java</srcTargetDirectory>
@@ -31,7 +31,6 @@
         <configuration>
           <!-- Configure the webapp -->
           <contextPath>/responder</contextPath>
-          <webDefaultXml>\${basedir}/src/main/webapp/WEB-INF/web.xml</webDefaultXml>
         </configuration>
       </plugin>
 
@@ -63,12 +62,11 @@
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-core</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
+    	<version>${irisVersion}</version>
     	<type>jar</type>
-    	<scope>runtime</scope>
     	<exclusions>
-    		<exclusion>
-    			<artifactId>stax-api</artifactId>
+			<exclusion>
+				<artifactId>stax-api</artifactId>
 				<groupId>javax.xml.stream</groupId>
 			</exclusion>
 		</exclusions>
@@ -76,21 +74,21 @@
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-winkext</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
+    	<version>${irisVersion}</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-commands-odata</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
+    	<version>${irisVersion}</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-sdk</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
+    	<version>${irisVersion}</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     	<exclusions>

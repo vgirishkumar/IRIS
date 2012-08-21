@@ -123,19 +123,19 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * interactions with the resource state.
 	 */
 	private void bootstrap() {
+		Set<String> interactions = new HashSet<String>();
+		Set<String> configuredInteractions = hypermediaEngine.getInteractions(currentState);
+		if (configuredInteractions != null)
+			interactions.addAll(configuredInteractions);
 		// every resource MUST have a GET command
-		getCommandController().fetchCommand("GET", getFQResourcePath());
-		Set<String> interactions = hypermediaEngine.getInteractions(currentState);
-		
+		interactions.add("GET");
+	
 		if (interactions != null) {
 			// interactions are a set of http methods
 			for (String method : interactions) {
 				logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
-				// already checked GET command for this resource
-				if (method.equals(HttpMethod.GET))
-					continue;
 				// check valid http method
-				if (!(method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE) || method.equals(HttpMethod.POST)))
+				if (!(method.equals(HttpMethod.GET) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE) || method.equals(HttpMethod.POST)))
 					throw new RuntimeException("Invalid configuration of state [" + hypermediaEngine.getInitial().getId() + "] - invalid http method [" + method + "]");
 				// fetch command from command controller for this method
 				InteractionCommand command = getCommandController().fetchCommand(method, getFQResourcePath());

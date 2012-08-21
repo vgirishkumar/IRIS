@@ -81,7 +81,7 @@ public class ResponderGenMojo extends AbstractMojo {
 
 		
 		JPAResponderGen rg = new JPAResponderGen();
-		boolean ok = rg.generateArtifacts(edmxFile, srcTargetDir, configTargetDir);
+		boolean ok = rg.generateArtifacts(edmxFile.getAbsolutePath(), srcTargetDir, configTargetDir);
 		if (!ok)
 			throw new MojoFailureException("An unexpected error occurred while generating artifacts");
 	}

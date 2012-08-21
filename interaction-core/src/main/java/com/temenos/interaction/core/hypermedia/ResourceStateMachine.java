@@ -20,7 +20,6 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
 import com.temenos.interaction.core.web.RequestContext;
 
 /**
@@ -186,7 +185,7 @@ public class ResourceStateMachine {
 		for (ResourceState next : currentState.getAllTargets()) {
 			if (!next.equals(currentState) && !next.isPseudoState()) {
 				String path = next.getPath();
-				if (result.get(path) != null)
+				if (result.get(path) != null && !result.get(path).equals(next))
 					logger.warn("Replacing ResourceState[" + path + "] " + result.get(path) + " with " + next + ", this could result in unexpected transitions.");
 				result.put(path, next);
 			}
@@ -229,10 +228,6 @@ public class ResourceStateMachine {
 		} else if (resourceEntity instanceof MetaDataResource) {
 			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
 			logger.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
-			return links;
-		} else if (resourceEntity instanceof ServiceDocumentResource) {
-			// TODO deprecate all resource types apart from item (EntityResource) and collection (CollectionResource)
-			logger.debug("Returning from the call to getLinks for a ServiceDocumentResource without doing anything");
 			return links;
 		} else {
 			throw new RuntimeException("Unable to get links, an error occurred");
@@ -357,16 +352,20 @@ public class ResourceStateMachine {
 			}
 			if (entity != null) {
 				if (transformer != null) {
-					properties.putAll(transformer.transform(entity));
+					logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
+					Map<String, Object> props = transformer.transform(entity);
+					if (props != null)
+						properties.putAll(props);
 					href = linkTemplate.buildFromMap(properties);
 				} else {
+					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
 					href = linkTemplate.build(entity);
 				}
 			} else {
 				href = linkTemplate.buildFromMap(properties);
 			}
 			Link link = new Link(transition, rel, href.toASCIIString(), method);
-			logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId()+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(" + href.toASCIIString() + ")]");
+			logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId()+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(ASCII=" + href.toASCIIString() + ")]");
 			return link;
 		} catch (IllegalArgumentException e) {
 			logger.error("An error occurred while creating link [" +  transition + "]", e);

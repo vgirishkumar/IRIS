@@ -24,8 +24,8 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
 
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 
@@ -49,7 +49,7 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, ServiceDocumentResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class, EdmDataServices.class);
 	}
 
 	@Override
@@ -59,10 +59,10 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 	}
 
 	/**
-	 * Writes representation of {@link ServiceDocumentResource} to the output stream.
+	 * Writes representation of {@link EntityResource} to the output stream.
 	 * 
-	 * @precondition supplied {@link ServiceDocumentResource} is non null
-	 * @precondition {@link ServiceDocumentResource#getServiceDocument()} returns a valid EdmDataServices
+	 * @precondition supplied {@link EntityResource} is non null
+	 * @precondition {@link EntityResource#getEntity()} returns a valid EdmDataServices
 	 * @postcondition non null service document written to OutputStream
 	 * @invariant valid OutputStream
 	 */
@@ -76,9 +76,9 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 		assert (resource != null);
 
 		final String svcDocString;
-		if(ResourceTypeHelper.isType(type, genericType, ServiceDocumentResource.class, EdmDataServices.class)) {
-			ServiceDocumentResource<EdmDataServices> serviceDocumentResource = (ServiceDocumentResource<EdmDataServices>) resource;
-		    EdmDataServices metadata = serviceDocumentResource.getServiceDocument();
+		if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, EdmDataServices.class)) {
+			EntityResource<EdmDataServices> serviceDocumentResource = (EntityResource<EdmDataServices>) resource;
+		    EdmDataServices metadata = (EdmDataServices) serviceDocumentResource.getEntity();
 		    StringWriter sw = new StringWriter();
 		    MediaType[] acceptedMediaTypes = { ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE };
 		    FormatWriter<EdmDataServices> fw = FormatWriterFactory.getFormatWriter(EdmDataServices.class, Arrays.asList(acceptedMediaTypes), "atom", null);
@@ -95,18 +95,18 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, ServiceDocumentResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class);
 	}
 
 	/**
-	 * Reads a representation of {@link ServiceDocumentResource} from the input stream.
+	 * Reads a representation of {@link EntityResource} from the input stream.
 	 * 
 	 * @precondition {@link InputStream} contains a valid service document representation
-	 * @postcondition {@link ServiceDocumentResource} will be constructed and returned.
+	 * @postcondition {@link EntityResource} will be constructed and returned.
 	 * @invariant valid InputStream
 	 */
 	@Override
-	public ServiceDocumentResource<EdmDataServices> readFrom(Class<RESTResource> type,
+	public EntityResource<EdmDataServices> readFrom(Class<RESTResource> type,
 			Type genericType, Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {

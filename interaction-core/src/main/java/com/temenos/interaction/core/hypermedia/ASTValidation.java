@@ -48,7 +48,7 @@ public class ASTValidation {
 				Transition transition = s.getTransition(targetState);
 				sb.append("    ").append(s.getEntityName() + s.getName()).append("->").append(targetState.getEntityName() + targetState.getName())
 					.append("[");
-				if (transition.getCommand().getMethod() == null) {
+				if (transition.getCommand().isAutoTransition()) {
 					// this is an auto transition
 					sb.append("style=\"dotted\"");
 				} else {

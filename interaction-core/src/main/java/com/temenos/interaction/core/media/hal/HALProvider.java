@@ -4,7 +4,6 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,12 +11,12 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -26,22 +25,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
-import org.codehaus.jettison.json.JSONObject;
-import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OEntityKey;
-import org.odata4j.core.OLink;
-import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
@@ -55,15 +45,16 @@ import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
-import com.theoryinpractise.halbuilder.ResourceFactory;
-import com.theoryinpractise.halbuilder.spi.ReadableResource;
-import com.theoryinpractise.halbuilder.spi.Resource;
+import com.theoryinpractise.halbuilder.RepresentationFactory;
+import com.theoryinpractise.halbuilder.spi.ReadableRepresentation;
+import com.theoryinpractise.halbuilder.spi.Representation;
 
 @Provider
 @Consumes({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
@@ -75,11 +66,21 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	private UriInfo uriInfo;
 	private EdmDataServices edmDataServices;
 	private Metadata metadata = null;
+	private ResourceStateMachine hypermediaEngine;
+	
+	public HALProvider(EdmDataServices edmDataServices, Metadata metadata, ResourceStateMachine hypermediaEngine) {
+		this(edmDataServices, metadata);
+		this.hypermediaEngine = hypermediaEngine;
+	}
+	public HALProvider(EdmDataServices edmDataServices, ResourceStateMachine hypermediaEngine) {
+		this(edmDataServices);
+		this.hypermediaEngine = hypermediaEngine;
+	}
 
 	public HALProvider(EdmDataServices edmDataServices, Metadata metadata) {
-		this.edmDataServices = edmDataServices;
-		assert(edmDataServices != null);
+		this(edmDataServices);
 		this.metadata = metadata;
+		assert(metadata != null);
 	}
 
 	public HALProvider(EdmDataServices edmDataServices) {
@@ -124,8 +125,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
 		// create the hal resource
-		ResourceFactory resourceFactory = new ResourceFactory(uriInfo.getBaseUri().toASCIIString());
-		Resource halResource = resourceFactory.newResource("");
+        RepresentationFactory representationFactory = new RepresentationFactory(uriInfo.getBaseUri().toASCIIString());
+        Representation halResource = representationFactory.newRepresentation("");
 		if (resource.getGenericEntity() != null) {
 			RESTResource rResource = (RESTResource) resource.getGenericEntity().getEntity();
 
@@ -135,7 +136,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			
 			// build the HAL representation with self link
 			if (selfLink != null)
-				halResource = resourceFactory.newResource(selfLink.getHref());
+				halResource = representationFactory.newRepresentation(selfLink.getHref());
 
 			// add our links
 			if (links != null) {
@@ -146,8 +147,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					if (l.getMethod() != null && !l.getMethod().equals("GET")) {
 						href = l.getMethod() + " " + href;
 					}
-					halResource.withLink(href, l.getRel(), 
-							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getId()), Optional.of(l.getTitle()), Optional.<String>absent());
+					halResource.withLink(l.getRel(), href, 
+							Optional.<Predicate<ReadableRepresentation>>absent(), Optional.of(l.getId()), Optional.of(l.getTitle()), Optional.<String>absent());
 				}
 			}
 			
@@ -180,7 +181,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					 */
 					// java bean, now limited to just the properties specified in the metadata entity model
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
-					buildFromBean(propertyMap, entity);
+					buildFromBean(propertyMap, entity, entityResource.getEntityName());
 					for (String key : propertyMap.keySet()) {
 						halResource.withProperty(key, propertyMap.get(key));
 					}
@@ -192,27 +193,27 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<OEntity> er : entities) {
 					OEntity entity = er.getEntity();
 					// the subresource is a collection
-					String rel = "collection " + cr.getEntityName();
+					String rel = "collection." + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
 					// create hal resource and add link for self
 					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
-						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());
+						Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
 						for (Link el : er.getLinks()) {
 							String itemHref = el.getHref();
 							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
 								itemHref = el.getMethod() + " " + itemHref;
 							}
-							subResource.withLink(itemHref, el.getRel());
+							subResource.withLink(el.getRel(), itemHref);
 						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {
 							subResource.withProperty(key, propertyMap.get(key));
 						}
-						halResource.withSubresource(rel, subResource);
+						halResource.withRepresentation(rel, subResource);
 					}
 					
 				}
@@ -223,28 +224,28 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<Object> er : entities) {
 					Object entity = er.getEntity();
 					// the subresource is part of a collection (maybe this link rel should be an 'item')
-					String rel = "collection " + cr.getEntityName();
+					String rel = "collection." + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
-					buildFromBean(propertyMap, entity);
+					buildFromBean(propertyMap, entity, cr.getEntityName());
 					// create hal resource and add link for self
 					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
-						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());
+						Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
 						for (Link el : er.getLinks()) {
 							String itemHref = el.getHref();
 							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
 								itemHref = el.getMethod() + " " + itemHref;
 							}
-							subResource.withLink(itemHref, el.getRel(), 
-									Optional.<Predicate<ReadableResource>>absent(), Optional.of(el.getId()), Optional.of(el.getTitle()), Optional.<String>absent());
+							subResource.withLink(el.getRel(), itemHref, 
+									Optional.<Predicate<ReadableRepresentation>>absent(), Optional.of(el.getId()), Optional.of(el.getTitle()), Optional.<String>absent());
 						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {
 							subResource.withProperty(key, propertyMap.get(key));
 						}
-						halResource.withSubresource(rel, subResource);
+						halResource.withRepresentation(rel, subResource);
 					}
 					
 				}
@@ -258,9 +259,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				
 		String representation = null;
 		if (halResource != null && mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
-			representation = halResource.renderContent(ResourceFactory.HAL_XML);
+			representation = halResource.renderContent(RepresentationFactory.HAL_XML);
 		} else if (halResource != null && mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
-			representation = halResource.renderContent(ResourceFactory.HAL_JSON);
+			representation = halResource.renderContent(RepresentationFactory.HAL_JSON);
 		} else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
@@ -286,12 +287,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	protected void buildFromOEntity(Map<String, Object> map, OEntity entity) {
 		for (OProperty<?> property : entity.getProperties()) {
 			EdmEntitySet ees = edmDataServices.getEdmEntitySet(entity.getEntitySetName());
-			if (ees.getType().findProperty(property.getName()) != null) {
-				map.put(property.getName(), property.getValue());				
+			if (ees.getType().findProperty(property.getName()) != null && property.getValue() != null) {
+				// call toString on object as a simple why of handling non simple types
+				map.put(property.getName(), property.getValue().toString());				
 			}
 		}
 	}
 	
+<<<<<<< HEAD
 	protected void buildFromEntity(Map<String, Object> map, Entity entity) {
 
 		EntityProperties entityProperties = entity.getProperties();
@@ -306,11 +309,13 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	}
 	
 	protected void buildFromBean(Map<String, Object> map, Object bean) {
+=======
+	protected void buildFromBean(Map<String, Object> map, Object bean, String entityName) {
+>>>>>>> remotes/upstream/master
 		try {
-			// TODO we should look up the entity here, but the entity set is much easier to lookup
-			String beanName = bean.getClass().getSimpleName(); 
 			try {
-				EdmEntitySet ees = edmDataServices.getEdmEntitySet(beanName);
+				// TODO we should look up the entity here, but the entity set is much easier to lookup
+				EdmEntitySet ees = edmDataServices.getEdmEntitySet(entityName);
 				if (ees != null) {
 					BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
 					for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
@@ -321,10 +326,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						}
 					}
 				} else {
-					logger.warn("EdmEntitySet not found using bean [" + beanName + "]");
+					logger.warn("EdmEntitySet not found using bean [" + entityName + "]");
 				}
 			} catch (RuntimeException re) {
-				logger.error("EdmEntitySet not found using bean [" + beanName + "]", re);
+				logger.error("EdmEntitySet not found using bean [" + entityName + "]", re);
 			}
 		} catch (IllegalArgumentException e) {
 			logger.error("Error accessing bean property", e);
@@ -361,6 +366,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		
+<<<<<<< HEAD
 		if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
 			//Parse hal+xml into an OEntity object
 			OEntity oentity = buildOEntityFromHalXML(entityStream);
@@ -369,6 +375,12 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		else if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
 			//Parse hal+json into an Entity object
 			Entity entity = buildEntityFromHalJSON(entityStream);
+=======
+		if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE) 
+				|| mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
+			//Parse hal+json into an OEntity object
+			Entity entity = buildEntityFromHal(entityStream);
+>>>>>>> remotes/upstream/master
 			return new EntityResource<Entity>(entity);
 		} 
 		else {
@@ -376,133 +388,58 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 	
+<<<<<<< HEAD
 	private Entity buildEntityFromHalJSON(InputStream entityStream) {
 		Entity entity = null;
+=======
+	private Entity buildEntityFromHal(InputStream entityStream) {
+>>>>>>> remotes/upstream/master
 		try {
-			//Read input stream into string
-			BufferedReader br = new BufferedReader(new InputStreamReader(entityStream, "UTF-8"));
-			StringBuilder sb = new StringBuilder();
-			String line;
-	    	while ((line = br.readLine()) != null) {
-	    		sb.append(line);
-	    	} 
-    	
-	    	//Parse json string into JSON object
-	    	String s = sb.toString();
-	    	JSONObject jsonObject = new JSONObject(s);
-	    	Iterator<?> it = jsonObject.keys();
-	    	while(it.hasNext()) {
-	    		String key = (String) it.next();
-				if (!key.equals("!links")) {
-					logger.debug("Parsing HAL+JSON into Entity object: " + key);
-			    	EntityMetadata entityMetadata = metadata.getEntityMetadata(key);
-			    	if(entityMetadata != null) {
-						EntityProperties entityFields = new EntityProperties();
-						JSONObject field = jsonObject.optJSONObject(key);
-						if(field == null) {
-							if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.TEXT)) {
-								entityFields.setProperty(new EntityProperty(key, jsonObject.getString(key)));
-							}
-							else if(entityMetadata.getPropertyVocabulary(key).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.NUMBER)) {
-								entityFields.setProperty(new EntityProperty(key, jsonObject.getLong(key)));
-							}
-							else {
-								entityFields.setProperty(new EntityProperty(key, jsonObject.getString(key)));
-							}
-						}
-						else {
-					    	Iterator<?> itFields = field.keys();
-					    	while(itFields.hasNext()) {
-					    		String keyField = (String) itFields.next();
-								if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.TEXT)) {
-									entityFields.setProperty(new EntityProperty(keyField, field.getString(keyField)));
-								}
-								else if(entityMetadata.getPropertyVocabulary(keyField).getTerm(TermValueType.TERM_NAME).getValue().equals(TermValueType.NUMBER)) {
-									entityFields.setProperty(new EntityProperty(keyField, field.getLong(keyField)));
-								}
-								else {
-									entityFields.setProperty(new EntityProperty(keyField, field.getString(keyField)));
-								}
-					    		
-					    	}
-						}
-						entity = new Entity(key, entityFields);
-			    	}
+			// create the hal resource
+			String baseUri = uriInfo.getBaseUri().toASCIIString();
+			RepresentationFactory representationFactory = new RepresentationFactory(baseUri);
+			ReadableRepresentation halResource = representationFactory.readRepresentation(new InputStreamReader(entityStream));
+			// get the entity name
+			String resourcePath = halResource.getResourceLink().get().getHref();
+			if (resourcePath.length() > baseUri.length())
+				resourcePath = resourcePath.substring(baseUri.length() - 1);
+			String entityName = getEntityName(resourcePath);
+			if (metadata == null || metadata.getEntityMetadata(entityName) == null)
+				throw new IllegalStateException("Entity metadata could not be found");
+			EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+			// add properties if they are present on the resolved entity
+			EntityProperties entityFields = new EntityProperties();
+			Map<String, Optional<Object>> halProperties = halResource.getProperties();
+			for (String propName : halProperties.keySet()) {
+				if (entityMetadata.getPropertyVocabulary(propName) != null) {
+					entityFields.setProperty(new EntityProperty(propName, halProperties.get(propName).get().toString()));
 				}
-	    		
-	    	}
-		} catch (Exception e) {
-			logger.error("Error while parsing hal+json document", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
-		}
-		return entity;
-	}
-	
-	private OEntity buildOEntityFromHalXML(InputStream entityStream) {
-		OEntity oEntity = null;
-		try {
-			XMLInputFactory factory = XMLInputFactory.newInstance();
-			XMLStreamReader parser = factory.createXMLStreamReader(entityStream);
-
-			EdmEntitySet entitySet = null;
-			List<OProperty<?>> properties = null;
-			boolean seenResource = false;
-			for (int event = parser.next(); 
-					event != XMLStreamConstants.END_DOCUMENT; 
-					event = parser.next()) {
-				switch (event) {
-				case XMLStreamConstants.START_ELEMENT:
-					String elementName = parser.getLocalName();
-					logger.debug("Saw element: " + elementName);
-					if ("resource".equals(elementName)) {
-						seenResource = true;
-					} else if (seenResource && !"links".equals(elementName)) {
-						logger.debug("Parsing OEntity: " + elementName);
-						entitySet = edmDataServices.getEdmEntitySet(elementName);
-						properties = processOEntity(elementName, parser);
-					}
-				} // end switch
-			} // end for loop
-			parser.close();
-			
-			if (entitySet != null) {
-				// TODO figure out if we need to do anything with OEntityKey
-				OEntityKey key = OEntityKey.create("");
-				oEntity = OEntities.create(entitySet, key, properties, new ArrayList<OLink>());
-			} else {
-				logger.debug("");
 			}
-		} catch (FactoryConfigurationError e) {
-			logger.error("Error while parsing xml", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
-		} catch (XMLStreamException e) {
-			logger.error("Error while parsing xml", e);
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
+			return new Entity(entityName, entityFields);
+		} catch (IllegalStateException e) {
+			logger.warn("Malformed request from client", e);
+			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
-		return oEntity;
 	}
 	
-	protected List<OProperty<?>> processOEntity(String entityName, XMLStreamReader parser)
-			throws XMLStreamException {
-		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
-		for (int event = parser.next(); event != XMLStreamConstants.END_DOCUMENT; event = parser
-				.next()) {
-			switch (event) {
-			case XMLStreamConstants.END_ELEMENT:
-				if (entityName.equals(parser.getLocalName())) {
-					return properties;
+	private String getEntityName(String resourcePath) {
+		String entityName = null;
+		if (resourcePath != null) {
+			Map<String, ResourceState> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
+			for (String path : pathToResourceStates.keySet()) {
+				ResourceState s = pathToResourceStates.get(path);
+				if (s.getPathIdParameter() != null) {
+					Matcher matcher = Pattern.compile("(.*)/\\{" + s.getPathIdParameter() + "\\}").matcher(path);
+					if (matcher.find()) {
+						resourcePath = matcher.group(1);
+					}
 				}
-			case XMLStreamConstants.START_ELEMENT:
-				String elementName = parser.getLocalName();
-				if (!elementName.equals(entityName)) {
-					String text = parser.getElementText();
-					logger.debug("Processing OEntity: " + elementName + ", " + text);
-					properties.add(OProperties.string(elementName, text));
+				if (path.startsWith(resourcePath)) {
+					entityName = s.getEntityName();
 				}
-			} // end switch
-		} // end for loop
-
-		return properties;
+			}
+		}
+		return entityName;
 	}
 	
 	/* Ugly testing support :-( */

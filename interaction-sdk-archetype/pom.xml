@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.temenos.interaction</groupId>
 		<artifactId>interaction-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.2-SNAPSHOT</version>
 		<relativePath>../interaction-parent/pom.xml</relativePath>
 	</parent>
 
@@ -51,8 +51,33 @@
 					</reportPlugins>
 				</configuration>
 			</plugin>
-		</plugins>
-	</build>
+			<!-- Put the irisVersion into the archetype-metadata.xml, simple resources filter 
+			doesn't work because some of the resources contain tokens that are escaped (not filtered)
+			by the archetype packager -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/META-INF/maven</outputDirectory>
+                            <resources>          
+                                <resource>
+                                    <directory>src/main/resources/META-INF/maven</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>              
+                        </configuration>            
+                    </execution>
+                </executions>
+            </plugin>
+         </plugins>
+  	</build>
 
 	<dependencies>
 		<dependency>

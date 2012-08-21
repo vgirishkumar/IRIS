@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Metadata Version="1.0" xmlns="http://iris.temenos.com/metadata.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
+#foreach ( $entity in $entityModel.getEntities() )
+	<Entity Name="${entity.getName()}">
+#foreach ( $property in $entity.getProperties() )
+#if ($property.getVocabularyTerms().size() > 0) 
+		<Property Name="${property.getName()}">
+#foreach ( $term in $property.getVocabularyTerms() )
+			<Term Name="${term.getName()}">${term.getValue()}</Term>
+#end
+		</Property>
+#else
+		<Property Name="${property.getName()}" />
+#end
+#end
+	</Entity>
+#end
+</Metadata>

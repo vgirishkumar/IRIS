@@ -6,9 +6,9 @@ import javax.ws.rs.core.Response;
 
 import org.odata4j.edm.EdmDataServices;
 
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.ResourceGetCommand;
@@ -36,7 +36,7 @@ public class GETMetadataCommand implements ResourceGetCommand, InteractionComman
 	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
 		RESTResponse rr;
 		if(entity.equals("ServiceDocument")) {
-			ServiceDocumentResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
+			EntityResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
 			rr = new RESTResponse(Response.Status.OK, sdr);
 		}
 		else {
@@ -52,7 +52,7 @@ public class GETMetadataCommand implements ResourceGetCommand, InteractionComman
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
 		if(entity.equals("ServiceDocument")) {
-			ServiceDocumentResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
+			EntityResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
 			ctx.setResource(sdr);
 		} else {
 			MetaDataResource<EdmDataServices> mdr = CommandHelper.createMetaDataResource(edmDataServices);

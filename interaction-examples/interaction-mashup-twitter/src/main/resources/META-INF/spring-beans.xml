@@ -73,6 +73,10 @@
                     <key><value>GET+/tweets/{username}</value></key>
                     <bean class="com.temenos.interaction.example.mashup.twitter.GETUserTwitterUpdatesCommand" />
                 </entry>
+                 <entry>
+                    <key><value>GET+/tweets/{username}/{tweet}</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
+                </entry>
             </map>
         </constructor-arg>
     </bean>

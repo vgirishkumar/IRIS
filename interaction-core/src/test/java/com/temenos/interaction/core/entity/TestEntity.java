@@ -25,14 +25,14 @@ public class TestEntity {
 	public void testEntityVocabulary() {
 		//Define vocabulary for this entity
 		Metadata metadata = new Metadata();
-		EntityMetadata vocs = new EntityMetadata();
+		EntityMetadata vocs = new EntityMetadata("Customer");
 		Vocabulary voc = new Vocabulary();
 		voc.setTerm(new TermResourceManager("T24"));
 		vocs.setVocabulary(voc);
 		Vocabulary vocName = new Vocabulary();
 		vocName.setTerm(new TermValueType("String"));
 		vocs.setPropertyVocabulary("name", vocName);
-		metadata.setEntityMetadata("Customer", vocs);
+		metadata.setEntityMetadata(vocs);
 		
 		//Create entity
 		EntityProperties customerFields = new EntityProperties();
@@ -69,11 +69,11 @@ public class TestEntity {
 	public void testComplexEntityVocabulary() {
 		//Define vocabulary for this entity
 		Metadata metadata = new Metadata();
-		EntityMetadata vocs = new EntityMetadata();
+		EntityMetadata vocs = new EntityMetadata("Customer");
 		Vocabulary vocAddress = new Vocabulary();
 		vocAddress.setTerm(new TermComplexType(true));
 		vocs.setPropertyVocabulary("address", vocAddress);
-		metadata.setEntityMetadata("Customer", vocs);
+		metadata.setEntityMetadata(vocs);
 		
 		//Create entity
 		EntityProperties addressFields = new EntityProperties();
@@ -97,7 +97,7 @@ public class TestEntity {
 	public void testPropertyVocabularyKeySet() {
 		//Define vocabulary for this entity
 		Metadata metadata = new Metadata();
-		EntityMetadata vocs = new EntityMetadata();
+		EntityMetadata vocs = new EntityMetadata("Customer");
 		
 		Vocabulary vocName = new Vocabulary();
 		vocName.setTerm(new TermComplexType(true));
@@ -119,7 +119,7 @@ public class TestEntity {
 		vocIndustry.setTerm(new TermComplexType(true));
 		vocs.setPropertyVocabulary("industry", vocIndustry);
 		
-		metadata.setEntityMetadata("Customer", vocs);		
+		metadata.setEntityMetadata(vocs);		
 		
 		Set<String> propertyKeys = vocs.getPropertyVocabularyKeySet();
 		Assert.assertEquals(5, propertyKeys.size());

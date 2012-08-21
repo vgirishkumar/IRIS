@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Metadata Version="1.0" xmlns="http://iris.temenos.com/metadata.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
+	<Entity Name="Customer">
+		<Property Name="name" />
+		<Property Name="address">
+			<Property Name="number">
+				<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+			</Property>
+			<Property Name="street">
+				<Property Name="streetType" />
+			</Property>
+			<Property Name="town" />
+			<Property Name="postCode" />
+		</Property>
+		<Property Name="dateOfBirth" >
+			<Term Name="TERM_MANDATORY">true</Term>
+		</Property>
+		<Property Name="sector" />
+		<Property Name="industry" />
+	</Entity>
+</Metadata>

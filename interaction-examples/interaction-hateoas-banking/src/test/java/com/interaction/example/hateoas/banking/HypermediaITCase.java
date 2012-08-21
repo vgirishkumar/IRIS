@@ -3,6 +3,7 @@ package com.interaction.example.hateoas.banking;
 import static org.junit.Assert.*;
 
 import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -15,10 +16,10 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.core.media.hal.MediaType;
-import com.theoryinpractise.halbuilder.ResourceFactory;
+import com.theoryinpractise.halbuilder.RepresentationFactory;
 import com.theoryinpractise.halbuilder.spi.Link;
-import com.theoryinpractise.halbuilder.spi.ReadableResource;
-import com.theoryinpractise.halbuilder.spi.Resource;
+import com.theoryinpractise.halbuilder.spi.ReadableRepresentation;
+import com.theoryinpractise.halbuilder.spi.Representation;
 
 public class HypermediaITCase extends JerseyTest {
 
@@ -42,8 +43,8 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(3, links.size());
@@ -55,7 +56,7 @@ public class HypermediaITCase extends JerseyTest {
 			} else if (link.getName().get().equals("home.initial>FundsTransfer.initial")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers", link.getHref());
 			} else {
-				fail("unexpected link");
+				fail("unexpected link [" + link.getName().get() + "]");
 			}
 		}
 	}
@@ -65,8 +66,8 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/fundtransfers").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -77,15 +78,14 @@ public class HypermediaITCase extends JerseyTest {
 			} else if (link.getName().get().equals("FundsTransfer.initial>FundsTransfer.new")) {
 				assertEquals("POST " + Configuration.TEST_ENDPOINT_URI + "/fundtransfers/new", link.getHref());
 			} else {
-				fail("unexpected link");
+				fail("unexpected link [" + link.getName().get() + "]");
 			}
 		}
 		
 		// the links on each item
-		List<Resource> subresources = resource.getResources();
+		Collection<ReadableRepresentation> subresources = resource.getResources().values();
 		assertNotNull(subresources);
-		assertEquals(3, subresources.size());
-		for (Resource item : subresources) {
+		for (ReadableRepresentation item : subresources) {
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(1, itemLinks.size());
 			for (Link link : itemLinks) {
@@ -113,12 +113,59 @@ public class HypermediaITCase extends JerseyTest {
 	}
 
 	/**
-	 * Attempt a PUT to the resource (a collection resource)
+	 * Attempt a PUT to the resource (entity resource)
 	 */
 	@Test
-	public void putFundTransferMethodNotAllowed() throws Exception {
-		String halRequest = "{}";
-		ClientResponse response = webResource.path("/fundtransfers").type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
+	public void putFundTransferHalXML() throws Exception {
+		double d = Math.random() * 10000000;
+		String id = Integer.toString((int) d);
+		String resourceUri = "/fundtransfers/" + id;
+		String halRequest = buildHalResource(resourceUri, id).renderContent(RepresentationFactory.HAL_XML);
+
+		ClientResponse response = webResource.path(resourceUri).accept(MediaType.APPLICATION_HAL_XML).type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
+        assertEquals(200, response.getStatus());
+
+		response = webResource.path(resourceUri).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+	}
+
+	/**
+	 * Attempt a PUT to the resource (entity resource)
+	 */
+	@Test
+	public void putFundTransferHalJSON() throws Exception {
+		double d = Math.random() * 10000000;
+		String id = Integer.toString((int) d);
+		String resourceUri = "/fundtransfers/" + id;
+		String halRequest = buildHalResource(resourceUri, id).renderContent(RepresentationFactory.HAL_JSON);
+
+		ClientResponse response = webResource.path(resourceUri).accept(MediaType.APPLICATION_HAL_JSON).type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
+        assertEquals(200, response.getStatus());
+
+		response = webResource.path("/fundtransfers/" + id).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+	}
+	
+	private Representation buildHalResource(String resourceUri, String id) {
+		RepresentationFactory representationFactory = new RepresentationFactory(Configuration.TEST_ENDPOINT_URI);
+		// we have to prepend ~ to get the HalBuilder to work properly at the moment
+		Representation r = representationFactory.newRepresentation("~" + resourceUri);
+		r.withProperty("id", id);
+		r.withProperty("body", "Funds tranfer issued at 01/01/2012");
+		return r;
+	}
+
+	/**
+	 * Attempt a PUT to the collection resource (which only accepts post in this example)
+	 */
+	@Test
+	public void putMethodNotAllowed() throws Exception {
+		RepresentationFactory representationFactory = new RepresentationFactory("https://example.com/");
+		ReadableRepresentation r = representationFactory.newRepresentation("~/xyz/123");
+		String halRequest = r.renderContent(RepresentationFactory.HAL_XML);
+		
+		// attempt to put to the notes collection, rather than an individual
+		ClientResponse response = webResource.path("/fundtransfers").type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
         assertEquals(405, response.getStatus());
 
         assertEquals(3, response.getAllow().size());
@@ -127,37 +174,4 @@ public class HypermediaITCase extends JerseyTest {
         assertTrue(response.getAllow().contains("HEAD"));
 	}
 
-	/**
-	 * Attempt a PUT to the resource (entity resource)
-	 */
-	@Test
-	public void putFundTransferHalXML() throws Exception {
-		/*  Comment out until HalProvider uses Entity instead of OEntity
-		String halRequest = "<resource><FundTransfer><id>123</id><body>Funds tranfer issued at 01/01/2012</body></FundTransfer><links></links></resource>";
-		ClientResponse response = webResource.path("/fundtransfers/123").accept(MediaType.APPLICATION_HAL_XML).type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
-        assertEquals(200, response.getStatus());
-
-		response = webResource.path("/fundtransfers/123").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
-        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
-        */
-	}
-
-	/**
-	 * Attempt a PUT to the resource (entity resource)
-	 */
-	@Test
-	public void putFundTransferHalJSON() throws Exception {
-		String halRequest = "";
-		halRequest += "{";
-		halRequest += "  FundTransfer : {";
-		halRequest += "    id : 123,";
-		halRequest += "    body : 'Funds tranfer issued at 01/01/2012'";
-		halRequest += "  }";
-		halRequest += "}";		
-		ClientResponse response = webResource.path("/fundtransfers/123").accept(MediaType.APPLICATION_HAL_JSON).type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
-        assertEquals(200, response.getStatus());
-
-		response = webResource.path("/fundtransfers/123").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
-        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
-	}
 }

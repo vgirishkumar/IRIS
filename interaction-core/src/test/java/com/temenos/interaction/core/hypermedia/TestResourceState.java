@@ -95,6 +95,23 @@ public class TestResourceState {
 	}
 
 	@Test
+	public void testAutoTransition() {
+		String ENTITY_NAME = "entity";
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
+		begin.addTransition(null, exists, Transition.AUTO);
+		assertTrue(begin.getTransition(exists).getCommand().isAutoTransition());
+	}	
+
+	@Test (expected = IllegalArgumentException.class)
+	public void testInvalidAutoTransition() {
+		String ENTITY_NAME = "entity";
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
+		begin.addTransition("PUT", exists, Transition.AUTO);
+	}	
+	
+	@Test
 	public void testAddTransitionLinkageMap() {
 		// define a linkage map (target URI element, source entity element)
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();

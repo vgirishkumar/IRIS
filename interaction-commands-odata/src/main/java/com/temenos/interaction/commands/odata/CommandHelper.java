@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
-import com.temenos.interaction.core.resource.ServiceDocumentResource;
 
 public class CommandHelper {
 	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
@@ -44,8 +43,8 @@ public class CommandHelper {
 	 * @param metadata Edmx
 	 * @return Service document
 	 */
-	public static<EdmDataServices> ServiceDocumentResource<EdmDataServices> createServiceDocumentResource(EdmDataServices metadata) {
-		return new ServiceDocumentResource<EdmDataServices>(metadata) {};	
+	public static<EdmDataServices> EntityResource<EdmDataServices> createServiceDocumentResource(EdmDataServices metadata) {
+		return new EntityResource<EdmDataServices>(metadata) {};	
 	}
 
 	/**
