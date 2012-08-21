@@ -161,6 +161,15 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (String key : propertyMap.keySet()) {
 					halResource.withProperty(key, propertyMap.get(key));
 				}
+			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
+					@SuppressWarnings("unchecked")
+					EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
+					Map<String, Object> propertyMap = new HashMap<String, Object>();
+					buildFromEntity(propertyMap, entityResource.getEntity());
+					// add properties to HAL resource
+					for (String key : propertyMap.keySet()) {
+						halResource.withProperty(key, propertyMap.get(key));
+					}
 			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				EntityResource<?> entityResource = (EntityResource<?>) resource;
 				Object entity = entityResource.getEntity();
@@ -283,6 +292,19 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 	
+	protected void buildFromEntity(Map<String, Object> map, Entity entity) {
+
+		EntityProperties entityProperties = entity.getProperties();
+		Map<String, EntityProperty> properties = entityProperties.getProperties();
+				
+		for (Map.Entry<String, EntityProperty> property : properties.entrySet()) 
+		{
+			String propertyName = property.getKey(); 
+			EntityProperty propertyValue = (EntityProperty) property.getValue();
+	   		map.put(propertyName, propertyValue.getValue());	
+		}
+	}
+	
 	protected void buildFromBean(Map<String, Object> map, Object bean) {
 		try {
 			// TODO we should look up the entity here, but the entity set is much easier to lookup
@@ -345,8 +367,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			return new EntityResource<OEntity>(oentity);
 		} 
 		else if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
-			//Parse hal+json into an OEntity object
-			Entity entity = buildOEntityFromHalJSON(entityStream);
+			//Parse hal+json into an Entity object
+			Entity entity = buildEntityFromHalJSON(entityStream);
 			return new EntityResource<Entity>(entity);
 		} 
 		else {
@@ -354,7 +376,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 	
-	private Entity buildOEntityFromHalJSON(InputStream entityStream) {
+	private Entity buildEntityFromHalJSON(InputStream entityStream) {
 		Entity entity = null;
 		try {
 			//Read input stream into string
