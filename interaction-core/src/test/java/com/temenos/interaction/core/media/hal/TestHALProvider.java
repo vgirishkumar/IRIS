@@ -110,6 +110,24 @@ public class TestHALProvider {
 
 	@SuppressWarnings("unchecked")
 	@Test
+	public void testDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException {
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("mockChild", "initial", "/children"));
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class), createMockChildVocabMetadata(), sm);
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+
+		String strEntityStream = "{ \"_links\": { \"self\": { \"href\": \"http://www.temenos.com/rest.svc/children\" } }, \"name\": \"noah\", \"age\": 2 }";
+		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
+		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
+		assertNotNull(er.getEntity());
+		Entity entity = er.getEntity();
+		assertEquals("mockChild", entity.getName());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
 	public void testDeserialiseResolveEntityNameWithId() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("mockChild", "initial", "/children/{id}", "id", null));
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class), createMockChildVocabMetadata(), sm);
