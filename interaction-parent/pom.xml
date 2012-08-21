@@ -17,9 +17,11 @@
 		<module>../interaction-sdk-plugin</module>
 		<module>../interaction-sdk-archetype</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
+		<module>../useragent-examples/T24-ft-useragent-javascript</module>
 		<module>../useragent-examples/useragent-hal-inspector</module>
 		<module>../interaction-examples/interaction-hateoas-simple</module>
 		<module>../interaction-examples/interaction-hateoas-banking</module>
+		<module>../interaction-examples/T24-ft-interaction-banking</module>
 		<module>../interaction-examples/interaction-odata-northwind</module>
 		<module>../interaction-examples/interaction-odata-airline</module>
 <!-- Disabled until the new Atom Provider that uses the resource interaction model becomes available.		
@@ -110,6 +112,12 @@
 			<dependency>
 				<groupId>com.temenos.interaction</groupId>
 				<artifactId>useragent-generic-javascript</artifactId>
+				<version>${project.version}</version>
+				<type>war</type>
+			</dependency>
+			<dependency>
+				<groupId>com.temenos.interaction</groupId>
+				<artifactId>T24-ft-useragent-javascript</artifactId>
 				<version>${project.version}</version>
 				<type>war</type>
 			</dependency>

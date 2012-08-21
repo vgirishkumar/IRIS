@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.temenos.interaction</groupId>
+    <artifactId>interaction-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../interaction-parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>T24-ft-useragent-javascript</artifactId>
+  <packaging>war</packaging>
+  <name>T24-ft-useragent-javascript</name>
+  <url>http://www.temenos.com</url>
+  <build>
+    <finalName>T24-ft-useragent-javascript</finalName>
+    <plugins>
+      <plugin>
+        <groupId>com.github.iron9light</groupId>
+        <artifactId>coffeescript-maven-plugin</artifactId>
+        <version>1.1.1</version>
+        <configuration>
+          <srcDir>${basedir}/src/main/webapp/coffee</srcDir>
+          <outputDir>${basedir}/src/main/webapp/lib</outputDir>
+          <bare>false</bare>
+          <modifiedOnly>false</modifiedOnly>
+          <allowedDelete>true</allowedDelete>
+          <compilerUrl></compilerUrl>
+         </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+    	<plugins>
+    		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+    		<plugin>
+    			<groupId>org.eclipse.m2e</groupId>
+    			<artifactId>lifecycle-mapping</artifactId>
+    			<version>1.0.0</version>
+    			<configuration>
+    				<lifecycleMappingMetadata>
+    					<pluginExecutions>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									com.github.iron9light
+    								</groupId>
+    								<artifactId>
+    									coffeescript-maven-plugin
+    								</artifactId>
+    								<versionRange>
+    									[1.1.1,)
+    								</versionRange>
+    								<goals>
+    									<goal>compile</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    					</pluginExecutions>
+    				</lifecycleMappingMetadata>
+    			</configuration>
+    		</plugin>
+    	</plugins>
+    </pluginManagement>
+  </build>
+  
+</project>
