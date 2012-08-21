@@ -157,7 +157,7 @@ public class EntityMetadata  {
 		}
 		else if ( isPropertyNumber( propertyName ) )
 		{
-			value = Integer.toString( (Integer) property.getValue() );
+			value = Long.toString( (Long) property.getValue() );
 		}
 		
 		return value;
