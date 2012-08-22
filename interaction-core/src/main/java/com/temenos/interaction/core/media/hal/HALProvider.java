@@ -294,7 +294,6 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 	
-<<<<<<< HEAD
 	protected void buildFromEntity(Map<String, Object> map, Entity entity) {
 
 		EntityProperties entityProperties = entity.getProperties();
@@ -308,10 +307,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 	
-	protected void buildFromBean(Map<String, Object> map, Object bean) {
-=======
 	protected void buildFromBean(Map<String, Object> map, Object bean, String entityName) {
->>>>>>> remotes/upstream/master
 		try {
 			try {
 				// TODO we should look up the entity here, but the entity set is much easier to lookup
@@ -366,21 +362,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		
-<<<<<<< HEAD
-		if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
-			//Parse hal+xml into an OEntity object
-			OEntity oentity = buildOEntityFromHalXML(entityStream);
-			return new EntityResource<OEntity>(oentity);
-		} 
-		else if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
-			//Parse hal+json into an Entity object
-			Entity entity = buildEntityFromHalJSON(entityStream);
-=======
 		if (mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE) 
 				|| mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
 			//Parse hal+json into an OEntity object
 			Entity entity = buildEntityFromHal(entityStream);
->>>>>>> remotes/upstream/master
 			return new EntityResource<Entity>(entity);
 		} 
 		else {
@@ -388,12 +373,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 	
-<<<<<<< HEAD
-	private Entity buildEntityFromHalJSON(InputStream entityStream) {
-		Entity entity = null;
-=======
 	private Entity buildEntityFromHal(InputStream entityStream) {
->>>>>>> remotes/upstream/master
 		try {
 			// create the hal resource
 			String baseUri = uriInfo.getBaseUri().toASCIIString();
