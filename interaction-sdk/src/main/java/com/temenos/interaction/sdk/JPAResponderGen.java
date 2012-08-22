@@ -472,6 +472,7 @@ public class JPAResponderGen {
 	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace, InteractionModel interactionModel) {
 		VelocityContext context = new VelocityContext();
 		context.put("resourcesInfo", resourcesInfo);
+		context.put("entityContainerNamespace", entityContainerNamespace);
 		context.put("behaviourClass", entityContainerNamespace + ".Behaviour");
 		context.put("interactionModel", interactionModel);
 		
