@@ -2,6 +2,7 @@ package com.temenos.interaction.sdk;
 
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
+import org.apache.maven.it.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -58,7 +59,15 @@ public class InteractionSDKTest {
         //Run the Interaction SDK to generate the Flight responder project
         verifier.executeGoal("interaction-sdk:gen");
         verifier.verifyErrorFreeLog();
-        
+
+        //Overwrite responder insert file
+        try {
+        	FileUtils.copyFileToDirectory( System.getProperty("insertFile"), ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID + "/src/main/resources/META-INF");
+        }
+        catch(IOException ioe) {
+        	new VerificationException("Failed to copy INSERT file.");
+        }
+
         //Verify the Flight responder project
         verifier.executeGoal("verify");
         verifier.verifyErrorFreeLog();

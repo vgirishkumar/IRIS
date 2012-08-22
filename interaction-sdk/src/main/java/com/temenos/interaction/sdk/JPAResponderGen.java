@@ -117,6 +117,10 @@ public class JPAResponderGen {
 			resourcePath = "GET+/" + entityFeedInfo.getClazz();
 			commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
 			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
+
+			resourcePath = "POST+/" + entityFeedInfo.getClazz();
+			commandType = "com.temenos.interaction.commands.odata.CreateEntityCommand"; 
+			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
 		}
 		
 		//Create interaction model
