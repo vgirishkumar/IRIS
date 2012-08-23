@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
@@ -113,5 +114,7 @@ public class TestMetadataParser {
 		Assert.assertEquals(TermValueType.TEXT, md.getTermValue("sector", TermValueType.TERM_NAME));
 		Assert.assertEquals("false", md.getTermValue("sector", TermMandatory.TERM_NAME));
 		Assert.assertEquals("true", md.getTermValue("dateOfBirth", TermMandatory.TERM_NAME));
+		Assert.assertEquals("true", md.getTermValue("name", TermIdField.TERM_NAME));
+		Assert.assertEquals("false", md.getTermValue("dateOfBirth", TermIdField.TERM_NAME));
 	}	
 }

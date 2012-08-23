@@ -3,7 +3,9 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
 	<Entity Name="Customer">
-		<Property Name="name" />
+		<Property Name="name" >
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
 		<Property Name="address">
 			<Property Name="number">
 				<Term Name="TERM_VALUE_TYPE">NUMBER</Term>

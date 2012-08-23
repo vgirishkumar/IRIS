@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.MetadataParser;
 
 
@@ -33,6 +34,12 @@ public class ResourceMetadataManager {
 	public ResourceMetadataManager(Metadata metadata)
 	{
 		this.metadata = metadata;
+		try {
+			edmMetadata = new MetadataOData4j(metadata).getMetadata();
+		}
+		catch(Exception e) {
+			throw new RuntimeException("Failed to create odata4j metadata: " + e.getMessage());
+		}
 	}
 
 	/**
@@ -41,6 +48,13 @@ public class ResourceMetadataManager {
 	public ResourceMetadataManager()
 	{
 		edmMetadata = parseEdmx();
+		metadata = parseMetadataXML();
+		try {
+			edmMetadata = new MetadataOData4j(metadata).getMetadata();
+		}
+		catch(Exception e) {
+			throw new RuntimeException("Failed to create odata4j metadata: " + e.getMessage());
+		}
 	}
 
 	/**

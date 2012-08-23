@@ -27,4 +27,12 @@ public class Metadata  {
 	public void setEntityMetadata(EntityMetadata entityMetadata) {
 		entitiesMetadata.put(entityMetadata.getEntityName(), entityMetadata);
 	}
+	
+	/**
+	 * Returns a map of <entity name, entity metadata> 
+	 * @return entities metadata map
+	 */
+	public Map<String, EntityMetadata> getEntitiesMetadata() {
+		return entitiesMetadata;
+	}
 }

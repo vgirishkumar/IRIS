@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Metadata Version="1.0" xmlns="http://iris.temenos.com/metadata.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
+	<Entity Name="FlightSchedule">
+		<Property Name="flightNo" />
+		<Property Name="arrivalAirportCode" />
+		<Property Name="arrivalTime">
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+		<Property Name="departureTime">
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+		<Property Name="departureAirportCode" />
+		<Property Name="flightScheduleID">
+			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="firstDeparture">
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+		<Property Name="lastDeparture">
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+	</Entity>
+	<Entity Name="Airport">
+		<Property Name="name" />
+		<Property Name="code">
+			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="country" />
+	</Entity>
+	<Entity Name="Flight">
+		<Property Name="flightID">
+			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="takeoffTime">
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+	</Entity>
+</Metadata>
