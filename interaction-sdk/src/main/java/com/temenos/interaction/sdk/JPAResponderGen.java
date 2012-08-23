@@ -117,6 +117,10 @@ public class JPAResponderGen {
 			resourcePath = "GET+/" + entityFeedInfo.getClazz();
 			commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
 			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
+
+			resourcePath = "POST+/" + entityFeedInfo.getClazz();
+			commandType = "com.temenos.interaction.commands.odata.CreateEntityCommand"; 
+			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
 		}
 		
 		//Create interaction model
@@ -472,6 +476,7 @@ public class JPAResponderGen {
 	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace, InteractionModel interactionModel) {
 		VelocityContext context = new VelocityContext();
 		context.put("resourcesInfo", resourcesInfo);
+		context.put("entityContainerNamespace", entityContainerNamespace);
 		context.put("behaviourClass", entityContainerNamespace + ".Behaviour");
 		context.put("interactionModel", interactionModel);
 		

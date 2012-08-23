@@ -18,7 +18,7 @@
 	<!-- Producers -->
 	<bean id="mockProducer" class="org.odata4j.producer.jpa.JPAProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />
-		<constructor-arg name="namespace" value="MockResponderSDK" />		
+		<constructor-arg name="namespace" value="$entityContainerNamespace" />		
 		<constructor-arg name="maxResults" value="100" />				
 	</bean>
 	<!-- <bean id="myProducer" class="com.interaction.producer.example.MyProducer"/> -->
