@@ -4,9 +4,8 @@
            classpath:org/springframework/beans/factory/xml/spring-beans-2.5.xsd">
 
 	<!-- Metadata -->
-	<bean id="mockParsedMetadata" class="com.temenos.interaction.example.hateoas.banking.MockMetadata" />
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" >
-    	<constructor-arg ref="mockParsedMetadata" />
+		<constructor-arg value="true" />
 	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getResourceMetadata"/>
@@ -26,6 +25,7 @@
 	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
     	<constructor-arg ref="edmDataServices" />
     	<constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="stateMachine" />
 	</bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />
@@ -67,30 +67,35 @@
                     <key><value>GET+/fundstransfer/{Id}</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24GetCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>
                 </entry>                
                 <entry>
                     <key><value>PUT+/fundstransfer/{Id}</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24InputCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>
                 </entry>
                 <entry>
                     <key><value>PUT+/fundstransfer/unauthorised/{Id}</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24InputCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>
                 </entry>
                 <entry>
                     <key><value>DELETE+/fundstransfer/{Id}</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24DeleteCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
+                <entry>
+                    <key><value>GET+/fundstransfer/unauthorised/{Id}</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
+                </entry>
+
                 <entry>
                     <key><value>GET+/fundstransfer/new</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
@@ -111,49 +116,49 @@
                     <key><value>POST+/fundstransfer/new</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24InputCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
 					</bean>
                 </entry>
                 <entry>
                     <key><value>PUT+/fundstransfer/{Id}/review</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24AuditorReviewCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
                     <key><value>PUT+/fundstransfer/{Id}/authorise</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24AuthoriseCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
                     <key><value>PUT+/fundstransfer/{Id}/hold</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24HoldCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>
                 </entry>
                 <entry>
                     <key><value>PUT+/fundstransfer/{Id}/restore</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24RestoreCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
                     <key><value>PUT+/fundstransfer/{Id}/reverse</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24ReverseCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
                     <key><value>PUT+/fundstransfer/{Id}/verify</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24VerifyCommand">
                         <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="mockParsedMetadata" />
+                        <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>  
                 <entry>

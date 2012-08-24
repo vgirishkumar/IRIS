@@ -5,8 +5,8 @@
   <parent>
     <groupId>com.temenos.interaction</groupId>
     <artifactId>interaction-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../interaction-parent/pom.xml</relativePath>
+    <version>0.0.2-SNAPSHOT</version>
+    <relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
   <artifactId>T24-ft-useragent-javascript</artifactId>

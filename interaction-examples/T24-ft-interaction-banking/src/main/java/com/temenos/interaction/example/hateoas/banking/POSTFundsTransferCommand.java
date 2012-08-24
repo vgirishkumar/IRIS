@@ -1,5 +1,8 @@
 package com.temenos.interaction.example.hateoas.banking;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import javax.ws.rs.HttpMethod;
 
 import com.temenos.interaction.core.command.InteractionCommand;
@@ -7,6 +10,7 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class POSTFundsTransferCommand implements InteractionCommand {
@@ -35,6 +39,10 @@ public class POSTFundsTransferCommand implements InteractionCommand {
 		
 		Entity entity = new Entity("FundsTransfer", entityProperties);
 		EntityResource<Entity> er = FundsTransferHelper.createEntityResource( entity );
+		
+		Collection<Link> links = new ArrayList<Link>();
+		links.add( new Link("new", "self", "http://localhost:8080/example/api/fundstransfer/new", null, null) );
+		er.setLinks(links);
 		ctx.setResource(er);
 		
 		return Result.SUCCESS;

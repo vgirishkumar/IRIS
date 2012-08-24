@@ -29,7 +29,7 @@ class @Link
       when 'PUT'
         @hyperLink.click => @doPut()
         @formModel = @cloneModel @resource.model
-        @successHandler = (model, textStatus, jqXHR) => new ResourceView({rel: 'self', href: model._links.self.href, method: 'GET'})
+        @successHandler = (model, textStatus, jqXHR) => new ResourceView(@resource.selfLink)
 #      when 'POST'
 #        @hyperLink.click => @doPost()
 #        @formModel = @model.template
@@ -81,7 +81,7 @@ class @Link
           Accept : "application/hal+json; charset=utf-8"
       }
       url: @model.href,
-      data: "{ 'Id' : 'FT0001'}",
+      data: "{ \"_links\": { \"self\": { \"href\": \"http://localhost:8080/example/api/fundstransfer/new\" } }, \"Id\": \"NEW\" }",
       type: "POST",
       contentType: "application/hal+json; charset=utf-8",
       success: @successHandler
@@ -100,7 +100,7 @@ class @Link
           "Content-Type" : "application/hal+xml; charset=utf-8"
       }
       url: @model.href.replace("NEW", document.getElementById("Id").value),
-      data: '{"FundsTransfer":{"Id":"' + document.getElementById("Id").value + '","TransactionType":"' + document.getElementById("TransactionType").value + '","DebitAcctNo":"' + document.getElementById("DebitAcctNo").value + '","DebitCurrency":"' + document.getElementById("DebitCurrency").value + '","DebitAmount":"' + document.getElementById("DebitAmount").value + '","CreditAcctNo":"' + document.getElementById("CreditAcctNo").value + '"}}',
+      data: '{"_links":{"self":{"href":"http:\/\/localhost:8080\/example\/api\/fundstransfer\/new"}},"Id":"' + document.getElementById("Id").value + '","TransactionType":"' + document.getElementById("TransactionType").value + '","DebitAcctNo":"' + document.getElementById("DebitAcctNo").value + '","DebitCurrency":"' + document.getElementById("DebitCurrency").value + '","DebitAmount":"' + document.getElementById("DebitAmount").value + '","CreditAcctNo":"' + document.getElementById("CreditAcctNo").value + '"}}',
       type: @model.method,
       contentType: @model.consumes,
       success: @successHandler,
@@ -114,7 +114,7 @@ class @Link
           "Content-Type" : "application/hal+json; charset=utf-8"
       }
       url: @model.href.replace("NEW", document.getElementById("Id").value),
-      data: '{"FundsTransfer":{"Id":"' + document.getElementById("Id").value + '","TransactionType":"' + document.getElementById("TransactionType").value + '","DebitAcctNo":"' + document.getElementById("DebitAcctNo").value + '","DebitCurrency":"' + document.getElementById("DebitCurrency").value + '","DebitAmount":"' + document.getElementById("DebitAmount").value + '","CreditAcctNo":"' + document.getElementById("CreditAcctNo").value + '"}}',
+      data: '{"_links":{"self":{"href":"http:\/\/localhost:8080\/example\/api\/fundstransfer\/new"}},"Id":"' + document.getElementById("Id").value + '","TransactionType":"' + document.getElementById("TransactionType").value + '","DebitAcctNo":"' + document.getElementById("DebitAcctNo").value + '","DebitCurrency":"' + document.getElementById("DebitCurrency").value + '","DebitAmount":"' + document.getElementById("DebitAmount").value + '","CreditAcctNo":"' + document.getElementById("CreditAcctNo").value + '"}}',
       type: @model.method,
       contentType: @model.consumes,
       success: @successHandler,
