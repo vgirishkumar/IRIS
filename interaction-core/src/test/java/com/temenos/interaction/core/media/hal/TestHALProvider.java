@@ -85,9 +85,9 @@ public class TestHALProvider {
 		assertNotNull(entity.getProperties());
 		// string type
 		assertEquals("noah", entity.getProperties().getProperty("name").getValue());
-		// int type
+		// long type
 		// TODO handle non string entity properties
-		assertEquals("2", entity.getProperties().getProperty("age").getValue());
+		assertEquals(new Long(2), entity.getProperties().getProperty("age").getValue());
 	}
 
 	@SuppressWarnings("unchecked")

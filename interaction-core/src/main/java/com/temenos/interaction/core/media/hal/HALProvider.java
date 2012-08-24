@@ -197,25 +197,29 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
-					// create hal resource and add link for self
+					// create hal resource and add link for self - if there is one
 					Link itemSelfLink = findSelfLink(er.getLinks());
+					Representation subResource;
 					if (itemSelfLink != null) {
-						Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
-						for (Link el : er.getLinks()) {
-							String itemHref = el.getHref();
-							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
-							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
-								itemHref = el.getMethod() + " " + itemHref;
-							}
-							subResource.withLink(el.getRel(), itemHref);
-						}
-						// add properties to HAL sub resource
-						for (String key : propertyMap.keySet()) {
-							subResource.withProperty(key, propertyMap.get(key));
-						}
-						halResource.withRepresentation(rel, subResource);
+						subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
+					} 
+					else {
+						subResource = representationFactory.newRepresentation();
 					}
 					
+					for (Link el : er.getLinks()) {
+						String itemHref = el.getHref();
+						// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
+						if (el.getMethod() != null && !el.getMethod().equals("GET")) {
+							itemHref = el.getMethod() + " " + itemHref;
+						}
+						subResource.withLink(el.getRel(), itemHref);
+					}
+					// add properties to HAL sub resource
+					for (String key : propertyMap.keySet()) {
+						subResource.withProperty(key, propertyMap.get(key));
+					}
+					halResource.withRepresentation(rel, subResource);
 				}
 			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
 				@SuppressWarnings("unchecked")
@@ -392,7 +396,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			Map<String, Optional<Object>> halProperties = halResource.getProperties();
 			for (String propName : halProperties.keySet()) {
 				if (entityMetadata.getPropertyVocabulary(propName) != null) {
-					entityFields.setProperty(new EntityProperty(propName, halProperties.get(propName).get().toString()));
+					Object halValue = getHalPropertyValue(entityMetadata, propName, halProperties.get(propName).get());
+					entityFields.setProperty(new EntityProperty(propName, halValue));
 				}
 			}
 			return new Entity(entityName, entityFields);
@@ -427,4 +432,24 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		this.uriInfo = uriInfo;
 	}
 
+	private Object getHalPropertyValue( EntityMetadata entityMetadata, String propertyName, Object halPropertyValue )
+	{
+		String stringValue = halPropertyValue.toString();
+		Object typedValue;
+		
+		if ( entityMetadata.isPropertyText( propertyName ) )
+		{
+			typedValue = stringValue;
+		}
+		else if ( entityMetadata.isPropertyNumber( propertyName ) )
+		{
+			typedValue = Long.parseLong( stringValue );
+		}
+		else
+		{
+			typedValue = stringValue;
+		}
+		
+		return typedValue;
+	}
 }
