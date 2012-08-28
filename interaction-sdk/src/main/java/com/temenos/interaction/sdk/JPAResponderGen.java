@@ -87,12 +87,12 @@ public class JPAResponderGen {
 		
 		boolean ok = true;
 		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
-		EntityModel entityModel = new EntityModel();
 
 		//Make sure we have at least one entity container
 		if(ds.getSchemas().size() == 0 || ds.getSchemas().get(0).getEntityContainers().size() == 0) {
 			return false;
 		}
+		String entityContainerNamespace = ds.getSchemas().get(0).getEntityContainers().get(0).getName();
 		
 		// generate JPA classes
 		for (EdmEntityType t : ds.getEntityTypes()) {
@@ -166,6 +166,7 @@ public class JPAResponderGen {
 		}
 		
 		//Create the entity model
+		EntityModel entityModel = new EntityModel(entityContainerNamespace);
 		for (EdmEntityType entityType : ds.getEntityTypes()) {
 			List<String> keys = entityType.getKeys();
 			EMEntity emEntity = new EMEntity(entityType.getName());
@@ -185,7 +186,6 @@ public class JPAResponderGen {
 		}
 
 		// generate spring-beans.xml
-		String entityContainerNamespace = ds.getSchemas().get(0).getEntityContainers().get(0).getName();
 		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo, entityContainerNamespace, interactionModel))) {
 			ok = false;
 		}

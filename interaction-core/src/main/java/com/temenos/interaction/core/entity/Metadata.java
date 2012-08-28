@@ -9,7 +9,16 @@ import java.util.Map;
 public class Metadata  {
 	//Map of <Entity name, Entity metadata>
 	private Map<String, EntityMetadata> entitiesMetadata = new HashMap<String, EntityMetadata>();
+	private String modelName;
 
+	/**
+	 * Construct a new metadata object
+	 * @param modelName name of this model
+	 */
+	public Metadata(String modelName) {
+		this.modelName = modelName;
+	}
+	
 	/**
 	 * Returns the metadata of the specified entity
 	 * @param entityName Entity name
@@ -34,5 +43,13 @@ public class Metadata  {
 	 */
 	public Map<String, EntityMetadata> getEntitiesMetadata() {
 		return entitiesMetadata;
+	}
+
+	/**
+	 * Returns the name of the model
+	 * @return model name
+	 */
+	public String getModelName() {
+		return modelName;
 	}
 }

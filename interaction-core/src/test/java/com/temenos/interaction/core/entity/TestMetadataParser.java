@@ -26,6 +26,12 @@ public class TestMetadataParser {
 	}
 	
 	@Test
+	public void testModelName()
+	{	
+		Assert.assertEquals("CustomerServiceTest", metadata.getModelName());
+	}
+	
+	@Test
 	public void testPropertyVocabularyKeySet()
 	{	
 		Set<String> propertyKeys = metadata.getEntityMetadata("Customer").getPropertyVocabularyKeySet();

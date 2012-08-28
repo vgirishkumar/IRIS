@@ -9,8 +9,14 @@ import java.util.List;
 public class EntityModel {
 
 	private List<EMEntity> entities = new ArrayList<EMEntity>();
+	private String modelName;
 	
-	public EntityModel() {
+	public EntityModel(String modelName) {
+		this.modelName = modelName;
+	}
+	
+	public String getModelName() {
+		return modelName;
 	}
 	
 	public void addEntity(EMEntity entity) {

@@ -24,7 +24,7 @@ public class TestEntity {
 	@Test
 	public void testEntityVocabulary() {
 		//Define vocabulary for this entity
-		Metadata metadata = new Metadata();
+		Metadata metadata = new Metadata("CustomerServiceTest");
 		EntityMetadata vocs = new EntityMetadata("Customer");
 		Vocabulary voc = new Vocabulary();
 		voc.setTerm(new TermResourceManager("T24"));
@@ -68,7 +68,7 @@ public class TestEntity {
 	@Test
 	public void testComplexEntityVocabulary() {
 		//Define vocabulary for this entity
-		Metadata metadata = new Metadata();
+		Metadata metadata = new Metadata("CustomerServiceTest");
 		EntityMetadata vocs = new EntityMetadata("Customer");
 		Vocabulary vocAddress = new Vocabulary();
 		vocAddress.setTerm(new TermComplexType(true));
@@ -96,7 +96,7 @@ public class TestEntity {
 	@Test
 	public void testPropertyVocabularyKeySet() {
 		//Define vocabulary for this entity
-		Metadata metadata = new Metadata();
+		Metadata metadata = new Metadata("CustomerServiceTest");
 		EntityMetadata vocs = new EntityMetadata("Customer");
 		
 		Vocabulary vocName = new Vocabulary();

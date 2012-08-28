@@ -21,7 +21,7 @@ public class TestMetadata {
 	public static void setup()
 	{
 		//Define vocabulary for this entity
-		metadata = new Metadata();
+		metadata = new Metadata("Customers");
 		vocs = new EntityMetadata("Customer");
 				
 		Vocabulary vocName = new Vocabulary();

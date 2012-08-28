@@ -35,10 +35,10 @@ public class EdmTimeTemporalITCase {
 
 		EdmDataServices metadata = consumer.getMetadata();
 
-		Assert.assertEquals(EdmSimpleType.TIME,
+		Assert.assertEquals(EdmSimpleType.DATETIME,
 				metadata.findEdmEntitySet("FlightSchedule").getType()
 						.findProperty("departureTime").getType());
-		Assert.assertEquals(EdmSimpleType.TIME,
+		Assert.assertEquals(EdmSimpleType.DATETIME,
 				metadata.findEdmEntitySet("FlightSchedule").getType()
 						.findProperty("arrivalTime").getType());
 	}

@@ -152,7 +152,7 @@ public class TestHALProvider {
 		Vocabulary vocBody = new Vocabulary();
 		vocBody.setTerm(new TermValueType(TermValueType.NUMBER));
 		vocs.setPropertyVocabulary("age", vocBody);
-		Metadata metadata = new Metadata();
+		Metadata metadata = new Metadata("Family");
 		metadata.setEntityMetadata(vocs);
 		return metadata;
 	}

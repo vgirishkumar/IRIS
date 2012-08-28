@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.odata4j.edm.EdmDataServices;
+import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmType;
 
@@ -42,9 +43,9 @@ public class TestMetadataOData4j {
 	public void testCustomerEntity()
 	{	
 		EdmDataServices edmDataServices = metadataOdata4j.getMetadata();
-		EdmType type = edmDataServices.findEdmEntityType(MetadataOData4j.NAMESPACE + ".Customer");
+		EdmType type = edmDataServices.findEdmEntityType("CustomerServiceTestModel.Customer");
 		Assert.assertNotNull(type);
-		Assert.assertTrue(type.getFullyQualifiedTypeName().equals(MetadataOData4j.NAMESPACE + ".Customer"));
+		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("CustomerServiceTestModel.Customer"));
 		Assert.assertTrue(type instanceof EdmEntityType);
 		EdmEntityType entityType = (EdmEntityType) type;
 		Assert.assertEquals("Customer", entityType.getName());
@@ -60,15 +61,26 @@ public class TestMetadataOData4j {
 	}
 	
 	@Test
-	public void testAirlineEntities()
+	public void testAirlineEntityTypes()
 	{	
 		EdmDataServices edmDataServices = metadataAirlineOdata4j.getMetadata();
-		EdmType type = edmDataServices.findEdmEntityType(MetadataOData4j.NAMESPACE + ".FlightSchedule");
+		EdmType type = edmDataServices.findEdmEntityType("FlightResponderModel.FlightSchedule");
 		Assert.assertNotNull(type);
-		Assert.assertTrue(type.getFullyQualifiedTypeName().equals(MetadataOData4j.NAMESPACE + ".FlightSchedule"));
+		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("FlightResponderModel.FlightSchedule"));
 		Assert.assertTrue(type instanceof EdmEntityType);
 		EdmEntityType entityType = (EdmEntityType) type;
 		Assert.assertEquals("FlightSchedule", entityType.getName());
 		Assert.assertEquals(false, entityType.findProperty("flightScheduleID").isNullable());
+	}
+
+	@Test
+	public void testAirlineEntitySets()
+	{	
+		EdmDataServices edmDataServices = metadataAirlineOdata4j.getMetadata();
+		Assert.assertEquals(1, edmDataServices.getSchemas().size());
+		Assert.assertEquals(1, edmDataServices.getSchemas().get(0).getEntityContainers().size());
+		Assert.assertEquals(3, edmDataServices.getSchemas().get(0).getEntityContainers().get(0).getEntitySets().size());
+		EdmEntitySet entitySetFlightSchedule = edmDataServices.findEdmEntitySet("FlightSchedule");
+		Assert.assertEquals("FlightSchedule", entitySetFlightSchedule.getName());
 	}
 }

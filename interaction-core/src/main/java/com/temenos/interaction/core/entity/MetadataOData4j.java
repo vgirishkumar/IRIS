@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.odata4j.core.ODataVersion;
-import org.odata4j.core.PrefixedNamespace;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmDataServices.Builder;
 import org.odata4j.edm.EdmEntityContainer;
@@ -24,8 +23,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
  * This class converts a Metadata structure to odata4j's EdmDataServices.
  */
 public class MetadataOData4j {
-	public final static String NAMESPACE = "com.iris.metadata";
-	public final static String SERVICE_NAME = "FlightResponder";
+	public final static String MODEL_SUFFIX = "Model";
 	
 	private EdmDataServices edmDataServices;
 
@@ -52,6 +50,8 @@ public class MetadataOData4j {
 	 * @return Merged EDM metadata
 	 */
 	public EdmDataServices createOData4jMetadata(Metadata metadata) {
+		String serviceName = metadata.getModelName();
+		String namespace = serviceName + MODEL_SUFFIX;
 		Builder mdBuilder = EdmDataServices.newBuilder();
 	    List<EdmSchema.Builder> bSchemas = new ArrayList<EdmSchema.Builder>();
     	EdmSchema.Builder bSchema = new EdmSchema.Builder();
@@ -68,6 +68,9 @@ public class MetadataOData4j {
 	    		if(type.equals(TermValueType.NUMBER)) {
 	    			 edmType = EdmSimpleType.INT64;
 	    		}
+	    		else if(type.equals(TermValueType.TIMESTAMP)) {
+	    			edmType = EdmSimpleType.DATETIME;
+	    		}
 	    		else {
 	    			edmType = EdmSimpleType.STRING;
 	    		}
@@ -81,23 +84,21 @@ public class MetadataOData4j {
 					keys.add(propertyName);					
 				}
 	    	}
-			EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(NAMESPACE).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
+			//Add entity type
+			EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
     		bEntityTypes.add(bEntityType);
 	    	
-	    	//Create entityContainer builders
-    		EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(SERVICE_NAME).setEntityType(bEntityType);
+	    	//Add entity set
+    		EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(entityMetadata.getEntityName()).setEntityType(bEntityType);
     		bEntitySets.add(bEntitySet);
 		}
-		EdmEntityContainer.Builder bEntityContainer = EdmEntityContainer.newBuilder().setName(SERVICE_NAME).addEntitySets(bEntitySets);
+		EdmEntityContainer.Builder bEntityContainer = EdmEntityContainer.newBuilder().setName(serviceName).addEntitySets(bEntitySets);
 		bEntityContainers.add(bEntityContainer);
 
-    	bSchema.setNamespace(NAMESPACE).setAlias(SERVICE_NAME).addEntityTypes(bEntityTypes).addEntityContainers(bEntityContainers);
+    	bSchema.setNamespace(namespace).setAlias(serviceName).addEntityTypes(bEntityTypes).addEntityContainers(bEntityContainers);
     	bSchemas.add(bSchema);
 
-		List<PrefixedNamespace> bNamespaces = new ArrayList<PrefixedNamespace>();
-    	bNamespaces.add(new PrefixedNamespace("metadata", "com.iris"));
-    	
-	    mdBuilder.addSchemas(bSchemas).addNamespaces(bNamespaces);
+	    mdBuilder.addSchemas(bSchemas);
 		mdBuilder.setVersion(ODataVersion.V1);
 
 		//Build the EDM metadata
