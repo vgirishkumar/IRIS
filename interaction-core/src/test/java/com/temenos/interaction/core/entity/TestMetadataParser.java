@@ -35,16 +35,9 @@ public class TestMetadataParser {
 	public void testPropertyVocabularyKeySet()
 	{	
 		Set<String> propertyKeys = metadata.getEntityMetadata("Customer").getPropertyVocabularyKeySet();
-		Assert.assertEquals(10, propertyKeys.size());
+		Assert.assertEquals(12, propertyKeys.size());
 		Assert.assertTrue(propertyKeys.contains("name"));
-		Assert.assertTrue(propertyKeys.contains("address"));
-		Assert.assertTrue(propertyKeys.contains("number"));
-		Assert.assertTrue(propertyKeys.contains("street"));
 		Assert.assertTrue(propertyKeys.contains("streetType"));
-		Assert.assertTrue(propertyKeys.contains("town"));
-		Assert.assertTrue(propertyKeys.contains("postCode"));
-		Assert.assertTrue(propertyKeys.contains("dateOfBirth"));
-		Assert.assertTrue(propertyKeys.contains("sector"));
 		Assert.assertTrue(propertyKeys.contains("industry"));
 	}
 	
@@ -91,7 +84,7 @@ public class TestMetadataParser {
 		Assert.assertTrue(md.isPropertyText("streetType"));
 		Assert.assertTrue(md.isPropertyText("town"));
 		Assert.assertTrue(md.isPropertyText("postCode"));
-		Assert.assertTrue(md.isPropertyText("dateOfBirth"));
+		Assert.assertFalse(md.isPropertyText("dateOfBirth"));
 		Assert.assertTrue(md.isPropertyText("sector"));
 		Assert.assertTrue(md.isPropertyText("industry"));
 	}
@@ -110,13 +103,15 @@ public class TestMetadataParser {
 		Assert.assertFalse(md.isPropertyNumber("dateOfBirth"));
 		Assert.assertFalse(md.isPropertyNumber("sector"));
 		Assert.assertFalse(md.isPropertyNumber("industry"));
+		Assert.assertFalse(md.isPropertyNumber("loyal"));
+		Assert.assertTrue(md.isPropertyNumber("loyalty_rating"));
 	}
 	
 	@Test
 	public void testGetTermValue()
 	{		
 		EntityMetadata md = metadata.getEntityMetadata("Customer");
-		Assert.assertEquals(TermValueType.NUMBER, md.getTermValue("number", TermValueType.TERM_NAME));
+		Assert.assertEquals(TermValueType.INTEGER_NUMBER, md.getTermValue("number", TermValueType.TERM_NAME));
 		Assert.assertEquals(TermValueType.TEXT, md.getTermValue("sector", TermValueType.TERM_NAME));
 		Assert.assertEquals("false", md.getTermValue("sector", TermMandatory.TERM_NAME));
 		Assert.assertEquals("true", md.getTermValue("dateOfBirth", TermMandatory.TERM_NAME));

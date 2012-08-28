@@ -66,10 +66,16 @@ public class MetadataOData4j {
 	    		String type = entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME);
 	    		EdmType edmType;
 	    		if(type.equals(TermValueType.NUMBER)) {
+	    			 edmType = EdmSimpleType.DOUBLE;
+	    		}
+	    		else if(type.equals(TermValueType.INTEGER_NUMBER)) {
 	    			 edmType = EdmSimpleType.INT64;
 	    		}
 	    		else if(type.equals(TermValueType.TIMESTAMP)) {
 	    			edmType = EdmSimpleType.DATETIME;
+	    		}
+	    		else if(type.equals(TermValueType.BOOLEAN)) {
+	    			edmType = EdmSimpleType.BOOLEAN;
 	    		}
 	    		else {
 	    			edmType = EdmSimpleType.STRING;

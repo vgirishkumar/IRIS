@@ -9,7 +9,7 @@
 		</Property>
 		<Property Name="address">
 			<Property Name="number">
-				<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+				<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
 			</Property>
 			<Property Name="street">
 				<Property Name="streetType" />
@@ -19,8 +19,15 @@
 		</Property>
 		<Property Name="dateOfBirth" >
 			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
 		</Property>
 		<Property Name="sector" />
 		<Property Name="industry" />
+		<Property Name="loyal" >
+			<Term Name="TERM_VALUE_TYPE">BOOLEAN</Term>
+		</Property>
+		<Property Name="loyalty_rating" >
+			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+		</Property>
 	</Entity>
 </Metadata>

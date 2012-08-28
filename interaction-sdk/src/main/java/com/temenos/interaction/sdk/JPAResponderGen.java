@@ -295,6 +295,12 @@ public class JPAResponderGen {
 			javaType = "java.util.Date";
 		} else if (EdmSimpleType.DECIMAL == type) {
 			javaType = "java.math.BigDecimal";
+		} else if (EdmSimpleType.SINGLE == type) {
+			javaType = "Float";
+		} else if (EdmSimpleType.DOUBLE == type) {
+			javaType = "Double";
+		} else if (EdmSimpleType.BOOLEAN == type) {
+			javaType = "Boolean";
 		} else if (EdmSimpleType.GUID == type) {
 			javaType = "String";
 		} else if (EdmSimpleType.BINARY == type) {
@@ -323,9 +329,16 @@ public class JPAResponderGen {
 		}
 		else if (type.equals(EdmSimpleType.INT64) || 
 				 type.equals(EdmSimpleType.INT32) ||
-				 type.equals(EdmSimpleType.INT16) ||
+				 type.equals(EdmSimpleType.INT16)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.INTEGER_NUMBER));
+		}
+		else if (type.equals(EdmSimpleType.SINGLE) || 
+				 type.equals(EdmSimpleType.DOUBLE) ||
 				 type.equals(EdmSimpleType.DECIMAL)) {
 			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.NUMBER));
+		}
+		else if (type.equals(EdmSimpleType.BOOLEAN)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.BOOLEAN));
 		}
 		return emProperty;
 	}	

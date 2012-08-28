@@ -14,7 +14,7 @@
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
-	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 	
 	<!-- Producers -->
 	<bean id="mockProducer" class="org.odata4j.producer.jpa.JPAProducer">

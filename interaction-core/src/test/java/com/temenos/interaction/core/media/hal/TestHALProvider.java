@@ -150,7 +150,7 @@ public class TestHALProvider {
 		vocId.setTerm(new TermValueType(TermValueType.TEXT));
 		vocs.setPropertyVocabulary("name", vocId);
 		Vocabulary vocBody = new Vocabulary();
-		vocBody.setTerm(new TermValueType(TermValueType.NUMBER));
+		vocBody.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
 		vocs.setPropertyVocabulary("age", vocBody);
 		Metadata metadata = new Metadata("Family");
 		metadata.setEntityMetadata(vocs);

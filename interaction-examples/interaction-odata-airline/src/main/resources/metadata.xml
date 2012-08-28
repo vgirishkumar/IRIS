@@ -15,7 +15,7 @@
 		<Property Name="departureAirportCode" />
 		<Property Name="flightScheduleID">
 			<Term Name="TERM_MANDATORY">true</Term>
-			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
 			<Term Name="TERM_ID_FIELD">true</Term>
 		</Property>
 		<Property Name="firstDeparture">
@@ -36,7 +36,7 @@
 	<Entity Name="Flight">
 		<Property Name="flightID">
 			<Term Name="TERM_MANDATORY">true</Term>
-			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
 			<Term Name="TERM_ID_FIELD">true</Term>
 		</Property>
 		<Property Name="takeoffTime">
