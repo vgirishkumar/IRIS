@@ -52,10 +52,9 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
-import com.theoryinpractise.halbuilder.ResourceFactory;
-import com.theoryinpractise.halbuilder.spi.ReadableResource;
-import com.theoryinpractise.halbuilder.spi.Resource;
-import com.theoryinpractise.halbuilder.spi.ResourceException;
+import com.theoryinpractise.halbuilder.RepresentationFactory;
+import com.theoryinpractise.halbuilder.spi.ReadableRepresentation;
+import com.theoryinpractise.halbuilder.spi.Representation;
 
 @Provider
 @Consumes({com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
@@ -126,8 +125,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
 		// create the hal resource
-		ResourceFactory resourceFactory = new ResourceFactory(uriInfo.getBaseUri().toASCIIString());
-		Resource halResource = resourceFactory.newResource("");
+        RepresentationFactory representationFactory = new RepresentationFactory(uriInfo.getBaseUri().toASCIIString());
+        Representation halResource = representationFactory.newRepresentation("");
 		if (resource.getGenericEntity() != null) {
 			RESTResource rResource = (RESTResource) resource.getGenericEntity().getEntity();
 
@@ -137,7 +136,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			
 			// build the HAL representation with self link
 			if (selfLink != null)
-				halResource = resourceFactory.newResource(selfLink.getHref());
+				halResource = representationFactory.newRepresentation(selfLink.getHref());
 
 			// add our links
 			if (links != null) {
@@ -148,8 +147,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					if (l.getMethod() != null && !l.getMethod().equals("GET")) {
 						href = l.getMethod() + " " + href;
 					}
-					halResource.withLink(href, l.getRel(), 
-							Optional.<Predicate<ReadableResource>>absent(), Optional.of(l.getId()), Optional.of(l.getTitle()), Optional.<String>absent());
+					halResource.withLink(l.getRel(), href, 
+							Optional.<Predicate<ReadableRepresentation>>absent(), Optional.of(l.getId()), Optional.of(l.getTitle()), Optional.<String>absent());
 				}
 			}
 			
@@ -185,27 +184,27 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<OEntity> er : entities) {
 					OEntity entity = er.getEntity();
 					// the subresource is a collection
-					String rel = "collection " + cr.getEntityName();
+					String rel = "collection." + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
 					// create hal resource and add link for self
 					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
-						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());
+						Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
 						for (Link el : er.getLinks()) {
 							String itemHref = el.getHref();
 							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
 								itemHref = el.getMethod() + " " + itemHref;
 							}
-							subResource.withLink(itemHref, el.getRel());
+							subResource.withLink(el.getRel(), itemHref);
 						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {
 							subResource.withProperty(key, propertyMap.get(key));
 						}
-						halResource.withSubresource(rel, subResource);
+						halResource.withRepresentation(rel, subResource);
 					}
 					
 				}
@@ -216,28 +215,28 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				for (EntityResource<Object> er : entities) {
 					Object entity = er.getEntity();
 					// the subresource is part of a collection (maybe this link rel should be an 'item')
-					String rel = "collection " + cr.getEntityName();
+					String rel = "collection." + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromBean(propertyMap, entity, cr.getEntityName());
 					// create hal resource and add link for self
 					Link itemSelfLink = findSelfLink(er.getLinks());
 					if (itemSelfLink != null) {
-						Resource subResource = resourceFactory.newResource(itemSelfLink.getHref());
+						Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
 						for (Link el : er.getLinks()) {
 							String itemHref = el.getHref();
 							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
 							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
 								itemHref = el.getMethod() + " " + itemHref;
 							}
-							subResource.withLink(itemHref, el.getRel(), 
-									Optional.<Predicate<ReadableResource>>absent(), Optional.of(el.getId()), Optional.of(el.getTitle()), Optional.<String>absent());
+							subResource.withLink(el.getRel(), itemHref, 
+									Optional.<Predicate<ReadableRepresentation>>absent(), Optional.of(el.getId()), Optional.of(el.getTitle()), Optional.<String>absent());
 						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {
 							subResource.withProperty(key, propertyMap.get(key));
 						}
-						halResource.withSubresource(rel, subResource);
+						halResource.withRepresentation(rel, subResource);
 					}
 					
 				}
@@ -251,9 +250,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				
 		String representation = null;
 		if (halResource != null && mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
-			representation = halResource.renderContent(ResourceFactory.HAL_XML);
+			representation = halResource.renderContent(RepresentationFactory.HAL_XML);
 		} else if (halResource != null && mediaType.isCompatible(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
-			representation = halResource.renderContent(ResourceFactory.HAL_JSON);
+			representation = halResource.renderContent(RepresentationFactory.HAL_JSON);
 		} else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
@@ -356,10 +355,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		try {
 			// create the hal resource
 			String baseUri = uriInfo.getBaseUri().toASCIIString();
-			ResourceFactory resourceFactory = new ResourceFactory(baseUri);
-			ReadableResource halResource = resourceFactory.readResource(new InputStreamReader(entityStream));
+			RepresentationFactory representationFactory = new RepresentationFactory(baseUri);
+			ReadableRepresentation halResource = representationFactory.readRepresentation(new InputStreamReader(entityStream));
 			// get the entity name
-			String resourcePath = halResource.getResourceLink().getHref();
+			String resourcePath = halResource.getResourceLink().get().getHref();
 			if (resourcePath.length() > baseUri.length())
 				resourcePath = resourcePath.substring(baseUri.length() - 1);
 			String entityName = getEntityName(resourcePath);
@@ -376,9 +375,6 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			}
 			return new Entity(entityName, entityFields);
 		} catch (IllegalStateException e) {
-			logger.warn("Malformed request from client", e);
-			throw new WebApplicationException(Status.BAD_REQUEST);
-		} catch (ResourceException e) {
 			logger.warn("Malformed request from client", e);
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}

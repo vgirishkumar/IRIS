@@ -16,8 +16,8 @@ import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.theoryinpractise.halbuilder.ResourceFactory;
-import com.theoryinpractise.halbuilder.spi.ReadableResource;
+import com.theoryinpractise.halbuilder.RepresentationFactory;
+import com.theoryinpractise.halbuilder.spi.ReadableRepresentation;
 
 public class NewNoteITCase extends JerseyTest {
 
@@ -113,7 +113,7 @@ public class NewNoteITCase extends JerseyTest {
         ClientResponse getResponse = webResource.path(newNoteUri).type(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).accept(com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML).get(ClientResponse.class);
         InputStream getRespIS = getResponse.getEntityInputStream();
         
-        ReadableResource halResource = new ResourceFactory().readResource(new InputStreamReader(getRespIS));
+        ReadableRepresentation halResource = new RepresentationFactory().readRepresentation(new InputStreamReader(getRespIS));
         String lastIdStr = halResource.get("lastId").get().toString();
         long lastId = Long.valueOf(lastIdStr).longValue();
  

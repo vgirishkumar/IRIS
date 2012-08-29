@@ -29,9 +29,16 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
+import com.temenos.interaction.sdk.entity.EMEntity;
+import com.temenos.interaction.sdk.entity.EMProperty;
+import com.temenos.interaction.sdk.entity.EMTerm;
+import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end
@@ -47,6 +54,7 @@ public class JPAResponderGen {
 	private final static String SPRING_CONFIG_FILE = "spring-beans.xml";
 	private final static String RESPONDER_INSERT_FILE = "responder_insert.sql";
 	private final static String BEHAVIOUR_CLASS_FILE = "Behaviour.java";
+	private final static String METADATA_FILE = "metadata.xml";
 
 	/*
 	 *  create a new instance of the engine
@@ -84,6 +92,7 @@ public class JPAResponderGen {
 		if(ds.getSchemas().size() == 0 || ds.getSchemas().get(0).getEntityContainers().size() == 0) {
 			return false;
 		}
+		String entityContainerNamespace = ds.getSchemas().get(0).getEntityContainers().get(0).getName();
 		
 		// generate JPA classes
 		for (EdmEntityType t : ds.getEntityTypes()) {
@@ -108,6 +117,10 @@ public class JPAResponderGen {
 			entityFeedInfo.setFeedEntity();		//This is a feed of OEntities and should not exist as a JPA entity 
 			resourcePath = "GET+/" + entityFeedInfo.getClazz();
 			commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
+			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
+
+			resourcePath = "POST+/" + entityFeedInfo.getClazz();
+			commandType = "com.temenos.interaction.commands.odata.CreateEntityCommand"; 
 			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
 		}
 		
@@ -152,13 +165,27 @@ public class JPAResponderGen {
 			}			
 		}
 		
+		//Create the entity model
+		EntityModel entityModel = new EntityModel(entityContainerNamespace);
+		for (EdmEntityType entityType : ds.getEntityTypes()) {
+			List<String> keys = entityType.getKeys();
+			EMEntity emEntity = new EMEntity(entityType.getName());
+			for (EdmProperty prop : entityType.getProperties()) {
+				EMProperty emProp = createEMProperty(prop);
+				if(keys.contains(prop.getName())) {
+					emProp.addVocabularyTerm(new EMTerm(TermIdField.TERM_NAME, "true"));
+				}
+				emEntity.addProperty(emProp);
+			}
+			entityModel.addEntity(emEntity);
+		}
+		
 		// generate persistence.xml
 		if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(resourcesInfo))) {
 			ok = false;
 		}
 
 		// generate spring-beans.xml
-		String entityContainerNamespace = ds.getSchemas().get(0).getEntityContainers().get(0).getName();
 		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo, entityContainerNamespace, interactionModel))) {
 			ok = false;
 		}
@@ -171,6 +198,11 @@ public class JPAResponderGen {
 		// generate Behaviour class
 		String behaviourFilePath = srcOutputPath + "/" + entityContainerNamespace.replace(".", "/") + "Model/" + BEHAVIOUR_CLASS_FILE;
 		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(entityContainerNamespace, interactionModel))) {
+			ok = false;
+		}
+
+		// generate metadata.xml
+		if (!writeMetadata(configOutputPath, generateMetadata(entityModel))) {
 			ok = false;
 		}
 		
@@ -263,6 +295,12 @@ public class JPAResponderGen {
 			javaType = "java.util.Date";
 		} else if (EdmSimpleType.DECIMAL == type) {
 			javaType = "java.math.BigDecimal";
+		} else if (EdmSimpleType.SINGLE == type) {
+			javaType = "Float";
+		} else if (EdmSimpleType.DOUBLE == type) {
+			javaType = "Double";
+		} else if (EdmSimpleType.BOOLEAN == type) {
+			javaType = "Boolean";
 		} else if (EdmSimpleType.GUID == type) {
 			javaType = "String";
 		} else if (EdmSimpleType.BINARY == type) {
@@ -274,6 +312,36 @@ public class JPAResponderGen {
 		return javaType;
 	}
 	
+	/*
+	 * Create a property with vocabulary term from the Edmx property 
+	 */
+	private EMProperty createEMProperty(EdmProperty property) {
+		EMProperty emProperty = new EMProperty(property.getName());
+		if(property.isNullable()) {
+			emProperty.addVocabularyTerm(new EMTerm(TermMandatory.TERM_NAME, "true"));
+		}
+		
+		//Set the value type vocabulary term
+		EdmType type = property.getType();
+		if (type.equals(EdmSimpleType.DATETIME) || 
+			type.equals(EdmSimpleType.TIME)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.TIMESTAMP));
+		}
+		else if (type.equals(EdmSimpleType.INT64) || 
+				 type.equals(EdmSimpleType.INT32) ||
+				 type.equals(EdmSimpleType.INT16)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.INTEGER_NUMBER));
+		}
+		else if (type.equals(EdmSimpleType.SINGLE) || 
+				 type.equals(EdmSimpleType.DOUBLE) ||
+				 type.equals(EdmSimpleType.DECIMAL)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.NUMBER));
+		}
+		else if (type.equals(EdmSimpleType.BOOLEAN)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.BOOLEAN));
+		}
+		return emProperty;
+	}	
 
 	private boolean writeJPAConfiguration(File sourceDir, String generatedPersistenceXML) {
 		FileOutputStream fos = null;
@@ -360,6 +428,28 @@ public class JPAResponderGen {
 		}
 		return true;
 	}
+
+	private boolean writeMetadata(File sourceDir, String generatedMetadata) {
+		FileOutputStream fos = null;
+		try {
+			File metaInfDir = new File(sourceDir.getPath());
+			metaInfDir.mkdirs();
+			fos = new FileOutputStream(new File(metaInfDir, METADATA_FILE));
+			fos.write(generatedMetadata.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO add slf4j logger here
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				// don't hide original exception
+			}
+		}
+		return true;
+	}
 	
 	/**
 	 * Generate a JPA Entity from the provided info
@@ -405,6 +495,7 @@ public class JPAResponderGen {
 	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace, InteractionModel interactionModel) {
 		VelocityContext context = new VelocityContext();
 		context.put("resourcesInfo", resourcesInfo);
+		context.put("entityContainerNamespace", entityContainerNamespace);
 		context.put("behaviourClass", entityContainerNamespace + ".Behaviour");
 		context.put("interactionModel", interactionModel);
 		
@@ -440,6 +531,21 @@ public class JPAResponderGen {
 		context.put("interactionModel", interactionModel);
 		
 		Template t = ve.getTemplate("/behaviour.vm");
+		StringWriter sw = new StringWriter();
+		t.merge(context, sw);
+		return sw.toString();
+	}
+
+	/**
+	 * Generate the metadata file
+	 * @param entityModel The entity model
+	 * @return The generated metadata
+	 */
+	public String generateMetadata(EntityModel entityModel) {
+		VelocityContext context = new VelocityContext();
+		context.put("entityModel", entityModel);
+		
+		Template t = ve.getTemplate("/metadata.vm");
 		StringWriter sw = new StringWriter();
 		t.merge(context, sw);
 		return sw.toString();

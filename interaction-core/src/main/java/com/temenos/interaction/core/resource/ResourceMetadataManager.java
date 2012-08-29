@@ -1,17 +1,14 @@
 package com.temenos.interaction.core.resource;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import org.odata4j.edm.EdmDataServices;
-import org.odata4j.format.xml.EdmxFormatParser;
-import org.odata4j.internal.InternalUtil;
-import org.odata4j.stax2.XMLEventReader2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.MetadataOData4j;
+import com.temenos.interaction.core.entity.MetadataParser;
 
 
 /**
@@ -20,33 +17,34 @@ import com.temenos.interaction.core.entity.Metadata;
 public class ResourceMetadataManager {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceMetadataManager.class);
 
-	private final static String EDMX_FILENAME = "service.edmx";
+	private final static String METADATA_XML_FILE = "metadata.xml";
+
 	private EdmDataServices edmMetadata = null;
-	
 	private Metadata metadata = null;
 
 	/**
-	 * Construct the odata metadata object
+	 * Construct the metadata object
 	 */
 	public ResourceMetadataManager(Metadata metadata)
 	{
 		this.metadata = metadata;
-		edmMetadata = parseEdmx();
+		edmMetadata = populateOData4jMetadata(metadata);
 	}
 
 	/**
-	 * Construct the odata metadata object
+	 * Construct the metadata object
 	 */
 	public ResourceMetadataManager()
 	{
-		edmMetadata = parseEdmx();
+		metadata = parseMetadataXML();
+		edmMetadata = populateOData4jMetadata(metadata);
 	}
-	
+
 	/**
 	 * Return the entity model metadata
 	 * @return metadata
 	 */
-	public Metadata getResourceMetadata() {
+	public Metadata getMetadata() {
 		return this.metadata;
 	}
 	
@@ -54,26 +52,39 @@ public class ResourceMetadataManager {
 	 * Return the odata4j metadata
 	 * @return metadata
 	 */
-	public EdmDataServices getMetadata() {
+	public EdmDataServices getOData4jMetadata() {
 		return this.edmMetadata;
 	}
 
 	/*
-	 * Parse the EDMX file
+	 * Parse the XML metadata file
 	 */
-	protected EdmDataServices parseEdmx() {
+	protected Metadata parseMetadataXML() {
 		try {
-			InputStream is = getClass().getClassLoader().getResourceAsStream(EDMX_FILENAME);
+			InputStream is = getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
 			if(is == null) {
-				throw new Exception("Unable to load resource from classpath.");
+				throw new Exception("Unable to load " + METADATA_XML_FILE + " from classpath.");
 			}
-			XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(is))); 
-			return new EdmxFormatParser().parseMetadata(reader);
+			return new MetadataParser().parse(is);
 		}
 		catch(Exception e) {
-			logger.error("Failed to parse EDMX file " + EDMX_FILENAME + ": " + e.getMessage());
+			logger.error("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
 			e.printStackTrace();
-			throw new RuntimeException("Failed to parse EDMX file " + EDMX_FILENAME + ": " + e.getMessage());
+			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
 		}
+	}
+
+	/*
+	 * Load the metadata from the metadata.xml file.
+	 */
+	protected EdmDataServices populateOData4jMetadata(Metadata metadata) {
+		EdmDataServices edmMetadata;
+		try {
+			edmMetadata = new MetadataOData4j(metadata).getMetadata();
+		}
+		catch(Exception e) {
+			throw new RuntimeException("Failed to create odata4j metadata: " + e.getMessage());
+		}
+		return edmMetadata;
 	}
 }

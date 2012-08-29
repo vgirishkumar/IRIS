@@ -51,14 +51,6 @@
 					</reportPlugins>
 				</configuration>
 			</plugin>
-			<!--  Skip the deployment -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<configuration>
-						<skip>true</skip>
-				</configuration>
-			</plugin>
 			<!-- Put the irisVersion into the archetype-metadata.xml, simple resources filter 
 			doesn't work because some of the resources contain tokens that are escaped (not filtered)
 			by the archetype packager -->

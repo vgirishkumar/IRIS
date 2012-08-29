@@ -3,6 +3,7 @@ package com.interaction.example.hateoas.simple;
 import static org.junit.Assert.*;
 
 import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -15,10 +16,9 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.core.media.hal.MediaType;
-import com.theoryinpractise.halbuilder.ResourceFactory;
+import com.theoryinpractise.halbuilder.RepresentationFactory;
 import com.theoryinpractise.halbuilder.spi.Link;
-import com.theoryinpractise.halbuilder.spi.ReadableResource;
-import com.theoryinpractise.halbuilder.spi.Resource;
+import com.theoryinpractise.halbuilder.spi.ReadableRepresentation;
 
 /**
  * This test ensures that we can navigate from one application state
@@ -48,8 +48,8 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(4, links.size());
@@ -73,8 +73,8 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -90,9 +90,9 @@ public class HypermediaITCase extends JerseyTest {
 		}
 		
 		// the items, and links on each item
-		List<Resource> subresources = resource.getResources();
+		Collection<ReadableRepresentation> subresources = resource.getResources().values();
 		assertNotNull(subresources);
-		for (Resource item : subresources) {
+		for (ReadableRepresentation item : subresources) {
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(2, itemLinks.size());
 			for (Link link : itemLinks) {
@@ -122,18 +122,18 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
-		List<Resource> subresources = resource.getResources();
+		Collection<ReadableRepresentation> subresources = resource.getResources().values();
 		assertNotNull(subresources);
 		
 		// follow the link to delete the first in the collection
 		if (subresources.size() == 0) {
 			// we might have run the integration tests more times than we have rows in our table
 		} else {
-			Resource item = subresources.get(0);
+			ReadableRepresentation item = subresources.iterator().next();
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
@@ -166,18 +166,18 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
-		List<Resource> subresources = resource.getResources();
+		Collection<ReadableRepresentation> subresources = resource.getResources().values();
 		assertNotNull(subresources);
 		
 		// follow the link to delete the first in the collection
 		if (subresources.size() == 0) {
 			// we might have run the integration tests more times than we have rows in our table
 		} else {
-			Resource item = subresources.get(0);
+			ReadableRepresentation item = subresources.iterator().next();
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
@@ -207,18 +207,18 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
-		ResourceFactory resourceFactory = new ResourceFactory();
-		ReadableResource resource = resourceFactory.readResource(new InputStreamReader(response.getEntityInputStream()));
+		RepresentationFactory representationFactory = new RepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
-		List<Resource> subresources = resource.getResources();
+		Collection<ReadableRepresentation> subresources = resource.getResources().values();
 		assertNotNull(subresources);
 		
 		// follow the link to delete the first in the collection
 		if (subresources.size() == 0) {
 			// we might have run the integration tests more times than we have rows in our table
 		} else {
-			Resource item = subresources.get(0);
+			ReadableRepresentation item = subresources.iterator().next();
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(2, itemLinks.size());
 			
@@ -234,7 +234,7 @@ public class HypermediaITCase extends JerseyTest {
 			ClientResponse getResponse = Client.create().resource(getLink.getHref()).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
 	        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(getResponse.getStatus()).getFamily());
 			// the item
-			ReadableResource itemResource = resourceFactory.readResource(new InputStreamReader(getResponse.getEntityInputStream()));
+			ReadableRepresentation itemResource = representationFactory.readRepresentation(new InputStreamReader(getResponse.getEntityInputStream()));
 			List<Link> links = itemResource.getLinks();
 			assertNotNull(links);
 			assertEquals(3, links.size());

@@ -10,7 +10,7 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 public class Behaviour {
 
 	// the entity that stores users
-	private final static String USER_ENTITY_NAME = "user";
+	private final static String USER_ENTITY_NAME = "User";
 
 	public ResourceState getInteractionModel() {
 		// this will be the service root

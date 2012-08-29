@@ -110,6 +110,24 @@ public class TestHALProvider {
 
 	@SuppressWarnings("unchecked")
 	@Test
+	public void testDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException {
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("mockChild", "initial", "/children"));
+		HALProvider hp = new HALProvider(mock(EdmDataServices.class), createMockChildVocabMetadata(), sm);
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+
+		String strEntityStream = "{ \"_links\": { \"self\": { \"href\": \"http://www.temenos.com/rest.svc/children\" } }, \"name\": \"noah\", \"age\": 2 }";
+		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
+		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
+		assertNotNull(er.getEntity());
+		Entity entity = er.getEntity();
+		assertEquals("mockChild", entity.getName());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
 	public void testDeserialiseResolveEntityNameWithId() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("mockChild", "initial", "/children/{id}", "id", null));
 		HALProvider hp = new HALProvider(mock(EdmDataServices.class), createMockChildVocabMetadata(), sm);
@@ -127,15 +145,15 @@ public class TestHALProvider {
 	}
 
 	private Metadata createMockChildVocabMetadata() {
-		EntityMetadata vocs = new EntityMetadata();
+		EntityMetadata vocs = new EntityMetadata("mockChild");
 		Vocabulary vocId = new Vocabulary();
 		vocId.setTerm(new TermValueType(TermValueType.TEXT));
 		vocs.setPropertyVocabulary("name", vocId);
 		Vocabulary vocBody = new Vocabulary();
-		vocBody.setTerm(new TermValueType(TermValueType.NUMBER));
+		vocBody.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
 		vocs.setPropertyVocabulary("age", vocBody);
-		Metadata metadata = new Metadata();
-		metadata.setEntityMetadata("mockChild", vocs);
+		Metadata metadata = new Metadata("Family");
+		metadata.setEntityMetadata(vocs);
 		return metadata;
 	}
 	
@@ -202,7 +220,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, CollectionResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/children/1\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/2\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/3\" rel=\"Children collection self\"><age>2</age><name>noah</name></resource></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/children/1\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/2\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/3\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);

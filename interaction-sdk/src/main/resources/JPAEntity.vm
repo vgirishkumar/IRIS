@@ -12,6 +12,9 @@ import javax.persistence.TemporalType;
 public class $jpaentity.getClazz() {
 
 	@Id
+#if ($jpaentity.getKeyInfo().getType().equals("Long")) 
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+#end
 	@Basic(optional = false)
 	private $jpaentity.getKeyInfo().getType() $jpaentity.getKeyInfo().getName();
 

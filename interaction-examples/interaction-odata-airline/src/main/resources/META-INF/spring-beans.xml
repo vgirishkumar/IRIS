@@ -13,12 +13,12 @@
 	
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
-	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 
 	<!-- MockResponder JPA Producer -->
 	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />
-		<constructor-arg name="namespace" value="MockResponderSDK" />		
+		<constructor-arg name="namespace" value="FlightResponder" />		
 		<constructor-arg name="maxResults" value="100" />				
 	</bean>
 	

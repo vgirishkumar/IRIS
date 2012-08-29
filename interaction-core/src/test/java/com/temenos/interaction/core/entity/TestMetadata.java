@@ -21,8 +21,8 @@ public class TestMetadata {
 	public static void setup()
 	{
 		//Define vocabulary for this entity
-		metadata = new Metadata();
-		vocs = new EntityMetadata();
+		metadata = new Metadata("Customers");
+		vocs = new EntityMetadata("Customer");
 				
 		Vocabulary vocName = new Vocabulary();
 		vocName.setTerm(new TermComplexType(false));
@@ -34,7 +34,7 @@ public class TestMetadata {
 		
 		Vocabulary vocNumbert = new Vocabulary();
 		vocNumbert.setTerm(new TermComplexGroup("address"));
-		vocNumbert.setTerm(new TermValueType(TermValueType.NUMBER));
+		vocNumbert.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
 		vocs.setPropertyVocabulary("number", vocNumbert);
 		
 		Vocabulary vocStreet = new Vocabulary();
@@ -64,7 +64,7 @@ public class TestMetadata {
 		vocIndustry.setTerm(new TermComplexType(false));
 		vocs.setPropertyVocabulary("industry", vocIndustry);
 		
-		metadata.setEntityMetadata("Customer", vocs);
+		metadata.setEntityMetadata(vocs);
 	}
 	
 	@Test

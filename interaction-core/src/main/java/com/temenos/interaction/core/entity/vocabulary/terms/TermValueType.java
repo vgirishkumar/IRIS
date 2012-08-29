@@ -10,6 +10,9 @@ public class TermValueType implements Term {
 	
 	public final static String TEXT = "TEXT";
 	public final static String NUMBER = "NUMBER";
+	public final static String INTEGER_NUMBER = "INTEGER_NUMBER";
+	public final static String TIMESTAMP = "TIMESTAMP";
+	public final static String BOOLEAN = "BOOLEAN";
 	
 	private String valueType;
 	
@@ -26,28 +29,14 @@ public class TermValueType implements Term {
 	 * @return Whether the value is of type TEXT or not
 	 */
 	public boolean isText() {
-		if ( valueType.equals(TEXT) )
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return valueType.equals(TEXT);
 	}
 	
 	/**
 	 * @return Whether the value is of type NUMBER or not
 	 */
 	public boolean isNumber() {
-		if ( valueType.equals(NUMBER) )
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return valueType.equals(NUMBER) || valueType.equals(INTEGER_NUMBER);
 	}
 	
 	@Override

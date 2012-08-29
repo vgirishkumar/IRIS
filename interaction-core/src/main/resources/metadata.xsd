@@ -1,0 +1,39 @@
+<!-- IRIS metadata schema -->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" version="1.0" 
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns="http://iris.temenos.com/metadata.xsd"
+   targetNamespace="http://iris.temenos.com/metadata.xsd">
+
+  <xs:element name="Metadata" type="MetadataType" />
+
+  <xs:complexType name="MetadataType">    
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="Entity" type="EntityType" />
+    </xs:sequence>
+    <xs:attribute type="xs:float" name="Version"/>
+  </xs:complexType>
+
+  <xs:complexType name="EntityType">    
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="Property" type="PropertyType" />
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="Name"/>
+  </xs:complexType>
+
+  <xs:complexType name="PropertyType">    
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="Property" type="PropertyType" minOccurs="0" />
+      <xs:element name="Term" type="TermType" minOccurs="0" />
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="Name"/>
+  </xs:complexType>
+
+  <xs:complexType name="TermType">    
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="Name"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+</xs:schema>

@@ -25,10 +25,11 @@ public class POSTFundTransferCommand implements InteractionCommand {
 		Date now = new Date();
 		String json = "";
 		json += "{";
-		json += "  \"FundTransfer\" : {";
-		json += "    \"id\" : \"" + key + "\",";
-		json += "    \"body\" : \"" + now + "\"";
-		json += "  }";
+		json += "  \"_links\" : {";
+		json += "    \"self\" : { \"href\" : \"http://localhost:8080/example/api/fundtransfers/new\" }";
+		json += "  },";
+		json += "  \"id\" : \"" + key + "\",";
+		json += "  \"body\" : \"" + now + "\"";
 		json += "}";
 		EntityResource<FundTransfer> er = null;
 		try {
