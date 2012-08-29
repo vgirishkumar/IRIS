@@ -53,14 +53,25 @@ public class RegistrarWithSingletons extends Registrar {
         }
     }
     
+    /**
+     * @precondition Set<HTTPResourceInteractionModel> != null
+     * @param rootRIMs
+     */
+    public void setServiceRoots(Set<HTTPResourceInteractionModel> rootRIMs) {
+    	if (rootRIMs == null)
+    		throw new IllegalArgumentException("Must provide a set of resource interaction models");
+    	for (HTTPResourceInteractionModel rim : rootRIMs)
+    		addAllDynamicResource(rim);
+    }
+
     public void setServiceRoot(HTTPResourceInteractionModel rootRIM) {
+    	addAllDynamicResource(rootRIM);
+    }
+
+    private void addAllDynamicResource(ResourceInteractionModel rim) {
     	if (this.getInstances() == null) {
         	this.setInstances(new HashSet<Object>());
     	}
-    	addAllDynamicResource(rootRIM);
-    }
-    
-    private void addAllDynamicResource(ResourceInteractionModel rim) {
     	addDynamicResource(rim);
     	Collection<ResourceInteractionModel> children = rim.getChildren();
     	for (ResourceInteractionModel child : children) {
