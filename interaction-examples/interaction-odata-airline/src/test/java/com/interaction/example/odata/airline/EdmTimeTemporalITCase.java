@@ -98,7 +98,7 @@ public class EdmTimeTemporalITCase {
 
 		Enumerable<OEntity> schedules = consumer
 				.getEntities("FlightSchedule")
-				//.filter("departureTime ge time'PT11H' and departureTime lt time'PT12H'")
+				.filter("departureTime ge time'PT11H' and departureTime lt time'PT12H'")
 				.execute();
 
 		Assert.assertEquals(2, schedules.count());
