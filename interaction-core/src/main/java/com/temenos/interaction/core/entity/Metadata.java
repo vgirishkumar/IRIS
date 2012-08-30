@@ -7,6 +7,8 @@ import java.util.Map;
  * This class holds metadata information about resource entities.
  */
 public class Metadata  {
+	public final static String MODEL_SUFFIX = "Model";
+
 	//Map of <Entity name, Entity metadata>
 	private Map<String, EntityMetadata> entitiesMetadata = new HashMap<String, EntityMetadata>();
 	private String modelName;

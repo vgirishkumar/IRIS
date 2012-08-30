@@ -9,6 +9,7 @@ import org.junit.Test;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 public class TestMetadata {
@@ -26,6 +27,7 @@ public class TestMetadata {
 				
 		Vocabulary vocName = new Vocabulary();
 		vocName.setTerm(new TermComplexType(false));
+		vocName.setTerm(new TermIdField(true));
 		vocs.setPropertyVocabulary("name", vocName);
 		
 		Vocabulary vocAddress = new Vocabulary();
@@ -137,5 +139,11 @@ public class TestMetadata {
 		Assert.assertFalse(vocs.isPropertyNumber("dateOfBirth"));
 		Assert.assertFalse(vocs.isPropertyNumber("sector"));
 		Assert.assertFalse(vocs.isPropertyNumber("industry"));
+	}
+	
+	@Test
+	public void testIdFields() {
+		Assert.assertEquals(1, vocs.getIdFields().size());
+		Assert.assertEquals("name", vocs.getIdFields().get(0));
 	}
 }
