@@ -17,9 +17,9 @@
         <artifactId>interaction-sdk-plugin</artifactId>
         <version>${irisVersion}</version>
         <configuration>
-          <edmxFile>\${basedir}/src/main/resources/service.edmx</edmxFile>
-          <srcTargetDirectory>\${basedir}/src/main/java</srcTargetDirectory>
-          <configTargetDirectory>\${basedir}/src/main/resources</configTargetDirectory>
+          <edmxFile>${basedir}/src/main/resources/service.edmx</edmxFile>
+          <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
+          <configTargetDirectory>${basedir}/src/main/resources</configTargetDirectory>
         </configuration>
       </plugin>
       

@@ -15,7 +15,7 @@
 		<constructor-arg name="namespace" value="InteractionExample" />		
 		<constructor-arg name="maxResults" value="100" />				
 	</bean>
-	<bean id="edmDataServices" factory-bean="producer" factory-method="getMetadata"/>
+	<bean id="edmDataServices" factory-bean="producer" factory-method="getOData4jMetadata"/>
 	<bean id="functionsProducer" class="com.temenos.interaction.example.note.NewFunctionProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />		
 		<constructor-arg name="odataNamespace" value="InteractionExample" />

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Metadata Version="1.0" xmlns="http://iris.temenos.com/metadata.xsd"
+<Metadata ModelName="${entityModel.getModelName()}" Version="1.0" 
+          xmlns="http://iris.temenos.com/metadata.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
 #foreach ( $entity in $entityModel.getEntities() )

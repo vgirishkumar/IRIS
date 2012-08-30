@@ -13,9 +13,10 @@
 		<module>../interaction-winkext</module>
 		<module>../interaction-commands-odata</module>
 		<module>../interaction-commands-odata-bridge</module>
+		<module>../interaction-sdk-archetype</module>
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
-		<module>../interaction-sdk-archetype</module>
+		<module>../interaction-sdk-test</module>
         <module>../interaction-test</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
 		<module>../useragent-examples/T24-ft-useragent-javascript</module>

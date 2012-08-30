@@ -18,11 +18,9 @@
 	</bean>
 
 	<!-- Metadata -->
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" >
-		<constructor-arg value="true" />
-	</bean>
-	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getResourceMetadata"/>
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.

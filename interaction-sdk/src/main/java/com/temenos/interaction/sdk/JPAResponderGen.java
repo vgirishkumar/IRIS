@@ -36,6 +36,7 @@ import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
@@ -86,12 +87,12 @@ public class JPAResponderGen {
 		
 		boolean ok = true;
 		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
-		EntityModel entityModel = new EntityModel();
 
 		//Make sure we have at least one entity container
 		if(ds.getSchemas().size() == 0 || ds.getSchemas().get(0).getEntityContainers().size() == 0) {
 			return false;
 		}
+		String entityContainerNamespace = ds.getSchemas().get(0).getEntityContainers().get(0).getName();
 		
 		// generate JPA classes
 		for (EdmEntityType t : ds.getEntityTypes()) {
@@ -116,6 +117,10 @@ public class JPAResponderGen {
 			entityFeedInfo.setFeedEntity();		//This is a feed of OEntities and should not exist as a JPA entity 
 			resourcePath = "GET+/" + entityFeedInfo.getClazz();
 			commandType = "com.temenos.interaction.commands.odata.GETEntitiesCommand"; 
+			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
+
+			resourcePath = "POST+/" + entityFeedInfo.getClazz();
+			commandType = "com.temenos.interaction.commands.odata.CreateEntityCommand"; 
 			resourcesInfo.add(new ResourceInfo(resourcePath, entityFeedInfo, commandType));
 		}
 		
@@ -161,10 +166,16 @@ public class JPAResponderGen {
 		}
 		
 		//Create the entity model
+		EntityModel entityModel = new EntityModel(entityContainerNamespace);
 		for (EdmEntityType entityType : ds.getEntityTypes()) {
+			List<String> keys = entityType.getKeys();
 			EMEntity emEntity = new EMEntity(entityType.getName());
 			for (EdmProperty prop : entityType.getProperties()) {
-				emEntity.addProperty(createEMProperty(prop));
+				EMProperty emProp = createEMProperty(prop);
+				if(keys.contains(prop.getName())) {
+					emProp.addVocabularyTerm(new EMTerm(TermIdField.TERM_NAME, "true"));
+				}
+				emEntity.addProperty(emProp);
 			}
 			entityModel.addEntity(emEntity);
 		}
@@ -175,7 +186,6 @@ public class JPAResponderGen {
 		}
 
 		// generate spring-beans.xml
-		String entityContainerNamespace = ds.getSchemas().get(0).getEntityContainers().get(0).getName();
 		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo, entityContainerNamespace, interactionModel))) {
 			ok = false;
 		}
@@ -285,6 +295,12 @@ public class JPAResponderGen {
 			javaType = "java.util.Date";
 		} else if (EdmSimpleType.DECIMAL == type) {
 			javaType = "java.math.BigDecimal";
+		} else if (EdmSimpleType.SINGLE == type) {
+			javaType = "Float";
+		} else if (EdmSimpleType.DOUBLE == type) {
+			javaType = "Double";
+		} else if (EdmSimpleType.BOOLEAN == type) {
+			javaType = "Boolean";
 		} else if (EdmSimpleType.GUID == type) {
 			javaType = "String";
 		} else if (EdmSimpleType.BINARY == type) {
@@ -313,9 +329,16 @@ public class JPAResponderGen {
 		}
 		else if (type.equals(EdmSimpleType.INT64) || 
 				 type.equals(EdmSimpleType.INT32) ||
-				 type.equals(EdmSimpleType.INT16) ||
+				 type.equals(EdmSimpleType.INT16)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.INTEGER_NUMBER));
+		}
+		else if (type.equals(EdmSimpleType.SINGLE) || 
+				 type.equals(EdmSimpleType.DOUBLE) ||
 				 type.equals(EdmSimpleType.DECIMAL)) {
 			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.NUMBER));
+		}
+		else if (type.equals(EdmSimpleType.BOOLEAN)) {
+			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.BOOLEAN));
 		}
 		return emProperty;
 	}	
@@ -409,7 +432,7 @@ public class JPAResponderGen {
 	private boolean writeMetadata(File sourceDir, String generatedMetadata) {
 		FileOutputStream fos = null;
 		try {
-			File metaInfDir = new File(sourceDir.getPath() + "/META-INF");
+			File metaInfDir = new File(sourceDir.getPath());
 			metaInfDir.mkdirs();
 			fos = new FileOutputStream(new File(metaInfDir, METADATA_FILE));
 			fos.write(generatedMetadata.getBytes("UTF-8"));
@@ -472,6 +495,7 @@ public class JPAResponderGen {
 	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace, InteractionModel interactionModel) {
 		VelocityContext context = new VelocityContext();
 		context.put("resourcesInfo", resourcesInfo);
+		context.put("entityContainerNamespace", entityContainerNamespace);
 		context.put("behaviourClass", entityContainerNamespace + ".Behaviour");
 		context.put("interactionModel", interactionModel);
 		

@@ -1,4 +1,4 @@
-package com.interaction.example.odata.airline;
+package com.temenos.interaction.sdk.airline;
 
 import java.text.DateFormat;
 import java.util.Locale;
@@ -23,7 +23,7 @@ import org.odata4j.jersey.consumer.ODataJerseyConsumer;
  */
 public class EdmTimeTemporalITCase {
 
-	protected static final String endpointUri = "http://localhost:8080/example/interaction-odata-airline.svc/";
+	protected static final String endpointUri = "http://localhost:8080/responder/FlightResponder.svc/";
 
 	public EdmTimeTemporalITCase() throws Exception {
 		super();

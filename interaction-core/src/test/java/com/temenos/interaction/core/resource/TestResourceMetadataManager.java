@@ -14,6 +14,7 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.resource.ResourceMetadataManager;
 
 import static org.junit.Assert.assertTrue;
@@ -25,14 +26,17 @@ public class TestResourceMetadataManager {
 	@Test
 	public void testMetadata() throws Exception {
 		final ODataProducer producerA = createMockODataProducer("A");
-		ResourceMetadataManager mdProducer = new ResourceMetadataManager(false) {
-			protected EdmDataServices parseEdmx() {
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager() {
+			protected Metadata parseMetadataXML() {
+				return null;
+			}
+			protected EdmDataServices populateOData4jMetadata(Metadata metadata) {
 				return producerA.getMetadata();
-			}			
+			}
 		};
-		assertTrue(mdProducer.getMetadata() != null);
+		assertTrue(mdProducer.getOData4jMetadata() != null);
 
-		EdmDataServices metadata = mdProducer.getMetadata();
+		EdmDataServices metadata = mdProducer.getOData4jMetadata();
 		EdmDataServices metadataA = producerA.getMetadata();
 		assertTrue(metadata.equals(metadataA)); 
 	}
@@ -40,14 +44,17 @@ public class TestResourceMetadataManager {
 	@Test
 	public void testEntityType() throws Exception {
 		final ODataProducer producerA = createMockODataProducer("A");
-		ResourceMetadataManager mdProducer = new ResourceMetadataManager(false) {
-			protected EdmDataServices parseEdmx() {
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager() {
+			protected Metadata parseMetadataXML() {
+				return null;
+			}
+			protected EdmDataServices populateOData4jMetadata(Metadata metadata) {
 				return producerA.getMetadata();
-			}			
+			}
 		};
-		assertTrue(mdProducer.getMetadata() != null);
+		assertTrue(mdProducer.getOData4jMetadata() != null);
 
-		EdmDataServices metadata = mdProducer.getMetadata();
+		EdmDataServices metadata = mdProducer.getOData4jMetadata();
 		assertTrue(metadata.findEdmEntityType("MyNamespaceA.FlightA").getFullyQualifiedTypeName().equals("MyNamespaceA.FlightA"));
 	}
 	

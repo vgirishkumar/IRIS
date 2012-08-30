@@ -49,7 +49,7 @@ public class MetadataParser extends DefaultHandler {
 	@Override
 	public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
 		if (qName.equalsIgnoreCase("Metadata")) {
-			metadata = new Metadata();
+			metadata = new Metadata(attributes.getValue("ModelName"));
 		}
 		else if (qName.equalsIgnoreCase("Entity")) {
 			entityMetadata = new EntityMetadata(attributes.getValue("Name"));
