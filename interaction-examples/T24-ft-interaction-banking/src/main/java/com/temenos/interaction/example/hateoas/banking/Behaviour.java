@@ -22,23 +22,21 @@ public class Behaviour {
 	public ResourceStateMachine getFundsTransferInteractionModel() {
 		CollectionResourceState initialState = new CollectionResourceState("FundsTransfer", "initial", "/fundstransfer");
 		ResourceState newFtState = new ResourceState(initialState, "new", "/new");
-		ResourceState live = new ResourceState("FundsTransfer", "live", "/fundstransfer/{Id}", "Id");
-		ResourceState unauthorised = new ResourceState("FundsTransfer", "unauthorised", "/fundstransfer/unauthorised/{Id}", "Id");
+		ResourceState viewed = new ResourceState("FundsTransfer", "view", "/fundstransfer/{Id}", "Id");
+		ResourceState unauthorised = new ResourceState("FundsTransfer", "unauthorised", "/fundstransfer/{Id}/unauthorise", "Id");
 		ResourceState authorised = new ResourceState("FundsTransfer", "authorised", "/fundstransfer/{Id}/authorise", "Id");
 		ResourceState held = new ResourceState("FundsTransfer", "held", "/fundstransfer/{Id}/hold", "Id");
 		ResourceState reversed = new ResourceState("FundsTransfer", "reversed", "/fundstransfer/{Id}/reverse", "Id");
 		ResourceState restored = new ResourceState("FundsTransfer", "restored", "/fundstransfer/{Id}/restore", "Id");
-		ResourceState unauthorisedDeleted = new ResourceState("FundsTransfer", "unauthorisedDeleted", "/fundstransfer/{Id}", "Id");
-		ResourceState holdDeleted = new ResourceState("FundsTransfer", "holdDeleted", "/fundstransfer/{Id}", "Id");
-		ResourceState reverseDeleted = new ResourceState("FundsTransfer", "reverseDeleted", "/fundstransfer/{Id}", "Id");
-		// ResourceState finalState = new ResourceState(initialState, "end");
+		ResourceState deleted = new ResourceState("FundsTransfer", "deleted", "/fundstransfer/{Id}/delete", "Id");
+
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 
 		// INITIAL State
 		uriLinkageMap.clear();
 		uriLinkageMap.put("id", "Id");
-		initialState.addTransitionForEachItem("GET", live, uriLinkageMap);
+		initialState.addTransitionForEachItem("GET", viewed, uriLinkageMap);
 		initialState.addTransition("POST", newFtState);	
 
 		// NEW State
@@ -47,46 +45,18 @@ public class Behaviour {
 		newFtState.addTransition("PUT", unauthorised, uriLinkageMap);
 		// newFtState.addTransition("PUT", held, uriLinkageMap);
 
-		// LIVE State
+		// VIEWED State
 		uriLinkageMap.clear();
 		uriLinkageMap.put("id", "Id");
-		live.addTransition("PUT", unauthorised, uriLinkageMap);
-		live.addTransition("PUT", reversed, uriLinkageMap);
-
-		// UNAUTHORISED State
-		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "Id");
-		unauthorised.addTransition("PUT", unauthorised, uriLinkageMap);
-		unauthorised.addTransition("PUT", authorised, uriLinkageMap);
-		unauthorised.addTransition("DELETE", unauthorisedDeleted, uriLinkageMap);
-
-		// AUTHORISED State
-		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "Id");
-		authorised.addTransition("GET", live, uriLinkageMap);
-
-		// HELD State
-		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "Id");
-		held.addTransition("PUT", unauthorised, uriLinkageMap);
-		held.addTransition("DELETE", holdDeleted, uriLinkageMap);
+		viewed.addTransition("GET", viewed, uriLinkageMap);
+		viewed.addTransition("PUT", unauthorised, uriLinkageMap);
+		viewed.addTransition("PUT", authorised, uriLinkageMap);
+		viewed.addTransition("PUT", unauthorised, uriLinkageMap);
+		viewed.addTransition("PUT", held, uriLinkageMap);
+		viewed.addTransition("PUT", reversed, uriLinkageMap);
+		viewed.addTransition("PUT", restored, uriLinkageMap);
+		viewed.addTransition("DELETE", deleted, uriLinkageMap);
 		
-		// REVERSED State
-		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "Id");
-		reversed.addTransition("PUT", unauthorised, uriLinkageMap);
-		reversed.addTransition("DELETE", reverseDeleted, uriLinkageMap);
-		
-		// RESTORED State
-		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "Id");
-		restored.addTransition("PUT", unauthorised, uriLinkageMap);
-		
-		// FINAL State
-		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "Id");
-		restored.addTransition("GET", initialState, uriLinkageMap);
-	
 		return new ResourceStateMachine(initialState);
 	}
 }

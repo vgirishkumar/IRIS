@@ -78,38 +78,45 @@
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>PUT+/fundstransfer/unauthorised/{Id}</value></key>
+                    <key><value>PUT+/fundstransfer/{Id}/unauthorise</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24InputCommand">
                         <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>DELETE+/fundstransfer/{Id}</value></key>
+                    <key><value>DELETE+/fundstransfer/{Id}/delete</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24DeleteCommand">
                         <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
-                    <key><value>GET+/fundstransfer/unauthorised/{Id}</value></key>
+                    <key><value>GET+/fundstransfer/{Id}/unauthorise</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
-
                 <entry>
                     <key><value>GET+/fundstransfer/new</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
-                 <entry>
+                <entry>
                     <key><value>GET+/fundstransfer/{Id}/authorise</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
-                 <entry>
+                <entry>
                     <key><value>GET+/fundstransfer/{Id}/reverse</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
-                 <entry>
+                <entry>
                     <key><value>GET+/fundstransfer/{Id}/hold</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
+                </entry>
+				<entry>
+                    <key><value>GET+/fundstransfer/{Id}/restore</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
+                </entry>
+				<entry>
+                    <key><value>GET+/fundstransfer/{Id}/delete</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
                 <entry>
