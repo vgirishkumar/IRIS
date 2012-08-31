@@ -47,7 +47,7 @@ public class HypermediaITCase extends JerseyTest {
 		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
-		assertEquals(3, links.size());
+		assertEquals(4, links.size());
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
@@ -55,6 +55,8 @@ public class HypermediaITCase extends JerseyTest {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/preferences", link.getHref());
 			} else if (link.getName().get().equals("home.initial>FundsTransfer.initial")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers", link.getHref());
+			} else if (link.getName().get().equals("home.initial>Metadata.metadata")) {
+				assertEquals(Configuration.TEST_ENDPOINT_URI + "/$metadata", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
 			}

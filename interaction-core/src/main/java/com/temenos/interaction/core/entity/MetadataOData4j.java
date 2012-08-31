@@ -23,8 +23,6 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
  * This class converts a Metadata structure to odata4j's EdmDataServices.
  */
 public class MetadataOData4j {
-	public final static String MODEL_SUFFIX = "Model";
-	
 	private EdmDataServices edmDataServices;
 
 	/**
@@ -51,7 +49,7 @@ public class MetadataOData4j {
 	 */
 	public EdmDataServices createOData4jMetadata(Metadata metadata) {
 		String serviceName = metadata.getModelName();
-		String namespace = serviceName + MODEL_SUFFIX;
+		String namespace = serviceName + Metadata.MODEL_SUFFIX;
 		Builder mdBuilder = EdmDataServices.newBuilder();
 	    List<EdmSchema.Builder> bSchemas = new ArrayList<EdmSchema.Builder>();
     	EdmSchema.Builder bSchema = new EdmSchema.Builder();
@@ -64,22 +62,7 @@ public class MetadataOData4j {
 			for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
 				//Entity properties
 	    		String type = entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME);
-	    		EdmType edmType;
-	    		if(type.equals(TermValueType.NUMBER)) {
-	    			 edmType = EdmSimpleType.DOUBLE;
-	    		}
-	    		else if(type.equals(TermValueType.INTEGER_NUMBER)) {
-	    			 edmType = EdmSimpleType.INT64;
-	    		}
-	    		else if(type.equals(TermValueType.TIMESTAMP)) {
-	    			edmType = EdmSimpleType.DATETIME;
-	    		}
-	    		else if(type.equals(TermValueType.BOOLEAN)) {
-	    			edmType = EdmSimpleType.BOOLEAN;
-	    		}
-	    		else {
-	    			edmType = EdmSimpleType.STRING;
-	    		}
+	    		EdmType edmType = termValueToEdmType(type);
 				EdmProperty.Builder ep = EdmProperty.newBuilder(propertyName).
 						setType(edmType).
 						setNullable(entityMetadata.getTermValue(propertyName, TermMandatory.TERM_NAME).equals("true") ? false : true);
@@ -109,6 +92,31 @@ public class MetadataOData4j {
 
 		//Build the EDM metadata
 		return mdBuilder.build();
+	}
+	
+	/**
+	 * Convert a Metadata vocabulary TermValueType to EdmType 
+	 * @param type TermValueType
+	 * @return EdmType
+	 */
+	public static EdmType termValueToEdmType(String type) {
+		EdmType edmType;
+		if(type.equals(TermValueType.NUMBER)) {
+			 edmType = EdmSimpleType.DOUBLE;
+		}
+		else if(type.equals(TermValueType.INTEGER_NUMBER)) {
+			 edmType = EdmSimpleType.INT64;
+		}
+		else if(type.equals(TermValueType.TIMESTAMP)) {
+			edmType = EdmSimpleType.DATETIME;
+		}
+		else if(type.equals(TermValueType.BOOLEAN)) {
+			edmType = EdmSimpleType.BOOLEAN;
+		}
+		else {
+			edmType = EdmSimpleType.STRING;
+		}
+		return edmType;
 	}
 
 }

@@ -1,6 +1,8 @@
 package com.temenos.interaction.core.entity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,6 +11,7 @@ import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
@@ -179,5 +182,19 @@ public class EntityMetadata  {
 			}
 		}
 		return termFactory.getTermDefaultValue(termName);
+	}
+	
+	/**
+	 * Returns a list of fields which have the TermIdField vocabulary term
+	 * @return list of id fields
+	 */
+	public List<String> getIdFields() {
+		List<String> idFields = new ArrayList<String>();
+		for(String propertyName : getPropertyVocabularyKeySet()) {
+			if(getTermValue(propertyName, TermIdField.TERM_NAME).equals("true")) {
+				idFields.add(propertyName);
+			}
+		}
+		return idFields;
 	}
 }

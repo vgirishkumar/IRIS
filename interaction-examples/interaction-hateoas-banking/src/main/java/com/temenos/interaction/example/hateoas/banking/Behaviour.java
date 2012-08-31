@@ -12,8 +12,10 @@ public class Behaviour {
 	public ResourceState getInteractionModel() {
 		// this will be the service root
 		ResourceState initialState = new ResourceState("home", "initial", "/");
+		ResourceState metadata = new ResourceState("Metadata", "metadata", "/$metadata");
 		ResourceState preferences = new ResourceState("Preferences", "preferences", "/preferences");
 		
+		initialState.addTransition("GET", metadata);
 		initialState.addTransition("GET", preferences);
 		initialState.addTransition("GET", getFundsTransferInteractionModel());
 		return initialState;
