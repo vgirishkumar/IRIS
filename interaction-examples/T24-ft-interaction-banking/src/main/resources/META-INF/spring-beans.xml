@@ -4,11 +4,9 @@
            classpath:org/springframework/beans/factory/xml/spring-beans-2.5.xsd">
 
 	<!-- Metadata -->
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" >
-		<constructor-arg value="true" />
-	</bean>
-	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getMetadata"/>
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getResourceMetadata"/>
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -17,6 +15,7 @@
 		<property name="singletons">
         	<set>
 				<ref local="halProvider" />
+				<ref local="metadataProvider" />
  			</set>
    		</property>
 		<property name="serviceRoot" ref="ServiceRoot" />
@@ -27,6 +26,7 @@
     	<constructor-arg ref="edmMetadata" />
         <constructor-arg ref="stateMachine" />
 	</bean>
+	<bean id="metadataProvider" class="com.temenos.interaction.core.media.metadata.MetaDataProvider" />
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
