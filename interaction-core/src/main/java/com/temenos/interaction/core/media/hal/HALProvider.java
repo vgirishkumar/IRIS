@@ -64,28 +64,17 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 
 	@Context
 	private UriInfo uriInfo;
-	private EdmDataServices edmDataServices;
 	private Metadata metadata = null;
 	private ResourceStateMachine hypermediaEngine;
 	
-	public HALProvider(EdmDataServices edmDataServices, Metadata metadata, ResourceStateMachine hypermediaEngine) {
-		this(edmDataServices, metadata);
-		this.hypermediaEngine = hypermediaEngine;
-	}
-	public HALProvider(EdmDataServices edmDataServices, ResourceStateMachine hypermediaEngine) {
-		this(edmDataServices);
+	public HALProvider(Metadata metadata, ResourceStateMachine hypermediaEngine) {
+		this(metadata);
 		this.hypermediaEngine = hypermediaEngine;
 	}
 
-	public HALProvider(EdmDataServices edmDataServices, Metadata metadata) {
-		this(edmDataServices);
+	public HALProvider(Metadata metadata) {
 		this.metadata = metadata;
 		assert(metadata != null);
-	}
-
-	public HALProvider(EdmDataServices edmDataServices) {
-		this.edmDataServices = edmDataServices;
-		assert(edmDataServices != null);
 	}
 	
 	@Override
@@ -276,9 +265,13 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	}
 
 	protected void buildFromOEntity(Map<String, Object> map, OEntity entity) {
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entity.getEntitySetName());
+		if (entityMetadata == null)
+			throw new IllegalStateException("Entity metadata could not be found [" + entity.getEntitySetName() + "]");
+
 		for (OProperty<?> property : entity.getProperties()) {
-			EdmEntitySet ees = edmDataServices.getEdmEntitySet(entity.getEntitySetName());
-			if (ees.getType().findProperty(property.getName()) != null && property.getValue() != null) {
+			// add properties if they are present on the resolved entity
+			if (entityMetadata.getPropertyVocabulary(property.getName()) != null && property.getValue() != null) {
 				// call toString on object as a simple why of handling non simple types
 				map.put(property.getName(), property.getValue().toString());				
 			}
@@ -286,24 +279,18 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	}
 	
 	protected void buildFromBean(Map<String, Object> map, Object bean, String entityName) {
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+		if (entityMetadata == null)
+			throw new IllegalStateException("Entity metadata could not be found [" + entityName + "]");
+
 		try {
-			try {
-				// TODO we should look up the entity here, but the entity set is much easier to lookup
-				EdmEntitySet ees = edmDataServices.getEdmEntitySet(entityName);
-				if (ees != null) {
-					BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
-					for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
-					    String propertyName = propertyDesc.getName();
-						if (ees.getType().findProperty(propertyName) != null) {
-						    Object value = propertyDesc.getReadMethod().invoke(bean);
-							map.put(propertyName, value);				
-						}
-					}
-				} else {
-					logger.warn("EdmEntitySet not found using bean [" + entityName + "]");
+			BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
+			for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
+			    String propertyName = propertyDesc.getName();
+				if (entityMetadata.getPropertyVocabulary(propertyName) != null) {
+				    Object value = propertyDesc.getReadMethod().invoke(bean);
+					map.put(propertyName, value);				
 				}
-			} catch (RuntimeException re) {
-				logger.error("EdmEntitySet not found using bean [" + entityName + "]", re);
 			}
 		} catch (IllegalArgumentException e) {
 			logger.error("Error accessing bean property", e);
@@ -362,9 +349,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			if (resourcePath.length() > baseUri.length())
 				resourcePath = resourcePath.substring(baseUri.length() - 1);
 			String entityName = getEntityName(resourcePath);
-			if (metadata == null || metadata.getEntityMetadata(entityName) == null)
-				throw new IllegalStateException("Entity metadata could not be found");
 			EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+			if (entityMetadata == null)
+				throw new IllegalStateException("Entity metadata could not be found [" + entityName + "]");
 			// add properties if they are present on the resolved entity
 			EntityProperties entityFields = new EntityProperties();
 			Map<String, Optional<Object>> halProperties = halResource.getProperties();

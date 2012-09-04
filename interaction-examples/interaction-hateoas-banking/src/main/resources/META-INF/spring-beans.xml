@@ -19,7 +19,6 @@
 
 	<!-- Metadata -->
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
-	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 	
     <!--
@@ -35,7 +34,6 @@
 	</bean>
 
 	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
-    	<constructor-arg ref="edmDataServices" />
     	<constructor-arg ref="edmMetadata" />
         <constructor-arg ref="stateMachine" />
 	</bean>
