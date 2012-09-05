@@ -24,8 +24,11 @@
 /interaction-examples/interaction-odata-notes/target
 /interaction-examples/interaction-hateoas-simple/target
 /interaction-examples/interaction-hateoas-banking/target
+/interaction-examples/T24-ft-interaction-banking/target
 /useragent-examples/useragent-generic-javascript/target
 /useragent-examples/useragent-generic-javascript/src/main/webapp/lib
+/useragent-examples/T24-ft-useragent-javascript/target
+/useragent-examples/T24-ft-useragent-javascript/src/main/webapp/lib
 /interaction-core/test-output
 /useragent-examples/useragent-hal-inspector/target
 

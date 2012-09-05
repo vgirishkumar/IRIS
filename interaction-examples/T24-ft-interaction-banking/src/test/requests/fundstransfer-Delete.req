@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rest-client version="2.3.3"><request><http-version>1.1</http-version><URL>http://localhost:8080/T24-interaction-banking-0.0.1-SNAPSHOT/api/fundstransfer/FT12026HH3M8</URL><method>DELETE</method><headers><header key="Content-Type" value="application/hal+json"/><header key="ACCEPT" value="application/hal+json"/></headers></request></rest-client>

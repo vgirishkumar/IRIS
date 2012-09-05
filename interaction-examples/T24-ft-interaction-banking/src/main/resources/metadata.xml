@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Metadata Version="1.0" xmlns="http://iris.temenos.com/metadata.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
+	<Entity Name="FundsTransfer">
+		<Property Name="Id">
+			<Term Name="TERM_ID_FIELD">true</Term>
+			<Term Name="TERM_VALUE_TYPE">TEXT</Term>
+		</Property>
+		<Property Name="TransactionType">
+			<Term Name="TERM_VALUE_TYPE">TEXT</Term>
+		</Property>
+		<Property Name="DebitAcctNo">
+			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+		</Property>
+		<Property Name="DebitCurrency">
+			<Term Name="TERM_VALUE_TYPE">TEXT</Term>
+		</Property>
+		<Property Name="DebitAmount">
+			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+		</Property>
+		<Property Name="CreditAcctNo">
+			<Term Name="TERM_VALUE_TYPE">TEXT</Term>
+		</Property>
+		<Property Name="RecordStatus">
+			<Term Name="TERM_VALUE_TYPE">TEXT</Term>
+		</Property>
+	</Entity>
+</Metadata>

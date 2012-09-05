@@ -28,6 +28,7 @@
 		<property name="singletons">
         	<set>
 				<ref local="halProvider" />
+				<ref local="metadataProvider" />
  			</set>
    		</property>
 		<property name="serviceRoot" ref="ServiceRoot" />
@@ -37,6 +38,7 @@
     	<constructor-arg ref="edmMetadata" />
         <constructor-arg ref="stateMachine" />
 	</bean>
+	<bean id="metadataProvider" class="com.temenos.interaction.core.media.metadata.MetaDataProvider" />
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
@@ -58,6 +60,12 @@
                 <entry>
                     <key><value>GET+/</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
+                </entry>
+                <entry>
+                    <key><value>GET+/$metadata</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.banking.GETMetadataCommand">
+                        <constructor-arg ref="edmMetadata" />
+                    </bean>
                 </entry>
                 <entry>
                     <key><value>GET+/preferences</value></key>

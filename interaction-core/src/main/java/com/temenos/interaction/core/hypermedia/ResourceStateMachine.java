@@ -254,12 +254,12 @@ public class ResourceStateMachine {
 						if (eLinks == null) {
 							eLinks = new ArrayList<Link>();
 						}
-						eLinks.add(createLink(linkTemplate, transition, er.getEntity(), null));
+						eLinks.add(createLink(linkTemplate, transition, er.getEntity(), pathParameters));
 						er.setLinks(eLinks);
 					}
 				}
 			} else {
-				links.add(createLink(linkTemplate, transition, entity, null));
+				links.add(createLink(linkTemplate, transition, entity, pathParameters));
 			}
 		}
 		return links;

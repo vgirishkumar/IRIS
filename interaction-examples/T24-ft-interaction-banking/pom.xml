@@ -1,0 +1,163 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+	<groupId>com.temenos.interaction</groupId>
+	<artifactId>interaction-parent</artifactId>
+	<version>0.0.2-SNAPSHOT</version>
+	<relativePath>../../interaction-parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>T24-ft-interaction-banking</artifactId>
+  <packaging>war</packaging>
+
+  <name>T24-ft-interaction-banking</name>
+  <url>http://www.temenos.com</url>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.1.1</version>
+        <configuration>
+          <packagingExcludes>WEB-INF/web.xml</packagingExcludes>
+        </configuration>
+      </plugin>    
+      <plugin>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-sdk-plugin</artifactId>
+        <version>0.0.2-SNAPSHOT</version>
+<!--		
+		<executions>
+          <execution>
+            <phase>build</phase>
+            <goals>
+              <goal>gen</goal>
+            </goals>
+          </execution>
+       </executions>
+-->
+        <configuration>
+          <edmxFile>${basedir}/src/main/resources/service.edmx</edmxFile>
+          <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
+          <configTargetDirectory>${basedir}/src/main/resources</configTargetDirectory>
+        </configuration>
+      </plugin>
+
+      <plugin>
+         <artifactId>maven-failsafe-plugin</artifactId>
+         <version>2.6</version>
+         <executions>
+           <execution>
+             <goals>
+               <goal>integration-test</goal>
+               <goal>verify</goal>
+             </goals>
+           </execution>
+         </executions>
+       </plugin>
+  
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>eclipserepo</id>
+      <name>eclipserepo</name>
+        <!-- note that ampersands in this URL are escaped because this is in an xml file -
+             un-escape them to use in browser 
+        -->
+      <url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+  
+    <!-- Add dependency for our javascript user-agent -->
+    <!-- Add dependency for our HAL inspector user-agent -->
+    <dependency>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>useragent-hal-inspector</artifactId>
+        <type>war</type>
+    </dependency>
+
+    <!-- IRIS -->
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-core</artifactId>
+    	<type>jar</type>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-commands-odata</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-winkext</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-sdk</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    	<exclusions>
+    		<exclusion>
+    			<artifactId>maven-plugin-api</artifactId>
+				<groupId>org.apache.maven</groupId>
+			</exclusion>
+		</exclusions>
+    </dependency>
+
+	<!-- Test dependencies -->
+    <dependency>
+    	<groupId>com.sun.jersey.test.framework</groupId>
+    	<artifactId>jersey-test-framework</artifactId>
+    	<scope>test</scope>
+    </dependency>
+
+    <dependency>
+    	<groupId>org.apache.wink</groupId>
+    	<artifactId>wink-spring-support</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+
+    <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+    <!-- Responder inmemory database -->
+    <dependency>
+    	<groupId>hsqldb</groupId>
+    	<artifactId>hsqldb</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.hibernate</groupId>
+    	<artifactId>hibernate-entitymanager</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    
+    <dependency>
+    	<groupId>ch.qos.logback</groupId>
+    	<artifactId>logback-classic</artifactId>
+    	<scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>T24-ft-useragent-javascript</artifactId>
+    	<type>war</type>
+    </dependency>
+  </dependencies>
+</project>
