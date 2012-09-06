@@ -59,7 +59,7 @@ public class TestHALProvider {
 	 */
 	@Test
 	public void testSize() {
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class), mock(ResourceStateMachine.class));
+		HALProvider hp = new HALProvider(mock(Metadata.class), mock(ResourceStateMachine.class));
 		assertEquals(-1, hp.getSize(null, null, null, null, null));
 	}
 
@@ -69,8 +69,8 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialise() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("mockChild", "initial", "/children"));
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class), createMockChildVocabMetadata(), sm);
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", "/children"));
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -81,7 +81,7 @@ public class TestHALProvider {
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
-		assertEquals("mockChild", entity.getName());
+		assertEquals("Children", entity.getName());
 		assertNotNull(entity.getProperties());
 		// string type
 		assertEquals("noah", entity.getProperties().getProperty("name").getValue());
@@ -93,8 +93,8 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityName() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("mockChild", "initial", "/children"));
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class), createMockChildVocabMetadata(), sm);
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", "/children"));
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -105,14 +105,14 @@ public class TestHALProvider {
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
-		assertEquals("mockChild", entity.getName());
+		assertEquals("Children", entity.getName());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("mockChild", "initial", "/children"));
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class), createMockChildVocabMetadata(), sm);
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", "/children"));
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -123,14 +123,14 @@ public class TestHALProvider {
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
-		assertEquals("mockChild", entity.getName());
+		assertEquals("Children", entity.getName());
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityNameWithId() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("mockChild", "initial", "/children/{id}", "id", null));
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class), createMockChildVocabMetadata(), sm);
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", "/children/{id}", "id", null));
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -141,11 +141,11 @@ public class TestHALProvider {
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
-		assertEquals("mockChild", entity.getName());
+		assertEquals("Children", entity.getName());
 	}
 
 	private Metadata createMockChildVocabMetadata() {
-		EntityMetadata vocs = new EntityMetadata("mockChild");
+		EntityMetadata vocs = new EntityMetadata("Children");
 		Vocabulary vocId = new Vocabulary();
 		vocId.setTerm(new TermValueType(TermValueType.TEXT));
 		vocs.setPropertyVocabulary("name", vocId);
@@ -161,7 +161,7 @@ public class TestHALProvider {
 	public void testAttemptToSerialiseNonEntityResource() throws IOException {
 		EntityResource<?> mdr = mock(EntityResource.class);
 
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
+		HALProvider hp = new HALProvider(mock(Metadata.class));
 		hp.writeTo(mdr, MetaDataResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
 	}
 	
@@ -177,9 +177,7 @@ public class TestHALProvider {
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
 		
-		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
-		HALProvider hp = new HALProvider(edmDS);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -211,9 +209,7 @@ public class TestHALProvider {
 		// mock setting entity name
 		er.setEntityName("Children");
 		
-		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
-		HALProvider hp = new HALProvider(edmDS);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -244,10 +240,7 @@ public class TestHALProvider {
 		EntityResource<Children> er = new EntityResource<Children>(person);
 		er.setEntityName("Children");
 
-		EdmDataServices edmDS = mock(EdmDataServices.class);
-		// mock entity type includes name, age
-		when(edmDS.getEdmEntitySet(eq("Children"))).thenReturn(createMockChildrenEntitySet());
-		HALProvider hp = new HALProvider(edmDS);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -267,10 +260,7 @@ public class TestHALProvider {
 		// null object
 		EntityResource<Object> er = new EntityResource<Object>(null);
 
-		EdmDataServices edmDS = mock(EdmDataServices.class);
-		// mock entity type includes name, age
-		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
-		HALProvider hp = new HALProvider(edmDS);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -298,7 +288,7 @@ public class TestHALProvider {
 		EntityResource<?> er = mock(EntityResource.class);
 		when(er.getEntity()).thenReturn(null);
 		
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
+		HALProvider hp = new HALProvider(mock(Metadata.class));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com"));
 		hp.setUriInfo(mockUriInfo);
@@ -315,7 +305,7 @@ public class TestHALProvider {
 		EntityResource<?> er = mock(EntityResource.class);
 		when(er.getEntity()).thenReturn(null);
 		
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
+		HALProvider hp = new HALProvider(mock(Metadata.class));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		// java 1.6 bug getBaseUri returns absolute path
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -333,7 +323,7 @@ public class TestHALProvider {
 		EntityResource<?> er = mock(EntityResource.class);
 		when(er.getEntity()).thenReturn(null);
 		
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
+		HALProvider hp = new HALProvider(mock(Metadata.class));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		// java 1.6 bug getBaseUri returns absolute path
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -352,7 +342,7 @@ public class TestHALProvider {
 		EntityResource<?> er = mock(EntityResource.class);
 		when(er.getEntity()).thenReturn(null);
 		
-		HALProvider hp = new HALProvider(mock(EdmDataServices.class));
+		HALProvider hp = new HALProvider(mock(Metadata.class));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		// java 1.6 bug getBaseUri returns absolute path
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -382,9 +372,7 @@ public class TestHALProvider {
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
 		er.setLinks(links);
 		
-		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
-		HALProvider hp = new HALProvider(edmDS);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -422,9 +410,7 @@ public class TestHALProvider {
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
 		er.setLinks(links);
 		
-		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
-		HALProvider hp = new HALProvider(edmDS);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -441,9 +427,7 @@ public class TestHALProvider {
 
 	@Test
 	public void testBuildMapFromOEntity() {
-		EdmDataServices edmDS = mock(EdmDataServices.class);
-		when(edmDS.getEdmEntitySet(any(String.class))).thenReturn(createMockChildrenEntitySet());
-		HALProvider hp = new HALProvider(edmDS);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		
 		/* 
 		 * create an OEntity with more properties than the 

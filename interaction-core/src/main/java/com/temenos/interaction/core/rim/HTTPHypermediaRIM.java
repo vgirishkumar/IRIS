@@ -81,7 +81,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	public HTTPHypermediaRIM(
 			NewCommandController commandController, 
 			ResourceStateMachine hypermediaEngine) {
-		this(null, commandController, hypermediaEngine, hypermediaEngine.getInitial());
+		this(null, commandController, hypermediaEngine, hypermediaEngine.getInitial(), true);
 	}
 
 	/*
@@ -101,6 +101,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			NewCommandController commandController, 
 			ResourceStateMachine hypermediaEngine,
 			ResourceState currentState) {
+		this(parent, commandController, hypermediaEngine, currentState, false);
+	}
+	
+	private HTTPHypermediaRIM(
+			HTTPHypermediaRIM parent, 
+			NewCommandController commandController, 
+			ResourceStateMachine hypermediaEngine,
+			ResourceState currentState,
+			boolean printGraph) {
 		this.parent = parent;
 		this.commandController = commandController;
 		this.hypermediaEngine = hypermediaEngine;
@@ -108,7 +117,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		assert(this.commandController != null);
 		assert(this.hypermediaEngine != null);
 		assert(this.currentState != null);
-		if (parent == null && hypermediaEngine.getInitial() != null) {
+		if (printGraph && hypermediaEngine.getInitial() != null) {
 			logger.info("State graph for [" + this.toString() + "] [" + new ASTValidation().graph(hypermediaEngine) + "]");
 		}
 		bootstrap();
@@ -180,7 +189,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			if (childState.equals(getCurrentState()) || childState.getPath().equals(getCurrentState().getPath())) {
 				continue;
 			}
-			child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, childState);
+			child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, childState, false);
 			result.add(child);
 		}
 		return result;
