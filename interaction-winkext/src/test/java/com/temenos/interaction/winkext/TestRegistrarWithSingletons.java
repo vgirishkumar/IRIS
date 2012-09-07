@@ -7,6 +7,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.wink.common.DynamicResource;
 import org.junit.Test;
@@ -51,6 +52,17 @@ public class TestRegistrarWithSingletons {
 		rs.setServiceRoot(serviceRoot);
 		assertNotNull(rs.getInstances());
 		assertEquals(1, rs.getInstances().size());
+	}
+
+	@Test
+	public void testSimpleServiceRoots() {
+		Set<HTTPResourceInteractionModel> serviceRoots = new HashSet<HTTPResourceInteractionModel>();
+		serviceRoots.add(createMockHTTPRIM("notes", "/"));
+		serviceRoots.add(createMockHTTPRIM("metadata", "/$metadata"));
+		RegistrarWithSingletons rs = new RegistrarWithSingletons();
+		rs.setServiceRoots(serviceRoots);
+		assertNotNull(rs.getInstances());
+		assertEquals(2, rs.getInstances().size());
 	}
 
 	@Test
