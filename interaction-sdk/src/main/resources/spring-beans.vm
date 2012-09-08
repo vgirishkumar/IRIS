@@ -3,25 +3,12 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-	<!-- Initialise JPA for MockResponder -->
-	<bean id="entityManagerFactory"	class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
-		<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
-	</bean>
-	
-	<!-- Initialise responder database -->
-	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
-	
-	<!-- Producers -->
-	<bean id="mockProducer" class="org.odata4j.producer.jpa.JPAProducer">
-		<constructor-arg name="emf" ref="entityManagerFactory" />
-		<constructor-arg name="namespace" value="$entityContainerNamespace" />		
-		<constructor-arg name="maxResults" value="100" />				
-	</bean>
-	<!-- <bean id="myProducer" class="com.interaction.producer.example.MyProducer"/> -->
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 	
 	<!-- An extension of org.apache.wink.spring.Registrar with support for singletons -->
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
@@ -86,11 +73,11 @@
 				<entry>
 					<key><value>$resourceInfo.getResourcePath()</value></key>
 					<bean class="$resourceInfo.getCommandType()">
-						<constructor-arg name="entity" value="$resourceInfo.getEntityInfo().getClazz()" />
-#if ($resourceInfo.getEntityInfo().isJpaEntity()) 
-						<constructor-arg name="producer" ref="mockProducer" />
+						<constructor-arg value="$resourceInfo.getEntityInfo().getClazz()" />
+#if ($resourceInfo.isDefaultCommand()) 
+						<constructor-arg ref="odataProducer" />
 #else
-						<constructor-arg name="producer" ref="myProducer" />
+						<constructor-arg ref="edmMetadata" />
 #end
 					</bean>
 				</entry>
@@ -102,14 +89,14 @@
 #if ($transition.isCollectionState()) 
 					<bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
 						<constructor-arg name="entity" value="$transition.getTargetEntityName()" />
-						<constructor-arg name="producer" ref="mockProducer" />
+						<constructor-arg name="producer" ref="odataProducer" />
 					</bean>
 #else
 					<bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
 						<constructor-arg name="entity" value="$rsm.getEntityName()" />
 						<constructor-arg name="linkProperty" value="$transition.getLinkProperty()" />
 						<constructor-arg name="linkEntity" value="$transition.getTargetEntityName()" />
-						<constructor-arg name="producer" ref="mockProducer" />
+						<constructor-arg name="producer" ref="odataProducer" />
 					</bean>
 #end
 				</entry>

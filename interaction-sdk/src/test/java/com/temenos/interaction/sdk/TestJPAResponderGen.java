@@ -44,6 +44,7 @@ public class TestJPAResponderGen {
 		List<String> generatedClasses = new ArrayList<String>();
 		String generatedPersistenceXML;
 		String generatedSpringXML;
+		String generatedSpringResourceManagerXML;
 		String generateResponderDML;
 		String generatedBehaviourClass;
 		String generatedMetadata;
@@ -63,8 +64,13 @@ public class TestJPAResponderGen {
 			return true;
 		}
 
-		protected boolean writeSpringConfiguration(File sourceDir, String generatedSpringXML) {
-			this.generatedSpringXML = generatedSpringXML;
+		protected boolean writeSpringConfiguration(File sourceDir, String filename, String generatedSpringXML) {
+			if(filename.equals("spring-beans.xml")) {
+				this.generatedSpringXML = generatedSpringXML;
+			}
+			else if(filename.equals("resourcemanager-context.xml")) {
+				this.generatedSpringResourceManagerXML = generatedSpringXML;
+			}
 			return true;
 		}
 		
@@ -413,6 +419,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Airport</value></key>"));
 		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/FlightSchedule</value></key>"));
 
+		assertTrue(generator.generatedSpringResourceManagerXML.contains("<constructor-arg name=\"namespace\" value=\"FlightResponder\" />"));		
+		
 		//Test resource states
 		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
 		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flightschedules);"));
@@ -466,6 +474,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Airport</value></key>"));
 		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/FlightSchedule</value></key>"));
 
+		assertTrue(generator.generatedSpringResourceManagerXML.contains("<constructor-arg name=\"namespace\" value=\"FlightResponder\" />"));		
+		
 		//Test resource states
 		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
 		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flightschedules);"));
