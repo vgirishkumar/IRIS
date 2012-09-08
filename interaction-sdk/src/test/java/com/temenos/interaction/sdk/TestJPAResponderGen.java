@@ -49,21 +49,25 @@ public class TestJPAResponderGen {
 		String generatedBehaviourClass;
 		String generatedMetadata;
 		
+		@Override
 		protected String getLinkProperty(String associationName, String edmxFile) {
 			InputStream isEdmx = getClass().getResourceAsStream("/" + EDMX_AIRLINE_FILE);
 			return ReferentialConstraintParser.getLinkProperty(associationName, isEdmx);
 		}
 		
-		protected boolean writeClass(String classFileName, String generatedClass) {
+		@Override
+		protected boolean writeClass(String path, String classFileName, String generatedClass) {
 			this.generatedClasses.add(generatedClass);
 			return true;
 		}
 		
+		@Override
 		protected boolean writeJPAConfiguration(File sourceDir, String generatedPersistenceXML) {
 			this.generatedPersistenceXML = generatedPersistenceXML;
 			return true;
 		}
 
+		@Override
 		protected boolean writeSpringConfiguration(File sourceDir, String filename, String generatedSpringXML) {
 			if(filename.equals("spring-beans.xml")) {
 				this.generatedSpringXML = generatedSpringXML;
@@ -74,16 +78,19 @@ public class TestJPAResponderGen {
 			return true;
 		}
 		
+		@Override
 		protected boolean writeResponderDML(File sourceDir, String generateResponderDML) {
 			this.generateResponderDML = generateResponderDML;
 			return true;
 		}
 		
+		@Override
 		protected boolean writeBehaviourClass(String path, String generatedBehaviourClass) {
 			this.generatedBehaviourClass = generatedBehaviourClass;
 			return true;
 		}
 		
+		@Override
 		protected boolean writeMetadata(File sourceDir, String generatedMetadata) {
 			this.generatedMetadata = generatedMetadata;
 			return true;
@@ -376,7 +383,7 @@ public class TestJPAResponderGen {
 
 	@Test
 	public void testFormClassFilename() {
-		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah", new EntityInfo("SomeClass", "com.some.package", null, null)));
+		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah/com/some/package", new EntityInfo("SomeClass", "com.some.package", null, null)));
 	}
 	
 	@Test

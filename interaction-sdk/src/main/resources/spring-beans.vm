@@ -3,12 +3,13 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
-
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+
+	<!-- Import Resource manager context -->
+	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 	
 	<!-- An extension of org.apache.wink.spring.Registrar with support for singletons -->
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">

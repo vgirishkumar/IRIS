@@ -290,7 +290,8 @@ public class JPAResponderGen {
 	private boolean generateJPAEntity(EntityInfo entityInfo, File srcOutputPath) {
 		//Generate JPA class
 		if(entityInfo.isJpaEntity()) {
-			if (!writeClass(formClassFilename(srcOutputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
+			String path = srcOutputPath.getPath() + "/" + entityInfo.getPackageAsPath();
+			if (!writeClass(path, formClassFilename(path, entityInfo), generateJPAEntityClass(entityInfo))) {
 				return false;
 			}
 		}
@@ -323,13 +324,14 @@ public class JPAResponderGen {
 	 * @param entityInfo
 	 * @return
 	 */
-	public static String formClassFilename(String srcTargetDir, EntityInfo entityInfo) {
-		return srcTargetDir + "/" + entityInfo.getPackageAsPath() + "/" + entityInfo.getClazz() + ".java";
+	public static String formClassFilename(String path, EntityInfo entityInfo) {
+		return path + "/" + entityInfo.getClazz() + ".java";
 	}
 	
-	protected boolean writeClass(String classFileName, String generatedClass) {
+	protected boolean writeClass(String path, String classFileName, String generatedClass) {
 		FileOutputStream fos = null;
 		try {
+			new File(path).mkdirs();
 			fos = new FileOutputStream(classFileName);
 			fos.write(generatedClass.getBytes("UTF-8"));
 		} catch (IOException e) {
