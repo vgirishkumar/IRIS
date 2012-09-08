@@ -396,7 +396,7 @@ public class TestJPAResponderGen {
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
-		boolean status = generator.generateArtifacts(metadata, interactionModel, new File(""), new File(""));
+		boolean status = generator.generateArtifacts(metadata, interactionModel, new File(""), new File(""), true);
 		
 		//Check results
 		assertTrue(status);

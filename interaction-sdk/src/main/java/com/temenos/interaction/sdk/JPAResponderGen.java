@@ -40,6 +40,8 @@ import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
+import com.temenos.interaction.core.entity.vocabulary.Term;
+import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
@@ -116,17 +118,14 @@ public class JPAResponderGen {
 		}
 		String entityContainerNamespace = edmDataServices.getSchemas().get(0).getEntityContainers().get(0).getName();
 		
-		//Write JPA classes
+		//Obtain resource information
 		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
+		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
 			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t);
 			EntityInfo collectionEntityInfo = createEntityInfoFromEdmEntityType(t);
 			addResourcesInfo(resourcesInfo, entityInfo, collectionEntityInfo, new Commands());
-
-			//Generate JPA entity
-			if(!generateJPAEntity(entityInfo, srcOutputPath)) {
-				ok = false;
-			}
+			entitiesInfo.add(entityInfo);
 		}
 		
 		//Create interaction model
@@ -174,13 +173,8 @@ public class JPAResponderGen {
 			entityModel.addEntity(emEntity);
 		}
 		
-		//Write metadata.xml
-		if (!writeMetadata(configOutputPath, generateMetadata(entityModel))) {
-			ok = false;
-		}
-
 		//Write other artefacts
-		if(!writeArtefacts(entityContainerNamespace, resourcesInfo, interactionModel, srcOutputPath, configOutputPath)) {
+		if(!writeArtefacts(entityContainerNamespace, resourcesInfo, entitiesInfo, entityModel, interactionModel, srcOutputPath, configOutputPath, true)) {
 			ok = false;
 		}
 		
@@ -194,11 +188,12 @@ public class JPAResponderGen {
 	 * @param interactionModel Conceptual interaction model
 	 * @param srcOutputPath Path to output directory
 	 * @param configOutputPath Path to configuration files directory
+	 * @param generateMockResponder Indicates whether to generate artifacts for a mock responder 
 	 * @return true if successful, false otherwise
 	 */
-	public boolean generateArtifacts(Metadata metadata, InteractionModel interactionModel, File srcOutputPath, File configOutputPath) {
+	public boolean generateArtifacts(Metadata metadata, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		Commands commands = new Commands();
-		return generateArtifacts(metadata, interactionModel, commands, srcOutputPath, configOutputPath);
+		return generateArtifacts(metadata, interactionModel, commands, srcOutputPath, configOutputPath, generateMockResponder);
 	}
 	
 	/**
@@ -208,29 +203,30 @@ public class JPAResponderGen {
 	 * @param commands Commands
 	 * @param srcOutputPath Path to output directory
 	 * @param configOutputPath Path to configuration files directory
+	 * @param generateMockResponder Indicates whether to generate artifacts for a mock responder 
 	 * @return true if successful, false otherwise
 	 */
-	public boolean generateArtifacts(Metadata metadata, InteractionModel interactionModel, Commands commands, File srcOutputPath, File configOutputPath) {
+	public boolean generateArtifacts(Metadata metadata, InteractionModel interactionModel, Commands commands, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		boolean ok = true;
 
 		String modelName = metadata.getModelName();
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
 		
-		//Write JPA classes
+		//Obtain resource information
 		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
+		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EntityMetadata entityMetadata: metadata.getEntitiesMetadata().values()) {
 			EntityInfo entityInfo = createEntityInfoFromEntityMetadata(namespace, entityMetadata);
 			EntityInfo collectionEntityInfo = createEntityInfoFromEntityMetadata(namespace, entityMetadata);
 			addResourcesInfo(resourcesInfo, entityInfo, collectionEntityInfo, commands);
-
-			//Generate JPA entity
-			if(!generateJPAEntity(entityInfo, srcOutputPath)) {
-				ok = false;
-			}
+			entitiesInfo.add(entityInfo);
 		}
+
+		//Create the entity model
+		EntityModel entityModel = createEntityModelFromMetadata(namespace, metadata);
 		
 		//Write other artefacts
-		if(!writeArtefacts(modelName, resourcesInfo, interactionModel, srcOutputPath, configOutputPath)) {
+		if(!writeArtefacts(modelName, resourcesInfo, entitiesInfo, entityModel, interactionModel, srcOutputPath, configOutputPath, generateMockResponder)) {
 			ok = false;
 		}
 		
@@ -241,42 +237,59 @@ public class JPAResponderGen {
 		return ReferentialConstraintParser.getLinkProperty(associationName, edmxFile);
 	}
 	
-	private boolean writeArtefacts(String modelName, List<ResourceInfo> resourcesInfo, InteractionModel interactionModel, File srcOutputPath, File configOutputPath) {
+	private boolean writeArtefacts(String modelName, List<ResourceInfo> resourcesInfo, List<EntityInfo> entitiesInfo, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		boolean ok = true;
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
 		
-		// generate persistence.xml
-		if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(resourcesInfo))) {
+		//Create the source directory
+		new File(srcOutputPath + "/" + namespace.replace(".", "/")).mkdirs();
+		
+		//Write metadata.xml
+		if (!writeMetadata(configOutputPath, generateMetadata(entityModel))) {
 			ok = false;
 		}
-
+		
 		// generate spring configuration files
 		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(resourcesInfo, modelName, interactionModel))) {
 			ok = false;
 		}
-		if (!writeSpringConfiguration(configOutputPath, SPRING_RESOURCEMANAGER_FILE, generateSpringResourceManagerContext(modelName))) {
-			ok = false;
-		}
 
-		// generate responder insert
-		if (!writeResponderDML(configOutputPath, generateResponderDML(resourcesInfo))) {
-			ok = false;
-		}
-		
 		// generate Behaviour class
 		String behaviourFilePath = srcOutputPath + "/" + namespace.replace(".", "/") + "/" + BEHAVIOUR_CLASS_FILE;
 		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(modelName, interactionModel))) {
 			ok = false;
 		}
 
+		if(generateMockResponder) {
+			//Write JPA classes
+			for(EntityInfo entityInfo : entitiesInfo) {
+				if(!generateJPAEntity(entityInfo, srcOutputPath)) {
+					ok = false;
+				}
+			}
+			
+			// generate persistence.xml
+			if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(resourcesInfo))) {
+				ok = false;
+			}
+
+			// generate spring configuration for JPA database
+			if (!writeSpringConfiguration(configOutputPath, SPRING_RESOURCEMANAGER_FILE, generateSpringResourceManagerContext(modelName))) {
+				ok = false;
+			}
+
+			// generate responder insert
+			if (!writeResponderDML(configOutputPath, generateResponderDML(resourcesInfo))) {
+				ok = false;
+			}
+		}
+		
 		return ok;
 	}
 	
 	private boolean generateJPAEntity(EntityInfo entityInfo, File srcOutputPath) {
 		//Generate JPA class
 		if(entityInfo.isJpaEntity()) {
-			String fqOutputDir = srcOutputPath.getPath() + "/" + entityInfo.getPackageAsPath();
-			new File(fqOutputDir).mkdirs();
 			if (!writeClass(formClassFilename(srcOutputPath.getPath(), entityInfo), generateJPAEntityClass(entityInfo))) {
 				return false;
 			}
@@ -394,6 +407,29 @@ public class JPAResponderGen {
 		String jpaNamespace = System.getProperty("jpaNamespace");
 		boolean isJpaEntity = (jpaNamespace == null || jpaNamespace.equals(namespace));
 		return new EntityInfo(entityMetadata.getEntityName(), namespace, keyInfo, properties, isJpaEntity);
+	}
+
+	/*
+	 * Create a EntityModel object from a Metadata container
+	 */
+	private EntityModel createEntityModelFromMetadata(String namespace, Metadata metadata) {
+		//Create the entity model
+		EntityModel entityModel = new EntityModel(namespace);
+		for (EntityMetadata entityMetadata: metadata.getEntitiesMetadata().values()) {
+			EMEntity emEntity = new EMEntity(entityMetadata.getEntityName());
+			for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
+				EMProperty emProperty = new EMProperty(propertyName);
+				Vocabulary propertyVoc = entityMetadata.getPropertyVocabulary(propertyName);
+				if(propertyVoc != null) {
+					for(Term term : propertyVoc.getTerms()) {
+						emProperty.addVocabularyTerm(new EMTerm(term.getName(), term.getValue()));
+					}
+				}
+				emEntity.addProperty(emProperty);
+			}
+			entityModel.addEntity(emEntity);
+		}
+		return entityModel;
 	}
 	
 	private String javaType(EdmType type) {
