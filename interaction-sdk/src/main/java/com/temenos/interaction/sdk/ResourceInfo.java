@@ -8,11 +8,17 @@ public class ResourceInfo {
 	private EntityInfo entityInfo;
 	private String resourcePath;
 	private String commandType;
-	
+	private boolean isDefaultCommand;
+
 	public ResourceInfo(String resourcePath, EntityInfo entityInfo, String commandType) {
+		this(resourcePath, entityInfo, commandType, true);
+	}
+	
+	public ResourceInfo(String resourcePath, EntityInfo entityInfo, String commandType, boolean isDefaultCommand) {
 		this.resourcePath = resourcePath;
 		this.entityInfo = entityInfo;
 		this.commandType = commandType;
+		this.isDefaultCommand = isDefaultCommand;
 	}
 	
 	public String getResourcePath() {
@@ -25,5 +31,9 @@ public class ResourceInfo {
 	
 	public EntityInfo getEntityInfo() {
 		return entityInfo;
+	}
+	
+	public boolean isDefaultCommand() {
+		return isDefaultCommand;		
 	}
 }
