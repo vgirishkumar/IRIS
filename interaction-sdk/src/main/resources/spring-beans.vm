@@ -1,7 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<!-- Read property files -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:responder.properties</value>
+			</list>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
+	</bean>
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
@@ -53,57 +71,58 @@
 	</bean>
 
 	<!-- Commands -->
-	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
-		<constructor-arg name="commands">
-			<map>
-				<entry>
-					<key><value>GET+/</value></key>
-					<bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-						<constructor-arg name="entity" value="ServiceDocument" />
-						<constructor-arg name="edmDataServices" ref="edmDataServices" />
-					</bean>
-				</entry>
-				<entry>
-					<key><value>GET+/$metadata</value></key>
-					<bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-						<constructor-arg name="entity" value="Metadata" />
-						<constructor-arg name="edmDataServices" ref="edmDataServices" />
-					</bean>
-				</entry>
-#foreach ( $resourceInfo in $resourcesInfo )
-				<entry>
-					<key><value>$resourceInfo.getResourcePath()</value></key>
-					<bean class="$resourceInfo.getCommandType()">
-						<constructor-arg value="$resourceInfo.getEntityInfo().getClazz()" />
-#if ($resourceInfo.isDefaultCommand()) 
-						<constructor-arg ref="odataProducer" />
+	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+		<constructor-arg value="ServiceDocument" />
+		<constructor-arg ref="edmDataServices" />
+	</bean>
+	<bean id="cmdGetMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+		<constructor-arg value="Metadata" />
+		<constructor-arg ref="edmDataServices" />
+	</bean>
+#foreach ( $cmd in $commands.getCommands() )
+	<bean id="$cmd.getId()" class="$cmd.getClassName()">
+#foreach ( $param in $cmd.getParameters() )
+#if ($param.isByReference()) 
+		<constructor-arg ref="$param.getValue()" />
 #else
-						<constructor-arg ref="edmMetadata" />
+		<constructor-arg value="$param.getValue()" />
 #end
-					</bean>
-				</entry>
+#end
+	</bean>
 #end
 #foreach ( $rsm in $interactionModel.getResourceStateMachines() )
 #foreach ( $transition in $rsm.getTransitions() )
-				<entry>
-					<key><value>GET+/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}</value></key>
 #if ($transition.isCollectionState()) 
-					<bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-						<constructor-arg name="entity" value="$transition.getTargetEntityName()" />
-						<constructor-arg name="producer" ref="odataProducer" />
-					</bean>
+	<bean id="cmdGET${rsm.getEntityName()}.${transition.getTargetStateName()}" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+		<constructor-arg value="$transition.getTargetEntityName()" />
+		<constructor-arg ref="odataProducer" />
+	</bean>
 #else
-					<bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
-						<constructor-arg name="entity" value="$rsm.getEntityName()" />
-						<constructor-arg name="linkProperty" value="$transition.getLinkProperty()" />
-						<constructor-arg name="linkEntity" value="$transition.getTargetEntityName()" />
-						<constructor-arg name="producer" ref="odataProducer" />
-					</bean>
-#end
-				</entry>
+	<bean id="cmdGET${rsm.getEntityName()}.${transition.getTargetStateName()}" class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
+		<constructor-arg name="entity" value="$rsm.getEntityName()" />
+		<constructor-arg name="linkProperty" value="$transition.getLinkProperty()" />
+		<constructor-arg name="linkEntity" value="$transition.getTargetEntityName()" />
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
 #end
 #end
-			</map>
+#end
+
+	<!-- Resource commands -->
+	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
+		<constructor-arg name="commands">
+			<util:map id="commandsMap" map-class="java.util.Hashtable">
+				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
+				<entry key="GET+/$metadata" value-ref="cmdGetMetadata" />
+#foreach ( $rsm in $interactionModel.getResourceStateMachines() )
+				<entry key="GET+/${rsm.getEntityName()}({id})" value-ref="cmdGETEntity${rsm.getEntityName()}" />
+				<entry key="GET+/${rsm.getEntityName()}" value-ref="cmdGETEntities${rsm.getEntityName()}" />
+				<entry key="POST+/${rsm.getEntityName()}" value-ref="cmdPOSTEntity${rsm.getEntityName()}" />
+#foreach ( $transition in $rsm.getTransitions() )
+				<entry key="GET+/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}" value-ref="cmdGET${rsm.getEntityName()}.${transition.getTargetStateName()}" />
+#end
+#end
+			</util:map> 
 		</constructor-arg>
 	</bean>
 </beans>

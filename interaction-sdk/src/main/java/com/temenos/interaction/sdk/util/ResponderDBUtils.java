@@ -8,34 +8,26 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
 
-// TODO refactor this class, copied from somewhere
+/**
+ * Utility class to read SQL insert statement froma file and 
+ * inject them into a database. 
+ */
 public class ResponderDBUtils {
 	private final static Logger logger = Logger.getLogger(ResponderDBUtils.class.getName());
 
-	public static String fillDatabase() {
-		logger.fine("Loading HSQL JDBC driver");
-		try {
-			Class.forName("org.hsqldb.jdbcDriver");
-		} catch (Exception ex) {
-			// TODO replace with slf4j instance of logger
-			return "ERROR: failed to load HSQLDB JDBC driver.";
-		}
+	public static String fillDatabase(EntityManagerFactory entityManagerFactory) {
+		logger.fine("Creating an entity manager");
+		EntityManager entityManager = entityManagerFactory.createEntityManager();
 
-		Connection conn = null;
 		String line = "";
 		try {
-			logger.fine("Attempting to connect to database");
-			conn = DriverManager.getConnection("jdbc:hsqldb:mem:responder", "sa", "");
-			Statement statement = conn.createStatement();
-
 			logger.fine("Loading SQL INSERTs file");
 			InputStream xml = ResponderDBUtils.class.getResourceAsStream("/META-INF/responder_insert.sql");
 			if (xml == null){
@@ -53,27 +45,21 @@ public class ResponderDBUtils {
 
 					if (line.length() > 5) {
 						logger.fine("Inserting record: " + line);
-						statement.executeUpdate(line);
+						Query query = entityManager.createNamedQuery(line);
+						query.executeUpdate();
 						count++;
 					}
 				}
 			}
 
 			br.close();
-			statement.close();
 			logger.info(count + " rows have been inserted into the database.");
 
 		} catch (Exception ex) {
 			logger.severe("Failed to insert SQL statements.");
 			ex.printStackTrace();
 		} finally {
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException ex) {
-					// do nothing
-				}
-			}
+			entityManager.close();
 		}
 		return "OK";
 	}

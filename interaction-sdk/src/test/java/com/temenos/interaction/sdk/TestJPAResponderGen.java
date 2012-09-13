@@ -69,10 +69,10 @@ public class TestJPAResponderGen {
 
 		@Override
 		protected boolean writeSpringConfiguration(File sourceDir, String filename, String generatedSpringXML) {
-			if(filename.equals("spring-beans.xml")) {
+			if(filename.equals(JPAResponderGen.SPRING_CONFIG_FILE)) {
 				this.generatedSpringXML = generatedSpringXML;
 			}
-			else if(filename.equals("resourcemanager-context.xml")) {
+			else if(filename.equals(JPAResponderGen.SPRING_RESOURCEMANAGER_FILE)) {
 				this.generatedSpringResourceManagerXML = generatedSpringXML;
 			}
 			return true;
@@ -349,11 +349,11 @@ public class TestJPAResponderGen {
 	public void testGenJPAConfiguration() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
-		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
-		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new EntityInfo("Flight", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new EntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new EntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		String generatedPersistenceConfig = rg.generateJPAConfiguration(resourcesInfo);
+		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
+		entitiesInfo.add(new EntityInfo("Flight", "AirlineModel", null, null));
+		entitiesInfo.add(new EntityInfo("Airport", "AirlineModel", null, null));
+		entitiesInfo.add(new EntityInfo("FlightSchedule", "AirlineModel", null, null));
+		String generatedPersistenceConfig = rg.generateJPAConfiguration(entitiesInfo);
 		
 		assertTrue(generatedPersistenceConfig.contains("<!-- Generated JPA configuration for IRIS MockResponder -->"));
 		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.Flight</class>"));
@@ -365,16 +365,16 @@ public class TestJPAResponderGen {
 	public void testGenResponderDML() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
-		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
+		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		
 		List<FieldInfo> properties = new ArrayList<FieldInfo>();
 		properties.add(new FieldInfo("number", "Long", null));
 		properties.add(new FieldInfo("fitHostiesName", "String", null));
 		properties.add(new FieldInfo("runway", "String", null));
-		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new EntityInfo("Flight", "AirlineModel", null, properties), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new EntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new EntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		String generatedResponderDML = rg.generateResponderDML(resourcesInfo);
+		entitiesInfo.add(new EntityInfo("Flight", "AirlineModel", null, properties));
+		entitiesInfo.add(new EntityInfo("Airport", "AirlineModel", null, null));
+		entitiesInfo.add(new EntityInfo("FlightSchedule", "AirlineModel", null, null));
+		String generatedResponderDML = rg.generateResponderDML(entitiesInfo);
 		
 		assertTrue(generatedResponderDML.contains("INSERT INTO `Flight`(`number` , `fitHostiesName` , `runway`) VALUES('1' , 'abc' , 'abc');"));
 		assertTrue(generatedResponderDML.contains("INSERT INTO `Airport`() VALUES();"));
@@ -421,10 +421,10 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Airport</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.FlightSchedule</class>"));
 
-		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponder.Behaviour\" />"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Flight</value></key>"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Airport</value></key>"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/FlightSchedule</value></key>"));
+		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.Behaviour\" />"));
+		assertTrue(generator.generatedSpringXML.contains("<entry key=\"GET+/Flight\" value-ref=\"cmdGETEntitiesFlight\" />"));
+		assertTrue(generator.generatedSpringXML.contains("<entry key=\"GET+/Airport\" value-ref=\"cmdGETEntitiesAirport\" />"));
+		assertTrue(generator.generatedSpringXML.contains("<entry key=\"GET+/FlightSchedule\" value-ref=\"cmdGETEntitiesFlightSchedule\" />"));
 
 		assertTrue(generator.generatedSpringResourceManagerXML.contains("<constructor-arg name=\"namespace\" value=\"FlightResponder\" />"));		
 		
@@ -476,10 +476,10 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Airport</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.FlightSchedule</class>"));
 
-		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponder.Behaviour\" />"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Flight</value></key>"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Airport</value></key>"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/FlightSchedule</value></key>"));
+		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.Behaviour\" />"));
+		assertTrue(generator.generatedSpringXML.contains("<entry key=\"GET+/Flight\" value-ref=\"cmdGETEntitiesFlight\" />"));
+		assertTrue(generator.generatedSpringXML.contains("<entry key=\"GET+/Airport\" value-ref=\"cmdGETEntitiesAirport\" />"));
+		assertTrue(generator.generatedSpringXML.contains("<entry key=\"GET+/FlightSchedule\" value-ref=\"cmdGETEntitiesFlightSchedule\" />"));
 
 		assertTrue(generator.generatedSpringResourceManagerXML.contains("<constructor-arg name=\"namespace\" value=\"FlightResponder\" />"));		
 		

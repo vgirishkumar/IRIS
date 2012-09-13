@@ -30,6 +30,7 @@ import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
 import com.temenos.interaction.sdk.command.Commands;
+import com.temenos.interaction.sdk.command.Parameter;
 import com.temenos.interaction.sdk.entity.EMEntity;
 import com.temenos.interaction.sdk.entity.EMProperty;
 import com.temenos.interaction.sdk.entity.EMTerm;
@@ -56,13 +57,17 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
  */
 public class JPAResponderGen {
 
-	private final static String JPA_CONFIG_FILE = "persistence.xml";
-	private final static String SPRING_CONFIG_FILE = "spring-beans.xml";
-	private final static String SPRING_RESOURCEMANAGER_FILE = "resourcemanager-context.xml";
-	private final static String RESPONDER_INSERT_FILE = "responder_insert.sql";
-	private final static String BEHAVIOUR_CLASS_FILE = "Behaviour.java";
-	private final static String METADATA_FILE = "metadata.xml";
+	public final static String JPA_CONFIG_FILE = "jpa-persistence.xml";
+	public final static String SPRING_CONFIG_FILE = "spring-beans.xml";
+	public final static String SPRING_RESOURCEMANAGER_FILE = "resourcemanager-context.xml";
+	public final static String RESPONDER_INSERT_FILE = "responder_insert.sql";
+	public final static String RESPONDER_SETTINGS_FILE = "responder.properties";
+	public final static String BEHAVIOUR_CLASS_FILE = "Behaviour.java";
+	public final static String METADATA_FILE = "metadata.xml";
 
+	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("odataProducer", true);
+	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true);
+			
 	/*
 	 *  create a new instance of the engine
 	 */
@@ -117,14 +122,19 @@ public class JPAResponderGen {
 			return false;
 		}
 		String entityContainerNamespace = edmDataServices.getSchemas().get(0).getEntityContainers().get(0).getName();
+
+		//Create commands
+		Commands commands = new Commands();
+		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
+			commands.addCommand("com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+			commands.addCommand("com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+			commands.addCommand("com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		}
 		
 		//Obtain resource information
-		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
 		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
 			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t);
-			EntityInfo collectionEntityInfo = createEntityInfoFromEdmEntityType(t);
-			addResourcesInfo(resourcesInfo, entityInfo, collectionEntityInfo, new Commands());
 			entitiesInfo.add(entityInfo);
 		}
 		
@@ -174,7 +184,7 @@ public class JPAResponderGen {
 		}
 		
 		//Write other artefacts
-		if(!writeArtefacts(entityContainerNamespace, resourcesInfo, entitiesInfo, entityModel, interactionModel, srcOutputPath, configOutputPath, true)) {
+		if(!writeArtefacts(entityContainerNamespace, entitiesInfo, commands, entityModel, interactionModel, srcOutputPath, configOutputPath, true)) {
 			ok = false;
 		}
 		
@@ -192,7 +202,14 @@ public class JPAResponderGen {
 	 * @return true if successful, false otherwise
 	 */
 	public boolean generateArtifacts(Metadata metadata, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
+		//Create commands
 		Commands commands = new Commands();
+		for (EntityMetadata entityMetadata: metadata.getEntitiesMetadata().values()) {
+			commands.addCommand("com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, new Parameter(entityMetadata.getEntityName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+			commands.addCommand("com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, new Parameter(entityMetadata.getEntityName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+			commands.addCommand("com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, new Parameter(entityMetadata.getEntityName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		}
+		
 		return generateArtifacts(metadata, interactionModel, commands, srcOutputPath, configOutputPath, generateMockResponder);
 	}
 	
@@ -213,20 +230,17 @@ public class JPAResponderGen {
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
 		
 		//Obtain resource information
-		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
 		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EntityMetadata entityMetadata: metadata.getEntitiesMetadata().values()) {
 			EntityInfo entityInfo = createEntityInfoFromEntityMetadata(namespace, entityMetadata);
-			EntityInfo collectionEntityInfo = createEntityInfoFromEntityMetadata(namespace, entityMetadata);
-			addResourcesInfo(resourcesInfo, entityInfo, collectionEntityInfo, commands);
 			entitiesInfo.add(entityInfo);
 		}
-
+		
 		//Create the entity model
 		EntityModel entityModel = createEntityModelFromMetadata(namespace, metadata);
 		
 		//Write other artefacts
-		if(!writeArtefacts(modelName, resourcesInfo, entitiesInfo, entityModel, interactionModel, srcOutputPath, configOutputPath, generateMockResponder)) {
+		if(!writeArtefacts(modelName, entitiesInfo, commands, entityModel, interactionModel, srcOutputPath, configOutputPath, generateMockResponder)) {
 			ok = false;
 		}
 		
@@ -237,7 +251,7 @@ public class JPAResponderGen {
 		return ReferentialConstraintParser.getLinkProperty(associationName, edmxFile);
 	}
 	
-	private boolean writeArtefacts(String modelName, List<ResourceInfo> resourcesInfo, List<EntityInfo> entitiesInfo, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
+	private boolean writeArtefacts(String modelName, List<EntityInfo> entitiesInfo, Commands commands, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		boolean ok = true;
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
 		
@@ -250,16 +264,16 @@ public class JPAResponderGen {
 		}
 		
 		// generate spring configuration files
-		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(resourcesInfo, modelName, interactionModel))) {
+		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(namespace, interactionModel, commands))) {
 			ok = false;
 		}
 
 		// generate Behaviour class
 		String behaviourFilePath = srcOutputPath + "/" + namespace.replace(".", "/") + "/" + BEHAVIOUR_CLASS_FILE;
-		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(modelName, interactionModel))) {
+		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(namespace, interactionModel))) {
 			ok = false;
 		}
-
+		
 		if(generateMockResponder) {
 			//Write JPA classes
 			for(EntityInfo entityInfo : entitiesInfo) {
@@ -269,7 +283,7 @@ public class JPAResponderGen {
 			}
 			
 			// generate persistence.xml
-			if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(resourcesInfo))) {
+			if (!writeJPAConfiguration(configOutputPath, generateJPAConfiguration(entitiesInfo))) {
 				ok = false;
 			}
 
@@ -279,7 +293,12 @@ public class JPAResponderGen {
 			}
 
 			// generate responder insert
-			if (!writeResponderDML(configOutputPath, generateResponderDML(resourcesInfo))) {
+			if (!writeResponderDML(configOutputPath, generateResponderDML(entitiesInfo))) {
+				ok = false;
+			}
+
+			// generate responder settings
+			if (!writeResponderSettings(configOutputPath, generateResponderSettings())) {
 				ok = false;
 			}
 		}
@@ -298,26 +317,6 @@ public class JPAResponderGen {
 		return true;
 	}
 
-	private void addResourcesInfo(List<ResourceInfo> resourcesInfo, EntityInfo entityInfo, EntityInfo collectionEntityInfo, Commands commands) {
-		//Entity resource
-		String resourcePath = "GET+/" + entityInfo.getClazz() + "({id})";
-		String commandType = commands.getGetEntityCommand();
-		boolean isDefaultCommand = commands.isDefaultGetEntityCommand();
-		resourcesInfo.add(new ResourceInfo(resourcePath, entityInfo, commandType, isDefaultCommand));
-
-		//Collection resource 
-		collectionEntityInfo.setFeedEntity();		//This is a feed of OEntities and should not exist as a JPA entity 
-		resourcePath = "GET+/" + collectionEntityInfo.getClazz();
-		commandType = commands.getGetEntitiesCommand(); 
-		isDefaultCommand = commands.isDefaultGetEntitiesCommand();
-		resourcesInfo.add(new ResourceInfo(resourcePath, collectionEntityInfo, commandType, isDefaultCommand));
-
-		resourcePath = "POST+/" + collectionEntityInfo.getClazz();
-		commandType = commands.getCreateEntityCommand(); 
-		isDefaultCommand = commands.isDefaultCreateEntityCommand();
-		resourcesInfo.add(new ResourceInfo(resourcePath, collectionEntityInfo, commandType, isDefaultCommand));
-	}
-	
 	/**
 	 * Utility method to form class filename.
 	 * @param srcTargetDir
@@ -608,6 +607,28 @@ public class JPAResponderGen {
 		return true;
 	}
 	
+	protected boolean writeResponderSettings(File sourceDir, String generateResponderSettings) {
+		FileOutputStream fos = null;
+		try {
+			File metaInfDir = new File(sourceDir.getPath());
+			metaInfDir.mkdirs();
+			fos = new FileOutputStream(new File(metaInfDir, RESPONDER_SETTINGS_FILE));
+			fos.write(generateResponderSettings.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO add slf4j logger here
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				// don't hide original exception
+			}
+		}
+		return true;
+	}
+	
 	/**
 	 * Generate a JPA Entity from the provided info
 	 * @precondition {@link EntityInfo} non null
@@ -631,14 +652,14 @@ public class JPAResponderGen {
 
 	/**
 	 * Generate the JPA configuration for the provided JPA entities.
-	 * @param resourcesInfo
+	 * @param entitiesInfo
 	 * @return
 	 */
-	public String generateJPAConfiguration(List<ResourceInfo> resourcesInfo) {
+	public String generateJPAConfiguration(List<EntityInfo> entitiesInfo) {
 		VelocityContext context = new VelocityContext();
-		context.put("resourcesInfo", resourcesInfo);
+		context.put("entitiesInfo", entitiesInfo);
 		
-		Template t = ve.getTemplate("/persistence.vm");
+		Template t = ve.getTemplate("/jpa-persistence.vm");
 		StringWriter sw = new StringWriter();
 		t.merge(context, sw);
 		return sw.toString();
@@ -646,15 +667,12 @@ public class JPAResponderGen {
 
 	/**
 	 * Generate the Spring configuration for the provided resources.
-	 * @param resourcesInfo
-	 * @return
 	 */
-	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace, InteractionModel interactionModel) {
+	public String generateSpringConfiguration(String namespace, InteractionModel interactionModel, Commands commands) {
 		VelocityContext context = new VelocityContext();
-		context.put("resourcesInfo", resourcesInfo);
-		context.put("entityContainerNamespace", entityContainerNamespace);
-		context.put("behaviourClass", entityContainerNamespace + ".Behaviour");
+		context.put("behaviourClass", namespace + ".Behaviour");
 		context.put("interactionModel", interactionModel);
+		context.put("commands", commands);
 		
 		Template t = ve.getTemplate("/spring-beans.vm");
 		StringWriter sw = new StringWriter();
@@ -679,12 +697,11 @@ public class JPAResponderGen {
 	
 	/**
 	 * Generate the responder_insert.sql provided resources.
-	 * @param resourcesInfo
 	 * @return
 	 */
-	public String generateResponderDML(List<ResourceInfo> resourcesInfo) {
+	public String generateResponderDML(List<EntityInfo> entitiesInfo) {
 		VelocityContext context = new VelocityContext();
-		context.put("resourcesInfo", resourcesInfo);
+		context.put("entitiesInfo", entitiesInfo);
 		
 		Template t = ve.getTemplate("/responder_insert.vm");
 		StringWriter sw = new StringWriter();
@@ -694,12 +711,11 @@ public class JPAResponderGen {
 
 	/**
 	 * Generate the behaviour class.
-	 * @param resourcesInfo
 	 * @return
 	 */
-	public String generateBehaviourClass(String entityContainerNamespace, InteractionModel interactionModel) {
+	public String generateBehaviourClass(String namespace, InteractionModel interactionModel) {
 		VelocityContext context = new VelocityContext();
-		context.put("behaviourNamespace", entityContainerNamespace);
+		context.put("behaviourNamespace", namespace);
 		context.put("interactionModel", interactionModel);
 		
 		Template t = ve.getTemplate("/behaviour.vm");
@@ -718,6 +734,19 @@ public class JPAResponderGen {
 		context.put("entityModel", entityModel);
 		
 		Template t = ve.getTemplate("/metadata.vm");
+		StringWriter sw = new StringWriter();
+		t.merge(context, sw);
+		return sw.toString();
+	}
+	
+	/**
+	 * Generate responder settings 
+	 * @return
+	 */
+	public String generateResponderSettings() {
+		VelocityContext context = new VelocityContext();
+		
+		Template t = ve.getTemplate("/responder_settings.vm");
 		StringWriter sw = new StringWriter();
 		t.merge(context, sw);
 		return sw.toString();

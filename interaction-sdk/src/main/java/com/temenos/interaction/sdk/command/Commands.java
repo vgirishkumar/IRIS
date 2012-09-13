@@ -1,56 +1,34 @@
 package com.temenos.interaction.sdk.command;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This class holds information about IRIS commands
  */
 public class Commands {
-	public final static String DEFAULT_GET_ENTITY_CMD = "com.temenos.interaction.commands.odata.GETEntityCommand";
-	public final static String DEFAULT_GET_ENTITIES_CMD = "com.temenos.interaction.commands.odata.GETEntitiesCommand";
-	public final static String DEFAULT_CREATE_ENTITY_CMD = "com.temenos.interaction.commands.odata.CreateEntityCommand";
+	public final static String GET_ENTITY = "GETEntity";
+	public final static String GET_ENTITIES = "GETEntities";
+	public final static String POST_ENTITY = "POSTEntity";
 	
-	private String getEntityCommand = DEFAULT_GET_ENTITY_CMD;
-	private String getEntitiesCommand = DEFAULT_GET_ENTITIES_CMD;
-	private String createEntityCommand = DEFAULT_CREATE_ENTITY_CMD; 
+	private List<Command> commands = new ArrayList<Command>();
 
-	/**
-	 * Create an instance of this class
-	 */
 	public Commands() {
 	}
 
-	public String getGetEntityCommand() {
-		return getEntityCommand;
-	}
-
-	public void setGetEntityCommand(String getEntityCommand) {
-		this.getEntityCommand = getEntityCommand;
-	}
-
-	public String getGetEntitiesCommand() {
-		return getEntitiesCommand;
-	}
-
-	public void setGetEntitiesCommand(String getEntitiesCommand) {
-		this.getEntitiesCommand = getEntitiesCommand;
-	}
-
-	public String getCreateEntityCommand() {
-		return createEntityCommand;
-	}
-
-	public void setCreateEntityCommand(String createEntityCommand) {
-		this.createEntityCommand = createEntityCommand;
+	public void addCommand(String className, String type, Parameter param1, Parameter param2) {
+		String id = "cmd" + type + param1.getValue();
+		Command command = new Command(id, className);
+		command.addParameter(param1);
+		command.addParameter(param2);
+		commands.add(command);
 	}
 	
-	public boolean isDefaultGetEntityCommand() {
-		return getEntityCommand != null && getEntityCommand.equals(DEFAULT_GET_ENTITY_CMD);
+	public void addCommand(Command command) {
+		commands.add(command);
 	}
 
-	public boolean isDefaultGetEntitiesCommand() {
-		return getEntitiesCommand != null && getEntitiesCommand.equals(DEFAULT_GET_ENTITIES_CMD);
-	}
-
-	public boolean isDefaultCreateEntityCommand() {
-		return createEntityCommand != null && createEntityCommand.equals(DEFAULT_CREATE_ENTITY_CMD);
+	public List<Command> getCommands() {
+		return commands;
 	}
 }
