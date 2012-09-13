@@ -174,7 +174,7 @@ public class JPAResponderGen {
 		}
 		
 		//Write other artefacts
-		if(!writeArtefacts(entityContainerNamespace, resourcesInfo, entitiesInfo, entityModel, interactionModel, srcOutputPath, configOutputPath, true)) {
+		if(!writeArtefacts(entityContainerNamespace, resourcesInfo, entitiesInfo, entityModel, interactionModel, new Commands(), srcOutputPath, configOutputPath, true)) {
 			ok = false;
 		}
 		
@@ -226,7 +226,7 @@ public class JPAResponderGen {
 		EntityModel entityModel = createEntityModelFromMetadata(namespace, metadata);
 		
 		//Write other artefacts
-		if(!writeArtefacts(modelName, resourcesInfo, entitiesInfo, entityModel, interactionModel, srcOutputPath, configOutputPath, generateMockResponder)) {
+		if(!writeArtefacts(modelName, resourcesInfo, entitiesInfo, entityModel, interactionModel, commands, srcOutputPath, configOutputPath, generateMockResponder)) {
 			ok = false;
 		}
 		
@@ -237,7 +237,7 @@ public class JPAResponderGen {
 		return ReferentialConstraintParser.getLinkProperty(associationName, edmxFile);
 	}
 	
-	private boolean writeArtefacts(String modelName, List<ResourceInfo> resourcesInfo, List<EntityInfo> entitiesInfo, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
+	private boolean writeArtefacts(String modelName, List<ResourceInfo> resourcesInfo, List<EntityInfo> entitiesInfo, EntityModel entityModel, InteractionModel interactionModel, Commands commands, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		boolean ok = true;
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
 		
@@ -250,7 +250,7 @@ public class JPAResponderGen {
 		}
 		
 		// generate spring configuration files
-		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(resourcesInfo, modelName, interactionModel))) {
+		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(resourcesInfo, modelName, interactionModel, commands))) {
 			ok = false;
 		}
 
@@ -649,12 +649,13 @@ public class JPAResponderGen {
 	 * @param resourcesInfo
 	 * @return
 	 */
-	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace, InteractionModel interactionModel) {
+	public String generateSpringConfiguration(List<ResourceInfo> resourcesInfo, String entityContainerNamespace, InteractionModel interactionModel, Commands commands) {
 		VelocityContext context = new VelocityContext();
 		context.put("resourcesInfo", resourcesInfo);
 		context.put("entityContainerNamespace", entityContainerNamespace);
 		context.put("behaviourClass", entityContainerNamespace + ".Behaviour");
 		context.put("interactionModel", interactionModel);
+		context.put("commands",commands);
 		
 		Template t = ve.getTemplate("/spring-beans.vm");
 		StringWriter sw = new StringWriter();

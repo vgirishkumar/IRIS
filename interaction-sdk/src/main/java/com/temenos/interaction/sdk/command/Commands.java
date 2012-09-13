@@ -7,10 +7,12 @@ public class Commands {
 	public final static String DEFAULT_GET_ENTITY_CMD = "com.temenos.interaction.commands.odata.GETEntityCommand";
 	public final static String DEFAULT_GET_ENTITIES_CMD = "com.temenos.interaction.commands.odata.GETEntitiesCommand";
 	public final static String DEFAULT_CREATE_ENTITY_CMD = "com.temenos.interaction.commands.odata.CreateEntityCommand";
+	public final static String DEFAULT_GET_LINK_ENTITY_CMD = "com.temenos.interaction.commands.odata.GETLinkEntityCommand";
 	
 	private String getEntityCommand = DEFAULT_GET_ENTITY_CMD;
 	private String getEntitiesCommand = DEFAULT_GET_ENTITIES_CMD;
-	private String createEntityCommand = DEFAULT_CREATE_ENTITY_CMD; 
+	private String createEntityCommand = DEFAULT_CREATE_ENTITY_CMD;
+	private String getLinkEntityCommand = DEFAULT_GET_LINK_ENTITY_CMD; 
 
 	/**
 	 * Create an instance of this class
@@ -42,6 +44,14 @@ public class Commands {
 		this.createEntityCommand = createEntityCommand;
 	}
 	
+	public String getGetLinkEntityCommand() {
+		return getLinkEntityCommand;
+	}
+
+	public void setGetLinkEntityCommand(String getLinkEntityCommand) {
+		this.getLinkEntityCommand = getLinkEntityCommand;
+	}
+
 	public boolean isDefaultGetEntityCommand() {
 		return getEntityCommand != null && getEntityCommand.equals(DEFAULT_GET_ENTITY_CMD);
 	}
@@ -52,5 +62,9 @@ public class Commands {
 
 	public boolean isDefaultCreateEntityCommand() {
 		return createEntityCommand != null && createEntityCommand.equals(DEFAULT_CREATE_ENTITY_CMD);
+	}
+	
+	public boolean isDefaultGetLinkEntityCommand() {
+		return getLinkEntityCommand != null && getLinkEntityCommand.equals(DEFAULT_GET_LINK_ENTITY_CMD);
 	}
 }
