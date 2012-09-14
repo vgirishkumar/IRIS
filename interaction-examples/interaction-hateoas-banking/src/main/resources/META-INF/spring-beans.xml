@@ -1,25 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-           classpath:org/springframework/beans/factory/xml/spring-beans-2.5.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<!-- Initialise JPA for MockResponder -->
-	<bean id="entityManagerFactory"
-		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
-			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	<!-- Read property files -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:responder.properties</value>
+			</list>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
 	</bean>
-	
-	<!-- Initialise responder database -->
-	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+
+	<!-- Metadata -->	
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+
+	<!-- Import Resource manager context -->
+	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 
 	<!-- DaoManager -->
 	<bean id="daoHibernate" class="com.temenos.interaction.example.hateoas.banking.DaoHibernate" >
 		<constructor-arg ref="entityManagerFactory" />
 	</bean>
-
-	<!-- Metadata -->
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -53,56 +66,39 @@
         <constructor-arg ref="stateMachine" />
     </bean>
 
-    <!-- Commands -->
-    <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
-    	<constructor-arg>
-            <map>
-                <entry>
-                    <key><value>GET+/</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/$metadata</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETMetadataCommand">
-                        <constructor-arg ref="edmMetadata" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/preferences</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETPreferencesCommand" />
-                </entry>
-               <entry>
-                    <key><value>GET+/fundtransfers</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETFundTransfersCommand">
-                        <constructor-arg ref="daoHibernate" />
-                    </bean>
-                 </entry>
-                 <entry>
-                    <key><value>GET+/fundtransfers/{id}</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETFundTransferCommand">
-                        <constructor-arg ref="daoHibernate" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>PUT+/fundtransfers/{id}</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.PUTFundTransferCommand">
-                        <constructor-arg ref="daoHibernate" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>DELETE+/fundtransfers/{id}</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/fundtransfers/new</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>POST+/fundtransfers/new</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.POSTFundTransferCommand" />
-                </entry>
-            </map>
-        </constructor-arg>
-    </bean>
+	<!-- Commands -->
+	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
+	<bean id="cmdGETMetadata" class="com.temenos.interaction.example.hateoas.banking.GETMetadataCommand" >
+        <constructor-arg ref="edmMetadata" />
+    </bean>	
+	<bean id="cmdGETPreferences" class="com.temenos.interaction.example.hateoas.banking.GETPreferencesCommand" />
+	<bean id="cmdGETFundstransfers" class="com.temenos.interaction.example.hateoas.banking.GETFundTransfersCommand">
+		<constructor-arg ref="daoHibernate" />
+	</bean>
+	<bean id="cmdGETFundstransfer" class="com.temenos.interaction.example.hateoas.banking.GETFundTransferCommand">
+		<constructor-arg ref="daoHibernate" />
+	</bean>
+	<bean id="cmdPUTFundstransfer" class="com.temenos.interaction.example.hateoas.banking.PUTFundTransferCommand" >
+		<constructor-arg ref="daoHibernate" />
+	</bean>
+	<bean id="cmdDELETEFundstransfer" class="com.temenos.interaction.core.command.NoopDELETECommand" />
+	<bean id="cmdGETNewFundstransfer" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="cmdPOSTNewFundstransfer" class="com.temenos.interaction.example.hateoas.banking.POSTFundTransferCommand" />
 
+	<!-- Resource commands -->
+	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
+		<constructor-arg name="commands">
+			<util:map id="commandsMap" map-class="java.util.Hashtable">
+				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
+				<entry key="GET+/$metadata" value-ref="cmdGETMetadata" />
+				<entry key="GET+/preferences" value-ref="cmdGETPreferences" />
+				<entry key="GET+/fundtransfers" value-ref="cmdGETFundstransfers" />
+				<entry key="GET+/fundtransfers/{id}" value-ref="cmdGETFundstransfer" />
+				<entry key="PUT+/fundtransfers/{id}" value-ref="cmdPUTFundstransfer" />
+				<entry key="DELETE+/fundtransfers/{id}" value-ref="cmdDELETEFundstransfer" />
+				<entry key="GET+/fundtransfers/new" value-ref="cmdGETNewFundstransfer" />
+				<entry key="POST+/fundtransfers/new" value-ref="cmdPOSTNewFundstransfer" />
+			</util:map> 
+		</constructor-arg>
+	</bean>
 </beans>

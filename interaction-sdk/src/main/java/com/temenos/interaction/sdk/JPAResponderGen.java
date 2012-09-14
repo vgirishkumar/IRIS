@@ -298,7 +298,7 @@ public class JPAResponderGen {
 			}
 
 			// generate responder settings
-			if (!writeResponderSettings(configOutputPath, generateResponderSettings())) {
+			if (!writeResponderSettings(configOutputPath, generateResponderSettings(modelName))) {
 				ok = false;
 			}
 		}
@@ -743,8 +743,9 @@ public class JPAResponderGen {
 	 * Generate responder settings 
 	 * @return
 	 */
-	public String generateResponderSettings() {
+	public String generateResponderSettings(String responderName) {
 		VelocityContext context = new VelocityContext();
+		context.put("responderName", responderName);
 		
 		Template t = ve.getTemplate("/responder_settings.vm");
 		StringWriter sw = new StringWriter();
