@@ -10,6 +10,7 @@ public class Commands {
 	public final static String GET_ENTITY = "GETEntity";
 	public final static String GET_ENTITIES = "GETEntities";
 	public final static String POST_ENTITY = "POSTEntity";
+	public final static String GET_LINK_ENTITY = "GETLinkEntity";
 	
 	private List<Command> commands = new ArrayList<Command>();
 

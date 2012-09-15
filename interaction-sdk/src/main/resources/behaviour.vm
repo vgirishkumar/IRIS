@@ -60,7 +60,11 @@ ResourceStateMachine ${rsm.getCollectionStateName()}##
 #if ($transition.isCollectionState()) 
 		((CollectionResourceState) ${rsm.getCollectionStateName()}.getState("/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}")).addTransitionForEachItem("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getState("/${transition.getTargetEntityName()}({id})"), uriLinkageMap);
 #else
+#if ( ${transition.getReciprocalLinkState()} == "" )
+		${rsm.getCollectionStateName()}.getState("/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}").addTransition("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getState("/${transition.getTargetEntityName()}({id})"), uriLinkageMap);
+#else
 		${rsm.getCollectionStateName()}.getState("/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}").addTransition("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getState("/${transition.getTargetEntityName()}({id})/${transition.getReciprocalLinkState()}"), uriLinkageMap);
+#end
 #end
 #end
 
