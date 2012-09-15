@@ -123,14 +123,6 @@ public class JPAResponderGen {
 		}
 		String entityContainerNamespace = edmDataServices.getSchemas().get(0).getEntityContainers().get(0).getName();
 
-		//Create commands
-		Commands commands = new Commands();
-		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
-			commands.addCommand("com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-			commands.addCommand("com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-			commands.addCommand("com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		}
-		
 		//Obtain resource information
 		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
@@ -183,6 +175,15 @@ public class JPAResponderGen {
 			entityModel.addEntity(emEntity);
 		}
 		
+		//Create commands
+		Commands commands = new Commands();
+		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
+			commands.addCommand("com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+			commands.addCommand("com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+			commands.addCommand("com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		}
+		commands.addLinkCommands(interactionModel, "com.temenos.interaction.commands.odata.GETLinkEntityCommand", "com.temenos.interaction.commands.odata.GETEntitiesCommand");
+		
 		//Write other artefacts
 		if(!writeArtefacts(entityContainerNamespace, entitiesInfo, commands, entityModel, interactionModel, srcOutputPath, configOutputPath, true)) {
 			ok = false;
@@ -209,6 +210,7 @@ public class JPAResponderGen {
 			commands.addCommand("com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, new Parameter(entityMetadata.getEntityName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 			commands.addCommand("com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, new Parameter(entityMetadata.getEntityName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		}
+		commands.addLinkCommands(interactionModel, "com.temenos.interaction.commands.odata.GETLinkEntityCommand", "com.temenos.interaction.commands.odata.GETEntitiesCommand");
 		
 		return generateArtifacts(metadata, interactionModel, commands, srcOutputPath, configOutputPath, generateMockResponder);
 	}
