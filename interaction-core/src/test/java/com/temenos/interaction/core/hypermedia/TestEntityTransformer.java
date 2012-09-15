@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.dynaresource;
+package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.*;
 
