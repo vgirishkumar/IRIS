@@ -17,9 +17,8 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.ResourceGetCommand;
 
-public class GETLinkEntityCommand implements ResourceGetCommand, InteractionCommand {
+public class GETLinkEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entity;
@@ -42,43 +41,6 @@ public class GETLinkEntityCommand implements ResourceGetCommand, InteractionComm
 		assert(entity.equals(entitySet.getName()));
 	}
 	
-	/* Implement ResourceGetCommand (OEntity) */
-	@SuppressWarnings("unchecked")
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		RESTResponse rr = null;
-		
-		//Create entity key (simple types only)
-		OEntityKey key;
-		try {
-			key = CommandHelper.createEntityKey(entityTypes, entity, id);
-		} catch(Exception e) {
-			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
-		}
-		
-		//Get the entity
-		EntityResponse er = getProducer().getEntity(entity, key, null);
-		if(er != null) {
-			//Create the key to the link entity
-			OProperty<String> linkOProperty = (OProperty<String>) er.getEntity().getProperty(linkProperty);
-			try {
-				key = CommandHelper.createEntityKey(entityTypes, linkEntity, linkOProperty.getValue());
-			} catch(Exception e) {
-				return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
-			}
-			
-			//Get the link Entity
-			EntityResponse linkEr = getProducer().getEntity(linkEntity, key, null);
-			OEntity linkOEntity = linkEr.getEntity();
-			
-			EntityResource<OEntity> oer = CommandHelper.createEntityResource(linkOEntity);
-			rr = new RESTResponse(Response.Status.OK, oer);	
-		}
-		else {
-			rr = new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
-		}
-		return rr;
-	}
-
 	protected ODataProducer getProducer() {
 		return producer;
 	}

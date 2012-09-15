@@ -29,6 +29,8 @@ import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 
 public class TestGETNavPropertyCommand {
 
@@ -73,15 +75,15 @@ public class TestGETNavPropertyCommand {
 	public void testInvalidKeyType() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "KeyType");
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockProducer);
-		RESTResponse response = command.get("id", null);
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
 	public void testNullQueryParams() {
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", createMockODataProducer("MyEntity", "Edm.String"));
-		RESTResponse response = command.get("id", null);
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
@@ -91,8 +93,8 @@ public class TestGETNavPropertyCommand {
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
 			.thenReturn(new BaseResponse() {});
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockProducer);
-		RESTResponse response = command.get("id", new MultivaluedMapImpl<String, String>());
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
@@ -102,8 +104,8 @@ public class TestGETNavPropertyCommand {
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
 			.thenReturn(new BaseResponse() {});
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockProducer);
-		RESTResponse response = command.get("id", new MultivaluedMapImpl<String, String>());
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
@@ -113,8 +115,8 @@ public class TestGETNavPropertyCommand {
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
 			.thenReturn(Responses.property(null));
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockProducer);
-		RESTResponse response = command.get("id", new MultivaluedMapImpl<String, String>());
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 }

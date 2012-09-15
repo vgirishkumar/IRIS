@@ -15,14 +15,13 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.ResourceGetCommand;
 
 /**
  * A GET command that will return the current value of the supplied entity and property.  This 
  * command is implemented by calling getEntity on the {@link ODataProducer)
  * @author aphethean
  */
-public class GETSingleEntityCommand implements ResourceGetCommand, InteractionCommand {
+public class GETSingleEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entity;
@@ -38,20 +37,6 @@ public class GETSingleEntityCommand implements ResourceGetCommand, InteractionCo
 		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
 		this.entitySet = edmDataServices.getEdmEntitySet(entity);
-	}
-
-	/**
-	 * Implement {@link ResourceGetCommand}
-	 */
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		assert(id == null || "".equals(id));
-		assert(entity.equals(entitySet.getName()));
-
-		OEntityKey key = OEntityKey.create(entityKey);
-		EntityResponse eResp = producer.getEntity(entitySet.getName(), key, null);
-		OEntity oEntity = eResp.getEntity();
-		EntityResource<OEntity> er = new EntityResource<OEntity>(oEntity);
-		return new RESTResponse(Response.Status.OK, er);
 	}
 
 	/* Implement InteractionCommand interface */

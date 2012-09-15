@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.joda.time.LocalDateTime;
@@ -33,7 +34,11 @@ import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class TestJUnitGETEntityCommand {
@@ -70,9 +75,10 @@ public class TestJUnitGETEntityCommand {
 		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
 		
 		// test our method
-		RESTResponse rr = gec.get("1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof EntityResource);
+        InteractionContext ctx = createInteractionContext("1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof EntityResource);
 		// check the key was constructed correctly
 		class StringOEntityKey extends ArgumentMatcher<OEntityKey> {
 		      public boolean matches(Object obj) {
@@ -92,9 +98,10 @@ public class TestJUnitGETEntityCommand {
 		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
 		
 		// test our method
-		RESTResponse rr = gec.get("1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof EntityResource);
+        InteractionContext ctx = createInteractionContext("1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof EntityResource);
 		// check the key was constructed correctly
 		class Int64OEntityKey extends ArgumentMatcher<OEntityKey> {
 		      public boolean matches(Object obj) {
@@ -114,11 +121,11 @@ public class TestJUnitGETEntityCommand {
 		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
 		
 		// test our method
-		RESTResponse rr = gec.get("A1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() == null);
-		// check status is NOT_ACCEPTABLE
-		assertEquals(Response.Status.NOT_ACCEPTABLE.getStatusCode(), rr.getStatus().getStatusCode());
+        InteractionContext ctx = createInteractionContext("A1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		// command should return FAILURE
+		assertEquals(InteractionCommand.Result.FAILURE, result);
+		assertTrue(ctx.getResource() == null);
 	}
 	
 	@Test
@@ -127,9 +134,10 @@ public class TestJUnitGETEntityCommand {
 		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
 		
 		// test our method
-		RESTResponse rr = gec.get("datetime'2012-02-06T18:05:53'", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof EntityResource);
+        InteractionContext ctx = createInteractionContext("datetime'2012-02-06T18:05:53'");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof EntityResource);
 		// check the key was constructed correctly
 		class TimestampOEntityKey extends ArgumentMatcher<OEntityKey> {
 		      public boolean matches(Object obj) {
@@ -149,9 +157,10 @@ public class TestJUnitGETEntityCommand {
 		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockProducer);
 		
 		// test our method
-		RESTResponse rr = gec.get("time'PT18H05M53S'", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof EntityResource);
+        InteractionContext ctx = createInteractionContext("time'PT18H05M53S'");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof EntityResource);
 		// check the key was constructed correctly
 		class DateOEntityKey extends ArgumentMatcher<OEntityKey> {
 		      public boolean matches(Object obj) {
@@ -188,6 +197,14 @@ public class TestJUnitGETEntityCommand {
 		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
 				        
         return mockProducer;
+	}
+
+	@SuppressWarnings("unchecked")
+	private InteractionContext createInteractionContext(String id) {
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("id", id);
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class));
+        return ctx;
 	}
 
 }

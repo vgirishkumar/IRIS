@@ -5,13 +5,8 @@ import javax.ws.rs.HttpMethod;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.resource.EntityResource;
 
-public 	class NoopPOSTCommand implements ResourcePostCommand, InteractionCommand {
+public 	class NoopPOSTCommand implements InteractionCommand {
 
-	@Override
-	public RESTResponse post(String id, EntityResource<?> resource) {
-		return new RESTResponse(HttpStatusTypes.METHOD_NOT_ALLOWED, new EntityResource<String>(""));
-	}
-	
 	/* Implement InteractionCommand interface */
 	
 	@Override

@@ -9,9 +9,9 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -28,7 +28,11 @@ import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class TestGETLinkEntityCommand {
@@ -100,11 +104,12 @@ public class TestGETLinkEntityCommand {
 		
 		//Get link entity
 		GETLinkEntityCommand command = new GETLinkEntityCommand("Customer", "addressId", "Address", mockProducer);
-		RESTResponse response = command.get("id", new MultivaluedMapImpl<String, String>());
+        InteractionContext ctx = createInteractionContext("id");
+		InteractionCommand.Result result = command.execute(ctx);
 		
 		//Check result
-		assertEquals(Response.Status.OK, response.getStatus());
-		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) response.getResource();
+        assertEquals(InteractionCommand.Result.SUCCESS, result);
+		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) ctx.getResource();
 		OEntity entity = entityResource.getEntity();
 		OProperty<String> propLinkEntityId = (OProperty<String>) entity.getProperty("id");
 		assertEquals("ADDRESS_001", propLinkEntityId.getValue());
@@ -114,7 +119,16 @@ public class TestGETLinkEntityCommand {
 	public void testInvalidLinkEntity() {
 		ODataProducer mockProducer = createMockODataProducer("Customer", "addressId", "Address");
 		GETLinkEntityCommand command = new GETLinkEntityCommand("Customer", "addressId", "Address", mockProducer);
-		RESTResponse response = command.get("id", new MultivaluedMapImpl<String, String>());
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+        InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+        assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
+	
+	@SuppressWarnings("unchecked")
+	private InteractionContext createInteractionContext(String id) {
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("id", id);
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class));
+        return ctx;
+	}
+
 }

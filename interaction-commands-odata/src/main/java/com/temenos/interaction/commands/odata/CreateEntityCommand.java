@@ -11,9 +11,8 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.ResourcePostCommand;
 
-public class CreateEntityCommand implements ResourcePostCommand, InteractionCommand {
+public class CreateEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entity;
@@ -30,27 +29,14 @@ public class CreateEntityCommand implements ResourcePostCommand, InteractionComm
 		return HttpMethod.POST;
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public RESTResponse post(String id, EntityResource<?> resource) {
-		assert(entity != null && !entity.equals(""));
-		assert(resource != null);
-		
-		// create the entity
-		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-		EntityResponse er = producer.createEntity(entity, entityResource.getEntity());
-		OEntity oEntity = er.getEntity();
-		
-		RESTResponse rr = new RESTResponse(Response.Status.CREATED, CommandHelper.createEntityResource(oEntity));
-		return rr;
-	}
-
 	/* Implement InteractionCommand interface */
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
+		assert(entity != null && !entity.equals(""));
+		assert(ctx.getResource() != null);
 		
 		// create the entity
 		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) ctx.getResource();

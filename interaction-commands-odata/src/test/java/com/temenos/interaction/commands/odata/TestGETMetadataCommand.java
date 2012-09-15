@@ -1,5 +1,6 @@
 package com.temenos.interaction.commands.odata;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -7,6 +8,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Test;
 import org.odata4j.core.ImmutableList;
@@ -19,20 +22,31 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.RESTResponse;
 
 public class TestGETMetadataCommand {
+
+	@SuppressWarnings("unchecked")
+	private InteractionContext createInteractionContext() {
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class));
+        return ctx;
+	}
 
 	@Test
 	public void testMetadataResource() {
 		ODataProducer mockProducer = createMockODataProducer("A");
 		
 		GETMetadataCommand command = new GETMetadataCommand("Metadata", mockProducer.getMetadata());
-		RESTResponse rr = command.get("1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof MetaDataResource);
+        InteractionContext ctx = createInteractionContext();
+        InteractionCommand.Result result = command.execute(ctx);
+		assertTrue(ctx.getResource() instanceof MetaDataResource);
 	}
 
 	@Test
@@ -40,17 +54,18 @@ public class TestGETMetadataCommand {
 		ODataProducer mockProducer = createMockODataProducer("A");
 		
 		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", mockProducer.getMetadata());
-		RESTResponse rr = command.get("1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof EntityResource);
+        InteractionContext ctx = createInteractionContext();
+        InteractionCommand.Result result = command.execute(ctx);
+		assertTrue(ctx.getResource() instanceof EntityResource);
 	}
 
 	@Test
 	public void testGETMetadataODataMetadata() {
 		GETMetadataCommand command = new GETMetadataCommand("Metadata", createMockODataProducer("A").getMetadata());
-		RESTResponse rr = command.get("1", null);
-		assertNotNull(rr);
-		assertTrue(rr.getResource() instanceof MetaDataResource);
+        InteractionContext ctx = createInteractionContext();
+        InteractionCommand.Result result = command.execute(ctx);
+        assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof MetaDataResource);
 	}
 	
 	private ODataProducer createMockODataProducer(String suffix) {

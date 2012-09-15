@@ -12,9 +12,8 @@ import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.ResourceDeleteCommand;
 
-public class DeleteEntityCommand implements ResourceDeleteCommand, InteractionCommand {
+public class DeleteEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entity;
@@ -33,25 +32,6 @@ public class DeleteEntityCommand implements ResourceDeleteCommand, InteractionCo
 		assert(entity.equals(entitySet.getName()));
 	}
 	
-	/* Implement ResourceDeleteCommand (OEntity) */
-	public StatusType delete(String id) {
-		// Create entity key (simple types only)
-		OEntityKey key;
-		try {
-			key = CommandHelper.createEntityKey(entityTypes, entity, id);
-		} catch(Exception e) {
-			return Response.Status.NOT_ACCEPTABLE;
-		}
-		
-		// delete the entity
-		try {
-			producer.deleteEntity(entity, key);
-		} catch (Exception e) {
-			// exception if the entity is not found, delete the entity if it exists;
-		}
-		return Response.Status.NO_CONTENT;
-	}
-
 	protected ODataProducer getProducer() {
 		return producer;
 	}

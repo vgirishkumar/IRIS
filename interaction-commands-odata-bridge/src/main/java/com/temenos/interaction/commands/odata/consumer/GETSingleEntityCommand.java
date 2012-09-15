@@ -1,5 +1,6 @@
 package com.temenos.interaction.commands.odata.consumer;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -10,16 +11,18 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.command.ResourceGetCommand;
 
 /**
  * A GET command that will return the current value of the supplied entity and property.  This 
  * command is implemented by calling getEntity on the {@link ODataProducer)
  * @author aphethean
  */
-public class GETSingleEntityCommand implements ResourceGetCommand {
+public class GETSingleEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entity;
@@ -37,18 +40,25 @@ public class GETSingleEntityCommand implements ResourceGetCommand {
 		this.entitySet = edmDataServices.getEdmEntitySet(entity);
 	}
 
-	/**
-	 * Implement {@link ResourceGetCommand}
-	 */
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		assert(id == null || "".equals(id));
+	/* Implement InteractionCommand interface */
+	
+	@Override
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		assert(ctx.getId() == null || "".equals(ctx.getId()));
 		assert(entity.equals(entitySet.getName()));
 
 		OEntityKey key = OEntityKey.create(entityKey);
 		EntityResponse eResp = producer.getEntity(entitySet.getName(), key, null);
 		OEntity oEntity = eResp.getEntity();
 		EntityResource<OEntity> er = new EntityResource<OEntity>(oEntity);
-		return new RESTResponse(Response.Status.OK, er);
+		ctx.setResource(er);
+		return Result.SUCCESS;
+	}
+
+	@Override
+	public String getMethod() {
+		return HttpMethod.GET;
 	}
 
 }

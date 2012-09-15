@@ -2,6 +2,7 @@ package com.temenos.interaction.commands.odata.consumer;
 
 import java.util.List;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -14,11 +15,16 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.producer.EntitiesResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
 
-public class GETNavPropertyCommand implements ResourceGetCommand {
+public class GETNavPropertyCommand implements InteractionCommand {
+	private final Logger logger = LoggerFactory.getLogger(GETNavPropertyCommand.class);
 	// Command configuration
 	private String entitySetName;
 	private String navProperty;
@@ -38,22 +44,27 @@ public class GETNavPropertyCommand implements ResourceGetCommand {
 		assert(entitySetName.equals(entitySet.getName()));
 	}
 
-	/* Implement ResourceGetCommand */
+	/* Implement InteractionCommand interface */
+	
 	@Override
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
 		//Create entity key (simple types only)
 		OEntityKey key;
 		try {
-			key = CommandHelper.createEntityKey(entityTypes, entitySetName, id);
+			key = CommandHelper.createEntityKey(entityTypes, entitySetName, ctx.getId());
 		} catch(Exception e) {
-			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
+			return Result.FAILURE;
 		}
 
+		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 		if (queryParams == null){
-			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
+			logger.error("Query params null");
+			return Result.FAILURE;
 		}
 		if (navProperty == null){
-			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
+			logger.error("NavProperty null");
+			return Result.FAILURE;
 		}
 		
 		int top = getAsInt(queryParams.getFirst("$top"));
@@ -94,13 +105,17 @@ public class GETNavPropertyCommand implements ResourceGetCommand {
 		if (response != null){
 			if (response.count() == 1) {
 	        	OEntity oe = response.first();
-	    		return new RESTResponse(Response.Status.OK, CommandHelper.createEntityResource(oe));
+	        	ctx.setResource(CommandHelper.createEntityResource(oe));
+	        	return Result.SUCCESS;
 	        } else if (response instanceof EntitiesResponse) {
 	        	List<OEntity> entities = response.toList();
-	    		return new RESTResponse(Response.Status.OK, CommandHelper.createCollectionResource(entitySetName, entities));
+	        	ctx.setResource(CommandHelper.createCollectionResource(entitySetName, entities));
+	        	return Result.SUCCESS;
+	    	} else {
+				logger.error("Other type of unsupported response from ODataProducer.getNavProperty");
 	        }
 		}
-		return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
+		return Result.FAILURE;
 	}
 
 	public static int getAsInt(String value){
@@ -111,4 +126,9 @@ public class GETNavPropertyCommand implements ResourceGetCommand {
 			return 0;
 		}
 	}	
+
+	@Override
+	public String getMethod() {
+		return HttpMethod.GET;
+	}
 }

@@ -1,5 +1,6 @@
 package com.temenos.interaction.commands.odata.consumer;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -13,10 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.resource.CollectionResource;
 
-public class GETEntitiesCommand implements ResourceGetCommand {
+public class GETEntitiesCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
 
 	// Command configuration
@@ -34,10 +37,14 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 		assert(entitySet != null);
 	}
 
-	
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
+	/* Implement InteractionCommand interface */
+
+	@Override
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
 		logger.info("Getting entities for " + entitySet.getName());
 
+		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 		int top = getAsInt(queryParams.getFirst("$top"));
 		int skip = getAsInt(queryParams.getFirst("$skip"));
 		String filter = queryParams.getFirst("$filter");
@@ -73,8 +80,8 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 		Enumerable<OEntity> response = request.execute();
 		    
 		CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.toList());
-		RESTResponse rr = new RESTResponse(Response.Status.OK, cr);
-		return rr;
+		ctx.setResource(cr);
+		return Result.SUCCESS;
 	}
 	
 	public static int getAsInt(String value){
@@ -84,6 +91,11 @@ public class GETEntitiesCommand implements ResourceGetCommand {
 		} catch (NumberFormatException e) {
 			return 0;
 		}
+	}
+
+	@Override
+	public String getMethod() {
+		return HttpMethod.GET;
 	}
 
 }

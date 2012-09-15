@@ -12,13 +12,7 @@ import com.temenos.interaction.core.RESTResponse;
  * man of resources and not needing to implement them all initially.
  * @author aphethean
  */
-public final class NoopGETCommand implements ResourceGetCommand, InteractionCommand {
-
-	@Override
-	public RESTResponse get(String id,
-			MultivaluedMap<String, String> queryParams) {
-		return new RESTResponse(Response.Status.OK, new EntityResource<String>(""));
-	}
+public final class NoopGETCommand implements InteractionCommand {
 
 	/* Implement InteractionCommand interface */
 	

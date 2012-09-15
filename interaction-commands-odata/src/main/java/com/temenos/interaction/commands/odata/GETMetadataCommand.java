@@ -11,13 +11,12 @@ import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.ResourceGetCommand;
 
 /**
  * GET command for obtaining meta data defining either the
  * resource model or the service document. 
  */
-public class GETMetadataCommand implements ResourceGetCommand, InteractionCommand {
+public class GETMetadataCommand implements InteractionCommand {
 
 	private EdmDataServices edmDataServices;
 	private String entity;
@@ -30,20 +29,6 @@ public class GETMetadataCommand implements ResourceGetCommand, InteractionComman
 	public GETMetadataCommand(String entity, EdmDataServices resourceMetadata) {
 		this.entity = entity;
 		this.edmDataServices = resourceMetadata;
-	}
-	
-	@Override
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		RESTResponse rr;
-		if(entity.equals("ServiceDocument")) {
-			EntityResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
-			rr = new RESTResponse(Response.Status.OK, sdr);
-		}
-		else {
-			MetaDataResource<EdmDataServices> mdr = CommandHelper.createMetaDataResource(edmDataServices);
-			rr = new RESTResponse(Response.Status.OK, mdr);
-		}
-		return rr;
 	}
 	
 	/* Implement InteractionCommand interface */

@@ -14,6 +14,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.junit.Test;
@@ -33,7 +34,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.commands.odata.consumer.GETEntityCommand;
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 
 
@@ -52,15 +57,24 @@ public class TestPowermockGETEntityCommand {
         when(OEntityKey.parse(anyString())).thenThrow(new IllegalArgumentException());
 
 		// test our method
-		RESTResponse rr = gec.get("test", null);
-		assertNotNull(rr);
-		assertEquals(Response.Status.NOT_ACCEPTABLE.getStatusCode(), rr.getStatus().getStatusCode());
-		assertNull(rr.getResource());
+        InteractionContext ctx = createInteractionContext("test");
+        InteractionCommand.Result result = gec.execute(ctx);
+		assertNotNull(result);
+		assertEquals(InteractionCommand.Result.FAILURE, result);
+		assertNull(ctx.getResource());
 		
 		// verify static calls
 		verifyStatic();
 		OEntityKey.parse("test");
 
+	}
+	
+	@SuppressWarnings("unchecked")
+	private InteractionContext createInteractionContext(String id) {
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("id", id);
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class));
+        return ctx;
 	}
 	
 	// test when parse ok, then Response.Status.OK
@@ -74,11 +88,12 @@ public class TestPowermockGETEntityCommand {
         when(OEntityKey.parse(anyString())).thenReturn(mock(OEntityKey.class));
 
 		// test our method
-		RESTResponse rr = gec.get("test", null);
-		assertNotNull(rr);
-		assertEquals(Response.Status.OK.getStatusCode(), rr.getStatus().getStatusCode());
-		assertNotNull(rr.getResource());
-		assertTrue(rr.getResource() instanceof EntityResource);
+        InteractionContext ctx = createInteractionContext("test");
+        InteractionCommand.Result result = gec.execute(ctx);
+		assertNotNull(result);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertNotNull(ctx.getResource());
+		assertTrue(ctx.getResource() instanceof EntityResource);
 		
 		// verify static calls
 		verifyStatic();

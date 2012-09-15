@@ -8,10 +8,12 @@ import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
 
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.command.ResourcePostCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.resource.EntityResource;
 
-public class CreateEntityCommand implements ResourcePostCommand {
+public class CreateEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entitySetName;
@@ -30,12 +32,13 @@ public class CreateEntityCommand implements ResourcePostCommand {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public RESTResponse post(String id, EntityResource<?> resource) {
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
 		assert(entitySetName != null && !entitySetName.equals(""));
-		assert(resource != null);
+		assert(ctx.getResource() != null);
 		
 		// create the entity
-		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) ctx.getResource();
 		OEntity entity = entityResource.getEntity();
 		
 		OCreateRequest<OEntity> createRequest = consumer.createEntity(entitySetName);
@@ -47,9 +50,8 @@ public class CreateEntityCommand implements ResourcePostCommand {
 		 * Execute request
 		 */
 		OEntity newEntity = createRequest.execute();
-		
-		RESTResponse rr = new RESTResponse(Response.Status.CREATED, CommandHelper.createEntityResource(newEntity));
-		return rr;
+		ctx.setResource(CommandHelper.createEntityResource(newEntity));
+		return Result.SUCCESS;
 	}
 
 }

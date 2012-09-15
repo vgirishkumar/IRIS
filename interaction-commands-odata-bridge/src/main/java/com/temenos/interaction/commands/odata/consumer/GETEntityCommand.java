@@ -1,5 +1,6 @@
 package com.temenos.interaction.commands.odata.consumer;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -12,10 +13,12 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 
 import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.command.ResourceGetCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.resource.EntityResource;
 
-public class GETEntityCommand implements ResourceGetCommand {
+public class GETEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entitySetName;
@@ -35,13 +38,14 @@ public class GETEntityCommand implements ResourceGetCommand {
 	}
 	
 	/* Implement ResourceGetCommand (OEntity) */
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
 		//Create entity key (simple types only)
 		OEntityKey key;
 		try {
-			key = CommandHelper.createEntityKey(entityTypes, entitySetName, id);
+			key = CommandHelper.createEntityKey(entityTypes, entitySetName, ctx.getId());
 		} catch(Exception e) {
-			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
+			return Result.FAILURE;
 		}
 		
 		OEntityGetRequest<OEntity> request = getConsumer().getEntity(entitySetName, key);
@@ -54,11 +58,17 @@ public class GETEntityCommand implements ResourceGetCommand {
 		OEntity oEntity = request.execute();
 		
 		EntityResource<OEntity> oer = CommandHelper.createEntityResource(oEntity);
-		RESTResponse rr = new RESTResponse(Response.Status.OK, oer);		
-		return rr;
+		ctx.setResource(oer);		
+		return Result.SUCCESS;
 	}
 
 	protected ODataConsumer getConsumer() {
 		return consumer;
 	}
+	
+	@Override
+	public String getMethod() {
+		return HttpMethod.GET;
+	}
+
 }

@@ -16,9 +16,8 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.ResourceGetCommand;
 
-public class GETEntityCommand implements ResourceGetCommand, InteractionCommand {
+public class GETEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entity;
@@ -37,25 +36,6 @@ public class GETEntityCommand implements ResourceGetCommand, InteractionCommand 
 		assert(entity.equals(entitySet.getName()));
 	}
 	
-	/* Implement ResourceGetCommand (OEntity) */
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		//Create entity key (simple types only)
-		OEntityKey key;
-		try {
-			key = CommandHelper.createEntityKey(entityTypes, entity, id);
-		} catch(Exception e) {
-			return new RESTResponse(Response.Status.NOT_ACCEPTABLE, null);
-		}
-		
-		//Get the entity
-		EntityResponse er = getProducer().getEntity(entity, key, null);
-		OEntity oEntity = er.getEntity();
-		
-		EntityResource<OEntity> oer = CommandHelper.createEntityResource(oEntity);
-		RESTResponse rr = new RESTResponse(Response.Status.OK, oer);		
-		return rr;
-	}
-
 	protected ODataProducer getProducer() {
 		return producer;
 	}

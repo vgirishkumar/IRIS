@@ -18,9 +18,8 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.ResourceGetCommand;
 
-public class GETEntitiesCommand implements ResourceGetCommand, InteractionCommand {
+public class GETEntitiesCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
 
 	// Command configuration
@@ -36,39 +35,6 @@ public class GETEntitiesCommand implements ResourceGetCommand, InteractionComman
 		this.edmDataServices = producer.getMetadata();
 		this.entitySet = edmDataServices.getEdmEntitySet(entitySetName);
 		assert(entitySet != null);
-	}
-
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		logger.info("Getting entities for " + entitySet.getName());
-
-		String inlineCount = queryParams.getFirst("$inlinecount");
-		String top = queryParams.getFirst("$top");
-		String skip = queryParams.getFirst("$skip");
-		String filter = queryParams.getFirst("$filter");
-		String orderBy = queryParams.getFirst("$orderby");
-// TODO what are format and callback used for
-//		String format = queryParams.getFirst("$format");
-//		String callback = queryParams.getFirst("$callback");
-		String skipToken = queryParams.getFirst("$skiptoken");
-		String expand = queryParams.getFirst("$expand");
-		String select = queryParams.getFirst("$select");
-	      
-		QueryInfo query = new QueryInfo(
-				OptionsQueryParser.parseInlineCount(inlineCount),
-				OptionsQueryParser.parseTop(top),
-				OptionsQueryParser.parseSkip(skip),
-				OptionsQueryParser.parseFilter(filter),
-				OptionsQueryParser.parseOrderBy(orderBy),
-				OptionsQueryParser.parseSkipToken(skipToken),
-				null,
-				OptionsQueryParser.parseExpand(expand),
-				OptionsQueryParser.parseSelect(select));
-		
-		EntitiesResponse response = producer.getEntities(entitySetName, query);
-		    
-		CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
-		RESTResponse rr = new RESTResponse(Response.Status.OK, cr);
-		return rr;
 	}
 
 	/* Implement InteractionCommand interface */

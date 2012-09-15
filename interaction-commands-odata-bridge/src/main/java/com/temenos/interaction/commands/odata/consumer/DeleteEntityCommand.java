@@ -10,9 +10,11 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 
-import com.temenos.interaction.core.command.ResourceDeleteCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
 
-public class DeleteEntityCommand implements ResourceDeleteCommand {
+public class DeleteEntityCommand implements InteractionCommand {
 
 	// Command configuration
 	private String entitySetName;
@@ -32,13 +34,15 @@ public class DeleteEntityCommand implements ResourceDeleteCommand {
 	}
 	
 	/* Implement ResourceDeleteCommand (OEntity) */
-	public StatusType delete(String id) {
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		assert(ctx.getResource() == null);
 		// Create entity key (simple types only)
 		OEntityKey key;
 		try {
-			key = CommandHelper.createEntityKey(entityTypes, entitySetName, id);
+			key = CommandHelper.createEntityKey(entityTypes, entitySetName, ctx.getId());
 		} catch(Exception e) {
-			return Response.Status.NOT_ACCEPTABLE;
+			return Result.FAILURE;
 		}
 		
 		// delete the entity
@@ -47,7 +51,7 @@ public class DeleteEntityCommand implements ResourceDeleteCommand {
 		} catch (Exception e) {
 			// exception if the entity is not found, delete the entity if it exists;
 		}
-		return Response.Status.NO_CONTENT;
+		return Result.SUCCESS;
 	}
 
 	protected ODataConsumer getConsumer() {
