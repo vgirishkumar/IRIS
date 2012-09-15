@@ -18,10 +18,10 @@ import org.odata4j.edm.EdmDataServices;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.rim.ResourceInteractionModel;
 import com.temenos.interaction.winkext.DynamicResourceDelegate;
@@ -32,13 +32,12 @@ import com.temenos.interaction.winkext.RegistrarWithSingletons;
 public class TestRegistrarWithSingletons {
 
 	private HTTPResourceInteractionModel createMockHTTPRIM(String entityName, String path) {
-		HTTPDynaRIM rim = mock(HTTPDynaRIM.class);
+		HTTPHypermediaRIM rim = mock(HTTPHypermediaRIM.class);
 		ResourceState rs = mock(ResourceState.class);
 		when(rs.getName()).thenReturn("");
 		when(rs.getEntityName()).thenReturn(entityName);
 		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
 		when(rsm.getInitial()).thenReturn(rs);
-		when(rim.getStateMachine()).thenReturn(rsm);
 		when(rim.getCurrentState()).thenReturn(rs);
 		when(rim.getResourcePath()).thenReturn(path);
 		when(rim.getFQResourcePath()).thenCallRealMethod();
