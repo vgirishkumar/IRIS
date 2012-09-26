@@ -15,30 +15,16 @@ import com.temenos.interaction.core.command.InteractionContext;
 
 public class DeleteEntityCommand implements InteractionCommand {
 
-	// Command configuration
-	private String entity;
-	
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
-	private EdmEntitySet entitySet;
-	private Iterable<EdmEntityType> entityTypes;
 
-	public DeleteEntityCommand(String entity, ODataProducer producer) {
-		this.entity = entity;
+	public DeleteEntityCommand(ODataProducer producer) {
 		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
-		this.entitySet = edmDataServices.getEdmEntitySet(entity);
-		this.entityTypes = edmDataServices.getEntityTypes();
-		assert(entity.equals(entitySet.getName()));
 	}
 	
 	protected ODataProducer getProducer() {
 		return producer;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.DELETE;
 	}
 
 	/* Implement InteractionCommand interface */
@@ -46,8 +32,17 @@ public class DeleteEntityCommand implements InteractionCommand {
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
+		assert(ctx.getCurrentState() != null);
+		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() == null);
 		
+		String entity = ctx.getCurrentState().getEntityName();
+		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
+		if (entitySet == null)
+			throw new RuntimeException("Entity set not found [" + entity + "]");
+		Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
+		assert(entity.equals(entitySet.getName()));
+
 		// Create entity key (simple types only)
 		OEntityKey key;
 		try {

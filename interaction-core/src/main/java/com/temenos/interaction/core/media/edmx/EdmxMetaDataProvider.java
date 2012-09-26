@@ -22,6 +22,7 @@ import javax.ws.rs.ext.Provider;
 import org.odata4j.edm.EdmDataServices;
 
 import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
@@ -41,10 +42,21 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	private UriInfo uriInfo;
 	
 	private final ResourceRegistry resourceRegistry;
+	private final ResourceStateMachine hypermediaEngine;
 	
 	public EdmxMetaDataProvider(ResourceRegistry resourceRegistry) {
-		this.resourceRegistry = resourceRegistry;
+		this(resourceRegistry, null);
 		assert(resourceRegistry != null);
+	}
+
+	public EdmxMetaDataProvider(ResourceStateMachine hypermediaEngine) {
+		this(null, hypermediaEngine);
+	}
+	
+	public EdmxMetaDataProvider(ResourceRegistry resourceRegistry, ResourceStateMachine hypermediaEngine) {
+		this.resourceRegistry = resourceRegistry;
+		this.hypermediaEngine = hypermediaEngine;
+		assert(hypermediaEngine != null);
 	}
 
 	@Override
@@ -80,7 +92,7 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 		if(ResourceTypeHelper.isType(type, genericType, MetaDataResource.class, EdmDataServices.class)) {
 			MetaDataResource<EdmDataServices> metadataResource = (MetaDataResource<EdmDataServices>) resource;
 			StringWriter sw = new StringWriter();
-			EdmxMetaDataWriter.write(metadataResource.getMetadata(), sw, resourceRegistry);
+			EdmxMetaDataWriter.write(metadataResource.getMetadata(), sw, hypermediaEngine);
 			edmxString = sw.toString();
 		}
 		else {

@@ -29,6 +29,7 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
@@ -133,8 +134,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				}
 				
 				//Write entry
-				OEntity oentity = entityResource.getEntity();
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? oentity.getEntitySetName() : entityResource.getEntityName()));
+				OEntity tempEntity = entityResource.getEntity();
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? tempEntity.getEntitySetName() : entityResource.getEntityName()));
+	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+            	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
@@ -142,33 +145,38 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				List<OEntity> entities = new ArrayList<OEntity>();
 				Map<String, List<OLink>> entityOlinks = new HashMap<String, List<OLink>>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
-					OEntity entity = collectionEntity.getEntity();
+		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+					OEntity tempEntity = collectionEntity.getEntity();
+					EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((collectionEntity.getEntityName() == null ? tempEntity.getEntitySetName() : collectionEntity.getEntityName()));
+	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 					
 					//Add entity links
 					List<OLink> olinks = new ArrayList<OLink>();
-					for(Link link : collectionEntity.getLinks()) {
-						addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
-						
-						/*
-						 * TODO we can remove this way of adding links to other resources once we support multiple transitions 
-						 * to a resource state.  https://github.com/aphethean/IRIS/issues/17
-						 */
-						//Links to other resources
-				        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
-				        if(entityTransitions != null) {
-					        for(Transition transition : entityTransitions) {
-					        	//Create Link from transition
-								String rel = transition.getTarget().getName();
-								UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
-								Map<String, Object> properties = new HashMap<String, Object>();
-								properties.putAll(transformer.transform(entity));
-								URI href = linkTemplate.buildFromMap(properties);
-								Link entityLink = new Link(transition, rel, href.toASCIIString(), "GET");
-								
-								addLinkToOLinks(olinks, entityLink);
-							}
-				        }
-					}		
+					if (collectionEntity.getLinks() != null) {
+						for(Link link : collectionEntity.getLinks()) {
+							addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
+							
+							/*
+							 * TODO we can remove this way of adding links to other resources once we support multiple transitions 
+							 * to a resource state.  https://github.com/aphethean/IRIS/issues/17
+							//Links to other resources
+					        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
+					        if(entityTransitions != null) {
+						        for(Transition transition : entityTransitions) {
+						        	//Create Link from transition
+									String rel = transition.getTarget().getName();
+									UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
+									Map<String, Object> properties = new HashMap<String, Object>();
+									properties.putAll(transformer.transform(entity));
+									URI href = linkTemplate.buildFromMap(properties);
+									Link entityLink = new Link(transition, rel, href.toASCIIString(), "GET");
+									
+									addLinkToOLinks(olinks, entityLink);
+								}
+					        }
+							 */
+						}		
+					}
 					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
 					entities.add(entity);
 				}
@@ -199,7 +207,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 		String title = link.getTitle();
 		OLink olink;
-		Transition linkTransition = resourceRegistry.getLinkTransition(link.getTransition().getId());
+		Transition linkTransition = link.getTransition();
 		if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
 			olink = OLinks.relatedEntities(rel, title, href);
 		}

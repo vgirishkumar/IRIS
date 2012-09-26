@@ -12,11 +12,6 @@ import com.temenos.interaction.core.hypermedia.Link;
  * @author aphethean
  */
 public interface RESTResource {
-	/**
-	 * Return the name of the entity.
-	 * @return String entityName
-	 */
-//	public String getEntityName();
 
 	/**
 	 * Wrap this resource into a JAX-RS GenericEntity object

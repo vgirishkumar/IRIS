@@ -14,19 +14,10 @@ import com.temenos.interaction.core.command.InteractionContext;
 
 public class CreateEntityCommand implements InteractionCommand {
 
-	// Command configuration
-	private String entity;
-
 	private ODataProducer producer;
 
-	public CreateEntityCommand(String entity, ODataProducer producer) {
-		this.entity = entity;
+	public CreateEntityCommand(ODataProducer producer) {
 		this.producer = producer;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.POST;
 	}
 
 	/* Implement InteractionCommand interface */
@@ -35,12 +26,13 @@ public class CreateEntityCommand implements InteractionCommand {
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
-		assert(entity != null && !entity.equals(""));
+		assert(ctx.getCurrentState() != null);
+		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() != null);
 		
 		// create the entity
 		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) ctx.getResource();
-		EntityResponse er = producer.createEntity(entity, entityResource.getEntity());
+		EntityResponse er = producer.createEntity(ctx.getCurrentState().getEntityName(), entityResource.getEntity());
 		OEntity oEntity = er.getEntity();
 		
 		ctx.setResource(CommandHelper.createEntityResource(oEntity));

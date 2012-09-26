@@ -25,11 +25,6 @@ public class CreateEntityCommand implements InteractionCommand {
 		this.consumer = consumer;
 	}
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.POST;
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public Result execute(InteractionContext ctx) {

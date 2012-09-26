@@ -93,9 +93,4 @@ public class GETEntitiesCommand implements InteractionCommand {
 		}
 	}
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
-	}
-
 }

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -18,10 +19,10 @@ public class Behaviour {
 
 	public ResourceState getInteractionModel() {
 		// this will be the service root
-		ResourceState initialState = new ResourceState("home", "initial", "/");
+		ResourceState initialState = new ResourceState("home", "initial", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null), "/");
 		
-		ResourceState profile = new ResourceState("Profile", "profile", "/profile");
-		ResourceState preferences = new ResourceState("Preferences", "preferences", "/preferences");
+		ResourceState profile = new ResourceState("Profile", "profile", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null), "/profile");
+		ResourceState preferences = new ResourceState("Preferences", "preferences", createActionSet(new Action("GETPreferences", Action.TYPE.VIEW), null), "/preferences");
 		
 		initialState.addTransition("GET", profile);
 		initialState.addTransition("GET", new ResourceStateMachine(preferences));
@@ -31,10 +32,10 @@ public class Behaviour {
 
 	public ResourceStateMachine getNotesInteractionModel() {
 		
-		CollectionResourceState initialState = new CollectionResourceState(NOTE_ENTITY_NAME, "initial", "/notes");
-		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "new", "/notes/new");
-		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", "/notes/{noteID}", "noteID", "self".split(" "));
-		ResourceState deletedState = new ResourceState(NOTE_ENTITY_NAME, "end", "/notes/{noteID}", "noteID");
+		CollectionResourceState initialState = new CollectionResourceState(NOTE_ENTITY_NAME, "initial", createActionSet(new Action("GETNotes", Action.TYPE.VIEW), null), "/notes");
+		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "new", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), new Action("NoopPOST", Action.TYPE.ENTRY)), "/notes/new");
+		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", createActionSet(new Action("GETNote", Action.TYPE.VIEW), new Action("NoopPUT", Action.TYPE.ENTRY)), "/notes/{noteID}", "noteID", "self".split(" "));
+		ResourceState deletedState = new ResourceState(NOTE_ENTITY_NAME, "end", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), new Action("DELETENote", Action.TYPE.ENTRY)), "/notes/{noteID}", "noteID");
 
 		// a linkage map (target URI element, source entity element)
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -65,6 +66,15 @@ public class Behaviour {
 		deletedState.addTransition(initialState);
 		
 		return new ResourceStateMachine(initialState);
+	}
+
+	private Set<Action> createActionSet(Action view, Action entry) {
+		Set<Action> actions = new HashSet<Action>();
+		if (view != null)
+			actions.add(view);
+		if (entry != null)
+			actions.add(entry);
+		return actions;
 	}
 
 }

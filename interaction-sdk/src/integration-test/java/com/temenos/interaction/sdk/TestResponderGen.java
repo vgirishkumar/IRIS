@@ -16,9 +16,6 @@ public class TestResponderGen {
 	    File configTargetDir = new File("./target/integration-test/resources");
 	    configTargetDir.mkdir();
 	    
-		JPAResponderGen rg = new JPAResponderGen();
-		assertTrue(rg.generateArtifacts("/service.edmx", srcTargetDir, configTargetDir));
-		
 		assertEquals(6, countFiles(new File(srcTargetDir, "AirlineModel")));
 		assertEquals(3, countFiles(new File(configTargetDir, "META-INF")));
 	}

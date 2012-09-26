@@ -83,7 +83,7 @@
     	<artifactId>interaction-commands-odata</artifactId>
     	<version>${irisVersion}</version>
     	<type>jar</type>
-    	<scope>runtime</scope>
+    	<scope>compile</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>

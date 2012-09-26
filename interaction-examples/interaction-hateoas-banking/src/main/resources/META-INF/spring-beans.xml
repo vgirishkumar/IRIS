@@ -28,7 +28,6 @@
 		<property name="singletons">
         	<set>
 				<ref local="halProvider" />
-				<ref local="metadataProvider" />
  			</set>
    		</property>
 		<property name="serviceRoot" ref="ServiceRoot" />
@@ -38,7 +37,6 @@
     	<constructor-arg ref="edmMetadata" />
         <constructor-arg ref="stateMachine" />
 	</bean>
-	<bean id="metadataProvider" class="com.temenos.interaction.core.media.metadata.MetaDataProvider" />
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
@@ -58,47 +56,37 @@
     	<constructor-arg>
             <map>
                 <entry>
-                    <key><value>GET+/</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
+                    <key><value>NoopGET</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
                 <entry>
-                    <key><value>GET+/$metadata</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETMetadataCommand">
-                        <constructor-arg ref="edmMetadata" />
-                    </bean>
+                    <key><value>NoopDELETE</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
                 </entry>
                 <entry>
-                    <key><value>GET+/preferences</value></key>
+                    <key><value>GETPreferences</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.banking.GETPreferencesCommand" />
                 </entry>
                <entry>
-                    <key><value>GET+/fundtransfers</value></key>
+                    <key><value>GETFundTransfers</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.banking.GETFundTransfersCommand">
                         <constructor-arg ref="daoHibernate" />
                     </bean>
                  </entry>
                  <entry>
-                    <key><value>GET+/fundtransfers/{id}</value></key>
+                    <key><value>GETFundTransfer</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.banking.GETFundTransferCommand">
                         <constructor-arg ref="daoHibernate" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>PUT+/fundtransfers/{id}</value></key>
+                    <key><value>PUTFundTransfer</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.banking.PUTFundTransferCommand">
                         <constructor-arg ref="daoHibernate" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>DELETE+/fundtransfers/{id}</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/fundtransfers/new</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>POST+/fundtransfers/new</value></key>
+                    <key><value>NEWFundTransfer</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.banking.POSTFundTransferCommand" />
                 </entry>
             </map>

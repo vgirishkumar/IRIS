@@ -43,6 +43,7 @@
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
 	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
@@ -70,91 +71,43 @@
     	<constructor-arg name="commands">
             <map>
                <entry>
-                    <key><value>GET+/</value></key>
+                    <key><value>GETServiceDocument</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="entity" value="ServiceDocument" />
+                        <constructor-arg name="resourceToProvide" value="ServiceDocument" />
                         <constructor-arg name="edmDataServices" ref="edmDataServices" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/$metadata</value></key>
+                    <key><value>GETMetadata</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="entity" value="Metadata" />
+                        <constructor-arg name="resourceToProvide" value="Metadata" />
                         <constructor-arg name="edmDataServices" ref="edmDataServices" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/Flight({id})</value></key>
+                    <key><value>GETEntity</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg name="entity" value="Flight" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/Flight</value></key>
+                    <key><value>GETEntities</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg name="entity" value="Flight" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/Airport({id})</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg name="entity" value="Airport" />
+                    <key><value>GETNavProperty</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+<!-- 
+                        <constructor-arg name="navProperty" value="departingFlights" />
+ -->
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/Airport</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg name="entity" value="Airport" />
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/Airport({id})/flightSchedules</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg name="entity" value="FlightSchedule" />
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/FlightSchedule({id})</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg name="entity" value="FlightSchedule" />
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/FlightSchedule</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg name="entity" value="FlightSchedule" />
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                 <!-- Bind a POST command -->
-                <entry>
-                    <key><value>POST+/FlightSchedule</value></key>
+                    <key><value>CreateEntity</value></key>
                     <bean class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-                        <constructor-arg name="entity" value="FlightSchedule" />
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/FlightSchedule({id})/arrivalAirport</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
-                        <constructor-arg name="entity" value="FlightSchedule" />
-                        <constructor-arg name="linkProperty" value="arrivalAirportCode" />
-                        <constructor-arg name="linkEntity" value="Airport" />
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/FlightSchedule({id})/departureAirport</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
-                        <constructor-arg name="entity" value="FlightSchedule" />
-                        <constructor-arg name="linkProperty" value="departureAirportCode" />
-                        <constructor-arg name="linkEntity" value="Airport" />
                         <constructor-arg name="producer" ref="producer" />
                     </bean>
                 </entry>

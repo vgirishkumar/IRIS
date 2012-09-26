@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.hypermedia;
+package com.temenos.interaction.core.hypermedia.validation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,9 +7,85 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ASTValidation {
-	
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
+
+public class HypermediaValidator {
+	private final static Logger logger = LoggerFactory.getLogger(HypermediaValidator.class);
+
 	private final static String FINAL_STATE = "final";
+	
+	private ResourceStateMachine hypermediaEngine;
+	private LogicalConfigurationListener logicalConfigurationListener;
+	
+	protected HypermediaValidator(ResourceStateMachine rsm) {
+		this.hypermediaEngine = rsm;
+	}
+	
+	public static HypermediaValidator createValidator(ResourceStateMachine rsm) {
+		return new HypermediaValidator(rsm);
+	}
+	
+	public void setLogicalConfigurationListener(LogicalConfigurationListener lcl) {
+		this.logicalConfigurationListener = lcl;
+	}
+	
+	/*
+	 * @precondition ResourceStateMachine must have had a CommandController set.
+	 */
+	public void validate() {
+		/*
+		 * Validate the resource by attempting to fetch a command for all the required
+		 * actions for the resource state.
+		 */
+		for (ResourceState currentState : hypermediaEngine.getStates()) {
+			logger.debug("Checking configuration for [" + currentState + "] " + currentState.getPath());
+			Set<Action> actions = currentState.getActions();
+			if (actions == null) {
+				fireNoActionsConfigured(hypermediaEngine, currentState);
+				continue;
+			}
+			boolean viewActionSeen = false;
+			for (Action action : actions) {
+				NewCommandController commandController = hypermediaEngine.getCommandController();
+				assert(commandController != null);
+				InteractionCommand command = commandController.fetchCommand(action.getName());
+				if (command == null)
+					fireActionNotAvailable(hypermediaEngine, currentState, action);
+				if (action.getType().equals(Action.TYPE.VIEW)) {
+					viewActionSeen = true;
+				}
+			}
+
+			// every resource MUST have a GET command
+			if (!viewActionSeen)
+				fireViewActionNotSeen(hypermediaEngine, currentState);
+		}
+		
+	}
+	
+	private void fireNoActionsConfigured(ResourceStateMachine rsm, ResourceState state) {
+		if (logicalConfigurationListener != null)
+			logicalConfigurationListener.noActionsConfigured(hypermediaEngine, state);
+	}
+
+	private void fireActionNotAvailable(ResourceStateMachine rsm, ResourceState state, Action action) {
+		if (logicalConfigurationListener != null)
+			logicalConfigurationListener.actionNotAvailable(hypermediaEngine, state, action);
+	}
+	
+	private void fireViewActionNotSeen(ResourceStateMachine rsm, ResourceState state) {
+		if (logicalConfigurationListener != null)
+			logicalConfigurationListener.viewActionNotSeen(hypermediaEngine, state);
+	}
 	
 	public Set<ResourceState> unreachableStates(final Set<ResourceState> states, final ResourceStateMachine sm) {
 		Set<ResourceState> copyStates = new HashSet<ResourceState>(states);
@@ -27,7 +103,8 @@ public class ASTValidation {
 	 * @param sm
 	 * @return
 	 */
-	public String graph(ResourceStateMachine sm) {
+	public String graph() {
+		ResourceStateMachine sm = hypermediaEngine;
 		List<ResourceState> states = new ArrayList<ResourceState>(sm.getStates());
 		// sort the states for a predictable output
 		Collections.sort(states);
@@ -82,7 +159,8 @@ public class ASTValidation {
 	 * @param sm
 	 * @return
 	 */
-	public String graphEntityNextStates(ResourceStateMachine sm) {
+	public String graphEntityNextStates() {
+		ResourceStateMachine sm = hypermediaEngine;
 		Collection<ResourceState> states = sm.getStates();
 		StringBuffer sb = new StringBuffer();
 		sb.append("digraph ").append(sm.getInitial().getEntityName()).append(" {\n");

@@ -18,16 +18,20 @@ import com.temenos.interaction.core.command.InteractionContext;
  */
 public class GETMetadataCommand implements InteractionCommand {
 
+	// command configuration
+	// TODO remove this when we no longer use a MetaDataResource
+	private String resourceToProvide;
+	
 	private EdmDataServices edmDataServices;
-	private String entity;
 
 	/**
 	 * Construct an instance of this command
-	 * @param entity Entity name
+	 * @param resourceToProvide Configure this command to provide either an EntityResource for the
+	 * service document or a MetaDataResource for the metadata.
 	 * @param resourceMetadata Description of the resources and their types.
 	 */
-	public GETMetadataCommand(String entity, EdmDataServices resourceMetadata) {
-		this.entity = entity;
+	public GETMetadataCommand(String resourceToProvide, EdmDataServices resourceMetadata) {
+		this.resourceToProvide = resourceToProvide;
 		this.edmDataServices = resourceMetadata;
 	}
 	
@@ -36,7 +40,7 @@ public class GETMetadataCommand implements InteractionCommand {
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
-		if(entity.equals("ServiceDocument")) {
+		if(resourceToProvide.equals("ServiceDocument")) {
 			EntityResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
 			ctx.setResource(sdr);
 		} else {
@@ -44,11 +48,6 @@ public class GETMetadataCommand implements InteractionCommand {
 			ctx.setResource(mdr);
 		}
 		return Result.SUCCESS;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

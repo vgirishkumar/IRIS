@@ -34,7 +34,12 @@
 				<ref local="atomProvider" />
  			</set>
    		</property>
-        <property name="serviceRoot" ref="ServiceRoot" />
+        <property name="serviceRoots">
+            <set>
+                <ref local="ServiceRoot" />
+                <ref local="Metadata" />
+            </set>
+        </property>
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
@@ -44,6 +49,7 @@
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
 	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
@@ -66,289 +72,71 @@
         <constructor-arg ref="stateMachine" />
     </bean>
     
+    <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
+    <bean id="Metadata" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg>
+            <bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+                <constructor-arg>
+                    <bean class="com.temenos.interaction.core.hypermedia.ResourceState">
+                        <constructor-arg name="entityName" value="Metadata" />
+                        <constructor-arg name="name" value="initial" />
+                        <constructor-arg>
+                            <set>
+                                <bean class="com.temenos.interaction.core.hypermedia.Action">
+                                    <constructor-arg value="GETMetadata" />
+                                    <constructor-arg value="VIEW" />
+                                </bean>
+                            </set>
+                        </constructor-arg>
+                        <constructor-arg name="path" value="/$metadata" />
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+    
     <!-- Commands -->
     <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
     	<constructor-arg name="commands">
             <map>
                <entry>
-                    <key><value>GET+/</value></key>
+                    <key><value>GETServiceDocument</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="entity" value="ServiceDocument" />
+                        <constructor-arg name="resourceToProvide" value="ServiceDocument" />
                         <constructor-arg name="edmDataServices" ref="edmDataServices" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/$metadata</value></key>
+                    <key><value>GETMetadata</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="entity" value="Metadata" />
+                        <constructor-arg name="resourceToProvide" value="Metadata" />
                         <constructor-arg name="edmDataServices" ref="edmDataServices" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>GET+/Suppliers({id})</value></key>
+                    <key><value>GETEntity</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg value="Suppliers" />
-                        <constructor-arg ref="mockProducer" />
+                        <constructor-arg name="producer" ref="mockProducer" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>POST+/Suppliers({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Suppliers({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Suppliers({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Suppliers</value></key>
+                    <key><value>GETEntities</value></key>
                     <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="Suppliers" />
-                        <constructor-arg ref="mockProducer" />
+                        <constructor-arg name="producer" ref="mockProducer" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>POST+/Suppliers</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Suppliers</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Suppliers</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Order_Details({id})</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg value="Order_Details" />
-                        <constructor-arg ref="mockProducer" />
+                    <key><value>GETNavProperty</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+                        <constructor-arg name="producer" ref="mockProducer" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>POST+/Order_Details({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Order_Details({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Order_Details({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Order_Details</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="Order_Details" />
-                        <constructor-arg ref="mockProducer" />
+                    <key><value>CreateEntity</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.CreateEntityCommand">
+                        <constructor-arg name="producer" ref="mockProducer" />
                     </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Order_Details</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Order_Details</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Order_Details</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Categories({id})</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg value="Categories" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Categories({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Categories({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Categories({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Categories</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="Categories" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Categories</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Categories</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Categories</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Customers({id})</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg value="Customers" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Customers({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Customers({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Customers({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Customers</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="Customers" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Customers</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Customers</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Customers</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Products({id})</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg value="Products" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Products({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Products({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Products({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Products</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="Products" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Products</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Products</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Products</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Employees({id})</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg value="Employees" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Employees({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Employees({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Employees({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Employees</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="Employees" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Employees</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Employees</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Employees</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Orders({id})</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg value="Employees" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Orders({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Orders({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Orders({id})</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/Orders</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="Employees" />
-                        <constructor-arg ref="mockProducer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>POST+/Orders</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-                <entry>
-                    <key><value>PUT+/Orders</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/Orders</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopDELETECommand" />
                 </entry>
             </map>
         </constructor-arg>

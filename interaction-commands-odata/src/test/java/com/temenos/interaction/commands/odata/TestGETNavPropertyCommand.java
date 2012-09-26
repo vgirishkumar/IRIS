@@ -9,10 +9,11 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -28,9 +29,14 @@ import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
+import com.temenos.interaction.commands.odata.TestJUnitGETEntityCommand.MyEdmType;
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestGETNavPropertyCommand {
 
@@ -39,6 +45,78 @@ public class TestGETNavPropertyCommand {
 			super(name);
 		}
 		public boolean isSimple() { return false; }
+	}
+
+	@Test(expected = AssertionError.class)
+	public void testEntitySetNotFound() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETNavPropertyCommand gec = new GETNavPropertyCommand(mockProducer);
+		
+		// test assertion for entity set not found
+        InteractionContext ctx = createInteractionContext("DOESNOTMATCH", "1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testActionConfigurationNotFound() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETNavPropertyCommand gec = new GETNavPropertyCommand(mockProducer);
+		
+		// test IllegalArgumentException when entity not found
+		ResourceState resourceState = mock(ResourceState.class);
+		when(resourceState.getViewAction()).thenReturn(mock(Action.class));
+        InteractionContext ctx = mock(InteractionContext.class);
+        when(ctx.getCurrentState()).thenReturn(resourceState);
+		gec.execute(ctx);
+	}
+
+	@Test
+	public void testInvalidKeyType() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "KeyType");
+		GETNavPropertyCommand command = new GETNavPropertyCommand(mockProducer);
+		InteractionCommand.Result result = command.execute(createInteractionContext("MyEntity", "1"));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
+	}
+
+	@Test
+	public void testNullQueryParams() {
+		GETNavPropertyCommand command = new GETNavPropertyCommand(createMockODataProducer("MyEntity", "Edm.String"));
+		InteractionCommand.Result result = command.execute(createInteractionContext("MyEntity", "1"));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
+	}
+
+	@Test
+	public void testNullNavResponse() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		// mock return of an unsupported BaseResponse
+		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
+			.thenReturn(new BaseResponse() {});
+		GETNavPropertyCommand command = new GETNavPropertyCommand(mockProducer);
+		InteractionCommand.Result result = command.execute(createInteractionContext("MyEntity", "1"));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
+	}
+
+	@Test
+	public void testUnsupportedNavResponse() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		// mock return of an unsupported BaseResponse
+		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
+			.thenReturn(new BaseResponse() {});
+		GETNavPropertyCommand command = new GETNavPropertyCommand(mockProducer);
+		InteractionCommand.Result result = command.execute(createInteractionContext("MyEntity", "1"));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
+	}
+
+	@Test
+	public void testPropertyNavResponse() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		// mock return of an unsupported BaseResponse
+		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
+			.thenReturn(Responses.property(null));
+		GETNavPropertyCommand command = new GETNavPropertyCommand(mockProducer);
+		InteractionCommand.Result result = command.execute(createInteractionContext("MyEntity", "1"));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {
@@ -66,57 +144,21 @@ public class TestGETNavPropertyCommand {
         return mockProducer;
 	}
 	
-	@Test(expected = AssertionError.class)
-	public void testEntitySetNameMatches() {
-		new GETNavPropertyCommand("DOESNOTMATCH", "navProperty", createMockODataProducer("MyEntity", "KeyType"));
-	}
-
-	@Test
-	public void testInvalidKeyType() {
-		ODataProducer mockProducer = createMockODataProducer("MyEntity", "KeyType");
-		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockProducer);
-		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
-		assertEquals(InteractionCommand.Result.FAILURE, result);
-	}
-
-	@Test
-	public void testNullQueryParams() {
-		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", createMockODataProducer("MyEntity", "Edm.String"));
-		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
-		assertEquals(InteractionCommand.Result.FAILURE, result);
-	}
-
-	@Test
-	public void testNullNavResponse() {
-		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
-		// mock return of an unsupported BaseResponse
-		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
-			.thenReturn(new BaseResponse() {});
-		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockProducer);
-		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
-		assertEquals(InteractionCommand.Result.FAILURE, result);
-	}
-
-	@Test
-	public void testUnsupportedNavResponse() {
-		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
-		// mock return of an unsupported BaseResponse
-		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
-			.thenReturn(new BaseResponse() {});
-		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockProducer);
-		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
-		assertEquals(InteractionCommand.Result.FAILURE, result);
-	}
-
-	@Test
-	public void testPropertyNavResponse() {
-		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
-		// mock return of an unsupported BaseResponse
-		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
-			.thenReturn(Responses.property(null));
-		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockProducer);
-		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
-		assertEquals(InteractionCommand.Result.FAILURE, result);
+	@SuppressWarnings("unchecked")
+	private InteractionContext createInteractionContext(String entity, String id) {
+		ResourceState resourceState = mock(ResourceState.class);
+		when(resourceState.getEntityName()).thenReturn(entity);
+		when(resourceState.getUriSpecification()).thenReturn(new ODataUriSpecification().getTemplate("/" + entity, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("id", id);
+		pathParams.add("navproperty", "mock");
+		// action configuration is required to make the NavPropertyCommand work
+		Properties properties = new Properties();
+		properties.put("entity", entity);
+		when(resourceState.getViewAction()).thenReturn(new Action("NavPropertyCommand", Action.TYPE.VIEW, properties));
+		
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState);
+        return ctx;
 	}
 
 }

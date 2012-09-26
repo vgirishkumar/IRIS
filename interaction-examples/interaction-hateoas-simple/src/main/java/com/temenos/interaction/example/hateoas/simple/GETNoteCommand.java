@@ -31,9 +31,4 @@ public class GETNoteCommand implements InteractionCommand {
 		}
 	}
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
-	}
-
 }

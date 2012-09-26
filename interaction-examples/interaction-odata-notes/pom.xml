@@ -125,8 +125,6 @@
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-commands-odata</artifactId>
-    	<type>jar</type>
-    	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>

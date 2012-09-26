@@ -1,4 +1,4 @@
-package $behaviourNamespace;
+package ${behaviourNamespace};
 
 import javax.persistence.Basic;
 import javax.persistence.Entity;
@@ -9,8 +9,13 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
+import com.temenos.interaction.commands.odata.ODataUriSpecification;
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -18,17 +23,14 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 public class Behaviour {
 
 	public ResourceState getSimpleODataInteractionModel() {
-		//Service root and metadata resource states
-		ResourceState initialState = new ResourceState("ServiceDocument", "begin", "/");
-		ResourceState metadata = new ResourceState("", "metadata", "/$metadata");
+		// Service root
+		ResourceState initialState = new ResourceState("ServiceDocument", "begin", createActionSet(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
 
 		//Resource state machines
 #foreach ( $rsm in $interactionModel.getResourceStateMachines() )
 		ResourceStateMachine ${rsm.getCollectionStateName()} = get${rsm.getEntityName()}SM();
 #end
 
-		//Add transitions between RSMs
-		initialState.addTransition("GET", metadata);
 #foreach ( $rsm in $interactionModel.getResourceStateMachines() )
 		initialState.addTransition("GET", ${rsm.getCollectionStateName()});
 #end
@@ -58,9 +60,9 @@ ResourceStateMachine ${rsm.getCollectionStateName()}##
 #foreach ( $transition in $rsm.getTransitions() )
 		uriLinkageMap.put("id", "${transition.getTargetResourceStateMachine().getMappedEntityProperty()}");
 #if ($transition.isCollectionState()) 
-		((CollectionResourceState) ${rsm.getCollectionStateName()}.getState("/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}")).addTransitionForEachItem("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getState("/${transition.getTargetEntityName()}({id})"), uriLinkageMap);
+		((CollectionResourceState) ${rsm.getCollectionStateName()}.getResourceStateByName("${transition.getTargetStateName()}")).addTransitionForEachItem("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getResourceStateByName("${transition.getTargetResourceStateMachine().getCollectionStateName()}"), uriLinkageMap);
 #else
-		${rsm.getCollectionStateName()}.getState("/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}").addTransition("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getState("/${transition.getTargetEntityName()}({id})/${transition.getReciprocalLinkState()}"), uriLinkageMap);
+		${rsm.getCollectionStateName()}.getResourceStateByName("${transition.getTargetStateName()}").addTransition("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getResourceStateByName("${transition.getReciprocalLinkState()}"), uriLinkageMap);
 #end
 #end
 
@@ -69,14 +71,18 @@ ResourceStateMachine ${rsm.getCollectionStateName()}##
 	
 #foreach ( $rsm in $interactionModel.getResourceStateMachines() )
 	public ResourceStateMachine get${rsm.getEntityName()}SM() {
-		CollectionResourceState ${rsm.getCollectionStateName()} = new CollectionResourceState("${rsm.getEntityName()}", "${rsm.getCollectionStateName()}", "/${rsm.getEntityName()}");
-		ResourceState pseudo = new ResourceState(${rsm.getCollectionStateName()}, "${rsm.getEntityName()}_pseudo_created");
-		ResourceState ${rsm.getEntityStateName()} = new ResourceState("${rsm.getEntityName()}", "${rsm.getEntityStateName()}", "/${rsm.getEntityName()}({id})");
+		CollectionResourceState ${rsm.getCollectionStateName()} = new CollectionResourceState("${rsm.getEntityName()}", "${rsm.getCollectionStateName()}", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/${rsm.getEntityName()}");
+		ResourceState pseudo = new ResourceState(${rsm.getCollectionStateName()}, "${rsm.getEntityName()}_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState ${rsm.getEntityStateName()} = new ResourceState("${rsm.getEntityName()}", "${rsm.getEntityStateName()}", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/${rsm.getEntityName()}({id})");
 #foreach ( $transition in $rsm.getTransitions() )
 #if ($transition.isCollectionState()) 
-		CollectionResourceState ${transition.getTargetStateName()} = new CollectionResourceState("${transition.getTargetEntityName()}", "${transition.getTargetStateName()}", "/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}");
+        Properties navPropertiesC${transition.getTargetStateName()} = new Properties();
+        navPropertiesC${transition.getTargetStateName()}.put("entity", "${rsm.getEntityName()}");
+		CollectionResourceState ${transition.getTargetStateName()} = new CollectionResourceState("${transition.getTargetEntityName()}", "${transition.getTargetStateName()}", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, navPropertiesC${transition.getTargetStateName()}), null), "/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}", new ODataUriSpecification().getTemplate("/${rsm.getEntityName()}", ODataUriSpecification.NAVPROPERTY_URI_TYPE));
 #else
-		ResourceState ${transition.getTargetStateName()} = new ResourceState("${transition.getTargetEntityName()}", "${transition.getTargetStateName()}", "/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}");
+        Properties navPropertiesI${transition.getTargetStateName()} = new Properties();
+        navPropertiesI${transition.getTargetStateName()}.put("entity", "${rsm.getEntityName()}");
+		ResourceState ${transition.getTargetStateName()} = new ResourceState("${transition.getTargetEntityName()}", "${transition.getTargetStateName()}", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, navPropertiesI${transition.getTargetStateName()}), null), "/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}", new ODataUriSpecification().getTemplate("/${rsm.getEntityName()}", ODataUriSpecification.NAVPROPERTY_URI_TYPE));
 #end
 #end
 		
@@ -93,4 +99,14 @@ ResourceStateMachine ${rsm.getCollectionStateName()}##
 	}
 
 #end
+
+    private Set<Action> createActionSet(Action view, Action entry) {
+        Set<Action> actions = new HashSet<Action>();
+        if (view != null)
+            actions.add(view);
+        if (entry != null)
+            actions.add(entry);
+        return actions;
+    }
+
 }

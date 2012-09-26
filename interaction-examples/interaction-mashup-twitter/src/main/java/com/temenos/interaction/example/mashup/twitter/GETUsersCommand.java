@@ -34,9 +34,4 @@ public class GETUsersCommand implements InteractionCommand {
 		return Result.SUCCESS;
 	}
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
-	}
-
 }

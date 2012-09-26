@@ -58,8 +58,4 @@ public class DeleteEntityCommand implements InteractionCommand {
 		return consumer;
 	}
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.DELETE;
-	}
 }

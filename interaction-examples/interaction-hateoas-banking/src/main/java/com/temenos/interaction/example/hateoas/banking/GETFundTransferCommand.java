@@ -29,9 +29,4 @@ public class GETFundTransferCommand implements InteractionCommand {
 		}
 	}
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
-	}
-
 }

@@ -408,10 +408,7 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Airport</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.FlightSchedule</class>"));
 
-		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponder.Behaviour\" />"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Flight</value></key>"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Airport</value></key>"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/FlightSchedule</value></key>"));
+		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.Behaviour\" />"));
 
 		//Test resource states
 		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
@@ -420,9 +417,9 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flights);"));
 
 		//Test transitions between entities
-		assertTrue(generator.generatedBehaviourClass.contains("((CollectionResourceState) airports.getState(\"/Airport({id})/flightSchedules\")).addTransitionForEachItem(\"GET\", flightschedules.getState(\"/FlightSchedule({id})\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getState(\"/FlightSchedule({id})/departureAirport\").addTransition(\"GET\", airports.getState(\"/Airport({id})/flightschedules\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getState(\"/FlightSchedule({id})/arrivalAirport\").addTransition(\"GET\", airports.getState(\"/Airport({id})/flightschedules\"), uriLinkageMap);"));
+		assertTrue(generator.generatedBehaviourClass.contains("((CollectionResourceState) airports.getResourceStateByName(\"flightSchedules\")).addTransitionForEachItem(\"GET\", flightschedules.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
+		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"departureAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
+		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"arrivalAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
 
 	}
 
@@ -461,10 +458,7 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Airport</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.FlightSchedule</class>"));
 
-		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponder.Behaviour\" />"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Flight</value></key>"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/Airport</value></key>"));
-		assertTrue(generator.generatedSpringXML.contains("<key><value>GET+/FlightSchedule</value></key>"));
+		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.Behaviour\" />"));
 
 		//Test resource states
 		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
@@ -473,8 +467,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flights);"));
 
 		//Test transitions between entities
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getState(\"/FlightSchedule({id})/departureAirport\").addTransition(\"GET\", airports.getState(\"/Airport({id})/flightSchedules\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getState(\"/FlightSchedule({id})/arrivalAirport\").addTransition(\"GET\", airports.getState(\"/Airport({id})/flightSchedules\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("((CollectionResourceState) airports.getState(\"/Airport({id})/flightSchedules\")).addTransitionForEachItem(\"GET\", flightschedules.getState(\"/FlightSchedule({id})\"), uriLinkageMap);"));
+		assertTrue(generator.generatedBehaviourClass.contains("((CollectionResourceState) airports.getResourceStateByName(\"flightSchedules\")).addTransitionForEachItem(\"GET\", flightschedules.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
+		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"departureAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightSchedules\"), uriLinkageMap);"));
+		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"arrivalAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightSchedules\"), uriLinkageMap);"));
 	}
 }

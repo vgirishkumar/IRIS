@@ -22,11 +22,6 @@ public interface ResourceInteractionModel {
      */
     public ResourceState getCurrentState();
     /**
-     * The links from this application state.
-     * @return
-     */
-    public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity);
-    /**
 	 * The path to this resource
 	 * @return
 	 */

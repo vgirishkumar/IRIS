@@ -2,6 +2,8 @@ package com.temenos.interaction.example.odata.notes;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import javax.ws.rs.core.MediaType;
 
 import org.core4j.Enumerable;
@@ -10,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OLink;
 import org.odata4j.core.OProperties;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 
@@ -25,6 +28,9 @@ import com.sun.jersey.test.framework.JerseyTest;
  */
 public class SimpleAssociationsITCase extends JerseyTest {
 
+	private final static String NOTE_ENTITYSET_NAME = "Note";
+	private final static String PERSON_ENTITYSET_NAME = "Person";
+	
 	public SimpleAssociationsITCase() throws Exception {
 		super();
 	}
@@ -43,17 +49,17 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	 * GET item, check link to another entity
 	 */
 	@Test
-	public void getPersonLinksToNote() throws Exception {
+	public void getPersonLinksToNotes() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
-		OEntity person = consumer.getEntity("Persons", 1).execute();
+		OEntity person = consumer.getEntity(PERSON_ENTITYSET_NAME, 1).execute();
 		Integer id = (Integer) person.getProperty("id").getValue();
 		assertEquals(1, (int) id);
 		assertEquals("example", person.getProperty("name").getValue());
 
 		// there should be one link to one note for this person
-		assertEquals(2, person.getLinks().size());
-		assertEquals("Persons(1)/Notes", person.getLinks().get(1).getHref());
+		assertEquals(1, person.getLinks().size());
+		assertTrue(containsLink(person.getLinks(), "Person(1)/PersonNotes"));
 	}
 
 	/**
@@ -63,14 +69,15 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	public void getNoteLinkToPerson() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
-		OEntity note = consumer.getEntity("Notes", 1).execute();
+		OEntity note = consumer.getEntity(NOTE_ENTITYSET_NAME, 1).execute();
 		Integer id = (Integer) note.getProperty("id").getValue();
 		assertEquals(1, (int) id);
 		assertEquals("example", note.getProperty("body").getValue());
 
 		// there should be one link to one Person for this Note
-		assertEquals(3, note.getLinks().size());
-		assertEquals("Notes(1)/Persons", note.getLinks().get(1).getHref());
+		assertEquals(2, note.getLinks().size());
+		assertTrue(containsLink(note.getLinks(), "Note(1)/NotePerson"));
+		assertTrue(containsLink(note.getLinks(), "Note(1)"));   // link to delete this note
 	}
 
 	/**
@@ -82,8 +89,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// GET the notes for person '1'
 		Enumerable<OEntity> notes = consumer
-				.getEntities("Persons")
-				.nav(1, "Notes")
+				.getEntities(PERSON_ENTITYSET_NAME)
+				.nav(1, "PersonNotes")
 				.execute();
 
 		// there should be two notes for this person
@@ -100,8 +107,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// GET the Person for Note '1'
 		OEntity person = consumer
-				.getEntity("Notes", 1)
-				.nav("Persons")
+				.getEntity(NOTE_ENTITYSET_NAME, 1)
+				.nav("NotePerson")
 				.execute();
 
 		// there should be one Person for this Note
@@ -117,8 +124,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// GET the Person for Note '1'
 		Enumerable<OEntity> persons = consumer
-				.getEntities("Notes")
-				.nav(1, "Persons")
+				.getEntities(NOTE_ENTITYSET_NAME)
+				.nav(1, "NotePerson")
 				.execute();
 
 		// there should be one Person for this Note
@@ -134,7 +141,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		Enumerable<OEntity> persons = consumer
-				.getEntities("Persons").execute();
+				.getEntities(PERSON_ENTITYSET_NAME).execute();
 
 		// should be only one result, but test could be run multiple times
 		assertTrue(persons.count() > 0);
@@ -145,8 +152,9 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", person.getProperty("name").getValue());
 
 		// there should be one link to one note for this person
-		assertEquals(1, person.getLinks().size());
-		assertEquals("Persons(1)/Notes", person.getLinks().get(0).getHref());
+		assertEquals(2, person.getLinks().size());
+		assertTrue(containsLink(person.getLinks(), "Person(1)"));
+		assertTrue(containsLink(person.getLinks(), "Person(1)/PersonNotes"));
 		
 	}
 
@@ -158,7 +166,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity person = consumer
-				.createEntity("Persons")
+				.createEntity(PERSON_ENTITYSET_NAME)
 				.properties(OProperties.string("name", "Noah"))
 				.execute();
 
@@ -167,15 +175,16 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("Noah", person.getProperty("name").getValue());
 
  		OEntity note = consumer
-				.createEntity("Notes")
+				.createEntity(NOTE_ENTITYSET_NAME)
 				.properties(OProperties.string("body", "test"))
-				.link("Persons", person)
+				.link("NotePerson", person)
 				.execute();
 
 		Integer noteId = (Integer) note.getProperty("id").getValue();
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
-		assertEquals(2, note.getLinks().size());
+		assertEquals(1, note.getLinks().size());
+		assertTrue(containsLink(person.getLinks(), "Person(" + id + ")"));
 	}
 
 	/**
@@ -184,7 +193,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	@Test
 	public void deletePersonMethodNotAllowed() throws Exception {
 		// attempt to delete the Person root, rather than an individual
-		ClientResponse response = webResource.path("/Persons").delete(ClientResponse.class);
+		ClientResponse response = webResource.path("/Person").delete(ClientResponse.class);
         assertEquals(405, response.getStatus());
 
         assertEquals(4, response.getAllow().size());
@@ -200,7 +209,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	@Test
 	public void putPersonMethodNotAllowed() throws Exception {
 		// attempt to put to the Persons root, rather than an individual
-		ClientResponse response = webResource.path("/Persons").type(MediaType.APPLICATION_ATOM_XML).put(ClientResponse.class, "<?xml version='1.0' encoding='utf-8'?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><title type=\"text\" /><updated>2012-04-02T10:33:39Z</updated><author><name /></author><category term=\"InteractionNoteModel.Person\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" /><content type=\"application/xml\"><m:properties><d:name>Noah</d:name></m:properties></content></entry>");
+		ClientResponse response = webResource.path("/Person").type(MediaType.APPLICATION_ATOM_XML).put(ClientResponse.class, "<?xml version='1.0' encoding='utf-8'?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><title type=\"text\" /><updated>2012-04-02T10:33:39Z</updated><author><name /></author><category term=\"InteractionNoteModel.Person\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" /><content type=\"application/xml\"><m:properties><d:name>Noah</d:name></m:properties></content></entry>");
         assertEquals(405, response.getStatus());
 
         assertEquals(4, response.getAllow().size());
@@ -209,5 +218,17 @@ public class SimpleAssociationsITCase extends JerseyTest {
         assertTrue(response.getAllow().contains("OPTIONS"));
         assertTrue(response.getAllow().contains("HEAD"));
 	}
+
+	private boolean containsLink(List<OLink> links, String link) {
+		assert(links != null);
+		boolean contains = false;
+		for (OLink l : links) {
+			if (l.getHref().equals(link)) {
+				contains = true;
+			}
+		}
+		return contains;
+	}
+	
 
 }

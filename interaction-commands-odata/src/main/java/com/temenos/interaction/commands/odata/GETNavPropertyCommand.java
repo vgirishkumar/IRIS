@@ -1,11 +1,14 @@
 package com.temenos.interaction.commands.odata;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
@@ -24,27 +27,17 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class GETNavPropertyCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETNavPropertyCommand.class);
 
-	// Command configuration
-	private String entity;
-	private String navProperty;
-	
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
-	private EdmEntitySet entitySet;
-	private Iterable<EdmEntityType> entityTypes;
 
-	public GETNavPropertyCommand(String entity, String navProperty, ODataProducer producer) {
-		this.entity = entity;
-		this.navProperty = navProperty;
+	public GETNavPropertyCommand(ODataProducer producer) {
 		this.producer = producer;
 		this.edmDataServices = producer.getMetadata();
-		this.entitySet = edmDataServices.getEdmEntitySet(entity);
-		this.entityTypes = edmDataServices.getEntityTypes();
-		assert(entity.equals(entitySet.getName()));
 	}
 
 	/* Implement InteractionCommand interface */
@@ -52,7 +45,24 @@ public class GETNavPropertyCommand implements InteractionCommand {
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
+		assert(ctx.getCurrentState() != null);
+		assert(ctx.getCurrentState().getViewAction() != null);
+		assert(ctx.getResource() == null);
+		
+		Properties properties = ctx.getCurrentState().getViewAction().getProperties();
+		if (properties == null || properties.get("entity") == null)
+			throw new IllegalArgumentException("'entity' must be provided");
+		String entity = (String) properties.get("entity");
+		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
+		if (entitySet == null)
+			throw new RuntimeException("Entity set not found [" + entity + "]");
+		Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
+		assert(entity.equals(entitySet.getName()));
 
+		if (!(ctx.getPathParameters().containsKey("navproperty")))
+			throw new IllegalArgumentException("Command must be bound to an OData navigation property resource");
+		String navProperty = ctx.getPathParameters().getFirst("navproperty");
+		
 		//Create entity key (simple types only)
 		OEntityKey key;
 		try {
@@ -105,11 +115,6 @@ public class GETNavPropertyCommand implements InteractionCommand {
         }
 
 		return Result.FAILURE;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

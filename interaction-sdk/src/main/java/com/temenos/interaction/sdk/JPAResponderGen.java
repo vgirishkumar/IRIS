@@ -235,7 +235,7 @@ public class JPAResponderGen {
 		}
 
 		// generate spring-beans.xml
-		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo, modelName, interactionModel))) {
+		if (!writeSpringConfiguration(configOutputPath, generateSpringConfiguration(resourcesInfo, namespace, interactionModel))) {
 			ok = false;
 		}
 
@@ -246,7 +246,7 @@ public class JPAResponderGen {
 		
 		// generate Behaviour class
 		String behaviourFilePath = srcOutputPath + "/" + namespace.replace(".", "/") + "/" + BEHAVIOUR_CLASS_FILE;
-		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(modelName, interactionModel))) {
+		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(namespace, interactionModel))) {
 			ok = false;
 		}
 

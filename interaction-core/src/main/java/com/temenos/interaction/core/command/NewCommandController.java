@@ -21,62 +21,47 @@ public class NewCommandController {
 	}
 
 	/**
-	 * Create and populate command controller.
+	 * Create a command controller and add the supplied commands to the resource path
+	 * @precondition commands not null
+	 * @postcondition all supplied commands can be retrieved with {@link fetchCommand}
+	 * @param resourcePath
+	 * @param Map<String, InteractionCommand> commands
 	 */
 	public NewCommandController(Map<String, InteractionCommand> commands) {
-		this.commands.putAll(commands);
-	}
-
-	/**
-	 * Create a command controller and add the supplied commands to the resource path from {@link ResourceInteractionModel.getResourcePath()}
-	 * @param rim
-	 * @param Set<InteractionCommand> commands
-	 */
-	public NewCommandController(ResourceInteractionModel rim, Set<InteractionCommand> commands) {
-		this(rim.getFQResourcePath(), commands);
-	}
-	
-	/**
-	 * Create a command controller and add the supplied commands to the resource path
-	 * @param resourcePath
-	 * @param Set<InteractionCommand> commands
-	 */
-	public NewCommandController(String resourcePath, Set<InteractionCommand> commands) {
-		if (commands != null) {
-			for(InteractionCommand ic : commands) {
-				addCommand(resourcePath, ic);
-			}
+		assert(commands != null);
+		for(String name : commands.keySet()) {
+			addCommand(name, commands.get(name));
 		}
 	}
-	
 
 	/**
 	 * Add a command to transition a resources state.
+	 * @precondition name not null
 	 * @precondition {@link InteractionCommand} not null
 	 */
-	public void addCommand(String resourcePath, InteractionCommand c) {
+	public void addCommand(String name, InteractionCommand c) {
+		assert(name != null);
 		assert(c != null);
-		commands.put(c.getMethod() + "+" + resourcePath, c);
+		commands.put(name, c);
 	}
 
 	/*
-	 * Returns the {@link InteractionCommand} bound to this method and resource path
+	 * Returns the {@link InteractionCommand} bound to this name.
 	 *
-	 * @precondition String httpMethod is non null
-	 * @precondition String path is a non null path to a resource
+	 * @precondition String name is non null
 	 * @postcondition InteractionCommand class previously registered by #addCommand
 	 * @invariant commands is not null and number of commands
 	 */
-	public InteractionCommand fetchCommand(String method, String resourcePath) {
-		logger.info("Looking up interaction command for [" + method + "+" + resourcePath + "]");
-		InteractionCommand command = commands.get(method + "+" + resourcePath);
+	public InteractionCommand fetchCommand(String name) {
+		logger.debug("Looking up interaction command by name [" + name + "]");
+		InteractionCommand command = commands.get(name);
 		if (command == null) {
-			logger.error("No command bound to [" + method + "+" + resourcePath + "]");
+			logger.error("No command bound to [" + name + "]");
 		}
 		return command;
 	}
 
-	public boolean isValidCommand(String httpMethod, String resourcePath) {
-		return (commands.get(httpMethod + "+" + resourcePath) != null);
+	public boolean isValidCommand(String name) {
+		return (commands.get(name) != null);
 	}
 }

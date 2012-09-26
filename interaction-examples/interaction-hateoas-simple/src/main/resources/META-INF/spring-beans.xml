@@ -55,46 +55,42 @@
     	<constructor-arg>
             <map>
                 <entry>
-                    <key><value>GET+/</value></key>
+                    <key><value>GETServiceRoot</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
                 </entry>
                 <entry>
-                    <key><value>GET+/profile</value></key>
+                    <key><value>NoopGET</value></key>
                     <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
                 </entry>
                 <entry>
-                    <key><value>GET+/preferences</value></key>
+                    <key><value>NoopPUT</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
+                </entry>
+                <entry>
+                    <key><value>NoopPOST</value></key>
+                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
+                </entry>
+                <entry>
+                    <key><value>GETPreferences</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
                 </entry>
                <entry>
-                    <key><value>GET+/notes</value></key>
+                    <key><value>GETNotes</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand">
                         <constructor-arg ref="persistence" />
                     </bean>
                  </entry>
                  <entry>
-                    <key><value>GET+/notes/{noteID}</value></key>
+                    <key><value>GETNote</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand">
                         <constructor-arg ref="persistence" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>PUT+/notes/{noteID}</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/notes/{noteID}</value></key>
+                    <key><value>DELETENote</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.simple.DELETENoteCommand">
                         <constructor-arg ref="persistence" />
                     </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/notes/new</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>POST+/notes/new</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
                 </entry>
             </map>
         </constructor-arg>

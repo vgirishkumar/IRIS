@@ -22,8 +22,9 @@ public class Person {
 	private String name;
 	
 	/* Support the navigation properties */
-	@OneToMany(mappedBy="Persons")
-	private Collection<Note> notes;
+	@OneToMany(mappedBy="NotePerson")
+	private Collection<Note> PersonNotes;
 
 	public Person() {}
+	
 }

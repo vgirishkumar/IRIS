@@ -102,11 +102,6 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
-	public Collection<Link> getLinks(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, RESTResource entity) {
-		return resource.getLinks(headers, pathParameters, entity); 
-	}
-	
-	@Override
 	public String getResourcePath() {
 		return resource.getResourcePath();
 	}

@@ -66,9 +66,4 @@ public class GETEntityCommand implements InteractionCommand {
 		return consumer;
 	}
 	
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
-	}
-
 }

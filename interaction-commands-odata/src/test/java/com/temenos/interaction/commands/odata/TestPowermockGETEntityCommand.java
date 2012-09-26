@@ -44,14 +44,14 @@ public class TestPowermockGETEntityCommand {
 	@Test
 	public void testOEntityKeyParseException() {
 		// our test object
-		GETEntityCommand gec = new GETEntityCommand("MyEntity", createMockODataProducer("MyEntity"));
+		GETEntityCommand gec = new GETEntityCommand(createMockODataProducer("MyEntity"));
 
 		// make parse pass ok
 		mockStatic(OEntityKey.class);
         when(OEntityKey.parse(anyString())).thenThrow(new IllegalArgumentException());
 
 		// test our method
-        InteractionContext ctx = createInteractionContext("test");
+        InteractionContext ctx = createInteractionContext("MyEntity", "test");
         InteractionCommand.Result result = gec.execute(ctx);
 		assertNotNull(result);
 		assertEquals(InteractionCommand.Result.FAILURE, result);
@@ -64,10 +64,12 @@ public class TestPowermockGETEntityCommand {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private InteractionContext createInteractionContext(String id) {
+	private InteractionContext createInteractionContext(String entity, String id) {
+		ResourceState resourceState = mock(ResourceState.class);
+		when(resourceState.getEntityName()).thenReturn(entity);
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("id", id);
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class));
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState);
         return ctx;
 	}
 	
@@ -75,14 +77,14 @@ public class TestPowermockGETEntityCommand {
 	@Test
 	public void testOEntityKeyParseSuccessful() {
 		// our test object
-		GETEntityCommand gec = new GETEntityCommand("MyEntity", createMockODataProducer("MyEntity"));
+		GETEntityCommand gec = new GETEntityCommand(createMockODataProducer("MyEntity"));
 
 		// make parse pass ok
 		mockStatic(OEntityKey.class);
         when(OEntityKey.parse(anyString())).thenReturn(mock(OEntityKey.class));
 
 		// test our method
-        InteractionContext ctx = createInteractionContext("test");
+        InteractionContext ctx = createInteractionContext("MyEntity", "test");
         InteractionCommand.Result result = gec.execute(ctx);
 		assertNotNull(result);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);

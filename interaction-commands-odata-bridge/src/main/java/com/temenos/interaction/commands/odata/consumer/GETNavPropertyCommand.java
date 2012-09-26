@@ -127,8 +127,4 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		}
 	}	
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
-	}
 }

@@ -20,10 +20,4 @@ public interface InteractionCommand {
 	 */
 	public Result execute(InteractionContext ctx);
 	
-	/**
-	 * Returns the method name of the resource generic interface that this
-	 * command applies to.
-	 * @return String method
-	 */
-	public String getMethod();
 }
