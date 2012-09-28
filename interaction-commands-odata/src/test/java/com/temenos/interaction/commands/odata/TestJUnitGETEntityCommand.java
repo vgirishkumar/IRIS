@@ -136,7 +136,7 @@ public class TestJUnitGETEntityCommand {
 		    	  OEntityKey ek = (OEntityKey) obj;
 		    	  assertNotNull(ek);
 		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
-		    	  assertEquals(new LocalDateTime(1328551553000L), (LocalDateTime) ek.asSingleValue());
+		    	  assertEquals(new LocalDateTime(2012,2,6,18,5,53), (LocalDateTime) ek.asSingleValue());
 		          return true;
 		      }
 		   }
@@ -158,7 +158,7 @@ public class TestJUnitGETEntityCommand {
 		    	  OEntityKey ek = (OEntityKey) obj;
 		    	  assertNotNull(ek);
 		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
-		    	  assertEquals(new LocalTime(1332954353000L), (LocalTime) ek.asSingleValue());
+		    	  assertEquals(new LocalTime(18,5,53), (LocalTime) ek.asSingleValue());
 		          return true;
 		      }
 		   }
