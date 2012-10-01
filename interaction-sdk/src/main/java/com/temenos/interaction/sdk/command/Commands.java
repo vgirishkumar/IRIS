@@ -34,12 +34,11 @@ public class Commands {
 		commands.add(command);
 	}
 	
-	public void addCommand(String id, String className, String type, Parameter param1, Parameter param2, Parameter param3, Parameter param4) {
+	public void addCommand(String id, String className, String type, List<Parameter> params) {
 		Command command = new Command(id, className);
-		command.addParameter(param1);
-		command.addParameter(param2);
-		command.addParameter(param3);
-		command.addParameter(param4);
+		for(Parameter param : params) {
+			command.addParameter(param);
+		}
 		commands.add(command);
 	}
 	
@@ -58,20 +57,34 @@ public class Commands {
 	 * @param getLinkEntitiesCmdClass class name of command linking to an collection resource 
 	 */
 	public void addLinkCommands(InteractionModel interactionModel, String getLinkEntityCmdClass, String getLinkEntitiesCmdClass) {
+		addLinkCommands(interactionModel, getLinkEntityCmdClass, getLinkEntitiesCmdClass, new ArrayList<Parameter>());
+	}
+
+	/**
+	 * Add commands executed when following a link to another resource.
+	 * @param interactionModel Interaction model
+	 * @param getLinkEntityCmdClass class name of command linking to an entity resource
+	 * @param getLinkEntitiesCmdClass class name of command linking to an collection resource 
+	 * @param params list of additional parameters to pass into the command
+	 */
+	public void addLinkCommands(InteractionModel interactionModel, String getLinkEntityCmdClass, String getLinkEntitiesCmdClass, List<Parameter> params) {
 		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
 			for(IMTransition transition : rsm.getTransitions()) {
 				String id = "cmdGET" + rsm.getEntityName() + "." + transition.getTargetStateName();
+				List<Parameter> cmdParams = new ArrayList<Parameter>();
 				if(transition.isCollectionState()) {
-					addCommand(id, getLinkEntitiesCmdClass, GET_LINK_ENTITY, 
-							new Parameter(transition.getTargetEntityName(), false),		//target entity
-							JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER);		//producer
+					cmdParams.add(new Parameter(transition.getTargetEntityName(), false));		//target entity
+					cmdParams.add(JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER);		//producer
+					cmdParams.addAll(params);													//additional params
+					addCommand(id, getLinkEntitiesCmdClass, GET_LINK_ENTITY, cmdParams);
 				}
 				else {
-					addCommand(id, getLinkEntityCmdClass, GET_LINK_ENTITY, 
-							new Parameter(rsm.getEntityName(), false),					//entity
-							new Parameter(transition.getLinkProperty(), false),			//linkProperty
-							new Parameter(transition.getTargetEntityName(), false),		//linkEntity
-							JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER);		//producer
+					cmdParams.add(new Parameter(rsm.getEntityName(), false));					//entity
+					cmdParams.add(new Parameter(transition.getLinkProperty(), false));			//linkProperty
+					cmdParams.add(new Parameter(transition.getTargetEntityName(), false));		//linkEntity
+					cmdParams.add(JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER);		//producer
+					cmdParams.addAll(params);													//additional params
+					addCommand(id, getLinkEntityCmdClass, GET_LINK_ENTITY, cmdParams);
 				}
 			}
 		}
