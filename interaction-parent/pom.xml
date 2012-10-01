@@ -33,17 +33,6 @@
 -->
 	</modules>
 
-	<repositories>
-		<repository>
-	    	<id>nexus-t24-dev</id>
-	      	<url>http://maven.oams.com/content/repositories/t24-snapshots/</url>
-	    </repository>
-	    <repository>
-	    	<id>nexus-t24-rep</id>
-	    	<url>http://maven.oams.com/content/groups/t24/</url>
-	    </repository>
-	</repositories>
-
 	<distributionManagement>
 		<site>
 			<id>interaction-site</id>
