@@ -6,18 +6,80 @@
  -----
 
 
+Configuring the Maven settings.xml
+~~~~~~~~~~~~~~~~~~~~
+
+  Create or update the <<settings.xml>> file located inside the <$HOME/.m2> directory with the following content:
+  
+----------  
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+	<!-- Local repository -->
+	<localRepository>C:\Users\MyUser\.m2</localRepository>
+
+	<!-- Proxy settings
+	<proxies>
+		<proxy>
+			<id>optional</id>
+			<active>true</active>
+			<protocol>http</protocol>
+			<host>10.44.5.104</host>
+			<port>8080</port>
+		</proxy>
+	</proxies>
+	-->
+
+	<!-- Active profile --> 
+	<activeProfiles>
+		<activeProfile>internal-iris</activeProfile>
+	</activeProfiles>
+
+	<!-- Profiles -->
+	<profiles>
+		<profile>
+			<id>internal-iris</id>
+			<repositories>
+				<repository>
+					<id>nexus-t24-rep</id>
+					<url>http://maven.oams.com/content/groups/all/</url>
+					<releases><enabled>true</enabled></releases>
+					<snapshots><enabled>true</enabled></snapshots>
+				</repository>
+			</repositories>
+			<pluginRepositories>
+				<pluginRepository>
+					<id>odyssey-group.com</id>
+					<name>Odyssey Maven Repository</name>
+					<releases><enabled>true</enabled></releases>
+					<snapshots><enabled>true</enabled></snapshots>
+					<url>http://maven.oams.com/content/groups/all/</url>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+	  </profiles>
+</settings>
+----------  
+  
+
+
 Building IRIS
 ~~~~~~~~~~~~~~~~~~~~
 
   [[1]] Get the latest IRIS snapshot
   
 	<<https://github.com/aphethean/IRIS>>
+
+  [[2]]	Set the following JVM properties
+  
+    <<set MAVEN_OPTS=-Xmx512M -XX:MaxPermSize=256M>> 
 	
-  [[4]]	Build and install IRIS to the local maven repository
+  [[3]]	Build and install IRIS to the local maven repository
   
 	<<$ mvn clean install>>
 	
-    [Note:] It may be necessary to configure Maven memory settings:  <<set MAVEN_OPTS=-Xmx512M -XX:MaxPermSize=256M>> 
 
 * Skipping integration tests
 ~~~~~~~~~~~~~~~~~~~~
@@ -25,119 +87,9 @@ Building IRIS
   
   <<$ mvn install -Ddebug>>
 
-  
-Creating a sample responder
+* Build and deploy the maven site
 ~~~~~~~~~~~~~~~~~~~~
-  This section describes how use the interaction SDK to facilitate the creation of resource
-  instances for the resource model. The interaction SDK depends on the interaction framework
-  libraries. These libraries are not yet available on a public repository and must be installed
-  into the local repository. Either install them manually or build the IRIS project manually
-  as described in the previous section.
-
-  [[1]]	Create a mock responder project, e.g. <FlightResponder> with package name <com.mycorp.airtraffic>:
-
-	<<$ mvn archetype:generate -DgroupId=>><com.mycorp.airtraffic><< -DartifactId=>><FlightResponder><< -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.2-SNAPSHOT -DinteractiveMode=false>>
-
-	This command will create a subdirectory named FlightResponder which contains a maven project
-	with the following artifacts:
-		
-		* WEB-INF/web.xml
-		
-		* service.edmx
-		
-		[]
-
-  [[2]]	Edit the sample EDMX file to define the entity model.
+  Run the following command to build and deploy the maven site to the <c:\temp\iris> directory (see pom.xml):
   
-      [Note:] The entity name (on the container) currently has to match the name of the entity type. Schemas other than the conceptual model (i.e. data storage, design, etc. schemas) should be removed. 
-  
-  
-  [[3]] Build the FlightReponder
-  
-	<<$ mvn interaction-sdk:gen>>
+  <<$ mvn site:deploy>>
 
-	This command will generate the design-time artifacts mentioned in the <architecture> section.
-
-		* <<metadata.xml>> - define entities and their properties as vocabulary terms
-		
-		* <<Behaviour.java>> - defines the resource states and the transitions between those states 
-	
-		* <<spring-beans.xml>> - defines the runtime configuration of the resource model 
-		  with the respective commands used to access the resource managers. This Interaction SDK creates 
-		  a Mock responder with OData commands that access a JPA producer:
-		
-----------  
- 	 <bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
-		<constructor-arg name="emf" ref="entityManagerFactory" />
-		<constructor-arg name="namespace" value="MockResponderSDK" />	
-		<constructor-arg name="maxResults" value="100" />			
-	  </bean>
-----------  
-		  
-		* <<JPA producer>> - JPA classes and configuration files (persistence.xml, responder_insert.sql) to provide
-		  a mock responder with data stored inside an in-memory HSQL database .
-		
-		[]
-		
-	It is useful to generate a JPA based mock responder for testing or providing out
-	generic  behaviour. Switching resource instances to use a different resource manager should be
-	as simple as changing the producer property in the spring configuration file.
-
-    [Note:] The JPA classes, persistence.xml and responder_insert.sql apply to the <<JPA producer>>.
-    If we wire up our resources to a different producer these artifacts would not be required. 
-
-  [[4]] Start the FlightReponder with an in-built Jetty web server
-  
-	<<$ mvn jetty:run>>
-
-  [[5]] Access the FlightReponder
-  
-    [[A]] Service document:        {{http://localhost:8080/responder/FlightResponder.svc}}
-    
-    [[B]] Metadata document:       {{http://localhost:8080/responder/FlightResponder.svc/$metadata}}
-    
-    [[C]] Flights feed:            {{http://localhost:8080/responder/FlightResponder.svc/Flight}}
-    
-    [[D]] Flight entry:            {{http://localhost:8080/responder/FlightResponder.svc/Flight(1)}}
-    
-
-  [[6]] Create the FlightResponder web application archive
-  
-	<<$ mvn package>>
-
-* Switching to an existing database 
-~~~~~~~~~~~~~~~~~~~~
-  This section describes the steps required to switch from an auto-populated in-memory HSQL database to an existing Oracle database.
-  
-  [[1]]	Download and install the <<Oracle JDBC driver>> into the Maven repository
-
-	<<mvn install:install-file -DgroupId=>><com.oracle><< -DartifactId=>><ojdbc6><< -Dversion=>><11.1.0.7.0><< -Dpackaging=jar -Dfile=>><ojdbc6.jar><< -DgeneratePom=true>>
-
-  [[2]]	Update <<pom.xml>> project dependencies to add the JDBC driver into the project.
-
-----------  
-	<dependency>
-		<groupId>com.oracle</groupId>
-		<artifactId>ojdbc6</artifactId>
-		<version>11.1.0.7.0</version>
-		<type>jar</type>
-		<scope>runtime</scope>
-	</dependency>
-----------  
-
-  [[3]]	Update <<persistence.xml>> to configure the database connection properties.
-
-----------  
-		<properties>
-			<property name="javax.persistence.jdbc.driver" value="oracle.jdbc.driver.OracleDriver" />
-			<property name="javax.persistence.jdbc.user" value="po" />
-			<property name="javax.persistence.jdbc.password" value="po" />
-			<property name="javax.persistence.jdbc.url" value="jdbc:oracle:thin:@10.44.5.93:1521:ABNPOC" />
-			<property name="hibernate.dialect" value="org.hibernate.dialect.OracleDialect" />
-			<property name="hibernate.show_sql" value="false" />
-			<property name="hibernate.hbm2ddl.auto" value="update" />
-		</properties>
-----------  
-		[Note:] Set hbm2ddl.auto to <validate> once the schema has been created to prevent hibernate from changing it.
-
-  [[4]] Remove all INSERT statements from the <<responder_insert.sql>> to avoid adding mock data to the existing database.
