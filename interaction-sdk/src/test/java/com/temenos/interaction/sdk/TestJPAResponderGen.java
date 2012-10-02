@@ -403,7 +403,7 @@ public class TestJPAResponderGen {
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
-		boolean status = generator.generateArtifacts(metadata, interactionModel, new File("."), new File("."), true);
+		boolean status = generator.generateArtifacts(metadata, interactionModel, new File("target/FlightResponder/classes"), new File("target/FlightResponder/classes"), true);
 		
 		//Check results
 		assertTrue(status);
@@ -458,7 +458,7 @@ public class TestJPAResponderGen {
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
-		boolean status = generator.generateArtifacts(EDMX_AIRLINE_FILE, edmDataServices, new File("."), new File("."));
+		boolean status = generator.generateArtifacts(EDMX_AIRLINE_FILE, edmDataServices, new File("target/FlightResponder/classes"), new File("target/FlightResponder/classes"));
 		
 		//Check results
 		assertTrue(status);
