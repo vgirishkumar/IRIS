@@ -1,9 +1,5 @@
 package com.temenos.interaction.commands.odata.consumer;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.StatusType;
-
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
@@ -12,7 +8,6 @@ import org.odata4j.edm.EdmEntityType;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionCommand.Result;
 
 public class DeleteEntityCommand implements InteractionCommand {
 

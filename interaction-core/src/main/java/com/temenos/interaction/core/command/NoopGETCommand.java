@@ -1,11 +1,6 @@
 package com.temenos.interaction.core.command;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
 import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.RESTResponse;
 
 /**
  * A GET command that does nothing.  Can be useful for laying out a straw

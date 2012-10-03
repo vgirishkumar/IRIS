@@ -1,9 +1,5 @@
 package com.temenos.interaction.commands.odata.consumer;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityGetRequest;
@@ -12,10 +8,8 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 
-import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class GETEntityCommand implements InteractionCommand {

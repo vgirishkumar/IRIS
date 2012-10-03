@@ -2,12 +2,9 @@ package com.temenos.interaction.core.command;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
 public class NewCommandController {
 	private final Logger logger = LoggerFactory.getLogger(NewCommandController.class);

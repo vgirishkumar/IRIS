@@ -1,6 +1,10 @@
 package com.temenos.interaction.winkext;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -24,8 +28,6 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.rim.ResourceInteractionModel;
-import com.temenos.interaction.winkext.DynamicResourceDelegate;
-import com.temenos.interaction.winkext.RegistrarWithSingletons;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RegistrarWithSingletons.class})

@@ -1,8 +1,6 @@
 package com.temenos.interaction.commands.odata.consumer;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 
 import org.core4j.Enumerable;
 import org.odata4j.consumer.ODataConsumer;
@@ -13,10 +11,8 @@ import org.odata4j.edm.EdmEntitySet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.resource.CollectionResource;
 
 public class GETEntitiesCommand implements InteractionCommand {

@@ -1,14 +1,10 @@
 package com.temenos.interaction.commands.odata;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 
-import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
@@ -24,10 +20,8 @@ import org.odata4j.producer.resources.OptionsQueryParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class GETNavPropertyCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETNavPropertyCommand.class);

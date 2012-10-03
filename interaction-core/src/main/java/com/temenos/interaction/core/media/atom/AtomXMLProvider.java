@@ -8,7 +8,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
@@ -71,7 +69,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	private final EdmDataServices edmDataServices;
 	private final ResourceRegistry resourceRegistry;
-	private final Transformer transformer;
+//	private final Transformer transformer;
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
@@ -85,7 +83,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	public AtomXMLProvider(EdmDataServices edmDataServices, ResourceRegistry resourceRegistry, Transformer transformer) {
 		this.edmDataServices = edmDataServices;
 		this.resourceRegistry = resourceRegistry;
-		this.transformer = transformer;
+//		this.transformer = transformer;
 		assert(edmDataServices != null);
 		assert(resourceRegistry != null);
 		assert(transformer != null);

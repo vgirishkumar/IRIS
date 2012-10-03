@@ -1,8 +1,8 @@
 package com.temenos.interaction.core.command;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.Response.Status.Family;
+import javax.ws.rs.core.Response.StatusType;
 
 /**
  * Define the HTTP status types not defined by jax-rs.

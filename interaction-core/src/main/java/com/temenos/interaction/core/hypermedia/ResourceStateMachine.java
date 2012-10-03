@@ -370,7 +370,6 @@ public class ResourceStateMachine {
 		if (currentState == null || states.contains(currentState)) return;
 		states.add(currentState);
 		// add current state to results
-		ResourceState thisStateSet = result.get(currentState.getName());
 		result.put(currentState.getName(), currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
 			if (!next.equals(currentState)) {

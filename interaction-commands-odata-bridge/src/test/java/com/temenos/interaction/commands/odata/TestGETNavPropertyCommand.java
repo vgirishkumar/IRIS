@@ -10,9 +10,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-
-import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.consumer.ODataConsumerAdapter;
@@ -31,7 +28,6 @@ import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
 import com.temenos.interaction.commands.odata.consumer.GETNavPropertyCommand;
-import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 

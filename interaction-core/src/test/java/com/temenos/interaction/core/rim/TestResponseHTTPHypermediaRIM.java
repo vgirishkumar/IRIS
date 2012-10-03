@@ -1,10 +1,13 @@
 package com.temenos.interaction.core.rim;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.util.ArrayList;
@@ -27,20 +30,19 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.temenos.interaction.core.command.HttpStatusTypes;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
-import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.web.RequestContext;
-import com.temenos.interaction.core.command.HttpStatusTypes;
-import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionCommand.Result;
-import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.NewCommandController;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HTTPHypermediaRIM.class})

@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.hypermedia.validation;
 
+import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;

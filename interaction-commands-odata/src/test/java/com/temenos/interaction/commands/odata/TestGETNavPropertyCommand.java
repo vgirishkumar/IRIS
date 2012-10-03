@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 
 import org.junit.Test;
 import org.odata4j.core.OEntity;
@@ -29,14 +28,11 @@ import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
-import com.temenos.interaction.commands.odata.TestJUnitGETEntityCommand.MyEdmType;
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestGETNavPropertyCommand {
 

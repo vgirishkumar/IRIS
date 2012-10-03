@@ -1,8 +1,5 @@
 package com.temenos.interaction.core.command;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.StatusType;
-
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class NoopPUTCommand implements InteractionCommand {

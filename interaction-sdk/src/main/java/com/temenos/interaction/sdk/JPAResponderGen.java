@@ -29,6 +29,12 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.MetadataOData4j;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.sdk.entity.EMEntity;
 import com.temenos.interaction.sdk.entity.EMProperty;
 import com.temenos.interaction.sdk.entity.EMTerm;
@@ -36,12 +42,6 @@ import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
-import com.temenos.interaction.core.entity.EntityMetadata;
-import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataOData4j;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end

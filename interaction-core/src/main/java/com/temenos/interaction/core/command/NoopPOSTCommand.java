@@ -1,8 +1,5 @@
 package com.temenos.interaction.core.command;
 
-import javax.ws.rs.HttpMethod;
-
-import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public 	class NoopPOSTCommand implements InteractionCommand {

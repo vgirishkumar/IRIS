@@ -1,14 +1,10 @@
 package com.temenos.interaction.commands.odata;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
-
 import org.odata4j.core.OEntity;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 

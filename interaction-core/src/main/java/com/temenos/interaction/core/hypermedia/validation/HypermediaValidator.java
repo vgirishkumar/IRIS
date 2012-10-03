@@ -16,7 +16,6 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 
 public class HypermediaValidator {
 	private final static Logger logger = LoggerFactory.getLogger(HypermediaValidator.class);

@@ -41,7 +41,6 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	@Context
 	private UriInfo uriInfo;
 	
-	private final ResourceRegistry resourceRegistry;
 	private final ResourceStateMachine hypermediaEngine;
 	
 	public EdmxMetaDataProvider(ResourceRegistry resourceRegistry) {
@@ -54,7 +53,6 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	}
 	
 	public EdmxMetaDataProvider(ResourceRegistry resourceRegistry, ResourceStateMachine hypermediaEngine) {
-		this.resourceRegistry = resourceRegistry;
 		this.hypermediaEngine = hypermediaEngine;
 		assert(hypermediaEngine != null);
 	}

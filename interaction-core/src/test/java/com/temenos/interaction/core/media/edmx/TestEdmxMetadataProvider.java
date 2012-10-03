@@ -3,14 +3,11 @@ package com.temenos.interaction.core.media.edmx;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.Writer;
-import java.lang.reflect.Method;
 
 import javax.ws.rs.core.MediaType;
 

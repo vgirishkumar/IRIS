@@ -1,6 +1,7 @@
 package com.temenos.interaction.core.rim;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashSet;
 import java.util.SortedSet;
@@ -11,7 +12,6 @@ import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.core.rim.HeaderHelper;
 import com.temenos.interaction.core.web.RequestContext;
 
 public class TestHeaderHelper {

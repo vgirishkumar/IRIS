@@ -1,14 +1,11 @@
 package com.temenos.interaction.core.hypermedia;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.HashSet;
 
 import org.junit.Test;
-
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.hypermedia.TransitionCommandSpec;
 
 public class TestTransition {
 

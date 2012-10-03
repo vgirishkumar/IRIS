@@ -1,8 +1,5 @@
 package com.temenos.interaction.core.command;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.StatusType;
-
 public class NoopDELETECommand implements InteractionCommand {
 
 	/* Implement InteractionCommand interface */

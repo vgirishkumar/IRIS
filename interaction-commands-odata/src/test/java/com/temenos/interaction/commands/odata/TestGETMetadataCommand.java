@@ -1,7 +1,6 @@
 package com.temenos.interaction.commands.odata;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,7 +27,6 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.RESTResponse;
 
 public class TestGETMetadataCommand {
 
@@ -45,7 +43,7 @@ public class TestGETMetadataCommand {
 		
 		GETMetadataCommand command = new GETMetadataCommand("Metadata", mockProducer.getMetadata());
         InteractionContext ctx = createInteractionContext();
-        InteractionCommand.Result result = command.execute(ctx);
+        command.execute(ctx);
 		assertTrue(ctx.getResource() instanceof MetaDataResource);
 	}
 
@@ -55,7 +53,7 @@ public class TestGETMetadataCommand {
 		
 		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", mockProducer.getMetadata());
         InteractionContext ctx = createInteractionContext();
-        InteractionCommand.Result result = command.execute(ctx);
+        command.execute(ctx);
 		assertTrue(ctx.getResource() instanceof EntityResource);
 	}
 

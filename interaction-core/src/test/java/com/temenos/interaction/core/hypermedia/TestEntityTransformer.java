@@ -1,6 +1,6 @@
 package com.temenos.interaction.core.hypermedia;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,9 +18,6 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
-
-import com.temenos.interaction.core.hypermedia.EntityTransformer;
-import com.temenos.interaction.core.hypermedia.Transformer;
 
 public class TestEntityTransformer {
 

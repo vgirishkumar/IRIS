@@ -14,7 +14,6 @@ import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 
 public class TestHypermediaValidator {
 
