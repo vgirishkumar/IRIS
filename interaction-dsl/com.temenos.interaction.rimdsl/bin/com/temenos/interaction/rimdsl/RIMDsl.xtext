@@ -1,6 +1,6 @@
 grammar com.temenos.interaction.rimdsl.RIMDsl with org.eclipse.xtext.common.Terminals
 
-generate rim "http://www.temenos.com/interaction/rimdsl/RIMDsl"
+generate rim "http://www.temenos.com/interaction/rimdsl/RimDsl"
 
 rim :
      {Statemachine}

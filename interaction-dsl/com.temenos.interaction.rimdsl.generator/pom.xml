@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.temenos.interaction</groupId>
+		<artifactId>com.temenos.interaction.rimdsl.parent</artifactId>
+		<!-- You should change this and the MANIFEST.MF to your versioning scheme -->
+		<version>0.0.2-SNAPSHOT</version>
+		<relativePath>../com.temenos.interaction.rimdsl.parent/pom.xml</relativePath>
+	</parent>
+	<artifactId>com.temenos.interaction.rimdsl.generator</artifactId>
+	<packaging>jar</packaging>
+	<name>com.temenos.interaction.rimdsl.RimDsl - Generator</name>
+
+	<build>
+	</build>
+</project>
