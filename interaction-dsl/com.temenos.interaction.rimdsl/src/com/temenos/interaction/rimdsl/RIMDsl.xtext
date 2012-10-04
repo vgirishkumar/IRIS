@@ -20,7 +20,7 @@ Event:
 State:
     (isInitial?='initial')? 'state' name=ID
         entity=Entity
-        ('actions' '{' actions+=[Command]+ '}')?
+        ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')
         path=Path?
         transitionsAuto+=TransitionAuto*
         transitions+=Transition*
@@ -29,15 +29,15 @@ State:
 ;
 
 Transition:
-    event=[Event] '->' state=[State]
+    (event=[Event] '->' state=[State])
 ;
 
 TransitionForEach:
-    event=[Event] '*->' state=[State]
+    (event=[Event] '*->' state=[State])
 ;
 
 TransitionAuto:
-    event=[Event] '-->' state=[State]
+    (event=[Event] '-->' state=[State])
 ;
 
 Path:
@@ -49,6 +49,6 @@ Entity:
 ;
 
 Command:
-    name=ID entity=Entity
+    name=ID property=ID
 ;
 

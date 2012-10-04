@@ -6,11 +6,13 @@ package com.temenos.interaction.rimdsl.generator
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
+import com.temenos.interaction.rimdsl.rim.Command
 import com.temenos.interaction.rimdsl.rim.State
 import com.temenos.interaction.rimdsl.rim.Transition
 import com.temenos.interaction.rimdsl.rim.TransitionForEach
 import com.temenos.interaction.rimdsl.rim.TransitionAuto
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel
+import org.eclipse.emf.common.util.EList
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -24,22 +26,23 @@ class RIMDslGenerator implements IGenerator {
 	}
 	
 	def toJavaCode(ResourceInteractionModel rim) '''
-		import java.util.HashMap;
 		import java.util.HashSet;
-		import java.util.Map;
 		import java.util.Set;
 
 		import com.temenos.interaction.core.hypermedia.Action;
 		import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 		import com.temenos.interaction.core.hypermedia.ResourceState;
 		import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+		import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 		
 		public class «rim.eResource.className»Behaviour {
-			
-			public static void main(String[] args) {
-				System.out.println(new ASTValidation().graph(new «rim.eResource.className»Behaviour().getRIM()));
-			}
-			
+		
+		    public static void main(String[] args) {
+		        ResourceStateMachine hypermediaEngine = new «rim.eResource.className»Behaviour().getRIM();
+		        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine);
+		        System.out.println(validator.graph());
+		    }
+		
 			public ResourceStateMachine getRIM() {
 				ResourceState initial = null;
 				// create states
@@ -74,17 +77,36 @@ class RIMDslGenerator implements IGenerator {
 
 			    return new ResourceStateMachine(initial);
 			}
+
+		    private Set<Action> createActionSet(Action view, Action entry) {
+		        Set<Action> actions = new HashSet<Action>();
+		        if (view != null)
+		            actions.add(view);
+		        if (entry != null)
+		            actions.add(entry);
+		        return actions;
+		    }
+
 		}
 	'''
 	
 	def produceResourceStates(State state) '''
             «IF state.entity.isCollection»
-            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", "«if (state.path != null) { state.path.name }»");
+            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
             «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", "«if (state.path != null) { state.path.name }»");
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
             «ENDIF»
 	'''
 
+    def produceActionSet(EList<Command> actions) '''
+        «IF actions != null»
+            «IF actions.size == 2»
+            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
+            ELSEIF actions.size == 1»
+            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW), null)«
+            ENDIF»«
+        ENDIF»'''
+    
 	def produceTransitions(State fromState, Transition transition) '''
 			s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name»);
 	'''
