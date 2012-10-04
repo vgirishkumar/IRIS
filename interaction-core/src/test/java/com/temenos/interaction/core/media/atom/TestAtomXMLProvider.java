@@ -30,10 +30,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
-import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.DetailedDiff;
+import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.DifferenceListener;
 import org.custommonkey.xmlunit.IgnoreTextAndAttributeValuesDifferenceListener;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.odata4j.core.ImmutableList;
@@ -80,7 +81,7 @@ import com.temenos.interaction.core.rim.ResourceInteractionModel;
 public class TestAtomXMLProvider {
 	
 	private final static String EXPECTED_XML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xml:base=\"http://localhost:8080/responder/rest\"><id>http://localhost:8080/responder/restFlight('123')</id><title type=\"text\"></title><updated>2012-03-14T11:29:19Z</updated><author><name></name></author><category term=\"InteractionTest.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\"></category><content type=\"application/xml\"><m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content></entry>";
-	private final static String EXPECTED_ENTITY_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xml:base=\"http://localhost:8080/responder/rest/\">  <title type=\"text\">Flight</title><id>http://localhost:8080/responder/rest/Flight</id><updated>2012-10-04T10:17:00Z</updated><link href=\"Flight\" rel=\"self\" type=\"text\" title=\"Flight\" hreflang=\"en\" length=\"0\"></link><content type=\"application/xml\"><entry><id>http://localhost:8080/responder/rest/Flight/123</id><title type=\"text\"></title><updated>2012-10-04T10:17:00Z</updated><author><name></name></author><category term=\"Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\"></category><m:properties><d:id>123</d:id><d:flight>EI218</d:flight><d:MvSvGroup><d:MvSvStartGroup><d:MvSvEnd>mv sv end 1:1</d:MvSvEnd><d:MvSvStart>mv sv start 1:1</d:MvSvStart></d:MvSvStartGroup><d:MvSvStartGroup><d:MvSvEnd>mv sv end 1:2</d:MvSvEnd><d:MvSvStart>mv sv start 1:2</d:MvSvStart></d:MvSvStartGroup><d:MvSv>mv sv 1:1</d:MvSv></d:MvSvGroup><d:MvSvGroup><d:MvSvStartGroup><d:MvSvEnd>mv sv end 2:1</d:MvSvEnd><d:MvSvStart>mv sv start 2:1</d:MvSvStart></d:MvSvStartGroup><d:MvSvStartGroup><d:MvSvEnd>mv sv end 2:2</d:MvSvEnd><d:MvSvStart>mv sv start 2:2</d:MvSvStart></d:MvSvStartGroup><d:MvSv>mv sv 2:1</d:MvSv></d:MvSvGroup></m:properties></entry></content></feed>";
+	private final static String EXPECTED_ENTITY_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xml:base=\"http://localhost:8080/responder/rest/\"><title type=\"text\">Flight</title><id>http://localhost:8080/responder/rest/Flight</id><updated>2012-10-04T10:17:00Z</updated><link href=\"Flight\" rel=\"self\" type=\"text\" title=\"Flight\" hreflang=\"en\" length=\"0\"></link><content type=\"application/xml\"><entry><id>http://localhost:8080/responder/rest/Flight/123</id><title type=\"text\"></title><updated>2012-10-04T10:17:00Z</updated><author><name></name></author><category term=\"Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\"></category><m:properties><d:id>123</d:id><d:flight>EI218</d:flight><d:MvSvGroup><d:MvSvStartGroup><d:MvSvEnd>mv sv end 1:1</d:MvSvEnd><d:MvSvStart>mv sv start 1:1</d:MvSvStart></d:MvSvStartGroup><d:MvSvStartGroup><d:MvSvEnd>mv sv end 1:2</d:MvSvEnd><d:MvSvStart>mv sv start 1:2</d:MvSvStart></d:MvSvStartGroup><d:MvSv>mv sv 1:1</d:MvSv></d:MvSvGroup><d:MvSvGroup><d:MvSvStartGroup><d:MvSvEnd>mv sv end 2:1</d:MvSvEnd><d:MvSvStart>mv sv start 2:1</d:MvSvStart></d:MvSvStartGroup><d:MvSvStartGroup><d:MvSvEnd>mv sv end 2:2</d:MvSvEnd><d:MvSvStart>mv sv start 2:2</d:MvSvStart></d:MvSvStartGroup><d:MvSv>mv sv 2:1</d:MvSv></d:MvSvGroup></m:properties></entry></content></feed>";
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
@@ -487,12 +488,10 @@ public class TestAtomXMLProvider {
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 
 		//Assert xml string but ignore text and attribute values
+		XMLUnit.setIgnoreWhitespace(true);
 	    DifferenceListener myDifferenceListener = new IgnoreTextAndAttributeValuesDifferenceListener();
 	    Diff myDiff = new Diff(responseString, EXPECTED_ENTITY_XML);
 	    myDiff.overrideDifferenceListener(myDifferenceListener);
-	    DetailedDiff detDiff = new DetailedDiff(myDiff);
-	    List diffs = detDiff.getAllDifferences();
-	    System.out.println(diffs.toString());
-	    //assertTrue(myDiff.similar());
+	    assertTrue(myDiff.similar());		
 	}
 }
