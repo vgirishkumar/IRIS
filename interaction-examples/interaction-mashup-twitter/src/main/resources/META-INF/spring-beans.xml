@@ -1,25 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-           classpath:org/springframework/beans/factory/xml/spring-beans-2.5.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<!-- Initialise JPA for MockResponder -->
-	<bean id="entityManagerFactory"
-		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
-			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	<!-- Read property files -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:responder.properties</value>
+			</list>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
 	</bean>
-	
-	<!-- Initialise responder database -->
-	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
+
+	<!-- Metadata -->	
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+
+	<!-- Import Resource manager context -->
+	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
+
     <!-- Persistence manager -->
     <bean id="persistence" class="com.temenos.interaction.example.mashup.twitter.Persistence" >
         <constructor-arg ref="entityManagerFactory" />
     </bean>
 
-	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
-	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
     -->
@@ -50,36 +64,27 @@
     	<constructor-arg ref="stateMachine" />
     </bean>
 
-    <!-- Commands -->
-    <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
-    	<constructor-arg>
-            <map>
-                <entry>
-                    <key><value>GET+/</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-               <entry>
-                    <key><value>GET+/users</value></key>
-                    <bean class="com.temenos.interaction.example.mashup.twitter.GETUsersCommand">
-                        <constructor-arg ref="persistence" />
-                    </bean>
-                 </entry>
-                 <entry>
-                    <key><value>GET+/users/{userID}</value></key>
-                    <bean class="com.temenos.interaction.example.mashup.twitter.GETUserCommand">
-                        <constructor-arg ref="persistence" />
-                    </bean>
-                </entry>
-                 <entry>
-                    <key><value>GET+/tweets/{username}</value></key>
-                    <bean class="com.temenos.interaction.example.mashup.twitter.GETUserTwitterUpdatesCommand" />
-                </entry>
-                 <entry>
-                    <key><value>GET+/tweets/{username}/{tweet}</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-            </map>
-        </constructor-arg>
-    </bean>
+	<!-- Commands -->
+	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="cmdGETUsers" class="com.temenos.interaction.example.mashup.twitter.GETUsersCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
+	<bean id="cmdGETUser" class="com.temenos.interaction.example.mashup.twitter.GETUserCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
+	<bean id="cmdGETTweets" class="com.temenos.interaction.example.mashup.twitter.GETUserTwitterUpdatesCommand" />
+	<bean id="cmdGETTweet" class="com.temenos.interaction.core.command.NoopGETCommand" />
 
+	<!-- Resource commands -->
+	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
+		<constructor-arg name="commands">
+			<util:map id="commandsMap" map-class="java.util.Hashtable">
+				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
+				<entry key="GET+/users" value-ref="cmdGETUsers" />
+				<entry key="GET+/users/{userID}" value-ref="cmdGETUser" />
+				<entry key="GET+/tweets/{username}" value-ref="cmdGETTweets" />
+				<entry key="GET+/tweets/{username}/{tweet}" value-ref="cmdGETTweet" />
+			</util:map> 
+		</constructor-arg>
+	</bean>
 </beans>

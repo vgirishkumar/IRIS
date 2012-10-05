@@ -51,7 +51,7 @@
 	<!-- OData producer -->
 	<bean id="odataProducer" class="org.odata4j.producer.jpa.JPAProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />
-		<constructor-arg name="namespace" value="$entityContainerNamespace" />		
+		<constructor-arg name="namespace" value="Northwind" />		
 		<constructor-arg name="maxResults" value="100" />				
 	</bean>
 </beans>

@@ -9,31 +9,26 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.sql.DataSource;
 
-// TODO refactor this class, copied from somewhere
+/**
+ * Utility class to read SQL insert statement froma file and 
+ * inject them into a database. 
+ */
 public class ResponderDBUtils {
 	private final static Logger logger = Logger.getLogger(ResponderDBUtils.class.getName());
 
-	public static String fillDatabase() {
-		logger.fine("Loading HSQL JDBC driver");
-		try {
-			Class.forName("org.hsqldb.jdbcDriver");
-		} catch (Exception ex) {
-			// TODO replace with slf4j instance of logger
-			return "ERROR: failed to load HSQLDB JDBC driver.";
-		}
-
+	public static String fillDatabase(DataSource dataSource) {
 		Connection conn = null;
 		String line = "";
 		try {
 			logger.fine("Attempting to connect to database");
-			conn = DriverManager.getConnection("jdbc:hsqldb:mem:responder", "sa", "");
+			conn = dataSource.getConnection();
 			Statement statement = conn.createStatement();
 
 			logger.fine("Loading SQL INSERTs file");

@@ -1,70 +1,105 @@
 package com.temenos.interaction.sdk.command;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.temenos.interaction.sdk.JPAResponderGen;
+import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
+import com.temenos.interaction.sdk.interaction.IMTransition;
+import com.temenos.interaction.sdk.interaction.InteractionModel;
+
 /**
  * This class holds information about IRIS commands
  */
 public class Commands {
-	public final static String DEFAULT_GET_ENTITY_CMD = "com.temenos.interaction.commands.odata.GETEntityCommand";
-	public final static String DEFAULT_GET_ENTITIES_CMD = "com.temenos.interaction.commands.odata.GETEntitiesCommand";
-	public final static String DEFAULT_CREATE_ENTITY_CMD = "com.temenos.interaction.commands.odata.CreateEntityCommand";
-	public final static String DEFAULT_GET_LINK_ENTITY_CMD = "com.temenos.interaction.commands.odata.GETLinkEntityCommand";
+	public final static String GET_ENTITY = "GETEntity";
+	public final static String GET_ENTITIES = "GETEntities";
+	public final static String POST_ENTITY = "POSTEntity";
+	public final static String GET_LINK_ENTITY = "GETLinkEntity";
 	
-	private String getEntityCommand = DEFAULT_GET_ENTITY_CMD;
-	private String getEntitiesCommand = DEFAULT_GET_ENTITIES_CMD;
-	private String createEntityCommand = DEFAULT_CREATE_ENTITY_CMD;
-	private String getLinkEntityCommand = DEFAULT_GET_LINK_ENTITY_CMD; 
+	private List<Command> commands = new ArrayList<Command>();
 
-	/**
-	 * Create an instance of this class
-	 */
 	public Commands() {
 	}
 
-	public String getGetEntityCommand() {
-		return getEntityCommand;
+	public void addCommand(String className, String type, Parameter param1, Parameter param2) {
+		String id = "cmd" + type + param1.getValue();
+		addCommand(id, className, type, param1, param2);
 	}
 
-	public void setGetEntityCommand(String getEntityCommand) {
-		this.getEntityCommand = getEntityCommand;
-	}
-
-	public String getGetEntitiesCommand() {
-		return getEntitiesCommand;
-	}
-
-	public void setGetEntitiesCommand(String getEntitiesCommand) {
-		this.getEntitiesCommand = getEntitiesCommand;
-	}
-
-	public String getCreateEntityCommand() {
-		return createEntityCommand;
-	}
-
-	public void setCreateEntityCommand(String createEntityCommand) {
-		this.createEntityCommand = createEntityCommand;
+	public void addCommand(String id, String className, String type, Parameter param1, Parameter param2) {
+		Command command = new Command(id, className);
+		command.addParameter(param1);
+		command.addParameter(param2);
+		commands.add(command);
 	}
 	
-	public String getGetLinkEntityCommand() {
-		return getLinkEntityCommand;
-	}
-
-	public void setGetLinkEntityCommand(String getLinkEntityCommand) {
-		this.getLinkEntityCommand = getLinkEntityCommand;
-	}
-
-	public boolean isDefaultGetEntityCommand() {
-		return getEntityCommand != null && getEntityCommand.equals(DEFAULT_GET_ENTITY_CMD);
-	}
-
-	public boolean isDefaultGetEntitiesCommand() {
-		return getEntitiesCommand != null && getEntitiesCommand.equals(DEFAULT_GET_ENTITIES_CMD);
-	}
-
-	public boolean isDefaultCreateEntityCommand() {
-		return createEntityCommand != null && createEntityCommand.equals(DEFAULT_CREATE_ENTITY_CMD);
+	public void addCommand(String id, String className, String type, List<Parameter> params) {
+		Command command = new Command(id, className);
+		for(Parameter param : params) {
+			command.addParameter(param);
+		}
+		commands.add(command);
 	}
 	
-	public boolean isDefaultGetLinkEntityCommand() {
-		return getLinkEntityCommand != null && getLinkEntityCommand.equals(DEFAULT_GET_LINK_ENTITY_CMD);
+	public void addCommand(Command command) {
+		commands.add(command);
+	}
+
+	public List<Command> getCommands() {
+		return commands;
+	}
+	
+	/**
+	 * Add commands executed when following a link to another resource.
+	 * @param interactionModel Interaction model
+	 * @param getLinkEntityCmdClass class name of command linking to an entity resource
+	 * @param getLinkEntitiesCmdClass class name of command linking to an collection resource 
+	 */
+	public void addLinkCommands(InteractionModel interactionModel, String getLinkEntityCmdClass, String getLinkEntitiesCmdClass) {
+		addLinkCommands(interactionModel, getLinkEntityCmdClass, getLinkEntitiesCmdClass, new ArrayList<Parameter>());
+	}
+
+	/**
+	 * Add commands executed when following a link to another resource.
+	 * @param interactionModel Interaction model
+	 * @param getLinkEntityCmdClass class name of command linking to an entity resource
+	 * @param getLinkEntitiesCmdClass class name of command linking to an collection resource 
+	 * @param params list of additional parameters to pass into the command
+	 */
+	public void addLinkCommands(InteractionModel interactionModel, String getLinkEntityCmdClass, String getLinkEntitiesCmdClass, List<Parameter> params) {
+		addLinkCommands(interactionModel, getLinkEntityCmdClass, true, getLinkEntitiesCmdClass, true, params);
+	}
+	
+	/**
+	 * Add commands executed when following a link to another resource.
+	 * @param interactionModel Interaction model
+	 * @param getLinkEntityCmdClass class name of command linking to an entity resource
+	 * @param isLinkEntityCmdOdataProducer true if this command uses an odata producer, false if metadata
+	 * @param getLinkEntitiesCmdClass class name of command linking to an collection resource 
+	 * @param isLinkEntitiesCmdOdataProducer true if this command uses an odata producer, false if metadata
+	 * @param params List of additional parameters
+	 */
+	public void addLinkCommands(InteractionModel interactionModel, String getLinkEntityCmdClass, boolean isLinkEntityCmdOdataProducer, String getLinkEntitiesCmdClass, boolean isLinkEntitiesCmdOdataProducer, List<Parameter> params) {
+		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
+			for(IMTransition transition : rsm.getTransitions()) {
+				String id = "cmdGET" + rsm.getEntityName() + "." + transition.getTargetStateName();
+				List<Parameter> cmdParams = new ArrayList<Parameter>();
+				if(transition.isCollectionState()) {
+					cmdParams.add(new Parameter(transition.getTargetEntityName(), false));		//target entity
+					cmdParams.add(isLinkEntitiesCmdOdataProducer ? JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER : JPAResponderGen.COMMAND_METADATA_SOURCE_MODEL);		//producer
+					cmdParams.addAll(params);													//additional params
+					addCommand(id, getLinkEntitiesCmdClass, GET_LINK_ENTITY, cmdParams);
+				}
+				else {
+					cmdParams.add(new Parameter(rsm.getEntityName(), false));					//entity
+					cmdParams.add(new Parameter(transition.getLinkProperty(), false));			//linkProperty
+					cmdParams.add(new Parameter(transition.getTargetEntityName(), false));		//linkEntity
+					cmdParams.add(isLinkEntityCmdOdataProducer ? JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER : JPAResponderGen.COMMAND_METADATA_SOURCE_MODEL);		//producer
+					cmdParams.addAll(params);													//additional params
+					addCommand(id, getLinkEntityCmdClass, GET_LINK_ENTITY, cmdParams);
+				}
+			}
+		}
 	}
 }

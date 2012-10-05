@@ -2,18 +2,17 @@
 # Populate your responder inmemory database with some test values
 #
 # For example:
-#foreach ( $resourceInfo in $resourcesInfo )
-#if (!$resourceInfo.getEntityInfo().isFeedEntity() && $resourceInfo.getEntityInfo().isJpaEntity()) 
-INSERT INTO `$resourceInfo.getEntityInfo().getClazz()`(##
-#foreach ( $fieldInfo in $resourceInfo.getEntityInfo().getAllFieldInfos() ) 
+#foreach ( $entityInfo in $entitiesInfo )
+INSERT INTO `$entityInfo.getClazz()`(##
+#foreach ( $fieldInfo in $entityInfo.getAllFieldInfos() ) 
 `$fieldInfo.getName()`##
-#set ( $indexOfLastElement = $resourceInfo.getEntityInfo().getAllFieldInfos().size() - 1 )
-#if (!$fieldInfo.equals($resourceInfo.getEntityInfo().getAllFieldInfos().get($indexOfLastElement))) 
+#set ( $indexOfLastElement = $entityInfo.getAllFieldInfos().size() - 1 )
+#if (!$fieldInfo.equals($entityInfo.getAllFieldInfos().get($indexOfLastElement))) 
  , ##
 #end
 #end                                                  
 ) VALUES(##
-#foreach ( $fieldInfo in $resourceInfo.getEntityInfo().getAllFieldInfos() )
+#foreach ( $fieldInfo in $entityInfo.getAllFieldInfos() )
 #if ($fieldInfo.getType().equals("String")) 
 'abc'##
 #elseif ($fieldInfo.getType().equals("Long") || $fieldInfo.getType().equals("Integer"))
@@ -27,11 +26,10 @@ INSERT INTO `$resourceInfo.getEntityInfo().getClazz()`(##
 #else
 'Type not supported'##
 #end
-#set ( $indexOfLastElement = $resourceInfo.getEntityInfo().getAllFieldInfos().size() - 1 )
-#if (!$fieldInfo.equals($resourceInfo.getEntityInfo().getAllFieldInfos().get($indexOfLastElement))) 
+#set ( $indexOfLastElement = $entityInfo.getAllFieldInfos().size() - 1 )
+#if (!$fieldInfo.equals($entityInfo.getAllFieldInfos().get($indexOfLastElement))) 
  , ##
 #end
 #end
 );	
-#end
 #end

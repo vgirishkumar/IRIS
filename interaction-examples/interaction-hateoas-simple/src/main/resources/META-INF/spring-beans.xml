@@ -1,24 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-           classpath:org/springframework/beans/factory/xml/spring-beans-2.5.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<!-- Initialise JPA for MockResponder -->
-	<bean id="entityManagerFactory"
-		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
-			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	<!-- Read property files -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:responder.properties</value>
+			</list>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
 	</bean>
+
+	<!-- Metadata -->	
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+
+	<!-- Import Resource manager context -->
+	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 	
-	<!-- Initialise responder database -->
-	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
     <!-- Persistence manager -->
     <bean id="persistence" class="com.temenos.interaction.example.hateoas.simple.Persistence" >
         <constructor-arg ref="entityManagerFactory" />
     </bean>
-
-	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -50,54 +64,37 @@
     	<constructor-arg ref="stateMachine" />
     </bean>
 
-    <!-- Commands -->
-    <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
-    	<constructor-arg>
-            <map>
-                <entry>
-                    <key><value>GET+/</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/profile</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/preferences</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
-                </entry>
-               <entry>
-                    <key><value>GET+/notes</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand">
-                        <constructor-arg ref="persistence" />
-                    </bean>
-                 </entry>
-                 <entry>
-                    <key><value>GET+/notes/{noteID}</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand">
-                        <constructor-arg ref="persistence" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>PUT+/notes/{noteID}</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPUTCommand" />
-                </entry>
-                <entry>
-                    <key><value>DELETE+/notes/{noteID}</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.simple.DELETENoteCommand">
-                        <constructor-arg ref="persistence" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GET+/notes/new</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>POST+/notes/new</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopPOSTCommand" />
-                </entry>
-            </map>
-        </constructor-arg>
-    </bean>
+	<!-- Commands -->
+	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
+	<bean id="cmdGETProfile" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="cmdGETPreferences" class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
+	<bean id="cmdGETNotes" class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
+	<bean id="cmdGETNote" class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
+	<bean id="cmdPUTNote" class="com.temenos.interaction.core.command.NoopPUTCommand" />
+	<bean id="cmdDELETENote" class="com.temenos.interaction.example.hateoas.simple.DELETENoteCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
+	<bean id="cmdGETNewNote" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="cmdPOSTNewNote" class="com.temenos.interaction.core.command.NoopPOSTCommand" />
 
+	<!-- Resource commands -->
+	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
+		<constructor-arg name="commands">
+			<util:map id="commandsMap" map-class="java.util.Hashtable">
+				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
+				<entry key="GET+/profile" value-ref="cmdGETProfile" />
+				<entry key="GET+/preferences" value-ref="cmdGETPreferences" />
+				<entry key="GET+/notes" value-ref="cmdGETNotes" />
+				<entry key="GET+/notes/{noteID}" value-ref="cmdGETNote" />
+				<entry key="PUT+/notes/{noteID}" value-ref="cmdPUTNote" />
+				<entry key="DELETE+/notes/{noteID}" value-ref="cmdDELETENote" />
+				<entry key="GET+/notes/new" value-ref="cmdGETNewNote" />
+				<entry key="POST+/notes/new" value-ref="cmdPOSTNewNote" />
+			</util:map> 
+		</constructor-arg>
+	</bean>
 </beans>
