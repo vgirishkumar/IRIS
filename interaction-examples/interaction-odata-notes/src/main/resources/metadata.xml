@@ -12,7 +12,6 @@
         <Property Name="body">
             <Term Name="TERM_MANDATORY">false</Term>
             <Term Name="TERM_VALUE_TYPE">STRING</Term>
-            <Term Name="TERM_ID_FIELD">true</Term>
         </Property>
         <Property Name="person" />
     </Entity>
@@ -25,7 +24,6 @@
         <Property Name="name">
             <Term Name="TERM_MANDATORY">false</Term>
             <Term Name="TERM_VALUE_TYPE">STRING</Term>
-            <Term Name="TERM_ID_FIELD">true</Term>
         </Property>
 	</Entity>
 </Metadata>
