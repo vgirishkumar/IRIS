@@ -28,20 +28,20 @@ public class TestEdmxMetadataProvider {
 
 	@Test
 	public void testAcceptMetaDataResource() {
-		EdmxMetaDataProvider provider = new EdmxMetaDataProvider(mock(ResourceRegistry.class), mock(ResourceStateMachine.class));
+		EdmxMetaDataProvider provider = new EdmxMetaDataProvider(mock(ResourceStateMachine.class));
 		assertTrue(provider.isWriteable(MetaDataResource.class, EdmDataServices.class, null, MediaType.APPLICATION_XML_TYPE));
 	}
 
 	@Test(expected = AssertionError.class)
 	public void testDoNoAcceptMetaDataResource() {
-		EdmxMetaDataProvider provider = new EdmxMetaDataProvider(mock(ResourceRegistry.class), mock(ResourceStateMachine.class));
+		EdmxMetaDataProvider provider = new EdmxMetaDataProvider(mock(ResourceStateMachine.class));
 		assertTrue(provider.isWriteable(CollectionResource.class, EdmDataServices.class, null, MediaType.APPLICATION_XML_TYPE));
 	}
 
 	@Test
 	public void testWrite() throws Exception {
 		MetaDataResource<EdmDataServices> mr = new MetaDataResource<EdmDataServices>(mock(EdmDataServices.class));
-		EdmxMetaDataProvider provider = new EdmxMetaDataProvider(mock(ResourceRegistry.class), mock(ResourceStateMachine.class));
+		EdmxMetaDataProvider provider = new EdmxMetaDataProvider(mock(ResourceStateMachine.class));
 		
 		// make sure write does nothing
 		mockStatic(EdmxMetaDataWriter.class);

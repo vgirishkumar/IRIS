@@ -47,7 +47,6 @@
     	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
-		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
 	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />

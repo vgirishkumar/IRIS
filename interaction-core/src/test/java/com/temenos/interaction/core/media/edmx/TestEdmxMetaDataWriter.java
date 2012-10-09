@@ -42,7 +42,7 @@ public class TestEdmxMetaDataWriter {
 		when(mr.getMetadata()).thenReturn(mockEDS);
 		
 		//Serialize metadata resource
-		EdmxMetaDataProvider p = new EdmxMetaDataProvider(new ResourceRegistry(mockEDS, new HashSet<HTTPResourceInteractionModel>()), mock(ResourceStateMachine.class));
+		EdmxMetaDataProvider p = new EdmxMetaDataProvider(mock(ResourceStateMachine.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(mr, MetaDataResource.class, EdmDataServices.class, null, MediaType.APPLICATION_XML_TYPE, null, bos);
 
@@ -65,7 +65,7 @@ public class TestEdmxMetaDataWriter {
 		GenericEntity<MetaDataResource<EdmDataServices>> ge = new GenericEntity<MetaDataResource<EdmDataServices>>(mr) {};
 		
 		//Serialize metadata resource
-		EdmxMetaDataProvider p = new EdmxMetaDataProvider(new ResourceRegistry(mockEDS, new HashSet<HTTPResourceInteractionModel>()), mock(ResourceStateMachine.class));
+		EdmxMetaDataProvider p = new EdmxMetaDataProvider(mock(ResourceStateMachine.class));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_XML_TYPE, null, bos);
 
@@ -90,7 +90,7 @@ public class TestEdmxMetaDataWriter {
 		ResourceStateMachine rsm = new ResourceStateMachine(flight);
 		
 		//Serialize metadata resource
-		EdmxMetaDataProvider p = new EdmxMetaDataProvider(new ResourceRegistry(mockEDS, new HashSet<HTTPResourceInteractionModel>()), rsm);
+		EdmxMetaDataProvider p = new EdmxMetaDataProvider(rsm);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(mr, MetaDataResource.class, EdmDataServices.class, null, MediaType.APPLICATION_XML_TYPE, null, bos);
 

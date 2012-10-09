@@ -43,20 +43,11 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 	
 	private final ResourceStateMachine hypermediaEngine;
 	
-	public EdmxMetaDataProvider(ResourceRegistry resourceRegistry) {
-		this(resourceRegistry, null);
-		assert(resourceRegistry != null);
-	}
-
 	public EdmxMetaDataProvider(ResourceStateMachine hypermediaEngine) {
-		this(null, hypermediaEngine);
-	}
-	
-	public EdmxMetaDataProvider(ResourceRegistry resourceRegistry, ResourceStateMachine hypermediaEngine) {
 		this.hypermediaEngine = hypermediaEngine;
 		assert(hypermediaEngine != null);
 	}
-
+	
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
