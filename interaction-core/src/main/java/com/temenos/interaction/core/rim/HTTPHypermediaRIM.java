@@ -132,7 +132,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
 			@Override
 			public void viewActionNotSeen(ResourceStateMachine rsm, ResourceState state) {
-				logger.warn("Invalid configuration of resource state [" + state + "] - no view command");
+				if (!state.isPseudoState())
+					logger.warn("Invalid configuration of resource state [" + state + "] - no view command");
 				//				throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no view command");
 			}
 			
