@@ -23,11 +23,9 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.hypermedia.Action;
-import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.MetaDataResource;
-import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 
 public class TestEdmxMetaDataWriter {
 

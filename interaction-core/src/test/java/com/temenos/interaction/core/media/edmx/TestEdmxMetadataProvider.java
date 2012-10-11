@@ -17,7 +17,6 @@ import org.odata4j.edm.EdmDataServices;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.MetaDataResource;

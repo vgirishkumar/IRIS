@@ -21,7 +21,6 @@ import javax.ws.rs.ext.Provider;
 
 import org.odata4j.edm.EdmDataServices;
 
-import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
