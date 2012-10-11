@@ -239,7 +239,7 @@ public class JPAResponderGen {
 		}
 		
 		//Create the entity model
-		EntityModel entityModel = createEntityModelFromMetadata(namespace, metadata);
+		EntityModel entityModel = createEntityModelFromMetadata(modelName, metadata);
 		
 		//Write other artefacts
 		if(!writeArtefacts(modelName, entitiesInfo, commands, entityModel, interactionModel, srcOutputPath, configOutputPath, generateMockResponder)) {
@@ -415,9 +415,9 @@ public class JPAResponderGen {
 	/*
 	 * Create a EntityModel object from a Metadata container
 	 */
-	private EntityModel createEntityModelFromMetadata(String namespace, Metadata metadata) {
+	private EntityModel createEntityModelFromMetadata(String modelName, Metadata metadata) {
 		//Create the entity model
-		EntityModel entityModel = new EntityModel(namespace);
+		EntityModel entityModel = new EntityModel(modelName);
 		for (EntityMetadata entityMetadata: metadata.getEntitiesMetadata().values()) {
 			EMEntity emEntity = new EMEntity(entityMetadata.getEntityName());
 			for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
