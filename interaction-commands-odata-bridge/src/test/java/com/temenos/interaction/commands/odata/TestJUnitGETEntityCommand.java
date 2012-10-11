@@ -7,6 +7,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,33 +52,25 @@ public class TestJUnitGETEntityCommand {
 	}
 
 	@Test(expected = AssertionError.class)
-	public void testEntitySetName() {
-		ODataProducer mockProducer = mock(ODataProducer.class);
+	public void testEntitySetNotFound() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
-
-		List<String> keys = new ArrayList<String>();
-		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName("MyEntity").addKeys(keys);
-		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("MyEntity").setEntityType(eet);
-
-		EdmDataServices mockEDS = mock(EdmDataServices.class);
-		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees.build());
-		when(mockProducer.getMetadata()).thenReturn(mockEDS);
-
-		EntityResponse mockEntityResponse = mock(EntityResponse.class);
-		when(mockEntityResponse.getEntity()).thenReturn(mock(OEntity.class));
-		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
-				
-		new GETEntityCommand("DOESNOTMATCH", mockConsumer);
+		GETEntityCommand gec = new GETEntityCommand(mockConsumer);
+		
+		// test assertion for entity set not found
+        InteractionContext ctx = createInteractionContext("DOESNOTMATCH", "1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
 	}
 
 	@Test
 	public void testEntityKeyTypeString() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
-		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockConsumer);
+		GETEntityCommand gec = new GETEntityCommand(mockConsumer);
 		
 		// test our method
-        InteractionContext ctx = createInteractionContext("1");
+        InteractionContext ctx = createInteractionContext("MyEntity", "abc");
 		InteractionCommand.Result result = gec.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 		assertTrue(ctx.getResource() instanceof EntityResource);
@@ -87,7 +80,55 @@ public class TestJUnitGETEntityCommand {
 		    	  OEntityKey ek = (OEntityKey) obj;
 		    	  assertNotNull(ek);
 		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
-		    	  assertEquals("1", (String) ek.asSingleValue());
+		    	  assertEquals("abc", (String) ek.asSingleValue());
+		          return true;
+		      }
+		   }
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), any(EntityQueryInfo.class));
+	}
+
+	@Test
+	public void testEntityKeyTypeStringQuoted() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
+		GETEntityCommand gec = new GETEntityCommand(mockConsumer);
+		
+		// test our method
+        InteractionContext ctx = createInteractionContext("MyEntity", "'abc'");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof EntityResource);
+		// check the key was constructed correctly
+		class StringOEntityKey extends ArgumentMatcher<OEntityKey> {
+		      public boolean matches(Object obj) {
+		    	  OEntityKey ek = (OEntityKey) obj;
+		    	  assertNotNull(ek);
+		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
+		    	  assertEquals("abc", (String) ek.asSingleValue());
+		          return true;
+		      }
+		   }
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), any(EntityQueryInfo.class));
+	}
+
+	@Test
+	public void testEntityKeyTypeInt32() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Int32");
+		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
+		GETEntityCommand gec = new GETEntityCommand(mockConsumer);
+		
+		// test our method
+        InteractionContext ctx = createInteractionContext("MyEntity", "1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof EntityResource);
+		// check the key was constructed correctly
+		class StringOEntityKey extends ArgumentMatcher<OEntityKey> {
+		      public boolean matches(Object obj) {
+		    	  OEntityKey ek = (OEntityKey) obj;
+		    	  assertNotNull(ek);
+		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
+		    	  assertEquals(new Integer(1), (Integer) ek.asSingleValue());
 		          return true;
 		      }
 		   }
@@ -98,10 +139,10 @@ public class TestJUnitGETEntityCommand {
 	public void testEntityKeyInt64() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Int64");
 		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
-		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockConsumer);
+		GETEntityCommand gec = new GETEntityCommand(mockConsumer);
 		
 		// test our method
-        InteractionContext ctx = createInteractionContext("1");
+        InteractionContext ctx = createInteractionContext("MyEntity", Long.toString(Long.MAX_VALUE));
 		InteractionCommand.Result result = gec.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 		assertTrue(ctx.getResource() instanceof EntityResource);
@@ -111,7 +152,7 @@ public class TestJUnitGETEntityCommand {
 		    	  OEntityKey ek = (OEntityKey) obj;
 		    	  assertNotNull(ek);
 		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
-		    	  assertEquals(new Long(1), (Long) ek.asSingleValue());
+		    	  assertEquals(new Long(Long.MAX_VALUE), (Long) ek.asSingleValue());
 		          return true;
 		      }
 		   }
@@ -122,10 +163,10 @@ public class TestJUnitGETEntityCommand {
 	public void testEntityKeyInt64Error() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Int64");
 		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
-		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockConsumer);
+		GETEntityCommand gec = new GETEntityCommand(mockConsumer);
 		
 		// test our method
-        InteractionContext ctx = createInteractionContext("A1");
+        InteractionContext ctx = createInteractionContext("MyEntity", "A1");
 		InteractionCommand.Result result = gec.execute(ctx);
 		// command should return FAILURE
 		assertEquals(InteractionCommand.Result.FAILURE, result);
@@ -136,10 +177,10 @@ public class TestJUnitGETEntityCommand {
 	public void testEntityKeyDateTime() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.DateTime");
 		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
-		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockConsumer);
+		GETEntityCommand gec = new GETEntityCommand(mockConsumer);
 		
 		// test our method
-        InteractionContext ctx = createInteractionContext("datetime'2012-02-06T18:05:53'");
+        InteractionContext ctx = createInteractionContext("MyEntity", "datetime'2012-02-06T18:05:53'");
 		InteractionCommand.Result result = gec.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 		assertTrue(ctx.getResource() instanceof EntityResource);
@@ -160,10 +201,10 @@ public class TestJUnitGETEntityCommand {
 	public void testEntityKeyTime() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Time");
 		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
-		GETEntityCommand gec = new GETEntityCommand("MyEntity", mockConsumer);
+		GETEntityCommand gec = new GETEntityCommand(mockConsumer);
 		
 		// test our method
-        InteractionContext ctx = createInteractionContext("time'PT18H05M53S'");
+        InteractionContext ctx = createInteractionContext("MyEntity", "time'PT18H05M53S'");
 		InteractionCommand.Result result = gec.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 		assertTrue(ctx.getResource() instanceof EntityResource);
@@ -206,10 +247,12 @@ public class TestJUnitGETEntityCommand {
 	}
 
 	@SuppressWarnings("unchecked")
-	private InteractionContext createInteractionContext(String id) {
+	private InteractionContext createInteractionContext(String entity, String id) {
+		ResourceState resourceState = mock(ResourceState.class);
+		when(resourceState.getEntityName()).thenReturn(entity);
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("id", id);
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class));
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState);
         return ctx;
 	}
 

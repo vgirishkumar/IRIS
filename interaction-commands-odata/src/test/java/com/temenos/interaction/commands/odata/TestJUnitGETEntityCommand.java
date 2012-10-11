@@ -65,7 +65,7 @@ public class TestJUnitGETEntityCommand {
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
 		// test our method
-        InteractionContext ctx = createInteractionContext("MyEntity", "1");
+        InteractionContext ctx = createInteractionContext("MyEntity", "abc");
 		InteractionCommand.Result result = gec.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 		assertTrue(ctx.getResource() instanceof EntityResource);
@@ -75,7 +75,30 @@ public class TestJUnitGETEntityCommand {
 		    	  OEntityKey ek = (OEntityKey) obj;
 		    	  assertNotNull(ek);
 		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
-		    	  assertEquals("1", (String) ek.asSingleValue());
+		    	  assertEquals("abc", (String) ek.asSingleValue());
+		          return true;
+		      }
+		   }
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), isNull(EntityQueryInfo.class));
+	}
+
+	@Test
+	public void testEntityKeyTypeStringQuoted() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETEntityCommand gec = new GETEntityCommand(mockProducer);
+		
+		// test our method
+        InteractionContext ctx = createInteractionContext("MyEntity", "'abc'");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof EntityResource);
+		// check the key was constructed correctly
+		class StringOEntityKey extends ArgumentMatcher<OEntityKey> {
+		      public boolean matches(Object obj) {
+		    	  OEntityKey ek = (OEntityKey) obj;
+		    	  assertNotNull(ek);
+		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
+		    	  assertEquals("abc", (String) ek.asSingleValue());
 		          return true;
 		      }
 		   }
@@ -88,7 +111,7 @@ public class TestJUnitGETEntityCommand {
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
 		// test our method
-        InteractionContext ctx = createInteractionContext("MyEntity", "1");
+        InteractionContext ctx = createInteractionContext("MyEntity", Long.toString(Long.MAX_VALUE));
 		InteractionCommand.Result result = gec.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 		assertTrue(ctx.getResource() instanceof EntityResource);
@@ -98,7 +121,7 @@ public class TestJUnitGETEntityCommand {
 		    	  OEntityKey ek = (OEntityKey) obj;
 		    	  assertNotNull(ek);
 		    	  assertEquals(KeyType.SINGLE, ek.getKeyType());
-		    	  assertEquals(new Long(1), (Long) ek.asSingleValue());
+		    	  assertEquals(new Long(Long.MAX_VALUE), (Long) ek.asSingleValue());
 		          return true;
 		      }
 		   }

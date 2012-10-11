@@ -18,19 +18,12 @@ import com.temenos.interaction.core.resource.CollectionResource;
 public class GETEntitiesCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
 
-	// Command configuration
-	private String entitySetName;
-	
 	private ODataConsumer consumer;
 	private EdmDataServices edmDataServices;
-	private EdmEntitySet entitySet;
 
-	public GETEntitiesCommand(String entitySetName, ODataConsumer consumer) {
-		this.entitySetName = entitySetName;
+	public GETEntitiesCommand(ODataConsumer consumer) {
 		this.consumer = consumer;
 		this.edmDataServices = consumer.getMetadata();
-		this.entitySet = edmDataServices.getEdmEntitySet(entitySetName);
-		assert(entitySet != null);
 	}
 
 	/* Implement InteractionCommand interface */
@@ -38,7 +31,15 @@ public class GETEntitiesCommand implements InteractionCommand {
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
-		logger.info("Getting entities for " + entitySet.getName());
+		assert(ctx.getCurrentState() != null);
+		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
+		assert(ctx.getResource() == null);
+
+		String entitySetName = ctx.getCurrentState().getEntityName();
+		logger.info("Getting entities for " + entitySetName);
+		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entitySetName);
+		if (entitySet == null)
+			throw new RuntimeException("Entity set not found [" + entitySetName + "]");
 
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 		int top = getAsInt(queryParams.getFirst("$top"));

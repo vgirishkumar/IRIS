@@ -21,6 +21,7 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
@@ -44,9 +45,10 @@ public class TestPowermockGETEntityCommand {
 		// our test object
 		GETEntityCommand gec = new GETEntityCommand(createMockODataProducer("MyEntity"));
 
-		// make parse pass ok
+		// make parse & create pass ok
 		mockStatic(OEntityKey.class);
         when(OEntityKey.parse(anyString())).thenThrow(new IllegalArgumentException());
+        when(OEntityKey.create(anyString())).thenThrow(new IllegalArgumentException());
 
 		// test our method
         InteractionContext ctx = createInteractionContext("MyEntity", "test");
@@ -80,6 +82,7 @@ public class TestPowermockGETEntityCommand {
 		// make parse pass ok
 		mockStatic(OEntityKey.class);
         when(OEntityKey.parse(anyString())).thenReturn(mock(OEntityKey.class));
+        when(OEntityKey.create(anyString())).thenReturn(mock(OEntityKey.class));
 
 		// test our method
         InteractionContext ctx = createInteractionContext("MyEntity", "test");
@@ -99,6 +102,7 @@ public class TestPowermockGETEntityCommand {
 		List<String> keys = new ArrayList<String>();
 		keys.add("MyId");
 		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
+		properties.add(EdmProperty.newBuilder("MyId").setType(EdmSimpleType.STRING));
 		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName(entityName).addKeys(keys).addProperties(properties);
 		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName(entityName).setEntityType(eet);
 

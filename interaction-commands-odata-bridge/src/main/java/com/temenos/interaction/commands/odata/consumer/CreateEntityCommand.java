@@ -10,13 +10,9 @@ import com.temenos.interaction.core.resource.EntityResource;
 
 public class CreateEntityCommand implements InteractionCommand {
 
-	// Command configuration
-	private String entitySetName;
-
 	private ODataConsumer consumer;
 
-	public CreateEntityCommand(String entitySetName, ODataConsumer consumer) {
-		this.entitySetName = entitySetName;
+	public CreateEntityCommand(ODataConsumer consumer) {
 		this.consumer = consumer;
 	}
 
@@ -24,14 +20,15 @@ public class CreateEntityCommand implements InteractionCommand {
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
-		assert(entitySetName != null && !entitySetName.equals(""));
+		assert(ctx.getCurrentState() != null);
+		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() != null);
 		
 		// create the entity
 		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) ctx.getResource();
 		OEntity entity = entityResource.getEntity();
 		
-		OCreateRequest<OEntity> createRequest = consumer.createEntity(entitySetName);
+		OCreateRequest<OEntity> createRequest = consumer.createEntity(ctx.getCurrentState().getEntityName());
 		if (entity != null){
 			createRequest.properties(entity.getProperties());
 		}
