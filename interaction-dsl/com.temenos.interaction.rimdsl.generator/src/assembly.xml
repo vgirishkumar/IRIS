@@ -1,0 +1,38 @@
+<assembly>
+  <id>executable</id>
+  <formats>
+    <format>jar</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <dependencySets>
+    <dependencySet>
+      <unpack>false</unpack>
+      <scope>compile</scope>
+<useProjectArtifact>false</useProjectArtifact>
+<outputDirectory></outputDirectory>
+<!--	  
+      <includes>
+        <include>com.temenos.interaction:com.temenos.interaction.rimdsl</include>
+        <include>commons-cli:commons-cli</include>
+        <include>com.google.collections:google-collections</include>
+        <include>com.google.inject:guice</include>
+        <include>org.eclipse.xtend2:org.eclipse.xtend2.standalone</include>
+      </includes>
+-->
+    </dependencySet>
+  </dependencySets>
+  <fileSets>
+    <fileSet>
+      <directory>target/classes</directory>
+      <outputDirectory></outputDirectory>
+<!-- 
+      <includes>
+        <include>classes/**</include>
+      </includes>
+      <excludes>
+        <exclude>rimgenerator.jar</exclude>
+      </excludes>
+ -->      
+    </fileSet>
+  </fileSets>
+ </assembly>

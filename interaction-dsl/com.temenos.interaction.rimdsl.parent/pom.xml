@@ -22,11 +22,6 @@
 		<module>../com.temenos.interaction.rimdsl.generator</module>
 	</modules>
 	<build>
-		<!-- The src directory must be named as resource dir to put it on the build classpath. This is required to resolve the 
-			workflow module named in the .mwe2 file -->
-		<resources>
-			<resource><directory>src</directory></resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
@@ -149,7 +144,7 @@
 	</dependencyManagement>
 	
 	<repositories>
-		<!-- Repository to resolve the Eclipse Tycho dependencies --> 
+        <!-- Repository to resolve the Eclipse Tycho dependencies --> 
 		<repository>
 			<id>p2.eclipse.indigo</id>
 			<url>http://download.eclipse.org/releases/indigo</url>
@@ -161,7 +156,7 @@
 			<url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/</url>
 			<layout>p2</layout>
 		</repository>
-		</repositories>
+	</repositories>
 	<pluginRepositories>
 		<!-- Repository to resolve fornax-oaw-m2-plugin -->
 		<pluginRepository>

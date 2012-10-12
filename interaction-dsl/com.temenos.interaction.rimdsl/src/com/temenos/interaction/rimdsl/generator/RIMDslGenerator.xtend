@@ -38,12 +38,12 @@ class RIMDslGenerator implements IGenerator {
 		public class «rim.eResource.className»Behaviour {
 		
 		    public static void main(String[] args) {
-		        ResourceStateMachine hypermediaEngine = new «rim.eResource.className»Behaviour().getRIM();
+		        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(new «rim.eResource.className»Behaviour().getRIM());
 		        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine);
 		        System.out.println(validator.graph());
 		    }
 		
-			public ResourceStateMachine getRIM() {
+			public ResourceState getRIM() {
 				ResourceState initial = null;
 				// create states
 				«FOR c : rim.states»
@@ -75,7 +75,7 @@ class RIMDslGenerator implements IGenerator {
                     «ENDFOR»
                 «ENDFOR»
 
-			    return new ResourceStateMachine(initial);
+			    return initial;
 			}
 
 		    private Set<Action> createActionSet(Action view, Action entry) {

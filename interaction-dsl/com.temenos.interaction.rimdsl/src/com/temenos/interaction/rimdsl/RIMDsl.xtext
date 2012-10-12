@@ -18,7 +18,7 @@ Event:
 ;
 
 State:
-    (isInitial?='initial')? 'state' name=ID
+    (isInitial?='initial')? 'resource' name=ID
         entity=Entity
         ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')
         path=Path?

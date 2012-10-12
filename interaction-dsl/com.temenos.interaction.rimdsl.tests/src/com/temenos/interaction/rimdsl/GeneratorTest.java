@@ -2,10 +2,6 @@ package com.temenos.interaction.rimdsl;
 
 import static org.junit.Assert.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.eclipse.xtext.generator.AbstractFileSystemAccess;
 import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.IGenerator;
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess;
@@ -35,12 +31,12 @@ public class GeneratorTest {
 	"	UpdateEntity properties" + LINE_SEP +
 	"end" + LINE_SEP +
 			
-	"initial state A" + LINE_SEP +
+	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
 	"	actions { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 
-	"state B" +
+	"resource B" +
 	"	item ENTITY" + LINE_SEP +
 // TODO - new specification for View commands
 //	"	view { GetEntity }" + LINE_SEP +
@@ -61,12 +57,12 @@ public class GeneratorTest {
 	"public class __synthetic0Behaviour {" + LINE_SEP +
 	LINE_SEP +
 	"    public static void main(String[] args) {" + LINE_SEP +
-	"        ResourceStateMachine hypermediaEngine = new __synthetic0Behaviour().getRIM();" + LINE_SEP +
+	"        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(new __synthetic0Behaviour().getRIM());" + LINE_SEP +
 	"        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine);" + LINE_SEP +
 	"        System.out.println(validator.graph());" + LINE_SEP +
 	"    }" + LINE_SEP +
 	LINE_SEP +
-	"	public ResourceStateMachine getRIM() {" + LINE_SEP +
+	"	public ResourceState getRIM() {" + LINE_SEP +
 	"		ResourceState initial = null;" + LINE_SEP +
 	"		// create states" + LINE_SEP +
 	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW), null), \"\");" + LINE_SEP +
@@ -80,7 +76,7 @@ public class GeneratorTest {
 	LINE_SEP +
     "        // create AUTO transitions" + LINE_SEP +
 	LINE_SEP +
-	"	    return new ResourceStateMachine(initial);" + LINE_SEP +
+	"	    return initial;" + LINE_SEP +
 	"	}" + LINE_SEP +
 	LINE_SEP +
 	"    private Set<Action> createActionSet(Action view, Action entry) {" + LINE_SEP +
@@ -114,7 +110,7 @@ public class GeneratorTest {
 	"	GetEntity properties" + LINE_SEP +
 	"end" + LINE_SEP +
 			
-	"initial state A" + LINE_SEP +
+	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
 	"	actions { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +

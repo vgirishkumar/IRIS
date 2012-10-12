@@ -3,13 +3,9 @@ package com.temenos.interaction.rimdsl;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.xtext.generator.IFileSystemAccess;
-import org.eclipse.xtext.generator.InMemoryFileSystemAccess;
 import org.eclipse.xtext.junit4.InjectWith;
 import org.eclipse.xtext.junit4.XtextRunner;
 import org.eclipse.xtext.junit4.util.ParseHelper;
@@ -56,12 +52,12 @@ public class ParserTest {
 	"	UpdateEntity properties" + LINE_SEP +
 	"end" + LINE_SEP +
 			
-	"initial state A" + LINE_SEP +
+	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
 	"	actions { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 
-	"state B" + LINE_SEP +
+	"resource B" + LINE_SEP +
 	"	item ENTITY" + LINE_SEP +
 // TODO - new specification for View commands
 //	"	view { GetEntity }" + LINE_SEP +
@@ -95,7 +91,7 @@ public class ParserTest {
 	"	GetEntity properties" + LINE_SEP +
 	"end" + LINE_SEP +
 			
-	"initial state A" + LINE_SEP +
+	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
 	"	actions { GetEntity }" + LINE_SEP +
 	"end\r\n" + LINE_SEP +
@@ -116,7 +112,7 @@ public class ParserTest {
 	}
 	
 	private final static String SINGLE_STATE_NO_COMMANDS_RIM = "" +
-	"initial state A" + LINE_SEP +
+	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
 	"end\r\n" + LINE_SEP +
 	"";
@@ -134,23 +130,36 @@ public class ParserTest {
 	}
 
 	private final static String SIMPLE_TRANSITION_RIM = "" +
-			"events" + LINE_SEP +
-			"	GET" + LINE_SEP +
-			"end" + LINE_SEP +
-
 			"commands" + LINE_SEP +
-			"	GetEntity" + LINE_SEP +
+			"	GetEntity properties" + LINE_SEP +
+			"	GetEntities properties" + LINE_SEP +
+			"	PutEntity properties" + LINE_SEP +
 			"end" + LINE_SEP +
 					
-			"initial state A" + LINE_SEP +
+			"initial resource A" + LINE_SEP +
 			"	collection ENTITY" + LINE_SEP +
-			"end\r\n" + LINE_SEP +
+			"	actions { GetEntities }" + LINE_SEP +
+			"	GET -> A" + LINE_SEP +
+			"end" + LINE_SEP +
 
-			"state B\r\n" +
+			"resource B" +
 			"	item ENTITY" + LINE_SEP +
-//			"	view { GetEntity }" + LINE_SEP +
-			"	actions { PutEntity }" + LINE_SEP +
-			"end\r\n" + LINE_SEP +
+			"	actions { GetEntity, PutEntity }" + LINE_SEP +
+			"end" + LINE_SEP +
 			"";
+
+	@Test
+	public void testParseStatesWithTransition() throws Exception {
+		ResourceInteractionModel model = parser.parse(SIMPLE_TRANSITION_RIM);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+		State aState = model.getStates().get(0);
+	    assertEquals("A", aState.getName());
+
+	    // there should one transition from state A to state B
+		assertEquals(1, aState.getTransitions().size());
+	}
 
 }

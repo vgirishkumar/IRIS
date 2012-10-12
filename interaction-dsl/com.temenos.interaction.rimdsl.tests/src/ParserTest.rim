@@ -9,23 +9,23 @@ commands
 	t24Delete z
 end
 
-initial state demo_initial
+initial resource demo_initial
 	item HOME
 	GET -> demo_tickets
 end
 
-state demo_tickets
+resource demo_tickets
 	collection TICKET
 	GET -> demo_aticket
 	DELETE *-> demo_deleted
 end
 
-state demo_aticket
+resource demo_aticket
 	item TICKET
 	DELETE -> demo_deleted
 end
 
-state demo_deleted
+resource demo_deleted
 	item TICKET
 	actions {t24Delete}
 	GET --> demo_tickets
