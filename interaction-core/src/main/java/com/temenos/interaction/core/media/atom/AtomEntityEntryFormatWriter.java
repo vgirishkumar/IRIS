@@ -38,7 +38,6 @@ public class AtomEntityEntryFormatWriter {
 	private static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 	private static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
 	private static final String scheme = "http://schemas.microsoft.com/ado/2007/08/dataservices/scheme";
-	private static final String atom_feed_content_type = "application/atom+xml;type=feed";
 	private static final String atom_entry_content_type = "application/atom+xml;type=entry";
 	private static final String t24_model = "T24Model";
 	private static final String href_lang = "en";
@@ -70,7 +69,6 @@ public class AtomEntityEntryFormatWriter {
 		writer.writeId(baseUri + uriInfo.getPath());
 		writer.writeUpdated(updated);
 		writer.writeLink(entityName, "self", "text", entityName, href_lang, 0);
-		writer.startContent(MediaType.APPLICATION_XML);
 		writer.flush();
 
 		writeEntry(writer, entity, links, baseUri, updated, entityMetadata);
@@ -116,11 +114,14 @@ public class AtomEntityEntryFormatWriter {
 		writer.writeCategory(term, scheme);
 		writer.flush();
 		
+		writer.startContent(MediaType.APPLICATION_XML);
+		
 		writer.startElement(new QName(m, "properties", "m"));
 		writeProperties(writer, entityMetadata, entity.getProperties());
 		writer.endElement();
+		
+		writer.endContent();
 
-		writer.endElement();
 		writer.endEntry();
 		writer.flush();
 		return absid;
