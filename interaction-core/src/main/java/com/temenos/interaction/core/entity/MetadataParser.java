@@ -98,6 +98,7 @@ public class MetadataParser extends DefaultHandler {
 		else if (qName.equalsIgnoreCase("Term")) {
 			try {
 				propertyVocabulary.peek().setTerm(termFactory.createTerm(termName, termValue));
+				termValue = null;
 			}
 			catch(Exception e) {
 				throw new SAXException(e.getMessage());
@@ -111,7 +112,12 @@ public class MetadataParser extends DefaultHandler {
 	@Override
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		if (termName != null) {
-			termValue = new String(ch, start, length);
+			if(termValue != null) {		//this method may be invoked multiple times if data is read in chunks
+				termValue += new String(ch, start, length);
+			}
+			else {
+				termValue = new String(ch, start, length);
+			}
 		}
 
 	}
