@@ -4,21 +4,14 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
-
 import org.core4j.Enumerable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
-import org.odata4j.core.OProperties;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 
 /**
  * This test ensures that this projects OData entities have working 
@@ -197,7 +190,7 @@ public class ODataAssociationsITCase {
 				.getEntity(AIRPORT_ENTITYSET_NAME, "LTN")
 				.nav("arrivals")
 				.execute();
-		assertEquals(2051L, departuresFlightSchedule.getProperty("flightScheduleID").getValue());
+		assertEquals(2052L, arrivalsFlightSchedule.getProperty("flightScheduleID").getValue());
 	}
 	
 	private boolean containsLink(List<OLink> links, String link) {
