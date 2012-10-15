@@ -70,3 +70,10 @@
 /interaction-dsl/com.temenos.interaction.rimdsl/bin/com/temenos/interaction/rimdsl/RIMDsl.xtext
 /interaction-dsl/com.temenos.interaction.rimdsl/bin/com/temenos/interaction/rimdsl/GenerateRimDSL.mwe2
 /interaction-dsl/com.temenos.interaction.rimdsl/bin/com/temenos/interaction/rimdsl/GenerateRimDSL.mwe2
+/interaction-dsl/com.temenos.interaction.rimdsl/target
+/interaction-dsl/com.temenos.interaction.rimdsl.generator/target
+/interaction-dsl/com.temenos.interaction.rimdsl.sdk/target
+/interaction-dsl/com.temenos.interaction.rimdsl.tests/bin
+/interaction-dsl/com.temenos.interaction.rimdsl.tests/target
+/interaction-dsl/com.temenos.interaction.rimdsl.ui/target
+/interaction-dsl/com.temenos.interaction.rimdsl.ui/bin
