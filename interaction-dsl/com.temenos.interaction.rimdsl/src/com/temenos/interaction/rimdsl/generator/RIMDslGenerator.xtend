@@ -35,10 +35,10 @@ class RIMDslGenerator implements IGenerator {
 		import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 		import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 		
-		public class «rim.eResource.className»Behaviour {
+		public class Â«rim.eResource.classNameÂ»Behaviour {
 		
 		    public static void main(String[] args) {
-		        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(new «rim.eResource.className»Behaviour().getRIM());
+		        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(new Â«rim.eResource.classNameÂ»Behaviour().getRIM());
 		        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine);
 		        System.out.println(validator.graph());
 		    }
@@ -46,34 +46,34 @@ class RIMDslGenerator implements IGenerator {
 			public ResourceState getRIM() {
 				ResourceState initial = null;
 				// create states
-				«FOR c : rim.states»
-					«c.produceResourceStates»
-					«IF c.isInitial»
+				Â«FOR c : rim.statesÂ»
+					Â«c.produceResourceStatesÂ»
+					Â«IF c.isInitialÂ»
 					// identify the initial state
-					initial = s«c.name»;
-					«ENDIF»
-				«ENDFOR»
+					initial = sÂ«c.nameÂ»;
+					Â«ENDIFÂ»
+				Â«ENDFORÂ»
 
 				// create regular transitions
-				«FOR c : rim.states»
-					«FOR t : c.transitions»
-						«produceTransitions(c, t)»
-					«ENDFOR»
-				«ENDFOR»
+				Â«FOR c : rim.statesÂ»
+					Â«FOR t : c.transitionsÂ»
+						Â«produceTransitions(c, t)Â»
+					Â«ENDFORÂ»
+				Â«ENDFORÂ»
 
 		        // create foreach transitions
-                «FOR c : rim.states»
-                    «FOR t : c.transitionsForEach»
-                        «produceTransitionsForEach(c, t)»
-                    «ENDFOR»
-                «ENDFOR»
+                Â«FOR c : rim.statesÂ»
+                    Â«FOR t : c.transitionsForEachÂ»
+                        Â«produceTransitionsForEach(c, t)Â»
+                    Â«ENDFORÂ»
+                Â«ENDFORÂ»
 
 		        // create AUTO transitions
-                «FOR c : rim.states»
-                    «FOR t : c.transitionsAuto»
-                        «produceTransitionsAuto(c, t)»
-                    «ENDFOR»
-                «ENDFOR»
+                Â«FOR c : rim.statesÂ»
+                    Â«FOR t : c.transitionsAutoÂ»
+                        Â«produceTransitionsAuto(c, t)Â»
+                    Â«ENDFORÂ»
+                Â«ENDFORÂ»
 
 			    return initial;
 			}
@@ -91,32 +91,32 @@ class RIMDslGenerator implements IGenerator {
 	'''
 	
 	def produceResourceStates(State state) '''
-            «IF state.entity.isCollection»
-            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
-            «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
-            «ENDIF»
+            Â«IF state.entity.isCollectionÂ»
+            CollectionResourceState sÂ«state.nameÂ» = new CollectionResourceState("Â«state.entity.nameÂ»", "Â«state.nameÂ»", Â«produceActionSet(state.actions)Â», "Â«if (state.path != null) { state.path.name }Â»");
+            Â«ELSEIF state.entity.isItemÂ»
+            ResourceState sÂ«state.nameÂ» = new ResourceState("Â«state.entity.nameÂ»", "Â«state.nameÂ»", Â«produceActionSet(state.actions)Â», "Â«if (state.path != null) { state.path.name }Â»");
+            Â«ENDIFÂ»
 	'''
 
     def produceActionSet(EList<Command> actions) '''
-        «IF actions != null»
-            «IF actions.size == 2»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
-            ELSEIF actions.size == 1»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW), null)«
-            ENDIF»«
-        ENDIF»'''
+        Â«IF actions != nullÂ»
+            Â«IF actions.size == 2Â»
+            createActionSet(new Action("Â«actions.get(0).nameÂ»", Action.TYPE.VIEW), new Action("Â«actions.get(1).nameÂ»", Action.TYPE.ENTRY))Â«
+            ELSEIF actions.size == 1Â»
+            createActionSet(new Action("Â«actions.get(0).nameÂ»", Action.TYPE.VIEW), null)Â«
+            ENDIFÂ»Â«
+        ENDIFÂ»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
-			s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name»);
+			sÂ«fromState.nameÂ».addTransition("Â«transition.event.nameÂ»", sÂ«transition.state.nameÂ»);
 	'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
-            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», null);
+            sÂ«fromState.nameÂ».addTransitionForEachItem("Â«transition.event.nameÂ»", sÂ«transition.state.nameÂ», null);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
-            s«fromState.name».addTransition(s«transition.state.name»);
+            sÂ«fromState.nameÂ».addTransition(sÂ«transition.state.nameÂ»);
     '''
 
 }

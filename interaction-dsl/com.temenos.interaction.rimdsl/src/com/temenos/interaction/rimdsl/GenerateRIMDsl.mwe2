@@ -4,7 +4,7 @@ import org.eclipse.emf.mwe.utils.*
 import org.eclipse.xtext.generator.*
 import org.eclipse.xtext.ui.generator.*
 
-var grammarURI = "classpath:/com/temenos/interaction/rimdsl/RimDSL.xtext"
+var grammarURI = "classpath:/com/temenos/interaction/rimdsl/RIMDsl.xtext"
 var file.extensions = "rim"
 var projectName = "com.temenos.interaction.rimdsl"
 var runtimeProject = "../${projectName}"
