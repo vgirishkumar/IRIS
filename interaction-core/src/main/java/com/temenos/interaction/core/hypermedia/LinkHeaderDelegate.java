@@ -1,14 +1,14 @@
 package com.temenos.interaction.core.hypermedia;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.RuntimeDelegate;
-
-import com.temenos.interaction.core.MultivaluedMapImpl;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
+
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.RuntimeDelegate;
+
+import com.temenos.interaction.core.MultivaluedMapImpl;
 
 /**
  * Parser the Link header.  See http://tools.ietf.org/html/rfc5988

@@ -1,44 +1,34 @@
 package com.temenos.interaction.commands.odata.consumer;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
-
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
 
-import com.temenos.interaction.core.RESTResponse;
-import com.temenos.interaction.core.command.ResourcePostCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.EntityResource;
 
-public class CreateEntityCommand implements ResourcePostCommand {
-
-	// Command configuration
-	private String entitySetName;
+public class CreateEntityCommand implements InteractionCommand {
 
 	private ODataConsumer consumer;
 
-	public CreateEntityCommand(String entitySetName, ODataConsumer consumer) {
-		this.entitySetName = entitySetName;
+	public CreateEntityCommand(ODataConsumer consumer) {
 		this.consumer = consumer;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.POST;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public RESTResponse post(String id, EntityResource<?> resource) {
-		assert(entitySetName != null && !entitySetName.equals(""));
-		assert(resource != null);
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		assert(ctx.getCurrentState() != null);
+		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
+		assert(ctx.getResource() != null);
 		
 		// create the entity
-		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) ctx.getResource();
 		OEntity entity = entityResource.getEntity();
 		
-		OCreateRequest<OEntity> createRequest = consumer.createEntity(entitySetName);
+		OCreateRequest<OEntity> createRequest = consumer.createEntity(ctx.getCurrentState().getEntityName());
 		if (entity != null){
 			createRequest.properties(entity.getProperties());
 		}
@@ -47,9 +37,8 @@ public class CreateEntityCommand implements ResourcePostCommand {
 		 * Execute request
 		 */
 		OEntity newEntity = createRequest.execute();
-		
-		RESTResponse rr = new RESTResponse(Response.Status.CREATED, CommandHelper.createEntityResource(newEntity));
-		return rr;
+		ctx.setResource(CommandHelper.createEntityResource(newEntity));
+		return Result.SUCCESS;
 	}
 
 }

@@ -1,6 +1,10 @@
 package com.temenos.interaction.core.hypermedia;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -19,9 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.hypermedia.ASTValidation;
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.web.RequestContext;
@@ -42,8 +44,8 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkForCustomLinkRelation() {
-		ResourceState existsState = new ResourceState("toaster", "exists", "/machines/toaster");
-		ResourceState cookingState = new ResourceState("toaster", "cooking", "/machines/toaster/cooking");
+		ResourceState existsState = new ResourceState("toaster", "exists", new HashSet<Action>(), "/machines/toaster");
+		ResourceState cookingState = new ResourceState("toaster", "cooking", new HashSet<Action>(), "/machines/toaster/cooking");
 
 		// view the resource if the toaster is cooking (could be time remaining)
 		existsState.addTransition("GET", cookingState);
@@ -71,8 +73,8 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkForTargetState() {
-		ResourceState existsState = new ResourceState("toaster", "exists", "/machines/toaster");
-		ResourceState cookingState = new ResourceState("toaster", "cooking", "/machines/toaster/cooking");
+		ResourceState existsState = new ResourceState("toaster", "exists", new HashSet<Action>(), "/machines/toaster");
+		ResourceState cookingState = new ResourceState("toaster", "cooking", new HashSet<Action>(), "/machines/toaster/cooking");
 
 		// view the resource if the toaster is cooking (could be time remaining)
 		existsState.addTransition("GET", cookingState);
@@ -96,7 +98,7 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkForSelfState() {
-		CollectionResourceState collectionState = new CollectionResourceState("machines", "MachineView", "/machines");
+		CollectionResourceState collectionState = new CollectionResourceState("machines", "MachineView", new HashSet<Action>(), "/machines");
 
 		// create machines
 		collectionState.addTransition("POST", collectionState);
@@ -121,8 +123,8 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkForFinalPseudoState() {
-		ResourceState existsState = new ResourceState("toaster", "exists", "/machines/toaster/{id}");
-		ResourceState deletedState = new ResourceState(existsState, "deleted");
+		ResourceState existsState = new ResourceState("toaster", "exists", new HashSet<Action>(), "/machines/toaster/{id}");
+		ResourceState deletedState = new ResourceState(existsState, "deleted", new HashSet<Action>());
 
 		// delete the toaster
 		existsState.addTransition("DELETE", deletedState);
@@ -140,12 +142,12 @@ public class TestResourceStateMachine {
 	@Test
 	public void testStates() {
 		String ENTITY_NAME = "T24CONTRACT";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState unauthorised = new ResourceState(ENTITY_NAME, "INAU", "unauthorised/{id}");
-		ResourceState authorised = new ResourceState(ENTITY_NAME, "LIVE", "authorised/{id}");
-		ResourceState reversed = new ResourceState(ENTITY_NAME, "RNAU", "reversed/{id}");
-		ResourceState history = new ResourceState(ENTITY_NAME, "REVE", "history/{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState unauthorised = new ResourceState(ENTITY_NAME, "INAU", new HashSet<Action>(), "unauthorised/{id}");
+		ResourceState authorised = new ResourceState(ENTITY_NAME, "LIVE", new HashSet<Action>(), "authorised/{id}");
+		ResourceState reversed = new ResourceState(ENTITY_NAME, "RNAU", new HashSet<Action>(), "reversed/{id}");
+		ResourceState history = new ResourceState(ENTITY_NAME, "REVE", new HashSet<Action>(), "history/{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
 	
 		begin.addTransition("PUT", unauthorised);
 		
@@ -172,7 +174,7 @@ public class TestResourceStateMachine {
 			assertTrue(sm.getStates().contains(s));
 		}
 		
-		System.out.println(new ASTValidation().graph(sm));
+		System.out.println(HypermediaValidator.createValidator(sm).graph());
 	}
 	
 	/**
@@ -181,9 +183,9 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetStates() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(exists, "end");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
+		ResourceState end = new ResourceState(exists, "end", new HashSet<Action>());
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -200,9 +202,9 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetTransitions() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(exists, "end");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
+		ResourceState end = new ResourceState(exists, "end", new HashSet<Action>());
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -219,9 +221,9 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractionByPath() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -234,7 +236,8 @@ public class TestResourceStateMachine {
 		Set<String> entrySet = interactionMap.keySet();
 		assertTrue(entrySet.contains("{id}"));
 		Collection<String> interactions = interactionMap.get("{id}");
-		assertEquals("Number of interactions", 2, interactions.size());
+		assertEquals("Number of interactions", 3, interactions.size());
+		assertTrue(interactions.contains("GET"));
 		assertTrue(interactions.contains("PUT"));
 		assertTrue(interactions.contains("DELETE"));
 	}
@@ -242,7 +245,7 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractionByPathSingle() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "/root");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "/root");
 		begin.addTransition("GET", begin);
 
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
@@ -260,8 +263,8 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractionByPathPsuedo() {
 		String ENTITY_NAME = "";
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(exists, "end");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
+		ResourceState end = new ResourceState(exists, "end", new HashSet<Action>());
 	
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
@@ -273,7 +276,8 @@ public class TestResourceStateMachine {
 		Set<String> entrySet = interactionMap.keySet();
 		assertTrue(entrySet.contains("{id}"));
 		Collection<String> interactions = interactionMap.get("{id}");
-		assertEquals("Number of interactions", 2, interactions.size());
+		assertEquals("Number of interactions", 3, interactions.size());
+		assertTrue(interactions.contains("GET"));
 		assertTrue(interactions.contains("PUT"));
 		assertTrue(interactions.contains("DELETE"));
 	}
@@ -281,8 +285,8 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractionByPathTransient() {
 		String ENTITY_NAME = "";
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "end", "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
+		ResourceState deleted = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
 	
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", deleted);
@@ -296,7 +300,8 @@ public class TestResourceStateMachine {
 		Set<String> entrySet = interactionMap.keySet();
 		assertTrue(entrySet.contains("{id}"));
 		Collection<String> interactions = interactionMap.get("{id}");
-		assertEquals("Number of interactions", 2, interactions.size());
+		assertEquals("Number of interactions", 3, interactions.size());
+		assertTrue(interactions.contains("GET"));
 		assertTrue(interactions.contains("PUT"));
 		assertTrue(interactions.contains("DELETE"));
 	}
@@ -304,9 +309,9 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractions() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -315,7 +320,8 @@ public class TestResourceStateMachine {
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
 		Set<String> interactions = sm.getInteractions(begin);
-		assertEquals("Number of interactions", 2, interactions.size());
+		assertEquals("Number of interactions", 3, interactions.size());
+		assertTrue(interactions.contains("GET"));
 		assertTrue(interactions.contains("PUT"));
 		assertTrue(interactions.contains("DELETE"));
 	}
@@ -323,11 +329,11 @@ public class TestResourceStateMachine {
 	@Test
 	public void testSubstateInteractions() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
-		ResourceState published = new ResourceState(ENTITY_NAME, "published", "/published");
-		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted");
-		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", "/draft");
-		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
+		ResourceState published = new ResourceState(ENTITY_NAME, "published", new HashSet<Action>(), "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new HashSet<Action>());
+		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", new HashSet<Action>(), "/draft");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new HashSet<Action>());
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -343,24 +349,31 @@ public class TestResourceStateMachine {
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
 		Set<String> initialInteractions = sm.getInteractions(initial);
-		assertNull("Number of interactions", initialInteractions);
+		assertEquals("Number of interactions", 1, initialInteractions.size());
+		assertTrue(initialInteractions.contains("GET"));
 
 		Set<String> draftInteractions = sm.getInteractions(draft);
-		assertEquals("Number of interactions", 2, draftInteractions.size());
+		assertEquals("Number of interactions", 3, draftInteractions.size());
+		assertTrue(draftInteractions.contains("GET"));
 		assertTrue(draftInteractions.contains("PUT"));
 		assertTrue(draftInteractions.contains("DELETE"));
 
 		Set<String> publishInteractions = sm.getInteractions(published);
-		assertEquals("Number of interactions", 2, publishInteractions.size());
+		assertEquals("Number of interactions", 3, publishInteractions.size());
+		assertTrue(publishInteractions.contains("GET"));
 		assertTrue(publishInteractions.contains("PUT"));
 		assertTrue(publishInteractions.contains("DELETE"));
 
 		Set<String> deletedInteractions = sm.getInteractions(draftDeleted);
-		assertEquals("Number of interactions", 2, deletedInteractions.size());
+		assertEquals("Number of interactions", 3, deletedInteractions.size());
+		assertTrue(deletedInteractions.contains("GET"));
+		assertTrue(deletedInteractions.contains("PUT"));
 		assertTrue(deletedInteractions.contains("DELETE"));
 
 		Set<String> publishedDeletedInteractions = sm.getInteractions(publishedDeleted);
-		assertEquals("Number of interactions", 2, publishedDeletedInteractions.size());
+		assertEquals("Number of interactions", 3, publishedDeletedInteractions.size());
+		assertTrue(publishedDeletedInteractions.contains("GET"));
+		assertTrue(publishedDeletedInteractions.contains("PUT"));
 		assertTrue(publishedDeletedInteractions.contains("DELETE"));
 
 	}
@@ -368,11 +381,11 @@ public class TestResourceStateMachine {
 	@Test
 	public void testStateByPath() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
-		ResourceState published = new ResourceState(initial, "published", "/published");
-		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted");
-		ResourceState draft = new ResourceState(initial, "draft", "/draft");
-		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
+		ResourceState published = new ResourceState(initial, "published", new HashSet<Action>(), "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new HashSet<Action>());
+		ResourceState draft = new ResourceState(initial, "draft", new HashSet<Action>(), "/draft");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new HashSet<Action>());
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -387,23 +400,28 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
-		Map<String, ResourceState> stateMap = sm.getResourceStatesByPath();
+		Map<String, Set<ResourceState>> stateMap = sm.getResourceStatesByPath();
 		assertEquals("Number of states", 3, stateMap.size());
 		Set<String> entrySet = stateMap.keySet();
 		assertTrue(entrySet.contains("/entity"));
 		assertTrue(entrySet.contains("/entity/published"));
 		assertTrue(entrySet.contains("/entity/draft"));
-		assertEquals(initial, stateMap.get("/entity"));
-		assertEquals(published, stateMap.get("/entity/published"));
-		assertEquals(draft, stateMap.get("/entity/draft"));
+		assertEquals(1, stateMap.get("/entity").size());
+		assertEquals(initial, stateMap.get("/entity").iterator().next());
+		assertEquals(2, stateMap.get("/entity/published").size());
+		assertTrue(stateMap.get("/entity/published").contains(published));
+		assertTrue(stateMap.get("/entity/published").contains(publishedDeleted));
+		assertEquals(2, stateMap.get("/entity/draft").size());
+		assertTrue(stateMap.get("/entity/draft").contains(draft));
+		assertTrue(stateMap.get("/entity/draft").contains(draftDeleted));
 	}
 
 	@Test
 	public void testStateByPathSingle() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
   		ResourceStateMachine sm = new ResourceStateMachine(initial);
-		Map<String, ResourceState> stateMap = sm.getResourceStatesByPath();
+		Map<String, Set<ResourceState>> stateMap = sm.getResourceStatesByPath();
 		assertEquals("Number of states", 1, stateMap.size());
 		Set<String> entrySet = stateMap.keySet();
 		assertTrue(entrySet.contains("/entity"));
@@ -412,8 +430,8 @@ public class TestResourceStateMachine {
 	@Test
 	public void testStateByPathPseudo() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
-		ResourceState draft = new ResourceState(initial, "draft", "/draft");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
+		ResourceState draft = new ResourceState(initial, "draft", new HashSet<Action>(), "/draft");
 		ResourceState deleted = new ResourceState(initial, "deleted", null);
 	
 		// create draft
@@ -427,24 +445,27 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
-		Map<String, ResourceState> stateMap = sm.getResourceStatesByPath();
+		Map<String, Set<ResourceState>> stateMap = sm.getResourceStatesByPath();
 		assertEquals("Number of states", 3, sm.getStates().size());
 		assertEquals("Number of real states", 2, stateMap.size());
 		Set<String> entrySet = stateMap.keySet();
 		assertTrue(entrySet.contains("/entity"));
-		assertEquals(initial, stateMap.get("/entity"));
+		assertEquals(2, stateMap.get("/entity").size());
+		assertTrue(stateMap.get("/entity").contains(initial));
+		assertTrue(stateMap.get("/entity").contains(deleted));
 		assertTrue(entrySet.contains("/entity/draft"));
-		assertEquals(draft, stateMap.get("/entity/draft"));
+		assertEquals(1, stateMap.get("/entity/draft").size());
+		assertTrue(stateMap.get("/entity/draft").contains(draft));
 	}
 
 	@Test
 	public void testGetResourceStatesByPath() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
-		ResourceState published = new ResourceState(initial, "published", "/published");
-		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted");
-		ResourceState draft = new ResourceState(initial, "draft", "/draft");
-		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
+		ResourceState published = new ResourceState(initial, "published", new HashSet<Action>(), "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new HashSet<Action>());
+		ResourceState draft = new ResourceState(initial, "draft", new HashSet<Action>(), "/draft");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new HashSet<Action>());
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -459,22 +480,26 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
-		Map<String, ResourceState> stateMap = sm.getResourceStatesByPath(draft);
+		Map<String, Set<ResourceState>> stateMap = sm.getResourceStatesByPath(draft);
 		assertEquals("Number of states", 2, stateMap.size());
 		Set<String> entrySet = stateMap.keySet();
 		assertTrue(entrySet.contains("/entity/published"));
 		assertTrue(entrySet.contains("/entity/draft"));
-		assertEquals(published, stateMap.get("/entity/published"));
-		assertEquals(draft, stateMap.get("/entity/draft"));
+		assertEquals(2, stateMap.get("/entity/published").size());
+		assertTrue(stateMap.get("/entity/published").contains(published));
+		assertTrue(stateMap.get("/entity/published").contains(publishedDeleted));
+		assertEquals(2, stateMap.get("/entity/draft").size());
+		assertTrue(stateMap.get("/entity/draft").contains(draft));
+		assertTrue(stateMap.get("/entity/draft").contains(draftDeleted));
 	}
 
 	@Test
 	public void testGetState() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/entity");
-		ResourceState published = new ResourceState(initial, "published", "/published");
-		ResourceState draft = new ResourceState(initial, "draft", "/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
+		ResourceState published = new ResourceState(initial, "published", new HashSet<Action>(), "/published");
+		ResourceState draft = new ResourceState(initial, "draft", new HashSet<Action>(), "/draft");
+		ResourceState deleted = new ResourceState(initial, "deleted", new HashSet<Action>());
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -489,17 +514,21 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
-		assertEquals(initial, sm.getState(null));
-		assertEquals(published, sm.getState("/entity/published"));
-		assertEquals(draft, sm.getState("/entity/draft"));
+		assertEquals(2, sm.getResourceStatesForPath(null).size());
+		assertTrue(sm.getResourceStatesForPath(null).contains(initial));
+		assertTrue(sm.getResourceStatesForPath(null).contains(deleted));
+		assertEquals(1, sm.getResourceStatesForPath("/entity/published").size());
+		assertTrue(sm.getResourceStatesForPath("/entity/published").contains(published));
+		assertEquals(1, sm.getResourceStatesForPath("/entity/draft").size());
+		assertTrue(sm.getResourceStatesForPath("/entity/draft").contains(draft));
 	}
 
 	@Test(expected=AssertionError.class)
 	public void testInteractionsInvalidState() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -507,7 +536,7 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
-		ResourceState other = new ResourceState("other", "initial", "/other");
+		ResourceState other = new ResourceState("other", "initial", new HashSet<Action>(), "/other");
 		sm.getInteractions(other);
 	}
 
@@ -517,16 +546,16 @@ public class TestResourceStateMachine {
 		String TASK_ENTITY_NAME = "task";
 
 		// process behaviour
-		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", "/processes");
-		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", "/new");
+		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", new HashSet<Action>(), "/processes");
+		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", new HashSet<Action>(), "/new");
 		// create new process
 		processes.addTransition("POST", newProcess);
 
 		// Process states
-		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", "/processes/{id}");
-		ResourceState processStarted = new ResourceState(processInitial, "started");
-		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", "/nextTask");
-		ResourceState processCompleted = new ResourceState(processInitial,	"completedProcess");
+		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", new HashSet<Action>(), "/processes/{id}");
+		ResourceState processStarted = new ResourceState(processInitial, "started", new HashSet<Action>());
+		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", new HashSet<Action>(), "/nextTask");
+		ResourceState processCompleted = new ResourceState(processInitial,	"completedProcess", new HashSet<Action>());
 		// start new process
 		newProcess.addTransition("PUT", processInitial);
 		processInitial.addTransition("PUT", processStarted);
@@ -538,9 +567,9 @@ public class TestResourceStateMachine {
 		ResourceStateMachine processSM = new ResourceStateMachine(processes);
 
 		// Task states
-		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", "/acquired");
-		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", "/completed");
-		ResourceState taskAbandoned = new ResourceState(taskAcquired, "abandoned");
+		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", new HashSet<Action>(), "/acquired");
+		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", new HashSet<Action>(), "/completed");
+		ResourceState taskAbandoned = new ResourceState(taskAcquired, "abandoned", new HashSet<Action>());
 		// abandon task
 		taskAcquired.addTransition("DELETE", taskAbandoned);
 		// complete task
@@ -552,13 +581,12 @@ public class TestResourceStateMachine {
 		 */
 		nextTask.addTransition("PUT", taskSM);
 
-		ResourceState home = new ResourceState("", "home", "/");
+		ResourceState home = new ResourceState("", "home", new HashSet<Action>(), "/");
 		home.addTransition("GET", processSM);
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
 		
 		Map<String, Set<String>> interactionMap = serviceDocumentSM.getInteractionByPath();
-		// no interactions for this entity
-		assertEquals(0, interactionMap.size());
+		assertEquals(7, interactionMap.size());
 
 		// all target states, including states not for this entity (application states)
 		Collection<ResourceState> targetStates = serviceDocumentSM.getInitial().getAllTargets();
@@ -572,14 +600,14 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinksEntityNotFound() {
-		ResourceState initial = new ResourceState("NOTE", "initial", "/note/{id}");
+		ResourceState initial = new ResourceState("NOTE", "initial", new HashSet<Action>(), "/note/{id}");
 		
 		// the null entity for our test
 		EntityResource<Object> testResponseEntity = null;
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.getLinks(mock(MultivaluedMap.class), testResponseEntity, initial, null);
+		Collection<Link> links = stateMachine.injectLinks(mock(MultivaluedMap.class), testResponseEntity, initial, null);
 		assertNotNull(links);
 		assertTrue(links.isEmpty());
 	}
@@ -593,12 +621,12 @@ public class TestResourceStateMachine {
 	public void testGetLinksSelf() {
 		String ENTITY_NAME = "NOTE";
 		String resourcePath = "/notes/new";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), resourcePath);
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.getLinks(mock(MultivaluedMap.class), testResponseEntity, initial, null);
+		Collection<Link> links = stateMachine.injectLinks(mock(MultivaluedMap.class), testResponseEntity, initial, null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -618,7 +646,7 @@ public class TestResourceStateMachine {
 	public void testGetLinksSelfPathParameters() {
 		String ENTITY_NAME = "NOTE";
 		String resourcePath = "/notes/{id}/reviewers";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), resourcePath);
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		
 		/*
@@ -629,7 +657,7 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.getLinks(mockPathparameters, testResponseEntity, initial, null);
+		Collection<Link> links = stateMachine.injectLinks(mockPathparameters, testResponseEntity, initial, null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -648,7 +676,7 @@ public class TestResourceStateMachine {
 	public void testGetLinksSelfTemplate() {
 		String ENTITY_NAME = "NOTE";
 		String resourcePath = "/notes/{id}";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", resourcePath);
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), resourcePath);
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		
 		/*
@@ -659,7 +687,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.getLinks(mockPathparameters, testResponseEntity, initial, null);
+		Collection<Link> links = stateMachine.injectLinks(mockPathparameters, testResponseEntity, initial, null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -679,13 +707,13 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetLinksOtherResources() {
 		String rootResourcePath = "/";
-		ResourceState initial = new ResourceState("root", "initial", rootResourcePath);
+		ResourceState initial = new ResourceState("root", "initial", new HashSet<Action>(), rootResourcePath);
 		String NOTE_ENTITY = "NOTE";
 		String notesResourcePath = "/notes";
-		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", notesResourcePath);
+		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new HashSet<Action>(), notesResourcePath);
 		String PERSON_ENTITY = "PERSON";
 		String personResourcePath = "/persons";
-		CollectionResourceState personsResource = new CollectionResourceState(PERSON_ENTITY, "collection", personResourcePath);
+		CollectionResourceState personsResource = new CollectionResourceState(PERSON_ENTITY, "collection", new HashSet<Action>(), personResourcePath);
 		
 		// create the transitions (links)
 		initial.addTransition("GET", notesResource);
@@ -693,7 +721,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> unsortedLinks = stateMachine.getLinks(mock(MultivaluedMap.class), new EntityResource<Object>(null), initial, null);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(mock(MultivaluedMap.class), new EntityResource<Object>(null), initial, null);
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -736,12 +764,12 @@ public class TestResourceStateMachine {
 	public void testGetLinksCollection() {
 		String NOTE_ENTITY = "NOTE";
 		String notesResourcePath = "/notes";
-		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", notesResourcePath);
+		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new HashSet<Action>(), notesResourcePath);
 		String noteItemResourcePath = "/notes/{noteId}";
-		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", noteItemResourcePath);
+		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new HashSet<Action>(), noteItemResourcePath);
 		/* create the transitions (links) */
 		// link to form to create new note
-		notesResource.addTransition("POST", new ResourceState("stack", "new", "/notes/new", "new".split(" ")));
+		notesResource.addTransition("POST", new ResourceState("stack", "new", new HashSet<Action>(), "/notes/new", "new".split(" ")));
 		/*
 		 * define transition to view each item of the note collection
 		 * no linkage map as target URI element (self) must exist in source entity element (also self)
@@ -757,7 +785,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> unsortedLinks = stateMachine.getLinks(mock(MultivaluedMap.class), testResponseEntity, notesResource, null);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(mock(MultivaluedMap.class), testResponseEntity, notesResource, null);
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -830,10 +858,10 @@ public class TestResourceStateMachine {
 	public void testGetLinksCollectionItems() {
 		String NOTE_ENTITY = "NOTE";
 		String notesResourcePath = "/notes";
-		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", notesResourcePath);
+		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new HashSet<Action>(), notesResourcePath);
 		String noteItemResourcePath = "/notes/{noteId}";
-		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", noteItemResourcePath);
-		ResourceState noteFinalState = new ResourceState(NOTE_ENTITY, "final", noteItemResourcePath);
+		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new HashSet<Action>(), noteItemResourcePath);
+		ResourceState noteFinalState = new ResourceState(NOTE_ENTITY, "final", new HashSet<Action>(), noteItemResourcePath);
 		/* create the transitions (links) */
 		/*
 		 * define transition to view each item of the note collection
@@ -851,7 +879,7 @@ public class TestResourceStateMachine {
 				
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> baseLinks = stateMachine.getLinks(mock(MultivaluedMap.class), testResponseEntity, notesResource, null);
+		Collection<Link> baseLinks = stateMachine.injectLinks(mock(MultivaluedMap.class), testResponseEntity, notesResource, null);
 		// just one link to self, not really testing that here
 		assertEquals(1, baseLinks.size());
 		

@@ -1,9 +1,0 @@
-digraph newnote {
-    NOTE [shape=box]
-    NOTE_draft [shape=box]
-    initial -> nextid[label=POST]
-    initial -> lastid[label=GET]
-    nextid -> NOTE[label=PUT]
-    nextid -> NOTE_draft[label="PUT"]
-    lastid -> NOTE[label=GET]
-}

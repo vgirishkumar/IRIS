@@ -13,8 +13,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.resource.EntityResource;
 
 public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 

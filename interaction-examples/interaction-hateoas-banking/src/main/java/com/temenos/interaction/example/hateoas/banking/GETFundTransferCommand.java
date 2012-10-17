@@ -1,7 +1,5 @@
 package com.temenos.interaction.example.hateoas.banking;
 
-import javax.ws.rs.HttpMethod;
-
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -27,11 +25,6 @@ public class GETFundTransferCommand implements InteractionCommand {
 		} else {
 			return Result.FAILURE;
 		}
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

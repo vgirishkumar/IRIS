@@ -44,132 +44,111 @@
         <constructor-arg ref="stateMachine" />
     </bean>
 
+    <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
+    <bean id="Metadata" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg>
+            <bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+                <constructor-arg>
+                    <bean class="com.temenos.interaction.core.hypermedia.ResourceState">
+                        <constructor-arg name="entityName" value="Metadata" />
+                        <constructor-arg name="name" value="initial" />
+                        <constructor-arg>
+                            <set>
+                                <bean class="com.temenos.interaction.core.hypermedia.Action">
+                                    <constructor-arg value="GETMetadata" />
+                                    <constructor-arg value="VIEW" />
+                                </bean>
+                            </set>
+                        </constructor-arg>
+                        <constructor-arg name="path" value="/$metadata" />
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+
     <!-- Commands -->
     <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
     	<constructor-arg>
             <map>
                 <entry>
-                    <key><value>GET+/</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
+                    <key><value>GETServiceRoot</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
                 </entry>
                 <entry>
-                    <key><value>GET+/preferences</value></key>
-                    <bean class="com.temenos.interaction.example.hateoas.banking.GETPreferencesCommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/fundstransfer</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="t24Producer" />
+                    <key><value>GETMetadata</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+                        <constructor-arg name="resourceToProvide" value="Metadata" />
+                        <constructor-arg name="edmDataServices" ref="edmDataServices" />
                     </bean>
-                 </entry>
+                </entry>
+                <entry>
+                    <key><value>GETPreferences</value></key>
+                    <bean class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
+                </entry>
+                <entry>
+                    <key><value>GETEntities</value></key>
+                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+                        <constructor-arg name="producer" ref="mockProducer" />
+                    </bean>
+                </entry>
                  <entry>
-                    <key><value>GET+/fundstransfer/{Id}</value></key>
+                    <key><value>GETEntity</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24GetCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>
                 </entry>                
                 <entry>
-                    <key><value>PUT+/fundstransfer/{Id}</value></key>
+                    <key><value>T24Input</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24InputCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>PUT+/fundstransfer/{Id}/unauthorise</value></key>
-                    <bean class="com.temenos.interaction.commands.t24.T24InputCommand">
-                        <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="edmMetadata" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>DELETE+/fundstransfer/{Id}/delete</value></key>
+                    <key><value>T24Delete</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24DeleteCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
-                    <key><value>GET+/fundstransfer/{Id}/unauthorise</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/fundstransfer/new</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/fundstransfer/{Id}/authorise</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/fundstransfer/{Id}/reverse</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>GET+/fundstransfer/{Id}/hold</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-				<entry>
-                    <key><value>GET+/fundstransfer/{Id}/restore</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-				<entry>
-                    <key><value>GET+/fundstransfer/{Id}/delete</value></key>
-                    <bean class="com.temenos.interaction.core.command.NoopGETCommand" />
-                </entry>
-                <entry>
-                    <key><value>POST+/fundstransfer/new</value></key>
-                    <bean class="com.temenos.interaction.commands.t24.T24InputCommand">
-                        <constructor-arg value="FundsTransfer" />
-                        <constructor-arg ref="edmMetadata" />
-					</bean>
-                </entry>
-                <entry>
-                    <key><value>PUT+/fundstransfer/{Id}/review</value></key>
+                    <key><value>T24Review</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24AuditorReviewCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
-                    <key><value>PUT+/fundstransfer/{Id}/authorise</value></key>
+                    <key><value>T24Authorise</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24AuthoriseCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
-                    <key><value>PUT+/fundstransfer/{Id}/hold</value></key>
+                    <key><value>T24Hold</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24HoldCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>
                 </entry>
                 <entry>
-                    <key><value>PUT+/fundstransfer/{Id}/restore</value></key>
+                    <key><value>T24Restore</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24RestoreCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
-                    <key><value>PUT+/fundstransfer/{Id}/reverse</value></key>
+                    <key><value>T24Reverse</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24ReverseCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>
                 <entry>
-                    <key><value>PUT+/fundstransfer/{Id}/verify</value></key>
+                    <key><value>T24Verify</value></key>
                     <bean class="com.temenos.interaction.commands.t24.T24VerifyCommand">
-                        <constructor-arg value="FundsTransfer" />
                         <constructor-arg ref="edmMetadata" />
                     </bean>                      
                 </entry>  
                 <entry>
-                    <key><value>POST+/fundstransfer/new</value></key>
+                    <key><value>POSTFundsTransfer</value></key>
                     <bean class="com.temenos.interaction.example.hateoas.banking.POSTFundsTransferCommand" />
                 </entry>              
             </map>

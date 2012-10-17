@@ -1,8 +1,11 @@
 package com.temenos.interaction.example.hateoas.banking;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -10,22 +13,21 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 public class Behaviour {
 
 	public ResourceState getInteractionModel() {
+
 		// this will be the service root
-		ResourceState initialState = new ResourceState("home", "initial", "/");
-		ResourceState metadata = new ResourceState("Metadata", "metadata", "/$metadata");
-		ResourceState preferences = new ResourceState("Preferences", "preferences", "/preferences");
+		ResourceState initialState = new ResourceState("home", "initial", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null), "/");
+		ResourceState preferences = new ResourceState("Preferences", "preferences", createActionSet(new Action("GETPreferences", Action.TYPE.VIEW), null), "/preferences");
 		
-		initialState.addTransition("GET", metadata);
 		initialState.addTransition("GET", preferences);
 		initialState.addTransition("GET", getFundsTransferInteractionModel());
 		return initialState;
 	}
 
 	public ResourceStateMachine getFundsTransferInteractionModel() {
-		CollectionResourceState initialState = new CollectionResourceState("FundsTransfer", "initial", "/fundtransfers");
-		ResourceState newFtState = new ResourceState(initialState, "new", "/new");
-		ResourceState exists = new ResourceState("FundsTransfer", "exists", "/fundtransfers/{id}", "id", "self".split(" "));
-		ResourceState finalState = new ResourceState(initialState, "end");
+		CollectionResourceState initialState = new CollectionResourceState("FundsTransfer", "initial", createActionSet(new Action("GETFundTransfers", Action.TYPE.VIEW), null), "/fundtransfers");
+		ResourceState newFtState = new ResourceState(initialState, "new", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), new Action("NEWFundTransfer", Action.TYPE.ENTRY)), "/new");
+		ResourceState exists = new ResourceState("FundsTransfer", "exists", createActionSet(new Action("GETFundTransfer", Action.TYPE.VIEW), new Action("PUTFundTransfer", Action.TYPE.ENTRY)), "/fundtransfers/{id}", "id", "self".split(" "));
+		ResourceState finalState = new ResourceState(exists, "end", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null));
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		initialState.addTransition("POST", newFtState);		
@@ -42,4 +44,12 @@ public class Behaviour {
 		return new ResourceStateMachine(initialState);
 	}
 	
+	private Set<Action> createActionSet(Action view, Action entry) {
+		Set<Action> actions = new HashSet<Action>();
+		if (view != null)
+			actions.add(view);
+		if (entry != null)
+			actions.add(entry);
+		return actions;
+	}
 }

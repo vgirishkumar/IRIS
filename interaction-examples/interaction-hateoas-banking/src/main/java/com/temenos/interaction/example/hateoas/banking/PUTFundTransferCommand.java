@@ -3,11 +3,11 @@ package com.temenos.interaction.example.hateoas.banking;
 
 import javax.ws.rs.HttpMethod;
 
-import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.resource.EntityResource;
 
 public class PUTFundTransferCommand implements InteractionCommand {
 	private DaoHibernate daoHibernate;

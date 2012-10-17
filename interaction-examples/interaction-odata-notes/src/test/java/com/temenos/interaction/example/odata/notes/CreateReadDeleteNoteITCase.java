@@ -19,9 +19,12 @@ import com.sun.jersey.test.framework.JerseyTest;
 
 public class CreateReadDeleteNoteITCase extends JerseyTest {
 
-	public final static String PERSONS_RESOURCE = "/Persons";
-	public final static String NOTES_RESOURCE = "/Notes";
+	public final static String PERSONS_RESOURCE = "/Person";
+	public final static String NOTES_RESOURCE = "/Note";
 	
+	private final static String NOTE_ENTITYSET_NAME = "Note";
+	private final static String PERSON_ENTITYSET_NAME = "Person";
+
 	/* Allows standalone Jersey Test
 	@BeforeClass
 	public static void initialiseTestDB() {
@@ -38,19 +41,19 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
 
     	// Create note 3, linked to person 2 if it doesn't exist
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
-		OEntity person = consumer.getEntity("Persons", 2).execute();
+		OEntity person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();
 		if (person == null) {
 			person = consumer
-						.createEntity("Persons")
+						.createEntity(PERSON_ENTITYSET_NAME)
 						.properties(OProperties.string("name", "Ron"))
 						.execute();
 		}
-		OEntity note = consumer.getEntity("Notes", 3).execute();
+		OEntity note = consumer.getEntity(NOTE_ENTITYSET_NAME, 3).execute();
 		if (note == null) {
 			note = consumer
-					.createEntity("Notes")
+					.createEntity(NOTE_ENTITYSET_NAME)
 					.properties(OProperties.string("body", "test"))
-					.link("Persons", person)
+					.link("NotePerson", person)
 					.execute();
 		}		
 	}

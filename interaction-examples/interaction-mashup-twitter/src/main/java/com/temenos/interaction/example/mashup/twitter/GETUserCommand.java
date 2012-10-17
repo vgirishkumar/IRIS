@@ -1,7 +1,5 @@
 package com.temenos.interaction.example.mashup.twitter;
 
-import javax.ws.rs.HttpMethod;
-
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -29,11 +27,6 @@ public class GETUserCommand implements InteractionCommand {
 		} else {
 			return Result.FAILURE;
 		}
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

@@ -1,49 +1,33 @@
 package com.temenos.interaction.commands.odata;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
 import org.odata4j.edm.EdmDataServices;
 
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
-import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.ResourceGetCommand;
 
 /**
  * GET command for obtaining meta data defining either the
  * resource model or the service document. 
  */
-public class GETMetadataCommand implements ResourceGetCommand, InteractionCommand {
+public class GETMetadataCommand implements InteractionCommand {
 
+	// command configuration
+	// TODO remove this when we no longer use a MetaDataResource
+	private String resourceToProvide;
+	
 	private EdmDataServices edmDataServices;
-	private String entity;
 
 	/**
 	 * Construct an instance of this command
-	 * @param entity Entity name
+	 * @param resourceToProvide Configure this command to provide either an EntityResource for the
+	 * service document or a MetaDataResource for the metadata.
 	 * @param resourceMetadata Description of the resources and their types.
 	 */
-	public GETMetadataCommand(String entity, EdmDataServices resourceMetadata) {
-		this.entity = entity;
+	public GETMetadataCommand(String resourceToProvide, EdmDataServices resourceMetadata) {
+		this.resourceToProvide = resourceToProvide;
 		this.edmDataServices = resourceMetadata;
-	}
-	
-	@Override
-	public RESTResponse get(String id, MultivaluedMap<String, String> queryParams) {
-		RESTResponse rr;
-		if(entity.equals("ServiceDocument")) {
-			EntityResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
-			rr = new RESTResponse(Response.Status.OK, sdr);
-		}
-		else {
-			MetaDataResource<EdmDataServices> mdr = CommandHelper.createMetaDataResource(edmDataServices);
-			rr = new RESTResponse(Response.Status.OK, mdr);
-		}
-		return rr;
 	}
 	
 	/* Implement InteractionCommand interface */
@@ -51,7 +35,7 @@ public class GETMetadataCommand implements ResourceGetCommand, InteractionComman
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
-		if(entity.equals("ServiceDocument")) {
+		if(resourceToProvide.equals("ServiceDocument")) {
 			EntityResource<EdmDataServices> sdr = CommandHelper.createServiceDocumentResource(edmDataServices);
 			ctx.setResource(sdr);
 		} else {
@@ -59,11 +43,6 @@ public class GETMetadataCommand implements ResourceGetCommand, InteractionComman
 			ctx.setResource(mdr);
 		}
 		return Result.SUCCESS;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

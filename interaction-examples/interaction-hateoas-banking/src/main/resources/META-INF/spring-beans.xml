@@ -41,7 +41,6 @@
 		<property name="singletons">
         	<set>
 				<ref local="halProvider" />
-				<ref local="metadataProvider" />
  			</set>
    		</property>
 		<property name="serviceRoot" ref="ServiceRoot" />
@@ -51,7 +50,6 @@
     	<constructor-arg ref="edmMetadata" />
         <constructor-arg ref="stateMachine" />
 	</bean>
-	<bean id="metadataProvider" class="com.temenos.interaction.core.media.metadata.MetaDataProvider" />
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
@@ -66,38 +64,34 @@
         <constructor-arg ref="stateMachine" />
     </bean>
 
-	<!-- Commands -->
-	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
-	<bean id="cmdGETMetadata" class="com.temenos.interaction.example.hateoas.banking.GETMetadataCommand" >
-        <constructor-arg ref="edmMetadata" />
-    </bean>	
-	<bean id="cmdGETPreferences" class="com.temenos.interaction.example.hateoas.banking.GETPreferencesCommand" />
-	<bean id="cmdGETFundstransfers" class="com.temenos.interaction.example.hateoas.banking.GETFundTransfersCommand">
+    <!-- Commands -->
+    <bean id="GETServiceRoot" class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
+	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="NoopDELETE" class="com.temenos.interaction.core.command.NoopDELETECommand" />
+	<bean id="GETPreferences" class="com.temenos.interaction.example.hateoas.banking.GETPreferencesCommand" />
+	<bean id="GETFundTransfers" class="com.temenos.interaction.example.hateoas.banking.GETFundTransfersCommand">
 		<constructor-arg ref="daoHibernate" />
 	</bean>
-	<bean id="cmdGETFundstransfer" class="com.temenos.interaction.example.hateoas.banking.GETFundTransferCommand">
+	<bean id="GETFundTransfer" class="com.temenos.interaction.example.hateoas.banking.GETFundTransferCommand">
 		<constructor-arg ref="daoHibernate" />
 	</bean>
-	<bean id="cmdPUTFundstransfer" class="com.temenos.interaction.example.hateoas.banking.PUTFundTransferCommand" >
+	<bean id="PUTFundTransfer" class="com.temenos.interaction.example.hateoas.banking.PUTFundTransferCommand">
 		<constructor-arg ref="daoHibernate" />
 	</bean>
-	<bean id="cmdDELETEFundstransfer" class="com.temenos.interaction.core.command.NoopDELETECommand" />
-	<bean id="cmdGETNewFundstransfer" class="com.temenos.interaction.core.command.NoopGETCommand" />
-	<bean id="cmdPOSTNewFundstransfer" class="com.temenos.interaction.example.hateoas.banking.POSTFundTransferCommand" />
+	<bean id="NEWFundTransfer" class="com.temenos.interaction.example.hateoas.banking.POSTFundTransferCommand" />
 
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
-				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
-				<entry key="GET+/$metadata" value-ref="cmdGETMetadata" />
-				<entry key="GET+/preferences" value-ref="cmdGETPreferences" />
-				<entry key="GET+/fundtransfers" value-ref="cmdGETFundstransfers" />
-				<entry key="GET+/fundtransfers/{id}" value-ref="cmdGETFundstransfer" />
-				<entry key="PUT+/fundtransfers/{id}" value-ref="cmdPUTFundstransfer" />
-				<entry key="DELETE+/fundtransfers/{id}" value-ref="cmdDELETEFundstransfer" />
-				<entry key="GET+/fundtransfers/new" value-ref="cmdGETNewFundstransfer" />
-				<entry key="POST+/fundtransfers/new" value-ref="cmdPOSTNewFundstransfer" />
+				<entry key="GETServiceRoot" value-ref="GETServiceRoot" />
+				<entry key="NoopGET" value-ref="NoopGET" />
+				<entry key="NoopDELETE" value-ref="NoopDELETE" />
+				<entry key="GETPreferences" value-ref="GETPreferences" />
+				<entry key="GETFundTransfers" value-ref="GETFundTransfers" />
+				<entry key="GETFundTransfer" value-ref="GETFundTransfer" />
+				<entry key="PUTFundTransfer" value-ref="PUTFundTransfer" />
+				<entry key="NEWFundTransfer" value-ref="NEWFundTransfer" />
 			</util:map> 
 		</constructor-arg>
 	</bean>

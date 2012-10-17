@@ -1,6 +1,9 @@
 package com.interaction.example.hateoas.banking;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.InputStreamReader;
 import java.util.Collection;
@@ -47,7 +50,7 @@ public class HypermediaITCase extends JerseyTest {
 		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
-		assertEquals(4, links.size());
+		assertEquals(3, links.size());
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
@@ -55,8 +58,6 @@ public class HypermediaITCase extends JerseyTest {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/preferences", link.getHref());
 			} else if (link.getName().get().equals("home.initial>FundsTransfer.initial")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers", link.getHref());
-			} else if (link.getName().get().equals("home.initial>Metadata.metadata")) {
-				assertEquals(Configuration.TEST_ENDPOINT_URI + "/$metadata", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
 			}

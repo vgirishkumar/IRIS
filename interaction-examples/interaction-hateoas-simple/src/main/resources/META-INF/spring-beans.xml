@@ -64,37 +64,36 @@
     	<constructor-arg ref="stateMachine" />
     </bean>
 
-	<!-- Commands -->
-	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
-	<bean id="cmdGETProfile" class="com.temenos.interaction.core.command.NoopGETCommand" />
-	<bean id="cmdGETPreferences" class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
-	<bean id="cmdGETNotes" class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand">
+    <!-- Commands -->
+    <bean id="GETServiceRoot" class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
+	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="NoopPUT" class="com.temenos.interaction.core.command.NoopPUTCommand" />
+	<bean id="NoopPOST" class="com.temenos.interaction.core.command.NoopPOSTCommand" />
+	<bean id="GETPreferences" class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
+	<bean id="GETNotes" class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand">
 		<constructor-arg ref="persistence" />
 	</bean>
-	<bean id="cmdGETNote" class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand">
+	<bean id="GETNote" class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand">
 		<constructor-arg ref="persistence" />
 	</bean>
-	<bean id="cmdPUTNote" class="com.temenos.interaction.core.command.NoopPUTCommand" />
-	<bean id="cmdDELETENote" class="com.temenos.interaction.example.hateoas.simple.DELETENoteCommand">
+	<bean id="DELETENote" class="com.temenos.interaction.example.hateoas.simple.DELETENoteCommand">
 		<constructor-arg ref="persistence" />
 	</bean>
-	<bean id="cmdGETNewNote" class="com.temenos.interaction.core.command.NoopGETCommand" />
-	<bean id="cmdPOSTNewNote" class="com.temenos.interaction.core.command.NoopPOSTCommand" />
 
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
-				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
-				<entry key="GET+/profile" value-ref="cmdGETProfile" />
-				<entry key="GET+/preferences" value-ref="cmdGETPreferences" />
-				<entry key="GET+/notes" value-ref="cmdGETNotes" />
-				<entry key="GET+/notes/{noteID}" value-ref="cmdGETNote" />
-				<entry key="PUT+/notes/{noteID}" value-ref="cmdPUTNote" />
-				<entry key="DELETE+/notes/{noteID}" value-ref="cmdDELETENote" />
-				<entry key="GET+/notes/new" value-ref="cmdGETNewNote" />
-				<entry key="POST+/notes/new" value-ref="cmdPOSTNewNote" />
+				<entry key="GETServiceRoot" value-ref="GETServiceRoot" />
+				<entry key="NoopGET" value-ref="NoopGET" />
+				<entry key="NoopPUT" value-ref="NoopPUT" />
+				<entry key="NoopPOST" value-ref="NoopPOST" />
+				<entry key="GETPreferences" value-ref="GETPreferences" />
+				<entry key="GETNotes" value-ref="GETNotes" />
+				<entry key="GETNote" value-ref="GETNote" />
+				<entry key="DELETENote" value-ref="DELETENote" />
 			</util:map> 
 		</constructor-arg>
 	</bean>
+	
 </beans>

@@ -38,16 +38,22 @@
 				<ref local="serviceDocumentProvider" />
  			</set>
    		</property>
-		<property name="serviceRoot" ref="ServiceRoot" />
+        <property name="serviceRoots">
+            <set>
+                <ref local="ServiceRoot" />
+                <ref local="Metadata" />
+            </set>
+        </property>
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
 		<constructor-arg name="edmDataServices" ref="edmDataServices" />
+		<constructor-arg name="metadata" ref="edmMetadata" />
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
 		<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
-		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
 	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
@@ -56,141 +62,76 @@
 		<constructor-arg name="root" ref="ServiceRoot" />
 	</bean>
 
-	<!-- Behaviour -->
-	<bean id="behaviour" class="com.interaction.example.odata.northwind.Behaviour" />
-	<bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
-	<bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-		<constructor-arg ref="interaction" />
-		<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
-	</bean>
+    <!-- Behaviour -->
+    <bean id="behaviour" class="com.interaction.example.odata.northwind.Behaviour" />
+    <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
+    <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+        <constructor-arg ref="interaction" />
+        <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
+    </bean>
 
-	<!-- Resources -->
-	<bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
-		<constructor-arg ref="commands" />
-		<constructor-arg ref="stateMachine" />
-	</bean>
+    <!-- Resources -->
+    <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg ref="stateMachine" />
+    </bean>
     
-	<!-- Commands -->
-	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+    <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
+    <bean id="Metadata" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg>
+            <bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+                <constructor-arg>
+                    <bean class="com.temenos.interaction.core.hypermedia.ResourceState">
+                        <constructor-arg name="entityName" value="Metadata" />
+                        <constructor-arg name="name" value="initial" />
+                        <constructor-arg>
+                            <set>
+                                <bean class="com.temenos.interaction.core.hypermedia.Action">
+                                    <constructor-arg value="GETMetadata" />
+                                    <constructor-arg value="VIEW" />
+                                </bean>
+                            </set>
+                        </constructor-arg>
+                        <constructor-arg name="path" value="/$metadata" />
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+    
+    <!-- Commands -->
+	<bean id="GETServiceDocument" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="ServiceDocument" />
 		<constructor-arg ref="edmDataServices" />
 	</bean>
-	<bean id="cmdGetMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+	<bean id="GETMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="Metadata" />
 		<constructor-arg ref="edmDataServices" />
 	</bean>
-	<bean id="cmdGETEntitySuppliers" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Suppliers" />
-		<constructor-arg ref="odataProducer" />
+	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="cmdGETEntitiesSuppliers" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Suppliers" />
-		<constructor-arg ref="odataProducer" />
+	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="cmdPOSTEntitySuppliers" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Suppliers" />
-		<constructor-arg ref="odataProducer" />
+	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="cmdGETEntityOrders" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Orders" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesOrders" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Orders" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityOrders" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Orders" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntityOrder_Details" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Order_Details" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesOrder_Details" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Order_Details" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityOrder_Details" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Order_Details" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntityCustomers" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Customers" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesCustomers" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Customers" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityCustomers" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Customers" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntityCategories" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Categories" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesCategories" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Categories" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityCategories" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Categories" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntityEmployees" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Employees" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesEmployees" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Employees" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityEmployees" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Employees" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntityProducts" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Products" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesProducts" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Products" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityProducts" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Products" />
-		<constructor-arg ref="odataProducer" />
+	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
 
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
-				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
-				<entry key="GET+/$metadata" value-ref="cmdGetMetadata" />
-				<entry key="GET+/Suppliers({id})" value-ref="cmdGETEntitySuppliers" />
-				<entry key="GET+/Suppliers" value-ref="cmdGETEntitiesSuppliers" />
-				<entry key="POST+/Suppliers" value-ref="cmdPOSTEntitySuppliers" />
-				<entry key="GET+/Orders({id})" value-ref="cmdGETEntityOrders" />
-				<entry key="GET+/Orders" value-ref="cmdGETEntitiesOrders" />
-				<entry key="POST+/Orders" value-ref="cmdPOSTEntityOrders" />
-				<entry key="GET+/Order_Details({id})" value-ref="cmdGETEntityOrder_Details" />
-				<entry key="GET+/Order_Details" value-ref="cmdGETEntitiesOrder_Details" />
-				<entry key="POST+/Order_Details" value-ref="cmdPOSTEntityOrder_Details" />
-				<entry key="GET+/Customers({id})" value-ref="cmdGETEntityCustomers" />
-				<entry key="GET+/Customers" value-ref="cmdGETEntitiesCustomers" />
-				<entry key="POST+/Customers" value-ref="cmdPOSTEntityCustomers" />
-				<entry key="GET+/Categories({id})" value-ref="cmdGETEntityCategories" />
-				<entry key="GET+/Categories" value-ref="cmdGETEntitiesCategories" />
-				<entry key="POST+/Categories" value-ref="cmdPOSTEntityCategories" />
-				<entry key="GET+/Employees({id})" value-ref="cmdGETEntityEmployees" />
-				<entry key="GET+/Employees" value-ref="cmdGETEntitiesEmployees" />
-				<entry key="POST+/Employees" value-ref="cmdPOSTEntityEmployees" />
-				<entry key="GET+/Products({id})" value-ref="cmdGETEntityProducts" />
-				<entry key="GET+/Products" value-ref="cmdGETEntitiesProducts" />
-				<entry key="POST+/Products" value-ref="cmdPOSTEntityProducts" />
+				<entry key="GETServiceDocument" value-ref="GETServiceDocument" />
+				<entry key="GETMetadata" value-ref="GETMetadata" />
+				<entry key="GETEntity" value-ref="GETEntity" />
+				<entry key="GETEntities" value-ref="GETEntities" />
+				<entry key="GETNavProperty" value-ref="GETNavProperty" />
+				<entry key="CreateEntity" value-ref="CreateEntity" />
 			</util:map> 
 		</constructor-arg>
 	</bean>

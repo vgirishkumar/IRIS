@@ -10,9 +10,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-
-import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.consumer.ODataConsumerAdapter;
@@ -31,7 +28,8 @@ import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.Responses;
 
 import com.temenos.interaction.commands.odata.consumer.GETNavPropertyCommand;
-import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 
 public class TestGETNavPropertyCommand {
 
@@ -80,51 +78,51 @@ public class TestGETNavPropertyCommand {
 	public void testInvalidKeyType() {
 		ODataConsumer mockConsumer = createMockODataConsumer("MyEntity", "KeyType");
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockConsumer);
-		RESTResponse response = command.get("id", null);
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
 	public void testNullQueryParams() {
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", createMockODataConsumer("MyEntity", "Edm.String"));
-		RESTResponse response = command.get("id", null);
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
 	public void testNullNavResponse() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
-		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
 		// mock return of an unsupported BaseResponse
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
 			.thenReturn(new BaseResponse() {});
+		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockConsumer);
-		RESTResponse response = command.get("id", new MultivaluedMapImpl<String, String>());
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
 	public void testUnsupportedNavResponse() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
-		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
 		// mock return of an unsupported BaseResponse
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
 			.thenReturn(new BaseResponse() {});
+		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockConsumer);
-		RESTResponse response = command.get("id", new MultivaluedMapImpl<String, String>());
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
 	public void testPropertyNavResponse() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
-		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
 		// mock return of an unsupported BaseResponse
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
 			.thenReturn(Responses.property(null));
+		ODataConsumer mockConsumer = new ODataConsumerAdapter(mockProducer);
 		GETNavPropertyCommand command = new GETNavPropertyCommand("MyEntity", "navProperty", mockConsumer);
-		RESTResponse response = command.get("id", new MultivaluedMapImpl<String, String>());
-		assertEquals(Response.Status.NOT_ACCEPTABLE, response.getStatus());
+		InteractionCommand.Result result = command.execute(mock(InteractionContext.class));
+		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 }

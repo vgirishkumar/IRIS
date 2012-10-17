@@ -1,13 +1,10 @@
 package com.temenos.interaction.core.hypermedia;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Map;
 
 import org.junit.Test;
-
-import com.temenos.interaction.core.hypermedia.BeanTransformer;
-import com.temenos.interaction.core.hypermedia.Transformer;
 
 public class TestBeanTransformer {
 

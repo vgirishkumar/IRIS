@@ -1,7 +1,6 @@
 package com.temenos.interaction.sdk;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
@@ -12,13 +11,10 @@ public class TestResponderGen {
 	@Test
 	public void testSourceGenerationFromEDMX() {
 	    File srcTargetDir = new File("./target/integration-test/java");
-	    srcTargetDir.mkdir();
+	    srcTargetDir.mkdirs();
 	    File configTargetDir = new File("./target/integration-test/resources");
-	    configTargetDir.mkdir();
+	    configTargetDir.mkdirs();
 	    
-		JPAResponderGen rg = new JPAResponderGen();
-		assertTrue(rg.generateArtifacts("/service.edmx", srcTargetDir, configTargetDir));
-		
 		assertEquals(6, countFiles(new File(srcTargetDir, "AirlineModel")));
 		assertEquals(3, countFiles(new File(configTargetDir, "META-INF")));
 	}
@@ -26,11 +22,13 @@ public class TestResponderGen {
 	private int countFiles(File dir) {
 		int cnt = 0;
 		File[] files = dir.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].isDirectory()) {
-				cnt += countFiles(files[i]);
-			} else {
-				cnt++;
+		if (files != null) {
+			for (int i = 0; i < files.length; i++) {
+				if (files[i].isDirectory()) {
+					cnt += countFiles(files[i]);
+				} else {
+					cnt++;
+				}
 			}
 		}
 		return cnt;

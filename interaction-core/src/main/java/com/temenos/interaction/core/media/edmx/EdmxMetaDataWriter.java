@@ -1,9 +1,9 @@
 package com.temenos.interaction.core.media.edmx;
 
 import java.io.Writer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,15 +29,15 @@ import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
 
 public class EdmxMetaDataWriter extends XmlFormatWriter {
 
 	public final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 	
-  public static void write(EdmDataServices services, Writer w, ResourceRegistry resourceRegistry) {
+  public static void write(EdmDataServices services, Writer w, ResourceStateMachine hypermediaEngine) {
 
 	  //Map<Relation name, Entity relation>
       Map<String, EntityRelation> relations = new HashMap<String, EntityRelation>();
@@ -112,21 +112,24 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
         writeProperties(eet.getDeclaredProperties(), writer);
 
         //Obtain the relation between entities and write navigation properties
-        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entityName);
+        Collection<Transition> entityTransitions = hypermediaEngine.getTransitionsById().values();
 		if(entityTransitions != null) {
 			//Find out which target entities have more than one transition from this state
 	        Set<String> targetStateNames = new HashSet<String>();
 			Map<String, String> multipleNavPropsToEntity = new HashMap<String, String>();		//Map<TargetEntityName, TargetStateName>
 			for(Transition entityTransition : entityTransitions) {
-				String targetEntityName = entityTransition.getTarget().getEntityName();
-				String targetStateName = entityTransition.getTarget().getName();
-				String lastTargetStateName = multipleNavPropsToEntity.get(targetEntityName);
-				if(lastTargetStateName == null) {
-					multipleNavPropsToEntity.put(targetEntityName, targetStateName);
-					targetStateNames.add(entityTransition.getTarget().getName());
-				}
-				else if(!targetStateName.equals(lastTargetStateName)) {		//Disregard transitions from multiple source states
-					multipleNavPropsToEntity.put(targetEntityName, MULTI_NAV_PROP_TO_ENTITY);		//null indicates to generate multiple navigation properties 
+				if (entityTransition.getSource().getEntityName().equals(entityName) 
+						&& !entityTransition.getTarget().isPseudoState()) {
+					String targetEntityName = entityTransition.getTarget().getEntityName();
+					String targetStateName = entityTransition.getTarget().getName();
+					String lastTargetStateName = multipleNavPropsToEntity.get(targetEntityName);
+					if(lastTargetStateName == null) {
+						multipleNavPropsToEntity.put(targetEntityName, targetStateName);
+						targetStateNames.add(entityTransition.getTarget().getName());
+					}
+					else if(!targetStateName.equals(lastTargetStateName)) {		//Disregard transitions from multiple source states
+						multipleNavPropsToEntity.put(targetEntityName, MULTI_NAV_PROP_TO_ENTITY);		//null indicates to generate multiple navigation properties 
+					}
 				}
 			}
 
@@ -135,7 +138,10 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 			for(Transition entityTransition : entityTransitions) {
 				ResourceState sourceState = entityTransition.getSource();
 				ResourceState targetState = entityTransition.getTarget();
-				if(!npNames.contains(targetState.getName())) {		//We can have transitions to a resource state from multiple source states
+				String npName = targetState.getName();
+				if (sourceState.getEntityName().equals(entityName) 
+						&& !entityTransition.getTarget().isPseudoState()
+						&& !npNames.contains(npName)) {		//We can have transitions to a resource state from multiple source states
 					int multiplicity = (entityTransition.getTarget().getClass() == CollectionResourceState.class) ? EntityRelation.MULTIPLICITY_TO_MANY : EntityRelation.MULTIPLICITY_TO_ONE;
 	
 					//Use the entity names to define the relation
@@ -161,7 +167,6 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 					}
 	
 					//Write the navigation properties
-					String npName = targetState.getName();
 					writer.startElement(new QName2("NavigationProperty"));
 		            writer.writeAttribute("Name", npName);
 		            writer.writeAttribute("Relationship", relation.getNamespace() + "." + relation.getName());

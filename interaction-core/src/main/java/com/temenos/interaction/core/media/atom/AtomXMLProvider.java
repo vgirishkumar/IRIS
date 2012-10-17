@@ -8,7 +8,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,12 +23,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
@@ -70,31 +69,14 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	@Context
 	private UriInfo uriInfo;
+	private AtomEntryFormatWriter entryWriter = new AtomEntryFormatWriter();
+	private AtomFeedFormatWriter feedWriter = new AtomFeedFormatWriter();
 	
 	private final EdmDataServices edmDataServices;
 	private final Metadata metadata;
 	private final ResourceRegistry resourceRegistry;
-	private final Transformer transformer;
+//	private final Transformer transformer;
 
-	/**
-	 * Construct the jax-rs Provider for OData media type.
-	 * @param edmDataServices
-	 * 		The entity metadata for reading and writing OData entities.
-	 * @param resourceRegistry
-	 * 		The resource registry contains all the resource to entity mappings
-	 * @param transformer
-	 * 		Transformer to convert an entity to a properties map
-	 */
-	public AtomXMLProvider(EdmDataServices edmDataServices, ResourceRegistry resourceRegistry, Transformer transformer) {
-		this.edmDataServices = edmDataServices;
-		this.metadata = null;
-		this.resourceRegistry = resourceRegistry;
-		this.transformer = transformer;
-		assert(edmDataServices != null);
-		assert(resourceRegistry != null);
-		assert(transformer != null);
-	}
-	
 	/**
 	 * Construct the jax-rs Provider for OData media type.
 	 * @param edmDataServices
@@ -110,11 +92,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		this.edmDataServices = edmDataServices;
 		this.metadata = metadata;
 		this.resourceRegistry = resourceRegistry;
-		this.transformer = transformer;
+//		this.transformer = transformer;
 		assert(edmDataServices != null);
 		assert(metadata != null);
 		assert(resourceRegistry != null);
-		assert(transformer != null);
+//		assert(transformer != null);
 	}
 	
 	@Override
@@ -161,9 +143,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				}
 				
 				//Write entry
-				OEntity oentity = entityResource.getEntity();
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? oentity.getEntitySetName() : entityResource.getEntityName()));
-				AtomEntryFormatWriter entryWriter = new AtomEntryFormatWriter();
+				OEntity tempEntity = entityResource.getEntity();
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? tempEntity.getEntitySetName() : entityResource.getEntityName()));
+	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+            	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
@@ -174,41 +157,47 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				//Write entry
 				Entity entity = entityResource.getEntity();
 				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
-				AtomEntityEntryFormatWriter entryWriter = new AtomEntityEntryFormatWriter();
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links);
+				// Write Entity object with Abdera implementation
+				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
 				Map<String, List<OLink>> entityOlinks = new HashMap<String, List<OLink>>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
-					OEntity entity = collectionEntity.getEntity();
+		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+					OEntity tempEntity = collectionEntity.getEntity();
+					EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((collectionEntity.getEntityName() == null ? tempEntity.getEntitySetName() : collectionEntity.getEntityName()));
+	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 					
 					//Add entity links
 					List<OLink> olinks = new ArrayList<OLink>();
-					for(Link link : collectionEntity.getLinks()) {
-						addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
-						
-						/*
-						 * TODO we can remove this way of adding links to other resources once we support multiple transitions 
-						 * to a resource state.  https://github.com/aphethean/IRIS/issues/17
-						 */
-						//Links to other resources
-				        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
-				        if(entityTransitions != null) {
-					        for(Transition transition : entityTransitions) {
-					        	//Create Link from transition
-								String rel = transition.getTarget().getName();
-								UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
-								Map<String, Object> properties = new HashMap<String, Object>();
-								properties.putAll(transformer.transform(entity));
-								URI href = linkTemplate.buildFromMap(properties);
-								Link entityLink = new Link(transition, rel, href.toASCIIString(), "GET");
-								
-								addLinkToOLinks(olinks, entityLink);
-							}
-				        }
-					}		
+					if (collectionEntity.getLinks() != null) {
+						for(Link link : collectionEntity.getLinks()) {
+							addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
+							
+							/*
+							 * TODO we can remove this way of adding links to other resources once we support multiple transitions 
+							 * to a resource state.  https://github.com/aphethean/IRIS/issues/17
+							//Links to other resources
+					        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
+					        if(entityTransitions != null) {
+						        for(Transition transition : entityTransitions) {
+						        	//Create Link from transition
+									String rel = transition.getTarget().getName();
+									UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
+									Map<String, Object> properties = new HashMap<String, Object>();
+									properties.putAll(transformer.transform(entity));
+									URI href = linkTemplate.buildFromMap(properties);
+									Link entityLink = new Link(transition, rel, href.toASCIIString(), "GET");
+									
+									addLinkToOLinks(olinks, entityLink);
+								}
+					        }
+							 */
+						}		
+					}
 					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
 					entities.add(entity);
 				}
@@ -216,7 +205,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				AtomFeedFormatWriter feedWriter = new AtomFeedFormatWriter();
 				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks);
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
@@ -240,7 +228,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 		String title = link.getTitle();
 		OLink olink;
-		Transition linkTransition = resourceRegistry.getLinkTransition(link.getTransition().getId());
+		Transition linkTransition = link.getTransition();
 		if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
 			olink = OLinks.relatedEntities(rel, title, href);
 		}

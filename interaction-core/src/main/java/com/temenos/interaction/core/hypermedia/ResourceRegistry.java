@@ -50,7 +50,6 @@ public class ResourceRegistry {
 	}
 
 	private void collectResources(ResourceInteractionModel resource) {
-		// the registry can only be constructed with HTTPDynaRIM, no way to have children of any other type
 		assert(resource instanceof HTTPResourceInteractionModel);
 		add((HTTPResourceInteractionModel) resource);
 		for (ResourceInteractionModel r : resource.getChildren()) {

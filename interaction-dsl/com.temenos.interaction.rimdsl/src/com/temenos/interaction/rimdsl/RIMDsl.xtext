@@ -1,0 +1,54 @@
+grammar com.temenos.interaction.rimdsl.RIMDsl with org.eclipse.xtext.common.Terminals
+
+generate rim "http://www.temenos.com/interaction/rimdsl/RimDsl"
+
+ResourceInteractionModel:
+//     {Statemachine}
+    ('events' 
+        events+=Event+ 
+    'end')?
+    ('commands' 
+        commands+=Command+ 
+    'end')?
+    states+=State*
+;
+
+Event:
+    name=ID
+;
+
+State:
+    (isInitial?='initial')? 'resource' name=ID
+        entity=Entity
+        ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')
+        path=Path?
+        transitionsAuto+=TransitionAuto*
+        transitions+=Transition*
+        transitionsForEach+=TransitionForEach*
+    'end'
+;
+
+Transition:
+    (event=[Event] '->' state=[State])
+;
+
+TransitionForEach:
+    (event=[Event] '*->' state=[State])
+;
+
+TransitionAuto:
+    (event=[Event] '-->' state=[State])
+;
+
+Path:
+    'path' name=STRING    
+;
+
+Entity:
+    ((isCollection?='collection') | (isItem?='item'))? name=ID
+;
+
+Command:
+    name=ID property=ID
+;
+

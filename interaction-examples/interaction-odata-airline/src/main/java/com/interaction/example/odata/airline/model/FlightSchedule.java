@@ -5,6 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -18,17 +20,26 @@ public class FlightSchedule {
 	@Basic(optional = false)
 	private Long flightScheduleID;
 	
-			private String arrivalAirportCode;
-			@Temporal(TemporalType.TIME)
+		private String arrivalAirportCode;
+		@Temporal(TemporalType.TIME)
 		private java.util.Date arrivalTime;
-			private String flightNo;
-			@Temporal(TemporalType.TIMESTAMP)
+		private String flightNo;
+		@Temporal(TemporalType.TIMESTAMP)
 		private java.util.Date firstDeparture;
-			@Temporal(TemporalType.TIME)
+		@Temporal(TemporalType.TIME)
 		private java.util.Date departureTime;
-			private String departureAirportCode;
-			@Temporal(TemporalType.TIMESTAMP)
+		private String departureAirportCode;
+		@Temporal(TemporalType.TIMESTAMP)
 		private java.util.Date lastDeparture;
 		
+		@JoinColumn(name = "departureAirportCode", referencedColumnName = "Code",
+				insertable = false, updatable = false)
+		@ManyToOne(optional = false)
+		private Airport departureAirport;
+		@JoinColumn(name = "arrivalAirportCode", referencedColumnName = "Code",
+				insertable = false, updatable = false)
+		@ManyToOne(optional = false)
+		private Airport arrivalAirport;
+			
 	public FlightSchedule() {}
 }

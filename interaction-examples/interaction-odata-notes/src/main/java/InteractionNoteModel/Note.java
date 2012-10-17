@@ -1,6 +1,7 @@
 package InteractionNoteModel;
 
 import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,10 +21,13 @@ public class Note {
 	
 	private String body;
 	
-	/* link to the person whose note this belongs to */
+	/* used in link to the person state */
+	@Column(name = "PERSONID", insertable = false, updatable = false)
+	private Integer personId;
+	
 	@ManyToOne
 	@JoinColumn(name = "PERSONID")
-	private Person Persons;
+	private Person NotePerson;
 	
 	public Note() {}
 }
