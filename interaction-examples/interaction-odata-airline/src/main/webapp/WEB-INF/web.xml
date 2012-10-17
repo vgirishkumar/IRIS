@@ -11,9 +11,12 @@
 		</param-value>
 	</context-param>
 	
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	
     <filter>
         <filter-name>request-context</filter-name>
-        <description>This filter sets the request context for the interaction framework.</description>
         <filter-class>com.temenos.interaction.core.web.RequestContextFilter</filter-class>
     </filter>
     <filter-mapping>
@@ -21,11 +24,6 @@
         <servlet-name>IRIS</servlet-name>
     </filter-mapping>
 
-	<servlet>
-		<servlet-name>context</servlet-name>
-		<servlet-class>org.springframework.web.context.ContextLoaderServlet</servlet-class>
-		<load-on-startup>1</load-on-startup>
-	</servlet>
 	<servlet>
 		<servlet-name>IRIS</servlet-name>
 		<servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>

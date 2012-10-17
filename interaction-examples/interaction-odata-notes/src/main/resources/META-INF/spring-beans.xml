@@ -1,26 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<!-- Initialise JPA for MockResponder -->
-	<bean id="entityManagerFactory"
-		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
-			<property name="persistenceUnitName" value="ResponderServiceHibernate" />		
+	<!-- Read property files -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:responder.properties</value>
+			</list>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
 	</bean>
-	<!-- Initialise responder database -->
-	<bean factory-method="fillDatabase" class="com.temenos.interaction.sdk.util.ResponderDBUtils" />
-	
+
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
-	
-	<!-- MockResponder JPA Producer -->
-	<bean id="producer" class="org.odata4j.producer.jpa.JPAProducer">
-		<constructor-arg name="emf" ref="entityManagerFactory" />
-		<constructor-arg name="namespace" value="MockResponderSDK" />		
-		<constructor-arg name="maxResults" value="100" />				
-	</bean>
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+
+	<!-- Import Resource manager context -->
+	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -43,6 +50,7 @@
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+		<constructor-arg name="metadata" ref="edmMetadata" />
 		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
     	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
 	</bean>
@@ -95,55 +103,43 @@
     </bean>
 
     <!-- Commands -->
-    <bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
-    	<constructor-arg name="commands">
-            <map>
-               <entry>
-                    <key><value>GETServiceDocument</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="resourceToProvide" value="ServiceDocument" />
-                        <constructor-arg name="edmDataServices" ref="edmDataServices" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GETMetadata</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-                        <constructor-arg name="resourceToProvide" value="Metadata" />
-                        <constructor-arg name="edmDataServices" ref="edmDataServices" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GETEntity</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntityCommand">
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GETEntities</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>GETNavProperty</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>CreateEntity</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-                <entry>
-                    <key><value>DeleteEntity</value></key>
-                    <bean class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
-                        <constructor-arg name="producer" ref="producer" />
-                    </bean>
-                </entry>
-            </map>
-        </constructor-arg>
-    </bean>
+	<bean id="GETServiceDocument" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+		<constructor-arg value="ServiceDocument" />
+		<constructor-arg ref="edmDataServices" />
+	</bean>
+	<bean id="GETMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+		<constructor-arg value="Metadata" />
+		<constructor-arg ref="edmDataServices" />
+	</bean>
+	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+
+	<!-- Resource commands -->
+	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
+		<constructor-arg name="commands">
+			<util:map id="commandsMap" map-class="java.util.Hashtable">
+				<entry key="GETServiceDocument" value-ref="GETServiceDocument" />
+				<entry key="GETMetadata" value-ref="GETMetadata" />
+				<entry key="GETEntity" value-ref="GETEntity" />
+				<entry key="GETEntities" value-ref="GETEntities" />
+				<entry key="GETNavProperty" value-ref="GETNavProperty" />
+				<entry key="CreateEntity" value-ref="CreateEntity" />
+				<entry key="DeleteEntity" value-ref="DeleteEntity" />
+			</util:map> 
+		</constructor-arg>
+	</bean>
 
 </beans>

@@ -13,8 +13,10 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 public class TestMetadataParser {
 	public final static String METADATA_XML_FILE = "TestMetadataParser.xml";
+	public final static String METADATA_CUSTOMER_NON_EXPANDED_XML_FILE = "CustomerNonExpandedMetadata.xml";
 
 	private static Metadata metadata;
+	private static Metadata metadataNonExpanded;
 	
 	@BeforeClass
 	public static void setup()
@@ -23,6 +25,11 @@ public class TestMetadataParser {
 		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
 		metadata = parser.parse(is);
 		Assert.assertNotNull(metadata);
+
+		MetadataParser parserNonExpanded = new MetadataParser();
+		InputStream isNonExpanded = parserNonExpanded.getClass().getClassLoader().getResourceAsStream(METADATA_CUSTOMER_NON_EXPANDED_XML_FILE);
+		metadataNonExpanded = parserNonExpanded.parse(isNonExpanded);
+		Assert.assertNotNull(metadataNonExpanded);
 	}
 	
 	@Test
@@ -56,6 +63,22 @@ public class TestMetadataParser {
 		Assert.assertFalse(md.isPropertyComplex("sector"));
 		Assert.assertFalse(md.isPropertyComplex("industry"));
 	}
+
+	@Test
+	public void testIsPropertyComplexNonExpanded()
+	{		
+		EntityMetadata md = metadataNonExpanded.getEntityMetadata("Customer");
+		Assert.assertFalse(md.isPropertyComplex("name"));
+		Assert.assertTrue(md.isPropertyComplex("address"));
+		Assert.assertFalse(md.isPropertyComplex("number"));
+		Assert.assertTrue(md.isPropertyComplex("street"));
+		Assert.assertFalse(md.isPropertyComplex("streetType"));
+		Assert.assertFalse(md.isPropertyComplex("town"));
+		Assert.assertFalse(md.isPropertyComplex("postCode"));
+		Assert.assertFalse(md.isPropertyComplex("dateOfBirth"));
+		Assert.assertFalse(md.isPropertyComplex("sector"));
+		Assert.assertFalse(md.isPropertyComplex("industry"));
+	}
 	
 	@Test
 	public void testGetComplexGroup()
@@ -72,7 +95,23 @@ public class TestMetadataParser {
 		Assert.assertEquals("", md.getPropertyComplexGroup("sector"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("industry"));
 	}
-	
+
+	@Test
+	public void testGetComplexGroupNonExpanded()
+	{		
+		EntityMetadata md = metadataNonExpanded.getEntityMetadata("Customer");
+		Assert.assertEquals("", md.getPropertyComplexGroup("name"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("address"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("number"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("street"));
+		Assert.assertEquals("street", md.getPropertyComplexGroup("streetType"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("town"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("postCode"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("dateOfBirth"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("sector"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("industry"));
+	}
+
 	@Test
 	public void testIsPropertyText()
 	{		

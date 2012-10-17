@@ -44,40 +44,53 @@ public class TestJPAResponderGen {
 		List<String> generatedClasses = new ArrayList<String>();
 		String generatedPersistenceXML;
 		String generatedSpringXML;
+		String generatedSpringResourceManagerXML;
 		String generateResponderDML;
 		String generatedBehaviourClass;
 		String generatedMetadata;
 		
+		@Override
 		protected String getLinkProperty(String associationName, String edmxFile) {
 			InputStream isEdmx = getClass().getResourceAsStream("/" + EDMX_AIRLINE_FILE);
 			return ReferentialConstraintParser.getLinkProperty(associationName, isEdmx);
 		}
 		
-		protected boolean writeClass(String classFileName, String generatedClass) {
+		@Override
+		protected boolean writeClass(String path, String classFileName, String generatedClass) {
 			this.generatedClasses.add(generatedClass);
 			return true;
 		}
 		
+		@Override
 		protected boolean writeJPAConfiguration(File sourceDir, String generatedPersistenceXML) {
 			this.generatedPersistenceXML = generatedPersistenceXML;
 			return true;
 		}
 
-		protected boolean writeSpringConfiguration(File sourceDir, String generatedSpringXML) {
-			this.generatedSpringXML = generatedSpringXML;
+		@Override
+		protected boolean writeSpringConfiguration(File sourceDir, String filename, String generatedSpringXML) {
+			if(filename.equals(JPAResponderGen.SPRING_CONFIG_FILE)) {
+				this.generatedSpringXML = generatedSpringXML;
+			}
+			else if(filename.equals(JPAResponderGen.SPRING_RESOURCEMANAGER_FILE)) {
+				this.generatedSpringResourceManagerXML = generatedSpringXML;
+			}
 			return true;
 		}
 		
+		@Override
 		protected boolean writeResponderDML(File sourceDir, String generateResponderDML) {
 			this.generateResponderDML = generateResponderDML;
 			return true;
 		}
 		
+		@Override
 		protected boolean writeBehaviourClass(String path, String generatedBehaviourClass) {
 			this.generatedBehaviourClass = generatedBehaviourClass;
 			return true;
 		}
 		
+		@Override
 		protected boolean writeMetadata(File sourceDir, String generatedMetadata) {
 			this.generatedMetadata = generatedMetadata;
 			return true;
@@ -336,11 +349,11 @@ public class TestJPAResponderGen {
 	public void testGenJPAConfiguration() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
-		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
-		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new EntityInfo("Flight", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new EntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new EntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		String generatedPersistenceConfig = rg.generateJPAConfiguration(resourcesInfo);
+		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
+		entitiesInfo.add(new EntityInfo("Flight", "AirlineModel", null, null));
+		entitiesInfo.add(new EntityInfo("Airport", "AirlineModel", null, null));
+		entitiesInfo.add(new EntityInfo("FlightSchedule", "AirlineModel", null, null));
+		String generatedPersistenceConfig = rg.generateJPAConfiguration(entitiesInfo);
 		
 		assertTrue(generatedPersistenceConfig.contains("<!-- Generated JPA configuration for IRIS MockResponder -->"));
 		assertTrue(generatedPersistenceConfig.contains("<class>AirlineModel.Flight</class>"));
@@ -352,16 +365,16 @@ public class TestJPAResponderGen {
 	public void testGenResponderDML() {
 		JPAResponderGen rg = new JPAResponderGen();
 		
-		List<ResourceInfo> resourcesInfo = new ArrayList<ResourceInfo>();
+		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		
 		List<FieldInfo> properties = new ArrayList<FieldInfo>();
 		properties.add(new FieldInfo("number", "Long", null));
 		properties.add(new FieldInfo("fitHostiesName", "String", null));
 		properties.add(new FieldInfo("runway", "String", null));
-		resourcesInfo.add(new ResourceInfo("/Flight/{id}", new EntityInfo("Flight", "AirlineModel", null, properties), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/Airport/{id}", new EntityInfo("Airport", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		resourcesInfo.add(new ResourceInfo("/FlightSchedule/{id}", new EntityInfo("FlightSchedule", "AirlineModel", null, null), "com.temenos.interaction.commands.odata.GETEntityCommand"));
-		String generatedResponderDML = rg.generateResponderDML(resourcesInfo);
+		entitiesInfo.add(new EntityInfo("Flight", "AirlineModel", null, properties));
+		entitiesInfo.add(new EntityInfo("Airport", "AirlineModel", null, null));
+		entitiesInfo.add(new EntityInfo("FlightSchedule", "AirlineModel", null, null));
+		String generatedResponderDML = rg.generateResponderDML(entitiesInfo);
 		
 		assertTrue(generatedResponderDML.contains("INSERT INTO `Flight`(`number` , `fitHostiesName` , `runway`) VALUES('1' , 'abc' , 'abc');"));
 		assertTrue(generatedResponderDML.contains("INSERT INTO `Airport`() VALUES();"));
@@ -370,7 +383,7 @@ public class TestJPAResponderGen {
 
 	@Test
 	public void testFormClassFilename() {
-		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah", new EntityInfo("SomeClass", "com.some.package", null, null)));
+		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah/com/some/package", new EntityInfo("SomeClass", "com.some.package", null, null)));
 	}
 	
 	@Test
@@ -390,7 +403,7 @@ public class TestJPAResponderGen {
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
-		boolean status = generator.generateArtifacts(metadata, interactionModel, new File(""), new File(""));
+		boolean status = generator.generateArtifacts(metadata, interactionModel, new File("target/FlightResponder/classes"), new File("target/FlightResponder/classes"), true);
 		
 		//Check results
 		assertTrue(status);
@@ -410,6 +423,8 @@ public class TestJPAResponderGen {
 
 		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.Behaviour\" />"));
 
+		assertTrue(generator.generatedSpringResourceManagerXML.contains("<constructor-arg name=\"namespace\" value=\"FlightResponder\" />"));		
+		
 		//Test resource states
 		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
 		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flightschedules);"));
@@ -440,7 +455,7 @@ public class TestJPAResponderGen {
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
-		boolean status = generator.generateArtifacts(EDMX_AIRLINE_FILE, edmDataServices, new File(""), new File(""));
+		boolean status = generator.generateArtifacts(EDMX_AIRLINE_FILE, edmDataServices, new File("target/FlightResponder/classes"), new File("target/FlightResponder/classes"));
 		
 		//Check results
 		assertTrue(status);
@@ -460,6 +475,8 @@ public class TestJPAResponderGen {
 
 		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.Behaviour\" />"));
 
+		assertTrue(generator.generatedSpringResourceManagerXML.contains("<constructor-arg name=\"namespace\" value=\"FlightResponder\" />"));		
+		
 		//Test resource states
 		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
 		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flightschedules);"));

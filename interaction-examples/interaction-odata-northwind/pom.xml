@@ -5,7 +5,7 @@
   <parent>
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -28,7 +28,7 @@
       <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-plugin</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>0.0.3-SNAPSHOT</version>
         <configuration>
           <edmxFile>${basedir}/src/main/resources/edmx.xml</edmxFile>
           <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
@@ -60,7 +60,6 @@
 				<stopKey>STOP</stopKey>
   				<!-- Configure the webapp -->
 				<contextPath>/northwind</contextPath>
-          		<webDefaultXml>${basedir}/src/main/webapp/WEB-INF/web.xml</webDefaultXml>
 			</configuration>
 			<executions>
 				<execution>
@@ -256,6 +255,16 @@
     	<artifactId>odata4j-cxf</artifactId>
     	<version>0.6.0</version>
     	<scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.springframework</groupId>
+    	<artifactId>spring-orm</artifactId>
+    	<version>3.0.5.RELEASE</version>
+    </dependency>
+    <dependency>
+    	<groupId>net.sf.ehcache</groupId>
+    	<artifactId>ehcache-core</artifactId>
+    	<version>2.5.2</version>
     </dependency>
   </dependencies>
 </project>

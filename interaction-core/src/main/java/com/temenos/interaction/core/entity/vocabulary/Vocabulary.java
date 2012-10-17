@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.entity.vocabulary;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,5 +27,12 @@ public class Vocabulary {
 	public void setTerm(Term term) {
 		terms.put(term.getName(), term);
 	}
-	
+
+	/**
+	 * Returns the terms contained in this vocabulary
+	 * @return list of terms
+	 */
+	public Collection<Term> getTerms() {
+		return terms.values();
+	}
 }

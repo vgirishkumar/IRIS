@@ -7,8 +7,6 @@ import com.temenos.interaction.core.resource.EntityResource;
 public class GETPreferencesCommand implements InteractionCommand {
 
 	/* Implement InteractionCommand interface */
-	
-	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
 		// retrieve from a database, etc.

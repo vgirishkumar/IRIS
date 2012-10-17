@@ -4,8 +4,7 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence     http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
 
 	<!-- Generated JPA configuration for IRIS MockResponder -->
-	<persistence-unit name="ResponderServiceHibernate"
-		transaction-type="RESOURCE_LOCAL">
+	<persistence-unit name="ResponderServiceHibernate" transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<class>com.interaction.example.odata.northwind.model.Suppliers</class>
 		<class>com.interaction.example.odata.northwind.model.Order_Details</class>
@@ -15,15 +14,6 @@
 		<class>com.interaction.example.odata.northwind.model.Employees</class>
 		<class>com.interaction.example.odata.northwind.model.Orders</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
-		<properties>
-			<property name="javax.persistence.jdbc.driver" value="org.hsqldb.jdbcDriver" />
-			<property name="javax.persistence.jdbc.user" value="sa" />
-			<property name="javax.persistence.jdbc.password" value="" />
-			<property name="javax.persistence.jdbc.url"
-				value="jdbc:hsqldb:mem:responder;shutdown=true;ifxeists=true" />
-			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
-			<property name="hibernate.max_fetch_depth" value="3" />
-			<property name="hibernate.hbm2ddl.auto" value="create-drop" />
-		</properties>
 	</persistence-unit>
+
 </persistence>

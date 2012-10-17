@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.resource;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.odata4j.edm.EdmDataServices;
@@ -34,6 +35,15 @@ public class ResourceMetadataManager {
 	/**
 	 * Construct the metadata object
 	 */
+	public ResourceMetadataManager(String metdataXml)
+	{
+		metadata = parseMetadataXML(metdataXml);
+		edmMetadata = populateOData4jMetadata(metadata);
+	}
+	
+	/**
+	 * Construct the metadata object
+	 */
 	public ResourceMetadataManager()
 	{
 		metadata = parseMetadataXML();
@@ -55,7 +65,7 @@ public class ResourceMetadataManager {
 	public EdmDataServices getOData4jMetadata() {
 		return this.edmMetadata;
 	}
-
+	
 	/*
 	 * Parse the XML metadata file
 	 */
@@ -71,6 +81,21 @@ public class ResourceMetadataManager {
 			logger.error("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
 			e.printStackTrace();
 			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
+		}
+	}
+
+	/*
+	 * Parse the XML metadata string
+	 */
+	protected Metadata parseMetadataXML(String xml) {
+		try {
+			InputStream is = new ByteArrayInputStream(xml.getBytes());
+			return new MetadataParser().parse(is);
+		}
+		catch(Exception e) {
+			logger.error("Failed to parse metadata xml: " + e.getMessage());
+			e.printStackTrace();
+			throw new RuntimeException("Failed to parse metadata xml: " + e.getMessage());
 		}
 	}
 

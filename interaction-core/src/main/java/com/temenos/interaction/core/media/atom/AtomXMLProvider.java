@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,10 @@ import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+import com.temenos.interaction.core.entity.Entity;
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceRegistry;
@@ -68,6 +73,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private AtomFeedFormatWriter feedWriter = new AtomFeedFormatWriter();
 	
 	private final EdmDataServices edmDataServices;
+	private final Metadata metadata;
 	private final ResourceRegistry resourceRegistry;
 //	private final Transformer transformer;
 
@@ -75,24 +81,29 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * Construct the jax-rs Provider for OData media type.
 	 * @param edmDataServices
 	 * 		The entity metadata for reading and writing OData entities.
+	 * @param metadata
+	 * 		The entity metadata for reading and writing Entity entities.
 	 * @param resourceRegistry
 	 * 		The resource registry contains all the resource to entity mappings
 	 * @param transformer
 	 * 		Transformer to convert an entity to a properties map
 	 */
-	public AtomXMLProvider(EdmDataServices edmDataServices, ResourceRegistry resourceRegistry, Transformer transformer) {
+	public AtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata, ResourceRegistry resourceRegistry, Transformer transformer) {
 		this.edmDataServices = edmDataServices;
+		this.metadata = metadata;
 		this.resourceRegistry = resourceRegistry;
 //		this.transformer = transformer;
 		assert(edmDataServices != null);
+		assert(metadata != null);
 		assert(resourceRegistry != null);
-		assert(transformer != null);
+//		assert(transformer != null);
 	}
-
+	
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
 		return ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class) ||
+				ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class) ||
 				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class);
 	}
 
@@ -137,6 +148,18 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
             	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
+			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
+				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
+
+				Collection<Link> linksCollection = entityResource.getLinks();
+				List<Link> links = Lists.newArrayList(linksCollection);
+				
+				//Write entry
+				Entity entity = entityResource.getEntity();
+				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
+				// Write Entity object with Abdera implementation
+				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();

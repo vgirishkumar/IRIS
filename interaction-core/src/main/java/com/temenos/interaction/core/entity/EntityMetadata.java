@@ -1,6 +1,8 @@
 package com.temenos.interaction.core.entity;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,14 +154,25 @@ public class EntityMetadata  {
 	{
 		String value = "";
 		String propertyName = property.getName();
-		
-		if ( isPropertyText( propertyName ) )
-		{
-			value = (String) property.getValue();
+		String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
+		Object propertyValue = property.getValue();
+		if (termValue.equals(TermValueType.TEXT) || propertyValue != null && propertyValue instanceof String) {
+			value = (String) propertyValue;
 		}
-		else if ( isPropertyNumber( propertyName ) )
-		{
-			value = Long.toString( (Long) property.getValue() );
+		else if(termValue.equals(TermValueType.INTEGER_NUMBER)) {
+			value = Long.toString( (Long) propertyValue );
+		}
+		else if(termValue.equals(TermValueType.NUMBER)) {
+			value = Double.toString( (Double) propertyValue );
+		}
+		else if(termValue.equals(TermValueType.BOOLEAN)) {
+			value = Boolean.toString( (Boolean) propertyValue );
+		}
+		else if(termValue.equals(TermValueType.TIMESTAMP)) {
+			value = DateFormat.getDateTimeInstance().format((Date) propertyValue);
+		}
+		else {
+			
 		}
 		
 		return value;
