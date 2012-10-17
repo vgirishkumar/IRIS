@@ -11,7 +11,7 @@
 
   <groupId>com.temenos.interaction.example</groupId>
   <artifactId>interaction-odata-airline</artifactId>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
 
   <name>interaction-example-odata-airline</name>
   <url>http://www.temenos.com</url>
