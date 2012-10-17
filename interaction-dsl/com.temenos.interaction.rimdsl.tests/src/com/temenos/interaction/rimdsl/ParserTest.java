@@ -222,4 +222,29 @@ public class ParserTest {
 
 	}
 
+	private final static String EXCEPTION_RESOURCE_RIM = "" +
+			"commands" + LINE_SEP +
+			"	Noop properties" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"exception resource EXCEPTION" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"   actions { Noop }" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"";
+
+	@Test
+	public void testParseExceptionResource() throws Exception {
+		ResourceInteractionModel model = parser.parse(EXCEPTION_RESOURCE_RIM);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be exactly one state
+		assertEquals(1, model.getStates().size());
+	    assertEquals("EXCEPTION", model.getStates().get(0).getName());
+
+	    // state should be an exception state
+	    State state = model.getStates().get(0);
+	    assertTrue(state.isIsException());
+	}
+
 }
