@@ -766,7 +766,7 @@ public class TestResourceStateMachine {
 		String notesResourcePath = "/notes";
 		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new HashSet<Action>(), notesResourcePath);
 		String noteItemResourcePath = "/notes/{noteId}";
-		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new HashSet<Action>(), noteItemResourcePath);
+		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new HashSet<Action>(), noteItemResourcePath, "item".split(" "));
 		/* create the transitions (links) */
 		// link to form to create new note
 		notesResource.addTransition("POST", new ResourceState("stack", "new", new HashSet<Action>(), "/notes/new", "new".split(" ")));
@@ -860,8 +860,8 @@ public class TestResourceStateMachine {
 		String notesResourcePath = "/notes";
 		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new HashSet<Action>(), notesResourcePath);
 		String noteItemResourcePath = "/notes/{noteId}";
-		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new HashSet<Action>(), noteItemResourcePath);
-		ResourceState noteFinalState = new ResourceState(NOTE_ENTITY, "final", new HashSet<Action>(), noteItemResourcePath);
+		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new HashSet<Action>(), noteItemResourcePath, "item".split(" "));
+		ResourceState noteFinalState = new ResourceState(NOTE_ENTITY, "final", new HashSet<Action>(), noteItemResourcePath, "final".split(" "));
 		/* create the transitions (links) */
 		/*
 		 * define transition to view each item of the note collection

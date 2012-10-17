@@ -195,7 +195,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	public void addLinkToOLinks(List<OLink> olinks, Link link) {
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
 		String rel = link.getRel();
-		if(!rel.equals("self")) {
+		if(!rel.contains("self")) {
 			rel = XmlFormatWriter.related + link.getRel();
 		}
 		String href = link.getHref();

@@ -267,7 +267,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		Link selfLink = null;
 		if (links != null) {
 			for (Link l : links) {
-				if (l.getRel().equals("self")) {
+				if (l.getRel().contains("self")) {
 					selfLink = l;
 					break;
 				}

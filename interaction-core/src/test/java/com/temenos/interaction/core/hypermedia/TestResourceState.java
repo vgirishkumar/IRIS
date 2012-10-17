@@ -35,6 +35,7 @@ public class TestResourceState {
 	public void testDefaultRel() {
 		String ENTITY_NAME = "entity";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "");
+//		assertEquals("item self", initial.getRel());
 		assertEquals("item", initial.getRel());
 	}
 
