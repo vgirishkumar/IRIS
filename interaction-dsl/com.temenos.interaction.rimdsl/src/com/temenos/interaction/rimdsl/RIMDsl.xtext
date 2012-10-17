@@ -29,15 +29,41 @@ State:
 ;
 
 Transition:
-    (event=[Event] '->' state=[State])
+    (event=[Event] '->' state=[State] (eval=Expression)?)
 ;
 
 TransitionForEach:
-    (event=[Event] '*->' state=[State])
+    (event=[Event] '*->' state=[State] (eval=Expression)?)
 ;
 
 TransitionAuto:
-    (event=[Event] '-->' state=[State])
+    (event=[Event] '-->' state=[State] (eval=Expression)?)
+;
+
+Expression:
+// works
+//    '(' expression=ID ')'
+//    '(' 'OK' '(' name=ID ')' ')'
+//    '(' expression=Function_OK ')'
+//    '(' expression=Function ')'
+
+// does not work
+//    '(' expression=[Function] ')'
+    
+    '(' 
+        (expressions+=Function) 
+        ('&&' (expressions+=Function))* 
+    ')'
+;
+
+Function: Function_OK|Function_NOT_FOUND;
+
+Function_OK:
+    {OKFunction} 'OK' '(' state=[State] ')'
+;
+
+Function_NOT_FOUND:
+    {NotFoundFunction} 'NOT_FOUND' '(' state=[State] ')'
 ;
 
 Path:
