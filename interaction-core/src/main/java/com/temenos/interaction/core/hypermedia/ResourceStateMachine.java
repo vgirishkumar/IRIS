@@ -35,6 +35,7 @@ public class ResourceStateMachine {
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
 
 	public final ResourceState initial;
+	public final ResourceState exception;
 	public final Transformer transformer;
 	public NewCommandController commandController;
 	
@@ -99,9 +100,16 @@ public class ResourceStateMachine {
 	 * @param transformer
 	 */
 	public ResourceStateMachine(ResourceState initialState, Transformer transformer) {
+		this(initialState, null, transformer);
+	}
+	
+	
+	public ResourceStateMachine(ResourceState initialState, ResourceState exception, Transformer transformer) {
 		assert(initialState != null);
+		assert(exception == null || exception.isException());
 		this.initial = initialState;
 		this.initial.setInitial(true);
+		this.exception = exception;
 		this.transformer = transformer;
 		build();
 	}
@@ -117,6 +125,10 @@ public class ResourceStateMachine {
 	
 	public ResourceState getInitial() {
 		return initial;
+	}
+
+	public ResourceState getException() {
+		return exception;
 	}
 
 	public Transformer getTransformer() {

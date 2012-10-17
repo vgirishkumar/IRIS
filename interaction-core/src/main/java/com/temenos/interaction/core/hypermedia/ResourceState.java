@@ -25,8 +25,12 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final String pathIdParameter;
 	/* a state not represented by a resource, a state of the same entity (see parent) */
 	private final boolean pseudo;
+	
 	/* is an initial state */
 	private boolean initial;
+	/* is an exception state */
+	private boolean exception;
+
 	/* link relations */
 	private final String[] rels;
 	/* the actions that will be executed upon viewing or entering this state */
@@ -103,6 +107,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		this.path = path;
 		this.pathIdParameter = pathIdParameter;
 		this.initial = false;
+		this.exception = false;
 		this.pseudo = pseudo;
 		this.actions = actions;
 		this.uriSpecification = uriSpec;
@@ -170,6 +175,14 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public void setInitial(boolean flag) {
 		initial = flag;
+	}
+	
+	public boolean isException() {
+		return exception;
+	}
+	
+	public void setException(boolean flag) {
+		exception = flag;
 	}
 	
 	public String getRel() {

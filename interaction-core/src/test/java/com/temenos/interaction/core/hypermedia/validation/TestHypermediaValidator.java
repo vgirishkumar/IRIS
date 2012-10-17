@@ -60,6 +60,31 @@ public class TestHypermediaValidator {
 	}
 
 	@Test
+	public void testDOTExceptionResource() {
+		String expected = "digraph G {\n" +
+				"    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n" +
+				"    EXCEPTIONexception[label=\"EXCEPTION.exception\"]\n" +
+				"    Gexists[label=\"G.exists /entities/{id}\"]\n" +
+				"    Ginitial->Gexists[label=\"PUT /entities/{id} (0)\"]\n" +
+				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n" +
+				"    Gexists->final[label=\"\"]\n}";
+		
+		String ENTITY_NAME = "G";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "/entities/{id}");
+		ResourceState exception = new ResourceState("EXCEPTION", "exception", new HashSet<Action>(), "/");
+		exception.setException(true);
+	
+		initial.addTransition("PUT", exists);
+				
+		ResourceStateMachine sm = new ResourceStateMachine(initial, exception, null);
+		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		String result = v.graph();
+		System.out.println("DOTException: \n" + result);
+		assertEquals(expected, result);	
+	}
+
+	@Test
 	public void testDOT204NoContent() {
 		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists /entities/{id}\"]\n    Gdeleted[label=\"G.deleted /entities/{id}\"]\n    Ginitial->Gexists[label=\"PUT /entities/{id} (0)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
 		
