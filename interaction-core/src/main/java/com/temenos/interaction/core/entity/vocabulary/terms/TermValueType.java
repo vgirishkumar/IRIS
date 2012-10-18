@@ -12,7 +12,12 @@ public class TermValueType implements Term {
 	public final static String NUMBER = "NUMBER";
 	public final static String INTEGER_NUMBER = "INTEGER_NUMBER";
 	public final static String TIMESTAMP = "TIMESTAMP";
+	public final static String DATE = "DATE";
+	public final static String TIME = "TIME";
 	public final static String BOOLEAN = "BOOLEAN";
+	public final static String RECURRENCE = "RECURRENCE";
+	public final static String ENCRYPTED_TEXT = "ENCRYPTED_TEXT";
+	public final static String IMAGE = "IMAGE";
 	
 	private String valueType;
 	

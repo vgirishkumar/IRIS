@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
@@ -20,6 +23,8 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
  * Metadata class holding vocabularies used to describe an entity.  
  */
 public class EntityMetadata  {
+	private final static Logger logger = LoggerFactory.getLogger(EntityMetadata.class);
+
 	private TermFactory termFactory = new TermFactory();
 	private String entityName;			//Entity name
 	private Vocabulary vocabulary;		//Entity Vocabulary
@@ -156,7 +161,10 @@ public class EntityMetadata  {
 		String propertyName = property.getName();
 		String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
 		Object propertyValue = property.getValue();
-		if (termValue.equals(TermValueType.TEXT) || propertyValue != null && propertyValue instanceof String) {
+		if (termValue.equals(TermValueType.TEXT) ||
+				termValue.equals(TermValueType.RECURRENCE) ||
+				termValue.equals(TermValueType.ENCRYPTED_TEXT) ||
+				propertyValue != null && propertyValue instanceof String) {
 			value = (String) propertyValue;
 		}
 		else if(termValue.equals(TermValueType.INTEGER_NUMBER)) {
@@ -168,11 +176,13 @@ public class EntityMetadata  {
 		else if(termValue.equals(TermValueType.BOOLEAN)) {
 			value = Boolean.toString( (Boolean) propertyValue );
 		}
-		else if(termValue.equals(TermValueType.TIMESTAMP)) {
+		else if(termValue.equals(TermValueType.TIMESTAMP) ||
+				termValue.equals(TermValueType.DATE) ||
+				termValue.equals(TermValueType.TIME)) {
 			value = DateFormat.getDateTimeInstance().format((Date) propertyValue);
 		}
 		else {
-			
+			logger.warn("Unable to return a text representation for field " + propertyName + " of type " + termValue);
 		}
 		
 		return value;

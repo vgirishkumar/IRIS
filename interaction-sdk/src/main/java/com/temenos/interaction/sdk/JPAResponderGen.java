@@ -398,8 +398,14 @@ public class JPAResponderGen {
 			}
 			else {
 				List<String> annotations = new ArrayList<String>();
-				if(entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME).equals(TermValueType.TIMESTAMP)) {
+				if(type.equals(TermValueType.TIMESTAMP)) {
 					annotations.add("@Temporal(TemporalType.TIMESTAMP)");
+				}
+				else if(type.equals(TermValueType.DATE)) {
+					annotations.add("@Temporal(TemporalType.DATE)");
+				}
+				else if(type.equals(TermValueType.TIME)) {
+					annotations.add("@Temporal(TemporalType.TIME)");
 				}
 				FieldInfo field = new FieldInfo(propertyName, javaType(MetadataOData4j.termValueToEdmType(type)), annotations);
 				properties.add(field);
@@ -481,10 +487,12 @@ public class JPAResponderGen {
 		
 		//Set the value type vocabulary term
 		EdmType type = property.getType();
-		if (type.equals(EdmSimpleType.DATETIME) || 
-			type.equals(EdmSimpleType.TIME)) {
+		if (type.equals(EdmSimpleType.DATETIME)) {
 			emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.TIMESTAMP));
 		}
+		else if (type.equals(EdmSimpleType.TIME)) {
+				emProperty.addVocabularyTerm(new EMTerm(TermValueType.TERM_NAME, TermValueType.TIME));
+			}
 		else if (type.equals(EdmSimpleType.INT64) || 
 				 type.equals(EdmSimpleType.INT32) ||
 				 type.equals(EdmSimpleType.INT16)) {

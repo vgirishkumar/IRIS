@@ -107,8 +107,12 @@ public class MetadataOData4j {
 		else if(type.equals(TermValueType.INTEGER_NUMBER)) {
 			 edmType = EdmSimpleType.INT64;
 		}
-		else if(type.equals(TermValueType.TIMESTAMP)) {
+		else if(type.equals(TermValueType.TIMESTAMP) ||
+				type.equals(TermValueType.DATE)) {
 			edmType = EdmSimpleType.DATETIME;
+		}
+		else if(type.equals(TermValueType.TIME)) {
+			edmType = EdmSimpleType.TIME;
 		}
 		else if(type.equals(TermValueType.BOOLEAN)) {
 			edmType = EdmSimpleType.BOOLEAN;
