@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.Eval;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
@@ -65,7 +66,7 @@ public class TestHypermediaValidator {
 				"    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n" +
 				"    EXCEPTIONexception[label=\"EXCEPTION.exception\"]\n" +
 				"    Gexists[label=\"G.exists /entities/{id}\"]\n" +
-				"    Ginitial->Gexists[label=\"PUT /entities/{id} (0)\"]\n" +
+				"    Ginitial->Gexists[label=\"PUT /entities/{id}\"]\n" +
 				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n" +
 				"    Gexists->final[label=\"\"]\n}";
 		
@@ -85,8 +86,37 @@ public class TestHypermediaValidator {
 	}
 
 	@Test
+	public void testDOTTransitionEval() {
+		String expected = "digraph G {\n" +
+				"    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n" +
+				"    Gother[label=\"G.other /entities/{id}\"]\n" +
+				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n" +
+				"    Gother->final[label=\"\"]\n" +
+				"    Ginitial->Gother[label=\"PUT /entities/{id} (OK(other))\"]\n" +
+				"}";
+		
+		String ENTITY_NAME = "G";
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
+		ResourceState other = new ResourceState(ENTITY_NAME, "other", new HashSet<Action>(), "/entities/{id}");
+	
+		initial.addTransition("PUT", other, new Eval("other", Eval.Function.OK));
+				
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
+		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		String result = v.graph();
+		System.out.println("DOTTransitionEval: \n" + result);
+		assertEquals(expected, result);	
+	}
+
+	@Test
 	public void testDOT204NoContent() {
-		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists /entities/{id}\"]\n    Gdeleted[label=\"G.deleted /entities/{id}\"]\n    Ginitial->Gexists[label=\"PUT /entities/{id} (0)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
+		String expected = "digraph G {\n" +
+				"    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n" +
+				"    Gexists[label=\"G.exists /entities/{id}\"]\n" +
+				"    Gdeleted[label=\"G.deleted /entities/{id}\"]\n" +
+				"    Ginitial->Gexists[label=\"PUT /entities/{id}\"]\n" +
+				"    Gexists->Gdeleted[label=\"DELETE /entities/{id}\"]\n" +
+				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "G";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
@@ -106,7 +136,13 @@ public class TestHypermediaValidator {
 
 	@Test
 	public void testDOT205ResetContent() {
-		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists /entities/{id}\"]\n    Gdeleted[label=\"G.deleted /entities/{id}\"]\n    Ginitial->Gdeleted[label=\"DELETE /entities/{id} (1)\"]\n    Ginitial->Gexists[label=\"GET /entities/{id} (1)\"]\n    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gexists->final[label=\"\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
+		String expected = "digraph G {\n" +
+				"    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n" +
+				"    Gexists[label=\"G.exists /entities/{id}\"]\n" +
+				"    Gdeleted[label=\"G.deleted /entities/{id}\"]\n" +
+				"    Ginitial->Gdeleted[label=\"*DELETE /entities/{id}\"]\n" +
+				"    Ginitial->Gexists[label=\"*GET /entities/{id}\"]\n" +
+				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gexists->final[label=\"\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
 		
 		String ENTITY_NAME = "G";
 		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entities");
@@ -128,7 +164,13 @@ public class TestHypermediaValidator {
 
 	@Test
 	public void testDOT303SeeOther() {
-		String expected = "digraph G {\n    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    Gexists[label=\"G.exists /entities/{id}\"]\n    Gdeleted[label=\"G.deleted /entities/{id}\"]\n    Ginitial->Gexists[label=\"GET /entities/{id} (1)\"]\n    Gexists->Gdeleted[label=\"DELETE /entities/{id} (0)\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
+		String expected = "digraph G {\n" +
+				"    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n" +
+				"    Gexists[label=\"G.exists /entities/{id}\"]\n" +
+				"    Gdeleted[label=\"G.deleted /entities/{id}\"]\n" +
+				"    Ginitial->Gexists[label=\"*GET /entities/{id}\"]\n" +
+				"    Gexists->Gdeleted[label=\"DELETE /entities/{id}\"]\n" +
+				"    Gdeleted->Ginitial[style=\"dotted\"]\n}";
 		
 		String ENTITY_NAME = "G";
 		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entities");
@@ -151,9 +193,9 @@ public class TestHypermediaValidator {
 	@Test
 	public void testDOTMultipleFinalStates() {
 		String expected = "digraph CRUD_ENTITY {\n    CRUD_ENTITYinitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    CRUD_ENTITYexists[label=\"CRUD_ENTITY.exists\"]\n    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted\"]\n    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived /archived\"]\n"
-			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT (0)\"]\n"
-			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE (0)\"]\n"
-			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived (0)\"]\n"
+			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived\"]\n"
 			+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			+ "    CRUD_ENTITYdeleted->final[label=\"\"]\n"
 			+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
@@ -197,18 +239,18 @@ public class TestHypermediaValidator {
 				+ "    processcompletedProcess[label=\"process.completedProcess /processes/{id}\"]\n"
 				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskcomplete->final[label=\"\"]\n"
-				+ "    taskacquired->taskcomplete[label=\"PUT /completed (0)\"]\n"
-				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired (0)\"]\n"
+				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
+				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired\"]\n"
 				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskabandoned->final1[label=\"\"]\n"
-				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired (0)\"]\n"
-				+ "    processprocesses->processnew[label=\"POST /processes/new (0)\"]\n"
-				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id} (0)\"]\n"
-				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask (0)\"]\n"
-				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id} (0)\"]\n"
+				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
+				+ "    processprocesses->processnew[label=\"POST /processes/new\"]\n"
+				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id}\"]\n"
+				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n"
+				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
 				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			    + "    processcompletedProcess->final2[label=\"\"]\n"
-			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes (0)\"]\n"
+			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
 				+ "}";
 		assertEquals(expected, result);
 	}
@@ -230,8 +272,8 @@ public class TestHypermediaValidator {
 			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
 			    + "    processprocesses[shape=square, width=.25, label=\"process.processes\"]\n"
 			    + "    taskacquired[shape=square, width=.25, label=\"task.acquired\"]\n"
-				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes (0)\"]\n"
-				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes (0)\"]\n"
+				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
+				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
 				+ "}";
 		assertEquals(expected, HypermediaValidator.createValidator(serviceDocumentSM).graphEntityNextStates());
 	}

@@ -238,8 +238,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void addTransition(String httpMethod, ResourceState targetState) {
 		addTransition(httpMethod, targetState, 0);
 	}
+	public void addTransition(String httpMethod, ResourceState targetState, Eval eval) {
+		addTransition(httpMethod, targetState, null, 0, eval);
+	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
-		addTransition(httpMethod, targetState, null, transitionFlags);
+		addTransition(httpMethod, targetState, null, transitionFlags, null);
 	}
 	
 	/**
@@ -249,14 +252,14 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageMap
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, 0);
+		addTransition(httpMethod, targetState, uriLinkageMap, 0, null);
 	}
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags) {
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags, Eval eval) {
 		String resourcePath = targetState.getPath();
-		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, transitionFlags);
+		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, transitionFlags, eval);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, int transitionFlags) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, int transitionFlags, Eval eval) {
 		assert null != targetState;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
@@ -266,14 +269,14 @@ public class ResourceState implements Comparable<ResourceState> {
 				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
 			}
 		}
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, eval);
 		Transition transition = new Transition(this, commandSpec, targetState);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.put(commandSpec, transition);
 	}
 
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {
-		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, (forEach ? Transition.FOR_EACH : 0));
+		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, (forEach ? Transition.FOR_EACH : 0), null);
 	}
 
 	/**
