@@ -8,28 +8,69 @@
 	<packaging>pom</packaging>
 	<name>interaction-parent</name>
 
-	<modules>
-		<module>../interaction-core</module>
-		<module>../interaction-winkext</module>
-		<module>../interaction-commands-odata</module>
-		<module>../interaction-commands-odata-bridge</module>
-		<module>../interaction-sdk-archetype</module>
-		<module>../interaction-sdk</module>
-		<module>../interaction-sdk-plugin</module>
-		<module>../interaction-sdk-test</module>
-        <module>../interaction-test</module>
-		<module>../useragent-examples/useragent-generic-javascript</module>
-		<module>../useragent-examples/T24-ft-useragent-javascript</module>
-		<module>../useragent-examples/useragent-hal-inspector</module>
-		<module>../interaction-examples/interaction-hateoas-simple</module>
-		<module>../interaction-examples/interaction-hateoas-banking</module>
-		<module>../interaction-examples/T24-ft-interaction-banking</module>
-		<module>../interaction-examples/interaction-mashup-twitter</module>
-		<module>../interaction-examples/interaction-odata-northwind</module>
-		<module>../interaction-examples/interaction-odata-airline</module>
-		<module>../interaction-examples/interaction-odata-notes</module>
-	</modules>
-
+	<profiles>
+        <profile>
+            <id>jdk16</id>
+            <activation>
+                    <jdk>1.6</jdk>
+            </activation>
+            <modules>
+				<module>../interaction-core</module>
+				<module>../interaction-winkext</module>
+				<module>../interaction-commands-odata</module>
+				<module>../interaction-commands-odata-bridge</module>
+				<module>../interaction-sdk-archetype</module>
+				<module>../interaction-sdk</module>
+				<module>../interaction-sdk-plugin</module>
+				<module>../interaction-sdk-test</module>
+		        <module>../interaction-test</module>
+		        <!-- For Java 1.6 we are going to skip the modules that rely on the
+		             coffee script compiler, which only works on Java 1.7.
+		             There are good integration tests in these examples, but the generic
+		             user agent that allows us to browse the example uses coffee script
+		             at the moment.
+				<module>../useragent-examples/useragent-generic-javascript</module>
+				<module>../useragent-examples/T24-ft-useragent-javascript</module>
+				<module>../useragent-examples/useragent-hal-inspector</module>
+				<module>../interaction-examples/interaction-hateoas-simple</module>
+				<module>../interaction-examples/interaction-hateoas-banking</module>
+				<module>../interaction-examples/T24-ft-interaction-banking</module>
+				<module>../interaction-examples/interaction-mashup-twitter</module>
+				 -->
+				<module>../interaction-examples/interaction-odata-northwind</module>
+				<module>../interaction-examples/interaction-odata-airline</module>
+				<module>../interaction-examples/interaction-odata-notes</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>jdk17</id>
+            <activation>
+                    <jdk>1.7</jdk>
+            </activation>
+            <modules>
+				<module>../interaction-core</module>
+				<module>../interaction-winkext</module>
+				<module>../interaction-commands-odata</module>
+				<module>../interaction-commands-odata-bridge</module>
+				<module>../interaction-sdk-archetype</module>
+				<module>../interaction-sdk</module>
+				<module>../interaction-sdk-plugin</module>
+				<module>../interaction-sdk-test</module>
+		        <module>../interaction-test</module>
+				<module>../useragent-examples/useragent-generic-javascript</module>
+				<module>../useragent-examples/T24-ft-useragent-javascript</module>
+				<module>../useragent-examples/useragent-hal-inspector</module>
+				<module>../interaction-examples/interaction-hateoas-simple</module>
+				<module>../interaction-examples/interaction-hateoas-banking</module>
+				<module>../interaction-examples/T24-ft-interaction-banking</module>
+				<module>../interaction-examples/interaction-mashup-twitter</module>
+				<module>../interaction-examples/interaction-odata-northwind</module>
+				<module>../interaction-examples/interaction-odata-airline</module>
+				<module>../interaction-examples/interaction-odata-notes</module>
+            </modules>
+        </profile>
+    </profiles>
+    
 	<distributionManagement>
 		<site>
 			<id>interaction-site</id>

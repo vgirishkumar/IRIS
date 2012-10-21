@@ -188,7 +188,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * is not found we'll inform the user agent that everything went OK, but there is 
 	 * nothing more to display i.e. No Content.
 	 */
-	@SuppressWarnings({ "unchecked", })
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith204NoContentNoTransition() throws Exception {
 		/*
@@ -220,7 +220,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * is a psuedo final state (effectively no target) we'll inform the user agent
 	 * that everything went OK, but there is nothing more to display i.e. No Content.
 	 */
-	@SuppressWarnings({ "unchecked", })
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith204NoContent() throws Exception {
 		/*
@@ -251,7 +251,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * A successful DELETE command does not return a new resource and should inform
 	 * the user agent to refresh the current view.
 	 */
-	@SuppressWarnings({ "unchecked", })
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith205ContentReset() throws Exception {
 		/*
@@ -284,7 +284,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * A successful DELETE command does not return a new resource and should inform
 	 * the user agent to refresh the current view if the target is the same as the source.
 	 */
-	@SuppressWarnings({ "unchecked", })
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith205ContentResetDifferentResource() throws Exception {
 		/*
@@ -338,7 +338,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * some information about which link the client followed, and therefore
 	 * what state/links to show them next.
 	 */
-	@SuppressWarnings({ "unchecked", })
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith303SeeOtherSameEntity() throws Exception {
 		/*
@@ -392,7 +392,7 @@ public class TestResponseHTTPHypermediaRIM {
         assertEquals("/baseuri/machines/toaster", locationHeader.get(0));
 	}
 
-	@SuppressWarnings({ "unchecked", })
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWithLinks() throws Exception {
 		// construct an InteractionContext that simply mocks the result of loading a resource
@@ -416,7 +416,7 @@ public class TestResponseHTTPHypermediaRIM {
 		assertEquals("self", link.getRel());
 	}
 
-	@SuppressWarnings({ "unchecked", })
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseEntityName() throws Exception {
 		// construct an InteractionContext that simply mocks the result of loading a resource
