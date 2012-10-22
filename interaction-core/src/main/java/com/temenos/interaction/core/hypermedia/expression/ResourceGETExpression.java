@@ -1,8 +1,8 @@
-package com.temenos.interaction.core.hypermedia;
+package com.temenos.interaction.core.hypermedia.expression;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-public class Eval {
+public class ResourceGETExpression implements Expression {
 
 	public enum Function {
 		OK,
@@ -12,7 +12,7 @@ public class Eval {
 	public final Function function;
 	public final String state;
 	
-	public Eval(String state, Function function) {
+	public ResourceGETExpression(String state, Function function) {
 		this.function = function;
 		this.state = state;
 	}
@@ -25,7 +25,9 @@ public class Eval {
 		return state;
 	}
 	
+	@Override
 	public boolean evaluate(MultivaluedMap<String, String> pathParams) {
 		return true;
 	}
+
 }

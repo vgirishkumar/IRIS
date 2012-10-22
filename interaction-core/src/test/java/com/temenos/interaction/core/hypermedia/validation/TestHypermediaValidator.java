@@ -11,10 +11,10 @@ import org.junit.Test;
 
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
-import com.temenos.interaction.core.hypermedia.Eval;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 
 public class TestHypermediaValidator {
 
@@ -99,7 +99,7 @@ public class TestHypermediaValidator {
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
 		ResourceState other = new ResourceState(ENTITY_NAME, "other", new HashSet<Action>(), "/entities/{id}");
 	
-		initial.addTransition("PUT", other, new Eval("other", Eval.Function.OK));
+		initial.addTransition("PUT", other, new ResourceGETExpression("other", ResourceGETExpression.Function.OK));
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		HypermediaValidator v = HypermediaValidator.createValidator(sm);

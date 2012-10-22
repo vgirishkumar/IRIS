@@ -10,6 +10,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+
 public class ResourceState implements Comparable<ResourceState> {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
 
@@ -238,7 +240,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void addTransition(String httpMethod, ResourceState targetState) {
 		addTransition(httpMethod, targetState, 0);
 	}
-	public void addTransition(String httpMethod, ResourceState targetState, Eval eval) {
+	public void addTransition(String httpMethod, ResourceState targetState, ResourceGETExpression eval) {
 		addTransition(httpMethod, targetState, null, 0, eval);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
@@ -254,12 +256,12 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
 		addTransition(httpMethod, targetState, uriLinkageMap, 0, null);
 	}
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags, Eval eval) {
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags, ResourceGETExpression eval) {
 		String resourcePath = targetState.getPath();
 		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, transitionFlags, eval);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, int transitionFlags, Eval eval) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, int transitionFlags, ResourceGETExpression eval) {
 		assert null != targetState;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
