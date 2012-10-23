@@ -81,31 +81,35 @@ public class CommandHelper {
 			}
 		}		
 		
+		assert(keyType != null) : "Should not be possible to get this far and find no key type";
+		
 		//Create an entity key
 		OEntityKey key = null;
 		try {
-			if(keyType.equals("Edm.Int64")) {
-				key = OEntityKey.create(Long.parseLong(id));
-			}
-			else if(keyType.equals("Edm.Int32")) {
-				key = OEntityKey.create(Integer.parseInt(id));
-			}
-			else if(keyType.equals("Edm.DateTime")) {
+			if (keyType.equals("Edm.Int64")) {
 				key = OEntityKey.parse(id);
-			}
-			else if(keyType.equals("Edm.Time")) {
+			} else if(keyType.equals("Edm.Int32")) {
 				key = OEntityKey.parse(id);
-			}
-			else if(keyType.equals("Edm.String")) {
-				key = OEntityKey.create(id);
+			} else if(keyType.equals("Edm.DateTime")) {
+				key = OEntityKey.parse(id);
+			} else if(keyType.equals("Edm.Time")) {
+				key = OEntityKey.parse(id);
+			} else if(keyType.equals("Edm.String")) {
+				key = OEntityKey.parse(id);
 			}
 		} catch (Exception e) {
 			logger.warn("Entity key type " + keyType + " is not supported by CommandHelper, trying OEntityKey.parse");
 		}
-		// could not parse the key, have one last attempt with OEntityKey parse
+		// could not parse the key, have one last attempt with OEntityKey create
 		if (key == null) {
 			try {
-				key = OEntityKey.parse(id);
+				if (keyType.equals("Edm.Int64")) {
+					key = OEntityKey.create(Long.parseLong(id));
+				} else if(keyType.equals("Edm.Int32")) {
+					key = OEntityKey.create(Integer.parseInt(id));
+				} else {
+					key = OEntityKey.create(id);
+				}					
 			} catch (Exception e) {
 				logger.error("OEntityKey.parse failed to parse id [" + id + "]");
 			}

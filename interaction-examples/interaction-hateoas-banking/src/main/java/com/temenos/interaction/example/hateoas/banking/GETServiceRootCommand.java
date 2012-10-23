@@ -1,7 +1,5 @@
 package com.temenos.interaction.example.hateoas.banking;
 
-import javax.ws.rs.HttpMethod;
-
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -18,11 +16,6 @@ public class GETServiceRootCommand implements InteractionCommand {
 		EntityResource<Object> resource = new EntityResource<Object>(null);
 		ctx.setResource(resource);
 		return Result.SUCCESS;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

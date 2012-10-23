@@ -1,14 +1,6 @@
 package com.temenos.interaction.core.command;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.StatusType;
-
-public class NoopDELETECommand implements ResourceDeleteCommand, InteractionCommand {
-
-	@Override
-	public StatusType delete(String id) {
-		return HttpStatusTypes.METHOD_NOT_ALLOWED;
-	}
+public class NoopDELETECommand implements InteractionCommand {
 
 	/* Implement InteractionCommand interface */
 	
@@ -19,9 +11,5 @@ public class NoopDELETECommand implements ResourceDeleteCommand, InteractionComm
 		return Result.SUCCESS;
 	}
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.DELETE;
-	}
-};
+}
 

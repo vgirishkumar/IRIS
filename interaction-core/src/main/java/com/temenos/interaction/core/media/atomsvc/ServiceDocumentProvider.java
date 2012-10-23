@@ -24,10 +24,10 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
 
-import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.resource.ResourceTypeHelper;
-import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 
 /**
  * JAX-RS Provider class for marshalling Service document resources.

@@ -1,0 +1,20 @@
+events
+    GET GET
+end
+
+commands
+	GetEntities properties
+	GetEntity properties
+	UpdateEntity properties
+end
+
+initial resource A
+	collection ENTITY
+	actions { GetEntities }
+	GET -> B
+end
+
+resource B
+	item ENTITY
+	actions { GetEntity, UpdateEntity }
+end

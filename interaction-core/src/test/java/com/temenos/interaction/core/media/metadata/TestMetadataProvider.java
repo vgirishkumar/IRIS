@@ -1,5 +1,8 @@
 package com.temenos.interaction.core.media.metadata;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayOutputStream;
 
 import javax.ws.rs.core.GenericEntity;
@@ -15,9 +18,6 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.resource.MetaDataResource;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class TestMetadataProvider {
 

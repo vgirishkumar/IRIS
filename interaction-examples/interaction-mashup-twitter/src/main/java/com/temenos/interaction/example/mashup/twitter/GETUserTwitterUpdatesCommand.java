@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.ws.rs.HttpMethod;
-
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.CollectionResource;
@@ -29,11 +27,6 @@ public class GETUserTwitterUpdatesCommand implements InteractionCommand {
 		CollectionResource<Tweet> usersResource = new CollectionResource<Tweet>(tweetEntities);
 		ctx.setResource(usersResource);
 		return Result.SUCCESS;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

@@ -3,8 +3,6 @@ package com.temenos.interaction.example.hateoas.banking;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.HttpMethod;
-
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.CollectionResource;
@@ -30,11 +28,6 @@ public class GETFundTransfersCommand implements InteractionCommand {
 		CollectionResource<FundTransfer> ftResource = new CollectionResource<FundTransfer>("FundTransfer", fts);
 		ctx.setResource(ftResource);
 		return Result.SUCCESS;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

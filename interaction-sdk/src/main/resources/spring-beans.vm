@@ -38,7 +38,12 @@
 				<ref local="serviceDocumentProvider" />
  			</set>
    		</property>
-		<property name="serviceRoot" ref="ServiceRoot" />
+        <property name="serviceRoots">
+            <set>
+                <ref local="ServiceRoot" />
+                <ref local="Metadata" />
+            </set>
+        </property>
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
@@ -48,7 +53,7 @@
 		<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
-		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
 	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
@@ -71,42 +76,68 @@
 		<constructor-arg ref="stateMachine" />
 	</bean>
 
+    <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
+    <bean id="Metadata" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg>
+            <bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+                <constructor-arg>
+                    <bean class="com.temenos.interaction.core.hypermedia.ResourceState">
+                        <constructor-arg name="entityName" value="Metadata" />
+                        <constructor-arg name="name" value="initial" />
+                        <constructor-arg>
+                            <set>
+                                <bean class="com.temenos.interaction.core.hypermedia.Action">
+                                    <constructor-arg value="GETMetadata" />
+                                    <constructor-arg value="VIEW" />
+                                </bean>
+                            </set>
+                        </constructor-arg>
+                        <constructor-arg name="path" value="/$metadata" />
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+
 	<!-- Commands -->
-	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+	<bean id="GETServiceDocument" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="ServiceDocument" />
 		<constructor-arg ref="edmDataServices" />
 	</bean>
-	<bean id="cmdGetMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+	<bean id="GETMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="Metadata" />
 		<constructor-arg ref="edmDataServices" />
 	</bean>
-#foreach ( $cmd in $commands.getCommands() )
-	<bean id="$cmd.getId()" class="$cmd.getClassName()">
-#foreach ( $param in $cmd.getParameters() )
-#if ($param.isByReference()) 
-		<constructor-arg ref="$param.getValue()" />
-#else
-		<constructor-arg value="$param.getValue()" />
-#end
-#end
+	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-#end
-
-	<!-- Resource commands -->
+	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	
+	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
-				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
-				<entry key="GET+/$metadata" value-ref="cmdGetMetadata" />
-#foreach ( $rsm in $interactionModel.getResourceStateMachines() )
-				<entry key="GET+/${rsm.getEntityName()}({id})" value-ref="cmdGETEntity${rsm.getEntityName()}" />
-				<entry key="GET+/${rsm.getEntityName()}" value-ref="cmdGETEntities${rsm.getEntityName()}" />
-				<entry key="POST+/${rsm.getEntityName()}" value-ref="cmdPOSTEntity${rsm.getEntityName()}" />
-#foreach ( $transition in $rsm.getTransitions() )
-				<entry key="GET+/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}" value-ref="cmdGET${rsm.getEntityName()}.${transition.getTargetStateName()}" />
-#end
-#end
+				<entry key="GETServiceDocument" value-ref="GETServiceDocument" />
+				<entry key="GETMetadata" value-ref="GETMetadata" />
+				<entry key="GETEntity" value-ref="GETEntity" />
+				<entry key="GETEntities" value-ref="GETEntities" />
+				<entry key="GETNavProperty" value-ref="GETNavProperty" />
+				<entry key="CreateEntity" value-ref="CreateEntity" />
+				<entry key="DeleteEntity" value-ref="DeleteEntity" />
 			</util:map> 
 		</constructor-arg>
 	</bean>
+	
 </beans>

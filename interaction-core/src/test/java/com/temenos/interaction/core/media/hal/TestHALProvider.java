@@ -1,5 +1,11 @@
 package com.temenos.interaction.core.media.hal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -31,24 +38,19 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 
-import com.temenos.interaction.core.resource.CollectionResource;
-import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.resource.MetaDataResource;
-import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.media.hal.HALProvider;
-import com.temenos.interaction.core.media.hal.MediaType;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.resource.RESTResource;
 
 public class TestHALProvider {
 
@@ -67,7 +69,7 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialise() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", "/children"));
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new HashSet<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -91,7 +93,7 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityName() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", "/children"));
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new HashSet<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -109,7 +111,7 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", "/children"));
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new HashSet<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -127,7 +129,7 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityNameWithId() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", "/children/{id}", "id", null));
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new HashSet<Action>(), "/children/{id}", "id", null));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));

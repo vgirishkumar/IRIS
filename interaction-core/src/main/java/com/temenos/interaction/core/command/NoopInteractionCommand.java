@@ -1,7 +1,5 @@
 package com.temenos.interaction.core.command;
 
-import javax.ws.rs.HttpMethod;
-
 import com.temenos.interaction.core.resource.EntityResource;
 
 /**
@@ -16,11 +14,6 @@ public class NoopInteractionCommand implements InteractionCommand {
 		assert(ctx != null);
 		ctx.setResource(new EntityResource<Object>());
 		return Result.SUCCESS;
-	}
-
-	@Override
-	public String getMethod() {
-		return HttpMethod.GET;
 	}
 
 }

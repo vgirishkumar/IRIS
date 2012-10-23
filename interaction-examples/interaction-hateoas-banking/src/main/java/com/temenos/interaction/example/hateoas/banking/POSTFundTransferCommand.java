@@ -8,9 +8,9 @@ import javax.ws.rs.HttpMethod;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
-import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.resource.EntityResource;
 
 public class POSTFundTransferCommand implements InteractionCommand {
 

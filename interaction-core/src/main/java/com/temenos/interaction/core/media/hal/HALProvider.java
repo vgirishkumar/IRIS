@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -266,7 +267,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		Link selfLink = null;
 		if (links != null) {
 			for (Link l : links) {
-				if (l.getRel().equals("self")) {
+				if (l.getRel().contains("self")) {
 					selfLink = l;
 					break;
 				}
@@ -395,17 +396,18 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	private String getEntityName(String resourcePath) {
 		String entityName = null;
 		if (resourcePath != null) {
-			Map<String, ResourceState> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
+			Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
 			for (String path : pathToResourceStates.keySet()) {
-				ResourceState s = pathToResourceStates.get(path);
-				if (s.getPathIdParameter() != null) {
-					Matcher matcher = Pattern.compile("(.*)/\\{" + s.getPathIdParameter() + "\\}").matcher(path);
-					if (matcher.find()) {
-						resourcePath = matcher.group(1);
+				for (ResourceState s : pathToResourceStates.get(path)) {
+					if (s.getPathIdParameter() != null) {
+						Matcher matcher = Pattern.compile("(.*)/\\{" + s.getPathIdParameter() + "\\}").matcher(path);
+						if (matcher.find()) {
+							resourcePath = matcher.group(1);
+						}
 					}
-				}
-				if (path.startsWith(resourcePath)) {
-					entityName = s.getEntityName();
+					if (path.startsWith(resourcePath)) {
+						entityName = s.getEntityName();
+					}
 				}
 			}
 		}

@@ -1,6 +1,10 @@
 package com.temenos.interaction.winkext;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -18,27 +22,24 @@ import org.odata4j.edm.EdmDataServices;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.temenos.interaction.core.dynaresource.HTTPDynaRIM;
 import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.rim.ResourceInteractionModel;
-import com.temenos.interaction.winkext.DynamicResourceDelegate;
-import com.temenos.interaction.winkext.RegistrarWithSingletons;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RegistrarWithSingletons.class})
 public class TestRegistrarWithSingletons {
 
 	private HTTPResourceInteractionModel createMockHTTPRIM(String entityName, String path) {
-		HTTPDynaRIM rim = mock(HTTPDynaRIM.class);
+		HTTPHypermediaRIM rim = mock(HTTPHypermediaRIM.class);
 		ResourceState rs = mock(ResourceState.class);
 		when(rs.getName()).thenReturn("");
 		when(rs.getEntityName()).thenReturn(entityName);
 		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
 		when(rsm.getInitial()).thenReturn(rs);
-		when(rim.getStateMachine()).thenReturn(rsm);
 		when(rim.getCurrentState()).thenReturn(rs);
 		when(rim.getResourcePath()).thenReturn(path);
 		when(rim.getFQResourcePath()).thenCallRealMethod();

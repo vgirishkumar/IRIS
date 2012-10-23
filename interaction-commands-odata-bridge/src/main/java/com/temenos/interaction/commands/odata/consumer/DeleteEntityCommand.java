@@ -1,61 +1,57 @@
 package com.temenos.interaction.commands.odata.consumer;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.StatusType;
-
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 
-import com.temenos.interaction.core.command.ResourceDeleteCommand;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 
-public class DeleteEntityCommand implements ResourceDeleteCommand {
+public class DeleteEntityCommand implements InteractionCommand {
 
-	// Command configuration
-	private String entitySetName;
-	
 	private ODataConsumer consumer;
 	private EdmDataServices edmDataServices;
-	private EdmEntitySet entitySet;
-	private Iterable<EdmEntityType> entityTypes;
 
-	public DeleteEntityCommand(String entitySetName, ODataConsumer consumer) {
-		this.entitySetName = entitySetName;
+	public DeleteEntityCommand(ODataConsumer consumer) {
 		this.consumer = consumer;
 		this.edmDataServices = consumer.getMetadata();
-		this.entitySet = edmDataServices.getEdmEntitySet(entitySetName);
-		this.entityTypes = edmDataServices.getEntityTypes();
-		assert(entitySetName.equals(entitySet.getName()));
 	}
 	
 	/* Implement ResourceDeleteCommand (OEntity) */
-	public StatusType delete(String id) {
+	public Result execute(InteractionContext ctx) {
+		assert(ctx != null);
+		assert(ctx.getCurrentState() != null);
+		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
+		assert(ctx.getResource() == null);
+		
+		String entity = ctx.getCurrentState().getEntityName();
+		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
+		if (entitySet == null)
+			throw new RuntimeException("Entity set not found [" + entity + "]");
+		Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
+		assert(entity.equals(entitySet.getName()));
+
 		// Create entity key (simple types only)
 		OEntityKey key;
 		try {
-			key = CommandHelper.createEntityKey(entityTypes, entitySetName, id);
+			key = CommandHelper.createEntityKey(entityTypes, entity, ctx.getId());
 		} catch(Exception e) {
-			return Response.Status.NOT_ACCEPTABLE;
+			return Result.FAILURE;
 		}
 		
 		// delete the entity
 		try {
-			consumer.deleteEntity(entitySetName, key).execute();
+			consumer.deleteEntity(entity, key).execute();
 		} catch (Exception e) {
 			// exception if the entity is not found, delete the entity if it exists;
 		}
-		return Response.Status.NO_CONTENT;
+		return Result.SUCCESS;
 	}
 
 	protected ODataConsumer getConsumer() {
 		return consumer;
 	}
 
-	@Override
-	public String getMethod() {
-		return HttpMethod.DELETE;
-	}
 }

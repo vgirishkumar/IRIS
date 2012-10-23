@@ -1,8 +1,11 @@
 package com.temenos.interaction.example.mashup.twitter;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -14,7 +17,7 @@ public class Behaviour {
 
 	public ResourceState getInteractionModel() {
 		// this will be the service root
-		ResourceState initialState = new ResourceState("home", "initial", "/");
+		ResourceState initialState = new ResourceState("home", "initial", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null), "/");
 		
 		// work list
 //		initialState.addTransition("GET", getProcessSM());
@@ -25,13 +28,12 @@ public class Behaviour {
 	}
 
 	private ResourceStateMachine getUsersInteractionModel() {
-		
-		CollectionResourceState allUsers = new CollectionResourceState(USER_ENTITY_NAME, "allUsers", "/users");
-		ResourceState userProfile = new ResourceState(USER_ENTITY_NAME, "exists", "/users/{userID}", "userID", "self".split(" "));
+		CollectionResourceState allUsers = new CollectionResourceState(USER_ENTITY_NAME, "allUsers", createActionSet(new Action("GETUsers", Action.TYPE.VIEW), null), "/users");
+		ResourceState userProfile = new ResourceState(USER_ENTITY_NAME, "exists", createActionSet(new Action("GETUser", Action.TYPE.VIEW), null), "/users/{userID}", "userID", "self".split(" "));
 		
 		// view user twitter activity
-		CollectionResourceState tweets = new CollectionResourceState("Timeline", "activity", "/tweets/{username}");
-		ResourceState tweet = new ResourceState("Tweet", "posted", "/tweets/{username}/{tweet}", "wtf", "self".split(" "));
+		CollectionResourceState tweets = new CollectionResourceState("Timeline", "activity", createActionSet(new Action("GETUserTwitterUpdates", Action.TYPE.VIEW), null), "/tweets/{username}");
+		ResourceState tweet = new ResourceState("Tweet", "posted", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null), "/tweets/{username}/{tweet}", "wtf", "self".split(" "));
 
 		// a linkage map (target URI element, source entity element)
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -103,5 +105,14 @@ public class Behaviour {
 		return new ResourceStateMachine(taskAcquired);
 	}
 */
+
+	private Set<Action> createActionSet(Action view, Action entry) {
+		Set<Action> actions = new HashSet<Action>();
+		if (view != null)
+			actions.add(view);
+		if (entry != null)
+			actions.add(entry);
+		return actions;
+	}
 
 }

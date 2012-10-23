@@ -4,9 +4,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import org.junit.Test;
-import org.odata4j.core.OEntity;
-
 import java.io.ByteArrayInputStream;
 
 import javax.ws.rs.core.GenericEntity;
@@ -14,6 +11,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.junit.Test;
+import org.odata4j.core.OEntity;
 
 import com.temenos.interaction.core.NestedObject;
 

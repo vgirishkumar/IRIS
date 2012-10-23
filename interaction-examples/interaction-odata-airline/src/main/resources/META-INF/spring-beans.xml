@@ -45,11 +45,12 @@
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+		<constructor-arg name="metadata" ref="edmMetadata" />
     	<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
     	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
-		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
 	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
 
@@ -72,87 +73,42 @@
         <constructor-arg ref="stateMachine" />
     </bean>
 
-	<!-- Commands -->
-	<bean id="cmdGetServiceRoot" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+    <!-- Commands -->
+	<bean id="GETServiceDocument" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="ServiceDocument" />
 		<constructor-arg ref="edmDataServices" />
 	</bean>
-	<bean id="cmdGetMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+	<bean id="GETMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="Metadata" />
 		<constructor-arg ref="edmDataServices" />
 	</bean>
-	<bean id="cmdGETEntityFlightSchedule" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="FlightSchedule" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesFlightSchedule" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="FlightSchedule" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityFlightSchedule" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="FlightSchedule" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntityAirport" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Airport" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesAirport" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Airport" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityAirport" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Airport" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntityFlight" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg value="Flight" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETEntitiesFlight" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="Flight" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdPOSTEntityFlight" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg value="Flight" />
-		<constructor-arg ref="odataProducer" />
-	</bean>
-	<bean id="cmdGETFlightSchedule.departureAirport" class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
-		<constructor-arg name="entity" value="FlightSchedule" />
-		<constructor-arg name="linkProperty" value="departureAirportCode" />
-		<constructor-arg name="linkEntity" value="Airport" />
+	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="cmdGETFlightSchedule.arrivalAirport" class="com.temenos.interaction.commands.odata.GETLinkEntityCommand">
-		<constructor-arg name="entity" value="FlightSchedule" />
-		<constructor-arg name="linkProperty" value="arrivalAirportCode" />
-		<constructor-arg name="linkEntity" value="Airport" />
+	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="cmdGETAirport.flightSchedules" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg value="FlightSchedule" />
-		<constructor-arg ref="odataProducer" />
+	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+ <!-- 
+		<constructor-arg name="navProperty" value="departingFlights" />
+ -->
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
 
-	<!-- Resource commands -->
+	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
-				<entry key="GET+/" value-ref="cmdGetServiceRoot" />
-				<entry key="GET+/$metadata" value-ref="cmdGetMetadata" />
-				<entry key="GET+/FlightSchedule({id})" value-ref="cmdGETEntityFlightSchedule" />
-				<entry key="GET+/FlightSchedule" value-ref="cmdGETEntitiesFlightSchedule" />
-				<entry key="POST+/FlightSchedule" value-ref="cmdPOSTEntityFlightSchedule" />
-				<entry key="GET+/FlightSchedule({id})/departureAirport" value-ref="cmdGETFlightSchedule.departureAirport" />
-				<entry key="GET+/FlightSchedule({id})/arrivalAirport" value-ref="cmdGETFlightSchedule.arrivalAirport" />
-				<entry key="GET+/Airport({id})" value-ref="cmdGETEntityAirport" />
-				<entry key="GET+/Airport" value-ref="cmdGETEntitiesAirport" />
-				<entry key="POST+/Airport" value-ref="cmdPOSTEntityAirport" />
-				<entry key="GET+/Airport({id})/flightSchedules" value-ref="cmdGETAirport.flightSchedules" />
-				<entry key="GET+/Flight({id})" value-ref="cmdGETEntityFlight" />
-				<entry key="GET+/Flight" value-ref="cmdGETEntitiesFlight" />
-				<entry key="POST+/Flight" value-ref="cmdPOSTEntityFlight" />
-			</util:map> 
+				<entry key="GETServiceDocument" value-ref="GETServiceDocument" />
+				<entry key="GETMetadata" value-ref="GETMetadata" />
+				<entry key="GETEntity" value-ref="GETEntity" />
+				<entry key="GETEntities" value-ref="GETEntities" />
+				<entry key="GETNavProperty" value-ref="GETNavProperty" />
+				<entry key="CreateEntity" value-ref="CreateEntity" />
+ 			</util:map> 
 		</constructor-arg>
 	</bean>
 </beans>

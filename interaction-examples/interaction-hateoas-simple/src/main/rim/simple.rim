@@ -1,0 +1,49 @@
+events
+	POST POST // New
+	PUT PUT // Replace
+	PATCH POST // Merge
+	DELETE DELETE // Delete
+	GET GET
+end
+
+commands
+	NoopGET z
+	GETNotes z
+	GETNote z
+	DELETENote properties
+end
+
+initial resource home
+	item HOME
+	actions { NoopGET }
+	GET -> profile
+	GET -> notes
+end
+
+resource profile
+	item Profile
+	actions { NoopGET }
+	path "/profile"
+end
+
+resource notes
+	collection Note
+	actions { GETNotes }
+	path "/notes"
+	GET *-> note
+	DELETE *-> deletedNote
+end
+
+resource note
+	item Note
+	actions { GETNote }
+	path "/notes/{noteID}"
+	DELETE -> deletedNote
+end
+
+resource deletedNote
+	item note
+	actions { GETNote, DELETENote }
+	path "/notes/{noteID}"
+	GET --> notes
+end

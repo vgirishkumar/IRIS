@@ -1,5 +1,8 @@
 package com.temenos.interaction.core.media.atomsvc;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -21,9 +24,6 @@ import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.resource.EntityResource;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class TestServiceDocumentProvider {
 	public class MockServiceDocumentProvider extends ServiceDocumentProvider {

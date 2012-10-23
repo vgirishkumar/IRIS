@@ -16,8 +16,6 @@ import com.temenos.interaction.core.resource.EntityResource;
 public class POSTFundsTransferCommand implements InteractionCommand {
 
 	/* Implement InteractionCommand interface */
-
-	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
 		assert(ctx.getId() == null || "".equals(ctx.getId()));

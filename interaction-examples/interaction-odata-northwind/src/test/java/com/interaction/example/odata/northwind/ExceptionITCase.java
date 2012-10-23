@@ -41,7 +41,15 @@ public class ExceptionITCase extends AbstractNorthwindRuntimeTest {
 	@Test
 	public void test500InvalidKey() {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
-		OEntity customer = consumer.getEntity("Customers", 1).execute();
+		OEntity customer = null;
+		boolean exceptionThrown = true;
+		try {
+			customer = consumer.getEntity("Customers", 1).execute();
+		} catch (Exception e) {
+			exceptionThrown = true;
+		}
+		
 		Assert.assertNull(customer);
+		Assert.assertTrue("We expect a 500 error here", exceptionThrown);
 	}
 }

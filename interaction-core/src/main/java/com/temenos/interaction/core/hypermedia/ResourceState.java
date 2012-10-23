@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,10 @@ public class ResourceState implements Comparable<ResourceState> {
 	private boolean initial;
 	/* link relations */
 	private final String[] rels;
+	/* the actions that will be executed upon viewing or entering this state */
+	private final Set<Action> actions;
+	/* the UriSpecification is used to append the path parameter template to the path */
+	private final UriSpecification uriSpecification;
 	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
 
 	
@@ -36,8 +41,8 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param parent
 	 * @param name
 	 */
-	public ResourceState(ResourceState parent, String name) {
-		this(parent, name, null);
+	public ResourceState(ResourceState parent, String name, Set<Action> actions) {
+		this(parent, name, actions, null);
 	}
 	/**
 	 * {@link ResourceState(ResourceState, String)}
@@ -45,8 +50,8 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param name this states name
 	 * @param path the partial URI to this state, will be prepended with supplied ResourceState path
 	 */
-	public ResourceState(ResourceState parent, String name, String path) {
-		this(parent, parent.getEntityName(), name, parent.getPath() + (path == null ? "" : path), null, null, path == null);
+	public ResourceState(ResourceState parent, String name, Set<Action> actions, String path) {
+		this(parent, parent.getEntityName(), name, actions, parent.getPath() + (path == null ? "" : path), null, null, path == null, null);
 	}
 
 	/**
@@ -55,11 +60,14 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param name this states name
 	 * @param path the fully qualified URI to this state
 	 */
-	public ResourceState(String entityName, String name, String path) {
-		this(null, entityName, name, path, null, null, false);
+	public ResourceState(String entityName, String name, Set<Action> actions, String path) {
+		this(null, entityName, name, actions, path, null, null, false, null);
 	}
-	public ResourceState(String entityName, String name, String path, String[] rels) {
-		this(null, entityName, name, path, null, rels, false);
+	public ResourceState(String entityName, String name, Set<Action> actions, String path, String[] rels) {
+		this(null, entityName, name, actions, path, null, rels, false, null);
+	}
+	public ResourceState(String entityName, String name, Set<Action> actions, String path, String[] rels, UriSpecification uriSpec) {
+		this(null, entityName, name, actions, path, null, rels, false, uriSpec);
 	}
 
 	/**
@@ -69,14 +77,24 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param path the uri to this state
 	 * @param pathIdParameter override the default {id} path parameter and use the value instead
 	 */
-	public ResourceState(String entityName, String name, String path, String pathIdParameter) {
-		this(null, entityName, name, path, pathIdParameter, null, false);
+	public ResourceState(String entityName, String name, Set<Action> actions, String path, String pathIdParameter) {
+		this(null, entityName, name, actions, path, pathIdParameter, null, false, null);
 	}
-	public ResourceState(String entityName, String name, String path, String pathIdParameter, String[] rels) {
-		this(null, entityName, name, path, pathIdParameter, rels, false);
+	public ResourceState(String entityName, String name, Set<Action> actions, String path, String pathIdParameter, String[] rels) {
+		this(null, entityName, name, actions, path, pathIdParameter, rels, false, null);
 	}
 
-	private ResourceState(ResourceState parent, String entityName, String name, String path, String pathIdParameter, String[] rels, boolean pseudo) {
+	/**
+	 * Construct a ResourceState.  This object contains the instance information required to
+	 * create and service a resource.
+	 * @param uriSpecification the definition of the pathParameters available to a command bound to
+	 * 		this resource state.
+	 */
+	public ResourceState(String entityName, String name, Set<Action> actions, String path, UriSpecification uriSpec) {
+		this(null, entityName, name, actions, path, null, null, false, uriSpec);
+	}
+
+	private ResourceState(ResourceState parent, String entityName, String name, Set<Action> actions, String path, String pathIdParameter, String[] rels, boolean pseudo, UriSpecification uriSpec) {
 		assert(name != null);
 		assert(path != null);
 		this.parent = parent;
@@ -86,6 +104,8 @@ public class ResourceState implements Comparable<ResourceState> {
 		this.pathIdParameter = pathIdParameter;
 		this.initial = false;
 		this.pseudo = pseudo;
+		this.actions = actions;
+		this.uriSpecification = uriSpec;
 		if (rels == null) {
 			this.rels = "item".split(" ");
 		} else {
@@ -114,6 +134,12 @@ public class ResourceState implements Comparable<ResourceState> {
 		return path;
 	}
 
+	public String getResourcePath() {
+		if (getUriSpecification() != null)
+			return getUriSpecification().getTemplate();
+		return getPath();
+	}
+	
 	public String getPathIdParameter() {
 		return pathIdParameter;
 	}
@@ -155,6 +181,24 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public String[] getRels() {
 		return rels;
+	}
+	
+	public Set<Action> getActions() {
+		return actions;
+	}
+	
+	public Action getViewAction() {
+		Action action = null;
+		for (Action a : actions) {
+			if (a.getType().equals(Action.TYPE.VIEW)) {
+				action = a;
+			}
+		}
+		return action;
+	}
+	
+	public UriSpecification getUriSpecification() {
+		return uriSpecification;
 	}
 	
 	/**
@@ -282,7 +326,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 	
 	public String toString() {
-		return entityName + "." + name;
+		return getId();
 	}
 
 	@Override

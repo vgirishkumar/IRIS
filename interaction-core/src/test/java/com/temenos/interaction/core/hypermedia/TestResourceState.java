@@ -1,6 +1,8 @@
 package com.temenos.interaction.core.hypermedia;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,16 +11,13 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-
 public class TestResourceState {
 
 	@Test
 	public void testRels() {
 		String ENTITY_NAME = "entity";
 		String linkRels = "self geospatial";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "", linkRels.split(" "));
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "", linkRels.split(" "));
 		assertEquals(2, initial.getRels().length);
 		assertEquals("self", initial.getRels()[0]);
 		assertEquals("geospatial", initial.getRels()[1]);
@@ -28,30 +27,31 @@ public class TestResourceState {
 	public void testRel() {
 		String ENTITY_NAME = "entity";
 		String linkRels = "self geospatial";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "", linkRels.split(" "));
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "", linkRels.split(" "));
 		assertEquals("self geospatial", initial.getRel());
 	}
 
 	@Test
 	public void testDefaultRel() {
 		String ENTITY_NAME = "entity";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "");
+//		assertEquals("item self", initial.getRel());
 		assertEquals("item", initial.getRel());
 	}
 
 	@Test
 	public void testId() {
 		String ENTITY_NAME = "entity";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", "");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "");
 		assertEquals("entity.begin", initial.getId());
 	}
 	
 	@Test
 	public void testCollection() {
 		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "");
 		
 		Set<ResourceState> states = new HashSet<ResourceState>();
 		states.add(begin);
@@ -74,10 +74,10 @@ public class TestResourceState {
 	@Test
 	public void testSelfStatePath() {
 		String ENTITY_NAME = "entity";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", "/test");
-		ResourceState exists = new ResourceState(initial, "exists", "/exists");
-		ResourceState root = new ResourceState(ENTITY_NAME, "root", "");
-		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", "/archived");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/test");
+		ResourceState exists = new ResourceState(initial, "exists", new HashSet<Action>(), "/exists");
+		ResourceState root = new ResourceState(ENTITY_NAME, "root", new HashSet<Action>(), "");
+		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", new HashSet<Action>(), "/archived");
 		assertEquals("/test", initial.getPath());
 		assertEquals("/test/exists", exists.getPath());
 		assertEquals("", root.getPath());
@@ -87,8 +87,8 @@ public class TestResourceState {
 	@Test
 	public void testGetCommand() {
 		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
 		begin.addTransition("PUT", exists);
 		assertEquals("PUT", begin.getTransition(exists).getCommand().getMethod());
 		assertEquals("{id}", begin.getTransition(exists).getCommand().getPath());
@@ -97,8 +97,8 @@ public class TestResourceState {
 	@Test
 	public void testAutoTransition() {
 		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
 		begin.addTransition(null, exists, Transition.AUTO);
 		assertTrue(begin.getTransition(exists).getCommand().isAutoTransition());
 	}	
@@ -106,8 +106,8 @@ public class TestResourceState {
 	@Test (expected = IllegalArgumentException.class)
 	public void testInvalidAutoTransition() {
 		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
 		begin.addTransition("PUT", exists, Transition.AUTO);
 	}	
 	
@@ -119,8 +119,8 @@ public class TestResourceState {
 		uriLinkageMap.put("id", "NoteId");
 
 		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState("SomeEntity", "initial", "/tests");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", "/test/{id}");
+		ResourceState begin = new ResourceState("SomeEntity", "initial", new HashSet<Action>(), "/tests");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "/test/{id}");
 		begin.addTransition("PUT", exists, uriLinkageMap);
 		assertEquals("/test/{NoteId}", begin.getTransition(exists).getCommand().getPath());
 
@@ -129,16 +129,16 @@ public class TestResourceState {
 	@Test
 	public void testTransitionToStateMachine() {
 		String ENTITY_NAME1 = "entity1";
-		ResourceState initial = new ResourceState(ENTITY_NAME1, "initial", "/test/{id}");
-		ResourceState exists = new ResourceState(initial, "exists");
-		ResourceState deleted = new ResourceState(initial, "deleted");
+		ResourceState initial = new ResourceState(ENTITY_NAME1, "initial", new HashSet<Action>(), "/test/{id}");
+		ResourceState exists = new ResourceState(initial, "exists", new HashSet<Action>());
+		ResourceState deleted = new ResourceState(initial, "deleted", new HashSet<Action>());
 		initial.addTransition("PUT", exists);
 		exists.addTransition("DELETE", deleted);
 		
 		String ENTITY_NAME2 = "entity2";
-		ResourceState initial2 = new ResourceState(ENTITY_NAME2, "initial", "/entity/2");
-		ResourceState exists2 = new ResourceState(initial2, "exists");
-		ResourceState deleted2 = new ResourceState(initial2, "deleted");
+		ResourceState initial2 = new ResourceState(ENTITY_NAME2, "initial", new HashSet<Action>(), "/entity/2");
+		ResourceState exists2 = new ResourceState(initial2, "exists", new HashSet<Action>());
+		ResourceState deleted2 = new ResourceState(initial2, "deleted", new HashSet<Action>());
 		initial2.addTransition("PUT", exists2);
 		exists2.addTransition("DELETE", deleted2);
 		
@@ -154,8 +154,8 @@ public class TestResourceState {
 	@Test
 	public void testEquality() {
 		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "");
-		ResourceState begin2 = new ResourceState(ENTITY_NAME, "begin", "");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "");
+		ResourceState begin2 = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "");
 		assertEquals(begin, begin2);
 		assertEquals(begin.hashCode(), begin2.hashCode());
 	}
@@ -163,8 +163,8 @@ public class TestResourceState {
 	@Test
 	public void testInequality() {
 		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "");
 		assertFalse(begin.equals(end));
 		assertFalse(begin.hashCode() == end.hashCode());
 	}
@@ -172,8 +172,8 @@ public class TestResourceState {
 	@Test
 	public void testEqualityEntity() {
 		String STATE_NAME = "pseudo";
-		ResourceState one = new ResourceState("entity1", STATE_NAME, "");
-		ResourceState two = new ResourceState("entity1", STATE_NAME, "");
+		ResourceState one = new ResourceState("entity1", STATE_NAME, new HashSet<Action>(), "");
+		ResourceState two = new ResourceState("entity1", STATE_NAME, new HashSet<Action>(), "");
 		assertEquals(one, two);
 		assertEquals(one.hashCode(), two.hashCode());
 	}
@@ -181,8 +181,8 @@ public class TestResourceState {
 	@Test
 	public void testInequalityEntity() {
 		String STATE_NAME = "pseudo";
-		ResourceState one = new ResourceState("entity1", STATE_NAME, "");
-		ResourceState two = new ResourceState("entity2", STATE_NAME, "");
+		ResourceState one = new ResourceState("entity1", STATE_NAME, new HashSet<Action>(), "");
+		ResourceState two = new ResourceState("entity2", STATE_NAME, new HashSet<Action>(), "");
 		assertFalse(one.equals(two));
 		assertFalse(one.hashCode() == two.hashCode());
 	}
@@ -190,8 +190,8 @@ public class TestResourceState {
 	@Test
 	public void testEndState() {
 		String ENTITY_NAME = "entity";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", "");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", "");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "");
 		begin.addTransition("DELETE", end);
 		assertFalse(begin.isFinalState());
 		assertTrue(end.isFinalState());
@@ -203,8 +203,8 @@ public class TestResourceState {
 	 */
 	@Test
 	public void testPseudoState() {
-		ResourceState exists = new ResourceState("entity", "exists", "/exists");
-		ResourceState deleted = new ResourceState(exists, "deleted");
+		ResourceState exists = new ResourceState("entity", "exists", new HashSet<Action>(), "/exists");
+		ResourceState deleted = new ResourceState(exists, "deleted", new HashSet<Action>());
 		assertTrue(deleted.isPseudoState());
 	}
 
@@ -213,8 +213,8 @@ public class TestResourceState {
 	 */
 	@Test
 	public void testTransientState() {
-		ResourceState home = new ResourceState("root", "root", "/");
-		ResourceState reboot = new ResourceState("entity", "reboot", "/reboot");
+		ResourceState home = new ResourceState("root", "root", new HashSet<Action>(), "/");
+		ResourceState reboot = new ResourceState("entity", "reboot", new HashSet<Action>(), "/reboot");
 		home.addTransition("POST", reboot);
 		reboot.addTransition(home);
 		assertTrue(reboot.isTransientState());
@@ -226,8 +226,8 @@ public class TestResourceState {
 	 */
 	@Test
 	public void testTransientTarget() {
-		ResourceState home = new ResourceState("root", "root", "/");
-		ResourceState reboot = new ResourceState("entity", "reboot", "/reboot");
+		ResourceState home = new ResourceState("root", "root", new HashSet<Action>(), "/");
+		ResourceState reboot = new ResourceState("entity", "reboot", new HashSet<Action>(), "/reboot");
 		home.addTransition("POST", reboot);
 		reboot.addTransition(home);
 		assertEquals(home, reboot.getAutoTransition().getTarget());
