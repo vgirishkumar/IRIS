@@ -291,6 +291,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					// TODO remove this hack :-(
 					path = "/" + path;
 				}
+				// TODO, improve this ridiculously basic support for Update
+				if (path.contains("(")) {
+					path = path.substring(0, path.indexOf("("));
+				}
 				rim = resourceRegistry.getResourceInteractionModel(path);
 				if (rim == null) {
 					// give up, we can't handle this request 404

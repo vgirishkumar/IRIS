@@ -75,8 +75,9 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", note.getProperty("body").getValue());
 
 		// there should be one link to one Person for this Note
-		assertEquals(2, note.getLinks().size());
+		assertEquals(3, note.getLinks().size());
 		assertTrue(containsLink(note.getLinks(), "Note(1)/NotePerson"));
+		assertTrue(containsLink(note.getLinks(), "Note(1)"));   // link to update this note
 		assertTrue(containsLink(note.getLinks(), "Note(1)"));   // link to delete this note
 	}
 

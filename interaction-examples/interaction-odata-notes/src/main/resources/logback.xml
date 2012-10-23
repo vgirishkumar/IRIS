@@ -9,7 +9,7 @@
 
   <!-- Log debug information about links -->
   <logger name="com.temenos.interaction.core.hypermedia">
-    <level value="DEBUG" />
+    <level value="INFO" />
   </logger>
   <!-- Log debug information about resource interactions -->
   <logger name="com.temenos.interaction.core.rim">
@@ -18,11 +18,11 @@
 
   <!-- Log all resource endpoints -->
   <logger name="org.apache.wink.server.internal.log.Resources">
-    <level value="DEBUG" />
+    <level value="INFO" />
   </logger>
   <!-- Log all requests -->
   <logger name="org.apache.wink.server.internal.log.Requests">
-    <level value="DEBUG" />
+    <level value="INFO" />
   </logger>
 
   <logger name="org.apache.wink.common">

@@ -72,6 +72,7 @@ public class Behaviour {
 		ResourceState pseudoCreated = new ResourceState(notes, "PseudoCreated", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 1 for configuring the interaction - use another state as a parent
 		ResourceState note = new ResourceState(notes, "note", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "({id})");
+		ResourceState noteUpdated = new ResourceState(note, "updated", createActionSet(null, new Action("UpdateEntity", Action.TYPE.ENTRY)));
 		ResourceState noteDeleted = new ResourceState(note, "deleted", createActionSet(null, new Action("DeleteEntity", Action.TYPE.ENTRY)));
 		/* 
 		 * this navigation property demonstrates an Action properties and 
@@ -90,6 +91,7 @@ public class Behaviour {
 		// auto transition to new note that was just created
 		pseudoCreated.addTransition(note);
 		note.addTransition("GET", notePerson, uriLinkageMap);
+		note.addTransition("PUT", noteUpdated);
 		note.addTransition("DELETE", noteDeleted);
 
 		return new ResourceStateMachine(notes);
