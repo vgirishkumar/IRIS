@@ -170,8 +170,8 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 					writer.startElement(new QName2("NavigationProperty"));
 		            writer.writeAttribute("Name", npName);
 		            writer.writeAttribute("Relationship", relation.getNamespace() + "." + relation.getName());
-		            writer.writeAttribute("FromRole", relation.getSourceEntityName());
-		            writer.writeAttribute("ToRole", relation.getTargetEntityName());
+		            writer.writeAttribute("FromRole", getRoleSourceEntity(relation));
+		            writer.writeAttribute("ToRole", getRoleTargetEntity(relation));
 		            writer.endElement("NavigationProperty");
 
 		            npNames.add(npName);
@@ -191,7 +191,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
           writer.writeAttribute("Name", relation.getName());
 
           writer.startElement(new QName2("End"));
-          writer.writeAttribute("Role", relation.getSourceEntityName());
+          writer.writeAttribute("Role", getRoleSourceEntity(relation));
           writer.writeAttribute("Type", relation.getNamespace() + "." + relation.getSourceEntityName());
           if(relation.getMultiplicity() == EntityRelation.MULTIPLICITY_TO_MANY) {
         	  writer.writeAttribute("Multiplicity", "0..1");
@@ -202,7 +202,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
           writer.endElement("End");
 
           writer.startElement(new QName2("End"));
-          writer.writeAttribute("Role", relation.getTargetEntityName());
+          writer.writeAttribute("Role", getRoleTargetEntity(relation));
           writer.writeAttribute("Type", relation.getNamespace() + "." + relation.getTargetEntityName());
           if(relation.getMultiplicity() == EntityRelation.MULTIPLICITY_TO_MANY) {
         	  writer.writeAttribute("Multiplicity", "*");
@@ -270,12 +270,12 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
             writer.writeAttribute("Association", relation.getNamespace() + "." + relation.getName());
 
             writer.startElement(new QName2("End"));
-            writer.writeAttribute("Role", relation.getSourceEntityName());
+            writer.writeAttribute("Role", getRoleSourceEntity(relation));
             writer.writeAttribute("EntitySet", relation.getSourceEntityName());
             writer.endElement("End");
 
             writer.startElement(new QName2("End"));
-            writer.writeAttribute("Role", relation.getTargetEntityName());
+            writer.writeAttribute("Role", getRoleTargetEntity(relation));
             writer.writeAttribute("EntitySet", relation.getTargetEntityName());
             writer.endElement("End");
 
@@ -294,6 +294,18 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
     writer.endDocument();
   }
 
+  private static String getRoleSourceEntity(EntityRelation relation) {
+	  String sourceEntityName = relation.getSourceEntityName();
+	  String targetEntityName = relation.getTargetEntityName();
+	  return !sourceEntityName.equals(targetEntityName) ? sourceEntityName : sourceEntityName + "1";
+  }
+
+  private static String getRoleTargetEntity(EntityRelation relation) {
+	  String sourceEntityName = relation.getSourceEntityName();
+	  String targetEntityName = relation.getTargetEntityName();
+	  return !sourceEntityName.equals(targetEntityName) ? targetEntityName : targetEntityName + "2";
+  }
+  
   /**
    * Extensions to CSDL like Annotations appear in an application specific set
    * of namespaces.
@@ -312,7 +324,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 
       writer.writeAttribute("Name", prop.getName());
       writer.writeAttribute("Type", prop.getType().getFullyQualifiedTypeName());
-      writer.writeAttribute("Nullable", prop.isNullable() ? "false" : "true");		//odata4j bug - inverted values when loaded
+      writer.writeAttribute("Nullable", prop.isNullable() ? "true" : "false");
       if (prop.getMaxLength() != null) {
         writer.writeAttribute("MaxLength", Integer.toString(prop.getMaxLength()));
       }

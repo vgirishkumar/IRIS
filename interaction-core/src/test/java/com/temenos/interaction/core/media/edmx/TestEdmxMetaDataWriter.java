@@ -44,7 +44,7 @@ public class TestEdmxMetaDataWriter {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(mr, MetaDataResource.class, EdmDataServices.class, null, MediaType.APPLICATION_XML_TYPE, null, bos);
 
-		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><edmx:Edmx Version=\"1.0\" xmlns:edmx=\"http://schemas.microsoft.com/ado/2007/06/edmx\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><edmx:DataServices m:DataServiceVersion=\"1.0\"><Schema xmlns=\"http://schemas.microsoft.com/ado/2006/04/edm\" Namespace=\"MyNamespace\"><EntityType Name=\"Flight\"><Key><PropertyRef Name=\"MyId\"></PropertyRef></Key><Property Name=\"MyId\" Type=\"Edm.String\" Nullable=\"false\"></Property></EntityType><EntityContainer Name=\"MyEntityContainer\" m:IsDefaultEntityContainer=\"false\"><EntitySet Name=\"Flight\" EntityType=\"MyNamespace.Flight\"></EntitySet></EntityContainer></Schema></edmx:DataServices></edmx:Edmx>";
+		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><edmx:Edmx Version=\"1.0\" xmlns:edmx=\"http://schemas.microsoft.com/ado/2007/06/edmx\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><edmx:DataServices m:DataServiceVersion=\"1.0\"><Schema xmlns=\"http://schemas.microsoft.com/ado/2006/04/edm\" Namespace=\"MyNamespace\"><EntityType Name=\"Flight\"><Key><PropertyRef Name=\"MyId\"></PropertyRef></Key><Property Name=\"MyId\" Type=\"Edm.String\" Nullable=\"false\"></Property></EntityType><EntityContainer Name=\"MyEntityContainer\" m:IsDefaultEntityContainer=\"true\"><EntitySet Name=\"Flight\" EntityType=\"MyNamespace.Flight\"></EntitySet></EntityContainer></Schema></edmx:DataServices></edmx:Edmx>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
@@ -67,7 +67,7 @@ public class TestEdmxMetaDataWriter {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_XML_TYPE, null, bos);
 
-		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><edmx:Edmx Version=\"1.0\" xmlns:edmx=\"http://schemas.microsoft.com/ado/2007/06/edmx\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><edmx:DataServices m:DataServiceVersion=\"1.0\"><Schema xmlns=\"http://schemas.microsoft.com/ado/2006/04/edm\" Namespace=\"MyNamespace\"><EntityType Name=\"Flight\"><Key><PropertyRef Name=\"MyId\"></PropertyRef></Key><Property Name=\"MyId\" Type=\"Edm.String\" Nullable=\"false\"></Property></EntityType><EntityContainer Name=\"MyEntityContainer\" m:IsDefaultEntityContainer=\"false\"><EntitySet Name=\"Flight\" EntityType=\"MyNamespace.Flight\"></EntitySet></EntityContainer></Schema></edmx:DataServices></edmx:Edmx>";
+		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><edmx:Edmx Version=\"1.0\" xmlns:edmx=\"http://schemas.microsoft.com/ado/2007/06/edmx\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><edmx:DataServices m:DataServiceVersion=\"1.0\"><Schema xmlns=\"http://schemas.microsoft.com/ado/2006/04/edm\" Namespace=\"MyNamespace\"><EntityType Name=\"Flight\"><Key><PropertyRef Name=\"MyId\"></PropertyRef></Key><Property Name=\"MyId\" Type=\"Edm.String\" Nullable=\"false\"></Property></EntityType><EntityContainer Name=\"MyEntityContainer\" m:IsDefaultEntityContainer=\"true\"><EntitySet Name=\"Flight\" EntityType=\"MyNamespace.Flight\"></EntitySet></EntityContainer></Schema></edmx:DataServices></edmx:Edmx>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
@@ -97,7 +97,7 @@ public class TestEdmxMetaDataWriter {
 				+ "<NavigationProperty Name=\"ainitial\" Relationship=\"MyNamespace.Flight_Airport\" FromRole=\"Flight\" ToRole=\"Airport\"></NavigationProperty>"
 				+ "</EntityType>"
 				+ "<Association Name=\"Flight_Airport\"><End Role=\"Flight\" Type=\"MyNamespace.Flight\" Multiplicity=\"*\"></End><End Role=\"Airport\" Type=\"MyNamespace.Airport\" Multiplicity=\"0..1\"></End></Association>"
-				+ "<EntityContainer Name=\"MyEntityContainer\" m:IsDefaultEntityContainer=\"false\"><EntitySet Name=\"Flight\" EntityType=\"MyNamespace.Flight\"></EntitySet>"
+				+ "<EntityContainer Name=\"MyEntityContainer\" m:IsDefaultEntityContainer=\"true\"><EntitySet Name=\"Flight\" EntityType=\"MyNamespace.Flight\"></EntitySet>"
 				+ "<AssociationSet Name=\"Flight_Airport\" Association=\"MyNamespace.Flight_Airport\"><End Role=\"Flight\" EntitySet=\"Flight\"></End><End Role=\"Airport\" EntitySet=\"Airport\"></End></AssociationSet>"
 				+ "</EntityContainer></Schema></edmx:DataServices></edmx:Edmx>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
@@ -111,7 +111,7 @@ public class TestEdmxMetaDataWriter {
 		List<String> keys = new ArrayList<String>();
 		keys.add("MyId");
 		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
-		EdmProperty.Builder ep = EdmProperty.newBuilder("MyId").setType(EdmSimpleType.STRING).setNullable(true);	//odata4j bug - inverted nullable properties
+		EdmProperty.Builder ep = EdmProperty.newBuilder("MyId").setType(EdmSimpleType.STRING).setNullable(false);
 		properties.add(ep);
 		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName("Flight").addKeys(keys).addProperties(properties);
 		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Flight").setEntityType(eet);
@@ -119,7 +119,7 @@ public class TestEdmxMetaDataWriter {
 		mockEntityTypes.add(eet);
 		List<EdmEntitySet.Builder> mockEntitySets = new ArrayList<EdmEntitySet.Builder>();
 		mockEntitySets.add(ees);
-		EdmEntityContainer.Builder eec = EdmEntityContainer.newBuilder().setName("MyEntityContainer").addEntitySets(mockEntitySets);
+		EdmEntityContainer.Builder eec = EdmEntityContainer.newBuilder().setName("MyEntityContainer").setIsDefault(true).addEntitySets(mockEntitySets);
 		List<EdmEntityContainer.Builder> mockEntityContainers = new ArrayList<EdmEntityContainer.Builder>();
 		mockEntityContainers.add(eec);
 		EdmSchema.Builder es = EdmSchema.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").addEntityTypes(mockEntityTypes).addEntityContainers(mockEntityContainers);

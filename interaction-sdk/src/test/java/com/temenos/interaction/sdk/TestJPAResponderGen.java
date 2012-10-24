@@ -233,13 +233,21 @@ public class TestJPAResponderGen {
 		voc = new Vocabulary();
 		voc.setTerm(new TermValueType(TermValueType.TIMESTAMP));
 		mdEntity.setPropertyVocabulary("departureDT", voc);
+		voc = new Vocabulary();
+		voc.setTerm(new TermValueType(TermValueType.DATE));
+		mdEntity.setPropertyVocabulary("departureDate", voc);
+		voc = new Vocabulary();
+		voc.setTerm(new TermValueType(TermValueType.TIME));
+		mdEntity.setPropertyVocabulary("departureTime", voc);
 		EntityInfo p = rg.createEntityInfoFromEntityMetadata("AirlineModel", mdEntity);
 		
-		assertEquals(4, p.getFieldInfos().size());
+		assertEquals(6, p.getFieldInfos().size());
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("flightID", "Long", null)));
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("number", "String", null)));
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("runway", "String", null)));
 		assertTrue(p.getFieldInfos().contains(new FieldInfo("departureDT", "java.util.Date", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("departureDate", "java.util.Date", null)));
+		assertTrue(p.getFieldInfos().contains(new FieldInfo("departureTime", "java.util.Date", null)));
 	}
 	
 	@Test
@@ -285,18 +293,25 @@ public class TestJPAResponderGen {
 		voc.setTerm(new TermValueType(TermValueType.TIMESTAMP));
 		mdEntity.setPropertyVocabulary("departureDT", voc);
 		voc = new Vocabulary();
-		voc.setTerm(new TermValueType(TermValueType.TIMESTAMP));
+		voc.setTerm(new TermValueType(TermValueType.DATE));
+		mdEntity.setPropertyVocabulary("departureDate", voc);
+		voc = new Vocabulary();
+		voc.setTerm(new TermValueType(TermValueType.TIME));
 		mdEntity.setPropertyVocabulary("departureTime", voc);
 		EntityInfo p = rg.createEntityInfoFromEntityMetadata("AirlineModel", mdEntity);
 
 		// Annotations
-		FieldInfo dateFI = p.getFieldInfos().get(0);
-		assertEquals(1, dateFI.getAnnotations().size());
-		assertEquals("@Temporal(TemporalType.TIMESTAMP)", dateFI.getAnnotations().get(0));
-
+		FieldInfo dateOnlyFI = p.getFieldInfos().get(0);
+		assertEquals(1, dateOnlyFI.getAnnotations().size());
+		assertEquals("@Temporal(TemporalType.DATE)", dateOnlyFI.getAnnotations().get(0));
+		
 		FieldInfo timeFI = p.getFieldInfos().get(1);
 		assertEquals(1, timeFI.getAnnotations().size());
-		assertEquals("@Temporal(TemporalType.TIMESTAMP)", timeFI.getAnnotations().get(0));
+		assertEquals("@Temporal(TemporalType.TIME)", timeFI.getAnnotations().get(0));
+
+		FieldInfo dateFI = p.getFieldInfos().get(2);
+		assertEquals(1, dateFI.getAnnotations().size());
+		assertEquals("@Temporal(TemporalType.TIMESTAMP)", dateFI.getAnnotations().get(0));
 	}
 	
 	@Test(expected = AssertionError.class)

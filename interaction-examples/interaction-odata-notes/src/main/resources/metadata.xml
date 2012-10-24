@@ -13,7 +13,7 @@
             <Term Name="TERM_MANDATORY">false</Term>
             <Term Name="TERM_VALUE_TYPE">STRING</Term>
         </Property>
-        <Property Name="person" />
+        <Property Name="personId" />
     </Entity>
 	<Entity Name="Person">
         <Property Name="id">
