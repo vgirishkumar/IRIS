@@ -37,8 +37,13 @@ public class IMTransition {
 		return isCollectionState;
 	}
 
-	public String getReciprocalLinkState() {
-		return reciprocalLinkState;
+	/**
+	 * Returns the resource state name of the target RSM which is either the
+	 * reciprocal state or, if not defined, the entity state of the target RSM. 
+	 * @return resource state name 
+	 */
+	public String getTargetRsmStateName() {
+		return (reciprocalLinkState != null && !reciprocalLinkState.equals("")) ? reciprocalLinkState : targetResourceStateMachine.getEntityStateName();
 	}
 	
 	public IMResourceStateMachine getTargetResourceStateMachine() {

@@ -38,6 +38,15 @@ public class IMResourceStateMachine {
 		return mappedEntityProperty;
 	}
 	
+	/**
+	 * Add a transition to another state
+	 * @param targetEntityName Entity associated to target RSM
+	 * @param linkProperty Navigation property linking to the target RSM
+	 * @param targetStateName Resource state of source RSM to which we want to move 
+	 * @param isCollectionState Specifies if target resource state is a collection
+	 * @param reciprocalLinkState Resource state of target RSM which leads us back to the source RSM. Leave null or empty to avoid reciprocal links.
+	 * @param targetResourceStateMachine Target RSM
+	 */
 	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine) {
 		transitions.add(new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine));
 	}
