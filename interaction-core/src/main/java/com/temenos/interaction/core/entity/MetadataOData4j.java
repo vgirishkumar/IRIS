@@ -81,7 +81,7 @@ public class MetadataOData4j {
     		EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(entityMetadata.getEntityName()).setEntityType(bEntityType);
     		bEntitySets.add(bEntitySet);
 		}
-		EdmEntityContainer.Builder bEntityContainer = EdmEntityContainer.newBuilder().setName(serviceName).addEntitySets(bEntitySets);
+		EdmEntityContainer.Builder bEntityContainer = EdmEntityContainer.newBuilder().setName(serviceName).setIsDefault(true).addEntitySets(bEntitySets);
 		bEntityContainers.add(bEntityContainer);
 
     	bSchema.setNamespace(namespace).setAlias(serviceName).addEntityTypes(bEntityTypes).addEntityContainers(bEntityContainers);
