@@ -32,7 +32,7 @@ public class Command {
 		this.className = className;
 	}
 
-	public String getParameterValue(int i) {
+	public String getParameterName(int i) {
 		return parameters.get(i).getValue();
 	}
 
@@ -44,8 +44,8 @@ public class Command {
 		return parameters;
 	}
 	
-	public void addParameter(String value, boolean isByReference) {
-		parameters.add(new Parameter(value, isByReference));
+	public void addParameter(String value, boolean isByReference, String refId) {
+		parameters.add(new Parameter(value, isByReference, refId));
 	}
 
 	public void addParameter(Parameter parameter) {

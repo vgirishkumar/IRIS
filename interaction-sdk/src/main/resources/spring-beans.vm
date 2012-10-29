@@ -101,41 +101,30 @@
     </bean>
 
 	<!-- Commands -->
-	<bean id="GETServiceDocument" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-		<constructor-arg value="ServiceDocument" />
-		<constructor-arg ref="edmDataServices" />
+#foreach ( $command in $commands.getCommands() )
+	<bean id="$command.getId()" class="$command.getClassName()">
+#foreach ( $parameter in $command.getParameters() )
+#if ($parameter.isByReference() == "true")
+#if ($parameter.getRefId() != "")
+		<constructor-arg name="$parameter.getValue()" ref="$parameter.getRefId()" />
+#else
+		<constructor-arg ref="$parameter.getValue()" />
+#end
+#else
+		<constructor-arg value="$parameter.getValue()" />
+#end
+#end
 	</bean>
-	<bean id="GETMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
-		<constructor-arg value="Metadata" />
-		<constructor-arg ref="edmDataServices" />
-	</bean>
-	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
-		<constructor-arg name="producer" ref="odataProducer" />
-	</bean>
-	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
-		<constructor-arg name="producer" ref="odataProducer" />
-	</bean>
-	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-		<constructor-arg name="producer" ref="odataProducer" />
-	</bean>
-	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
-		<constructor-arg name="producer" ref="odataProducer" />
-	</bean>
-	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
-		<constructor-arg name="producer" ref="odataProducer" />
-	</bean>
+	
+#end
 	
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
-				<entry key="GETServiceDocument" value-ref="GETServiceDocument" />
-				<entry key="GETMetadata" value-ref="GETMetadata" />
-				<entry key="GETEntity" value-ref="GETEntity" />
-				<entry key="GETEntities" value-ref="GETEntities" />
-				<entry key="GETNavProperty" value-ref="GETNavProperty" />
-				<entry key="CreateEntity" value-ref="CreateEntity" />
-				<entry key="DeleteEntity" value-ref="DeleteEntity" />
+#foreach ( $command in $commands.getCommands() )
+				<entry key="$command.getId()" value-ref="$command.getId()" />
+#end
 			</util:map> 
 		</constructor-arg>
 	</bean>
