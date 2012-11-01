@@ -119,8 +119,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 			Map<String, String> multipleNavPropsToEntity = new HashMap<String, String>();		//Map<TargetEntityName, TargetStateName>
 			for(Transition entityTransition : entityTransitions) {
 				if (entityTransition.getSource().getEntityName().equals(entityName) 
-						&& !entityTransition.getTarget().isPseudoState()
-						&& !entityTransition.getTarget().getEntityName().equals(entityName)) {
+						&& !entityTransition.getTarget().isPseudoState()) {
 					String targetEntityName = entityTransition.getTarget().getEntityName();
 					String targetStateName = entityTransition.getTarget().getName();
 					String lastTargetStateName = multipleNavPropsToEntity.get(targetEntityName);
@@ -142,8 +141,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 				String npName = targetState.getName();
 				if (sourceState.getEntityName().equals(entityName) 
 						&& !entityTransition.getTarget().isPseudoState()
-						&& !entityTransition.getTarget().getEntityName().equals(entityName)
-						&& !npNames.contains(targetState.getEntityName())) {		// don't create multiple navproperty to a single resource state
+						&& !npNames.contains(npName)) {		//We can have transitions to a resource state from multiple source states
 					int multiplicity = (entityTransition.getTarget().getClass() == CollectionResourceState.class) ? EntityRelation.MULTIPLICITY_TO_MANY : EntityRelation.MULTIPLICITY_TO_ONE;
 	
 					//Use the entity names to define the relation
@@ -176,7 +174,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 		            writer.writeAttribute("ToRole", getRoleTargetEntity(relation));
 		            writer.endElement("NavigationProperty");
 
-		            npNames.add(targetState.getEntityName());
+		            npNames.add(npName);
 				}
 			}
 		}
