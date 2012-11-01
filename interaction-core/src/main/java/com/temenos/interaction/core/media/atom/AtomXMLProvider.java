@@ -205,7 +205,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks);
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource.getLinks(), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks);
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
