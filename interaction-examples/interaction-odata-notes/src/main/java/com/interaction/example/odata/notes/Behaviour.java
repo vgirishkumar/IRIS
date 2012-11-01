@@ -71,20 +71,45 @@ public class Behaviour {
 		CollectionResourceState notes = new CollectionResourceState(NOTE, "notes", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), NOTES_PATH);
 		ResourceState pseudoCreated = new ResourceState(notes, "PseudoCreated", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 1 for configuring the interaction - use another state as a parent
-		ResourceState note = new ResourceState(notes, "note", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "({id})");
-		ResourceState noteUpdated = new ResourceState(note, "updated", createActionSet(null, new Action("UpdateEntity", Action.TYPE.ENTRY)));
-		ResourceState noteDeleted = new ResourceState(note, "deleted", createActionSet(null, new Action("DeleteEntity", Action.TYPE.ENTRY)));
+		ResourceState note = new ResourceState(notes, 
+				"note", 
+				createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), 
+				"({id})",
+				NOTE.split(" "));
+		ResourceState noteUpdated = new ResourceState(note, 
+				"updated", 
+				createActionSet(null, new Action("UpdateEntity", Action.TYPE.ENTRY)),
+				null,
+				"edit".split(" ")
+				);
+		ResourceState noteDeleted = new ResourceState(note, 
+				"deleted", 
+				createActionSet(null, new Action("DeleteEntity", Action.TYPE.ENTRY)),
+				null,
+				"delete".split(" ")
+				);
 		/* 
 		 * this navigation property demonstrates an Action properties and 
 		 * uri specification to get conceptual configuration into a Command
 		 */
 		Properties personNotesNavProperties = new Properties();
 		personNotesNavProperties.put("entity", NOTE);
-		ResourceState notePerson = new ResourceState(PERSON, "NotePerson", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), NOTE_PERSON_PATH, new ODataUriSpecification().getTemplate(NOTES_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
+
+		/*
+		 * The link relation for a NavProperty must match the NavProperty name to keep ODataExplorer happy
+		 */
+		ResourceState notePerson = new ResourceState(PERSON, 
+				"NotePerson", 
+				createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), 
+				NOTE_PERSON_PATH, 
+				"NotePerson".split(" "),
+				new ODataUriSpecification().getTemplate(NOTES_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "id");
+		// edit
+		notes.addTransitionForEachItem("PUT", noteUpdated, uriLinkageMap);
 		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
 		notes.addTransitionForEachItem("GET", notePerson, uriLinkageMap);
 		notes.addTransition("POST", pseudoCreated);
@@ -101,14 +126,27 @@ public class Behaviour {
 		CollectionResourceState persons = new CollectionResourceState(PERSON, "persons", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), PERSONS_PATH);
 		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 2 for configuring the interaction - specify the entity, state, and fully qualified path
-		ResourceState person = new ResourceState(PERSON, "person", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), PERSON_ITEM_PATH);
+		ResourceState person = new ResourceState(PERSON, 
+				"person", 
+				createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), 
+				PERSON_ITEM_PATH,
+				PERSON.split(" "));
 		/* 
 		 * this navigation property demostrates an Action properties and 
 		 * uri specification to get conceptual configuration into a Command
 		 */
 		Properties personNotesNavProperties = new Properties();
 		personNotesNavProperties.put("entity", PERSON);
-		CollectionResourceState personNotes = new CollectionResourceState(NOTE, "PersonNotes", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), PERSON_NOTES_PATH, new ODataUriSpecification().getTemplate(PERSONS_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
+		
+		/*
+		 * The link relation for a NavProperty must match the NavProperty name to keep ODataExplorer happy
+		 */
+		CollectionResourceState personNotes = new CollectionResourceState(NOTE, 
+				"PersonNotes", 
+				createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), 
+				PERSON_NOTES_PATH, 
+				"PersonNotes".split(" "),
+				new ODataUriSpecification().getTemplate(PERSONS_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();

@@ -59,7 +59,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// there should be one link to one note for this person
 		assertEquals(1, person.getLinks().size());
-		assertTrue(containsLink(person.getLinks(), "Person(1)/PersonNotes"));
+		assertTrue(containsLink(person.getLinks(), "Person(1)/PersonNotes", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes"));
 	}
 
 	/**
@@ -75,10 +75,11 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", note.getProperty("body").getValue());
 
 		// there should be one link to one Person for this Note
-		assertEquals(3, note.getLinks().size());
-		assertTrue(containsLink(note.getLinks(), "Note(1)/NotePerson"));
-		assertTrue(containsLink(note.getLinks(), "Note(1)"));   // link to update this note
-		assertTrue(containsLink(note.getLinks(), "Note(1)"));   // link to delete this note
+		assertEquals(2, note.getLinks().size());
+		assertTrue(containsLink(note.getLinks(), "Note(1)/NotePerson", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/NotePerson"));
+		// 'edit' rel does not get through as a link
+		// assertTrue(containsLink(note.getLinks(), "Note(1)", "edit"));   // link to update this note
+		assertTrue(containsLink(note.getLinks(), "Note(1)", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/delete"));   // link to delete this note
 	}
 
 	/**
@@ -154,8 +155,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// there should be one link to one note for this person
 		assertEquals(2, person.getLinks().size());
-		assertTrue(containsLink(person.getLinks(), "Person(1)"));
-		assertTrue(containsLink(person.getLinks(), "Person(1)/PersonNotes"));
+		assertTrue(containsLink(person.getLinks(), "Person(1)", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
+		assertTrue(containsLink(person.getLinks(), "Person(1)/PersonNotes", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes"));
 		
 	}
 
@@ -185,7 +186,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
 		assertEquals(1, note.getLinks().size());
-		assertTrue(containsLink(person.getLinks(), "Person(" + id + ")"));
+		assertTrue(containsLink(person.getLinks(), "Person(" + id + ")", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
 	}
 
 	/**
@@ -220,11 +221,11 @@ public class SimpleAssociationsITCase extends JerseyTest {
         assertTrue(response.getAllow().contains("HEAD"));
 	}
 
-	private boolean containsLink(List<OLink> links, String link) {
+	private boolean containsLink(List<OLink> links, String link, String rel) {
 		assert(links != null);
 		boolean contains = false;
 		for (OLink l : links) {
-			if (l.getHref().equals(link)) {
+			if (l.getHref().equals(link) && l.getRelation().equals(rel)) {
 				contains = true;
 			}
 		}

@@ -218,7 +218,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	public void addLinkToOLinks(List<OLink> olinks, Link link) {
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
 		String rel = link.getRel();
-		if(!rel.contains("self")) {
+		if(!rel.contains("self") && !rel.contains("edit")) {
 			rel = XmlFormatWriter.related + link.getRel();
 		}
 		String href = link.getHref();
@@ -229,13 +229,28 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		String title = link.getTitle();
 		OLink olink;
 		Transition linkTransition = link.getTransition();
-		if(linkTransition.getTarget().getClass() == CollectionResourceState.class) {
+		if(linkTransition != null && linkTransition.getTarget().getClass() == CollectionResourceState.class) {
 			olink = OLinks.relatedEntities(rel, title, href);
-		}
-		else {
+		} else {
 			olink = OLinks.relatedEntity(rel, title, href);
 		}
 		olinks.add(olink);
+		if (rel.contains("edit")) {
+			dropLinkByRel(olinks, "self");
+		}
+	}
+
+	private boolean dropLinkByRel(List<OLink> links, String rel) {
+		boolean found = false;
+		for (int i = 0; i < links.size(); i++) {
+			OLink link = links.get(i);
+			if (link.getRelation().equals(rel)) {
+				links.remove(i);
+				found = true;
+				break;
+			}
+		}
+		return found;
 	}
 
 	@Override

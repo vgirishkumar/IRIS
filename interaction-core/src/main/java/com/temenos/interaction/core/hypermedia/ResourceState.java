@@ -57,7 +57,10 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param path the partial URI to this state, will be prepended with supplied ResourceState path
 	 */
 	public ResourceState(ResourceState parent, String name, Set<Action> actions, String path) {
-		this(parent, parent.getEntityName(), name, actions, parent.getPath() + (path == null ? "" : path), null, null, path == null, null);
+		this(parent, name, actions, path, null);
+	}
+	public ResourceState(ResourceState parent, String name, Set<Action> actions, String path, String[] rels) {
+		this(parent, parent.getEntityName(), name, actions, parent.getPath() + (path == null ? "" : path), null, rels, path == null, null);
 	}
 
 	/**
