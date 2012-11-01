@@ -109,7 +109,7 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getProductsSM() {
-		CollectionResourceState products = new CollectionResourceState("Products", "products", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Products");
+		CollectionResourceState products = new CollectionResourceState("Products", "Products", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Products");
 		ResourceState pseudo = new ResourceState(products, "Products_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		ResourceState product = new ResourceState("Products", "product", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/Products({id})");
 
