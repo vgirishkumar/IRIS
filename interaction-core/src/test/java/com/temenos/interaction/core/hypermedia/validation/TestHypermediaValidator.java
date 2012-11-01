@@ -48,7 +48,7 @@ public class TestHypermediaValidator {
 		begin.addTransition("PUT", exists);		
 		exists.addTransition("DELETE", end);
 		
-		ResourceState unreachableState = new ResourceState(ENTITY_NAME, "unreachable", new HashSet<Action>(), "");
+		ResourceState unreachableState = new ResourceState(ENTITY_NAME, "unreachable", new HashSet<Action>(), "/unreachable");
 		Set<ResourceState> states = new HashSet<ResourceState>();
 		states.add(begin);
 		states.add(exists);
@@ -192,9 +192,13 @@ public class TestHypermediaValidator {
 
 	@Test
 	public void testDOTMultipleFinalStates() {
-		String expected = "digraph CRUD_ENTITY {\n    CRUD_ENTITYinitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n    CRUD_ENTITYexists[label=\"CRUD_ENTITY.exists\"]\n    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted\"]\n    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived /archived\"]\n"
-			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT\"]\n"
-			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE\"]\n"
+		String expected = "digraph CRUD_ENTITY {\n" +
+				"    CRUD_ENTITYinitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n" +
+				"    CRUD_ENTITYexists[label=\"CRUD_ENTITY.exists /\"]\n" +
+				"    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted /\"]\n" +
+				"    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived /archived\"]\n"
+			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT /\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE /\"]\n"
 			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived\"]\n"
 			+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			+ "    CRUD_ENTITYdeleted->final[label=\"\"]\n"
@@ -202,7 +206,7 @@ public class TestHypermediaValidator {
 			+ "    CRUD_ENTITYarchived->final1[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "CRUD_ENTITY";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
 		ResourceState exists = new ResourceState(initial, "exists", new HashSet<Action>(), null);
 		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", new HashSet<Action>(), "/archived");
 		ResourceState deleted = new ResourceState(initial, "deleted", new HashSet<Action>(), null);
@@ -219,7 +223,7 @@ public class TestHypermediaValidator {
 
 	@Test
 	public void testDOTTransitionToStateMachine() {
-		ResourceState home = new ResourceState("SERVICE_ROOT", "home", new HashSet<Action>(), "");
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home", new HashSet<Action>(), "/");
 		ResourceStateMachine processSM = getProcessSM();
 		home.addTransition("GET", processSM);
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
@@ -258,7 +262,7 @@ public class TestHypermediaValidator {
 	@Test
 	public void testDOTGraphOneLevel() {
 
-		ResourceState home = new ResourceState("SERVICE_ROOT", "home", new HashSet<Action>(), "");
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home", new HashSet<Action>(), "/");
 		// processes
 		ResourceStateMachine processSM = getProcessSM();
 		home.addTransition("GET", processSM);

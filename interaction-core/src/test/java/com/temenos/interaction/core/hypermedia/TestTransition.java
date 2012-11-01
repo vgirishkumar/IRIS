@@ -31,9 +31,9 @@ public class TestTransition {
 
 	@Test 
 	public void testInequality() {
-		ResourceState begin = new ResourceState("entity", "begin", new HashSet<Action>(), "");
+		ResourceState begin = new ResourceState("entity", "begin", new HashSet<Action>(), "/");
 		ResourceState exists = new ResourceState("entity", "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState("entity", "end", new HashSet<Action>(), "");
+		ResourceState end = new ResourceState("entity", "end", new HashSet<Action>(), "/");
 
 		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), end);
 		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), exists);

@@ -65,10 +65,10 @@ public class GeneratorTest {
 	"	public ResourceState getRIM() {" + LINE_SEP +
 	"		ResourceState initial = null;" + LINE_SEP +
 	"		// create states" + LINE_SEP +
-	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW), null), \"\");" + LINE_SEP +
+	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW), null), \"/A\");" + LINE_SEP +
 	"		// identify the initial state" + LINE_SEP +
 	"		initial = sA;" + LINE_SEP +
-	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW), new Action(\"UpdateEntity\", Action.TYPE.ENTRY)), \"\");" + LINE_SEP +
+	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW), new Action(\"UpdateEntity\", Action.TYPE.ENTRY)), \"/B\");" + LINE_SEP +
 	LINE_SEP +
 	"		// create regular transitions" + LINE_SEP +
 	LINE_SEP +

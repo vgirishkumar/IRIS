@@ -102,7 +102,7 @@ public class ResourceState implements Comparable<ResourceState> {
 
 	private ResourceState(ResourceState parent, String entityName, String name, Set<Action> actions, String path, String pathIdParameter, String[] rels, boolean pseudo, UriSpecification uriSpec) {
 		assert(name != null);
-		assert(path != null);
+		assert(path != null && path.length() > 0);
 		this.parent = parent;
 		this.entityName = entityName;
 		this.name = name;

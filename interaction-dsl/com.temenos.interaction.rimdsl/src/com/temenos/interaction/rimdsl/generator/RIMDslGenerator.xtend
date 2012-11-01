@@ -92,9 +92,9 @@ class RIMDslGenerator implements IGenerator {
 	
 	def produceResourceStates(State state) '''
             «IF state.entity.isCollection»
-            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
+            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
             «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
             «ENDIF»
 	'''
 
