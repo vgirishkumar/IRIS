@@ -12,16 +12,35 @@ import com.temenos.interaction.sdk.interaction.InteractionModel;
  * This class holds information about IRIS commands
  */
 public class Commands {
+	public final static String GET_SERVICE_DOCUMENT = "GETServiceDocument";
+	public final static String GET_METADATA = "GETMetadata";
 	public final static String GET_ENTITY = "GETEntity";
 	public final static String GET_ENTITIES = "GETEntities";
+	public final static String GET_NAV_PROPERTY = "GETNavProperty";
 	public final static String POST_ENTITY = "POSTEntity";
+	public final static String CREATE_ENTITY = "CreateEntity";
+	public final static String DELETE_ENTITY = "DeleteEntity";
 	public final static String GET_LINK_ENTITY = "GETLinkEntity";
+	
 	
 	private List<Command> commands = new ArrayList<Command>();
 
 	public Commands() {
 	}
 
+	public void addCommand(String className, String type, Parameter param1) {
+		String id = "cmd" + type + param1.getValue();
+		Command command = new Command(id, className);
+		command.addParameter(param1);
+		commands.add(command);
+	}
+	
+	public void addCommand(String id, String className, String type, Parameter param1) {
+		Command command = new Command(id, className);
+		command.addParameter(param1);
+		commands.add(command);
+	}
+	
 	public void addCommand(String className, String type, Parameter param1, Parameter param2) {
 		String id = "cmd" + type + param1.getValue();
 		addCommand(id, className, type, param1, param2);
@@ -86,15 +105,15 @@ public class Commands {
 				String id = "cmdGET" + rsm.getEntityName() + "." + transition.getTargetStateName();
 				List<Parameter> cmdParams = new ArrayList<Parameter>();
 				if(transition.isCollectionState()) {
-					cmdParams.add(new Parameter(transition.getTargetEntityName(), false));		//target entity
+					cmdParams.add(new Parameter(transition.getTargetEntityName(), false, ""));		//target entity
 					cmdParams.add(isLinkEntitiesCmdOdataProducer ? JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER : JPAResponderGen.COMMAND_METADATA_SOURCE_MODEL);		//producer
 					cmdParams.addAll(params);													//additional params
 					addCommand(id, getLinkEntitiesCmdClass, GET_LINK_ENTITY, cmdParams);
 				}
 				else {
-					cmdParams.add(new Parameter(rsm.getEntityName(), false));					//entity
-					cmdParams.add(new Parameter(transition.getLinkProperty(), false));			//linkProperty
-					cmdParams.add(new Parameter(transition.getTargetEntityName(), false));		//linkEntity
+					cmdParams.add(new Parameter(rsm.getEntityName(), false, ""));					//entity
+					cmdParams.add(new Parameter(transition.getLinkProperty(), false, ""));			//linkProperty
+					cmdParams.add(new Parameter(transition.getTargetEntityName(), false, ""));		//linkEntity
 					cmdParams.add(isLinkEntityCmdOdataProducer ? JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER : JPAResponderGen.COMMAND_METADATA_SOURCE_MODEL);		//producer
 					cmdParams.addAll(params);													//additional params
 					addCommand(id, getLinkEntityCmdClass, GET_LINK_ENTITY, cmdParams);

@@ -503,4 +503,39 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"departureAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightSchedules\"), uriLinkageMap);"));
 		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"arrivalAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightSchedules\"), uriLinkageMap);"));
 	}
+
+	@Test
+	public void testRIMWithoutReciprocalLinks() {
+		//Parse the test metadata
+		MetadataParser parser = new MetadataParser();
+		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_AIRLINE_XML_FILE);
+		Metadata metadata = parser.parse(is);
+		Assert.assertNotNull(metadata);
+
+		//Define the interaction model
+		InteractionModel interactionModel = new InteractionModel(metadata);
+
+		//Do not specify a reciprocal link
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, "", interactionModel.findResourceStateMachine("Airport"));
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
+		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departureAirportCode", "flightSchedules", true, "", interactionModel.findResourceStateMachine("FlightSchedule"));
+		
+		//Run the generator
+		MockGenerator generator = new MockGenerator();
+		boolean status = generator.generateArtifacts(metadata, interactionModel, new File("target/FlightResponder/classes"), new File("target/FlightResponder/classes"), true);
+		
+		//Check results
+		assertTrue(status);
+		
+		//Test resource states
+		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
+		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flightschedules);"));
+		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", airports);"));
+		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flights);"));
+
+		//Test transitions between entities
+		assertTrue(generator.generatedBehaviourClass.contains("((CollectionResourceState) airports.getResourceStateByName(\"flightSchedules\")).addTransitionForEachItem(\"GET\", flightschedules.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
+		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"departureAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"airport\"), uriLinkageMap);"));
+		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"arrivalAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"airport\"), uriLinkageMap);"));
+	}
 }

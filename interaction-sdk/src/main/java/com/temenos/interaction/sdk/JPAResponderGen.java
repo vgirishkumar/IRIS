@@ -29,6 +29,14 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.MetadataOData4j;
+import com.temenos.interaction.core.entity.vocabulary.Term;
+import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.command.Parameter;
 import com.temenos.interaction.sdk.entity.EMEntity;
@@ -38,14 +46,6 @@ import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
-import com.temenos.interaction.core.entity.EntityMetadata;
-import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataOData4j;
-import com.temenos.interaction.core.entity.vocabulary.Term;
-import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end
@@ -65,8 +65,11 @@ public class JPAResponderGen {
 	public final static String BEHAVIOUR_CLASS_FILE = "Behaviour.java";
 	public final static String METADATA_FILE = "metadata.xml";
 
-	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("odataProducer", true);
-	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true);
+	public final static Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
+	public final static Parameter COMMAND_EDM_DATA_SERVICES = new Parameter("edmDataServices", true, "");
+	public final static Parameter COMMAND_METADATA = new Parameter("Metadata", false, "");
+	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
+	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
 			
 	/*
 	 *  create a new instance of the engine
@@ -176,13 +179,7 @@ public class JPAResponderGen {
 		}
 		
 		//Create commands
-		Commands commands = new Commands();
-		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
-			commands.addCommand("com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-			commands.addCommand("com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-			commands.addCommand("com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, new Parameter(t.getName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		}
-		commands.addLinkCommands(interactionModel, "com.temenos.interaction.commands.odata.GETLinkEntityCommand", "com.temenos.interaction.commands.odata.GETEntitiesCommand");
+		Commands commands = getDefaultCommands(interactionModel);
 		
 		//Write other artefacts
 		if(!writeArtefacts(entityContainerNamespace, entitiesInfo, commands, entityModel, interactionModel, srcOutputPath, configOutputPath, true)) {
@@ -204,13 +201,7 @@ public class JPAResponderGen {
 	 */
 	public boolean generateArtifacts(Metadata metadata, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		//Create commands
-		Commands commands = new Commands();
-		for (EntityMetadata entityMetadata: metadata.getEntitiesMetadata().values()) {
-			commands.addCommand("com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, new Parameter(entityMetadata.getEntityName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-			commands.addCommand("com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, new Parameter(entityMetadata.getEntityName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-			commands.addCommand("com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, new Parameter(entityMetadata.getEntityName(), false), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		}
-		commands.addLinkCommands(interactionModel, "com.temenos.interaction.commands.odata.GETLinkEntityCommand", "com.temenos.interaction.commands.odata.GETEntitiesCommand");
+		Commands commands = getDefaultCommands(interactionModel);
 		
 		return generateArtifacts(metadata, interactionModel, commands, srcOutputPath, configOutputPath, generateMockResponder);
 	}
@@ -803,5 +794,21 @@ public class JPAResponderGen {
 		.append("java ").append(JPAResponderGen.class.getName()).append(" [EDMX file] [target directory]\n");
 		return sb.toString();
 	}
-	
+
+	private Commands getDefaultCommands( InteractionModel interactionModel )
+	{
+		Commands commands = new Commands();
+		
+		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_SERVICE_DOCUMENT, COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.POST_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.DELETE_ENTITY, "com.temenos.interaction.commands.odata.DeleteEntityCommand", Commands.DELETE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+//		commands.addLinkCommands(interactionModel, "com.temenos.interaction.commands.odata.GETLinkEntityCommand", "com.temenos.interaction.commands.odata.GETEntitiesCommand");
+		
+		return commands;
+	}
 }

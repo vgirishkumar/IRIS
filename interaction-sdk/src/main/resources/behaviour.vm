@@ -62,7 +62,7 @@ ResourceStateMachine ${rsm.getCollectionStateName()}##
 #if ($transition.isCollectionState()) 
 		((CollectionResourceState) ${rsm.getCollectionStateName()}.getResourceStateByName("${transition.getTargetStateName()}")).addTransitionForEachItem("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getResourceStateByName("${transition.getTargetResourceStateMachine().getCollectionStateName()}"), uriLinkageMap);
 #else
-		${rsm.getCollectionStateName()}.getResourceStateByName("${transition.getTargetStateName()}").addTransition("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getResourceStateByName("${transition.getReciprocalLinkState()}"), uriLinkageMap);
+		${rsm.getCollectionStateName()}.getResourceStateByName("${transition.getTargetStateName()}").addTransition("GET", ${transition.getTargetResourceStateMachine().getCollectionStateName()}.getResourceStateByName("${transition.getTargetRsmStateName()}"), uriLinkageMap);
 #end
 #end
 
