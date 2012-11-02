@@ -2,6 +2,7 @@ package com.temenos.interaction.core.media.xhtml;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
@@ -20,13 +21,14 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class TestXHTMLProvider {
 
 	@Test
 	public void testWriteEntityResource() throws Exception {
-		EntityResource<Entity> er = new EntityResource<Entity>(createEntity());
+		EntityResource<Entity> er = new EntityResource<Entity>(createEntity("123", "Fred"));
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(null, "Fred", "Self", "/Customer(123)", null, null, "GET", null));
 		er.setLinks(links);
@@ -40,6 +42,24 @@ public class TestXHTMLProvider {
 		Assert.assertTrue(responseString.contains("Customer"));
 	}
 
+	@Test
+	public void testWriteCollectionResource() throws Exception {
+		Collection<EntityResource<Entity>> entities = new ArrayList<EntityResource<Entity>>();
+		entities.add(createEntityResource(createEntity("123", "Fred"), "123"));
+		entities.add(createEntityResource(createEntity("456", "Tom"), "456"));
+		entities.add(createEntityResource(createEntity("789", "Bob"), "789"));
+		CollectionResource<Entity> cr = new CollectionResource<Entity>("Customer", entities);
+		cr.setEntityName("Customer");
+
+		//Serialize metadata resource
+		XHTMLProvider p = new XHTMLProvider(createMockFlightMetadata());
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(cr, CollectionResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
+
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		Assert.assertTrue(responseString.contains("Customer"));
+	}
+	
 	private Metadata createMockFlightMetadata() {
 		//Define vocabulary for this entity
 		Metadata metadata = new Metadata("Customers");
@@ -91,15 +111,23 @@ public class TestXHTMLProvider {
 		return metadata;
 	}
 	
-	private Entity createEntity() {
+	private Entity createEntity(String id, String name) {
 		EntityProperties addressFields = new EntityProperties();
 		addressFields.setProperty(new EntityProperty("postcode", "WD8 1LK"));
 		addressFields.setProperty(new EntityProperty("houseNumber", "45"));
 		
 		EntityProperties customerFields = new EntityProperties();
-		customerFields.setProperty(new EntityProperty("id", "123"));
-		customerFields.setProperty(new EntityProperty("name", "Fred"));
+		customerFields.setProperty(new EntityProperty("id", id));
+		customerFields.setProperty(new EntityProperty("name", name));
 		customerFields.setProperty(new EntityProperty("address", addressFields));
 		return new Entity("Customer", customerFields);
+	}
+	
+	private EntityResource<Entity> createEntityResource(Entity entity, String id) {
+		EntityResource<Entity> entityResource = new EntityResource<Entity>(entity);
+		Collection<Link> links = new ArrayList<Link>();
+		links.add(new Link(null, id, "self", "/" + entity.getName() + "(" + id + ")", null, null, "GET", null));
+		entityResource.setLinks(links);
+		return entityResource;
 	}
 }

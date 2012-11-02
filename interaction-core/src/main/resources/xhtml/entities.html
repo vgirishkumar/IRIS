@@ -1,6 +1,15 @@
-<table>
-   <tr><td a:foreach="propertiesName">${self.value}</td></tr>
-   <tr a:foreach="entities">
-      <td a:foreach="propertiesValue">${self.value}</td>
-   </tr>
+<label>${entitySetName}</label>
+<table id="tableT2">
+	<thead>
+		<tr>
+			<div a:foreach="entityPropertyNames">
+				<th>${self}</td>
+			</div>
+		</tr>
+	</thead>
+	<tbody>
+		<tr a:foreach="entities" a:as="entity">
+			<td a:foreach="entity.entrySet()" a:as="prop">${prop.value}</td>
+		</tr>
+	</tbody>
 </table>

@@ -11,8 +11,10 @@ import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
@@ -66,7 +68,8 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class);
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
+				ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
 	}
 
 	@Override
@@ -141,6 +144,38 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
 				template.setProperty("entityName", entityResource.getEntityName());
 				template.setProperty("entityProperties", entityProperties);
+				template.printTo(writer);
+			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
+				@SuppressWarnings("unchecked")
+				CollectionResource<Entity> collectionResource = (CollectionResource<Entity>) resource;
+				List<EntityResource<Entity>> entityResources = (List<EntityResource<Entity>>) collectionResource.getEntities();
+				List<Map<String, Object>>  entities = new ArrayList<Map<String, Object>>();
+				for (EntityResource<Entity> er : entityResources) {
+					Entity entity = er.getEntity();
+					Map<String, Object> entityProperties = new HashMap<String, Object>();
+					buildFromEntity(entityProperties, entity);
+					entities.add(entityProperties);
+				}
+				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
+				template.setProperty("entitySetName", collectionResource.getEntitySetName());
+				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getPropertyVocabularyKeySet());
+				template.setProperty("entities", entities);
+				template.printTo(writer);
+			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
+				@SuppressWarnings("unchecked")
+				CollectionResource<Object> collectionResource = (CollectionResource<Object>) resource;
+				List<EntityResource<Object>> entityResources = (List<EntityResource<Object>>) collectionResource.getEntities();
+				List<Map<String, Object>>  entities = new ArrayList<Map<String, Object>>();
+				for (EntityResource<Object> er : entityResources) {
+					Object entity = er.getEntity();
+					Map<String, Object> entityProperties = new HashMap<String, Object>();
+					buildFromBean(entityProperties, entity, collectionResource.getEntityName());
+					entities.add(entityProperties);
+				}
+				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
+				template.setProperty("entitySetName", collectionResource.getEntitySetName());
+				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getPropertyVocabularyKeySet());
+				template.setProperty("entities", entities);
 				template.printTo(writer);
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
