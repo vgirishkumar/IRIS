@@ -72,6 +72,7 @@
     <bean id="GETServiceRoot" class="com.temenos.interaction.example.hateoas.banking.GETServiceRootCommand" />
 	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand" />
 	<bean id="NoopDELETE" class="com.temenos.interaction.core.command.NoopDELETECommand" />
+	<bean id="NoopPUT" class="com.temenos.interaction.core.command.NoopPUTCommand" />
 	<bean id="GETPreferences" class="com.temenos.interaction.example.hateoas.banking.GETPreferencesCommand" />
 	<bean id="GETFundTransfers" class="com.temenos.interaction.example.hateoas.banking.GETFundTransfersCommand">
 		<constructor-arg ref="daoHibernate" />
@@ -83,6 +84,12 @@
 		<constructor-arg ref="daoHibernate" />
 	</bean>
 	<bean id="NEWFundTransfer" class="com.temenos.interaction.example.hateoas.banking.POSTFundTransferCommand" />
+	<bean id="GETCustomers" class="com.temenos.interaction.example.hateoas.banking.GETCustomersCommand">
+		<constructor-arg ref="daoHibernate" />
+	</bean>
+	<bean id="GETCustomer" class="com.temenos.interaction.example.hateoas.banking.GETCustomerCommand">
+		<constructor-arg ref="daoHibernate" />
+	</bean>
 
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -96,6 +103,9 @@
 				<entry key="GETFundTransfer" value-ref="GETFundTransfer" />
 				<entry key="PUTFundTransfer" value-ref="PUTFundTransfer" />
 				<entry key="NEWFundTransfer" value-ref="NEWFundTransfer" />
+				<entry key="GETCustomers" value-ref="GETCustomers" />
+				<entry key="GETCustomer" value-ref="GETCustomer" />
+				<entry key="PUTCustomer" value-ref="NoopPUT" />
 			</util:map> 
 		</constructor-arg>
 	</bean>

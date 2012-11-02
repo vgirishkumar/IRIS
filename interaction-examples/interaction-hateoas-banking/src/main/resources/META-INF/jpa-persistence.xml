@@ -8,6 +8,8 @@
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<class>com.temenos.interaction.example.hateoas.banking.Preferences</class>
         <class>com.temenos.interaction.example.hateoas.banking.FundTransfer</class>
+        <class>com.temenos.interaction.example.hateoas.banking.Address</class>
+        <class>com.temenos.interaction.example.hateoas.banking.Customer</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 

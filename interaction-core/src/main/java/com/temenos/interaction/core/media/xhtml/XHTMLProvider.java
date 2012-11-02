@@ -54,7 +54,6 @@ import com.temenos.interaction.core.resource.ResourceTypeHelper;
 public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(XHTMLProvider.class);
 
-	@SuppressWarnings("unused")
 	@Context
 	private UriInfo uriInfo;
 	private Metadata metadata = null;
@@ -104,7 +103,9 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 		OutputStreamWriter writer = new OutputStreamWriter(entityStream, "UTF-8");
 		
 		//Render header
-		getTemplate(XHTMLTemplateFactories.TEMPLATE_HEADER).printTo(writer);
+		Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_HEADER);
+		template.setProperty("siteName", uriInfo != null && uriInfo.getPath() != null ? uriInfo.getPath() : "");
+		template.printTo(writer);
 		
 		// create the xhtml resource
 		if (resource.getGenericEntity() != null) {
@@ -113,68 +114,66 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 			//render resource links
 			Collection<Link> links = rResource.getLinks();
 			if (links != null) {
-				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_RESOURCE_LINKS);
+				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_RESOURCE_LINKS);
 				template.setProperty("resourceLinks", links);
 				template.printTo(writer);
 			}
 			
 			// add contents of supplied entity to the property map
 			if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
+				//OEntity entity resource
 				@SuppressWarnings("unchecked")
 				EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) resource;
 				Map<String, String> entityProperties = new HashMap<String, String>();
 				buildFromOEntity(entityProperties, oentityResource.getEntity());
-				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
+				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
 				template.setProperty("entityName", oentityResource.getEntity().getEntitySetName());
 				template.setProperty("entityProperties", entityProperties);
 				template.printTo(writer);
 			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
 				@SuppressWarnings("unchecked")
+				//Entity entity resource
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
-				Map<String, Object> entityProperties = new HashMap<String, Object>();
-				buildFromEntity(entityProperties, entityResource.getEntity());
-				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
+				Map<String, Object> entityProperties = buildFromEntity(entityResource.getEntity());
+				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
 				template.setProperty("entityName", entityResource.getEntity().getName());
 				template.setProperty("entityProperties", entityProperties);
 				template.printTo(writer);
 			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
+				//JAXB entity resource
 				EntityResource<?> entityResource = (EntityResource<?>) resource;
-				Map<String, Object> entityProperties = new HashMap<String, Object>();
-				buildFromBean(entityProperties, entityResource.getEntity(), entityResource.getEntityName());
-				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
+				Map<String, Object> entityProperties = buildFromBean(entityResource.getEntity(), entityResource.getEntityName());
+				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
 				template.setProperty("entityName", entityResource.getEntityName());
 				template.setProperty("entityProperties", entityProperties);
 				template.printTo(writer);
 			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
+				//Entity collection resource
 				@SuppressWarnings("unchecked")
 				CollectionResource<Entity> collectionResource = (CollectionResource<Entity>) resource;
 				List<EntityResource<Entity>> entityResources = (List<EntityResource<Entity>>) collectionResource.getEntities();
-				List<Map<String, Object>>  entities = new ArrayList<Map<String, Object>>();
+				List<Map<String, Object>> entities = new ArrayList<Map<String, Object>>();
 				for (EntityResource<Entity> er : entityResources) {
-					Entity entity = er.getEntity();
-					Map<String, Object> entityProperties = new HashMap<String, Object>();
-					buildFromEntity(entityProperties, entity);
-					entities.add(entityProperties);
+					entities.add(buildFromEntity(er.getEntity()));
 				}
-				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
+				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
 				template.setProperty("entitySetName", collectionResource.getEntitySetName());
-				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getPropertyVocabularyKeySet());
+				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
 				template.setProperty("entities", entities);
 				template.printTo(writer);
 			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
+				//JAXB collection resource
 				@SuppressWarnings("unchecked")
 				CollectionResource<Object> collectionResource = (CollectionResource<Object>) resource;
 				List<EntityResource<Object>> entityResources = (List<EntityResource<Object>>) collectionResource.getEntities();
 				List<Map<String, Object>>  entities = new ArrayList<Map<String, Object>>();
 				for (EntityResource<Object> er : entityResources) {
-					Object entity = er.getEntity();
-					Map<String, Object> entityProperties = new HashMap<String, Object>();
-					buildFromBean(entityProperties, entity, collectionResource.getEntityName());
+					Map<String, Object> entityProperties = buildFromBean(er.getEntity(), collectionResource.getEntityName());
 					entities.add(entityProperties);
 				}
-				Template template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
+				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
 				template.setProperty("entitySetName", collectionResource.getEntitySetName());
-				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getPropertyVocabularyKeySet());
+				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
 				template.setProperty("entities", entities);
 				template.printTo(writer);
 			} else {
@@ -201,8 +200,9 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 		}
 	}
 	
-	protected void buildFromEntity(Map<String, Object> map, Entity entity) {
+	protected Map<String, Object> buildFromEntity(Entity entity) {
 
+		Map<String, Object> map = new HashMap<String, Object>();
 		EntityProperties entityProperties = entity.getProperties();
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 				
@@ -212,9 +212,12 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 			EntityProperty propertyValue = (EntityProperty) property.getValue();
 	   		map.put(propertyName, propertyValue.getValue());	
 		}
+		return map;
 	}
 	
-	protected void buildFromBean(Map<String, Object> map, Object bean, String entityName) {
+	protected Map<String, Object> buildFromBean(Object bean, String entityName) {
+		Map<String, Object> map = new HashMap<String, Object>();
+
 		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
 		if (entityMetadata == null)
 			throw new IllegalStateException("Entity metadata could not be found [" + entityName + "]");
@@ -237,6 +240,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 		} catch (InvocationTargetException e) {
 			logger.error("Error accessing bean property", e);
 		}
+		return map;
 	}
 
 	@Override

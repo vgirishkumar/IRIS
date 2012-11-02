@@ -39,7 +39,7 @@ public class TestXHTMLProvider {
 		p.writeTo(er, EntityResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
 
 		String responseString = new String(bos.toByteArray(), "UTF-8");
-		Assert.assertTrue(responseString.contains("Customer"));
+		Assert.assertTrue(responseString.contains("WD8 1LK"));
 	}
 
 	@Test
@@ -57,7 +57,7 @@ public class TestXHTMLProvider {
 		p.writeTo(cr, CollectionResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
 
 		String responseString = new String(bos.toByteArray(), "UTF-8");
-		Assert.assertTrue(responseString.contains("Customer"));
+		Assert.assertTrue(responseString.contains("Tom"));
 	}
 	
 	private Metadata createMockFlightMetadata() {

@@ -65,4 +65,28 @@ public class DaoHibernate {
 		}
 		return ft;
     }
+	
+	@SuppressWarnings("unchecked")
+	public List<Customer> getCustomers() {
+		List<Customer> entities = null;
+		try {
+			Query jpaQuery = entityManager.createQuery("SELECT customer FROM Customer customer");
+			entities = jpaQuery.getResultList();
+		}
+		catch(Exception e) {
+			logger.severe("Error while loading entities: " + e.getMessage());
+		}
+		return entities;
+    }
+
+	public Customer getCustomer(String name) {
+		Customer customer = null;
+		try {
+			customer = entityManager.find(Customer.class, name);
+		}
+		catch(Exception e) {
+			logger.severe("Error while loading entity [" + name + "]: " + e.getMessage());
+		}
+		return customer;
+    }
 }

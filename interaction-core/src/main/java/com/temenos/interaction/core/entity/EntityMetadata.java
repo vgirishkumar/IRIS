@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,6 +76,22 @@ public class EntityMetadata  {
 	 */
 	public Set<String> getPropertyVocabularyKeySet() {
 		return propertyVocabularies.keySet();
+	}
+
+	/**
+	 * Gets the top level properties.
+	 * I.e. names of properties which do not belong to any complex group.
+	 * @return The set of property names
+	 */
+	public Set<String> getTopLevelProperties() {
+		Set<String> props = new HashSet<String>();
+		for(String prop : propertyVocabularies.keySet()) {
+			Vocabulary voc = propertyVocabularies.get(prop);
+			if(voc == null || voc.getTerm(TermComplexGroup.TERM_NAME) == null) {
+				props.add(prop);
+			}
+		}
+		return props;
 	}
 	
 	/**
