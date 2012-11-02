@@ -41,6 +41,7 @@
 		<property name="singletons">
         	<set>
 				<ref local="halProvider" />
+				<ref local="xhtmlProvider" />
  			</set>
    		</property>
 		<property name="serviceRoot" ref="ServiceRoot" />
@@ -49,6 +50,9 @@
 	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
     	<constructor-arg ref="edmMetadata" />
         <constructor-arg ref="stateMachine" />
+	</bean>
+	<bean id="xhtmlProvider" class="com.temenos.interaction.core.media.xhtml.XHTMLProvider">
+    	<constructor-arg ref="edmMetadata" />
 	</bean>
 
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.banking.Behaviour" />
