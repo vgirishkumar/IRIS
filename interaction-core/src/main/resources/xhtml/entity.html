@@ -1,11 +1,11 @@
 <table id="tableT1">
 	<thead>
 		<tr>
-			<th scope="col">${entityName}</th>
+			<th scope="col">${entityResource.entityName}</th>
 		</tr>
 	</thead>
 	<tbody>
-		<tr a:foreach="entityProperties.entrySet()" a:as="prop">
+		<tr a:foreach="entityResource.entity.entrySet()" a:as="prop">
 			<div a:if="prop.value.class.name == 'com.temenos.interaction.core.entity.EntityProperties'">
 				<tr a:foreach="prop.value.properties.entrySet()" a:as="prop2">
 					<td>${prop.key}</td><td>${prop2.key}</td><td>${prop2.value.value}</td>

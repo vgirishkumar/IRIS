@@ -57,7 +57,9 @@ public class TestXHTMLProvider {
 		p.writeTo(cr, CollectionResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
 
 		String responseString = new String(bos.toByteArray(), "UTF-8");
+		Assert.assertTrue(responseString.contains("Customer"));
 		Assert.assertTrue(responseString.contains("Tom"));
+		Assert.assertTrue(responseString.contains("navigate('/Customer(456)')"));
 	}
 	
 	private Metadata createMockFlightMetadata() {

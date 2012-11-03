@@ -46,18 +46,18 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getCustomerInteractionModel() {
-		CollectionResourceState initialState = new CollectionResourceState("Customer", "initial", createActionSet(new Action("GETCustomers", Action.TYPE.VIEW), null), "/customers");
-		ResourceState exists = new ResourceState("Customer", "exists", createActionSet(new Action("GETCustomer", Action.TYPE.VIEW), new Action("PUTCustomer", Action.TYPE.ENTRY)), "/customers/{id}", "id", "self".split(" "));
-		ResourceState finalState = new ResourceState(exists, "end", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null));
+		CollectionResourceState customers = new CollectionResourceState("Customer", "customers", createActionSet(new Action("GETCustomers", Action.TYPE.VIEW), null), "/customers");
+		ResourceState customer = new ResourceState("Customer", "customer", createActionSet(new Action("GETCustomer", Action.TYPE.VIEW), new Action("PUTCustomer", Action.TYPE.ENTRY)), "/{id}");
+		ResourceState deleted = new ResourceState(customer, "deleted", createActionSet(null, new Action("NoopDELETE", Action.TYPE.ENTRY)));
 		
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.clear();
 		uriLinkageMap.put("id", "name");
-		initialState.addTransitionForEachItem("GET", exists, uriLinkageMap);		
+		customers.addTransitionForEachItem("GET", customer, uriLinkageMap);		
 
-		exists.addTransition("PUT", exists, uriLinkageMap);		
-		exists.addTransition("DELETE", finalState, uriLinkageMap);
-		return new ResourceStateMachine(initialState);
+		customer.addTransition("PUT", customer, uriLinkageMap);		
+		customer.addTransition("DELETE", deleted, uriLinkageMap);
+		return new ResourceStateMachine(customers);
 	}
 	
 	private Set<Action> createActionSet(Action view, Action entry) {

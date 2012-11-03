@@ -8,8 +8,10 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr a:foreach="entities" a:as="entity">
-			<td a:foreach="entity.entrySet()" a:as="prop">${prop.value}</td>
+		<tr a:foreach="entityResources" a:as="entityResource" onclick="navigate('${entityResource.entityResourceLink.href}');">
+			<td a:foreach="entityResource.resource.entity.entrySet()" a:as="prop">
+				<div a:if="prop.value.class.name != 'com.temenos.interaction.core.entity.EntityProperties'">${prop.value}</div>
+			</td>
 		</tr>
 	</tbody>
 </table>
