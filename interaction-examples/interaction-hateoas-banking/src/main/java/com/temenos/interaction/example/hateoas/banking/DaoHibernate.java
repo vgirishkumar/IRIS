@@ -27,7 +27,7 @@ public class DaoHibernate {
     public void putFundTransfer(FundTransfer ft) {
     	try {
     		entityManager.getTransaction().begin();
-    		entityManager.persist(ft); 
+    		entityManager.merge(ft); 
     		entityManager.getTransaction().commit();    		
     	} catch(EntityExistsException eee) {
 			logger.severe("Failed to commit transaction - entity already exists: " + eee.getMessage());

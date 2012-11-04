@@ -12,22 +12,28 @@ import com.temenos.interaction.core.resource.EntityResource;
  */
 public class EntityResourceWrapper {
 	private EntityResource<Map<String, Object>> entityResource;
-	private Link entityResourceLink;
+	private Link entityGetLink;
+	private Link entityUpdateLink;
 	
 	public EntityResourceWrapper(EntityResource<Map<String, Object>> entityResource) {
 		this.entityResource = entityResource;
-		entityResourceLink = findEntityResourceLink(entityResource.getLinks());
+		entityGetLink = findEntityGetLink(entityResource.getLinks());
+		entityUpdateLink = findEntityGetLink(entityResource.getLinks());
 	}
 	
 	public EntityResource<Map<String, Object>> getResource() {
 		return entityResource;
 	}
 
-	public Link getEntityResourceLink() {
-		return entityResourceLink;
+	public Link getEntityGetLink() {
+		return entityGetLink;
+	}
+
+	public Link getEntityUpdateLink() {
+		return entityUpdateLink;
 	}
 	
-	protected Link findEntityResourceLink(Collection<Link> links) {
+	protected Link findEntityGetLink(Collection<Link> links) {
 		Link selfLink = null;
 		if (links != null) {
 			for (Link l : links) {

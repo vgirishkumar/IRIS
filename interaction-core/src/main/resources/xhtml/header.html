@@ -16,12 +16,48 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 			#tableT2 td {background:#e8edff;border-bottom:1px solid #fff;color:#669;border-top:1px solid transparent;padding:8px;white-space:nowrap;}
 			#tableT2 tr:hover td {background:#d0dafd;color:#339;}
 		</style>
-
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
+		<script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+		<script src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
 		<script type="text/javascript">
+			//Navigate link
 			function navigate(url) {
 				document.location.href = url;
 			}
+			
+			//Read the table and post as json object
+			function updateEntity(updateLink)
+			{
+				var dataJson = [];
+				var dataJsonText = "";
+				var link = "\"_links\" : { \"self\" : { \"href\" : \"" + updateLink + "\"}}";
+				$('#tableT1').find('tbody tr').each(function(){
+				    var obj = {},
+				        $td = $(this).find('td'),
+				        key = $td.eq(0).text(),
+				        val = $td.eq(1).text();
+				    obj[key] = val;
+				    dataJson.push(obj);
+				});			
+			    dataJsonText = JSON.stringify(dataJson);
+			    dataJsonText = dataJsonText.replace(/[[\]]/g,'');		//Remove brackets
+			    dataJsonText = dataJsonText.replace(/[{}]/g,'');		//Remove braces
+			    dataJsonText = "{" + link + "," + dataJsonText + "}";
+				alert("Sending: " + dataJsonText);
+				$.ajax({
+					  url : updateLink,
+					  type : "PUT",
+					  data : dataJsonText,
+					  contentType : "application/hal+json; charset=utf-8",
+					  dataType : "html",
+					  success: function(data, textStatus, jqXHR){
+						document.location.reload(true);
+					  },
+					  error: function (xhr, ajaxOptions, thrownError) {
+						alert("Failed to save changes: " + xhr.status + " [" + thrownError + "]");
+				      }
+					});
+			}
 		</script>
-      
 	</head>
 	<body>

@@ -38,6 +38,7 @@
 				<ref local="serviceDocumentProvider" />
 				<ref local="edmxProvider" />
  				<ref local="atomProvider" />
+				<ref local="xhtmlProvider" />
  			</set>
    		</property>
         <property name="serviceRoots">
@@ -58,6 +59,9 @@
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
 	</bean>
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
+ 	<bean id="xhtmlProvider" class="com.temenos.interaction.core.media.xhtml.XHTMLProvider">
+    	<constructor-arg ref="edmMetadata" />
+	</bean>
  
     <bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
         <constructor-arg name="edmDataServices" ref="edmDataServices" />

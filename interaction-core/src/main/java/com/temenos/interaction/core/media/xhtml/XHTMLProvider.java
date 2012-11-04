@@ -87,6 +87,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 	 * @postcondition non null XHTML document written to OutputStream
 	 * @invariant valid OutputStream
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void writeTo(RESTResource resource, Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType,
@@ -119,73 +120,67 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 				template.printTo(writer);
 			}
 			
-			// add contents of supplied entity to the property map
-			if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
-				//OEntity entity resource
-				@SuppressWarnings("unchecked")
-				EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) resource;
-				EntityResource<Map<String, Object>> er = buildFromOEntity(oentityResource);
+			//render data
+			if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
-				template.setProperty("entityResource", er);
-				template.printTo(writer);
-			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
-				@SuppressWarnings("unchecked")
-				//Entity entity resource
-				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
-				EntityResource<Map<String, Object>> er = buildFromEntity(entityResource);
-				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
-				template.setProperty("entityResource", er);
-				template.printTo(writer);
-			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
-				//JAXB entity resource
-				@SuppressWarnings("unchecked")
-				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
-				EntityResource<Map<String, Object>> er = buildFromBean(entityResource);
-				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITY);
-				template.setProperty("entityResource", er);
-				template.printTo(writer);
-			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
-				//Entity collection resource
-				@SuppressWarnings("unchecked")
-				CollectionResource<Entity> collectionResource = (CollectionResource<Entity>) resource;
-				List<EntityResource<Entity>> entityResources = (List<EntityResource<Entity>>) collectionResource.getEntities();
-				List<EntityResourceWrapper> entities = new ArrayList<EntityResourceWrapper>();
-				for (EntityResource<Entity> er : entityResources) {
-					entities.add(new EntityResourceWrapper(buildFromEntity(er)));
+				if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
+					//OEntity entity resource
+					EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) resource;
+					template.setProperty("entityResource", new EntityResourceWrapper(buildFromOEntity(oentityResource)));
+				} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
+					//Entity entity resource
+					EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
+					template.setProperty("entityResource", new EntityResourceWrapper(buildFromEntity(entityResource)));
+				} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
+					//JAXB entity resource
+					EntityResource<Object> entityResource = (EntityResource<Object>) resource;
+					template.setProperty("entityResource", new EntityResourceWrapper(buildFromBean(entityResource)));
+				} else {
+					logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
+					throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 				}
-				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
-				template.setProperty("entitySetName", collectionResource.getEntitySetName());
-				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
-				template.setProperty("entityResources", entities);
 				template.printTo(writer);
-			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
-				//OEntity collection resource
-				@SuppressWarnings("unchecked")
-				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
-				List<EntityResource<OEntity>> entityResources = (List<EntityResource<OEntity>>) collectionResource.getEntities();
-				List<EntityResourceWrapper> entities = new ArrayList<EntityResourceWrapper>();
-				for (EntityResource<OEntity> er : entityResources) {
-					entities.add(new EntityResourceWrapper(buildFromOEntity(er)));
-				}
+			}
+			else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
 				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
-				template.setProperty("entitySetName", collectionResource.getEntitySetName());
-				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
-				template.setProperty("entityResources", entities);
-				template.printTo(writer);
-			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
-				//JAXB collection resource
-				@SuppressWarnings("unchecked")
-				CollectionResource<Object> collectionResource = (CollectionResource<Object>) resource;
-				List<EntityResource<Object>> entityResources = (List<EntityResource<Object>>) collectionResource.getEntities();
-				List<EntityResource<Map<String, Object>>> entities = new ArrayList<EntityResource<Map<String, Object>>>();
-				for (EntityResource<Object> er : entityResources) {
-					er.setEntityName(collectionResource.getEntityName());
-					entities.add(buildFromBean(er));
+				if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
+					//Entity collection resource
+					CollectionResource<Entity> collectionResource = (CollectionResource<Entity>) resource;
+					List<EntityResource<Entity>> entityResources = (List<EntityResource<Entity>>) collectionResource.getEntities();
+					List<EntityResourceWrapper> entities = new ArrayList<EntityResourceWrapper>();
+					for (EntityResource<Entity> er : entityResources) {
+						entities.add(new EntityResourceWrapper(buildFromEntity(er)));
+					}
+					template.setProperty("entitySetName", collectionResource.getEntitySetName());
+					template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
+					template.setProperty("entityResources", entities);
+				} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
+					//OEntity collection resource
+					CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
+					List<EntityResource<OEntity>> entityResources = (List<EntityResource<OEntity>>) collectionResource.getEntities();
+					List<EntityResourceWrapper> entities = new ArrayList<EntityResourceWrapper>();
+					for (EntityResource<OEntity> er : entityResources) {
+						entities.add(new EntityResourceWrapper(buildFromOEntity(er)));
+					}
+					template.setProperty("entitySetName", collectionResource.getEntitySetName());
+					template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
+					template.setProperty("entityResources", entities);
+				} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
+					//JAXB collection resource
+					CollectionResource<Object> collectionResource = (CollectionResource<Object>) resource;
+					List<EntityResource<Object>> entityResources = (List<EntityResource<Object>>) collectionResource.getEntities();
+					List<EntityResourceWrapper> entities = new ArrayList<EntityResourceWrapper>();
+					for (EntityResource<Object> er : entityResources) {
+						er.setEntityName(collectionResource.getEntityName());
+						entities.add(new EntityResourceWrapper(buildFromBean(er)));
+					}
+					template.setProperty("entitySetName", collectionResource.getEntitySetName());
+					template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
+					template.setProperty("entityResources", entities);
+				} else {
+					logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
+					throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 				}
-				template = getTemplate(XHTMLTemplateFactories.TEMPLATE_ENTITIES);
-				template.setProperty("entitySetName", collectionResource.getEntitySetName());
-				template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
-				template.setProperty("entityResources", entities);
 				template.printTo(writer);
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
