@@ -25,7 +25,7 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 				document.location.href = url;
 			}
 			
-			//Read the table and post as json object
+			//Read the table and put as json object
 			function updateEntity(updateLink)
 			{
 				var dataJson = [];
@@ -43,7 +43,7 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 			    dataJsonText = dataJsonText.replace(/[[\]]/g,'');		//Remove brackets
 			    dataJsonText = dataJsonText.replace(/[{}]/g,'');		//Remove braces
 			    dataJsonText = "{" + link + "," + dataJsonText + "}";
-				alert("Sending: " + dataJsonText);
+				//alert("Sending: " + dataJsonText);
 				$.ajax({
 					  url : updateLink,
 					  type : "PUT",
