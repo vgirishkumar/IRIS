@@ -1,0 +1,58 @@
+events
+	GET GET
+end
+
+commands
+	GETServiceDocument properties
+	GETEntities properties
+	GETEntity properties
+	GETNavProperty properties
+end
+
+initial resource ServiceDocument
+	collection ENTITY
+	actions { GETServiceDocument }
+#foreach ( $rsm in $rim.getResourceStateMachines() )
+	GET -> ${rsm.getCollectionStateName()}
+#end
+end
+
+#foreach ( $rsm in $rim.getResourceStateMachines() )
+#* Collection resource state*#
+resource ${rsm.getCollectionStateName()}
+	collection ENTITY
+	actions { GETEntities }
+	path "/${rsm.getEntityName()}"
+	GET *-> ${rsm.getEntityStateName()}
+end
+
+#* Entity resource state*#
+resource ${rsm.getEntityStateName()}
+	item ENTITY
+	actions { GETEntity }
+	path "/${rsm.getEntityName()}({id})"
+#foreach ( $transition in $rsm.getTransitions() )
+	GET -> ${transition.getTargetStateName()}
+#end
+end
+
+#* Transition to other resource states *#
+#foreach ( $transition in $rsm.getTransitions() )
+
+resource ${transition.getTargetStateName()}#*
+*##if ($transition.isCollectionState())#* 
+	Transition to collection resource state in target RSM *#
+	collection ENTITY
+	actions { GETNavProperty }
+	path "/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}"
+	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()}
+#else#*
+	Transition to entity resource state in target RSM *#
+	item ENTITY
+	actions { GETNavProperty }
+	path "/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}"
+	GET -> ${transition.getTargetRsmStateName()}
+#end
+end
+#end
+#end

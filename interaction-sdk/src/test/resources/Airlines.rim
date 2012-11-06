@@ -1,0 +1,91 @@
+events
+	GET GET
+end
+
+commands
+	GETServiceDocument properties
+	GETEntities properties
+	GETEntity properties
+	GETNavProperty properties
+end
+
+initial resource ServiceDocument
+	collection ENTITY
+	actions { GETServiceDocument }
+	GET -> flights
+	GET -> airports
+	GET -> flightschedules
+end
+
+
+resource flights
+	collection ENTITY
+	actions { GETEntities }
+	path "/Flight"
+	GET *-> flight
+end
+
+
+resource flight
+	item ENTITY
+	actions { GETEntity }
+	path "/Flight({id})"
+end
+
+
+
+resource airports
+	collection ENTITY
+	actions { GETEntities }
+	path "/Airport"
+	GET *-> airport
+end
+
+
+resource airport
+	item ENTITY
+	actions { GETEntity }
+	path "/Airport({id})"
+	GET -> flightSchedules
+end
+
+
+
+resource flightSchedules
+	collection ENTITY
+	actions { GETNavProperty }
+	path "/Airport({id})/flightSchedules"
+	GET -> flightschedules
+end
+
+resource flightschedules
+	collection ENTITY
+	actions { GETEntities }
+	path "/FlightSchedule"
+	GET *-> flightschedule
+end
+
+
+resource flightschedule
+	item ENTITY
+	actions { GETEntity }
+	path "/FlightSchedule({id})"
+	GET -> departureAirport
+	GET -> arrivalAirport
+end
+
+
+
+resource departureAirport
+	item ENTITY
+	actions { GETNavProperty }
+	path "/FlightSchedule({id})/departureAirport"
+	GET -> airport
+end
+
+resource arrivalAirport
+	item ENTITY
+	actions { GETNavProperty }
+	path "/FlightSchedule({id})/arrivalAirport"
+	GET -> airport
+end
