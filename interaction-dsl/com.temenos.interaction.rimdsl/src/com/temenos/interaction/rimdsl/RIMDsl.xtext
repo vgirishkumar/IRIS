@@ -22,6 +22,7 @@ State:
         entity=Entity
         ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')
         path=Path?
+        urispec=UriSpecification?
         transitionsAuto+=TransitionAuto*
         transitions+=Transition*
         transitionsForEach+=TransitionForEach*
@@ -29,11 +30,11 @@ State:
 ;
 
 Transition:
-    (event=[Event] '->' state=[State])
+    (event=[Event] '->' state=[State] ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
 ;
 
 TransitionForEach:
-    (event=[Event] '*->' state=[State])
+    (event=[Event] '*->' state=[State] ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
 ;
 
 TransitionAuto:
@@ -44,11 +45,22 @@ Path:
     'path' name=STRING    
 ;
 
+UriSpecification:
+    'urispec' type=('NavProperty'|'EntitySet'|'Entity') pathPrefix=STRING
+;
+
 Entity:
     ((isCollection?='collection') | (isItem?='item'))? name=ID
 ;
 
 Command:
-    name=ID property=ID
+    name=ID ((property+=CommandProperty)* (',' property+=CommandProperty)* )
 ;
 
+CommandProperty:
+    name=ID '=' value=ID
+;
+
+UriLink:
+    templateProperty=ID '=' entityProperty=ID
+;

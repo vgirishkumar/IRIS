@@ -13,6 +13,7 @@ import com.temenos.interaction.rimdsl.rim.TransitionForEach
 import com.temenos.interaction.rimdsl.rim.TransitionAuto
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel
 import org.eclipse.emf.common.util.EList
+import com.temenos.interaction.rimdsl.rim.UriLink
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -44,6 +45,8 @@ class RIMDslGenerator implements IGenerator {
 		    }
 		
 			public ResourceState getRIM() {
+				Map<String, String> uriLinkageMap = new HashMap<String, String>();
+				Properties actionViewProperties = new Properties();
 				ResourceState initial = null;
 				// create states
 				«FOR c : rim.states»
@@ -91,32 +94,47 @@ class RIMDslGenerator implements IGenerator {
 	'''
 	
 	def produceResourceStates(State state) '''
+            «IF state.actions != null && state.actions.size > 0»
+                «FOR commandProperty : state.actions.get(0).property»
+                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");«
+                ENDFOR»
+            «ENDIF»
             «IF state.entity.isCollection»
             CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
             «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»"«if (state.urispec != null) { ", new ODataUriSpecification().getTemplate(\"" + state.urispec.pathPrefix + "\", \"" + state.urispec.type + "\")" }»);
             «ENDIF»
 	'''
 
     def produceActionSet(EList<Command> actions) '''
         «IF actions != null»
             «IF actions.size == 2»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
+            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, actionViewProperties), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
             ELSEIF actions.size == 1»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW), null)«
+            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, actionViewProperties), null)«
             ENDIF»«
         ENDIF»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
-			s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name»);
+			«produceUriLinkageMap(transition.uriLinks)»
+			s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageMap);
 	'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
-            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», null);
+            «produceUriLinkageMap(transition.uriLinks)»
+            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageMap);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
             s«fromState.name».addTransition(s«transition.state.name»);
+    '''
+
+    def produceUriLinkageMap(EList<UriLink> uriLinks) '''
+        «IF uriLinks != null»
+            «FOR prop : uriLinks»
+            uriLinkageMap.put("«prop.templateProperty»", "«prop.entityProperty»");«
+            ENDFOR»«
+        ENDIF»
     '''
 
 }
