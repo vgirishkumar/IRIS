@@ -23,18 +23,38 @@ import com.temenos.interaction.sdk.interaction.InteractionModel;
  */
 public class TestRimDslGenerator {
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
+	public final static String RIM_DSL_AIRLINE_SIMPLE_FILE = "AirlinesSimple.rim";
 	public final static String RIM_DSL_AIRLINE_FILE = "Airlines.rim";
 
 	@Test
-	public void testGenerateRimDslWithoutReciprocalLinks() {
+	public void testGenerateRimDslAirlinesSimple() {
+		//Define the basic interaction model based on the available metadata
+		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
+		InteractionModel interactionModel = new InteractionModel(metadata);
+
+		//Add transitions
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
+		
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		String dsl = generator.generateRimDsl(interactionModel);
+		
+		//Check results
+		assertTrue(dsl != null && !dsl.equals(""));
+		assertEquals(readTextFile(RIM_DSL_AIRLINE_SIMPLE_FILE), dsl);
+	}
+	
+	@Test
+	public void testGenerateRimDslAirportWithoutReciprocalLinks() {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
 
 		//Add transitions but without reciprocal links
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, "", interactionModel.findResourceStateMachine("Airport"));
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departureAirportCode", "flightSchedules", true, "", interactionModel.findResourceStateMachine("FlightSchedule"));
+		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departureAirportCode", "flightSchedules", true, null, interactionModel.findResourceStateMachine("FlightSchedule"));
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());

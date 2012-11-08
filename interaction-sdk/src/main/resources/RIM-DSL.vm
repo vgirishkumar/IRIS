@@ -3,36 +3,51 @@ events
 end
 
 commands
-	GETServiceDocument properties
-	GETEntities properties
-	GETEntity properties
-	GETNavProperty properties
+	GETServiceDocument
+	GETMetadata
+	GETEntities
+	GETEntity
+#foreach ( $rsm in $rim.getResourceStateMachines() )
+#if (${rsm.getTransitions().size()} > 0) 
+	GETNavProperty${rsm.getEntityName()} entity=${rsm.getEntityName()}
+#end
+#end
 end
 
 initial resource ServiceDocument
-	collection ENTITY
+	collection ServiceDocument
 	actions { GETServiceDocument }
+	GET -> metadata
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 	GET -> ${rsm.getCollectionStateName()}
 #end
 end
 
+resource metadata
+	item Metadata
+	actions { GETMetadata }
+	path "/$metadata"
+end
+
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 #* Collection resource state*#
 resource ${rsm.getCollectionStateName()}
-	collection ENTITY
+	collection ${rsm.getEntityName()}
 	actions { GETEntities }
 	path "/${rsm.getEntityName()}"
-	GET *-> ${rsm.getEntityStateName()}
+	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
+#foreach ( $transition in $rsm.getTransitions() )
+	GET *-> ${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}
+#end
 end
 
 #* Entity resource state*#
 resource ${rsm.getEntityStateName()}
-	item ENTITY
+	item ${rsm.getEntityName()}
 	actions { GETEntity }
 	path "/${rsm.getEntityName()}({id})"
 #foreach ( $transition in $rsm.getTransitions() )
-	GET -> ${transition.getTargetStateName()}
+	GET -> ${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, navproperty=${transition.getTargetStateName()}
 #end
 end
 
@@ -42,16 +57,18 @@ end
 resource ${transition.getTargetStateName()}#*
 *##if ($transition.isCollectionState())#* 
 	Transition to collection resource state in target RSM *#
-	collection ENTITY
-	actions { GETNavProperty }
+	collection ${transition.getTargetEntityName()}
+	actions { GETNavProperty${rsm.getEntityName()} }
 	path "/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}"
-	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()}
+	urispec NavProperty "/${rsm.getEntityName()}"
+	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 #else#*
 	Transition to entity resource state in target RSM *#
-	item ENTITY
-	actions { GETNavProperty }
+	item ${transition.getTargetEntityName()}
+	actions { GETNavProperty${rsm.getEntityName()} }
 	path "/${rsm.getEntityName()}({id})/${transition.getTargetStateName()}"
-	GET -> ${transition.getTargetRsmStateName()}
+	urispec NavProperty "/${rsm.getEntityName()}"
+	GET -> ${transition.getTargetRsmStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 #end
 end
 #end

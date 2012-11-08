@@ -7,7 +7,6 @@ commands
 	GETMetadata
 	GETEntities
 	GETEntity
-	GETNavPropertyAirport entity=Airport
 	GETNavPropertyFlightSchedule entity=FlightSchedule
 end
 
@@ -48,7 +47,6 @@ resource airports
 	actions { GETEntities }
 	path "/Airport"
 	GET *-> airport id=code
-	GET *-> flightSchedules id=code
 end
 
 
@@ -56,18 +54,9 @@ resource airport
 	item Airport
 	actions { GETEntity }
 	path "/Airport({id})"
-	GET -> flightSchedules id=code, navproperty=flightSchedules
 end
 
 
-
-resource flightSchedules
-	collection FlightSchedule
-	actions { GETNavPropertyAirport }
-	path "/Airport({id})/flightSchedules"
-	urispec NavProperty "/Airport"
-	GET -> flightschedules id=flightScheduleID
-end
 
 resource flightschedules
 	collection FlightSchedule
