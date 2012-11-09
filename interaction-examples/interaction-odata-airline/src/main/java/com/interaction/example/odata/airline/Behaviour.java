@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.temenos.interaction.commands.odata.ODataUriSpecification;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.UriSpecification;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 
 public class Behaviour {
@@ -22,101 +22,53 @@ public class Behaviour {
     }
 
 	public ResourceState getSimpleODataInteractionModel() {
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		Properties actionViewProperties = new Properties();
 		ResourceState initial = null;
 		// create states
 		CollectionResourceState sServiceDocument = new CollectionResourceState("ServiceDocument", "ServiceDocument", createActionSet(new Action("GETServiceDocument", Action.TYPE.VIEW, actionViewProperties), null), "");
 		// identify the initial state
 		initial = sServiceDocument;
-		ResourceState smetadata = new ResourceState("Metadata", "metadata", createActionSet(new Action("GETMetadata", Action.TYPE.VIEW, actionViewProperties), null), "/$metadata");
+		ResourceState smetadata = new ResourceState("Metadata", "metadata", createActionSet(new Action("GETMetadata", Action.TYPE.VIEW, actionViewProperties), null), "/$metadata", new UriSpecification("metadata", "/$metadata"));
 		CollectionResourceState sflights = new CollectionResourceState("Flight", "flights", createActionSet(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/Flight");
-		ResourceState sflight = new ResourceState("Flight", "flight", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/Flight({id})");
+		ResourceState sflight = new ResourceState("Flight", "flight", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/Flight({id})", new UriSpecification("flight", "/Flight({id})"));
 		CollectionResourceState sairports = new CollectionResourceState("Airport", "airports", createActionSet(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/Airport");
-		ResourceState sairport = new ResourceState("Airport", "airport", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/Airport({id})");
+		ResourceState sairport = new ResourceState("Airport", "airport", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/Airport({id})", new UriSpecification("airport", "/Airport({id})"));
 		CollectionResourceState sflightschedules = new CollectionResourceState("FlightSchedule", "flightschedules", createActionSet(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule");
-		ResourceState sflightschedule = new ResourceState("FlightSchedule", "flightschedule", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})");
+		ResourceState sflightschedule = new ResourceState("FlightSchedule", "flightschedule", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})", new UriSpecification("flightschedule", "/FlightSchedule({id})"));
 		actionViewProperties.put("entity", "FlightSchedule");
-		ResourceState sdepartureAirport = new ResourceState("Airport", "departureAirport", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/departureAirport", new ODataUriSpecification().getTemplate("/FlightSchedule", "NavProperty"));
+		ResourceState sdepartureAirport = new ResourceState("Airport", "departureAirport", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/{navproperty}", new UriSpecification("departureAirport", "/FlightSchedule({id})/{navproperty}"));
 		actionViewProperties.put("entity", "FlightSchedule");
-		ResourceState sarrivalAirport = new ResourceState("Airport", "arrivalAirport", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/arrivalAirport", new ODataUriSpecification().getTemplate("/FlightSchedule", "NavProperty"));
+		ResourceState sarrivalAirport = new ResourceState("Airport", "arrivalAirport", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/{navproperty}", new UriSpecification("arrivalAirport", "/FlightSchedule({id})/{navproperty}"));
 
 		// create regular transitions
-		sServiceDocument.addTransition("GET", smetadata, uriLinkageMap);
-		sServiceDocument.addTransition("GET", sflights, uriLinkageMap);
-		sServiceDocument.addTransition("GET", sairports, uriLinkageMap);
-		sServiceDocument.addTransition("GET", sflightschedules, uriLinkageMap);
-		uriLinkageMap.put("id", "flightScheduleID");uriLinkageMap.put("navproperty", "departureAirport");
-		sflightschedule.addTransition("GET", sdepartureAirport, uriLinkageMap);
-		uriLinkageMap.put("id", "flightScheduleID");uriLinkageMap.put("navproperty", "arrivalAirport");
-		sflightschedule.addTransition("GET", sarrivalAirport, uriLinkageMap);
-		uriLinkageMap.put("id", "code");
-		sdepartureAirport.addTransition("GET", sairport, uriLinkageMap);
-		uriLinkageMap.put("id", "code");
-		sarrivalAirport.addTransition("GET", sairport, uriLinkageMap);
+		sServiceDocument.addTransition("GET", smetadata, uriLinkageEntityProperties, uriLinkageProperties);
+		sServiceDocument.addTransition("GET", sflights, uriLinkageEntityProperties, uriLinkageProperties);
+		sServiceDocument.addTransition("GET", sairports, uriLinkageEntityProperties, uriLinkageProperties);
+		sServiceDocument.addTransition("GET", sflightschedules, uriLinkageEntityProperties, uriLinkageProperties);
+		uriLinkageEntityProperties.put("id", "flightScheduleID");
+		uriLinkageProperties.put("navproperty", "departureAirport");
+		sflightschedule.addTransition("GET", sdepartureAirport, uriLinkageEntityProperties, uriLinkageProperties);
+		uriLinkageEntityProperties.put("id", "flightScheduleID");
+		uriLinkageProperties.put("navproperty", "arrivalAirport");
+		sflightschedule.addTransition("GET", sarrivalAirport, uriLinkageEntityProperties, uriLinkageProperties);
+		uriLinkageEntityProperties.put("id", "code");
+		sdepartureAirport.addTransition("GET", sairport, uriLinkageEntityProperties, uriLinkageProperties);
+		uriLinkageEntityProperties.put("id", "code");
+		sarrivalAirport.addTransition("GET", sairport, uriLinkageEntityProperties, uriLinkageProperties);
 
         // create foreach transitions
-                uriLinkageMap.put("id", "flightID");
-                sflights.addTransitionForEachItem("GET", sflight, uriLinkageMap);
-                uriLinkageMap.put("id", "code");
-                sairports.addTransitionForEachItem("GET", sairport, uriLinkageMap);
-                uriLinkageMap.put("id", "flightScheduleID");
-                sflightschedules.addTransitionForEachItem("GET", sflightschedule, uriLinkageMap);
-                uriLinkageMap.put("id", "flightScheduleID");
-                sflightschedules.addTransitionForEachItem("GET", sdepartureAirport, uriLinkageMap);
-                uriLinkageMap.put("id", "flightScheduleID");
-                sflightschedules.addTransitionForEachItem("GET", sarrivalAirport, uriLinkageMap);
-
-        // create AUTO transitions
-
-	    return initial;
-	}
-	
-	public ResourceState BCKPgetSimpleODataInteractionModel() {
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		Properties actionViewProperties = new Properties();
-		ResourceState initial = null;
-		// create states
-		CollectionResourceState sServiceDocument = new CollectionResourceState("ServiceDocument", "ServiceDocument", createActionSet(new Action("GETServiceDocument", Action.TYPE.VIEW, actionViewProperties), null), "");
-		// identify the initial state
-		initial = sServiceDocument;
-		ResourceState smetadata = new ResourceState("Metadata", "metadata", createActionSet(new Action("GETMetadata", Action.TYPE.VIEW, actionViewProperties), null), "/$metadata");
-		CollectionResourceState sflights = new CollectionResourceState("Flight", "flights", createActionSet(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/Flight");
-		ResourceState sflight = new ResourceState("Flight", "flight", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/Flight({id})");
-		CollectionResourceState sairports = new CollectionResourceState("Airport", "airports", createActionSet(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/Airport");
-		ResourceState sairport = new ResourceState("Airport", "airport", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/Airport({id})");
-		CollectionResourceState sflightschedules = new CollectionResourceState("FlightSchedule", "flightschedules", createActionSet(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule");
-		ResourceState sflightschedule = new ResourceState("FlightSchedule", "flightschedule", createActionSet(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})");
-		actionViewProperties.put("entity", "FlightSchedule");
-		ResourceState sdepartureAirport = new ResourceState("Airport", "departureAirport", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/departureAirport", new ODataUriSpecification().getTemplate("/FlightSchedule", "NavProperty"));
-		actionViewProperties.put("entity", "FlightSchedule");
-		ResourceState sarrivalAirport = new ResourceState("Airport", "arrivalAirport", createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/arrivalAirport", new ODataUriSpecification().getTemplate("/FlightSchedule", "NavProperty"));
-
-		// create regular transitions
-		sServiceDocument.addTransition("GET", smetadata, uriLinkageMap);
-		sServiceDocument.addTransition("GET", sflights, uriLinkageMap);
-		sServiceDocument.addTransition("GET", sairports, uriLinkageMap);
-		sServiceDocument.addTransition("GET", sflightschedules, uriLinkageMap);
-		uriLinkageMap.put("id", "flightScheduleID");uriLinkageMap.put("navproperty", "departureAirport");
-		sflightschedule.addTransition("GET", sdepartureAirport, uriLinkageMap);
-		uriLinkageMap.put("id", "flightScheduleID");uriLinkageMap.put("navproperty", "arrivalAirport");
-		sflightschedule.addTransition("GET", sarrivalAirport, uriLinkageMap);
-		uriLinkageMap.put("id", "code");
-		sdepartureAirport.addTransition("GET", sairport, uriLinkageMap);
-		uriLinkageMap.put("id", "code");
-		sarrivalAirport.addTransition("GET", sairport, uriLinkageMap);
-
-        // create foreach transitions
-                uriLinkageMap.put("id", "flightID");
-                sflights.addTransitionForEachItem("GET", sflight, uriLinkageMap);
-                uriLinkageMap.put("id", "code");
-                sairports.addTransitionForEachItem("GET", sairport, uriLinkageMap);
-                uriLinkageMap.put("id", "flightScheduleID");
-                sflightschedules.addTransitionForEachItem("GET", sflightschedule, uriLinkageMap);
-                uriLinkageMap.put("id", "flightScheduleID");
-                sflightschedules.addTransitionForEachItem("GET", sdepartureAirport, uriLinkageMap);
-                uriLinkageMap.put("id", "flightScheduleID");
-                sflightschedules.addTransitionForEachItem("GET", sarrivalAirport, uriLinkageMap);
+                uriLinkageEntityProperties.put("id", "flightID");
+                sflights.addTransitionForEachItem("GET", sflight, uriLinkageEntityProperties, uriLinkageProperties);
+                uriLinkageEntityProperties.put("id", "code");
+                sairports.addTransitionForEachItem("GET", sairport, uriLinkageEntityProperties, uriLinkageProperties);
+                uriLinkageEntityProperties.put("id", "flightScheduleID");
+                sflightschedules.addTransitionForEachItem("GET", sflightschedule, uriLinkageEntityProperties, uriLinkageProperties);
+                uriLinkageEntityProperties.put("id", "flightScheduleID");
+                sflightschedules.addTransitionForEachItem("GET", sdepartureAirport, uriLinkageEntityProperties, uriLinkageProperties);
+                uriLinkageEntityProperties.put("id", "flightScheduleID");
+                sflightschedules.addTransitionForEachItem("GET", sarrivalAirport, uriLinkageEntityProperties, uriLinkageProperties);
 
         // create AUTO transitions
 

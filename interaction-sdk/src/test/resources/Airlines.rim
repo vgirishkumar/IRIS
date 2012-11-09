@@ -56,7 +56,7 @@ resource airport
 	item Airport
 	actions { GETEntity }
 	path "/Airport({id})"
-	GET -> flightSchedules id=code, navproperty=flightSchedules
+	GET -> flightSchedules id=code, navproperty="flightSchedules"
 end
 
 
@@ -64,8 +64,7 @@ end
 resource flightSchedules
 	collection FlightSchedule
 	actions { GETNavPropertyAirport }
-	path "/Airport({id})/flightSchedules"
-	urispec NavProperty "/Airport"
+	path "/Airport({id})/{navproperty}"
 	GET -> flightschedules id=flightScheduleID
 end
 
@@ -83,8 +82,8 @@ resource flightschedule
 	item FlightSchedule
 	actions { GETEntity }
 	path "/FlightSchedule({id})"
-	GET -> departureAirport id=flightScheduleID, navproperty=departureAirport
-	GET -> arrivalAirport id=flightScheduleID, navproperty=arrivalAirport
+	GET -> departureAirport id=flightScheduleID, navproperty="departureAirport"
+	GET -> arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
 end
 
 
@@ -92,15 +91,13 @@ end
 resource departureAirport
 	item Airport
 	actions { GETNavPropertyFlightSchedule }
-	path "/FlightSchedule({id})/departureAirport"
-	urispec NavProperty "/FlightSchedule"
+	path "/FlightSchedule({id})/{navproperty}"
 	GET -> airport id=code
 end
 
 resource arrivalAirport
 	item Airport
 	actions { GETNavPropertyFlightSchedule }
-	path "/FlightSchedule({id})/arrivalAirport"
-	urispec NavProperty "/FlightSchedule"
+	path "/FlightSchedule({id})/{navproperty}"
 	GET -> airport id=code
 end
