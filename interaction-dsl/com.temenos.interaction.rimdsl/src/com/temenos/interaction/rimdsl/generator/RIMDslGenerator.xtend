@@ -14,6 +14,7 @@ import com.temenos.interaction.rimdsl.rim.TransitionAuto
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel
 import org.eclipse.emf.common.util.EList
 import com.temenos.interaction.rimdsl.rim.UriLink
+import com.temenos.interaction.rimdsl.rim.UriLinkageEntityKeyReplace
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -45,7 +46,8 @@ class RIMDslGenerator implements IGenerator {
 		    }
 		
 			public ResourceState getRIM() {
-				Map<String, String> uriLinkageMap = new HashMap<String, String>();
+				Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
+				Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 				Properties actionViewProperties = new Properties();
 				ResourceState initial = null;
 				// create states
@@ -102,7 +104,7 @@ class RIMDslGenerator implements IGenerator {
             «IF state.entity.isCollection»
             CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»");
             «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»"«if (state.urispec != null) { ", new ODataUriSpecification().getTemplate(\"" + state.urispec.pathPrefix + "\", \"" + state.urispec.type + "\")" }»);
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name }»"«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
             «ENDIF»
 	'''
 
@@ -116,24 +118,28 @@ class RIMDslGenerator implements IGenerator {
         ENDIF»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
-			«produceUriLinkageMap(transition.uriLinks)»
-			s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageMap);
+			«produceUriLinkage(transition.uriLinks)»
+			s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties);
 	'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
-            «produceUriLinkageMap(transition.uriLinks)»
-            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageMap);
+            «produceUriLinkage(transition.uriLinks)»
+            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
             s«fromState.name».addTransition(s«transition.state.name»);
     '''
 
-    def produceUriLinkageMap(EList<UriLink> uriLinks) '''
+    def produceUriLinkage(EList<UriLink> uriLinks) '''
         «IF uriLinks != null»
             «FOR prop : uriLinks»
-            uriLinkageMap.put("«prop.templateProperty»", "«prop.entityProperty»");«
-            ENDFOR»«
+            «IF prop.entityProperty instanceof UriLinkageEntityKeyReplace»
+            uriLinkageEntityProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
+            «ELSE»
+            uriLinkageProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
+            «ENDIF»
+            «ENDFOR»«
         ENDIF»
     '''
 

@@ -519,15 +519,24 @@ public class ResourceStateMachine {
 			if (!transition.getTarget().getRel().contains("self") && !transition.getSource().equals(transition.getTarget())) {
 				rel = transition.getTarget().getName();		//Not a self-link so use name of target state as relation name
 			}
-			
 			String method = cs.getMethod();
 			URI href = null;
+			
+			//Apply path parameters to URI template
 			Map<String, Object> properties = new HashMap<String, Object>();
 			if (map != null) {
 				for (String key : map.keySet()) {
 					properties.put(key, map.getFirst(key));
 				}
 			}
+
+			//Apply linkage properties defined in the RIM
+			Map<String, String> uriLinkageProperties = transition.getSource().getUriLinkageProperties();
+			if (uriLinkageProperties != null) {
+				properties.putAll(uriLinkageProperties);
+			}
+			
+			//Apply entity properties to URI template
 			if (entity != null) {
 				if (transformer != null) {
 					logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
@@ -542,6 +551,8 @@ public class ResourceStateMachine {
 			} else {
 				href = linkTemplate.buildFromMap(properties);
 			}
+			
+			//Create the link
 			Link link = new Link(transition, rel, href.toASCIIString(), method);
 			logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId()+ ", rel=" + rel + ", method=" + method + ", href=" + href.toString() + "(ASCII=" + href.toASCIIString() + ")]");
 			return link;
