@@ -13,6 +13,9 @@ import com.temenos.interaction.rimdsl.rim.TransitionForEach
 import com.temenos.interaction.rimdsl.rim.TransitionAuto
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel
 import org.eclipse.emf.common.util.EList
+import com.temenos.interaction.rimdsl.rim.OKFunction;
+import com.temenos.interaction.rimdsl.rim.NotFoundFunction
+import com.temenos.interaction.rimdsl.rim.Function
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -34,6 +37,7 @@ class RIMDslGenerator implements IGenerator {
 		import com.temenos.interaction.core.hypermedia.ResourceState;
 		import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 		import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
+		import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 		
 		public class «rim.eResource.className»Behaviour {
 		
@@ -108,8 +112,19 @@ class RIMDslGenerator implements IGenerator {
         ENDIF»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
-			s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name»);
+            «IF transition.eval != null»
+            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
+            «ELSE»
+            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name»);
+            «ENDIF»
 	'''
+
+    def produceExpression(Function expression) '''
+        «IF expression instanceof OKFunction»
+            new ResourceGETExpression("«(expression as OKFunction).state.name»", ResourceGETExpression.Function.OK)«
+        ELSE»
+            new ResourceGETExpression("«(expression as NotFoundFunction).state.name»", ResourceGETExpression.Function.NOT_FOUND)«
+        ENDIF»'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
             s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», null);
