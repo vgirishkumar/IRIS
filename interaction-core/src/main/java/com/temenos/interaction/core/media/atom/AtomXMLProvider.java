@@ -104,7 +104,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			Annotation[] annotations, MediaType mediaType) {
 		return ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class) ||
 				ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class) ||
-				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class);
+				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
+				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class);
 	}
 
 	@Override
@@ -168,7 +169,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
 		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
 					OEntity tempEntity = collectionEntity.getEntity();
-					EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((collectionEntity.getEntityName() == null ? tempEntity.getEntitySetName() : collectionEntity.getEntityName()));
+					EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(collectionResource.getEntityName());
 	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 					
 					//Add entity links
