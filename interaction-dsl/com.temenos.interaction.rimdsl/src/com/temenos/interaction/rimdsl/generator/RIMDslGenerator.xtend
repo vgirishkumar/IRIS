@@ -30,7 +30,11 @@ class RIMDslGenerator implements IGenerator {
 	def toJavaCode(ResourceInteractionModel rim) '''
 		import java.util.HashSet;
 		import java.util.Set;
+		import java.util.HashMap;
+		import java.util.Map;
+		import java.util.Properties;
 
+		import com.temenos.interaction.core.hypermedia.UriSpecification;
 		import com.temenos.interaction.core.hypermedia.Action;
 		import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 		import com.temenos.interaction.core.hypermedia.ResourceState;
