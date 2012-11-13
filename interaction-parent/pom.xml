@@ -18,6 +18,7 @@
 		<module>../interaction-sdk-plugin</module>
 		<module>../interaction-sdk-test</module>
 		<module>../interaction-test</module>
+		<module>../useragent-examples/useragent-odata-html5</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
 		<module>../useragent-examples/T24-ft-useragent-javascript</module>
 		<module>../useragent-examples/useragent-hal-inspector</module>
