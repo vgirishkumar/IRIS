@@ -11,6 +11,9 @@ public class CollectionResourceState extends ResourceState {
 	public CollectionResourceState(String entityName, String name, Set<Action> actions, String path, UriSpecification uriSpec) {
 		super(entityName, name, actions, path, "collection".split(" "), uriSpec);
 	}
+	public CollectionResourceState(String entityName, String name, Set<Action> actions, String path, String[] rels, UriSpecification uriSpec) {
+		super(entityName, name, actions, path, rels, uriSpec);
+	}
 
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
 		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), true);
@@ -21,7 +24,7 @@ public class CollectionResourceState extends ResourceState {
 	}
 	
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), transitionFlags | Transition.FOR_EACH);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null);
 	}
 	
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags) {

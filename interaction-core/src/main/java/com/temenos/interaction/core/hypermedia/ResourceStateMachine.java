@@ -35,6 +35,7 @@ public class ResourceStateMachine {
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
 
 	public final ResourceState initial;
+	public final ResourceState exception;
 	public final Transformer transformer;
 	public NewCommandController commandController;
 	
@@ -99,9 +100,16 @@ public class ResourceStateMachine {
 	 * @param transformer
 	 */
 	public ResourceStateMachine(ResourceState initialState, Transformer transformer) {
+		this(initialState, null, transformer);
+	}
+	
+	
+	public ResourceStateMachine(ResourceState initialState, ResourceState exception, Transformer transformer) {
 		assert(initialState != null);
+		assert(exception == null || exception.isException());
 		this.initial = initialState;
 		this.initial.setInitial(true);
+		this.exception = exception;
 		this.transformer = transformer;
 		build();
 	}
@@ -117,6 +125,10 @@ public class ResourceStateMachine {
 	
 	public ResourceState getInitial() {
 		return initial;
+	}
+
+	public ResourceState getException() {
+		return exception;
 	}
 
 	public Transformer getTransformer() {
@@ -515,9 +527,10 @@ public class ResourceStateMachine {
 	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity, MultivaluedMap<String, String> map) {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
-			String rel = "self";
-			if (!transition.getTarget().getRel().contains("self") && !transition.getSource().equals(transition.getTarget())) {
-				rel = transition.getTarget().getName();		//Not a self-link so use name of target state as relation name
+			String rel = transition.getTarget().getRel();
+//			String rel = transition.getTarget().getName();		//Not a self-link so use name of target state as relation name
+			if (transition.getSource().equals(transition.getTarget())) {
+				rel = "self"; 
 			}
 			String method = cs.getMethod();
 			URI href = null;

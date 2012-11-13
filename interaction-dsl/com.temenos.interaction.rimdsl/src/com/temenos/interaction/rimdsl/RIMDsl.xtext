@@ -17,8 +17,8 @@ Event:
     name=ID
 ;
 
-State:
-    (isInitial?='initial')? 'resource' name=ID
+State: 
+    (isInitial?='initial' | isException?='exception')? 'resource' name=ID
         entity=Entity
         ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')
         path=Path?
@@ -29,15 +29,41 @@ State:
 ;
 
 Transition:
-    (event=[Event] '->' state=[State] ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
+    (event=[Event] '->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
 ;
 
 TransitionForEach:
-    (event=[Event] '*->' state=[State] ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
+    (event=[Event] '*->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
 ;
 
 TransitionAuto:
-    (event=[Event] '-->' state=[State])
+    (event=[Event] '-->' state=[State] (eval=Expression)?)
+;
+
+Expression:
+// works
+//    '(' expression=ID ')'
+//    '(' 'OK' '(' name=ID ')' ')'
+//    '(' expression=Function_OK ')'
+//    '(' expression=Function ')'
+
+// does not work
+//    '(' expression=[Function] ')'
+    
+    '(' 
+        (expressions+=Function) 
+        ('&&' (expressions+=Function))* 
+    ')'
+;
+
+Function: Function_OK|Function_NOT_FOUND;
+
+Function_OK:
+    {OKFunction} 'OK' '(' state=[State] ')'
+;
+
+Function_NOT_FOUND:
+    {NotFoundFunction} 'NOT_FOUND' '(' state=[State] ')'
 ;
 
 Path:

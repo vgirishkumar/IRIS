@@ -1,5 +1,7 @@
 package com.temenos.interaction.core.hypermedia;
 
+import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+
 /**
  * Define how a transition from one state to another should occur.
  * @author aphethean
@@ -9,6 +11,8 @@ public class TransitionCommandSpec {
 	private final String method;
 	private final String path;
 	private final int flags;
+	// conditional link evaluation expression 
+	private final ResourceGETExpression evaluation;
 	// TODO will need to define query params for transitions
 	//private final List<String> queryParams;
 	
@@ -17,9 +21,14 @@ public class TransitionCommandSpec {
 	}
 
 	protected TransitionCommandSpec(String method, String path, int flags) {
+		this(method, path, flags, null);
+	}
+	
+	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation) {
 		this.method = method;
 		this.path = path;
 		this.flags = flags;
+		this.evaluation = evaluation;
 	}
 	
 	public String getPath() {
@@ -32,6 +41,10 @@ public class TransitionCommandSpec {
 
 	public String getMethod() {
 		return method;
+	}
+
+	public ResourceGETExpression getEvaluation() {
+		return evaluation;
 	}
 
 	/**
@@ -66,6 +79,18 @@ public class TransitionCommandSpec {
 	}
 	
 	public String toString() {
-		return method + (path != null && path.length() > 0 ? " " + path : "") + " (" + Integer.toBinaryString(flags) + ")";
+		StringBuffer sb = new StringBuffer();
+		if (isForEach())
+			sb.append("*");
+		sb.append(method + (path != null && path.length() > 0 ? " " + path : ""));
+		if (evaluation != null) {
+			sb.append(" (");
+			if (evaluation.getFunction().equals(ResourceGETExpression.Function.OK))
+				sb.append("OK(").append(evaluation.getState()).append(")");
+			if (evaluation.getFunction().equals(ResourceGETExpression.Function.NOT_FOUND))
+				sb.append("NOT_FOUND").append(evaluation.getState()).append(")");
+			sb.append(")");
+		}
+		return sb.toString();
 	}
 }

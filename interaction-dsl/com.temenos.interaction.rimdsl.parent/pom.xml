@@ -5,12 +5,12 @@
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>com.temenos.interaction.rimdsl.parent</artifactId>
 	<!-- You should change this and the MANIFEST.MF to your versioning scheme -->
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>com.temenos.interaction.rimdsl.RimDsl - Parent</name>
 
 	<properties>
-		<version.tycho>0.14.1</version.tycho>
+		<version.tycho>0.16.0</version.tycho>
 		<junit-version>4.8.1</junit-version>
 	</properties>
 
@@ -106,7 +106,7 @@
 				<plugin>
 					<groupId>org.fornax.toolsupport</groupId>
 					<artifactId>fornax-oaw-m2-plugin</artifactId>
-					<version>3.3.0</version>
+					<version>3.4.0</version>
 					<configuration>
 						<workflowEngine>mwe2</workflowEngine>
 					</configuration>
@@ -146,8 +146,8 @@
 	<repositories>
         <!-- Repository to resolve the Eclipse Tycho dependencies --> 
 		<repository>
-			<id>p2.eclipse.indigo</id>
-			<url>http://download.eclipse.org/releases/indigo</url>
+			<id>p2.eclipse.juno</id>
+			<url>http://download.eclipse.org/releases/juno</url>
 			<layout>p2</layout>
 		</repository>
 		<!-- Repository to resolve the XText dependencies -->

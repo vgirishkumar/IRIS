@@ -16,8 +16,11 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.temenos.interaction.rimdsl.rim.Command;
+import com.temenos.interaction.rimdsl.rim.NotFoundFunction;
+import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 import com.temenos.interaction.rimdsl.rim.State;
+import com.temenos.interaction.rimdsl.rim.Transition;
 
 @InjectWith(RIMDslInjectorProvider.class)
 @RunWith(XtextRunner.class)
@@ -139,7 +142,7 @@ public class ParserTest {
 			"initial resource A" + LINE_SEP +
 			"	collection ENTITY" + LINE_SEP +
 			"	actions { GetEntities }" + LINE_SEP +
-			"	GET -> A" + LINE_SEP +
+			"	GET -> B" + LINE_SEP +
 			"end" + LINE_SEP +
 
 			"resource B" +
@@ -160,6 +163,88 @@ public class ParserTest {
 
 	    // there should one transition from state A to state B
 		assertEquals(1, aState.getTransitions().size());
+		assertEquals("B", aState.getTransitions().get(0).getState().getName());
+	}
+
+	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
+			"commands" + LINE_SEP +
+			"	GetEntity properties" + LINE_SEP +
+			"	GetEntities properties" + LINE_SEP +
+			"	PutEntity properties" + LINE_SEP +
+			"end" + LINE_SEP +
+					
+			"initial resource A" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"	actions { GetEntities }" + LINE_SEP +
+			"	GET -> B (OK(B))" + LINE_SEP +
+			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
+			"	GET -> B (OK(B) && NOT_FOUND(B))" + LINE_SEP +
+			"end" + LINE_SEP +
+
+			"resource B" +
+			"	item ENTITY" + LINE_SEP +
+			"	actions { GetEntity, PutEntity }" + LINE_SEP +
+			"end" + LINE_SEP +
+			"";
+
+	@Test
+	public void testParseStatesWithTransitionEvalExpression() throws Exception {
+		ResourceInteractionModel model = parser.parse(TRANSITION_WITH_EXPRESSION_RIM);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+		State aState = model.getStates().get(0);
+	    assertEquals("A", aState.getName());
+
+	    // there should two transitions from state A to state B
+		assertEquals(3, aState.getTransitions().size());
+		// assert expressions on OK transition
+		assertEquals("B", aState.getTransitions().get(0).getState().getName());
+		assertEquals(1, aState.getTransitions().get(0).getEval().getExpressions().size());
+		assertTrue(aState.getTransitions().get(0).getEval().getExpressions().get(0) instanceof OKFunction);
+		assertEquals("B", ((OKFunction) aState.getTransitions().get(0).getEval().getExpressions().get(0)).getState().getName());
+
+		// assert expressions on NOT_FOUND transition
+		assertEquals("B", aState.getTransitions().get(1).getState().getName());
+		assertEquals(1, aState.getTransitions().get(1).getEval().getExpressions().size());
+		assertTrue(aState.getTransitions().get(1).getEval().getExpressions().get(0) instanceof NotFoundFunction);
+		assertEquals("B", ((NotFoundFunction) aState.getTransitions().get(1).getEval().getExpressions().get(0)).getState().getName());
+
+		// assert expressions with && on transition
+		assertEquals("B", aState.getTransitions().get(2).getState().getName());
+		Transition twe = aState.getTransitions().get(2);
+		assertEquals(2, twe.getEval().getExpressions().size());
+		assertTrue(twe.getEval().getExpressions().get(0) instanceof OKFunction);
+		assertEquals("B", ((OKFunction) twe.getEval().getExpressions().get(0)).getState().getName());
+		assertTrue(twe.getEval().getExpressions().get(1) instanceof NotFoundFunction);
+		assertEquals("B", ((NotFoundFunction) twe.getEval().getExpressions().get(1)).getState().getName());
+
+	}
+
+	private final static String EXCEPTION_RESOURCE_RIM = "" +
+			"commands" + LINE_SEP +
+			"	Noop properties" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"exception resource EXCEPTION" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"   actions { Noop }" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"";
+
+	@Test
+	public void testParseExceptionResource() throws Exception {
+		ResourceInteractionModel model = parser.parse(EXCEPTION_RESOURCE_RIM);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be exactly one state
+		assertEquals(1, model.getStates().size());
+	    assertEquals("EXCEPTION", model.getStates().get(0).getName());
+
+	    // state should be an exception state
+	    State state = model.getStates().get(0);
+	    assertTrue(state.isIsException());
 	}
 
 }

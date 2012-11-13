@@ -17,21 +17,13 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
-public class CreateReadDeleteNoteITCase extends JerseyTest {
+public class CreateReadUpdateDeleteITCase extends JerseyTest {
 
 	public final static String PERSONS_RESOURCE = "/Person";
 	public final static String NOTES_RESOURCE = "/Note";
 	
 	private final static String NOTE_ENTITYSET_NAME = "Note";
 	private final static String PERSON_ENTITYSET_NAME = "Person";
-
-	/* Allows standalone Jersey Test
-	@BeforeClass
-	public static void initialiseTestDB() {
-    	// bootstrap the NoteProducerFactory which creates the JPA entity manager (the CREATE TABLE)
-    	new NoteProducerFactory();
-	}
-	 */
 
 	@Before
 	public void initTest() {
@@ -61,7 +53,7 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
 	@After
 	public void tearDown() {}
 
-    public CreateReadDeleteNoteITCase() throws Exception {
+    public CreateReadUpdateDeleteITCase() throws Exception {
     	/* Allows standalone Jersey Test
     	super("example", "rest", "com.temenos.interaction.example");
 		*/
@@ -74,8 +66,9 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
         String noteUri = NOTES_RESOURCE + "(1)";
         ClientResponse response = webResource.path(noteUri).options(ClientResponse.class);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
-        assertEquals(4, response.getAllow().size());
+        assertEquals(5, response.getAllow().size());
         assertTrue(response.getAllow().contains("GET"));
+        assertTrue(response.getAllow().contains("PUT"));
         assertTrue(response.getAllow().contains("DELETE"));
         assertTrue(response.getAllow().contains("OPTIONS"));
         assertTrue(response.getAllow().contains("HEAD"));
@@ -107,23 +100,66 @@ public class CreateReadDeleteNoteITCase extends JerseyTest {
         assertEquals(405, response.getStatus());
     }
 
-    // TODO test disabled until AtomXMLProvider support better matching of URIs to resources
-    // @Test
-    public void testUpdateNote() {
+    @Test
+    public void testCreate() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
+		OEntity person = consumer.createEntity(PERSON_ENTITYSET_NAME)
+				.properties(OProperties.string("name", "Ron"))
+				.execute();
+
+		assertTrue(person != null);
+    }
+    
+    @Test
+	public void testDelete() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
+		
+		// find a person
+		OEntity person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();
+		if (person == null) {
+			person = consumer
+						.createEntity(PERSON_ENTITYSET_NAME)
+						.properties(OProperties.string("name", "Ron"))
+						.execute();
+		}
+		
+		// create a note
+		OEntity note = consumer.getEntity(NOTE_ENTITYSET_NAME, 6).execute();
+		if (note == null) {
+			note = consumer
+					.createEntity(NOTE_ENTITYSET_NAME)
+					.properties(OProperties.string("body", "test"))
+					.link("NotePerson", person)
+					.execute();
+		}		
+		
+		// delete one note
+		consumer.deleteEntity(note).execute();
+
+		// check its deleted
+		OEntity afterDelete = consumer.getEntity(note).execute();
+		assertEquals(null, afterDelete);
+    }
+
+    // TODO AtomXMLProvider needs better support for matching of URIs to resources
+    @Test
+    public void testUpdate() {
     	// Create note for person 1
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
-		OEntity person = consumer.getEntity("Persons", 1).execute();
+		OEntity person = consumer.getEntity(PERSON_ENTITYSET_NAME, 1).execute();
 		OEntity note = consumer
-					.createEntity("Notes")
+					.createEntity(NOTE_ENTITYSET_NAME)
 					.properties(OProperties.string("body", "test"))
-					.link("Persons", person)
+					.link("NotePerson", person)
 					.execute();
 		// update the note text
 		consumer.updateEntity(note)
 				.properties(OProperties.string("body", "new text for note"))
 				.execute();
 
-		// TODO read the note again, check text
+		// read the note again, check text
+		OEntity afterUpdate = consumer.getEntity(note).execute();
+		assertEquals("new text for note", afterUpdate.getProperty("body").getValue());
 		
     }
 }

@@ -10,6 +10,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+
 public class ResourceState implements Comparable<ResourceState> {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
 
@@ -25,8 +27,12 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final String pathIdParameter;
 	/* a state not represented by a resource, a state of the same entity (see parent) */
 	private final boolean pseudo;
+	
 	/* is an initial state */
 	private boolean initial;
+	/* is an exception state */
+	private boolean exception;
+
 	/* link relations */
 	private final String[] rels;
 	/* the actions that will be executed upon viewing or entering this state */
@@ -54,7 +60,10 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param path the partial URI to this state, will be prepended with supplied ResourceState path
 	 */
 	public ResourceState(ResourceState parent, String name, Set<Action> actions, String path) {
-		this(parent, parent.getEntityName(), name, actions, parent.getPath() + (path == null ? "" : path), null, null, path == null, null);
+		this(parent, name, actions, path, null);
+	}
+	public ResourceState(ResourceState parent, String name, Set<Action> actions, String path, String[] rels) {
+		this(parent, parent.getEntityName(), name, actions, parent.getPath() + (path == null ? "" : path), null, rels, path == null, null);
 	}
 
 	/**
@@ -99,13 +108,14 @@ public class ResourceState implements Comparable<ResourceState> {
 
 	private ResourceState(ResourceState parent, String entityName, String name, Set<Action> actions, String path, String pathIdParameter, String[] rels, boolean pseudo, UriSpecification uriSpec) {
 		assert(name != null);
-		assert(path != null);
+		assert(path != null && path.length() > 0);
 		this.parent = parent;
 		this.entityName = entityName;
 		this.name = name;
 		this.path = path;
 		this.pathIdParameter = pathIdParameter;
 		this.initial = false;
+		this.exception = false;
 		this.pseudo = pseudo;
 		this.actions = actions;
 		this.uriSpecification = uriSpec;
@@ -175,6 +185,14 @@ public class ResourceState implements Comparable<ResourceState> {
 		initial = flag;
 	}
 	
+	public boolean isException() {
+		return exception;
+	}
+	
+	public void setException(boolean flag) {
+		exception = flag;
+	}
+	
 	public String getRel() {
 		StringBuffer sb = new StringBuffer();
 		for (String r : rels)
@@ -232,8 +250,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void addTransition(String httpMethod, ResourceState targetState) {
 		addTransition(httpMethod, targetState, 0);
 	}
+	public void addTransition(String httpMethod, ResourceState targetState, ResourceGETExpression eval) {
+		addTransition(httpMethod, targetState, null, 0, eval);
+	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
-		addTransition(httpMethod, targetState, null, null, transitionFlags);
+		addTransition(httpMethod, targetState, null, null, transitionFlags, null);
 	}
 	
 	/**
@@ -243,7 +264,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageMap
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, 0);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, 0, null);
 	}
 
 	/**
@@ -257,12 +278,12 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0);
 	}
 	
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags) {
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, ResourceGETExpression eval) {
 		String resourcePath = targetState.getPath();
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, eval);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval) {
 		assert null != targetState;
 		this.uriLinkageProperties = uriLinkageProperties;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
@@ -273,14 +294,14 @@ public class ResourceState implements Comparable<ResourceState> {
 				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
 			}
 		}
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, eval);
 		Transition transition = new Transition(this, commandSpec, targetState);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.put(commandSpec, transition);
 	}
 
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, resourcePath, (forEach ? Transition.FOR_EACH : 0));
+		addTransition(httpMethod, targetState, uriLinkageMap, null, resourcePath, (forEach ? Transition.FOR_EACH : 0), null);
 	}
 
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, boolean forEach) {

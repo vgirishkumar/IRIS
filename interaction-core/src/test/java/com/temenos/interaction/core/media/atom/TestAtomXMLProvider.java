@@ -67,8 +67,10 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.EntityTransformer;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -493,4 +495,23 @@ public class TestAtomXMLProvider {
 	    myDiff.overrideDifferenceListener(myDifferenceListener);
 	    assertTrue(myDiff.similar());		
 	}
+	
+	@Test
+	public void testSkipSelfIfEditExists() {
+		/*
+		 *  Is this in the OData spec?  It seems that if a 'self' and 'edit' link relation exists
+		 *  then ODataExplorer barfs
+		 */
+		
+		AtomXMLProvider provider = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), mock(ResourceRegistry.class), mock(Transformer.class));
+		List<OLink> olinks = new ArrayList<OLink>();
+		provider.addLinkToOLinks(olinks, new Link("title", "self", "href", "type", null));
+		assertEquals(1, olinks.size());
+		
+		// now add the 'edit' link, it should replace the 'self' link
+		provider.addLinkToOLinks(olinks, new Link("title", "edit", "href", "type", null));
+		assertEquals(1, olinks.size());
+		
+	}
+	
 }

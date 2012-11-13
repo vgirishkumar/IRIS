@@ -79,9 +79,9 @@ public class TestTransitionCommandSpec {
 
 	@Test
 	public void testToString() {
-		assertEquals("GET (0)", new TransitionCommandSpec("GET", "", 0).toString());
-		assertEquals("GET (1)", new TransitionCommandSpec("GET", null, Transition.FOR_EACH).toString());
-		assertEquals("GET (10)", new TransitionCommandSpec("GET", null, Transition.AUTO).toString());
+		assertEquals("GET", new TransitionCommandSpec("GET", "", 0).toString());
+		assertEquals("*GET", new TransitionCommandSpec("GET", null, Transition.FOR_EACH).toString());
+		assertEquals("GET", new TransitionCommandSpec("GET", null, Transition.AUTO).toString());
 	}
 
 }

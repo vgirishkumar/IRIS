@@ -2,6 +2,7 @@ package com.temenos.interaction.core.media.atom;
 
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,8 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
+import com.temenos.interaction.core.hypermedia.Link;
+
 public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWriter<EntitiesResponse> {
 	private AtomEntryFormatWriter entryWriter = new AtomEntryFormatWriter();
 	
@@ -31,10 +34,14 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 
   @Override
   public void write(UriInfo uriInfo, Writer w, EntitiesResponse response) {
-	  write(uriInfo, w, response, null);
+	  EdmEntitySet ees = response.getEntitySet();
+	  String entitySetName = ees.getName();
+	  List<Link> links = new ArrayList<Link>();
+	  links.add(new Link(entitySetName, "self", entitySetName, null, null));
+	  write(uriInfo, w, links, response, null);
   }
   
-  public void write(UriInfo uriInfo, Writer w, EntitiesResponse response, Map<String, List<OLink>> entityOlinks) {
+  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, Map<String, List<OLink>> entityOlinks) {
     String baseUri = uriInfo.getBaseUri().toString();
 
     EdmEntitySet ees = response.getEntitySet();
@@ -55,7 +62,19 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 
     writeElement(writer, "updated", updated);
 
-    writeElement(writer, "link", null, "rel", "self", "title", entitySetName, "href", entitySetName);
+    assert(links != null);
+    for (Link link : links) {
+    	// only include the self link until we add better integration tests
+    	if (link.getRel().equals("self")) {
+        	// TODO include href without base path in link
+        	String href = link.getHref();
+        	// chop the leading base path
+        	if (href.startsWith(baseUri)) {
+        		href = href.substring(baseUri.length());
+        	}
+            writeElement(writer, "link", null, "rel", link.getRel(), "title", link.getTitle(), "href", href);
+    	}
+    }
 
     Integer inlineCount = response.getInlineCount();
     if (inlineCount != null) {

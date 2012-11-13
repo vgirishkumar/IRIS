@@ -112,9 +112,14 @@ public class HypermediaValidator {
 		sb.append("digraph ").append(sm.getInitial().getEntityName()).append(" {\n");
 		// declare the initial state circle
 		sb.append("    ").append(sm.getInitial().getEntityName() + sm.getInitial().getName()).append("[shape=circle, width=.25, label=\"\", color=black, style=filled]").append("\n");
+		// declare the exception state
+		ResourceState exceptionState = sm.getException();
+		if (exceptionState != null) {
+			sb.append("    ").append(exceptionState.getEntityName() + exceptionState.getName()).append("[label=\"" + exceptionState.getId() + "\"]").append("\n");
+		}
 		// declare all the states and set a label
 		for (ResourceState s : states) {
-			if (!s.equals(sm.getInitial())) {
+			if (!s.equals(sm.getInitial()) && !s.isException()) {
 				sb.append("    ").append(s.getEntityName() + s.getName()).append("[label=\"" + s.getId() + (s.getPath().length() > 0 ? (" " + s.getPath()) : "") + "\"]").append("\n");
 			}
 		}
