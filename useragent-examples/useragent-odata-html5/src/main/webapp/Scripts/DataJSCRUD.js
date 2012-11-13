@@ -26,7 +26,7 @@ function OnPageLoad()
         }
     });
 
-    $("#create-user").button()
+    $("#createEntity").button()
 			.click(OpenCreateUserDialog);
 
     GetServices();    
@@ -48,7 +48,6 @@ function GetServicesCallback(data, request)
 {
     $("#loadingServices").hide();
     $("#services").find("tr:gt(0)").remove();
-    alert("stop");
     ApplyServiceTemplate(data.workspaces[0].collections);
 }
 
@@ -56,7 +55,9 @@ function GetServicesCallback(data, request)
 //Gets all the Entities for an EntitySet
 function GetEntitySet(uri) 
 {
-    $("#loadingUsers").show();
+    $("#loadingEntities").show();
+	$("#createEntity").hide();
+    $("#entities").find("tr:gt(0)").remove();
     OData.read({ 
 		requestUri: uri,
 		headers: { Accept: "application/atom+xml" }
@@ -66,13 +67,44 @@ function GetEntitySet(uri)
 //GetEntitySet Success Callback
 function GetEntitySetCallback(data, request) 
 {
-    $("#loadingUsers").hide();
+    $("#loadingEntities").hide();
     $("#EntitySetName").text(data.__metadata.title)
-    $("#users").find("tr:gt(0)").remove();
-    ApplyTemplate(data.results)
+    
+    // OData js doesn't provide us with the link relations, parse them ourselves :-(
+    
+    if (data.results != null) {
+        var links = [];
+        RenderEntitySet(data.results, links);
+    } else {
+        RenderEntity(data, parseEntryLinks(request));
+    }
 }
 
-//***********************End: Get Notes***************************
+function parseEntryLinks(request) {
+	var mapLinksKeyRel = new Object();
+    var xmlDoc = $.parseXML( request.body ),
+		$xml = $( xmlDoc ),
+		$entry = $xml.find( "entry" );
+
+    var atomLinks = $entry.children('link');
+    if (atomLinks.length > 0) {
+    	atomLinks.each(function (){
+    		var $this = $(this);
+    		var link = new Link($this.attr("title"), $this.attr("rel"), $this.attr("href"), $this.attr("type"));
+    		mapLinksKeyRel[link.rel] = link;
+    	});
+    }
+    return mapLinksKeyRel;
+}
+
+function Link(title, rel, href, type) {
+	this.title = title;
+	this.rel = rel;
+	this.href = href;
+	this.type = type;
+}
+
+//***********************End: Get GetEntitySet***************************
 
 //*****************************Add User (CREATE)***************************
 //Handle Create User Account button click
@@ -265,8 +297,8 @@ function ApplyServiceTemplate(links)
 	}
 }
 
-//Helper function to apply UI template for Notes
-function ApplyTemplate(data) 
+// Render the table for displaying an EntitySet
+function RenderEntitySet(data, links) 
 {
 	var header = "<tr class=\"ui-widget-header\">";
 	for (obj in data[0].__metadata.properties) {
@@ -274,7 +306,7 @@ function ApplyTemplate(data)
 	}
 	header += "<th>Actions</th>"
 	header += "</tr>";
-	$(header).appendTo("#users tbody");
+	$(header).appendTo("#entities tbody");
 
 	var body = "";
 	for (row in data) {
@@ -283,7 +315,7 @@ function ApplyTemplate(data)
 			for (obj in data[0].__metadata.properties) {
 				var prop = data[row][obj];
 				if (prop.__deferred != null && prop.__deferred.uri != null) {
-					body += "<td><a href=\"" + prop.__deferred.uri + "\">" + obj + "</a></td>";
+					body += "<td><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
 				} else {
 					body += "<td>" + prop + "</td>";
 				}
@@ -297,7 +329,40 @@ function ApplyTemplate(data)
 				"</tr>";
 		}                            
 	}
-    $(body).appendTo("#users tbody");
+    $(body).appendTo("#entities tbody");
+}
+
+//Render the table for displaying an Entity
+function RenderEntity(data, links) 
+{
+	var header = "<tr class=\"ui-widget-header\">";
+	header += "<th>Name</th>"
+	header += "<th>Value</th>"
+	header += "</tr>";
+	$(header).appendTo("#entities tbody");
+
+	var body = "";
+	for (obj in data.__metadata.properties) {
+		body += "<tr id=\"entityRow" + row + "\">";
+		body += "<td>" + obj + "</td>";
+		var prop = data[obj];
+		if (prop.__deferred != null && prop.__deferred.uri != null) {
+			body += "<td><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
+		} else {
+			body += "<td>" + prop + "</td>";
+		}
+		body += "</tr>";
+	}
+	body += "<tr><td>";
+	var editRel = "edit";
+	if (links[editRel] != null) {
+		body += 
+			"<a href=\"javascript:OpenUpdateDialog(${userid})\">Update</a>" +
+			" " +
+			"<a href=\"javascript:OpenDeleteDialog(${userid})\">Delete</a>";
+	}
+	body += "</td></tr>";
+    $(body).appendTo("#entities tbody");
 }
 
 //Validation Helper, validates the user edit form

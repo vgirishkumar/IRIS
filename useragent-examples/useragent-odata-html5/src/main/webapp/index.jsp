@@ -45,11 +45,11 @@
 
             <div id="users-contain" class="ui-widget">
 	            <h1 id="EntitySetName">Select EntitySet</h1>
-	            <table id="users" class="ui-widget ui-widget-content">
+                <button id="createEntity" style="display:none">Create new item</button>
+	            <table id="entities" class="ui-widget ui-widget-content">
                     <tr class="ui-widget-header "></tr>
 	            </table>
-                <button id="create-user">Create new user</button>
-                <span id="loadingUsers" style="display:none">Loading...</span>
+                <span id="loadingEntities" style="display:none">Loading...</span>
             </div>
         </div>
         <div class="clear"></div>
@@ -58,7 +58,6 @@
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.5.1.min.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.13/jquery-ui.min.js"></script>
     <script type="text/javascript" src="Scripts/datajs-1.0.3.js"></script>
-    <script type="text/javascript" src="Scripts/jquery.tmpl.js"></script>
     <script type="text/javascript" src="Scripts/DataJSCRUD.js"></script>
     <script type="text/javascript">
         $(OnPageLoad)
