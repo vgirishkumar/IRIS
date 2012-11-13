@@ -29,11 +29,11 @@ State:
 ;
 
 Transition:
-    (event=[Event] '->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
+    (event=[Event] '->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
 TransitionForEach:
-    (event=[Event] '*->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
+    (event=[Event] '*->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
 TransitionAuto:
