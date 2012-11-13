@@ -13,6 +13,8 @@ import com.temenos.interaction.rimdsl.rim.TransitionForEach
 import com.temenos.interaction.rimdsl.rim.TransitionAuto
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel
 import org.eclipse.emf.common.util.EList
+import com.temenos.interaction.rimdsl.rim.UriLink
+import com.temenos.interaction.rimdsl.rim.UriLinkageEntityKeyReplace
 import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction
 import com.temenos.interaction.rimdsl.rim.Function
@@ -31,7 +33,11 @@ class RIMDslGenerator implements IGenerator {
 	def toJavaCode(ResourceInteractionModel rim) '''
 		import java.util.HashSet;
 		import java.util.Set;
+		import java.util.HashMap;
+		import java.util.Map;
+		import java.util.Properties;
 
+		import com.temenos.interaction.core.hypermedia.UriSpecification;
 		import com.temenos.interaction.core.hypermedia.Action;
 		import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 		import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -48,6 +54,9 @@ class RIMDslGenerator implements IGenerator {
 		    }
 		
 			public ResourceState getRIM() {
+				Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
+				Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+				Properties actionViewProperties = new Properties();
 				ResourceState initial = null;
 				// create states
 				«FOR c : rim.states»
@@ -95,19 +104,24 @@ class RIMDslGenerator implements IGenerator {
 	'''
 	
 	def produceResourceStates(State state) '''
+            «IF state.actions != null && state.actions.size > 0»
+                «FOR commandProperty : state.actions.get(0).property»
+                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");«
+                ENDFOR»
+            «ENDIF»
             «IF state.entity.isCollection»
             CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
             «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name } else { "/" + state.name }»"«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
             «ENDIF»
 	'''
 
     def produceActionSet(EList<Command> actions) '''
         «IF actions != null»
             «IF actions.size == 2»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
+            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, actionViewProperties), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
             ELSEIF actions.size == 1»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW), null)«
+            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, actionViewProperties), null)«
             ENDIF»«
         ENDIF»'''
     
@@ -115,7 +129,8 @@ class RIMDslGenerator implements IGenerator {
             «IF transition.eval != null»
             s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
             «ELSE»
-            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name»);
+            «produceUriLinkage(transition.uriLinks)»
+            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties);
             «ENDIF»
 	'''
 
@@ -127,11 +142,24 @@ class RIMDslGenerator implements IGenerator {
         ENDIF»'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
-            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», null);
+            «produceUriLinkage(transition.uriLinks)»
+            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
             s«fromState.name».addTransition(s«transition.state.name»);
+    '''
+
+    def produceUriLinkage(EList<UriLink> uriLinks) '''
+        «IF uriLinks != null»
+            «FOR prop : uriLinks»
+            «IF prop.entityProperty instanceof UriLinkageEntityKeyReplace»
+            uriLinkageEntityProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
+            «ELSE»
+            uriLinkageProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
+            «ENDIF»
+            «ENDFOR»«
+        ENDIF»
     '''
 
 }

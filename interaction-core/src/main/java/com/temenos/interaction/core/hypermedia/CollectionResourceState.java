@@ -16,10 +16,19 @@ public class CollectionResourceState extends ResourceState {
 	}
 
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, targetState.getPath(), true);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), true);
 	}
+	
+	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), true);
+	}
+	
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags) {
-		addTransition(httpMethod, targetState, uriLinkageMap, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null);
+	}
+	
+	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null);
 	}
 
 }

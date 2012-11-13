@@ -39,6 +39,9 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final Set<Action> actions;
 	/* the UriSpecification is used to append the path parameter template to the path */
 	private final UriSpecification uriSpecification;
+	/* the linkage properties (defined in the RIM) to apply to the URI template */
+	private Map<String, String> uriLinkageProperties = null;
+	
 	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
 
 	
@@ -219,6 +222,10 @@ public class ResourceState implements Comparable<ResourceState> {
 		return uriSpecification;
 	}
 	
+	public Map<String, String> getUriLinkageProperties() {
+		return uriLinkageProperties;
+	}
+	
 	/**
 	 * Return the transition to get to this state.
 	 * @return
@@ -244,10 +251,10 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, 0);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, ResourceGETExpression eval) {
-		addTransition(httpMethod, targetState, null, 0, eval);
+		addTransition(httpMethod, targetState, null, null, 0, eval);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
-		addTransition(httpMethod, targetState, null, transitionFlags, null);
+		addTransition(httpMethod, targetState, null, null, transitionFlags, null);
 	}
 	
 	/**
@@ -257,15 +264,28 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageMap
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, 0, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, 0, null);
 	}
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags, ResourceGETExpression eval) {
-		String resourcePath = targetState.getPath();
-		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, transitionFlags, eval);
+
+	/**
+	 * Add a transition with a target state and linkage map.
+	 * @param httpMethod
+	 * @param targetState
+	 * @param uriLinkageMap
+	 * @param uriLinkageProperties
+	 */
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, int transitionFlags, ResourceGETExpression eval) {
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, ResourceGETExpression eval) {
+		String resourcePath = targetState.getPath();
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, eval);
+	}
+	
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval) {
 		assert null != targetState;
+		this.uriLinkageProperties = uriLinkageProperties;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
 		// replace uri elements with linkage entity element name
@@ -281,9 +301,13 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {
-		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, (forEach ? Transition.FOR_EACH : 0), null);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, resourcePath, (forEach ? Transition.FOR_EACH : 0), null);
 	}
 
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, boolean forEach) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, (forEach ? Transition.FOR_EACH : 0), null);
+	}
+	
 	/**
 	 * Add transition to another resource interaction model.
 	 * @param httpMethod

@@ -29,11 +29,11 @@ State:
 ;
 
 Transition:
-    (event=[Event] '->' state=[State] (eval=Expression)?)
+    (event=[Event] '->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
 ;
 
 TransitionForEach:
-    (event=[Event] '*->' state=[State] (eval=Expression)?)
+    (event=[Event] '*->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* ))
 ;
 
 TransitionAuto:
@@ -75,6 +75,23 @@ Entity:
 ;
 
 Command:
-    name=ID property=ID
+    name=ID ((property+=CommandProperty)* (',' property+=CommandProperty)* )
 ;
 
+CommandProperty:
+    name=ID '=' value=ID
+;
+
+UriLink:
+    (templateProperty=ID '=' entityProperty=UriLinkage)
+;
+
+UriLinkage:	UriLinkageEntityKeyReplace | UriLinkageProperty;
+
+UriLinkageEntityKeyReplace:
+	{UriLinkageEntityKeyReplace} name=ID
+;
+
+UriLinkageProperty:
+	{UriLinkageProperty} name=STRING 
+;

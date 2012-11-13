@@ -23,4 +23,19 @@
 			<Term Name="TERM_MANDATORY">true</Term>
 		</Property>
 	</Entity>
+	<Entity Name="Customer">
+		<Property Name="name" >
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="address">
+			<Property Name="number">
+				<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
+			</Property>
+			<Property Name="postCode" />
+		</Property>
+		<Property Name="dateOfBirth" >
+			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+	</Entity>
 </Metadata>

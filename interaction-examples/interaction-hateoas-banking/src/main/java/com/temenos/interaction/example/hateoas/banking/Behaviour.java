@@ -20,6 +20,7 @@ public class Behaviour {
 		
 		initialState.addTransition("GET", preferences);
 		initialState.addTransition("GET", getFundsTransferInteractionModel());
+		initialState.addTransition("GET", getCustomerInteractionModel());
 		return initialState;
 	}
 
@@ -42,6 +43,21 @@ public class Behaviour {
 		exists.addTransition("PUT", exists, uriLinkageMap);		
 		exists.addTransition("DELETE", finalState, uriLinkageMap);
 		return new ResourceStateMachine(initialState);
+	}
+
+	public ResourceStateMachine getCustomerInteractionModel() {
+		CollectionResourceState customers = new CollectionResourceState("Customer", "customers", createActionSet(new Action("GETCustomers", Action.TYPE.VIEW), null), "/customers");
+		ResourceState customer = new ResourceState("Customer", "customer", createActionSet(new Action("GETCustomer", Action.TYPE.VIEW), new Action("PUTCustomer", Action.TYPE.ENTRY)), "/{id}");
+		ResourceState deleted = new ResourceState(customer, "deleted", createActionSet(null, new Action("NoopDELETE", Action.TYPE.ENTRY)));
+		
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.clear();
+		uriLinkageMap.put("id", "name");
+		customers.addTransitionForEachItem("GET", customer, uriLinkageMap);		
+
+		customer.addTransition("PUT", customer, uriLinkageMap);		
+		customer.addTransition("DELETE", deleted, uriLinkageMap);
+		return new ResourceStateMachine(customers);
 	}
 	
 	private Set<Action> createActionSet(Action view, Action entry) {

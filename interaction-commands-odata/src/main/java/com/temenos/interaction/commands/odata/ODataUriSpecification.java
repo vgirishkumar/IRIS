@@ -10,6 +10,10 @@ public class ODataUriSpecification {
 	public final static String ENTITYSET_URI_TYPE = "EntitySet";
 	public final static String NAVPROPERTY_URI_TYPE = "NavProperty";
 	
+	public UriSpecification getTemplate(String resourcePath) {
+		return new UriSpecification(resourcePath, resourcePath);
+	}
+	
 	public UriSpecification getTemplate(String resourcePathPrefix, String type) {
 		assert(type != null);  // would be a bug in IRIS core
 		if (type.equals(ENTITY_URI_TYPE)) {

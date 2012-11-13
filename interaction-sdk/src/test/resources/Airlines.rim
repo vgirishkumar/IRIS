@@ -1,0 +1,103 @@
+events
+	GET GET
+end
+
+commands
+	GETServiceDocument
+	GETMetadata
+	GETEntities
+	GETEntity
+	GETNavPropertyAirport entity=Airport
+	GETNavPropertyFlightSchedule entity=FlightSchedule
+end
+
+initial resource ServiceDocument
+	collection ServiceDocument
+	actions { GETServiceDocument }
+	GET -> metadata
+	GET -> flights
+	GET -> airports
+	GET -> flightschedules
+end
+
+resource metadata
+	item Metadata
+	actions { GETMetadata }
+	path "/$metadata"
+end
+
+
+resource flights
+	collection Flight
+	actions { GETEntities }
+	path "/Flight"
+	GET *-> flight id=flightID
+end
+
+
+resource flight
+	item Flight
+	actions { GETEntity }
+	path "/Flight({id})"
+end
+
+
+
+resource airports
+	collection Airport
+	actions { GETEntities }
+	path "/Airport"
+	GET *-> airport id=code
+	GET *-> flightSchedules id=code
+end
+
+
+resource airport
+	item Airport
+	actions { GETEntity }
+	path "/Airport({id})"
+	GET -> flightSchedules id=code, navproperty="flightSchedules"
+end
+
+
+
+resource flightSchedules
+	collection FlightSchedule
+	actions { GETNavPropertyAirport }
+	path "/Airport({id})/{navproperty}"
+	GET -> flightschedules id=flightScheduleID
+end
+
+resource flightschedules
+	collection FlightSchedule
+	actions { GETEntities }
+	path "/FlightSchedule"
+	GET *-> flightschedule id=flightScheduleID
+	GET *-> departureAirport id=flightScheduleID
+	GET *-> arrivalAirport id=flightScheduleID
+end
+
+
+resource flightschedule
+	item FlightSchedule
+	actions { GETEntity }
+	path "/FlightSchedule({id})"
+	GET -> departureAirport id=flightScheduleID, navproperty="departureAirport"
+	GET -> arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
+end
+
+
+
+resource departureAirport
+	item Airport
+	actions { GETNavPropertyFlightSchedule }
+	path "/FlightSchedule({id})/{navproperty}"
+	GET -> airport id=code
+end
+
+resource arrivalAirport
+	item Airport
+	actions { GETNavPropertyFlightSchedule }
+	path "/FlightSchedule({id})/{navproperty}"
+	GET -> airport id=code
+end

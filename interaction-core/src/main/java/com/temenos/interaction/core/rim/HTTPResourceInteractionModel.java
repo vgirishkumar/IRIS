@@ -27,6 +27,8 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 			MediaType.APPLICATION_XML,
 			ExtendedMediaTypes.APPLICATION_ATOMSVC_XML,
 			MediaType.APPLICATION_JSON,
+			MediaType.APPLICATION_XHTML_XML,
+			MediaType.TEXT_HTML,
 			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML,
 			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
 	public abstract Response get(@Context HttpHeaders headers,

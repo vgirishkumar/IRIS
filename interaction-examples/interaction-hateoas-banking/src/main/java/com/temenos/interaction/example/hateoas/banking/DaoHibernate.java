@@ -27,7 +27,7 @@ public class DaoHibernate {
     public void putFundTransfer(FundTransfer ft) {
     	try {
     		entityManager.getTransaction().begin();
-    		entityManager.persist(ft); 
+    		entityManager.merge(ft); 
     		entityManager.getTransaction().commit();    		
     	} catch(EntityExistsException eee) {
 			logger.severe("Failed to commit transaction - entity already exists: " + eee.getMessage());
@@ -64,5 +64,29 @@ public class DaoHibernate {
 			logger.severe("Error while loading entity [" + id + "]: " + e.getMessage());
 		}
 		return ft;
+    }
+	
+	@SuppressWarnings("unchecked")
+	public List<Customer> getCustomers() {
+		List<Customer> entities = null;
+		try {
+			Query jpaQuery = entityManager.createQuery("SELECT customer FROM Customer customer");
+			entities = jpaQuery.getResultList();
+		}
+		catch(Exception e) {
+			logger.severe("Error while loading entities: " + e.getMessage());
+		}
+		return entities;
+    }
+
+	public Customer getCustomer(String name) {
+		Customer customer = null;
+		try {
+			customer = entityManager.find(Customer.class, name);
+		}
+		catch(Exception e) {
+			logger.severe("Error while loading entity [" + name + "]: " + e.getMessage());
+		}
+		return customer;
     }
 }
