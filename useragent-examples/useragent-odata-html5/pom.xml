@@ -16,14 +16,6 @@
 	
 	<build>
 		<plugins>
-			<!--  Skip the deployment -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<configuration>
-						<skip>true</skip>
-				</configuration>
-			</plugin>  
 			<!-- Configure the jetty plugin to run an instance of our responder 'mvn jetty:run' -->
 			<plugin>
 				<groupId>org.mortbay.jetty</groupId>
