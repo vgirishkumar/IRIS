@@ -251,7 +251,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, 0);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, ResourceGETExpression eval) {
-		addTransition(httpMethod, targetState, null, 0, eval);
+		addTransition(httpMethod, targetState, null, null, 0, eval);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
 		addTransition(httpMethod, targetState, null, null, transitionFlags, null);
@@ -275,7 +275,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageProperties
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null);
 	}
 	
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, ResourceGETExpression eval) {
@@ -305,7 +305,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, boolean forEach) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, (forEach ? Transition.FOR_EACH : 0));
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, (forEach ? Transition.FOR_EACH : 0), null);
 	}
 	
 	/**
