@@ -1,11 +1,15 @@
- -----
- IRIS Interaction Framework
- -----
- IRIS Team
- -----
+--------------------------
+IRIS Interaction Framework
+--------------------------
+ 
+  <iris> i-ris  /'iris/
 
-  The IRIS interaction framework has been designed to enable user agent interaction with a
-  HATEOAS based REST application architecture.
+  noun\
+  Anatomy. The contractile, circular diaphragm forming the colored portion of the eye and containing a circular opening, the pupil, in its center.
+  
+  abbreviation\
+  Software.  A Temenos project to create an Interaction Framework for RESTful human interaction with any of the Temenos products resources or information services (e.g. T24, Triple A Plus, Wealth Manager).
+
   
 [images/interaction_layer.png] Interaction layer
   

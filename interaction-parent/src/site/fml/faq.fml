@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <faqs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/FML/1.0"
   xsi:schemaLocation="http://maven.apache.org/FML/1.0 http://maven.apache.org/xsd/fml-1.0.xsd"
-  id="General FAQ">
+  id="FAQ">
   <part id="General">
     <faq id="where">
       <question>What does IRIS stand for?</question>
       <answer>
         <p>
-          Interaction, Reporting & Information Services
+          Interaction, Reporting and Information Services
         </p>
       </answer>
     </faq>
