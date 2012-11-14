@@ -1,10 +1,10 @@
 package com.interaction.example.odata.notes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import com.temenos.interaction.commands.odata.ODataUriSpecification;
 import com.temenos.interaction.core.hypermedia.Action;
@@ -26,7 +26,7 @@ public class Behaviour {
 	
 	public ResourceState getSimpleODataInteractionModel() {
 		// the service root
-		ResourceState initialState = new ResourceState("ServiceDocument", "begin", createActionSet(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
+		ResourceState initialState = new ResourceState("ServiceDocument", "begin", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
 
 		// notes service
 		ResourceStateMachine notes = getNotesSM();
@@ -68,23 +68,23 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getNotesSM() {
-		CollectionResourceState notes = new CollectionResourceState(NOTE, "notes", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), NOTES_PATH);
-		ResourceState pseudoCreated = new ResourceState(notes, "PseudoCreated", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		CollectionResourceState notes = new CollectionResourceState(NOTE, "notes", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), NOTES_PATH);
+		ResourceState pseudoCreated = new ResourceState(notes, "PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 1 for configuring the interaction - use another state as a parent
 		ResourceState note = new ResourceState(notes, 
 				"note", 
-				createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), 
+				createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), 
 				"({id})",
 				NOTE.split(" "));
 		ResourceState noteUpdated = new ResourceState(note, 
 				"updated", 
-				createActionSet(null, new Action("UpdateEntity", Action.TYPE.ENTRY)),
+				createActionList(null, new Action("UpdateEntity", Action.TYPE.ENTRY)),
 				null,
 				"edit".split(" ")
 				);
 		ResourceState noteDeleted = new ResourceState(note, 
 				"deleted", 
-				createActionSet(null, new Action("DeleteEntity", Action.TYPE.ENTRY)),
+				createActionList(null, new Action("DeleteEntity", Action.TYPE.ENTRY)),
 				null,
 				"delete".split(" ")
 				);
@@ -100,7 +100,7 @@ public class Behaviour {
 		 */
 		ResourceState notePerson = new ResourceState(PERSON, 
 				"NotePerson", 
-				createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), 
+				createActionList(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), 
 				NOTE_PERSON_PATH, 
 				"NotePerson".split(" "),
 				new ODataUriSpecification().getTemplate(NOTES_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
@@ -123,12 +123,12 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getPersonsSM() {
-		CollectionResourceState persons = new CollectionResourceState(PERSON, "persons", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), PERSONS_PATH);
-		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		CollectionResourceState persons = new CollectionResourceState(PERSON, "persons", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), PERSONS_PATH);
+		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 2 for configuring the interaction - specify the entity, state, and fully qualified path
 		ResourceState person = new ResourceState(PERSON, 
 				"person", 
-				createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), 
+				createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), 
 				PERSON_ITEM_PATH,
 				PERSON.split(" "));
 		/* 
@@ -143,7 +143,7 @@ public class Behaviour {
 		 */
 		CollectionResourceState personNotes = new CollectionResourceState(NOTE, 
 				"PersonNotes", 
-				createActionSet(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), 
+				createActionList(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), 
 				PERSON_NOTES_PATH, 
 				"PersonNotes".split(" "),
 				new ODataUriSpecification().getTemplate(PERSONS_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
@@ -161,8 +161,8 @@ public class Behaviour {
 		return new ResourceStateMachine(persons);
 	}
 
-	private Set<Action> createActionSet(Action view, Action entry) {
-		Set<Action> actions = new HashSet<Action>();
+	private List<Action> createActionList(Action view, Action entry) {
+		List<Action> actions = new ArrayList<Action>();
 		if (view != null)
 			actions.add(view);
 		if (entry != null)

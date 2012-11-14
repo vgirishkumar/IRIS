@@ -1,9 +1,9 @@
 package com.temenos.interaction.example.hateoas.banking;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
@@ -15,8 +15,8 @@ public class Behaviour {
 	public ResourceState getInteractionModel() {
 
 		// this will be the service root
-		ResourceState initialState = new ResourceState("home", "initial", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null), "/");
-		ResourceState preferences = new ResourceState("Preferences", "preferences", createActionSet(new Action("GETPreferences", Action.TYPE.VIEW), null), "/preferences");
+		ResourceState initialState = new ResourceState("home", "initial", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null), "/");
+		ResourceState preferences = new ResourceState("Preferences", "preferences", createActionList(new Action("GETPreferences", Action.TYPE.VIEW), null), "/preferences");
 		
 		initialState.addTransition("GET", preferences);
 		initialState.addTransition("GET", getFundsTransferInteractionModel());
@@ -25,10 +25,10 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getFundsTransferInteractionModel() {
-		CollectionResourceState initialState = new CollectionResourceState("FundsTransfer", "initial", createActionSet(new Action("GETFundTransfers", Action.TYPE.VIEW), null), "/fundtransfers");
-		ResourceState newFtState = new ResourceState(initialState, "new", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), new Action("NEWFundTransfer", Action.TYPE.ENTRY)), "/new");
-		ResourceState exists = new ResourceState("FundsTransfer", "exists", createActionSet(new Action("GETFundTransfer", Action.TYPE.VIEW), new Action("PUTFundTransfer", Action.TYPE.ENTRY)), "/fundtransfers/{id}", "id", "self".split(" "));
-		ResourceState finalState = new ResourceState(exists, "end", createActionSet(new Action("NoopGET", Action.TYPE.VIEW), null));
+		CollectionResourceState initialState = new CollectionResourceState("FundsTransfer", "initial", createActionList(new Action("GETFundTransfers", Action.TYPE.VIEW), null), "/fundtransfers");
+		ResourceState newFtState = new ResourceState(initialState, "new", createActionList(new Action("NoopGET", Action.TYPE.VIEW), new Action("NEWFundTransfer", Action.TYPE.ENTRY)), "/new");
+		ResourceState exists = new ResourceState("FundsTransfer", "exists", createActionList(new Action("GETFundTransfer", Action.TYPE.VIEW), new Action("PUTFundTransfer", Action.TYPE.ENTRY)), "/fundtransfers/{id}", "id", "self".split(" "));
+		ResourceState finalState = new ResourceState(exists, "end", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null));
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		initialState.addTransition("POST", newFtState);		
@@ -46,9 +46,9 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getCustomerInteractionModel() {
-		CollectionResourceState customers = new CollectionResourceState("Customer", "customers", createActionSet(new Action("GETCustomers", Action.TYPE.VIEW), null), "/customers");
-		ResourceState customer = new ResourceState("Customer", "customer", createActionSet(new Action("GETCustomer", Action.TYPE.VIEW), new Action("PUTCustomer", Action.TYPE.ENTRY)), "/{id}");
-		ResourceState deleted = new ResourceState(customer, "deleted", createActionSet(null, new Action("NoopDELETE", Action.TYPE.ENTRY)));
+		CollectionResourceState customers = new CollectionResourceState("Customer", "customers", createActionList(new Action("GETCustomers", Action.TYPE.VIEW), null), "/customers");
+		ResourceState customer = new ResourceState("Customer", "customer", createActionList(new Action("GETCustomer", Action.TYPE.VIEW), new Action("PUTCustomer", Action.TYPE.ENTRY)), "/{id}");
+		ResourceState deleted = new ResourceState(customer, "deleted", createActionList(null, new Action("NoopDELETE", Action.TYPE.ENTRY)));
 		
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.clear();
@@ -60,8 +60,8 @@ public class Behaviour {
 		return new ResourceStateMachine(customers);
 	}
 	
-	private Set<Action> createActionSet(Action view, Action entry) {
-		Set<Action> actions = new HashSet<Action>();
+	private List<Action> createActionList(Action view, Action entry) {
+		List<Action> actions = new ArrayList<Action>();
 		if (view != null)
 			actions.add(view);
 		if (entry != null)

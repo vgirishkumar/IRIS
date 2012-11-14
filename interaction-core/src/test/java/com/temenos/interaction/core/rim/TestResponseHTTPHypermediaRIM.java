@@ -12,9 +12,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.GenericEntity;
@@ -55,8 +53,8 @@ public class TestResponseHTTPHypermediaRIM {
         RequestContext.setRequestContext(ctx);
 	}
 
-	private Set<Action> mockActions() {
-		Set<Action> actions = new HashSet<Action>();
+	private List<Action> mockActions() {
+		List<Action> actions = new ArrayList<Action>();
 		actions.add(new Action("GET", Action.TYPE.VIEW));
 		actions.add(new Action("DO", Action.TYPE.ENTRY));
 		return actions;
@@ -72,7 +70,7 @@ public class TestResponseHTTPHypermediaRIM {
 		NewCommandController mockCommandController = mock(NewCommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
-		ResourceState initialState = new ResourceState("entity", "state", new HashSet<Action>(), "/path");
+		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
 		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
@@ -88,7 +86,7 @@ public class TestResponseHTTPHypermediaRIM {
 		NewCommandController mockCommandController = mock(NewCommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
-		ResourceState initialState = new ResourceState("entity", "state", new HashSet<Action>(), "/path");
+		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
 		Response response = rim.put(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
 		assertEquals(HttpStatusTypes.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());
@@ -109,7 +107,7 @@ public class TestResponseHTTPHypermediaRIM {
 		NewCommandController mockCommandController = mock(NewCommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
-		ResourceState initialState = new ResourceState("entity", "state", new HashSet<Action>(), "/path");
+		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
 		assertEquals(HttpStatusTypes.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());
@@ -130,7 +128,7 @@ public class TestResponseHTTPHypermediaRIM {
 		NewCommandController mockCommandController = mock(NewCommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
-		ResourceState initialState = new ResourceState("entity", "state", new HashSet<Action>(), "/path");
+		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState));
 		Response response = rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		assertEquals(HttpStatusTypes.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());

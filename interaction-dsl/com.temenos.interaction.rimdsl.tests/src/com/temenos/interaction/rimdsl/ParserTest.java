@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.net.URL;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.xtext.junit4.InjectWith;
 import org.eclipse.xtext.junit4.XtextRunner;
 import org.eclipse.xtext.junit4.util.ParseHelper;
@@ -15,7 +14,6 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
-import com.temenos.interaction.rimdsl.rim.Command;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction;
 import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
@@ -57,14 +55,13 @@ public class ParserTest {
 			
 	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
-	"	actions { GetEntity }" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 
 	"resource B" + LINE_SEP +
 	"	item ENTITY" + LINE_SEP +
-// TODO - new specification for View commands
-//	"	view { GetEntity }" + LINE_SEP +
-	"	actions { GetEntity, UpdateEntity }" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"	actions { UpdateEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"";
 
@@ -96,7 +93,7 @@ public class ParserTest {
 			
 	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
-	"	actions { GetEntity }" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
 	"end\r\n" + LINE_SEP +
 	"";
 
@@ -109,9 +106,8 @@ public class ParserTest {
 		assertEquals(1, model.getStates().size());
 	    assertEquals("A", model.getStates().get(0).getName());
 
-	    // there should be one action on the state
-	    EList<Command> actions = model.getStates().get(0).getActions();
-	    assertEquals(1, actions.size());
+	    // there should be a view for this state
+	    assertNotNull(model.getStates().get(0).getView());
 	}
 	
 	private final static String SINGLE_STATE_NO_COMMANDS_RIM = "" +
@@ -141,13 +137,14 @@ public class ParserTest {
 					
 			"initial resource A" + LINE_SEP +
 			"	collection ENTITY" + LINE_SEP +
-			"	actions { GetEntities }" + LINE_SEP +
+			"	view { GetEntities }" + LINE_SEP +
 			"	GET -> B" + LINE_SEP +
 			"end" + LINE_SEP +
 
 			"resource B" +
 			"	item ENTITY" + LINE_SEP +
-			"	actions { GetEntity, PutEntity }" + LINE_SEP +
+			"	view { GetEntity }" + LINE_SEP +
+			"	actions { PutEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"";
 
@@ -175,7 +172,7 @@ public class ParserTest {
 					
 			"initial resource A" + LINE_SEP +
 			"	collection ENTITY" + LINE_SEP +
-			"	actions { GetEntities }" + LINE_SEP +
+			"	view { GetEntities }" + LINE_SEP +
 			"	GET -> B (OK(B))" + LINE_SEP +
 			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
 			"	GET -> B (OK(B) && NOT_FOUND(B))" + LINE_SEP +
@@ -183,7 +180,8 @@ public class ParserTest {
 
 			"resource B" +
 			"	item ENTITY" + LINE_SEP +
-			"	actions { GetEntity, PutEntity }" + LINE_SEP +
+			"	view { GetEntity }" + LINE_SEP +
+			"	actions { PutEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"";
 
@@ -229,7 +227,7 @@ public class ParserTest {
 			
 			"exception resource EXCEPTION" + LINE_SEP +
 			"	collection ENTITY" + LINE_SEP +
-			"   actions { Noop }" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
 			"end\r\n" + LINE_SEP +
 			"";
 

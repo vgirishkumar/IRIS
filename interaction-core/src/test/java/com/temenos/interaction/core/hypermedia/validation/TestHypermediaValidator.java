@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,9 +22,9 @@ public class TestHypermediaValidator {
 	@Test
 	public void testValidateStatesValid() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
 		begin.addTransition("PUT", exists);		
 		exists.addTransition("DELETE", end);
@@ -41,14 +42,14 @@ public class TestHypermediaValidator {
 	@Test
 	public void testValidateStatesUnreachable() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
 		begin.addTransition("PUT", exists);		
 		exists.addTransition("DELETE", end);
 		
-		ResourceState unreachableState = new ResourceState(ENTITY_NAME, "unreachable", new HashSet<Action>(), "/unreachable");
+		ResourceState unreachableState = new ResourceState(ENTITY_NAME, "unreachable", new ArrayList<Action>(), "/unreachable");
 		Set<ResourceState> states = new HashSet<ResourceState>();
 		states.add(begin);
 		states.add(exists);
@@ -71,9 +72,9 @@ public class TestHypermediaValidator {
 				"    Gexists->final[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "G";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "/entities/{id}");
-		ResourceState exception = new ResourceState("EXCEPTION", "exception", new HashSet<Action>(), "/");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "/entities/{id}");
+		ResourceState exception = new ResourceState("EXCEPTION", "exception", new ArrayList<Action>(), "/");
 		exception.setException(true);
 	
 		initial.addTransition("PUT", exists);
@@ -96,8 +97,8 @@ public class TestHypermediaValidator {
 				"}";
 		
 		String ENTITY_NAME = "G";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
-		ResourceState other = new ResourceState(ENTITY_NAME, "other", new HashSet<Action>(), "/entities/{id}");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/");
+		ResourceState other = new ResourceState(ENTITY_NAME, "other", new ArrayList<Action>(), "/entities/{id}");
 	
 		initial.addTransition("PUT", other, new ResourceGETExpression("other", ResourceGETExpression.Function.OK));
 				
@@ -119,9 +120,9 @@ public class TestHypermediaValidator {
 				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gdeleted->final[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "G";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "/entities/{id}");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted", new HashSet<Action>(), "/entities/{id}");
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "/entities/{id}");
+		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted", new ArrayList<Action>(), "/entities/{id}");
 	
 		initial.addTransition("PUT", exists);
 		// a transition to a final state will result in 204 (No Content) at runtime
@@ -145,9 +146,9 @@ public class TestHypermediaValidator {
 				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gexists->final[label=\"\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
 		
 		String ENTITY_NAME = "G";
-		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entities");
-		ResourceState exists = new ResourceState(initial, "exists", new HashSet<Action>(), "/{id}");
-		ResourceState deleted = new ResourceState(initial, "deleted", new HashSet<Action>(), "/{id}");
+		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entities");
+		ResourceState exists = new ResourceState(initial, "exists", new ArrayList<Action>(), "/{id}");
+		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>(), "/{id}");
 	
 		initial.addTransitionForEachItem("GET", exists, null);		
 		// add an auto transition from deleted state to a different state
@@ -173,9 +174,9 @@ public class TestHypermediaValidator {
 				"    Gdeleted->Ginitial[style=\"dotted\"]\n}";
 		
 		String ENTITY_NAME = "G";
-		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entities");
-		ResourceState exists = new ResourceState(initial, "exists", new HashSet<Action>(), "/{id}");
-		ResourceState deleted = new ResourceState(initial, "deleted", new HashSet<Action>(), "/{id}");
+		CollectionResourceState initial = new CollectionResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entities");
+		ResourceState exists = new ResourceState(initial, "exists", new ArrayList<Action>(), "/{id}");
+		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>(), "/{id}");
 	
 		initial.addTransitionForEachItem("GET", exists, null);
 		// add an auto transition from deleted state to a different state
@@ -206,10 +207,10 @@ public class TestHypermediaValidator {
 			+ "    CRUD_ENTITYarchived->final1[label=\"\"]\n}";
 		
 		String ENTITY_NAME = "CRUD_ENTITY";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/");
-		ResourceState exists = new ResourceState(initial, "exists", new HashSet<Action>(), null);
-		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", new HashSet<Action>(), "/archived");
-		ResourceState deleted = new ResourceState(initial, "deleted", new HashSet<Action>(), null);
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState(initial, "exists", new ArrayList<Action>(), null);
+		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", new ArrayList<Action>(), "/archived");
+		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>(), null);
 	
 		initial.addTransition("PUT", exists);		
 		exists.addTransition("PUT", archived);
@@ -223,7 +224,7 @@ public class TestHypermediaValidator {
 
 	@Test
 	public void testDOTTransitionToStateMachine() {
-		ResourceState home = new ResourceState("SERVICE_ROOT", "home", new HashSet<Action>(), "/");
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home", new ArrayList<Action>(), "/");
 		ResourceStateMachine processSM = getProcessSM();
 		home.addTransition("GET", processSM);
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
@@ -262,12 +263,12 @@ public class TestHypermediaValidator {
 	@Test
 	public void testDOTGraphOneLevel() {
 
-		ResourceState home = new ResourceState("SERVICE_ROOT", "home", new HashSet<Action>(), "/");
+		ResourceState home = new ResourceState("SERVICE_ROOT", "home", new ArrayList<Action>(), "/");
 		// processes
 		ResourceStateMachine processSM = getProcessSM();
 		home.addTransition("GET", processSM);
 		// notes
-		ResourceStateMachine notesSM = new ResourceStateMachine(new ResourceState("notes", "initial", new HashSet<Action>(), "/notes"));
+		ResourceStateMachine notesSM = new ResourceStateMachine(new ResourceState("notes", "initial", new ArrayList<Action>(), "/notes"));
 		home.addTransition("GET", notesSM);
 		
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
@@ -285,15 +286,15 @@ public class TestHypermediaValidator {
 	private ResourceStateMachine getProcessSM() {
 		String PROCESS_ENTITY_NAME = "process";
 		// process behaviour
-		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", new HashSet<Action>(), "/processes");
-		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", new HashSet<Action>(), "/processes/new");
+		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", new ArrayList<Action>(), "/processes");
+		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", new ArrayList<Action>(), "/processes/new");
 		// create new process
 		processes.addTransition("POST", newProcess);
 
 		// Process states
-		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", new HashSet<Action>(), "/processes/{id}");
-		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", new HashSet<Action>(), "/processes/nextTask");
-		ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME, "completedProcess", new HashSet<Action>(), "/processes/{id}");
+		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", new ArrayList<Action>(), "/processes/{id}");
+		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", new ArrayList<Action>(), "/processes/nextTask");
+		ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME, "completedProcess", new ArrayList<Action>(), "/processes/{id}");
 		// start new process
 		newProcess.addTransition("PUT", processInitial);
 		// do a task
@@ -313,9 +314,9 @@ public class TestHypermediaValidator {
 	private ResourceStateMachine getTaskSM() {
 		String TASK_ENTITY_NAME = "task";
 		// Task states
-		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", new HashSet<Action>(), "/acquired");
-		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", new HashSet<Action>(), "/completed");
-		ResourceState taskAbandoned = new ResourceState(TASK_ENTITY_NAME, "abandoned", new HashSet<Action>(), "/acquired");
+		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", new ArrayList<Action>(), "/acquired");
+		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", new ArrayList<Action>(), "/completed");
+		ResourceState taskAbandoned = new ResourceState(TASK_ENTITY_NAME, "abandoned", new ArrayList<Action>(), "/acquired");
 		// abandon task
 		taskAcquired.addTransition("DELETE", taskAbandoned);
 		// complete task

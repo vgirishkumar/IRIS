@@ -47,7 +47,7 @@ public class HypermediaValidator {
 		 */
 		for (ResourceState currentState : hypermediaEngine.getStates()) {
 			logger.debug("Checking configuration for [" + currentState + "] " + currentState.getPath());
-			Set<Action> actions = currentState.getActions();
+			List<Action> actions = currentState.getActions();
 			if (actions == null) {
 				fireNoActionsConfigured(hypermediaEngine, currentState);
 				continue;

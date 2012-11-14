@@ -44,8 +44,8 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkForCustomLinkRelation() {
-		ResourceState existsState = new ResourceState("toaster", "exists", new HashSet<Action>(), "/machines/toaster");
-		ResourceState cookingState = new ResourceState("toaster", "cooking", new HashSet<Action>(), "/machines/toaster/cooking");
+		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
+		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking");
 
 		// view the resource if the toaster is cooking (could be time remaining)
 		existsState.addTransition("GET", cookingState);
@@ -73,8 +73,8 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkForTargetState() {
-		ResourceState existsState = new ResourceState("toaster", "exists", new HashSet<Action>(), "/machines/toaster");
-		ResourceState cookingState = new ResourceState("toaster", "cooking", new HashSet<Action>(), "/machines/toaster/cooking");
+		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
+		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking");
 
 		// view the resource if the toaster is cooking (could be time remaining)
 		existsState.addTransition("GET", cookingState);
@@ -98,7 +98,7 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkForSelfState() {
-		CollectionResourceState collectionState = new CollectionResourceState("machines", "MachineView", new HashSet<Action>(), "/machines");
+		CollectionResourceState collectionState = new CollectionResourceState("machines", "MachineView", new ArrayList<Action>(), "/machines");
 
 		// create machines
 		collectionState.addTransition("POST", collectionState);
@@ -123,8 +123,8 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkForFinalPseudoState() {
-		ResourceState existsState = new ResourceState("toaster", "exists", new HashSet<Action>(), "/machines/toaster/{id}");
-		ResourceState deletedState = new ResourceState(existsState, "deleted", new HashSet<Action>());
+		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster/{id}");
+		ResourceState deletedState = new ResourceState(existsState, "deleted", new ArrayList<Action>());
 
 		// delete the toaster
 		existsState.addTransition("DELETE", deletedState);
@@ -142,12 +142,12 @@ public class TestResourceStateMachine {
 	@Test
 	public void testStates() {
 		String ENTITY_NAME = "T24CONTRACT";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
-		ResourceState unauthorised = new ResourceState(ENTITY_NAME, "INAU", new HashSet<Action>(), "unauthorised/{id}");
-		ResourceState authorised = new ResourceState(ENTITY_NAME, "LIVE", new HashSet<Action>(), "authorised/{id}");
-		ResourceState reversed = new ResourceState(ENTITY_NAME, "RNAU", new HashSet<Action>(), "reversed/{id}");
-		ResourceState history = new ResourceState(ENTITY_NAME, "REVE", new HashSet<Action>(), "history/{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState unauthorised = new ResourceState(ENTITY_NAME, "INAU", new ArrayList<Action>(), "unauthorised/{id}");
+		ResourceState authorised = new ResourceState(ENTITY_NAME, "LIVE", new ArrayList<Action>(), "authorised/{id}");
+		ResourceState reversed = new ResourceState(ENTITY_NAME, "RNAU", new ArrayList<Action>(), "reversed/{id}");
+		ResourceState history = new ResourceState(ENTITY_NAME, "REVE", new ArrayList<Action>(), "history/{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
 		begin.addTransition("PUT", unauthorised);
 		
@@ -183,9 +183,9 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetStates() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState(exists, "end", new HashSet<Action>());
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -202,9 +202,9 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetTransitions() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState(exists, "end", new HashSet<Action>());
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -221,9 +221,9 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractionByPath() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -245,7 +245,7 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractionByPathSingle() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "/root");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "/root");
 		begin.addTransition("GET", begin);
 
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
@@ -263,8 +263,8 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractionByPathPsuedo() {
 		String ENTITY_NAME = "";
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState(exists, "end", new HashSet<Action>());
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
 	
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", end);
@@ -285,8 +285,8 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractionByPathTransient() {
 		String ENTITY_NAME = "";
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState deleted = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState deleted = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
 		exists.addTransition("PUT", exists);
 		exists.addTransition("DELETE", deleted);
@@ -309,9 +309,9 @@ public class TestResourceStateMachine {
 	@Test
 	public void testInteractions() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -329,11 +329,11 @@ public class TestResourceStateMachine {
 	@Test
 	public void testSubstateInteractions() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
-		ResourceState published = new ResourceState(ENTITY_NAME, "published", new HashSet<Action>(), "/published");
-		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new HashSet<Action>());
-		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", new HashSet<Action>(), "/draft");
-		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new HashSet<Action>());
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entity");
+		ResourceState published = new ResourceState(ENTITY_NAME, "published", new ArrayList<Action>(), "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new ArrayList<Action>());
+		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", new ArrayList<Action>(), "/draft");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new ArrayList<Action>());
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -381,11 +381,11 @@ public class TestResourceStateMachine {
 	@Test
 	public void testStateByPath() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
-		ResourceState published = new ResourceState(initial, "published", new HashSet<Action>(), "/published");
-		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new HashSet<Action>());
-		ResourceState draft = new ResourceState(initial, "draft", new HashSet<Action>(), "/draft");
-		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new HashSet<Action>());
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entity");
+		ResourceState published = new ResourceState(initial, "published", new ArrayList<Action>(), "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new ArrayList<Action>());
+		ResourceState draft = new ResourceState(initial, "draft", new ArrayList<Action>(), "/draft");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new ArrayList<Action>());
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -419,7 +419,7 @@ public class TestResourceStateMachine {
 	@Test
 	public void testStateByPathSingle() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entity");
   		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		Map<String, Set<ResourceState>> stateMap = sm.getResourceStatesByPath();
 		assertEquals("Number of states", 1, stateMap.size());
@@ -430,8 +430,8 @@ public class TestResourceStateMachine {
 	@Test
 	public void testStateByPathPseudo() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
-		ResourceState draft = new ResourceState(initial, "draft", new HashSet<Action>(), "/draft");
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entity");
+		ResourceState draft = new ResourceState(initial, "draft", new ArrayList<Action>(), "/draft");
 		ResourceState deleted = new ResourceState(initial, "deleted", null);
 	
 		// create draft
@@ -461,11 +461,11 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetResourceStatesByPath() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
-		ResourceState published = new ResourceState(initial, "published", new HashSet<Action>(), "/published");
-		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new HashSet<Action>());
-		ResourceState draft = new ResourceState(initial, "draft", new HashSet<Action>(), "/draft");
-		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new HashSet<Action>());
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entity");
+		ResourceState published = new ResourceState(initial, "published", new ArrayList<Action>(), "/published");
+		ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new ArrayList<Action>());
+		ResourceState draft = new ResourceState(initial, "draft", new ArrayList<Action>(), "/draft");
+		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new ArrayList<Action>());
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -496,10 +496,10 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetState() {
 		String ENTITY_NAME = "";
-  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), "/entity");
-		ResourceState published = new ResourceState(initial, "published", new HashSet<Action>(), "/published");
-		ResourceState draft = new ResourceState(initial, "draft", new HashSet<Action>(), "/draft");
-		ResourceState deleted = new ResourceState(initial, "deleted", new HashSet<Action>());
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entity");
+		ResourceState published = new ResourceState(initial, "published", new ArrayList<Action>(), "/published");
+		ResourceState draft = new ResourceState(initial, "draft", new ArrayList<Action>(), "/draft");
+		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>());
 	
 		// create draft
 		initial.addTransition("PUT", draft);
@@ -526,9 +526,9 @@ public class TestResourceStateMachine {
 	@Test(expected=AssertionError.class)
 	public void testInteractionsInvalidState() {
 		String ENTITY_NAME = "";
-		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new HashSet<Action>(), "{id}");
-		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new HashSet<Action>(), "{id}");
-		ResourceState end = new ResourceState(ENTITY_NAME, "end", new HashSet<Action>(), "{id}");
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
 		begin.addTransition("PUT", exists);
 		exists.addTransition("PUT", exists);
@@ -536,7 +536,7 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
-		ResourceState other = new ResourceState("other", "initial", new HashSet<Action>(), "/other");
+		ResourceState other = new ResourceState("other", "initial", new ArrayList<Action>(), "/other");
 		sm.getInteractions(other);
 	}
 
@@ -546,16 +546,16 @@ public class TestResourceStateMachine {
 		String TASK_ENTITY_NAME = "task";
 
 		// process behaviour
-		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", new HashSet<Action>(), "/processes");
-		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", new HashSet<Action>(), "/new");
+		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", new ArrayList<Action>(), "/processes");
+		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", new ArrayList<Action>(), "/new");
 		// create new process
 		processes.addTransition("POST", newProcess);
 
 		// Process states
-		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", new HashSet<Action>(), "/processes/{id}");
-		ResourceState processStarted = new ResourceState(processInitial, "started", new HashSet<Action>());
-		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", new HashSet<Action>(), "/nextTask");
-		ResourceState processCompleted = new ResourceState(processInitial,	"completedProcess", new HashSet<Action>());
+		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", new ArrayList<Action>(), "/processes/{id}");
+		ResourceState processStarted = new ResourceState(processInitial, "started", new ArrayList<Action>());
+		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", new ArrayList<Action>(), "/nextTask");
+		ResourceState processCompleted = new ResourceState(processInitial,	"completedProcess", new ArrayList<Action>());
 		// start new process
 		newProcess.addTransition("PUT", processInitial);
 		processInitial.addTransition("PUT", processStarted);
@@ -567,9 +567,9 @@ public class TestResourceStateMachine {
 		ResourceStateMachine processSM = new ResourceStateMachine(processes);
 
 		// Task states
-		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", new HashSet<Action>(), "/acquired");
-		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", new HashSet<Action>(), "/completed");
-		ResourceState taskAbandoned = new ResourceState(taskAcquired, "abandoned", new HashSet<Action>());
+		ResourceState taskAcquired = new ResourceState(TASK_ENTITY_NAME, "acquired", new ArrayList<Action>(), "/acquired");
+		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", new ArrayList<Action>(), "/completed");
+		ResourceState taskAbandoned = new ResourceState(taskAcquired, "abandoned", new ArrayList<Action>());
 		// abandon task
 		taskAcquired.addTransition("DELETE", taskAbandoned);
 		// complete task
@@ -581,7 +581,7 @@ public class TestResourceStateMachine {
 		 */
 		nextTask.addTransition("PUT", taskSM);
 
-		ResourceState home = new ResourceState("", "home", new HashSet<Action>(), "/");
+		ResourceState home = new ResourceState("", "home", new ArrayList<Action>(), "/");
 		home.addTransition("GET", processSM);
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
 		
@@ -600,7 +600,7 @@ public class TestResourceStateMachine {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinksEntityNotFound() {
-		ResourceState initial = new ResourceState("NOTE", "initial", new HashSet<Action>(), "/note/{id}");
+		ResourceState initial = new ResourceState("NOTE", "initial", new ArrayList<Action>(), "/note/{id}");
 		
 		// the null entity for our test
 		EntityResource<Object> testResponseEntity = null;
@@ -621,7 +621,7 @@ public class TestResourceStateMachine {
 	public void testGetLinksSelf() {
 		String ENTITY_NAME = "NOTE";
 		String resourcePath = "/notes/new";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), resourcePath);
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), resourcePath);
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		
 		// initialise and get the application state (links)
@@ -646,7 +646,7 @@ public class TestResourceStateMachine {
 	public void testGetLinksSelfPathParameters() {
 		String ENTITY_NAME = "NOTE";
 		String resourcePath = "/notes/{id}/reviewers";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), resourcePath);
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), resourcePath);
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		
 		/*
@@ -676,7 +676,7 @@ public class TestResourceStateMachine {
 	public void testGetLinksSelfTemplate() {
 		String ENTITY_NAME = "NOTE";
 		String resourcePath = "/notes/{id}";
-		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new HashSet<Action>(), resourcePath);
+		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), resourcePath);
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		
 		/*
@@ -707,13 +707,13 @@ public class TestResourceStateMachine {
 	@Test
 	public void testGetLinksOtherResources() {
 		String rootResourcePath = "/";
-		ResourceState initial = new ResourceState("root", "initial", new HashSet<Action>(), rootResourcePath);
+		ResourceState initial = new ResourceState("root", "initial", new ArrayList<Action>(), rootResourcePath);
 		String NOTE_ENTITY = "NOTE";
 		String notesResourcePath = "/notes";
-		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new HashSet<Action>(), notesResourcePath);
+		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new ArrayList<Action>(), notesResourcePath);
 		String PERSON_ENTITY = "PERSON";
 		String personResourcePath = "/persons";
-		CollectionResourceState personsResource = new CollectionResourceState(PERSON_ENTITY, "collection", new HashSet<Action>(), personResourcePath);
+		CollectionResourceState personsResource = new CollectionResourceState(PERSON_ENTITY, "collection", new ArrayList<Action>(), personResourcePath);
 		
 		// create the transitions (links)
 		initial.addTransition("GET", notesResource);
@@ -764,12 +764,12 @@ public class TestResourceStateMachine {
 	public void testGetLinksCollection() {
 		String NOTE_ENTITY = "NOTE";
 		String notesResourcePath = "/notes";
-		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new HashSet<Action>(), notesResourcePath);
+		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new ArrayList<Action>(), notesResourcePath);
 		String noteItemResourcePath = "/notes/{noteId}";
-		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new HashSet<Action>(), noteItemResourcePath, "item".split(" "));
+		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new ArrayList<Action>(), noteItemResourcePath, "item".split(" "));
 		/* create the transitions (links) */
 		// link to form to create new note
-		notesResource.addTransition("POST", new ResourceState("stack", "new", new HashSet<Action>(), "/notes/new", "new".split(" ")));
+		notesResource.addTransition("POST", new ResourceState("stack", "new", new ArrayList<Action>(), "/notes/new", "new".split(" ")));
 		/*
 		 * define transition to view each item of the note collection
 		 * no linkage map as target URI element (self) must exist in source entity element (also self)
@@ -858,10 +858,10 @@ public class TestResourceStateMachine {
 	public void testGetLinksCollectionItems() {
 		String NOTE_ENTITY = "NOTE";
 		String notesResourcePath = "/notes";
-		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new HashSet<Action>(), notesResourcePath);
+		CollectionResourceState notesResource = new CollectionResourceState(NOTE_ENTITY, "collection", new ArrayList<Action>(), notesResourcePath);
 		String noteItemResourcePath = "/notes/{noteId}";
-		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new HashSet<Action>(), noteItemResourcePath, "item".split(" "));
-		ResourceState noteFinalState = new ResourceState(NOTE_ENTITY, "final", new HashSet<Action>(), noteItemResourcePath, "final".split(" "));
+		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new ArrayList<Action>(), noteItemResourcePath, "item".split(" "));
+		ResourceState noteFinalState = new ResourceState(NOTE_ENTITY, "final", new ArrayList<Action>(), noteItemResourcePath, "final".split(" "));
 		/* create the transitions (links) */
 		/*
 		 * define transition to view each item of the note collection

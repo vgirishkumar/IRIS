@@ -5,8 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -18,8 +18,8 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestEqualityHTTPHypermediaRIM {
 
-	private Set<Action> mockActions() {
-		Set<Action> actions = new HashSet<Action>();
+	private List<Action> mockActions() {
+		List<Action> actions = new ArrayList<Action>();
 		actions.add(new Action("DO", Action.TYPE.ENTRY));
 		return actions;
 	}

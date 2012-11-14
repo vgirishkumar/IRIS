@@ -31,9 +31,9 @@ class RIMDslGenerator implements IGenerator {
 	}
 	
 	def toJavaCode(ResourceInteractionModel rim) '''
-		import java.util.HashSet;
-		import java.util.Set;
+		import java.util.ArrayList;
 		import java.util.HashMap;
+		import java.util.List;
 		import java.util.Map;
 		import java.util.Properties;
 
@@ -91,8 +91,8 @@ class RIMDslGenerator implements IGenerator {
 			    return initial;
 			}
 
-		    private Set<Action> createActionSet(Action view, Action entry) {
-		        Set<Action> actions = new HashSet<Action>();
+		    private List<Action> createActionList(Action view, Action entry) {
+		        List<Action> actions = new ArrayList<Action>();
 		        if (view != null)
 		            actions.add(view);
 		        if (entry != null)
@@ -109,21 +109,22 @@ class RIMDslGenerator implements IGenerator {
                 actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");«
                 ENDFOR»
             «ENDIF»
+            «produceActionSet(state, state.view, state.actions)»
             «IF state.entity.isCollection»
-            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
+            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
             «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name } else { "/" + state.name }»"«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»"«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
             «ENDIF»
 	'''
 
-    def produceActionSet(EList<Command> actions) '''
+    def produceActionSet(State state, Command viewCommand, EList<Command> actions) '''
         «IF actions != null»
-            «IF actions.size == 2»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, actionViewProperties), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
-            ELSEIF actions.size == 1»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, actionViewProperties), null)«
-            ENDIF»«
-        ENDIF»'''
+            List<Action> «state.name»Actions = new ArrayList<Action>();
+            «state.name»Actions.add(new Action("«viewCommand.name»", Action.TYPE.VIEW, actionViewProperties));
+            «FOR action : actions»
+            «state.name»Actions.add(new Action("«action.name»", Action.TYPE.ENTRY));
+            «ENDFOR»
+        «ENDIF»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
             «IF transition.eval != null»

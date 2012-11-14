@@ -5,7 +5,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import javax.ws.rs.core.GenericEntity;
@@ -82,8 +81,8 @@ public class TestEdmxMetaDataWriter {
 		//Mock MetadataResource
 		when(mr.getMetadata()).thenReturn(mockEDS);
 		// mock resource interaction (which creates Navigation Property in metadata)
-		ResourceState flight = new ResourceState("Flight", "finitial", new HashSet<Action>(), "/Flight");
-		ResourceState airport = new ResourceState("Airport", "ainitial", new HashSet<Action>(), "/Airport");
+		ResourceState flight = new ResourceState("Flight", "finitial", new ArrayList<Action>(), "/Flight");
+		ResourceState airport = new ResourceState("Airport", "ainitial", new ArrayList<Action>(), "/Airport");
 		flight.addTransition(airport);
 		ResourceStateMachine rsm = new ResourceStateMachine(flight);
 		

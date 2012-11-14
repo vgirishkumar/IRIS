@@ -1,9 +1,9 @@
 package com.interaction.example.odata.northwind;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
@@ -14,8 +14,8 @@ public class Behaviour {
 
 	public ResourceState getSimpleODataInteractionModel() {
 		// the service root
-		ResourceState initialState = new ResourceState("ServiceDocument", "begin", createActionSet(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
-		ResourceState metadata = new ResourceState("", "metadata", createActionSet(new Action("GETMetadata", Action.TYPE.VIEW), null), "/$metadata");
+		ResourceState initialState = new ResourceState("ServiceDocument", "begin", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
+		ResourceState metadata = new ResourceState("", "metadata", createActionList(new Action("GETMetadata", Action.TYPE.VIEW), null), "/$metadata");
 
 		ResourceStateMachine categories = getCategoriesSM();
 		ResourceStateMachine customers = getCustomersSM();
@@ -39,9 +39,9 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getCategoriesSM() {
-		CollectionResourceState categories = new CollectionResourceState("Categories", "categories", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Categories");
-		ResourceState pseudo = new ResourceState(categories, "Categories_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
-		ResourceState category = new ResourceState("Categories", "category", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/Categories({id})");
+		CollectionResourceState categories = new CollectionResourceState("Categories", "categories", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Categories");
+		ResourceState pseudo = new ResourceState(categories, "Categories_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState category = new ResourceState("Categories", "category", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Categories({id})");
 
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -53,9 +53,9 @@ public class Behaviour {
 	}
 	
 	public ResourceStateMachine getCustomersSM() {
-		CollectionResourceState customers = new CollectionResourceState("Customers", "customers", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Customers");
-		ResourceState pseudo = new ResourceState(customers, "Customers_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
-		ResourceState category = new ResourceState("Customers", "category", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/Customers({id})");
+		CollectionResourceState customers = new CollectionResourceState("Customers", "customers", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Customers");
+		ResourceState pseudo = new ResourceState(customers, "Customers_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState category = new ResourceState("Customers", "category", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Customers({id})");
 
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -67,9 +67,9 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getEmployeesSM() {
-		CollectionResourceState employees = new CollectionResourceState("Employees", "employees", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Employees");
-		ResourceState pseudo = new ResourceState(employees, "Employees_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
-		ResourceState employee = new ResourceState("Employees", "employee", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/Employees({id})");
+		CollectionResourceState employees = new CollectionResourceState("Employees", "employees", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Employees");
+		ResourceState pseudo = new ResourceState(employees, "Employees_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState employee = new ResourceState("Employees", "employee", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Employees({id})");
 
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -81,9 +81,9 @@ public class Behaviour {
 	}
 	
 	public ResourceStateMachine getOrdersSM() {
-		CollectionResourceState orders = new CollectionResourceState("Orders", "orders", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Orders");
-		ResourceState pseudo = new ResourceState(orders, "Orders_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
-		ResourceState order = new ResourceState("Orders", "order", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/Orders({id})");
+		CollectionResourceState orders = new CollectionResourceState("Orders", "orders", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Orders");
+		ResourceState pseudo = new ResourceState(orders, "Orders_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState order = new ResourceState("Orders", "order", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Orders({id})");
 
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -95,9 +95,9 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getOrderDetailsSM() {
-		CollectionResourceState orderDetails = new CollectionResourceState("Order_Details", "orderDetails", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Order_Details");
-		ResourceState pseudo = new ResourceState(orderDetails, "OrderDetails_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
-		ResourceState orderDetail = new ResourceState("Order_Details", "orderDetail", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/Order_Details({id})");
+		CollectionResourceState orderDetails = new CollectionResourceState("Order_Details", "orderDetails", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Order_Details");
+		ResourceState pseudo = new ResourceState(orderDetails, "OrderDetails_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState orderDetail = new ResourceState("Order_Details", "orderDetail", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Order_Details({id})");
 
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -109,9 +109,9 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getProductsSM() {
-		CollectionResourceState products = new CollectionResourceState("Products", "Products", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Products");
-		ResourceState pseudo = new ResourceState(products, "Products_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
-		ResourceState product = new ResourceState("Products", "product", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/Products({id})");
+		CollectionResourceState products = new CollectionResourceState("Products", "Products", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Products");
+		ResourceState pseudo = new ResourceState(products, "Products_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState product = new ResourceState("Products", "product", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Products({id})");
 
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -123,9 +123,9 @@ public class Behaviour {
 	}
 	
 	public ResourceStateMachine getSuppliersSM() {
-		CollectionResourceState suppliers = new CollectionResourceState("Suppliers", "suppliers", createActionSet(new Action("GETEntities", Action.TYPE.VIEW), null), "/Suppliers");
-		ResourceState pseudo = new ResourceState(suppliers, "Suppliers_pseudo_created", createActionSet(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
-		ResourceState supplier = new ResourceState("Suppliers", "supplier", createActionSet(new Action("GETEntity", Action.TYPE.VIEW), null), "/Suppliers({id})");
+		CollectionResourceState suppliers = new CollectionResourceState("Suppliers", "suppliers", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Suppliers");
+		ResourceState pseudo = new ResourceState(suppliers, "Suppliers_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState supplier = new ResourceState("Suppliers", "supplier", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Suppliers({id})");
 
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
@@ -136,8 +136,8 @@ public class Behaviour {
 		return new ResourceStateMachine(suppliers);
 	}
 
-	private Set<Action> createActionSet(Action view, Action entry) {
-		Set<Action> actions = new HashSet<Action>();
+	private List<Action> createActionList(Action view, Action entry) {
+		List<Action> actions = new ArrayList<Action>();
 		if (view != null)
 			actions.add(view);
 		if (entry != null)

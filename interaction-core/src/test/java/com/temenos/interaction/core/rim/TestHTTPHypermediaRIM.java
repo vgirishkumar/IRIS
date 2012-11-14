@@ -8,11 +8,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -43,8 +43,8 @@ public class TestHTTPHypermediaRIM {
         RequestContext.setRequestContext(ctx);
 	}
 
-	private Set<Action> mockActions() {
-		Set<Action> actions = new HashSet<Action>();
+	private List<Action> mockActions() {
+		List<Action> actions = new ArrayList<Action>();
 		actions.add(new Action("DO", Action.TYPE.ENTRY));
 		actions.add(new Action("GET", Action.TYPE.VIEW));
 		return actions;

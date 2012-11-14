@@ -1,17 +1,17 @@
 package com.temenos.interaction.core.hypermedia;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class CollectionResourceState extends ResourceState {
 
-	public CollectionResourceState(String entityName, String name, Set<Action> actions, String path) {
+	public CollectionResourceState(String entityName, String name, List<Action> actions, String path) {
 		super(entityName, name, actions, path, "collection".split(" "));
 	}
-	public CollectionResourceState(String entityName, String name, Set<Action> actions, String path, UriSpecification uriSpec) {
+	public CollectionResourceState(String entityName, String name, List<Action> actions, String path, UriSpecification uriSpec) {
 		super(entityName, name, actions, path, "collection".split(" "), uriSpec);
 	}
-	public CollectionResourceState(String entityName, String name, Set<Action> actions, String path, String[] rels, UriSpecification uriSpec) {
+	public CollectionResourceState(String entityName, String name, List<Action> actions, String path, String[] rels, UriSpecification uriSpec) {
 		super(entityName, name, actions, path, rels, uriSpec);
 	}
 

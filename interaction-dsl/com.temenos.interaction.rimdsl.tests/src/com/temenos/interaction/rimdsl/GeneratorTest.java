@@ -33,21 +33,20 @@ public class GeneratorTest {
 			
 	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
-	"	actions { GetEntity }" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 
 	"resource B" +
 	"	item ENTITY" + LINE_SEP +
-// TODO - new specification for View commands
-//	"	view { GetEntity }" + LINE_SEP +
-	"	actions { GetEntity, UpdateEntity }" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"	actions { UpdateEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"";
 
 	private final static String SIMPLE_STATES_BEHAVIOUR = "" +		
-	"import java.util.HashSet;" + LINE_SEP +
-	"import java.util.Set;" + LINE_SEP +
+	"import java.util.ArrayList;" + LINE_SEP +
 	"import java.util.HashMap;" + LINE_SEP +
+	"import java.util.List;" + LINE_SEP +
 	"import java.util.Map;" + LINE_SEP +
 	"import java.util.Properties;" + LINE_SEP +
 	LINE_SEP +
@@ -73,10 +72,15 @@ public class GeneratorTest {
 	"		Properties actionViewProperties = new Properties();" + LINE_SEP +
 	"		ResourceState initial = null;" + LINE_SEP +
 	"		// create states" + LINE_SEP +
-	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties), null), \"/A\");" + LINE_SEP +
+	"		List<Action> AActions = new ArrayList<Action>();" + LINE_SEP +
+	"		AActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties));" + LINE_SEP +
+	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", AActions, \"/A\");" + LINE_SEP +
 	"		// identify the initial state" + LINE_SEP +
 	"		initial = sA;" + LINE_SEP +
-	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties), new Action(\"UpdateEntity\", Action.TYPE.ENTRY)), \"/B\");" + LINE_SEP +
+	"		List<Action> BActions = new ArrayList<Action>();" + LINE_SEP +
+	"		BActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties));" + LINE_SEP +
+	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY));" + LINE_SEP +
+	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\");" + LINE_SEP +
 	LINE_SEP +
 	"		// create regular transitions" + LINE_SEP +
 	LINE_SEP +
@@ -87,8 +91,8 @@ public class GeneratorTest {
 	"	    return initial;" + LINE_SEP +
 	"	}" + LINE_SEP +
 	LINE_SEP +
-	"    private Set<Action> createActionSet(Action view, Action entry) {" + LINE_SEP +
-	"        Set<Action> actions = new HashSet<Action>();" + LINE_SEP +
+	"    private List<Action> createActionList(Action view, Action entry) {" + LINE_SEP +
+	"        List<Action> actions = new ArrayList<Action>();" + LINE_SEP +
 	"        if (view != null)" + LINE_SEP +
 	"            actions.add(view);" + LINE_SEP +
 	"        if (entry != null)" + LINE_SEP +
@@ -120,7 +124,7 @@ public class GeneratorTest {
 			
 	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
-	"	actions { GetEntity }" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"";
 
@@ -144,7 +148,7 @@ public class GeneratorTest {
 		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties), null"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties)"));
 	}
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
@@ -160,7 +164,7 @@ public class GeneratorTest {
 					
 			"initial resource A" + LINE_SEP +
 			"	collection ENTITY" + LINE_SEP +
-			"	actions { GetEntities }" + LINE_SEP +
+			"	view { GetEntities }" + LINE_SEP +
 			"	GET -> B (OK(B))" + LINE_SEP +
 			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
 			"	GET -> B (OK(B) && NOT_FOUND(B))" + LINE_SEP +
@@ -168,7 +172,8 @@ public class GeneratorTest {
 
 			"resource B" +
 			"	item ENTITY" + LINE_SEP +
-			"	actions { GetEntity, PutEntity }" + LINE_SEP +
+			"	view { GetEntity }" + LINE_SEP +
+			"	actions { PutEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"";
 

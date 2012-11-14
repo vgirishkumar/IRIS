@@ -20,7 +20,8 @@ Event:
 State: 
     (isInitial?='initial' | isException?='exception')? 'resource' name=ID
         entity=Entity
-        ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')
+        ('view' '{' view=[Command] '}')
+        ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')?
         path=Path?
         transitionsAuto+=TransitionAuto*
         transitions+=Transition*

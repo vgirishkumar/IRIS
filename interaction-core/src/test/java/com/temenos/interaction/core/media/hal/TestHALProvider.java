@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +68,7 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialise() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new HashSet<Action>(), "/children"));
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -93,7 +92,7 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityName() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new HashSet<Action>(), "/children"));
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -111,7 +110,7 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new HashSet<Action>(), "/children"));
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -129,7 +128,7 @@ public class TestHALProvider {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityNameWithId() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new HashSet<Action>(), "/children/{id}", "id", null));
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children/{id}", "id", null));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
