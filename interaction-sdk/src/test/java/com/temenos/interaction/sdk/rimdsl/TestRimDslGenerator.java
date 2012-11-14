@@ -98,7 +98,7 @@ public class TestRimDslGenerator {
 		String read;
 		try {
 			while((read = br.readLine()) != null) {
-			    sb.append(read).append("\r\n");
+			    sb.append(read).append(System.getProperty("line.separator"));
 			}
 		}
 		catch(IOException ioe) {
