@@ -28,6 +28,8 @@ class RIMDslGenerator implements IGenerator {
 	}
 	
 	def toJavaCode(ResourceInteractionModel rim) '''
+		package «rim.eResource.className»Model;
+
 		import java.util.HashSet;
 		import java.util.Set;
 		import java.util.HashMap;

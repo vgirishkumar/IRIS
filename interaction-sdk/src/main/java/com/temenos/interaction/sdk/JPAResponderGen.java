@@ -29,6 +29,7 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
+import com.google.inject.Injector;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
@@ -37,6 +38,8 @@ import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
+import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupGenerated;
+import com.temenos.interaction.rimdsl.generator.launcher.Generator;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.command.Parameter;
 import com.temenos.interaction.sdk.entity.EMEntity;
@@ -44,7 +47,9 @@ import com.temenos.interaction.sdk.entity.EMProperty;
 import com.temenos.interaction.sdk.entity.EMTerm;
 import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
+import com.temenos.interaction.sdk.interaction.IMTransition;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
+import com.temenos.interaction.sdk.rimdsl.RimDslGenerator;
 import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
 
 /**
@@ -180,6 +185,11 @@ public class JPAResponderGen {
 		
 		//Create commands
 		Commands commands = getDefaultCommands(interactionModel);
+		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
+			for(IMTransition transition : rsm.getTransitions()) {
+				commands.addCommand("GETNavProperty" + transition.getTargetStateName(), "com.temenos.interaction.commands.odata.GETNavPropertyCommand", "GETNavProperty" + transition.getTargetStateName(), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+			}
+		}
 		
 		//Write other artefacts
 		if(!writeArtefacts(entityContainerNamespace, entitiesInfo, commands, entityModel, interactionModel, srcOutputPath, configOutputPath, true)) {
@@ -251,19 +261,27 @@ public class JPAResponderGen {
 		//Create the source directory
 		new File(srcOutputPath + "/" + namespace.replace(".", "/")).mkdirs();
 		
-		//Write metadata.xml
+		// generate metadata.xml
 		if (!writeMetadata(configOutputPath, generateMetadata(entityModel))) {
 			ok = false;
 		}
 		
 		// generate spring configuration files
-		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(namespace, interactionModel, commands))) {
+		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(namespace, modelName, interactionModel, commands))) {
 			ok = false;
 		}
 
-		// generate Behaviour class
-		String behaviourFilePath = srcOutputPath + "/" + namespace.replace(".", "/") + "/" + BEHAVIOUR_CLASS_FILE;
-		if (!writeBehaviourClass(behaviourFilePath, generateBehaviourClass(namespace, interactionModel))) {
+		// generate the rim DSL
+		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
+		String rimDslFilename = modelName + ".rim";
+		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel))) {
+			ok = false;
+		}
+
+		// generate the behaviour class
+		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
+		String behaviourClassDir = srcOutputPath + "/" + namespace.replace(".", "/") + "/";
+		if (!writeBehaviourClass(rimDslFile, behaviourClassDir)) {
 			ok = false;
 		}
 		
@@ -566,26 +584,6 @@ public class JPAResponderGen {
 		return true;
 	}
 	
-	protected boolean writeBehaviourClass(String path, String generatedBehaviourClass) {
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(new File(path));
-			fos.write(generatedBehaviourClass.getBytes("UTF-8"));
-		} catch (IOException e) {
-			// TODO add slf4j logger here
-			e.printStackTrace();
-			return false;
-		} finally {
-			try {
-				if (fos != null)
-					fos.close();
-			} catch (IOException e) {
-				// don't hide original exception
-			}
-		}
-		return true;
-	}
-
 	protected boolean writeMetadata(File sourceDir, String generatedMetadata) {
 		FileOutputStream fos = null;
 		try {
@@ -607,7 +605,35 @@ public class JPAResponderGen {
 		}
 		return true;
 	}
+
+	protected boolean writeRimDsl(File sourceDir, String rimDslFilename, String generatedRimDsl) {
+		FileOutputStream fos = null;
+		try {
+			File f = new File(sourceDir.getPath());
+			f.mkdirs();
+			fos = new FileOutputStream(new File(f, rimDslFilename));
+			fos.write(generatedRimDsl.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO add slf4j logger here
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				// don't hide original exception
+			}
+		}
+		return true;
+	}
 	
+	protected boolean writeBehaviourClass(String rimDslFile, String behaviourClassDir) {
+		Injector injector = new RIMDslStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
+		Generator generator = injector.getInstance(Generator.class);
+		return generator.runGenerator(rimDslFile, behaviourClassDir);
+	}
+
 	protected boolean writeResponderSettings(File sourceDir, String generateResponderSettings) {
 		FileOutputStream fos = null;
 		try {
@@ -669,9 +695,9 @@ public class JPAResponderGen {
 	/**
 	 * Generate the Spring configuration for the provided resources.
 	 */
-	public String generateSpringConfiguration(String namespace, InteractionModel interactionModel, Commands commands) {
+	public String generateSpringConfiguration(String namespace, String modelName, InteractionModel interactionModel, Commands commands) {
 		VelocityContext context = new VelocityContext();
-		context.put("behaviourClass", namespace + ".Behaviour");
+		context.put("behaviourClass", namespace + "." + modelName + "Behaviour");
 		context.put("interactionModel", interactionModel);
 		context.put("commands", commands);
 		
@@ -705,21 +731,6 @@ public class JPAResponderGen {
 		context.put("entitiesInfo", entitiesInfo);
 		
 		Template t = ve.getTemplate("/responder_insert.vm");
-		StringWriter sw = new StringWriter();
-		t.merge(context, sw);
-		return sw.toString();
-	}
-
-	/**
-	 * Generate the behaviour class.
-	 * @return
-	 */
-	public String generateBehaviourClass(String namespace, InteractionModel interactionModel) {
-		VelocityContext context = new VelocityContext();
-		context.put("behaviourNamespace", namespace);
-		context.put("interactionModel", interactionModel);
-		
-		Template t = ve.getTemplate("/behaviour.vm");
 		StringWriter sw = new StringWriter();
 		t.merge(context, sw);
 		return sw.toString();

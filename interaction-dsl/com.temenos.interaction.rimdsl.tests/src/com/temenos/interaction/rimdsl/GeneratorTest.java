@@ -45,9 +45,15 @@ public class GeneratorTest {
 	"";
 
 	private final static String SIMPLE_STATES_BEHAVIOUR = "" +
+	"package __synthetic0Model;" + LINE_SEP +
+	LINE_SEP +
 	"import java.util.HashSet;" + LINE_SEP +
 	"import java.util.Set;" + LINE_SEP +
+	"import java.util.HashMap;" + LINE_SEP +
+	"import java.util.Map;" + LINE_SEP +
+	"import java.util.Properties;" + LINE_SEP +
 	LINE_SEP +
+	"import com.temenos.interaction.core.hypermedia.UriSpecification;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.Action;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.CollectionResourceState;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.ResourceState;" + LINE_SEP +
@@ -63,12 +69,15 @@ public class GeneratorTest {
 	"    }" + LINE_SEP +
 	LINE_SEP +
 	"	public ResourceState getRIM() {" + LINE_SEP +
+	"		Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();" + LINE_SEP +
+	"		Map<String, String> uriLinkageProperties = new HashMap<String, String>();" + LINE_SEP +
+	"		Properties actionViewProperties = new Properties();" + LINE_SEP +
 	"		ResourceState initial = null;" + LINE_SEP +
 	"		// create states" + LINE_SEP +
-	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW), null), \"/A\");" + LINE_SEP +
+	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties), null), \"/A\");" + LINE_SEP +
 	"		// identify the initial state" + LINE_SEP +
 	"		initial = sA;" + LINE_SEP +
-	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW), new Action(\"UpdateEntity\", Action.TYPE.ENTRY)), \"/B\");" + LINE_SEP +
+	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties), new Action(\"UpdateEntity\", Action.TYPE.ENTRY)), \"/B\");" + LINE_SEP +
 	LINE_SEP +
 	"		// create regular transitions" + LINE_SEP +
 	LINE_SEP +
@@ -136,7 +145,7 @@ public class GeneratorTest {
 		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW), null"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties), null"));
 	}
 
 }
