@@ -5,14 +5,19 @@
 #foreach ( $entityInfo in $entitiesInfo )
 INSERT INTO `$entityInfo.getClazz()`(##
 #foreach ( $fieldInfo in $entityInfo.getAllFieldInfos() ) 
-`$fieldInfo.getName()`##
-#set ( $indexOfLastElement = $entityInfo.getAllFieldInfos().size() - 1 )
-#if (!$fieldInfo.equals($entityInfo.getAllFieldInfos().get($indexOfLastElement))) 
+#if (!($fieldInfo.getAnnotations().contains("@ManyToOne(optional = false)")))
+#if (!$fieldInfo.equals($entityInfo.getAllFieldInfos().get(0))) 
  , ##
+#end
+`$fieldInfo.getName()`##
 #end
 #end                                                  
 ) VALUES(##
 #foreach ( $fieldInfo in $entityInfo.getAllFieldInfos() )
+#if (!($fieldInfo.getAnnotations().contains("@ManyToOne(optional = false)")))
+#if (!$fieldInfo.equals($entityInfo.getAllFieldInfos().get(0))) 
+ , ##
+#end
 #if ($fieldInfo.getType().equals("String")) 
 'abc'##
 #elseif ($fieldInfo.getType().equals("Long") || $fieldInfo.getType().equals("Integer"))
@@ -26,9 +31,6 @@ INSERT INTO `$entityInfo.getClazz()`(##
 #else
 'Type not supported'##
 #end
-#set ( $indexOfLastElement = $entityInfo.getAllFieldInfos().size() - 1 )
-#if (!$fieldInfo.equals($entityInfo.getAllFieldInfos().get($indexOfLastElement))) 
- , ##
 #end
 #end
 );	

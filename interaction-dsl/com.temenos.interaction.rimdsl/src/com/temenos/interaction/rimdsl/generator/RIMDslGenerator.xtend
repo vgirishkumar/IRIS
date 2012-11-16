@@ -54,7 +54,7 @@ class RIMDslGenerator implements IGenerator {
 			public ResourceState getRIM() {
 				Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
 				Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-				Properties actionViewProperties = new Properties();
+				Properties actionViewProperties;
 				ResourceState initial = null;
 				// create states
 				«FOR c : rim.states»
@@ -102,10 +102,11 @@ class RIMDslGenerator implements IGenerator {
 	'''
 	
 	def produceResourceStates(State state) '''
-            «IF state.actions != null && state.actions.size > 0»
+            «IF state.actions != null && state.actions.size > 0 && state.actions.get(0).property.size > 0»
+                actionViewProperties = new Properties();
                 «FOR commandProperty : state.actions.get(0).property»
-                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");«
-                ENDFOR»
+                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+                «ENDFOR»
             «ENDIF»
             «IF state.entity.isCollection»
             CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «produceActionSet(state.actions)», "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
@@ -117,9 +118,9 @@ class RIMDslGenerator implements IGenerator {
     def produceActionSet(EList<Command> actions) '''
         «IF actions != null»
             «IF actions.size == 2»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, actionViewProperties), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
+            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, «if (actions != null && actions.size > 0 && actions.get(0).property.size > 0) { "actionViewProperties" } else { "new Properties()" }»), new Action("«actions.get(1).name»", Action.TYPE.ENTRY))«
             ELSEIF actions.size == 1»
-            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, actionViewProperties), null)«
+            createActionSet(new Action("«actions.get(0).name»", Action.TYPE.VIEW, «if (actions != null && actions.size > 0 && actions.get(0).property.size > 0) { "actionViewProperties" } else { "new Properties()" }»), null)«
             ENDIF»«
         ENDIF»'''
     

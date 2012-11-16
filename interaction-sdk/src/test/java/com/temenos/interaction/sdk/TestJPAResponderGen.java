@@ -46,7 +46,7 @@ public class TestJPAResponderGen {
 		String generatedSpringXML;
 		String generatedSpringResourceManagerXML;
 		String generateResponderDML;
-		String generatedBehaviourClass;
+		String generatedRimDsl;
 		String generatedMetadata;
 		
 		@Override
@@ -85,8 +85,13 @@ public class TestJPAResponderGen {
 		}
 		
 		@Override
-		protected boolean writeBehaviourClass(String path, String generatedBehaviourClass) {
-			this.generatedBehaviourClass = generatedBehaviourClass;
+		protected boolean writeBehaviourClass(String rimDslFile, String behaviourClassDir) {
+			return true;
+		}
+		
+		@Override
+		protected boolean writeRimDsl(File sourceDir, String rimDslFilename, String generatedRimDsl) {
+			this.generatedRimDsl = generatedRimDsl;
 			return true;
 		}
 		
@@ -394,8 +399,30 @@ public class TestJPAResponderGen {
 		assertTrue(generatedResponderDML.contains("INSERT INTO `Flight`(`number` , `fitHostiesName` , `runway`) VALUES('1' , 'abc' , 'abc');"));
 		assertTrue(generatedResponderDML.contains("INSERT INTO `Airport`() VALUES();"));
 		assertTrue(generatedResponderDML.contains("INSERT INTO `FlightSchedule`() VALUES();"));
-		}
+	}
 
+	@Test
+	public void testGenResponderDMLWithNavProperties() {
+		JPAResponderGen rg = new JPAResponderGen();
+		
+		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
+		
+		List<FieldInfo> properties = new ArrayList<FieldInfo>();
+		List<String> annotations = new ArrayList<String>();
+		annotations.add("@ManyToOne(optional = false)");
+		properties.add(new FieldInfo("number", "Long", null));
+		properties.add(new FieldInfo("fitHostiesName", "String", annotations));
+		properties.add(new FieldInfo("runway", "String", null));
+		entitiesInfo.add(new EntityInfo("Flight", "AirlineModel", null, properties));
+		entitiesInfo.add(new EntityInfo("Airport", "AirlineModel", null, null));
+		entitiesInfo.add(new EntityInfo("FlightSchedule", "AirlineModel", null, null));
+		String generatedResponderDML = rg.generateResponderDML(entitiesInfo);
+		
+		assertTrue(generatedResponderDML.contains("INSERT INTO `Flight`(`number` , `runway`) VALUES('1' , 'abc');"));
+		assertTrue(generatedResponderDML.contains("INSERT INTO `Airport`() VALUES();"));
+		assertTrue(generatedResponderDML.contains("INSERT INTO `FlightSchedule`() VALUES();"));
+	}
+	
 	@Test
 	public void testFormClassFilename() {
 		assertEquals("/tmp/blah/com/some/package/SomeClass.java", JPAResponderGen.formClassFilename("/tmp/blah/com/some/package", new EntityInfo("SomeClass", "com.some.package", null, null)));
@@ -436,21 +463,18 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Airport</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.FlightSchedule</class>"));
 
-		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.Behaviour\" />"));
+		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.FlightResponderBehaviour\" />"));
 
 		assertTrue(generator.generatedSpringResourceManagerXML.contains("<constructor-arg name=\"namespace\" value=\"FlightResponder\" />"));		
 		
-		//Test resource states
-		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flightschedules);"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", airports);"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flights);"));
-
-		//Test transitions between entities
-		assertTrue(generator.generatedBehaviourClass.contains("((CollectionResourceState) airports.getResourceStateByName(\"flightSchedules\")).addTransitionForEachItem(\"GET\", flightschedules.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"departureAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"arrivalAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
-
+		//Test rim dsl
+		assertTrue(generator.generatedRimDsl.contains("initial resource ServiceDocument"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedules"));
+		assertTrue(generator.generatedRimDsl.contains("resource flightschedules"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> departureAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("resource departureAirport"));
+		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedule({id})/{navdepartureAirport}\""));
 	}
 
 	@Test
@@ -488,20 +512,18 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Airport</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.FlightSchedule</class>"));
 
-		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.Behaviour\" />"));
+		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.FlightResponderBehaviour\" />"));
 
 		assertTrue(generator.generatedSpringResourceManagerXML.contains("<constructor-arg name=\"namespace\" value=\"FlightResponder\" />"));		
 		
-		//Test resource states
-		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flightschedules);"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", airports);"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flights);"));
-
-		//Test transitions between entities
-		assertTrue(generator.generatedBehaviourClass.contains("((CollectionResourceState) airports.getResourceStateByName(\"flightSchedules\")).addTransitionForEachItem(\"GET\", flightschedules.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"departureAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightSchedules\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"arrivalAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"flightSchedules\"), uriLinkageMap);"));
+		//Test rim dsl
+		assertTrue(generator.generatedRimDsl.contains("initial resource ServiceDocument"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedules"));
+		assertTrue(generator.generatedRimDsl.contains("resource flightschedules"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> departureAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("resource departureAirport"));
+		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedule({id})/{navdepartureAirport}\""));
 	}
 
 	@Test
@@ -527,15 +549,11 @@ public class TestJPAResponderGen {
 		//Check results
 		assertTrue(status);
 		
-		//Test resource states
-		assertTrue(generator.generatedBehaviourClass.contains("public class Behaviour {"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flightschedules);"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", airports);"));
-		assertTrue(generator.generatedBehaviourClass.contains("initialState.addTransition(\"GET\", flights);"));
-
-		//Test transitions between entities
-		assertTrue(generator.generatedBehaviourClass.contains("((CollectionResourceState) airports.getResourceStateByName(\"flightSchedules\")).addTransitionForEachItem(\"GET\", flightschedules.getResourceStateByName(\"flightschedules\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"departureAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"airport\"), uriLinkageMap);"));
-		assertTrue(generator.generatedBehaviourClass.contains("flightschedules.getResourceStateByName(\"arrivalAirport\").addTransition(\"GET\", airports.getResourceStateByName(\"airport\"), uriLinkageMap);"));
+		//Test rim dsl
+		assertTrue(generator.generatedRimDsl.contains("GET *-> departureAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> arrivalAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET -> flightSchedules id=code"));
 	}
 }

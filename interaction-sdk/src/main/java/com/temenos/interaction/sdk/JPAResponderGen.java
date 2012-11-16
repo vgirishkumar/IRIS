@@ -131,13 +131,6 @@ public class JPAResponderGen {
 		}
 		String entityContainerNamespace = edmDataServices.getSchemas().get(0).getEntityContainers().get(0).getName();
 
-		//Obtain resource information
-		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
-		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
-			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t);
-			entitiesInfo.add(entityInfo);
-		}
-		
 		//Create interaction model
 		InteractionModel interactionModel = new InteractionModel(edmDataServices);
 		for (EdmEntityType entityType : edmDataServices.getEntityTypes()) {
@@ -189,6 +182,14 @@ public class JPAResponderGen {
 			for(IMTransition transition : rsm.getTransitions()) {
 				commands.addCommand("GETNavProperty" + transition.getTargetStateName(), "com.temenos.interaction.commands.odata.GETNavPropertyCommand", "GETNavProperty" + transition.getTargetStateName(), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 			}
+		}
+
+		//Obtain resource information
+		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
+		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
+			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t);
+			addNavPropertiesToEntityInfo(entityInfo, interactionModel);
+			entitiesInfo.add(entityInfo);
 		}
 		
 		//Write other artefacts
@@ -427,6 +428,29 @@ public class JPAResponderGen {
 		return new EntityInfo(entityMetadata.getEntityName(), namespace, keyInfo, properties, isJpaEntity);
 	}
 
+	/*
+	 * Add transition properties to entity info
+	 */
+	public void addNavPropertiesToEntityInfo(EntityInfo entityInfo, InteractionModel interactionModel) {
+		IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityInfo.getClazz());
+		for(IMTransition transition : rsm.getTransitions()) {
+			List<FieldInfo> properties = entityInfo.getAllFieldInfos();
+			List<String> annotations = new ArrayList<String>();
+			if(!transition.isCollectionState()) {
+				//Transition to collection state
+				annotations.add("@JoinColumn(name = \"" + transition.getLinkProperty() + "\", referencedColumnName = \"" + transition.getTargetResourceStateMachine().getMappedEntityProperty() + "\", insertable = false, updatable = false)");
+				annotations.add("@ManyToOne(optional = false)");
+				properties.add(new FieldInfo(transition.getTargetStateName(), transition.getTargetEntityName(), annotations));
+			}
+			else {
+				//Transition to entity state
+				//TODO fix reciprocal links
+				//annotations.add("@OneToMany(cascade = CascadeType.ALL, mappedBy = \"" + transition.getTargetStateName() + "\")");
+				//properties.add(new FieldInfo(transition.getTargetStateName(), "Collection<" + transition.getTargetEntityName() + ">", annotations));
+			}
+		}
+	}
+	
 	/*
 	 * Create a EntityModel object from a Metadata container
 	 */
