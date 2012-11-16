@@ -92,12 +92,12 @@
                         <constructor-arg name="entityName" value="Metadata" />
                         <constructor-arg name="name" value="initial" />
                         <constructor-arg>
-                            <set>
+                            <list>
                                 <bean class="com.temenos.interaction.core.hypermedia.Action">
                                     <constructor-arg value="GETMetadata" />
                                     <constructor-arg value="VIEW" />
                                 </bean>
-                            </set>
+                            </list>
                         </constructor-arg>
                         <constructor-arg name="path" value="/$metadata" />
                     </bean>

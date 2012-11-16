@@ -32,17 +32,17 @@
 	<!-- An extension of org.apache.wink.spring.Registrar with support for singletons -->
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
-			<set>
+			<list>
 				<ref local="atomProvider" />
 				<ref local="edmxProvider" />
 				<ref local="serviceDocumentProvider" />
- 			</set>
+ 			</list>
    		</property>
         <property name="serviceRoots">
-            <set>
+            <list>
                 <ref local="ServiceRoot" />
                 <ref local="Metadata" />
-            </set>
+            </list>
         </property>
 	</bean>
 
@@ -86,12 +86,12 @@
                         <constructor-arg name="entityName" value="Metadata" />
                         <constructor-arg name="name" value="initial" />
                         <constructor-arg>
-                            <set>
+                            <list>
                                 <bean class="com.temenos.interaction.core.hypermedia.Action">
                                     <constructor-arg value="GETMetadata" />
                                     <constructor-arg value="VIEW" />
                                 </bean>
-                            </set>
+                            </list>
                         </constructor-arg>
                         <constructor-arg name="path" value="/$metadata" />
                     </bean>
