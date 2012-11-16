@@ -633,10 +633,13 @@ public class JPAResponderGen {
 	protected boolean writeRimDsl(File sourceDir, String rimDslFilename, String generatedRimDsl) {
 		FileOutputStream fos = null;
 		try {
-			File f = new File(sourceDir.getPath());
-			f.mkdirs();
-			fos = new FileOutputStream(new File(f, rimDslFilename));
-			fos.write(generatedRimDsl.getBytes("UTF-8"));
+			File dir = new File(sourceDir.getPath());
+			dir.mkdirs();
+			File f = new File(dir, rimDslFilename);
+			if(!f.exists()) {
+				fos = new FileOutputStream(f);
+				fos.write(generatedRimDsl.getBytes("UTF-8"));
+			}
 		} catch (IOException e) {
 			// TODO add slf4j logger here
 			e.printStackTrace();
