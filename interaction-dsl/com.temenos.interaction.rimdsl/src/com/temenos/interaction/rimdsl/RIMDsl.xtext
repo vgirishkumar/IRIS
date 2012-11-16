@@ -3,7 +3,6 @@ grammar com.temenos.interaction.rimdsl.RIMDsl with org.eclipse.xtext.common.Term
 generate rim "http://www.temenos.com/interaction/rimdsl/RimDsl"
 
 ResourceInteractionModel:
-//     {Statemachine}
     ('events' 
         events+=Event+ 
     'end')?
@@ -42,15 +41,6 @@ TransitionAuto:
 ;
 
 Expression:
-// works
-//    '(' expression=ID ')'
-//    '(' 'OK' '(' name=ID ')' ')'
-//    '(' expression=Function_OK ')'
-//    '(' expression=Function ')'
-
-// does not work
-//    '(' expression=[Function] ')'
-    
     '(' 
         (expressions+=Function) 
         ('&&' (expressions+=Function))* 
