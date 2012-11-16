@@ -8,8 +8,8 @@ commands
 	GETEntities
 	GETEntity
 #foreach ( $rsm in $rim.getResourceStateMachines() )
-#if (${rsm.getTransitions().size()} > 0) 
-	GETNavProperty${rsm.getEntityName()} entity=${rsm.getEntityName()}
+#foreach ( $transition in $rsm.getTransitions() )
+	GETNavProperty${transition.getTargetStateName()} entity=${rsm.getEntityName()}, navproperty=nav${transition.getTargetStateName()}
 #end
 #end
 end
@@ -17,6 +17,7 @@ end
 initial resource ServiceDocument
 	collection ServiceDocument
 	actions { GETServiceDocument }
+	path "/"
 	GET -> metadata
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 	GET -> ${rsm.getCollectionStateName()}
@@ -47,7 +48,7 @@ resource ${rsm.getEntityStateName()}
 	actions { GETEntity }
 	path "/${rsm.getEntityName()}({id})"
 #foreach ( $transition in $rsm.getTransitions() )
-	GET -> ${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, navproperty="${transition.getTargetStateName()}"
+	GET -> ${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
 #end
 end
 
@@ -58,14 +59,14 @@ resource ${transition.getTargetStateName()}#*
 *##if ($transition.isCollectionState())#* 
 	Transition to collection resource state in target RSM *#
 	collection ${transition.getTargetEntityName()}
-	actions { GETNavProperty${rsm.getEntityName()} }
-	path "/${rsm.getEntityName()}({id})/{navproperty}"
+	actions { GETNavProperty${transition.getTargetStateName()} }
+	path "/${rsm.getEntityName()}({id})/{nav${transition.getTargetStateName()}}"
 	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 #else#*
 	Transition to entity resource state in target RSM *#
 	item ${transition.getTargetEntityName()}
-	actions { GETNavProperty${rsm.getEntityName()} }
-	path "/${rsm.getEntityName()}({id})/{navproperty}"
+	actions { GETNavProperty${transition.getTargetStateName()} }
+	path "/${rsm.getEntityName()}({id})/{nav${transition.getTargetStateName()}}"
 	GET -> ${transition.getTargetRsmStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 #end
 end

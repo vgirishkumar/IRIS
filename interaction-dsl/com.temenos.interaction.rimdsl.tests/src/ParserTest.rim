@@ -3,30 +3,35 @@ events
 	P PUT // Pay
 	U PUT // Used
 	C DELETE // Cancel
+	GET GET
 end
 
 commands
+	t24Get z
 	t24Delete z
 end
 
 initial resource demo_initial
 	item HOME
+	actions { t24Get }
 	GET -> demo_tickets
 end
 
 resource demo_tickets
 	collection TICKET
+	actions { t24Get }
 	GET -> demo_aticket
 	DELETE *-> demo_deleted
 end
 
 resource demo_aticket
 	item TICKET
+	actions { t24Get }
 	DELETE -> demo_deleted
 end
 
 resource demo_deleted
 	item TICKET
 	actions {t24Delete}
-	GET --> demo_tickets
+	GET -> demo_tickets
 end

@@ -31,11 +31,11 @@ public class Generator {
 	private IGenerator generator;
 	@Inject
 	private JavaIoFileSystemAccess fileAccess;
-	
-	protected void runGenerator(String inputPath, String outputPath) {
+
+	public boolean runGenerator(String inputPath, String outputPath) {
 		// load the resource
 		ResourceSet set = resourceSetProvider.get();
-		Resource resource = set.getResource(URI.createURI(inputPath), true);
+		Resource resource = set.getResource(URI.createFileURI(inputPath), true);
 
 		// validate the resource
 		List<Issue> list = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl);
@@ -43,11 +43,13 @@ public class Generator {
 			for (Issue issue : list) {
 				System.err.println(issue);
 			}
-			return;
+			return false;
 		}
 
 		// configure and start the generator
 		fileAccess.setOutputPath(outputPath);
 		generator.doGenerate(resource, fileAccess);
+		
+		return true;
 	}
 }
