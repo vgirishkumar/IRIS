@@ -44,7 +44,7 @@ public class GeneratorTest {
 	"end" + LINE_SEP +
 	"";
 
-	private final static String SIMPLE_STATES_BEHAVIOUR = "" +
+	private final static String SIMPLE_STATES_BEHAVIOUR = "" +		
 	"package __synthetic0Model;" + LINE_SEP +
 	LINE_SEP +
 	"import java.util.HashSet;" + LINE_SEP +
@@ -59,6 +59,7 @@ public class GeneratorTest {
 	"import com.temenos.interaction.core.hypermedia.ResourceState;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.ResourceStateMachine;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;" + LINE_SEP +
+	"import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;" + LINE_SEP +
 	LINE_SEP +
 	"public class __synthetic0Behaviour {" + LINE_SEP +
 	LINE_SEP +
@@ -146,6 +147,43 @@ public class GeneratorTest {
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("createActionSet(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()), null"));
+	}
+
+	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
+			"events" + LINE_SEP +
+			"	GET GET" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"commands" + LINE_SEP +
+			"	GetEntity properties" + LINE_SEP +
+			"	GetEntities properties" + LINE_SEP +
+			"	PutEntity properties" + LINE_SEP +
+			"end" + LINE_SEP +
+					
+			"initial resource A" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"	actions { GetEntities }" + LINE_SEP +
+			"	GET -> B (OK(B))" + LINE_SEP +
+			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
+			"	GET -> B (OK(B) && NOT_FOUND(B))" + LINE_SEP +
+			"end" + LINE_SEP +
+
+			"resource B" +
+			"	item ENTITY" + LINE_SEP +
+			"	actions { GetEntity, PutEntity }" + LINE_SEP +
+			"end" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateTransitionsWithExpressions() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(TRANSITION_WITH_EXPRESSION_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.OK))"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.NOT_FOUND))"));
 	}
 
 }
