@@ -109,11 +109,7 @@
 	<bean id="$command.getId()" class="$command.getClassName()">
 #foreach ( $parameter in $command.getParameters() )
 #if ($parameter.isByReference() == "true")
-#if ($parameter.getRefId() != "")
-		<constructor-arg name="$parameter.getValue()" ref="$parameter.getRefId()" />
-#else
 		<constructor-arg ref="$parameter.getValue()" />
-#end
 #else
 		<constructor-arg value="$parameter.getValue()" />
 #end

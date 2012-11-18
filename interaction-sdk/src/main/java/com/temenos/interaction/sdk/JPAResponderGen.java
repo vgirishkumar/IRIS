@@ -33,6 +33,7 @@ import com.google.inject.Injector;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
+import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
@@ -237,6 +238,7 @@ public class JPAResponderGen {
 		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EntityMetadata entityMetadata: metadata.getEntitiesMetadata().values()) {
 			EntityInfo entityInfo = createEntityInfoFromEntityMetadata(namespace, entityMetadata);
+			addNavPropertiesToEntityInfo(entityInfo, interactionModel);
 			entitiesInfo.add(entityInfo);
 		}
 		
@@ -251,6 +253,40 @@ public class JPAResponderGen {
 		return ok;
 	}
 
+	public boolean generateBehaviourClass(File srcOutputPath, File configOutputPath) {
+		boolean ok = true;
+
+		Metadata metadata;
+		try {
+			metadata = parseMetadataXML(configOutputPath.getPath() + "/" + METADATA_FILE);
+		}
+		catch(Exception e) {
+			return false;
+		}
+		String modelName = metadata.getModelName();
+		String namespace = modelName + Metadata.MODEL_SUFFIX;
+		
+		// generate the behaviour class
+		String rimDslFilename = modelName + ".rim";
+		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
+		String behaviourClassDir = srcOutputPath + "/" + namespace.replace(".", "/") + "/";
+		if (!writeBehaviourClass(rimDslFile, behaviourClassDir)) {
+			ok = false;
+		}
+		
+		return ok;
+	}
+	
+	private Metadata parseMetadataXML(String metadataXmlFilePath) throws Exception {
+		try {
+			InputStream is = new FileInputStream(metadataXmlFilePath); 
+			return new MetadataParser().parse(is);
+		}
+		catch(Exception e) {
+			throw new Exception("Failed to parse " + metadataXmlFilePath + ": " + e.getMessage());
+		}
+	}
+	
 	protected String getLinkProperty(String associationName, String edmxFile) {
 		return ReferentialConstraintParser.getLinkProperty(associationName, edmxFile);
 	}
@@ -268,7 +304,7 @@ public class JPAResponderGen {
 		}
 		
 		// generate spring configuration files
-		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(namespace, modelName, interactionModel, commands))) {
+		if (!writeSpringConfiguration(configOutputPath, SPRING_CONFIG_FILE, generateSpringConfiguration(namespace, modelName, commands))) {
 			ok = false;
 		}
 
@@ -569,8 +605,11 @@ public class JPAResponderGen {
 		try {
 			File metaInfDir = new File(sourceDir.getPath() + "/META-INF");
 			metaInfDir.mkdirs();
-			fos = new FileOutputStream(new File(metaInfDir, filename));
-			fos.write(generatedSpringXML.getBytes("UTF-8"));
+			File f = new File(metaInfDir, filename);
+			if(!f.exists()) {
+				fos = new FileOutputStream(f);
+				fos.write(generatedSpringXML.getBytes("UTF-8"));
+			}
 		} catch (IOException e) {
 			// TODO add slf4j logger here
 			e.printStackTrace();
@@ -613,8 +652,11 @@ public class JPAResponderGen {
 		try {
 			File metaInfDir = new File(sourceDir.getPath());
 			metaInfDir.mkdirs();
-			fos = new FileOutputStream(new File(metaInfDir, METADATA_FILE));
-			fos.write(generatedMetadata.getBytes("UTF-8"));
+			File f = new File(metaInfDir, METADATA_FILE);
+			if(!f.exists()) {
+				fos = new FileOutputStream(f);
+				fos.write(generatedMetadata.getBytes("UTF-8"));
+			}
 		} catch (IOException e) {
 			// TODO add slf4j logger here
 			e.printStackTrace();
@@ -656,6 +698,8 @@ public class JPAResponderGen {
 	}
 	
 	protected boolean writeBehaviourClass(String rimDslFile, String behaviourClassDir) {
+		File srcDir = new File(behaviourClassDir);
+		srcDir.mkdirs();
 		Injector injector = new RIMDslStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
 		Generator generator = injector.getInstance(Generator.class);
 		return generator.runGenerator(rimDslFile, behaviourClassDir);
@@ -666,8 +710,11 @@ public class JPAResponderGen {
 		try {
 			File metaInfDir = new File(sourceDir.getPath());
 			metaInfDir.mkdirs();
-			fos = new FileOutputStream(new File(metaInfDir, RESPONDER_SETTINGS_FILE));
-			fos.write(generateResponderSettings.getBytes("UTF-8"));
+			File f = new File(metaInfDir, RESPONDER_SETTINGS_FILE);
+			if(!f.exists()) {
+				fos = new FileOutputStream(f);
+				fos.write(generateResponderSettings.getBytes("UTF-8"));
+			}
 		} catch (IOException e) {
 			// TODO add slf4j logger here
 			e.printStackTrace();
@@ -722,10 +769,9 @@ public class JPAResponderGen {
 	/**
 	 * Generate the Spring configuration for the provided resources.
 	 */
-	public String generateSpringConfiguration(String namespace, String modelName, InteractionModel interactionModel, Commands commands) {
+	public String generateSpringConfiguration(String namespace, String modelName, Commands commands) {
 		VelocityContext context = new VelocityContext();
 		context.put("behaviourClass", namespace + "." + modelName + "Behaviour");
-		context.put("interactionModel", interactionModel);
 		context.put("commands", commands);
 		
 		Template t = ve.getTemplate("/spring-beans.vm");

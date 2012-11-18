@@ -102,7 +102,7 @@ public class Commands {
 	public void addLinkCommands(InteractionModel interactionModel, String getLinkEntityCmdClass, boolean isLinkEntityCmdOdataProducer, String getLinkEntitiesCmdClass, boolean isLinkEntitiesCmdOdataProducer, List<Parameter> params) {
 		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
 			for(IMTransition transition : rsm.getTransitions()) {
-				String id = "cmdGET" + rsm.getEntityName() + "." + transition.getTargetStateName();
+				String id = "GETNavProperty" + transition.getTargetStateName();
 				List<Parameter> cmdParams = new ArrayList<Parameter>();
 				if(transition.isCollectionState()) {
 					cmdParams.add(new Parameter(transition.getTargetEntityName(), false, ""));		//target entity
@@ -111,7 +111,6 @@ public class Commands {
 					addCommand(id, getLinkEntitiesCmdClass, GET_LINK_ENTITY, cmdParams);
 				}
 				else {
-					cmdParams.add(new Parameter(rsm.getEntityName(), false, ""));					//entity
 					cmdParams.add(new Parameter(transition.getLinkProperty(), false, ""));			//linkProperty
 					cmdParams.add(new Parameter(transition.getTargetEntityName(), false, ""));		//linkEntity
 					cmdParams.add(isLinkEntityCmdOdataProducer ? JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER : JPAResponderGen.COMMAND_METADATA_SOURCE_MODEL);		//producer
