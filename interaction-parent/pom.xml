@@ -13,6 +13,7 @@
 		<module>../interaction-winkext</module>
 		<module>../interaction-commands-odata</module>
 		<module>../interaction-commands-odata-bridge</module>
+		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../interaction-sdk-archetype</module>
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
