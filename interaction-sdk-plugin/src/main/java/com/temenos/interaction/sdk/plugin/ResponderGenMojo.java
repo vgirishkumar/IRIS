@@ -58,10 +58,6 @@ public class ResponderGenMojo extends AbstractMojo {
 	}
 	
 	protected void execute(File edmxFile, File srcTargetDir, File configTargetDir) throws MojoExecutionException, MojoFailureException {
-		if (!edmxFile.exists()) {
-			getLog().error("EDMX file not found [" + edmxFileStr + "]");
-			throw new MojoExecutionException("EDMX file not found");
-		}
 		if (!srcTargetDir.exists()) {
 			getLog().info("Source target directory does not exist, creating it [" + srcTargetDirectory + "]");
 			srcTargetDir.mkdirs();
@@ -79,9 +75,16 @@ public class ResponderGenMojo extends AbstractMojo {
 			throw new MojoExecutionException("Configuration target directory is invalid");
 		}
 
-		
+		boolean ok;
 		JPAResponderGen rg = new JPAResponderGen();
-		boolean ok = rg.generateArtifacts(edmxFile.getAbsolutePath(), srcTargetDir, configTargetDir);
+		if (edmxFile.exists()) {
+			ok = rg.generateArtifacts(edmxFile.getAbsolutePath(), srcTargetDir, configTargetDir);
+		}
+		else {
+			getLog().info("EDMX file does not exist - attempting to regenerate behaviour class from RIM DSL.");
+			ok = rg.generateBehaviourClass(srcTargetDir, configTargetDir);
+		}
+		
 		if (!ok)
 			throw new MojoFailureException("An unexpected error occurred while generating artifacts");
 	}

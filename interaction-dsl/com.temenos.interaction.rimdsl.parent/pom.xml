@@ -14,6 +14,13 @@
 		<junit-version>4.8.1</junit-version>
 	</properties>
 
+	<distributionManagement>
+		<repository>
+			<id>nexus-t24-dev</id>
+			<url>http://maven.oams.com/content/repositories/t24-snapshots/</url>
+		</repository>
+	</distributionManagement>
+
 	<modules>
 		<module>../com.temenos.interaction.rimdsl</module>
 		<module>../com.temenos.interaction.rimdsl.ui</module>

@@ -31,6 +31,8 @@ class RIMDslGenerator implements IGenerator {
 	}
 	
 	def toJavaCode(ResourceInteractionModel rim) '''
+		package «rim.eResource.className»Model;
+
 		import java.util.ArrayList;
 		import java.util.HashMap;
 		import java.util.List;
@@ -56,7 +58,7 @@ class RIMDslGenerator implements IGenerator {
 			public ResourceState getRIM() {
 				Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
 				Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-				Properties actionViewProperties = new Properties();
+				Properties actionViewProperties;
 				ResourceState initial = null;
 				// create states
 				«FOR c : rim.states»
@@ -104,10 +106,11 @@ class RIMDslGenerator implements IGenerator {
 	'''
 	
 	def produceResourceStates(State state) '''
-            «IF state.actions != null && state.actions.size > 0»
+            «IF state.actions != null && state.actions.size > 0 && state.actions.get(0).property.size > 0»
+                actionViewProperties = new Properties();
                 «FOR commandProperty : state.actions.get(0).property»
-                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");«
-                ENDFOR»
+                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+                «ENDFOR»
             «ENDIF»
             «produceActionSet(state, state.view, state.actions)»
             «IF state.entity.isCollection»
@@ -120,7 +123,7 @@ class RIMDslGenerator implements IGenerator {
     def produceActionSet(State state, Command viewCommand, EList<Command> actions) '''
         «IF actions != null»
             List<Action> «state.name»Actions = new ArrayList<Action>();
-            «state.name»Actions.add(new Action("«viewCommand.name»", Action.TYPE.VIEW, actionViewProperties));
+            «state.name»Actions.add(new Action("«viewCommand.name»", Action.TYPE.VIEW, «if (actions != null && actions.size > 0 && actions.get(0).property.size > 0) { "actionViewProperties" } else { "new Properties()" }»));
             «FOR action : actions»
             «state.name»Actions.add(new Action("«action.name»", Action.TYPE.ENTRY));
             «ENDFOR»

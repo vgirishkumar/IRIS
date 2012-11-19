@@ -44,6 +44,8 @@ public class GeneratorTest {
 	"";
 
 	private final static String SIMPLE_STATES_BEHAVIOUR = "" +		
+	"package __synthetic0Model;" + LINE_SEP +
+	LINE_SEP +
 	"import java.util.ArrayList;" + LINE_SEP +
 	"import java.util.HashMap;" + LINE_SEP +
 	"import java.util.List;" + LINE_SEP +
@@ -69,16 +71,16 @@ public class GeneratorTest {
 	"	public ResourceState getRIM() {" + LINE_SEP +
 	"		Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();" + LINE_SEP +
 	"		Map<String, String> uriLinkageProperties = new HashMap<String, String>();" + LINE_SEP +
-	"		Properties actionViewProperties = new Properties();" + LINE_SEP +
+	"		Properties actionViewProperties;" + LINE_SEP +
 	"		ResourceState initial = null;" + LINE_SEP +
 	"		// create states" + LINE_SEP +
 	"		List<Action> AActions = new ArrayList<Action>();" + LINE_SEP +
-	"		AActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties));" + LINE_SEP +
+	"		AActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
 	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", AActions, \"/A\");" + LINE_SEP +
 	"		// identify the initial state" + LINE_SEP +
 	"		initial = sA;" + LINE_SEP +
 	"		List<Action> BActions = new ArrayList<Action>();" + LINE_SEP +
-	"		BActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties));" + LINE_SEP +
+	"		BActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
 	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY));" + LINE_SEP +
 	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\");" + LINE_SEP +
 	LINE_SEP +
@@ -148,7 +150,7 @@ public class GeneratorTest {
 		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties)"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties())"));
 	}
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +

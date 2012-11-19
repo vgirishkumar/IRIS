@@ -53,9 +53,14 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
 		assert(entity.equals(entitySet.getName()));
 
-		if (!(ctx.getPathParameters().containsKey("navproperty")))
+		//Obtain the navigation property
+		String navPropertyParam = "navproperty";
+		if(properties != null && properties.get("navproperty") != null) {
+			navPropertyParam = (String) properties.get("navproperty");
+		}
+		if (!(ctx.getPathParameters().containsKey(navPropertyParam)))
 			throw new IllegalArgumentException("Command must be bound to an OData navigation property resource");
-		String navProperty = ctx.getPathParameters().getFirst("navproperty");
+		String navProperty = ctx.getPathParameters().getFirst(navPropertyParam);
 		
 		//Create entity key (simple types only)
 		OEntityKey key;
