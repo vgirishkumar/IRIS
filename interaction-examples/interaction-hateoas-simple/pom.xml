@@ -27,7 +27,7 @@
             <goals><goal>add-source</goal></goals>
             <configuration>
               <sources>
-                <source>src-gen</source>
+                <source>${project.build.directory}/src-gen</source>
               </sources>
             </configuration>
           </execution>
@@ -39,25 +39,24 @@
         <configuration>
           <packagingExcludes>WEB-INF/web.xml</packagingExcludes>
         </configuration>
-      </plugin>    
+      </plugin>   
       <plugin>
         <groupId>com.temenos.interaction</groupId>
-        <artifactId>interaction-sdk-plugin</artifactId>
-        <version>0.0.3-SNAPSHOT</version>
-<!--		
-		<executions>
+        <artifactId>interaction-rim-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
           <execution>
-            <phase>build</phase>
+            <phase>generate-sources</phase>
             <goals>
-              <goal>gen</goal>
+              <goal>generate</goal>
             </goals>
           </execution>
-       </executions>
--->
+        </executions>
         <configuration>
-          <edmxFile>${basedir}/src/main/resources/service.edmx</edmxFile>
-          <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
-          <configTargetDirectory>${basedir}/src/main/resources</configTargetDirectory>
+          <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
+          <targetDirectory>${basedir}/src-gen</targetDirectory> 
+          -->
+          <rimSourceFile>${basedir}/src/main/rim/simple.rim</rimSourceFile>
         </configuration>
       </plugin>
 

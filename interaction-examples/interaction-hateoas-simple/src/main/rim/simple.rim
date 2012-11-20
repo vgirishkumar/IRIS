@@ -15,20 +15,20 @@ end
 
 initial resource home
 	item HOME
-	actions { NoopGET }
+	view { NoopGET }
 	GET -> profile
 	GET -> notes
 end
 
 resource profile
 	item Profile
-	actions { NoopGET }
+	view { NoopGET }
 	path "/profile"
 end
 
 resource notes
 	collection Note
-	actions { GETNotes }
+	view { GETNotes }
 	path "/notes"
 	GET *-> note
 	DELETE *-> deletedNote
@@ -36,14 +36,15 @@ end
 
 resource note
 	item Note
-	actions { GETNote }
+	view { GETNote }
 	path "/notes/{noteID}"
 	DELETE -> deletedNote
 end
 
 resource deletedNote
 	item note
-	actions { GETNote, DELETENote }
+	view { GETNote }
+	actions { DELETENote }
 	path "/notes/{noteID}"
 	GET --> notes
 end

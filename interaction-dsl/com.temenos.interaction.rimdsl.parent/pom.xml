@@ -10,8 +10,9 @@
 	<name>com.temenos.interaction.rimdsl.RimDsl - Parent</name>
 
 	<properties>
-		<version.tycho>0.16.0</version.tycho>
+		<tycho-version>0.16.0</tycho-version>
 		<junit-version>4.8.1</junit-version>
+		<xtext-version>2.3.1</xtext-version>
 	</properties>
 
 	<distributionManagement>
@@ -27,19 +28,20 @@
 		<module>../com.temenos.interaction.rimdsl.sdk</module>
 		<module>../com.temenos.interaction.rimdsl.tests</module>
 		<module>../com.temenos.interaction.rimdsl.generator</module>
+		<module>../interaction-rim-plugin</module>
 	</modules>
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-maven-plugin</artifactId>
-				<version>${version.tycho}</version>
+				<version>${tycho-version}</version>
 				<extensions>true</extensions>
 			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
-				<version>${version.tycho}</version>
+				<version>${tycho-version}</version>
 				<configuration>
 					<resolver>p2</resolver>
 <!-- If we are going to use Maven dependencies we'll need this to resolve the OSGi bundles
@@ -50,7 +52,7 @@
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-surefire-plugin</artifactId>
-				<version>${version.tycho}</version>
+				<version>${tycho-version}</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -111,6 +113,11 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.7</version>
+				</plugin>
+				<plugin>
 					<groupId>org.fornax.toolsupport</groupId>
 					<artifactId>fornax-oaw-m2-plugin</artifactId>
 					<version>3.4.0</version>
@@ -129,7 +136,7 @@
 				<plugin>
 					<groupId>org.eclipse.xtend</groupId>
 					<artifactId>xtend-maven-plugin</artifactId>
-					<version>2.3.0</version>
+					<version>${xtext-version}</version>
 					<configuration>
 						<!-- need to prefix by basedir to generate to currently built module -->
 						<outputDirectory>${basedir}/xtend-gen</outputDirectory>
