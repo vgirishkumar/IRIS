@@ -11,6 +11,7 @@ import com.temenos.interaction.sdk.JPAResponderGen;
 /**
  * A Maven plugin that generates a responder from a given EDMX file.
  * @goal gen
+ * @requiresDependencyResolution compile
  */
 public class ResponderGenMojo extends AbstractMojo {
 
