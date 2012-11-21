@@ -10,11 +10,12 @@ end
 
 initial resource A
 	collection ENTITY
-	actions { GetEntities }
+	view { GetEntities }
 	GET -> B
 end
 
 resource B
 	item ENTITY
-	actions { GetEntity, UpdateEntity }
+	view { GetEntity }
+	actions { UpdateEntity }
 end
