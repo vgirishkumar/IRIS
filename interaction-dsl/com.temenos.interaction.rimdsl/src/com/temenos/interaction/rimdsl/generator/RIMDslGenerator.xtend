@@ -93,15 +93,6 @@ class RIMDslGenerator implements IGenerator {
 			    return initial;
 			}
 
-		    private List<Action> createActionList(Action view, Action entry) {
-		        List<Action> actions = new ArrayList<Action>();
-		        if (view != null)
-		            actions.add(view);
-		        if (entry != null)
-		            actions.add(entry);
-		        return actions;
-		    }
-
 		}
 	'''
 	

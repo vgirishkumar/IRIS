@@ -93,15 +93,6 @@ public class GeneratorTest {
 	"	    return initial;" + LINE_SEP +
 	"	}" + LINE_SEP +
 	LINE_SEP +
-	"    private List<Action> createActionList(Action view, Action entry) {" + LINE_SEP +
-	"        List<Action> actions = new ArrayList<Action>();" + LINE_SEP +
-	"        if (view != null)" + LINE_SEP +
-	"            actions.add(view);" + LINE_SEP +
-	"        if (entry != null)" + LINE_SEP +
-	"            actions.add(entry);" + LINE_SEP +
-	"        return actions;" + LINE_SEP +
-	"    }" + LINE_SEP +
-	LINE_SEP +
 	"}" + LINE_SEP;
 	
 	@Test
