@@ -5,7 +5,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import com.google.inject.Injector;
-import com.temenos.interaction.rimdsl.generator.launcher.Generator;
+import com.temenos.interaction.rimdsl.generator.Generator;
 
 import java.io.File;
 

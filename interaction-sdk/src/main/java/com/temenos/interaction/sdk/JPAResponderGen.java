@@ -40,7 +40,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupGenerated;
-import com.temenos.interaction.rimdsl.generator.launcher.Generator;
+import com.temenos.interaction.rimdsl.generator.Generator;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.command.Parameter;
 import com.temenos.interaction.sdk.entity.EMEntity;

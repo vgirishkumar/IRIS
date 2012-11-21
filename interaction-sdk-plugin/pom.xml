@@ -78,6 +78,11 @@
             <artifactId>com.temenos.interaction.rimdsl.generator</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>com.temenos.interaction.rimdsl.standalone</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>

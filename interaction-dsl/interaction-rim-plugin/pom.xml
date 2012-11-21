@@ -25,9 +25,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.xtend</groupId>
-            <artifactId>org.eclipse.xtend.standalone</artifactId>
-            <version>${xtext-version}</version>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>com.temenos.interaction.rimdsl.standalone</artifactId>
+            <version>${project.version}</version>
         </dependency>
 		<dependency>
 			<groupId>org.apache.maven</groupId>
@@ -40,12 +40,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
-	<repositories>
-		<repository>
-			<id>xtend</id>
-			<url>http://build.eclipse.org/common/xtend/maven/</url>
-		</repository>
-	</repositories>
 	
 </project>

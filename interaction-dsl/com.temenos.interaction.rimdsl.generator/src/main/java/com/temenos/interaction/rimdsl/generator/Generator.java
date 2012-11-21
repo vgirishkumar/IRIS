@@ -1,4 +1,4 @@
-package com.temenos.interaction.rimdsl.generator.launcher;
+package com.temenos.interaction.rimdsl.generator;
 
 
 import java.util.List;

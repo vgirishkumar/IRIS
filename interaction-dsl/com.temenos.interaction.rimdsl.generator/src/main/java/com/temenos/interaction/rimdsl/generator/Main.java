@@ -1,4 +1,4 @@
-package com.temenos.interaction.rimdsl.generator.launcher;
+package com.temenos.interaction.rimdsl.generator;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -9,7 +9,6 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.google.inject.Injector;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetup;
 
 public class Main {
@@ -52,7 +51,7 @@ public class Main {
 	 */
 	private static void wrongCall(final Options options) {
 		final HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("java " + Launcher.class.getName() + " [OPTIONS]",
+		formatter.printHelp("java " + Main.class.getName() + " [OPTIONS]",
 				options);
 		System.exit(-1);
 	}
