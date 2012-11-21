@@ -140,6 +140,25 @@
     								<ignore></ignore>
     							</action>
     						</pluginExecution>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									com.temenos.interaction
+    								</groupId>
+    								<artifactId>
+    									interaction-rim-plugin
+    								</artifactId>
+    								<versionRange>
+    									[0.0.3-SNAPSHOT,)
+    								</versionRange>
+    								<goals>
+    									<goal>generate</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
     					</pluginExecutions>
     				</lifecycleMappingMetadata>
     			</configuration>
