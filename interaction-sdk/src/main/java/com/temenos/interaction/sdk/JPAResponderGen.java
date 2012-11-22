@@ -264,13 +264,13 @@ public class JPAResponderGen {
 			return false;
 		}
 		String modelName = metadata.getModelName();
-		String namespace = modelName + Metadata.MODEL_SUFFIX;
+//		String namespace = modelName + Metadata.MODEL_SUFFIX;
 		
 		// generate the behaviour class
 		String rimDslFilename = modelName + ".rim";
 		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
-		String behaviourClassDir = srcOutputPath + "/" + namespace.replace(".", "/") + "/";
-		if (!writeBehaviourClass(rimDslFile, behaviourClassDir)) {
+//		String behaviourClassDir = srcOutputPath + "/" + namespace.replace(".", "/") + "/";
+		if (!writeBehaviourClass(rimDslFile, srcOutputPath.toString())) {
 			ok = false;
 		}
 		

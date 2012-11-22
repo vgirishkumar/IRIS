@@ -22,7 +22,7 @@ import com.temenos.interaction.rimdsl.rim.Function
 class RIMDslGenerator implements IGenerator {
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		fsa.generateFile(resource.className+"Behaviour.java", toJavaCode(resource.contents.head as ResourceInteractionModel))
+		fsa.generateFile(resource.className + "Model" + "/" + resource.className+"Behaviour.java", toJavaCode(resource.contents.head as ResourceInteractionModel))
 	}
 	
 	def className(Resource res) {
