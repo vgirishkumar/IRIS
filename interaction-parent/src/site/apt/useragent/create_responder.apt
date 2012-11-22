@@ -19,7 +19,7 @@ Creating a sample responder
 
   [[1]]	Create the Airline project skeleton by running the archetype:
 
-	<<$ mvn archetype:generate -DgroupId=>><com.mycorp.airtraffic><< -DartifactId=>><FlightResponder><< -DarchetypeRepository=http://maven.oams.com/content/groups/all/ -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.3-SNAPSHOT -DinteractiveMode=false>>
+	<<$ mvn archetype:generate -DgroupId=>><com.mycorp.airtraffic><< -DartifactId=>><FlightResponder><< -DarchetypeRepository=http://maven.oams.com/content/groups/all/ -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.0.3 -DinteractiveMode=false>>
 
 	This command will create a subdirectory named FlightResponder which contains a maven project
 	with the following artifacts:
