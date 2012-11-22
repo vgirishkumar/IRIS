@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -38,8 +39,8 @@ public class TestEqualityHTTPHypermediaRIM {
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", mockActions(), resourcePath);
 		String OTHER_ENTITY_NAME = "DIFFERENT";
 		ResourceState begin2 = new ResourceState(OTHER_ENTITY_NAME, "begin2", mockActions(), resourcePath);
-		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(begin));
-		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(begin2));
+		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(begin), mock(Metadata.class));
+		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(begin2), mock(Metadata.class));
 		
 		// the only thing used to compare equality is the path as the URI must be unique
 		assertEquals(rim1, rim2);
@@ -54,9 +55,9 @@ public class TestEqualityHTTPHypermediaRIM {
 		ResourceState parentBegin = new ResourceState(PARENT_ENTITY_NAME, "begin", mockActions(), "/notes");
 		String DIFFERENT_ENTITY_NAME = "DIFFERENT";
 		ResourceState differentBegin = new ResourceState(DIFFERENT_ENTITY_NAME, "begin", mockActions(), "/{id}");
-		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(parentBegin));
-		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(parent, mockCommandController(), new ResourceStateMachine(begin), begin);
-		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(parent, mockCommandController(), new ResourceStateMachine(differentBegin), differentBegin);
+		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(parentBegin), mock(Metadata.class));
+		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(parent, mockCommandController(), new ResourceStateMachine(begin), begin, mock(Metadata.class));
+		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(parent, mockCommandController(), new ResourceStateMachine(differentBegin), differentBegin, mock(Metadata.class));
 		
 		// the only thing used to compare equality is the path as the URI must be unique
 		assertEquals(rim1, rim2);
@@ -71,11 +72,11 @@ public class TestEqualityHTTPHypermediaRIM {
 		String PARENT_ENTITY_NAME = "PARENT";
 		ResourceState parentBegin = new ResourceState(PARENT_ENTITY_NAME, "begin", mockActions(), "/notes");
 		ResourceState parentDiffBegin = new ResourceState(PARENT_ENTITY_NAME, "begin", mockActions(), "/notes1");
-		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(parentBegin));
-		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(parent, mockCommandController(), new ResourceStateMachine(begin), begin);
-		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(parent, mockCommandController(), new ResourceStateMachine(different), different);
-		HTTPHypermediaRIM rim3 = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(parentDiffBegin));
-		HTTPHypermediaRIM rim4 = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(begin));
+		HTTPHypermediaRIM parent = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(parentBegin), mock(Metadata.class));
+		HTTPHypermediaRIM rim1 = new HTTPHypermediaRIM(parent, mockCommandController(), new ResourceStateMachine(begin), begin, mock(Metadata.class));
+		HTTPHypermediaRIM rim2 = new HTTPHypermediaRIM(parent, mockCommandController(), new ResourceStateMachine(different), different, mock(Metadata.class));
+		HTTPHypermediaRIM rim3 = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(parentDiffBegin), mock(Metadata.class));
+		HTTPHypermediaRIM rim4 = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(begin), mock(Metadata.class));
 
 		// both with parent (different)
 		assertFalse(rim1.equals(rim2));

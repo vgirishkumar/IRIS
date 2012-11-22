@@ -19,9 +19,7 @@ public class GETNoteCommand implements InteractionCommand {
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
 		// retrieve from a database, etc.
-//		String id = ctx.getId();
-// work around until we can specify the id parameter
-		String id = ctx.getPathParameters().getFirst("noteID");
+		String id = ctx.getId();
 		Note note = persistence.getNote(new Long(id));
 		if (note != null) {
 			ctx.setResource(new EntityResource<Note>(note));

@@ -17,9 +17,7 @@ public class DELETENoteCommand implements InteractionCommand {
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
 		// delete from a database, etc.
-//		String id = ctx.getId();
-		// work around until we can specify the id parameter
-		String id = ctx.getPathParameters().getFirst("noteID");
+		String id = ctx.getId();
 		persistence.removeNote(new Long(id));
 		return Result.SUCCESS;
 	}

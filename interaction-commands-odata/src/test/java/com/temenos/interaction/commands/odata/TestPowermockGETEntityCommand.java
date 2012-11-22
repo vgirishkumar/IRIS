@@ -31,6 +31,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 
@@ -69,7 +70,7 @@ public class TestPowermockGETEntityCommand {
 		when(resourceState.getEntityName()).thenReturn(entity);
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("id", id);
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState);
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
         return ctx;
 	}
 	

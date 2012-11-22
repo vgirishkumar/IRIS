@@ -39,6 +39,7 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
@@ -70,6 +71,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	private final HTTPHypermediaRIM parent;
 	private final NewCommandController commandController;
 	private final ResourceStateMachine hypermediaEngine;
+	private final Metadata metadata;
 	private final String resourcePath;
 		
 	/**
@@ -83,8 +85,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 */
 	public HTTPHypermediaRIM(
 			NewCommandController commandController, 
-			ResourceStateMachine hypermediaEngine) {
-		this(null, commandController, hypermediaEngine, hypermediaEngine.getInitial().getResourcePath(), true);
+			ResourceStateMachine hypermediaEngine,
+			Metadata metadata) {
+		this(null, commandController, hypermediaEngine, metadata, hypermediaEngine.getInitial().getResourcePath(), true);
 	}
 
 	/*
@@ -103,22 +106,26 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			HTTPHypermediaRIM parent, 
 			NewCommandController commandController, 
 			ResourceStateMachine hypermediaEngine,
-			ResourceState currentState) {
-		this(parent, commandController, hypermediaEngine, currentState.getResourcePath(), false);
+			ResourceState currentState,
+			Metadata metadata) {
+		this(parent, commandController, hypermediaEngine, metadata, currentState.getResourcePath(), false);
 	}
 	
 	private HTTPHypermediaRIM(
 			HTTPHypermediaRIM parent, 
 			NewCommandController commandController, 
 			ResourceStateMachine hypermediaEngine,
+			Metadata metadata,
 			String currentPath,
 			boolean printGraph) {
 		this.parent = parent;
 		this.commandController = commandController;
 		this.hypermediaEngine = hypermediaEngine;
+		this.metadata = metadata;
 		this.resourcePath = currentPath;
 		assert(commandController != null);
 		assert(hypermediaEngine != null);
+		assert(metadata != null);
 		assert(resourcePath != null);
 		hypermediaEngine.setCommandController(commandController);
 		HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine);
@@ -216,7 +223,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				if (childPath.equals(s.getResourcePath())) {
 					continue;
 				}
-				child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, childPath, false);
+				child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, metadata, childPath, false);
 				result.add(child);
 			}
 		}
@@ -261,7 +268,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
     	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState());
+    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
     	// execute GET command
     	InteractionCommand.Result result = action.execute(ctx);
     	StatusType status = result == Result.SUCCESS ? Status.OK : Status.NOT_FOUND;
@@ -374,7 +381,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
     	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState());
+    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
     	// set the resource for the command to access
     	ctx.setResource(resource);
     	// execute commands
@@ -415,7 +422,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
     	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState());
+    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
     	// set the resource for the command to access
     	ctx.setResource(resource);
     	// execute commands
@@ -468,7 +475,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
     	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, currentState);
+    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, currentState, metadata);
     	// execute command
     	InteractionCommand.Result result = action.execute(ctx);
     	// We do not support a delete command that returns a resource (HTTP does permit this)
@@ -564,7 +571,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
     	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState());
+    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
     	
     	// TODO add support for OPTIONS /resource/* which will provide information about valid interactions for any entity
     	
