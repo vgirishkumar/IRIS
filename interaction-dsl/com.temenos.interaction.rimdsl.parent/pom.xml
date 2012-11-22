@@ -28,7 +28,6 @@
 		<module>../com.temenos.interaction.rimdsl.sdk</module>
 		<module>../com.temenos.interaction.rimdsl.tests</module>
 		<module>../com.temenos.interaction.rimdsl.generator</module>
-		<module>../interaction-rim-plugin</module>
 	</modules>
 	<build>
 		<plugins>

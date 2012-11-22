@@ -1,4 +1,4 @@
-package com.temenos.interaction.rimdsl;
+package com.temenos.interaction.sdk.plugin;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;

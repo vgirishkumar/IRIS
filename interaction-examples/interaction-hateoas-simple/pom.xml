@@ -42,13 +42,13 @@
       </plugin>   
       <plugin>
         <groupId>com.temenos.interaction</groupId>
-        <artifactId>interaction-rim-plugin</artifactId>
+        <artifactId>interaction-sdk-plugin</artifactId>
         <version>${project.version}</version>
         <executions>
           <execution>
             <phase>generate-sources</phase>
             <goals>
-              <goal>generate</goal>
+              <goal>rim-generate</goal>
             </goals>
           </execution>
         </executions>
@@ -146,13 +146,13 @@
     									com.temenos.interaction
     								</groupId>
     								<artifactId>
-    									interaction-rim-plugin
+    									interaction-sdk-plugin
     								</artifactId>
     								<versionRange>
     									[0.0.3-SNAPSHOT,)
     								</versionRange>
     								<goals>
-    									<goal>generate</goal>
+    									<goal>rim-generate</goal>
     								</goals>
     							</pluginExecutionFilter>
     							<action>

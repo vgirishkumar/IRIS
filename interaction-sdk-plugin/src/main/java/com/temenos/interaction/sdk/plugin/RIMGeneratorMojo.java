@@ -1,10 +1,11 @@
-package com.temenos.interaction.rimdsl;
+package com.temenos.interaction.sdk.plugin;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import com.google.inject.Injector;
+import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupGenerated;
 import com.temenos.interaction.rimdsl.generator.launcher.Generator;
 
 import java.io.File;
@@ -12,7 +13,7 @@ import java.io.File;
 /**
  * Goal which generates Java classes from a RIM.
  *
- * @goal generate
+ * @goal rim-generate
  * @phase generate-sources
  * @requiresDependencyResolution compile
  */
