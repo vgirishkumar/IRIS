@@ -57,13 +57,13 @@ public class HypermediaITCase extends JerseyTest {
 		List<Link> links = resource.getLinks();
 		assertEquals(4, links.size());
 		for (Link link : links) {
-			if (link.getRel().equals("self") && link.getName().get().equals("home.initial>home.initial")) {
+			if (link.getRel().equals("self") && link.getName().get().equals("HOME.home>HOME.home")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
-			} else if (link.getName().get().equals("home.initial>Preferences.preferences")) {
+			} else if (link.getName().get().equals("HOME.home>Preferences.preferences")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/preferences", link.getHref());
-			} else if (link.getName().get().equals("home.initial>Profile.profile")) {
+			} else if (link.getName().get().equals("HOME.home>Profile.profile")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/profile", link.getHref());
-			} else if (link.getName().get().equals("home.initial>Note.initial")) {
+			} else if (link.getName().get().equals("HOME.home>Note.notes")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
@@ -85,7 +85,7 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
-			} else if (link.getName().get().equals("Note.initial>ID.new")) {
+			} else if (link.getName().get().equals("Note.notes>ID.newNote")) {
 				assertEquals("POST " + Configuration.TEST_ENDPOINT_URI + "/notes/new", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
