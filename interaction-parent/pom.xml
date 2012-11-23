@@ -76,10 +76,6 @@
 			<id>interaction-site</id>
 			<url>file://localhost/c:/temp/iris/site</url>
 		</site>
-		<repository>
-			<id>nexus-t24-dev</id>
-			<url>http://maven.oams.com/content/repositories/t24-snapshots/</url>
-		</repository>
 	</distributionManagement>
 
 	<properties>
