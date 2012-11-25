@@ -27,7 +27,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 public class TestXHTMLProvider {
 
 	@Test
-	public void testWriteEntityResource() throws Exception {
+	public void testWriteEntityResourceAcceptHTML() throws Exception {
 		EntityResource<Entity> er = new EntityResource<Entity>(createEntity("123", "Fred"));
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(null, "Fred", "Self", "/Customer(123)", null, null, "GET", null));
@@ -36,14 +36,53 @@ public class TestXHTMLProvider {
 		//Serialize metadata resource
 		XHTMLProvider p = new XHTMLProvider(createMockFlightMetadata());
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		p.writeTo(er, EntityResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
+		p.writeTo(er, EntityResource.class, Entity.class, null, MediaType.TEXT_HTML_TYPE, null, bos);
 
 		String responseString = new String(bos.toByteArray(), "UTF-8");
+		Assert.assertTrue(responseString.contains("<li><a href=\"/Customer(123)\">Fred</a></li>"));
 		Assert.assertTrue(responseString.contains("WD8 1LK"));
 	}
 
 	@Test
-	public void testWriteCollectionResource() throws Exception {
+	public void testWriteEntityResourceAcceptXHTML() throws Exception {
+		EntityResource<Entity> er = new EntityResource<Entity>(createEntity("123", "Fred"));
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link(null, "Fred", "self", "/Customer(123)", null, null, "GET", null));
+		er.setLinks(links);
+
+		//Serialize metadata resource
+		XHTMLProvider p = new XHTMLProvider(createMockFlightMetadata());
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(er, EntityResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
+
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		Assert.assertTrue(responseString.contains("<dd>WD8 1LK</dd>"));
+		Assert.assertTrue(responseString.contains("<ul><li><a href=\"/Customer(123)\" rel=\"self\">Fred</a></li></ul>"));
+		Assert.assertTrue(responseString.contains("<link rel=\"self\" href=\"/Customer(123)\">"));
+	}
+	
+	@Test
+	public void testWriteCollectionResourceAcceptHTML() throws Exception {
+		Collection<EntityResource<Entity>> entities = new ArrayList<EntityResource<Entity>>();
+		entities.add(createEntityResource(createEntity("123", "Fred"), "123"));
+		entities.add(createEntityResource(createEntity("456", "Tom"), "456"));
+		entities.add(createEntityResource(createEntity("789", "Bob"), "789"));
+		CollectionResource<Entity> cr = new CollectionResource<Entity>("Customer", entities);
+		cr.setEntityName("Customer");
+
+		//Serialize metadata resource
+		XHTMLProvider p = new XHTMLProvider(createMockFlightMetadata());
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(cr, CollectionResource.class, Entity.class, null, MediaType.TEXT_HTML_TYPE, null, bos);
+
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		Assert.assertTrue(responseString.contains("Customer"));
+		Assert.assertTrue(responseString.contains("Tom"));
+		Assert.assertTrue(responseString.contains("navigate('/Customer(456)')"));
+	}
+	
+	@Test
+	public void testWriteCollectionResourceAcceptXHTML() throws Exception {
 		Collection<EntityResource<Entity>> entities = new ArrayList<EntityResource<Entity>>();
 		entities.add(createEntityResource(createEntity("123", "Fred"), "123"));
 		entities.add(createEntityResource(createEntity("456", "Tom"), "456"));
@@ -57,9 +96,7 @@ public class TestXHTMLProvider {
 		p.writeTo(cr, CollectionResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
 
 		String responseString = new String(bos.toByteArray(), "UTF-8");
-		Assert.assertTrue(responseString.contains("Customer"));
-		Assert.assertTrue(responseString.contains("Tom"));
-		Assert.assertTrue(responseString.contains("navigate('/Customer(456)')"));
+		Assert.assertTrue(responseString.contains("<li><dl><dt>id</dt><dd>123</dd>"));
 	}
 	
 	private Metadata createMockFlightMetadata() {
