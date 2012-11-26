@@ -1,6 +1,5 @@
 ﻿//ODATA Root Service URI
 var ODATA_SVC = "http://localhost:8080/responder/WealthPOC.svc/";
-var NOTES_ODATA_SVC = ODATA_SVC + "Note";
 
 //User edit form Variables
 var name = $("#name"),
