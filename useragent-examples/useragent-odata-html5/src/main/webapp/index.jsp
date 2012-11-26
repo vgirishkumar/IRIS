@@ -43,7 +43,7 @@
 	            </form>
             </div>
 
-            <div id="users-contain" class="ui-widget">
+            <div id="entityset-contain" class="ui-widget">
 	            <h1 id="EntitySetName">Select EntitySet</h1>
                 <button id="createEntity" style="display:none">Create new item</button>
 	            <table id="entities" class="ui-widget ui-widget-content">

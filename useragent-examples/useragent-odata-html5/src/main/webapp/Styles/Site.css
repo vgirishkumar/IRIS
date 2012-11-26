@@ -289,8 +289,8 @@ h1 { font-size: 1.2em; margin: .6em 0; }
 div#service-root { width: 160px; margin: 20px 0; }
 div#service-root table { margin: 1em 0; border-collapse: collapse; width: 100%; }
 div#service-root table td, div#service-root table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
-div#users-contain { width: 740px; margin: 20px 0; }
-div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
-div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+div#entityset-contain { width: 740px; margin: 20px 0; }
+div#entityset-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+div#entityset-contain table td, div#entityset-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
 .ui-dialog .ui-state-error { padding: .3em; }
 .validateTips { border: 1px solid transparent; padding: 0.3em; }
