@@ -528,7 +528,6 @@ public class ResourceStateMachine {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
 			String rel = transition.getTarget().getRel();
-//			String rel = transition.getTarget().getName();		//Not a self-link so use name of target state as relation name
 			if (transition.getSource().equals(transition.getTarget())) {
 				rel = "self"; 
 			}
