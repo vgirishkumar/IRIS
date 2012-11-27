@@ -27,8 +27,8 @@ public class GeneratorTest {
 	
 	private final static String SIMPLE_STATES_RIM = "" +
 	"commands" + LINE_SEP +
-	"	GetEntity properties" + LINE_SEP +
-	"	UpdateEntity properties" + LINE_SEP +
+	"	GetEntity" + LINE_SEP +
+	"	UpdateEntity" + LINE_SEP +
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
@@ -81,7 +81,8 @@ public class GeneratorTest {
 	"		initial = sA;" + LINE_SEP +
 	"		List<Action> BActions = new ArrayList<Action>();" + LINE_SEP +
 	"		BActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
-	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY));" + LINE_SEP +
+	"		actionViewProperties = new Properties();" + LINE_SEP +
+	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY, actionViewProperties));" + LINE_SEP +
 	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\");" + LINE_SEP +
 	LINE_SEP +
 	"		// create regular transitions" + LINE_SEP +
@@ -112,7 +113,7 @@ public class GeneratorTest {
 	
 	private final static String SINGLE_STATE_VIEW_COMMAND_ONLY_RIM = "" +
 	"commands" + LINE_SEP +
-	"	GetEntity properties" + LINE_SEP +
+	"	GetEntity" + LINE_SEP +
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
@@ -142,6 +143,79 @@ public class GeneratorTest {
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties())"));
+	}
+
+	private final static String SINGLE_STATE_ACTION_COMMANDS_RIM = "" +
+	"commands" + LINE_SEP +
+	"	GetEntity getkey=getvalue" + LINE_SEP +
+	"end" + LINE_SEP +
+			
+	"initial resource A" + LINE_SEP +
+	"	collection ENTITY" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"end" + LINE_SEP +
+	"";
+
+	@Test
+	public void testGenerateSingleStateActionCommands() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(SINGLE_STATE_ACTION_COMMANDS_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+
+		String output = fsa.getFiles().get(expectedKey).toString();
+		int indexOfFirstNewProperties = output.indexOf("actionViewProperties = new Properties()");
+		assertTrue(indexOfFirstNewProperties > 0);
+		assertTrue(output.contains("actionViewProperties.put(\"getkey\", \"getvalue\""));
+		assertTrue(output.contains("new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties)"));
+	}
+
+	private final static String MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM = "" +
+	"commands" + LINE_SEP +
+	"	GetEntity" + LINE_SEP +
+	"	DoStuff key=value" + LINE_SEP +
+	"	DoSomeStuff keyB=valueB" + LINE_SEP +
+	"	DoSomeMoreStuff keyB0=valueB0, keyB1=valueB1" + LINE_SEP +
+	"end" + LINE_SEP +
+			
+	"initial resource A" + LINE_SEP +
+	"	collection ENTITY" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"	actions { DoStuff }" + LINE_SEP +
+	"	PUT -> B" + LINE_SEP +
+	"end" + LINE_SEP +
+
+	"initial resource B" + LINE_SEP +
+	"	collection ENTITY" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"	actions { DoSomeStuff, DoSomeMoreStuff }" + LINE_SEP +
+	"end" + LINE_SEP +
+	"";
+
+	@Test
+	public void testGenerateMultipleStateMultipleActionCommands() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		int indexOfFirstNewProperties = output.indexOf("actionViewProperties = new Properties()");
+		assertTrue(indexOfFirstNewProperties > 0);
+		assertTrue(output.contains("actionViewProperties.put(\"key\", \"value\""));
+		assertTrue(output.contains("new Action(\"DoStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
+
+		int indexOfSecondNewProperties = output.indexOf("actionViewProperties = new Properties()", indexOfFirstNewProperties);
+		assertTrue(indexOfSecondNewProperties > 0);
+		assertTrue(output.contains("actionViewProperties.put(\"keyB\", \"valueB\""));
+		assertTrue(output.contains("new Action(\"DoSomeStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
+		assertTrue(output.contains("actionViewProperties.put(\"keyB0\", \"valueB0\""));
+		assertTrue(output.contains("actionViewProperties.put(\"keyB1\", \"valueB1\""));
+		assertTrue(output.contains("new Action(\"DoSomeMoreStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
+	
 	}
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
