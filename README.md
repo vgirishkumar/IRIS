@@ -30,6 +30,9 @@ The project allow you to:
 
 ## Build commands:
 
+NB - Due to te InMemory database the integration tests need quite a bit of memory in the PERM space.
+`SET MAVEN_OPTS=-Xms512m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=512m`
+
 `mvn clean` Clean projects
 
 `mvn install` Build and install to maven repository
