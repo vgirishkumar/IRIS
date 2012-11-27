@@ -264,12 +264,10 @@ public class JPAResponderGen {
 			return false;
 		}
 		String modelName = metadata.getModelName();
-//		String namespace = modelName + Metadata.MODEL_SUFFIX;
 		
 		// generate the behaviour class
 		String rimDslFilename = modelName + ".rim";
 		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
-//		String behaviourClassDir = srcOutputPath + "/" + namespace.replace(".", "/") + "/";
 		if (!writeBehaviourClass(rimDslFile, srcOutputPath.toString())) {
 			ok = false;
 		}
@@ -317,8 +315,7 @@ public class JPAResponderGen {
 
 		// generate the behaviour class
 		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
-		String behaviourClassDir = srcOutputPath + "/" + namespace.replace(".", "/") + "/";
-		if (!writeBehaviourClass(rimDslFile, behaviourClassDir)) {
+		if (!writeBehaviourClass(rimDslFile, srcOutputPath.toString())) {
 			ok = false;
 		}
 		
@@ -697,12 +694,10 @@ public class JPAResponderGen {
 		return true;
 	}
 	
-	protected boolean writeBehaviourClass(String rimDslFile, String behaviourClassDir) {
-		File srcDir = new File(behaviourClassDir);
-		srcDir.mkdirs();
+	protected boolean writeBehaviourClass(String rimDslFile, String srcOutputPath) {
 		Injector injector = new RIMDslStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
 		Generator generator = injector.getInstance(Generator.class);
-		return generator.runGenerator(rimDslFile, behaviourClassDir);
+		return generator.runGenerator(rimDslFile, srcOutputPath);
 	}
 
 	protected boolean writeResponderSettings(File sourceDir, String generateResponderSettings) {
