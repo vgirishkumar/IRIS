@@ -1,6 +1,6 @@
 # IRIS
 
-A runtime for Interaction Resources & Information Services
+A runtime for Interaction, Reporting & Information Services.
 
 ## Purpose
 
