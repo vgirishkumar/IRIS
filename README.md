@@ -30,9 +30,14 @@ The project allow you to:
 
 ## Build commands:
 
-mvn clean		Clean projects
-mvn install		Build and install to maven repository
-mvn install -Ddebug	Build and install to maven repository without running integration tests
-mvn site		Build maven site
-mvn site:deploy		Deploy maven site [default: C:\temp\iris\site]
+`mvn clean` Clean projects
+
+`mvn install` Build and install to maven repository
+
+`mvn install -Ddebug` Build and install to maven repository without running integration tests
+
+`mvn site` Build maven site
+
+`mvn site:deploy` Deploy maven site [default: C:\temp\iris\site]
+
 
