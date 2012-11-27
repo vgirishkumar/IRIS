@@ -97,12 +97,6 @@ class RIMDslGenerator implements IGenerator {
 	'''
 	
 	def produceResourceStates(State state) '''
-            «IF state.actions != null && state.actions.size > 0 && state.actions.get(0).property.size > 0»
-                actionViewProperties = new Properties();
-                «FOR commandProperty : state.actions.get(0).property»
-                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
-                «ENDFOR»
-            «ENDIF»
             «produceActionSet(state, state.view, state.actions)»
             «IF state.entity.isCollection»
             CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
@@ -112,11 +106,23 @@ class RIMDslGenerator implements IGenerator {
 	'''
 
     def produceActionSet(State state, Command viewCommand, EList<Command> actions) '''
+        List<Action> «state.name»Actions = new ArrayList<Action>();
+        «IF viewCommand != null && viewCommand.property.size > 0»
+            actionViewProperties = new Properties();
+            «FOR commandProperty :viewCommand.property»
+            actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+            «ENDFOR»
+        «ENDIF»
+        «state.name»Actions.add(new Action("«viewCommand.name»", Action.TYPE.VIEW, «if (viewCommand != null && viewCommand.property.size > 0) { "actionViewProperties" } else { "new Properties()" }»));
         «IF actions != null»
-            List<Action> «state.name»Actions = new ArrayList<Action>();
-            «state.name»Actions.add(new Action("«viewCommand.name»", Action.TYPE.VIEW, «if (actions != null && actions.size > 0 && actions.get(0).property.size > 0) { "actionViewProperties" } else { "new Properties()" }»));
             «FOR action : actions»
-            «state.name»Actions.add(new Action("«action.name»", Action.TYPE.ENTRY));
+            actionViewProperties = new Properties();
+            «IF action != null && action.property.size > 0»
+                «FOR commandProperty :action.property»
+                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+                «ENDFOR»
+            «ENDIF»
+            «state.name»Actions.add(new Action("«action.name»", Action.TYPE.ENTRY, actionViewProperties));
             «ENDFOR»
         «ENDIF»'''
     
