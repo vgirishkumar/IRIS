@@ -13,11 +13,20 @@ The project allow you to:
 * program Hypermedia (HATEOAS) interactions with a state machine domain specific language (DSL)
 
 
-## Requires
+## Requires (within Temenos)
 
-* aphethean/jax-rs-hateoas.git (mvn install)
-* Java JDK 1.6
+* Configure settings.xml to add the following maven repository http://maven.oams.com/content/groups/all/
+* Java JDK 1.7 (JDK 1.6 by skipping some integration test modules)
 * Maven 3
+
+
+## Requires (standalone)
+
+* svn checkout http://cambridge.googlecode.com/svn/trunk/ cambridge-read-only
+* https://github.com/lucasgut/halbuilder-core.git
+* Java JDK 1.7 (JDK 1.6 by skipping some integration test modules)
+* Maven 3
+
 
 ## Build commands:
 
