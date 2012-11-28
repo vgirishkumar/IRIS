@@ -95,7 +95,10 @@ public class Link {
 	 * @return Path of transition relative to REST service 
 	 */
 	public String getHrefTransition(String basePath) {
-		String regex = "(?<=" + basePath + "/)\\S+";
+		if(!basePath.endsWith("/")) {
+			basePath += "/";
+		}
+		String regex = "(?<=" + basePath + ")\\S+";
 		Pattern p = Pattern.compile(regex);
 		Matcher m = p.matcher(href);
 		while (m.find()) {
