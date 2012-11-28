@@ -16,6 +16,8 @@ import org.junit.Test;
 
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
+import com.temenos.interaction.sdk.command.Commands;
+import com.temenos.interaction.sdk.command.Parameter;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 
 /**
@@ -25,12 +27,24 @@ public class TestRimDslGenerator {
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
 	public final static String RIM_DSL_AIRLINE_SIMPLE_FILE = "AirlinesSimple.rim";
 	public final static String RIM_DSL_AIRLINE_FILE = "Airlines.rim";
+	
+	public final static Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
+	public final static Parameter COMMAND_EDM_DATA_SERVICES = new Parameter("edmDataServices", true, "");
+	public final static Parameter COMMAND_METADATA = new Parameter("Metadata", false, "");
+	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
+	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
 
 	@Test
 	public void testGenerateRimDslAirlinesSimple() {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
+		Commands commands = new Commands();
+		
+		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_SERVICE_DOCUMENT, COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 
 		//Add transitions
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
@@ -38,7 +52,7 @@ public class TestRimDslGenerator {
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
-		String dsl = generator.generateRimDsl(interactionModel);
+		String dsl = generator.generateRimDsl(interactionModel,commands);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -50,7 +64,13 @@ public class TestRimDslGenerator {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
-
+		Commands commands = new Commands();
+		
+		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_SERVICE_DOCUMENT, COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		
 		//Add transitions but without reciprocal links
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
@@ -58,7 +78,7 @@ public class TestRimDslGenerator {
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
-		String dsl = generator.generateRimDsl(interactionModel);
+		String dsl = generator.generateRimDsl(interactionModel,commands);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));

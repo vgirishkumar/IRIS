@@ -6,6 +6,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
+import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 
 /**
@@ -26,9 +27,10 @@ public class RimDslGenerator {
 		assert(velocityEngine != null);
 	}
 
-	public String generateRimDsl(InteractionModel interactionModel) {
+	public String generateRimDsl(InteractionModel interactionModel, Commands commands) {
 		VelocityContext context = new VelocityContext();
 		context.put("rim", interactionModel);
+		context.put("commands", commands);
 		
 		Template t = velocityEngine.getTemplate("/RIM-DSL.vm");
 		StringWriter sw = new StringWriter();
