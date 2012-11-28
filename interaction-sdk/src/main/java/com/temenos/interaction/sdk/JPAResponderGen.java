@@ -309,7 +309,7 @@ public class JPAResponderGen {
 		// generate the rim DSL
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
 		String rimDslFilename = modelName + ".rim";
-		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel))) {
+		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands))) {
 			ok = false;
 		}
 
@@ -883,9 +883,7 @@ public class JPAResponderGen {
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.POST_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.DELETE_ENTITY, "com.temenos.interaction.commands.odata.DeleteEntityCommand", Commands.DELETE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 //		commands.addLinkCommands(interactionModel, "com.temenos.interaction.commands.odata.GETLinkEntityCommand", "com.temenos.interaction.commands.odata.GETEntitiesCommand");
 		
 		return commands;

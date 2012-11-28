@@ -3,10 +3,9 @@ events
 end
 
 commands
-	GETServiceDocument
-	GETMetadata
-	GETEntities
-	GETEntity
+#foreach ( $command in $commands.getCommands() )
+	$command.getId()
+#end
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 #foreach ( $transition in $rsm.getTransitions() )
 	GETNavProperty${transition.getTargetStateName()} entity=${rsm.getEntityName()}, navproperty=nav${transition.getTargetStateName()}
