@@ -7,16 +7,20 @@ events
 end
 
 commands
-	NoopGET z
-	GETNotes z
-	GETNote z
+	NoopGET
+	NoopPOST
+	GETPreferences properties
+	GETNotes
+	GETNote
 	DELETENote properties
 end
 
 initial resource home
 	item HOME
 	view { NoopGET }
+    path "/"
 	GET -> profile
+    GET -> preferences
 	GET -> notes
 end
 
@@ -26,10 +30,16 @@ resource profile
 	path "/profile"
 end
 
+resource preferences
+    item Preferences
+    view { GETPreferences }
+end
+
 resource notes
 	collection Note
 	view { GETNotes }
 	path "/notes"
+    POST -> newNote
 	GET *-> note
 	DELETE *-> deletedNote
 end
@@ -42,9 +52,17 @@ resource note
 end
 
 resource deletedNote
-	item note
+	item Note
 	view { GETNote }
 	actions { DELETENote }
 	path "/notes/{noteID}"
 	GET --> notes
+end
+
+resource newNote
+    item ID
+    view { NoopGET }
+    actions { NoopPOST }
+    path "/notes/new"
+    PUT --> note
 end

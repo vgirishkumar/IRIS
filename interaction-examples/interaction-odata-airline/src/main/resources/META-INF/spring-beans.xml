@@ -75,6 +75,7 @@
     <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
         <constructor-arg ref="commands" />
         <constructor-arg ref="stateMachine" />
+        <constructor-arg ref="edmMetadata" />
     </bean>
 
     <!-- Commands -->

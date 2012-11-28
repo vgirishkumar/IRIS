@@ -1,4 +1,4 @@
-package com.interaction.example.odata.notes;
+package com.temenos.interaction.example.odata.notes;
 
 import java.util.ArrayList;
 import java.util.HashMap;

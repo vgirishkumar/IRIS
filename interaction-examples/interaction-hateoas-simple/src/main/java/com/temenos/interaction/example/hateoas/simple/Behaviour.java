@@ -21,7 +21,7 @@ public class Behaviour {
 
 	public ResourceState getInteractionModel() {
 		// this will be the service root
-		ResourceState initialState = new ResourceState("home", "initial", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null), "/");
+		ResourceState initialState = new ResourceState("HOME", "home", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null), "/");
 		
 		ResourceState profile = new ResourceState("Profile", "profile", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null), "/profile");
 		ResourceState preferences = new ResourceState("Preferences", "preferences", createActionList(new Action("GETPreferences", Action.TYPE.VIEW), null), "/preferences");
@@ -34,10 +34,10 @@ public class Behaviour {
 
 	public ResourceStateMachine getNotesInteractionModel() {
 		
-		CollectionResourceState initialState = new CollectionResourceState(NOTE_ENTITY_NAME, "initial", createActionList(new Action("GETNotes", Action.TYPE.VIEW), null), "/notes");
-		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "new", createActionList(new Action("NoopGET", Action.TYPE.VIEW), new Action("NoopPOST", Action.TYPE.ENTRY)), "/notes/new");
-		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "exists", createActionList(new Action("GETNote", Action.TYPE.VIEW), new Action("NoopPUT", Action.TYPE.ENTRY)), "/notes/{noteID}", "noteID", "self".split(" "));
-		ResourceState deletedState = new ResourceState(NOTE_ENTITY_NAME, "end", createActionList(new Action("NoopGET", Action.TYPE.VIEW), new Action("DELETENote", Action.TYPE.ENTRY)), "/notes/{noteID}", "noteID");
+		CollectionResourceState initialState = new CollectionResourceState(NOTE_ENTITY_NAME, "notes", createActionList(new Action("GETNotes", Action.TYPE.VIEW), null), "/notes");
+		ResourceState newNoteState = new ResourceState(NEW_ENTITY_NAME, "newNote", createActionList(new Action("NoopGET", Action.TYPE.VIEW), new Action("NoopPOST", Action.TYPE.ENTRY)), "/notes/new");
+		ResourceState exists = new ResourceState(NOTE_ENTITY_NAME, "note", createActionList(new Action("GETNote", Action.TYPE.VIEW), new Action("NoopPUT", Action.TYPE.ENTRY)), "/notes/{noteID}", "noteID", "self".split(" "));
+		ResourceState deletedState = new ResourceState(NOTE_ENTITY_NAME, "deletedNote", createActionList(new Action("NoopGET", Action.TYPE.VIEW), new Action("DELETENote", Action.TYPE.ENTRY)), "/notes/{noteID}", "noteID");
 
 		// a linkage map (target URI element, source entity element)
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();

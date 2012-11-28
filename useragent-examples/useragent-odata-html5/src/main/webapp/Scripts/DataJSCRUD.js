@@ -1,6 +1,5 @@
 ﻿//ODATA Root Service URI
-var ODATA_SVC = "http://localhost:8080/responder/WealthPOC.svc/";
-var NOTES_ODATA_SVC = ODATA_SVC + "Note";
+var ODATA_SVC = $("#where");
 
 //User edit form Variables
 var name = $("#name"),
@@ -39,7 +38,7 @@ function GetServices()
 {
     $("#loadingServices").show();
     OData.read({ 
-    		requestUri: ODATA_SVC,
+    		requestUri: ODATA_SVC.val(),
     		headers: { Accept: "application/atomsvc+xml" }
     	}, GetServicesCallback);
 }

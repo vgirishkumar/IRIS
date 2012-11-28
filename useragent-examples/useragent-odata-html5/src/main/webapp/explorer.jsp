@@ -10,12 +10,15 @@
     <div class="page">
         <div class="header">
             <div class="title">
-                <h1>
-                    DataJS CRUD Demo
-                </h1>
+                <h1>ODataJS Browser</h1>
             </div>
             <div class="loginDisplay"></div>
             <div class="clear hideSkiplink"></div>
+            <div class="navBar">
+                <form>
+                    <input disabled="true" type="text" name="odata-svc" id="where" value="<%=request.getParameter("odata-svc")%>" class="text ui-widget-content ui-corner-all" />
+                </form>
+            </div>
         </div>
 		<div class="leftCol">
             <div id="service-root" class="ui-widget">
@@ -43,7 +46,7 @@
 	            </form>
             </div>
 
-            <div id="users-contain" class="ui-widget">
+            <div id="entityset-contain" class="ui-widget">
 	            <h1 id="EntitySetName">Select EntitySet</h1>
                 <button id="createEntity" style="display:none">Create new item</button>
 	            <table id="entities" class="ui-widget ui-widget-content">

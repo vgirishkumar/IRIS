@@ -31,6 +31,7 @@ import org.odata4j.producer.Responses;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
@@ -153,7 +154,7 @@ public class TestGETNavPropertyCommand {
 		properties.put("entity", entity);
 		when(resourceState.getViewAction()).thenReturn(new Action("NavPropertyCommand", Action.TYPE.VIEW, properties));
 		
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState);
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
         return ctx;
 	}
 

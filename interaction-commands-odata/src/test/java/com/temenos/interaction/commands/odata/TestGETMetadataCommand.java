@@ -23,6 +23,7 @@ import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -33,7 +34,7 @@ public class TestGETMetadataCommand {
 	@SuppressWarnings("unchecked")
 	private InteractionContext createInteractionContext() {
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class));
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
         return ctx;
 	}
 

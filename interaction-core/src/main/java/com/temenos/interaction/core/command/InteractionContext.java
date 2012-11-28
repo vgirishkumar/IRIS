@@ -1,10 +1,14 @@
 package com.temenos.interaction.core.command;
 
+import java.util.List;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
@@ -26,6 +30,7 @@ public class InteractionContext {
 	private final MultivaluedMap<String, String> queryParameters;
 	private final MultivaluedMap<String, String> pathParameters;
 	private final ResourceState currentState;
+	private final Metadata metadata;
 	
 	/* Command context */
 	private RESTResource resource;
@@ -40,13 +45,15 @@ public class InteractionContext {
 	 * @param pathParameters
 	 * @param queryParameters
 	 */
-	public InteractionContext(MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters, ResourceState currentState) {
+	public InteractionContext(MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters, ResourceState currentState, Metadata metadata) {
 		this.pathParameters = pathParameters;
 		this.queryParameters = queryParameters;
 		this.currentState = currentState;
+		this.metadata = metadata;
 		assert(pathParameters != null);
 		assert(queryParameters != null);
 		assert(currentState != null);
+		assert(metadata != null);
 	}
 
 	/**
@@ -90,11 +97,22 @@ public class InteractionContext {
 	}
 
     public String getId() {
-    	String id = pathParameters.getFirst(DEFAULT_ID_PATH_ELEMENT);
+    	String id = null;
     	if (pathParameters != null) {
-    		if (getCurrentState().getPathIdParameter() != null) {
-    			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
-    		}
+        	id = pathParameters.getFirst(DEFAULT_ID_PATH_ELEMENT);
+        	if (id == null) {
+        		if (getCurrentState().getPathIdParameter() != null) {
+        			id = pathParameters.getFirst(getCurrentState().getPathIdParameter());
+        		} else {
+            		EntityMetadata entityMetadata = metadata.getEntityMetadata(getCurrentState().getEntityName());
+            		if (entityMetadata != null) {
+            			List<String> idFields = entityMetadata.getIdFields();
+            			// TODO add support for composite ids
+            			assert(idFields.size() == 1) : "ERROR we currently only support simple ids";
+            			id = pathParameters.getFirst(idFields.get(0));
+            		}
+        		}
+        	}
     		if (logger.isDebugEnabled()) {
             	for (String pathParam : pathParameters.keySet()) {
             		logger.debug("PathParam " + pathParam + ":" + pathParameters.get(pathParam));
