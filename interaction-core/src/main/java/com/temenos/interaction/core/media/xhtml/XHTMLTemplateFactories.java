@@ -19,10 +19,13 @@ public class XHTMLTemplateFactories {
 
 	//Default template factories
 	public final static String TEMPLATE_HEADER = "header.html";
+	public final static String TEMPLATE_HEADER_MINIMAL = "headerMinimal.html";
 	public final static String TEMPLATE_FOOTER = "footer.html";
 	public final static String TEMPLATE_RESOURCE_LINKS = "resourceLinks.html";
 	public final static String TEMPLATE_ENTITIES = "entities.html";
+	public final static String TEMPLATE_ENTITIES_MINIMAL = "entitiesMinimal.html";
 	public final static String TEMPLATE_ENTITY = "entity.html";
+	public final static String TEMPLATE_ENTITY_MINIMAL = "entityMinimal.html";
 	private final static String TEMPLATE_PATH = "xhtml";
 
 	public XHTMLTemplateFactories() {
@@ -32,10 +35,13 @@ public class XHTMLTemplateFactories {
 	
 			//Add default template factories
 			templateFactories.put(TEMPLATE_HEADER, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_HEADER));
+			templateFactories.put(TEMPLATE_HEADER_MINIMAL, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_HEADER_MINIMAL));
 			templateFactories.put(TEMPLATE_FOOTER, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_FOOTER));
 			templateFactories.put(TEMPLATE_RESOURCE_LINKS, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_RESOURCE_LINKS));
 			templateFactories.put(TEMPLATE_ENTITIES, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_ENTITIES));
+			templateFactories.put(TEMPLATE_ENTITIES_MINIMAL, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_ENTITIES_MINIMAL));
 			templateFactories.put(TEMPLATE_ENTITY, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_ENTITY));
+			templateFactories.put(TEMPLATE_ENTITY_MINIMAL, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_ENTITY_MINIMAL));
 		}
 		catch(Exception e) {
 			logger.error("Failed to load XHTML templates: " + e.getMessage());

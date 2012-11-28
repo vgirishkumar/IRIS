@@ -25,29 +25,29 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getFundsTransferInteractionModel() {
-		CollectionResourceState initialState = new CollectionResourceState("FundsTransfer", "initial", createActionList(new Action("GETFundTransfers", Action.TYPE.VIEW), null), "/fundtransfers");
-		ResourceState newFtState = new ResourceState(initialState, "new", createActionList(new Action("NoopGET", Action.TYPE.VIEW), new Action("NEWFundTransfer", Action.TYPE.ENTRY)), "/new");
-		ResourceState exists = new ResourceState("FundsTransfer", "exists", createActionList(new Action("GETFundTransfer", Action.TYPE.VIEW), new Action("PUTFundTransfer", Action.TYPE.ENTRY)), "/fundtransfers/{id}", "id", "self".split(" "));
-		ResourceState finalState = new ResourceState(exists, "end", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null));
+		CollectionResourceState fundstransfers = new CollectionResourceState("FundsTransfer", "fundstransfers", createActionList(new Action("GETFundTransfers", Action.TYPE.VIEW), null), "/fundtransfers");
+		ResourceState newFtState = new ResourceState(fundstransfers, "new", createActionList(new Action("NoopGET", Action.TYPE.VIEW), new Action("NEWFundTransfer", Action.TYPE.ENTRY)), "/new");
+		ResourceState fundstransfer = new ResourceState("FundsTransfer", "fundstransfer", createActionList(new Action("GETFundTransfer", Action.TYPE.VIEW), new Action("PUTFundTransfer", Action.TYPE.ENTRY)), "/fundtransfers/{id}", "id", "self".split(" "));
+		ResourceState finalState = new ResourceState(fundstransfer, "end", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null));
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		initialState.addTransition("POST", newFtState);		
+		fundstransfers.addTransition("POST", newFtState);		
 
 		uriLinkageMap.clear();
-		newFtState.addTransition("PUT", exists, uriLinkageMap);
+		newFtState.addTransition("PUT", fundstransfer, uriLinkageMap);
 		//newFtState.addTransition("GET", exists, uriLinkageMap);
 		
 		uriLinkageMap.clear();
-		initialState.addTransitionForEachItem("GET", exists, uriLinkageMap);		
+		fundstransfers.addTransitionForEachItem("GET", fundstransfer, uriLinkageMap);		
 
-		exists.addTransition("PUT", exists, uriLinkageMap);		
-		exists.addTransition("DELETE", finalState, uriLinkageMap);
-		return new ResourceStateMachine(initialState);
+		fundstransfer.addTransition("PUT", fundstransfer, uriLinkageMap);		
+		fundstransfer.addTransition("DELETE", finalState, uriLinkageMap);
+		return new ResourceStateMachine(fundstransfers);
 	}
 
 	public ResourceStateMachine getCustomerInteractionModel() {
 		CollectionResourceState customers = new CollectionResourceState("Customer", "customers", createActionList(new Action("GETCustomers", Action.TYPE.VIEW), null), "/customers");
-		ResourceState customer = new ResourceState("Customer", "customer", createActionList(new Action("GETCustomer", Action.TYPE.VIEW), new Action("PUTCustomer", Action.TYPE.ENTRY)), "/{id}");
+		ResourceState customer = new ResourceState("Customer", "customer", createActionList(new Action("GETCustomer", Action.TYPE.VIEW), new Action("PUTCustomer", Action.TYPE.ENTRY)), "/customers/{id}");
 		ResourceState deleted = new ResourceState(customer, "deleted", createActionList(null, new Action("NoopDELETE", Action.TYPE.ENTRY)));
 		
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
