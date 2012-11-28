@@ -57,7 +57,7 @@ end
 resource airport
 	item Airport
 	view { GETEntity }
-	path "/Airport({id})"
+	path "/Airport('{id}')"
 	GET -> flightSchedules id=code, navflightSchedules="flightSchedules"
 end
 
@@ -66,7 +66,7 @@ end
 resource flightSchedules
 	collection FlightSchedule
 	view { GETNavPropertyflightSchedules }
-	path "/Airport({id})/{navflightSchedules}"
+	path "/Airport('{id}')/{navflightSchedules}"
 	GET -> flightschedules id=flightScheduleID
 end
 

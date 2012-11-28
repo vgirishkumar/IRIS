@@ -55,7 +55,7 @@ end
 resource airport
 	item Airport
 	view { GETEntity }
-	path "/Airport({id})"
+	path "/Airport('{id}')"
 end
 
 

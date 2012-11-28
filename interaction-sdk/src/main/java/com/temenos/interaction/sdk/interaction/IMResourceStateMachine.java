@@ -12,14 +12,16 @@ public class IMResourceStateMachine {
 	private String collectionStateName;									//Name of collection resource state
 	private String entityStateName;										//Name of individual entity resource state
 	private String mappedEntityProperty;								//Entity property to which the URI template parameter maps to
+	private String pathParametersTemplate;								//Path parameters defined in URI template
 	private List<IMTransition> transitions = new ArrayList<IMTransition>();		//Transitions
 	
 	
-	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String mappedEntityProperty) {
+	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String mappedEntityProperty, String pathParametersTemplate) {
 		this.entityName = entityName;
 		this.collectionStateName = collectionStateName;
 		this.entityStateName = entityStateName;
 		this.mappedEntityProperty = mappedEntityProperty;
+		this.pathParametersTemplate = pathParametersTemplate;
 	}
 	
 	public String getEntityName() {
@@ -36,6 +38,10 @@ public class IMResourceStateMachine {
 	
 	public String getMappedEntityProperty() {
 		return mappedEntityProperty;
+	}
+	
+	public String getPathParametersTemplate() {
+		return pathParametersTemplate;
 	}
 	
 	/**
