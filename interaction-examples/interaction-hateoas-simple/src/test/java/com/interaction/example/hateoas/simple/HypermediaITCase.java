@@ -95,13 +95,18 @@ public class HypermediaITCase extends JerseyTest {
 		// the items, and links on each item
 		Collection<ReadableRepresentation> subresources = resource.getResources().values();
 		assertNotNull(subresources);
+		/*
+		 * Test that there are actually some subresource returned.  If the 'self' link rel in
+		 * the HALProvider is broken then we won't get any subresources here.
+		 */
+		assertTrue(subresources.size() > 0);
 		for (ReadableRepresentation item : subresources) {
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(2, itemLinks.size());
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID").get(), link.getHref());
-				} else if (link.getName().get().contains("Note.end")) {
+				} else if (link.getName().get().contains("Note.deletedNote")) {
 					assertEquals("DELETE " + Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID").get(), link.getHref());
 				} else {
 					fail("unexpected link [" + link.getName().get() + "]");
@@ -141,7 +146,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
 			for (Link link : itemLinks) {
-				if (link.getName().get().contains("Note.initial>Note.end")) {
+				if (link.getName().isPresent() && link.getName().get().contains("Note.notes>Note.deletedNote")) {
 					deleteLink = link;
 				}
 			}
@@ -185,7 +190,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
 			for (Link link : itemLinks) {
-				if (link.getName().get().contains("Note.initial>Note.end")) {
+				if (link.getName().isPresent() && link.getName().get().contains("Note.notes>Note.deletedNote")) {
 					deleteLink = link;
 				}
 			}
@@ -225,7 +230,7 @@ public class HypermediaITCase extends JerseyTest {
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(2, itemLinks.size());
 			
-			// GET item link (note.initial->note.exists)
+			// GET item link (Note.notes->Note.note)
 			Link getLink = null;
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
@@ -240,12 +245,17 @@ public class HypermediaITCase extends JerseyTest {
 			ReadableRepresentation itemResource = representationFactory.readRepresentation(new InputStreamReader(getResponse.getEntityInputStream()));
 			List<Link> links = itemResource.getLinks();
 			assertNotNull(links);
-			assertEquals(3, links.size());
+			/*
+			 * 2 links.  
+			 * One to 'self'
+			 * One to 'item' which contains DELETE in href (this should be changed to 'edit' rel) 
+			 */
+			assertEquals(2, links.size());
 			
-			// DELETE item link (note.exists->note.end, note.end is an auto transition to note.initial)
+			// DELETE item link (Note.note>Note.deletedNote, Note.deletedNote is an auto transition to Note.notes)
 			Link deleteLink = null;
 			for (Link link : links) {
-				if (link.getName().get().contains("Note.exists>Note.end")) {
+				if (link.getName().get().contains("Note.note>Note.deletedNote")) {
 					deleteLink = link;
 				}
 			}

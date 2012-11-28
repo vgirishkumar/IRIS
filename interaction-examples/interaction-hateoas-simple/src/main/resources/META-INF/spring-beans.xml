@@ -52,6 +52,9 @@
 	</bean>
 
     <bean id="behaviour" class="SimpleModel.SimpleBehaviour" />
+<!--
+    <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
+-->
     <bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg ref="interaction" />
