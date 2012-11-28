@@ -69,7 +69,7 @@
     </bean>
  
     <!-- Behaviour -->
-    <bean id="behaviour" class="com.interaction.example.odata.notes.Behaviour" />
+    <bean id="behaviour" class="com.temenos.interaction.example.odata.notes.Behaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
         <constructor-arg name="initialState" ref="interaction" />
