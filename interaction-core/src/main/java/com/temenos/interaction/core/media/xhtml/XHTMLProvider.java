@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -31,6 +32,7 @@ import javax.ws.rs.ext.Provider;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmDataServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,6 +138,8 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 					EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
 					template.setProperty("entityResource", new EntityResourceWrapperXHTML(buildFromEntity(entityResource)));
 					template.printTo(writer);
+				} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, EdmDataServices.class)) {
+					//The resources are shown in the resource links section
 				} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 					//JAXB entity resource
 					EntityResource<Object> entityResource = (EntityResource<Object>) resource;
@@ -159,7 +163,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 						entities.add(new EntityResourceWrapperXHTML(buildFromEntity(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
-					template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
+					template.setProperty("entityPropertyNames", getEntityPropertyNames(collectionResource.getEntityName(), entities));
 					template.setProperty("entityResources", entities);
 				} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 					//OEntity collection resource
@@ -170,7 +174,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 						entities.add(new EntityResourceWrapperXHTML(buildFromOEntity(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
-					template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
+					template.setProperty("entityPropertyNames", getEntityPropertyNames(collectionResource.getEntityName(), entities));
 					template.setProperty("entityResources", entities);
 				} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
 					//JAXB collection resource
@@ -182,7 +186,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 						entities.add(new EntityResourceWrapperXHTML(buildFromBean(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
-					template.setProperty("entityPropertyNames", metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties());
+					template.setProperty("entityPropertyNames", getEntityPropertyNames(collectionResource.getEntityName(), entities));
 					template.setProperty("entityResources", entities);
 				} else {
 					logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
@@ -203,6 +207,16 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 		}
 	}
 
+	protected Set<String> getEntityPropertyNames(String entityName, List<EntityResourceWrapperXHTML> entities) {
+		if(entities.size() > 0) {
+			return entities.get(0).getResource().getEntity().keySet();
+		}
+		else {
+			return metadata.getEntityMetadata(entityName).getTopLevelProperties();			
+		}
+
+	}
+	
 	protected EntityResource<Map<String, Object>> buildFromOEntity(EntityResource<OEntity> entityResource) {
 		OEntity entity = entityResource.getEntity();
 		Map<String, Object> map = new HashMap<String, Object>();
