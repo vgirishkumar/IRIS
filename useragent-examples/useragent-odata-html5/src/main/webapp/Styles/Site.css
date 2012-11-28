@@ -114,6 +114,14 @@ first child of the left and right table columns */
     font-size: 2em;
 }
 
+.navBar
+{
+    display: block;
+    margin: 0px;
+    padding: 2px 2px 2px 2px;
+    text-align: left;
+}
+
 .main
 {
 	float:right;
