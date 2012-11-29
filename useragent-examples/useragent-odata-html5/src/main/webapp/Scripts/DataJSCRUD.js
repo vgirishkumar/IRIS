@@ -72,19 +72,42 @@ function GetEntitySetCallback(data, request)
     // OData js doesn't provide us with the link relations, parse them ourselves :-(
     
     if (data.results != null) {
-        var links = [];
-        RenderEntitySet(data.results, links);
+        var entriesLinks = parseFeedEntryLinks(request);
+        RenderEntitySet(data.results, entriesLinks);
     } else {
         RenderEntity(data, parseEntryLinks(request));
     }
 }
 
+//given an Atom feed response, parse each entry and their links
+function parseFeedEntryLinks(request) {
+	var entriesLinks = [];
+    var xmlDoc = $.parseXML( request.body ),
+	$xml = $( xmlDoc ),
+	$feed = $xml.find( "feed" );
+
+    var entries = $feed.children("entry");
+	if (entries.length > 0) {
+		entries.each(function (){
+    		var $this = $(this);
+    		var id = $this.children("id").text();
+    		entriesLinks[id] = parseEntry($this);
+		});
+		
+	}
+	return entriesLinks;
+}
+
+// given an Atom entry response, parse the links
 function parseEntryLinks(request) {
-	var mapLinksKeyRel = new Object();
     var xmlDoc = $.parseXML( request.body ),
 		$xml = $( xmlDoc ),
 		$entry = $xml.find( "entry" );
+    return parseEntry($entry);
+}
 
+function parseEntry($entry) {
+	var mapLinksKeyRel = new Object();
     var atomLinks = $entry.children('link');
     if (atomLinks.length > 0) {
     	atomLinks.each(function (){
@@ -297,7 +320,7 @@ function ApplyServiceTemplate(links)
 }
 
 // Render the table for displaying an EntitySet
-function RenderEntitySet(data, links) 
+function RenderEntitySet(data, entitiesLinks) 
 {
 	var header = "<tr class=\"ui-widget-header\">";
 	for (obj in data[0].__metadata.properties) {
@@ -319,13 +342,16 @@ function RenderEntitySet(data, links)
 					body += "<td>" + prop + "</td>";
 				}
 			}
-			body += 
-				"<td>" +
+			body += "<td>";
+			var links = entitiesLinks[data[row].__metadata.uri];
+			var editRel = "edit";
+			if (links[editRel] != null) {
+				body +=
 					"<a href=\"javascript:OpenUpdateDialog(${userid})\">Update</a>" +
 					" " +
-					"<a href=\"javascript:OpenDeleteDialog(${userid})\">Delete</a>" +
-					"</td>" +
-				"</tr>";
+					"<a href=\"javascript:OpenDeleteDialog(${userid})\">Delete</a>";
+			}
+			body += "</td></tr>";
 		}                            
 	}
     $(body).appendTo("#entities tbody");
