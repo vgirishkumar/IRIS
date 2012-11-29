@@ -83,3 +83,7 @@
 /interaction-dsl/com.temenos.interaction.rimdsl.generator/src-gen
 /interaction-sdk/src-gen
 /interaction-examples/interaction-hateoas-simple/src-gen
+*.iml
+*.log
+*.ipr
+*.iws
