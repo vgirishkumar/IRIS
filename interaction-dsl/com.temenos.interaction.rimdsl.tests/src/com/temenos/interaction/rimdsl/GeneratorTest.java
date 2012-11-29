@@ -256,4 +256,36 @@ public class GeneratorTest {
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.NOT_FOUND))"));
 	}
 
+	private final static String RESOURCE_RELATIONS_RIM = "" +
+			"commands" + LINE_SEP +
+			"	Noop" + LINE_SEP +
+			"	Update" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"initial resource accTransactions" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
+			"   relations { \"archives\", \"http://www.temenos.com/statement-entries\" }" + LINE_SEP +
+			"   GET -> B" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"resource accTransaction" + LINE_SEP +
+			"	item ENTITY" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
+			"   actions { Update }" + LINE_SEP +
+			"   relations { \"edit\" }" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"";
+	
+	@Test
+	public void testGenerateResourcesWithRelations() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(RESOURCE_RELATIONS_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("\"archives http://www.temenos.com/statement-entries\".split(\" \")"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("\"edit\".split(\" \")"));
+	}
+
 }
