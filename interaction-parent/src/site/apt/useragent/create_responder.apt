@@ -19,7 +19,11 @@ Creating a sample responder
 
   [[1]]	Create the Airline project skeleton by running the archetype:
 
-	<<$ mvn archetype:generate -DgroupId=>><com.mycorp.airtraffic><< -DartifactId=>><FlightResponder><< -DarchetypeRepository=http://maven.oams.com/content/groups/all/ -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.2.0-SNAPSHOT -DinteractiveMode=false>>
+	<<$ mvn archetype:generate -DgroupId=>><com.mycorp.airtraffic><< -DartifactId=>><FlightResponder><< -DarchetypeRepository=http://maven.oams.com/content/groups/all/ -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.1.0 -DinteractiveMode=false>>
+	
+	[Note:] To create a project with the latest changes point the <<archetypeVersion>> to the latest snapshot available on <http://maven.oams.com/content/repositories/t24-snapshots/>.
+	
+	[]
 
 	This command will create a subdirectory named FlightResponder which contains a maven project
 	with the following artifacts:
@@ -43,7 +47,9 @@ Creating a sample responder
 
 		* <<metadata.xml>> - define entities and their properties as vocabulary terms
 		
-		* <<Behaviour.java>> - defines the resource states and the transitions between those states 
+		* <<FlightResponder.rim>> - DSL which defines the resource interaction model (RIM)
+		
+		* <<FlightResponder.java>> - auto-generated from the RIM and should not be modified
 	
 		* <<spring-beans.xml>> - defines the runtime configuration of the resource model 
 		  with the respective commands used to access the resource managers.
@@ -60,7 +66,11 @@ Creating a sample responder
 	as simple as changing the producer property in the spring configuration file.
 
     [Note:] The JPA classes, jpa-persistence.xml, resourcemanager-context.xml and responder_insert.sql apply to the <<JPA producer>>.
-    If we wire up our resources to a different producer these artifacts would not be required. 
+    If we wire up our resources to a different producer these artifacts would not be required.
+    
+    []
+    
+    It is possible to re-generate the FlightResponder java class after modifying the RIM DSL by running the <<interaction-sdk:gen>> target one more time.
 
   [[4]] Start the FlightReponder with an in-built Jetty web server
   
@@ -70,11 +80,9 @@ Creating a sample responder
   
     [[A]] Service document:        {{http://localhost:8080/responder/FlightResponder.svc}}
     
-    [[B]] Metadata document:       {{http://localhost:8080/responder/FlightResponder.svc/$metadata}}
+    [[B]] Flights feed:            {{http://localhost:8080/responder/FlightResponder.svc/Flight}}
     
-    [[C]] Flights feed:            {{http://localhost:8080/responder/FlightResponder.svc/Flight}}
-    
-    [[D]] Flight entry:            {{http://localhost:8080/responder/FlightResponder.svc/Flight(1)}}
+    [[C]] Flight entry:            {{http://localhost:8080/responder/FlightResponder.svc/Flight(1)}}
     
 
   [[6]] Create the FlightResponder web application archive
