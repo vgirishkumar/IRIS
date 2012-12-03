@@ -46,7 +46,7 @@ public class RIMGeneratorMojo extends AbstractMojo {
 	}
 
     public void setSkipRIMGeneration(String skipRIMGeneration) {
-		this.skipRIMGeneration = skipRIMGeneration != null;
+		this.skipRIMGeneration = (skipRIMGeneration != null && skipRIMGeneration.equalsIgnoreCase("true"));
 	}
 
     public void execute() throws MojoExecutionException, MojoFailureException {
