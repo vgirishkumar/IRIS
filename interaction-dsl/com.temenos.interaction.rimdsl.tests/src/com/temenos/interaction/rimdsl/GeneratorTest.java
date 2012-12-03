@@ -76,14 +76,16 @@ public class GeneratorTest {
 	"		// create states" + LINE_SEP +
 	"		List<Action> AActions = new ArrayList<Action>();" + LINE_SEP +
 	"		AActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
-	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", AActions, \"/A\");" + LINE_SEP +
+	"		String[] ARelations = null;" + LINE_SEP +
+	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", AActions, \"/A\", ARelations, null);" + LINE_SEP +
 	"		// identify the initial state" + LINE_SEP +
 	"		initial = sA;" + LINE_SEP +
 	"		List<Action> BActions = new ArrayList<Action>();" + LINE_SEP +
 	"		BActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
 	"		actionViewProperties = new Properties();" + LINE_SEP +
 	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY, actionViewProperties));" + LINE_SEP +
-	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\");" + LINE_SEP +
+	"		String[] BRelations = null;" + LINE_SEP +
+	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\", BRelations);" + LINE_SEP +
 	LINE_SEP +
 	"		// create regular transitions" + LINE_SEP +
 	LINE_SEP +
@@ -284,8 +286,24 @@ public class GeneratorTest {
 		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("\"archives http://www.temenos.com/statement-entries\".split(\" \")"));
-		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("\"edit\".split(\" \")"));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("\"/accTransactions\", accTransactionsRelations"));
+		String expectedAccTransactionsRelArray = "" +
+			"		String[] accTransactionsRelations = {" + LINE_SEP +
+			"		    \"archives\"," + LINE_SEP +
+			"		    \"http://www.temenos.com/statement-entries\"," + LINE_SEP +
+			"		    \"\"" + LINE_SEP +
+			"		};" + LINE_SEP +
+			"";
+		assertTrue(output.contains(expectedAccTransactionsRelArray));
+		assertTrue(output.contains("\"/accTransaction\", accTransactionRelations"));
+		String expectedAccTransactionRelArray = "" +
+			"		String[] accTransactionRelations = {" + LINE_SEP +
+			"		    \"edit\"," + LINE_SEP +
+			"		    \"\"" + LINE_SEP +
+			"		};" + LINE_SEP +
+			"";
+		assertTrue(output.contains(expectedAccTransactionRelArray));
 	}
 
 }
