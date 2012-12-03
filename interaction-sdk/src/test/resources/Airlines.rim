@@ -4,7 +4,6 @@ end
 
 commands
 	GETServiceDocument
-	GETMetadata
 	GETEntities
 	GETEntity
 	GETNavPropertyflightSchedules entity=Airport, navproperty=navflightSchedules
@@ -16,16 +15,9 @@ initial resource ServiceDocument
 	collection ServiceDocument
 	view { GETServiceDocument }
 	path "/"
-	GET -> metadata
 	GET -> flights
 	GET -> airports
 	GET -> flightschedules
-end
-
-resource metadata
-	item Metadata
-	view { GETMetadata }
-	path "/$metadata"
 end
 
 
