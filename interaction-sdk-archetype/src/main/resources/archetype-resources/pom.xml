@@ -10,6 +10,10 @@
   <name>An IRIS mock responder project.</name>
   <url>http://www.temenos.com</url>
 
+  <properties>
+    <skipRIMGeneration>false</skipRIMGeneration>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -17,9 +21,30 @@
         <artifactId>interaction-sdk-plugin</artifactId>
         <version>${irisVersion}</version>
         <configuration>
-          <edmxFile>${basedir}/src/main/resources/service.edmx</edmxFile>
+          <edmxFile>${basedir}/service.edmx</edmxFile>
           <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
           <configTargetDirectory>${basedir}/src/main/resources</configTargetDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-sdk-rim-plugin</artifactId>
+        <version>${irisVersion}</version>
+        <executions>
+          <!-- Generate the Java source from the RIM during each build -->
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>rim-generate</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
+          <targetDirectory>${basedir}/src-gen</targetDirectory> 
+          -->
+          <rimSourceFile>${basedir}/src/main/resources/${artifactId}.rim</rimSourceFile>
+          <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
         </configuration>
       </plugin>
       
