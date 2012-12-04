@@ -1,8 +1,11 @@
 package com.temenos.interaction.core.media.atom;
 
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -168,7 +171,13 @@ public class AtomEntityEntryFormatWriter {
 		if(!type.equals(EdmSimpleType.STRING)) {
 			writer.writeAttribute(new QName(m, "type", "m"), type.getFullyQualifiedTypeName());
 		}
-		if (elementText != null) {
+		if(type.equals(EdmSimpleType.DATETIME)) {
+			//Write dates in UTC format
+			SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+			formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+			writer.writeElementText(formatUTC.format((Date) property.getValue()));
+		}
+		else if (elementText != null) {
 			writer.writeElementText(elementText);
 		}
 		writer.endElement();
