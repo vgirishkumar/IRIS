@@ -98,12 +98,25 @@ class RIMDslGenerator implements IGenerator {
 	
 	def produceResourceStates(State state) '''
             «produceActionSet(state, state.view, state.actions)»
+            «produceRelations(state)»
             «IF state.entity.isCollection»
-            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
+            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations, null);
             «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»"«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
             «ENDIF»
 	'''
+
+    def produceRelations(State state) '''
+        «IF state.relations != null && state.relations.size > 0»
+        String «state.name»RelationsStr = "";
+        «FOR relation : state.relations»
+        «state.name»RelationsStr += "«relation.name» ";
+        «ENDFOR»
+        String[] «state.name»Relations = «state.name»RelationsStr.trim().split(" ");
+        «ELSE»
+        String[] «state.name»Relations = null;
+        «ENDIF»
+    '''
 
     def produceActionSet(State state, Command viewCommand, EList<Command> actions) '''
         List<Action> «state.name»Actions = new ArrayList<Action>();

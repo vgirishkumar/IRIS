@@ -82,6 +82,7 @@
 /interaction-dsl/interaction-rim-plugin/.settings
 /interaction-dsl/com.temenos.interaction.rimdsl.generator/src-gen
 /interaction-sdk/src-gen
+/interaction-sdk-rim-plugin/target
 /interaction-examples/interaction-hateoas-simple/src-gen
 *.iml
 *.log

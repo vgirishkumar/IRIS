@@ -42,7 +42,7 @@
       </plugin>   
       <plugin>
         <groupId>com.temenos.interaction</groupId>
-        <artifactId>interaction-sdk-plugin</artifactId>
+        <artifactId>interaction-sdk-rim-plugin</artifactId>
         <version>${project.version}</version>
         <executions>
           <execution>
@@ -147,6 +147,25 @@
     								</groupId>
     								<artifactId>
     									interaction-sdk-plugin
+    								</artifactId>
+    								<versionRange>
+    									[0.2.0-SNAPSHOT,)
+    								</versionRange>
+    								<goals>
+    									<goal>rim-generate</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									com.temenos.interaction
+    								</groupId>
+    								<artifactId>
+    									interaction-sdk-rim-plugin
     								</artifactId>
     								<versionRange>
     									[0.2.0-SNAPSHOT,)
