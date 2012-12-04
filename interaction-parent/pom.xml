@@ -17,6 +17,7 @@
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		-->
 		<module>../useragent-examples/useragent-odata-html5</module>
+		<!--
 		<module>../useragent-examples/useragent-generic-javascript</module>
 		<module>../useragent-examples/T24-ft-useragent-javascript</module>
 		<module>../useragent-examples/useragent-hal-inspector</module>
@@ -26,13 +27,18 @@
 		<module>../interaction-examples/interaction-mashup-twitter</module>
 		<module>../interaction-examples/interaction-odata-northwind</module>
 		<module>../interaction-examples/interaction-odata-airline</module>
+		-->
 		<module>../interaction-examples/interaction-odata-notes</module>
+		<!--
 		<module>../interaction-sdk-archetype</module>
+		-->
 		<module>../interaction-sdk</module>
+		<!--
 		<module>../interaction-sdk-plugin</module>
 		<module>../interaction-sdk-rim-plugin</module>
 		<module>../interaction-sdk-test</module>
 		<module>../interaction-test</module>
+		-->
 	</modules>
 
 		        <!-- For Java 1.6 we want to skip the modules that rely on the
