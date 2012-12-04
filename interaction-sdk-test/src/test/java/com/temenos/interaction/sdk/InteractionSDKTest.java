@@ -53,6 +53,10 @@ public class InteractionSDKTest {
         //Verify the archetype
         verifier = new Verifier(ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID);
         verifier.setAutoclean(true);
+        // the RIM file has not been generated yet (see interaction-sdk:gen target)
+        Properties props = new Properties();
+        props.put("skipRIMGeneration", "true");
+        verifier.setSystemProperties(props);
         verifier.executeGoal("verify");
         verifier.verifyErrorFreeLog();
         

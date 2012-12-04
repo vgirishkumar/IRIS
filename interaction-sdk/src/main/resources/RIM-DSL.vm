@@ -17,16 +17,9 @@ initial resource ServiceDocument
 	collection ServiceDocument
 	view { GETServiceDocument }
 	path "/"
-	GET -> metadata
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 	GET -> ${rsm.getCollectionStateName()}
 #end
-end
-
-resource metadata
-	item Metadata
-	view { GETMetadata }
-	path "/$metadata"
 end
 
 #foreach ( $rsm in $rim.getResourceStateMachines() )

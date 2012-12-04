@@ -21,6 +21,7 @@ State:
         entity=Entity
         ('view' '{' view=[Command] '}')
         ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')?
+        ('relations' '{' ((relations+=Relation) (',' relations+=Relation)* ) '}')?
         path=Path?
         transitionsAuto+=TransitionAuto*
         transitions+=Transition*
@@ -55,6 +56,10 @@ Function_OK:
 
 Function_NOT_FOUND:
     {NotFoundFunction} 'NOT_FOUND' '(' state=[State] ')'
+;
+
+Relation:
+    name=STRING    
 ;
 
 Path:

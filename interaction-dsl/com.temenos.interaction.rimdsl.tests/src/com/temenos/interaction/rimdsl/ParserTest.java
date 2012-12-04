@@ -120,7 +120,7 @@ public class ParserTest {
 	public void testParseSingleStateNoCommands() throws Exception {
 		ResourceInteractionModel model = parser.parse(SINGLE_STATE_NO_COMMANDS_RIM);
 		
-		// there should be exactly one states
+		// there should be exactly one state
 		assertEquals(1, model.getStates().size());
 	    assertEquals("A", model.getStates().get(0).getName());
 
@@ -243,6 +243,44 @@ public class ParserTest {
 	    // state should be an exception state
 	    State state = model.getStates().get(0);
 	    assertTrue(state.isIsException());
+	}
+
+	private final static String RESOURCE_RELATIONS_RIM = "" +
+			"commands" + LINE_SEP +
+			"	Noop" + LINE_SEP +
+			"	Update" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"initial resource accTransactions" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
+			"   relations { \"archives\", \"http://www.temenos.com/statement-entries\" }" + LINE_SEP +
+			"   GET -> B" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"resource accTransaction" + LINE_SEP +
+			"	item ENTITY" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
+			"   actions { Update }" + LINE_SEP +
+			"   relations { \"edit\" }" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"";
+
+	@Test
+	public void testParseResourceRelations() throws Exception {
+		ResourceInteractionModel model = parser.parse(RESOURCE_RELATIONS_RIM);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be two states
+		assertEquals(2, model.getStates().size());
+		State r1 = model.getStates().get(0);
+	    assertEquals("accTransactions", r1.getName());
+		assertEquals(2, r1.getRelations().size());
+		assertEquals("archives", r1.getRelations().get(0).getName());
+		assertEquals("http://www.temenos.com/statement-entries", r1.getRelations().get(1).getName());
+		State r2 = model.getStates().get(1);
+	    assertEquals("accTransaction", r2.getName());
+		assertEquals(1, r2.getRelations().size());
+		assertEquals("edit", r2.getRelations().get(0).getName());
 	}
 
 }

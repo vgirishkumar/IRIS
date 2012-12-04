@@ -76,14 +76,16 @@ public class GeneratorTest {
 	"		// create states" + LINE_SEP +
 	"		List<Action> AActions = new ArrayList<Action>();" + LINE_SEP +
 	"		AActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
-	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", AActions, \"/A\");" + LINE_SEP +
+	"		String[] ARelations = null;" + LINE_SEP +
+	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", AActions, \"/A\", ARelations, null);" + LINE_SEP +
 	"		// identify the initial state" + LINE_SEP +
 	"		initial = sA;" + LINE_SEP +
 	"		List<Action> BActions = new ArrayList<Action>();" + LINE_SEP +
 	"		BActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
 	"		actionViewProperties = new Properties();" + LINE_SEP +
 	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY, actionViewProperties));" + LINE_SEP +
-	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\");" + LINE_SEP +
+	"		String[] BRelations = null;" + LINE_SEP +
+	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\", BRelations);" + LINE_SEP +
 	LINE_SEP +
 	"		// create regular transitions" + LINE_SEP +
 	LINE_SEP +
@@ -254,6 +256,52 @@ public class GeneratorTest {
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.OK))"));
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.NOT_FOUND))"));
+	}
+
+	private final static String RESOURCE_RELATIONS_RIM = "" +
+			"commands" + LINE_SEP +
+			"	Noop" + LINE_SEP +
+			"	Update" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"initial resource accTransactions" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
+			"   relations { \"archives\", \"http://www.temenos.com/statement-entries\" }" + LINE_SEP +
+			"   GET -> B" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"resource accTransaction" + LINE_SEP +
+			"	item ENTITY" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
+			"   actions { Update }" + LINE_SEP +
+			"   relations { \"edit\" }" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"";
+	
+	@Test
+	public void testGenerateResourcesWithRelations() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(RESOURCE_RELATIONS_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("\"/accTransactions\", accTransactionsRelations"));
+		String expectedAccTransactionsRelArray = "" +
+			"		String accTransactionsRelationsStr = \"\";" + LINE_SEP +
+			"		accTransactionsRelationsStr += \"archives \";" + LINE_SEP +
+			"		accTransactionsRelationsStr += \"http://www.temenos.com/statement-entries \";" + LINE_SEP +
+			"		String[] accTransactionsRelations = accTransactionsRelationsStr.trim().split(\" \");" + LINE_SEP +
+			"";
+		assertTrue(output.contains(expectedAccTransactionsRelArray));
+		assertTrue(output.contains("\"/accTransaction\", accTransactionRelations"));
+		String expectedAccTransactionRelArray = "" +
+			"		String accTransactionRelationsStr = \"\";" + LINE_SEP +
+			"		accTransactionRelationsStr += \"edit \";" + LINE_SEP +
+			"		String[] accTransactionRelations = accTransactionRelationsStr.trim().split(\" \");" + LINE_SEP +
+			"";
+		assertTrue(output.contains(expectedAccTransactionRelArray));
 	}
 
 }
