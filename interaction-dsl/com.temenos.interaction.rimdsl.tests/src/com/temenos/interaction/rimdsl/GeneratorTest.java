@@ -289,19 +289,17 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output.contains("\"/accTransactions\", accTransactionsRelations"));
 		String expectedAccTransactionsRelArray = "" +
-			"		String[] accTransactionsRelations = {" + LINE_SEP +
-			"		    \"archives\"," + LINE_SEP +
-			"		    \"http://www.temenos.com/statement-entries\"," + LINE_SEP +
-			"		    \"\"" + LINE_SEP +
-			"		};" + LINE_SEP +
+			"		String accTransactionsRelationsStr = \"\";" + LINE_SEP +
+			"		accTransactionsRelationsStr += \"archives \";" + LINE_SEP +
+			"		accTransactionsRelationsStr += \"http://www.temenos.com/statement-entries \";" + LINE_SEP +
+			"		String[] accTransactionsRelations = accTransactionsRelationsStr.trim().split(\" \");" + LINE_SEP +
 			"";
 		assertTrue(output.contains(expectedAccTransactionsRelArray));
 		assertTrue(output.contains("\"/accTransaction\", accTransactionRelations"));
 		String expectedAccTransactionRelArray = "" +
-			"		String[] accTransactionRelations = {" + LINE_SEP +
-			"		    \"edit\"," + LINE_SEP +
-			"		    \"\"" + LINE_SEP +
-			"		};" + LINE_SEP +
+			"		String accTransactionRelationsStr = \"\";" + LINE_SEP +
+			"		accTransactionRelationsStr += \"edit \";" + LINE_SEP +
+			"		String[] accTransactionRelations = accTransactionRelationsStr.trim().split(\" \");" + LINE_SEP +
 			"";
 		assertTrue(output.contains(expectedAccTransactionRelArray));
 	}

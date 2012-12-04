@@ -108,12 +108,11 @@ class RIMDslGenerator implements IGenerator {
 
     def produceRelations(State state) '''
         «IF state.relations != null && state.relations.size > 0»
-        String[] «state.name»Relations = {
-            «FOR relation : state.relations»
-            "«relation.name»",
-            «ENDFOR»
-            ""
-        };
+        String «state.name»RelationsStr = "";
+        «FOR relation : state.relations»
+        «state.name»RelationsStr += "«relation.name» ";
+        «ENDFOR»
+        String[] «state.name»Relations = «state.name»RelationsStr.trim().split(" ");
         «ELSE»
         String[] «state.name»Relations = null;
         «ENDIF»
