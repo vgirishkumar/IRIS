@@ -192,7 +192,7 @@ function AddErrorCallback(error)
 function OpenUpdateDialog(userId) 
 {
     $("#loading").hide();
-    var cells = $("#userRow" + userId).children("td");
+    var cells = $("#entityRow" + userId).children("td");
     $("#name").val(cells.eq(0).text());
     $("#email").val(cells.eq(1).text());
     $("#password").val(cells.eq(2).text());
@@ -255,20 +255,23 @@ function UpdateErrorCallback(error) {
 var $dialog = null;
 
 //Handle Delete hyperlink click
-function OpenDeleteDialog(userId) 
+function OpenDeleteDialog(entityUri) 
 {
     $("#loading").hide();
-    var cells = $("#userRow" + userId).children("td");
 
+    // append baseuri if the link is relative
+    if (entityUri.indexOf("http://") == -1) {
+    	entityUri = ODATA_SVC.val() + entityUri;
+    }
     $dialog = $('<div></div>')
-		            .html('You are about to delete account "' + cells.eq(0).text() + '". Do you want to continue? ')
+		            .html('You are about to delete entity at "' + entityUri + '". Do you want to continue? ')
 		            .dialog({
 		                autoOpen: false,
                         width:400,
 		                modal: true,
 		                buttons: {
 		                    "Yes": function () {
-		                        DeleteUser(userId);
+		                    	DeleteEntity(entityUri);
 		                    },
 		                    "No": function () {
 		                        $(this).dialog("close");
@@ -280,22 +283,27 @@ function OpenDeleteDialog(userId)
 }
 
 //Handles DataJS calls for delete user
-function DeleteUser(userId) 
+function DeleteEntity(entityUri) 
 {
-    var requestURI = USERS_ODATA_SVC + "(" + userId + ")";
     var requestOptions = {
-                            requestUri: requestURI,
+                            requestUri: entityUri,
                             method: "DELETE",
+                            headers: { Accept: "application/atom+xml" }
                         };
 
     OData.request(requestOptions, DeleteSuccessCallback, DeleteErrorCallback);
 }
 
 //DeleteUser Success callback
-function DeleteSuccessCallback()
+function DeleteSuccessCallback(data, request)
 {
     $dialog.dialog('close');
-    GetUsers();
+    // Handle response from redirect (303), or will need to redisplay current view (205)
+    if (request.statusCode == 200) {
+        GetEntitySetCallback(data, request);
+    } else {
+        alert("Unhandled statusCode, is it a redisplay? " + request.statusCode);
+    }
 }
 
 //DeleteUser Error callback
@@ -322,39 +330,45 @@ function ApplyServiceTemplate(links)
 // Render the table for displaying an EntitySet
 function RenderEntitySet(data, entitiesLinks) 
 {
-	var header = "<tr class=\"ui-widget-header\">";
-	for (obj in data[0].__metadata.properties) {
-		header += "<th>" + obj + "</th>";
-	}
-	header += "<th>Actions</th>"
-	header += "</tr>";
-	$(header).appendTo("#entities tbody");
+    $("#entities").find("tr:gt(0)").remove();
+	if (data.length == 0) {
+		var msg = "<tr><td>No entities found.</td></tr>";
+		$(msg).appendTo("#entities tbody");
+	} else {
+		var header = "<tr class=\"ui-widget-header\">";
+		for (obj in data[0].__metadata.properties) {
+			header += "<th>" + obj + "</th>";
+		}
+		header += "<th>Actions</th>"
+		header += "</tr>";
+		$(header).appendTo("#entities tbody");
 
-	var body = "";
-	for (row in data) {
-		if (row != "__metadata") {
-			body += "<tr id=\"userRow" + row + "\">";
-			for (obj in data[0].__metadata.properties) {
-				var prop = data[row][obj];
-				if (prop.__deferred != null && prop.__deferred.uri != null) {
-					body += "<td><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
-				} else {
-					body += "<td>" + prop + "</td>";
+		var body = "";
+		for (row in data) {
+			if (row != "__metadata") {
+				body += "<tr id=\"entityRow" + row + "\">";
+				for (obj in data[0].__metadata.properties) {
+					var prop = data[row][obj];
+					if (prop.__deferred != null && prop.__deferred.uri != null) {
+						body += "<td><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
+					} else {
+						body += "<td>" + prop + "</td>";
+					}
 				}
-			}
-			body += "<td>";
-			var links = entitiesLinks[data[row].__metadata.uri];
-			var editRel = "edit";
-			if (links[editRel] != null) {
-				body +=
-					"<a href=\"javascript:OpenUpdateDialog(${userid})\">Update</a>" +
-					" " +
-					"<a href=\"javascript:OpenDeleteDialog(${userid})\">Delete</a>";
-			}
-			body += "</td></tr>";
-		}                            
+				body += "<td>";
+				var links = entitiesLinks[data[row].__metadata.uri];
+				var editRel = "edit";
+				if (links[editRel] != null) {
+					body +=
+						"<a href=\"javascript:OpenUpdateDialog('" + links[editRel].href + "')\">Update</a>" +
+						" " +
+						"<a href=\"javascript:OpenDeleteDialog('" + links[editRel].href + "')\">Delete</a>";
+				}
+				body += "</td></tr>";
+			}                            
+		}
+	    $(body).appendTo("#entities tbody");
 	}
-    $(body).appendTo("#entities tbody");
 }
 
 //Render the table for displaying an Entity
@@ -382,9 +396,9 @@ function RenderEntity(data, links)
 	var editRel = "edit";
 	if (links[editRel] != null) {
 		body += 
-			"<a href=\"javascript:OpenUpdateDialog(${userid})\">Update</a>" +
+			"<a href=\"javascript:OpenUpdateDialog('" + links[editRel].href + "')\">Update</a>" +
 			" " +
-			"<a href=\"javascript:OpenDeleteDialog(${userid})\">Delete</a>";
+			"<a href=\"javascript:OpenDeleteDialog('" + links[editRel].href + "')\">Delete</a>";
 	}
 	body += "</td></tr>";
     $(body).appendTo("#entities tbody");
