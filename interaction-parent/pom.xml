@@ -15,6 +15,7 @@
 		<module>../interaction-commands-odata-bridge</module>
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../useragent-examples/useragent-odata-html5</module>
+<!--
 		<module>../useragent-examples/useragent-generic-javascript</module>
 		<module>../useragent-examples/T24-ft-useragent-javascript</module>
 		<module>../useragent-examples/useragent-hal-inspector</module>
@@ -22,6 +23,7 @@
 		<module>../interaction-examples/interaction-hateoas-banking</module>
 		<module>../interaction-examples/T24-ft-interaction-banking</module>
 		<module>../interaction-examples/interaction-mashup-twitter</module>
+-->
 		<module>../interaction-examples/interaction-odata-northwind</module>
 		<module>../interaction-examples/interaction-odata-airline</module>
 		<module>../interaction-examples/interaction-odata-notes</module>
