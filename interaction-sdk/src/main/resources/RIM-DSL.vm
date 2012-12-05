@@ -3,7 +3,7 @@ events
 end
 
 commands
-#foreach ( $command in $commands.getCommands() )
+#foreach ( $command in $commands.getRIMCommands() )
 	$command.getId()
 #end
 #foreach ( $rsm in $rim.getResourceStateMachines() )

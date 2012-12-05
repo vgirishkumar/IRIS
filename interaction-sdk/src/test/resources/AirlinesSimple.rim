@@ -4,7 +4,6 @@ end
 
 commands
 	GETServiceDocument
-	GETMetadata
 	GETEntities
 	GETEntity
 	GETNavPropertydepartureAirport entity=FlightSchedule, navproperty=navdepartureAirport
