@@ -42,7 +42,7 @@ public class EdmTimeTemporalITCase {
 						.findProperty("arrivalTime").getType());
 	}
 
-	//@Test
+	@Test
 	/**
 	 *handling of Date fields with different @Temporal
 	 */

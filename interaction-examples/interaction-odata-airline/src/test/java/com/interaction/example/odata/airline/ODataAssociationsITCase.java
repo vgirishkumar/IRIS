@@ -38,9 +38,8 @@ public class ODataAssociationsITCase {
 	/**
 	 * GET collection, check link to self and other entities for each item
 	 */
-	@Test
+	//@Test
 	public void getFlightsLinksToFlight() throws Exception {
-		/*
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		Enumerable<OEntity> flights = consumer.getEntities(FLIGHT_ENTITYSET_NAME).execute();
@@ -55,7 +54,6 @@ public class ODataAssociationsITCase {
 			// there should be one link to one flight schedule for this flight
 			assertTrue(containsLink(flight.getLinks(), "FlightSchedule(" + flightScheduleId + ")"));
 		}
-		*/
 	}
 
 	/**
@@ -100,7 +98,7 @@ public class ODataAssociationsITCase {
 	/**
 	 * GET item, check link to another entity
 	 */
-	//@Test
+	@Test
 	public void getFlightScheduleLinksToAirports() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
@@ -118,7 +116,7 @@ public class ODataAssociationsITCase {
 	/**
 	 * GET nav properties for an item
 	 */
-	//@Test
+	@Test
 	public void getFlightScheduleNavProperties() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
