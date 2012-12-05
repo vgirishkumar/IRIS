@@ -25,7 +25,7 @@ end
 resource flights
 	collection Flight
 	view { GETEntities }
-	path "/Flight"
+	path "/Flight()"
 	GET *-> flight id=flightID
 end
 
@@ -41,7 +41,7 @@ end
 resource airports
 	collection Airport
 	view { GETEntities }
-	path "/Airport"
+	path "/Airport()"
 	GET *-> airport id=code
 	GET *-> flightSchedules id=code
 end
@@ -66,7 +66,7 @@ end
 resource flightschedules
 	collection FlightSchedule
 	view { GETEntities }
-	path "/FlightSchedule"
+	path "/FlightSchedule()"
 	GET *-> flightschedule id=flightScheduleID
 	GET *-> departureAirport id=flightScheduleID
 	GET *-> arrivalAirport id=flightScheduleID

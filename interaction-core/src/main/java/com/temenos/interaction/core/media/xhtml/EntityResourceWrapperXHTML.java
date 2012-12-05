@@ -57,6 +57,6 @@ public class EntityResourceWrapperXHTML extends EntityResourceWrapper {
 	}
 	
 	public String getEntityGetHRef() {
-		return entityGetLink.getHref().replaceAll("'", "\\\\'");
+		return entityGetLink != null ? entityGetLink.getHref().replaceAll("'", "\\\\'") : "";
 	}
 }

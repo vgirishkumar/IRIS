@@ -27,7 +27,7 @@ end
 resource ${rsm.getCollectionStateName()}
 	collection ${rsm.getEntityName()}
 	view { GETEntities }
-	path "/${rsm.getEntityName()}"
+	path "/${rsm.getEntityName()}()"
 	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
 #foreach ( $transition in $rsm.getTransitions() )
 	GET *-> ${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}
