@@ -64,15 +64,17 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 
     assert(links != null);
     for (Link link : links) {
+    	String href = link.getHref();
+    	String title = link.getTitle();
+    	String rel = link.getRel();
     	// only include the self link until we add better integration tests
     	if (link.getRel().equals("self")) {
         	// TODO include href without base path in link
-        	String href = link.getHref();
         	// chop the leading base path
         	if (href.startsWith(baseUri)) {
         		href = href.substring(baseUri.length());
         	}
-            writeElement(writer, "link", null, "rel", link.getRel(), "title", link.getTitle(), "href", href);
+            writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
     	}
     }
 

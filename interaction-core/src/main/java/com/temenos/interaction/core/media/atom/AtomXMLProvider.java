@@ -220,7 +220,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
 		String rel = link.getRel();
 		if(!rel.contains("self") && !rel.contains("edit")) {
-			rel = XmlFormatWriter.related + link.getRel();
+			rel = XmlFormatWriter.related + link.getTitle();
 		}
 		String href = link.getHref();
 		if(requestContext != null) {

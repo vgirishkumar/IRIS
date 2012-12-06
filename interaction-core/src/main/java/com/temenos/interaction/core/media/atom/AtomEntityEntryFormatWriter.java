@@ -41,13 +41,12 @@ public class AtomEntityEntryFormatWriter {
 	protected UriInfo uriInfo = null;
 	protected String baseUri = "";
 
-	// Constants as defined by the odata4j XmlFormatWriter class
-	private static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
-	private static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
-	private static final String scheme = "http://schemas.microsoft.com/ado/2007/08/dataservices/scheme";
-	private static final String SCHEMA_RELATED = "http://schemas.microsoft.com/ado/2007/08/dataservices/related";
-	private static final String atom_entry_content_type = "application/atom+xml;type=entry";
-	private static final String href_lang = "en";
+	// Constants for OData
+	public static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
+	public static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
+	public static final String scheme = "http://schemas.microsoft.com/ado/2007/08/dataservices/scheme";
+	public static final String atom_entry_content_type = "application/atom+xml;type=entry";
+	public static final String href_lang = "en";
 
 	public void write(UriInfo uriInfo, Writer w, Entity entity,
 			EntityMetadata entityMetadata, List<Link> links, String modelName) {
@@ -104,9 +103,6 @@ public class AtomEntityEntryFormatWriter {
 				String type = atom_entry_content_type;
 				String href = link.getHrefTransition(baseUri);
 				String rel = link.getRel();
-				if(rel.equals("item") || rel.equals("collection")) {
-					rel = SCHEMA_RELATED + "/" + entity.getName();
-				}
 				writer.writeLink(href, rel, type, link.getTitle(), href_lang, 0);
 			}
 		}
