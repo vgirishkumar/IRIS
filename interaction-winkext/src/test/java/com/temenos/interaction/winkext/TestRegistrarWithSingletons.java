@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.wink.common.DynamicResource;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -157,4 +158,19 @@ public class TestRegistrarWithSingletons {
 		assertEquals(3, rs.getInstances().size());
 	}
 
+	@Test
+	public void testODataCollectionResource() throws Exception {
+		ResourceRegistry rRegistry = new ResourceRegistry(mock(EdmDataServices.class), new HashSet<HTTPResourceInteractionModel>());
+		HTTPResourceInteractionModel r1 = createMockHTTPRIM("home", "/customers()");
+		rRegistry.add(r1);
+	
+		RegistrarWithSingletons rs = new RegistrarWithSingletons();
+		rs.setResourceRegistry(rRegistry);
+		assertNotNull(rs.getInstances());
+		assertEquals(2, rs.getInstances().size());
+		for(Object resource : rs.getInstances()) {
+			DynamicResourceDelegate dr = (DynamicResourceDelegate) resource;
+			Assert.assertTrue(dr.getPath().equals("/customers()") || dr.getPath().equals("/customers"));
+		}
+	}
 }

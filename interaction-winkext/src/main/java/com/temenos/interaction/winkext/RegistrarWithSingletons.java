@@ -95,11 +95,25 @@ public class RegistrarWithSingletons extends Registrar {
     		parent = resources.get(parentKey);
     	}
     	
-    	// TODO could do a lot better then this cast
-    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parent != null ? (HTTPResourceInteractionModel) parent : null, (HTTPResourceInteractionModel) rim);
+    	//Register the resource
+    	HTTPResourceInteractionModel parentResource = parent != null ? (HTTPResourceInteractionModel) parent : null;
+    	HTTPResourceInteractionModel resource = (HTTPResourceInteractionModel) rim;
+    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parentResource, resource);
     	resources.put(rimKey, dr);
     	this.getInstances().add(dr);
    	
+    	//Ensure OData collection resources are available with and without empty brackets (e.g. /customers() and /customers)
+    	if(rimKey.endsWith("()")) {
+    		String pathWithoutBrackets = rimKey.substring(0, rimKey.length() - 2);
+    		final DynamicResourceDelegate drWithoutBrackets = new DynamicResourceDelegate(parentResource, resource) {
+    			@Override
+    		    public String getPath() {
+    				String resourcePath = super.getResourcePath();
+    				return resourcePath.substring(0, resourcePath.length() - 2);
+    		    }
+        	};
+        	resources.put(pathWithoutBrackets, drWithoutBrackets);
+        	this.getInstances().add(drWithoutBrackets);
+    	}
     }
-    
 }

@@ -181,10 +181,11 @@ public class JPAResponderGen {
 		Commands commands = getDefaultCommands(interactionModel);
 		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
 			for(IMTransition transition : rsm.getTransitions()) {
-				commands.addCommand("GETNavProperty" + transition.getTargetStateName(), "com.temenos.interaction.commands.odata.GETNavPropertyCommand", "GETNavProperty" + transition.getTargetStateName(), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+				String cmdId = Commands.GET_NAV_PROPERTY + transition.getTargetStateName();
+				commands.addCommand(cmdId, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", cmdId, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 			}
 		}
-
+		
 		//Obtain resource information
 		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
@@ -882,9 +883,7 @@ public class JPAResponderGen {
 		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-//		commands.addLinkCommands(interactionModel, "com.temenos.interaction.commands.odata.GETLinkEntityCommand", "com.temenos.interaction.commands.odata.GETEntitiesCommand");
 		
 		return commands;
 	}
