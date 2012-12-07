@@ -27,7 +27,7 @@ public class Behaviour {
 		Properties actionViewProperties = new Properties();
 		ResourceState initial = null;
 		// create states
-		CollectionResourceState sServiceDocument = new CollectionResourceState("ServiceDocument", "ServiceDocument", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW, actionViewProperties), null), "");
+		CollectionResourceState sServiceDocument = new CollectionResourceState("ServiceDocument", "ServiceDocument", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW, actionViewProperties), null), "/");
 		// identify the initial state
 		initial = sServiceDocument;
 		ResourceState smetadata = new ResourceState("Metadata", "metadata", createActionList(new Action("GETMetadata", Action.TYPE.VIEW, actionViewProperties), null), "/$metadata", new UriSpecification("metadata", "/$metadata"));
