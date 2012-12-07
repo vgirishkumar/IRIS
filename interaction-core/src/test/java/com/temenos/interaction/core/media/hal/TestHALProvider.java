@@ -143,6 +143,24 @@ public class TestHALProvider {
 		assertEquals("Children", entity.getName());
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testDeserialiseResolveEntityNameWithIdODataPath() throws IOException, URISyntaxException {
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children({id})/updated", "id", null));
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		
+		String strEntityStream = "<resource href=\"~/children(123)/updated\"><name>noah</name><age>2</age></resource>";
+		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
+		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		assertNotNull(er.getEntity());
+		Entity entity = er.getEntity();
+		assertEquals("Children", entity.getName());
+	}
+	
 	private Metadata createMockChildVocabMetadata() {
 		EntityMetadata vocs = new EntityMetadata("Children");
 		Vocabulary vocId = new Vocabulary();

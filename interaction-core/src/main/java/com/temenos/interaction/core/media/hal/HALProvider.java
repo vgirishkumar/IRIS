@@ -411,12 +411,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			for (String path : pathToResourceStates.keySet()) {
 				for (ResourceState s : pathToResourceStates.get(path)) {
 					if (s.getPathIdParameter() != null) {
-						Matcher matcher = Pattern.compile("(.*)/\\{" + s.getPathIdParameter() + "\\}").matcher(path);
-						if (matcher.find()) {
-							resourcePath = matcher.group(1);
+						Matcher matcher = Pattern.compile("(.*)\\{" + s.getPathIdParameter() + "\\}(.*)").matcher(path);
+						matcher.find();
+						if (matcher.groupCount() == 1 && path.startsWith(matcher.group(1)) ||
+							matcher.groupCount() == 2 && path.startsWith(matcher.group(1)) && path.endsWith(matcher.group(2))) {
+							entityName = s.getEntityName();
 						}
 					}
-					if (path.startsWith(resourcePath)) {
+					else if(path.startsWith(resourcePath)) {
 						entityName = s.getEntityName();
 					}
 				}
