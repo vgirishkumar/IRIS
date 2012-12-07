@@ -43,7 +43,7 @@ public class IMTransition {
 	 * @return resource state name 
 	 */
 	public String getTargetRsmStateName() {
-		return (reciprocalLinkState != null && !reciprocalLinkState.equals("")) ? reciprocalLinkState : targetResourceStateMachine.getEntityStateName();
+		return (reciprocalLinkState != null && !reciprocalLinkState.equals("")) ? targetResourceStateMachine.getEntityStateName() + "_" + reciprocalLinkState : targetResourceStateMachine.getEntityStateName();
 	}
 	
 	public IMResourceStateMachine getTargetResourceStateMachine() {

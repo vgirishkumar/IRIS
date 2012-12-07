@@ -57,8 +57,8 @@ resource flightschedules
 	view { GETEntities }
 	path "/FlightSchedule()"
 	GET *-> flightschedule id=flightScheduleID
-	GET *-> departureAirport id=flightScheduleID
-	GET *-> arrivalAirport id=flightScheduleID
+	GET *-> flightschedule_departureAirport id=flightScheduleID
+	GET *-> flightschedule_arrivalAirport id=flightScheduleID
 end
 
 
@@ -66,20 +66,20 @@ resource flightschedule
 	item FlightSchedule
 	view { GETEntity }
 	path "/FlightSchedule({id})"
-	GET -> departureAirport id=flightScheduleID, navdepartureAirport="departureAirport"
-	GET -> arrivalAirport id=flightScheduleID, navarrivalAirport="arrivalAirport"
+	GET -> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport="departureAirport"
+	GET -> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport="arrivalAirport"
 end
 
 
 
-resource departureAirport
+resource flightschedule_departureAirport
 	item Airport
 	view { GETNavPropertydepartureAirport }
 	path "/FlightSchedule({id})/{navdepartureAirport}"
 	GET -> airport id=code
 end
 
-resource arrivalAirport
+resource flightschedule_arrivalAirport
 	item Airport
 	view { GETNavPropertyarrivalAirport }
 	path "/FlightSchedule({id})/{navarrivalAirport}"
