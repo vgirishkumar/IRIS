@@ -206,7 +206,7 @@ function AddErrorCallback(error)
 
 //*************************Update User (UPDATE)***************************
 //Handle Update hyper link click
-function OpenUpdateDialog(entityName, href) 
+function OpenUpdateDialog(entityName, row, href) 
 {
     $("#loading").hide();
     
@@ -215,8 +215,14 @@ function OpenUpdateDialog(entityName, href)
     AddFormFields(entityName, metadata, "dialog-form-fields");
 
     //Populate fields
-    //var cells = $("#entityRow" + href).children("td");
-    //$("#name").val(cells.eq(0).text());
+	var entityType = OData.lookupEntityType(entityName, metadata);
+	if(entityType != undefined) {
+  	    for (i in entityType.property) {
+  	   		var property = entityType.property[i];
+    	    var entityCell = $("#entityCell_" + row + "_" + property.name);
+    		$("#inputForm_" + property.name).val(entityCell.eq(0).text());
+  	    }
+	}
 
     $("#dialog-form").dialog("option", "buttons", [
                         {
@@ -377,13 +383,13 @@ function RenderEntitySet(data, entitiesLinks)
 		var body = "";
 		for (row in data) {
 			if (row != "__metadata") {
-				body += "<tr id=\"entityRow" + row + "\">";
+				body += "<tr id=\"entityRow_" + row + "\">";
 				for (obj in data[0].__metadata.properties) {
 					var prop = data[row][obj];
 					if (prop.__deferred != null && prop.__deferred.uri != null) {
-						body += "<td><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
+						body += "<td id=\"entityCell_" + row + "_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
 					} else {
-						body += "<td>" + prop + "</td>";
+						body += "<td id=\"entityCell_" + row + "_"+ obj +"\">" + prop + "</td>";
 					}
 				}
 				body += "<td>";
@@ -391,7 +397,7 @@ function RenderEntitySet(data, entitiesLinks)
 				var editRel = "edit";
 				if (links[editRel] != null) {
 					body +=
-						"<a href=\"javascript:OpenUpdateDialog('" + data[row].__metadata.type + "', '" + links[editRel].href + "')\">Update</a>" +
+						"<a href=\"javascript:OpenUpdateDialog('" + data[row].__metadata.type + "', '" + row + "', '" + links[editRel].href + "')\">Update</a>" +
 						" " +
 						"<a href=\"javascript:OpenDeleteDialog('" + links[editRel].href + "')\">Delete</a>";
 				}
@@ -413,13 +419,13 @@ function RenderEntity(data, links)
 
 	var body = "";
 	for (obj in data.__metadata.properties) {
-		body += "<tr id=\"entityRow" + row + "\">";
+		body += "<tr id=\"entityRow_0\">";
 		body += "<td>" + obj + "</td>";
 		var prop = data[obj];
 		if (prop.__deferred != null && prop.__deferred.uri != null) {
-			body += "<td><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
+			body += "<td id=\"entityCell_0_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
 		} else {
-			body += "<td>" + prop + "</td>";
+			body += "<td id=\"entityCell_0_"+ obj +"\">" + prop + "</td>";
 		}
 		body += "</tr>";
 	}
@@ -427,7 +433,7 @@ function RenderEntity(data, links)
 	var editRel = "edit";
 	if (links[editRel] != null) {
 		body += 
-			"<a href=\"javascript:OpenUpdateDialog('" + data.__metadata.type + "', '" + links[editRel].href + "')\">Update</a>" +
+			"<a href=\"javascript:OpenUpdateDialog('" + data.__metadata.type + "', '0', '" + links[editRel].href + "')\">Update</a>" +
 			" " +
 			"<a href=\"javascript:OpenDeleteDialog('" + links[editRel].href + "')\">Delete</a>";
 	}
@@ -524,8 +530,8 @@ function AddFormFields(entityName, metadata, formFieldSetElement)
     	    
     	    //Add field
             document.getElementById(formFieldSetElement).innerHTML += "\
-            	<label for=\"" + name + "\">" + name + "</label><br/> \
-            	<input id=\"" + name + "\" name=\"" + name + "\" type=\"" + type + "\" " + requiredAttribute + " class=\"text ui-widget-content ui-corner-all\" /><br/>";
+            	<label for=\"inputForm_" + name + "\">" + name + "</label><br/> \
+            	<input id=\"inputForm_" + name + "\" name=\"" + name + "\" type=\"" + type + "\" " + requiredAttribute + " class=\"text ui-widget-content ui-corner-all\" /><br/>";
     	}
 	}
 	else {
