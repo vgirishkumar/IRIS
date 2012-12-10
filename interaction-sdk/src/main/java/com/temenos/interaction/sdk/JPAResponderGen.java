@@ -19,6 +19,7 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.odata4j.edm.EdmAssociation;
 import org.odata4j.edm.EdmAssociationEnd;
 import org.odata4j.edm.EdmDataServices;
+import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmMultiplicity;
 import org.odata4j.edm.EdmNavigationProperty;
@@ -134,7 +135,8 @@ public class JPAResponderGen {
 
 		//Create interaction model
 		InteractionModel interactionModel = new InteractionModel(edmDataServices);
-		for (EdmEntityType entityType : edmDataServices.getEntityTypes()) {
+		for (EdmEntitySet entitySet : edmDataServices.getEntitySets()) {
+			EdmEntityType entityType = entitySet.getType();
 			String entityName = entityType.getName();
 			IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityName);
 			//Use navigation properties to define state transitions

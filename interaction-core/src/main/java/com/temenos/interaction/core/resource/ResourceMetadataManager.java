@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.MetadataParser;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 
 /**
@@ -26,28 +27,28 @@ public class ResourceMetadataManager {
 	/**
 	 * Construct the metadata object
 	 */
-	public ResourceMetadataManager(Metadata metadata)
+	public ResourceMetadataManager(Metadata metadata, ResourceStateMachine hypermediaEngine)
 	{
 		this.metadata = metadata;
-		edmMetadata = populateOData4jMetadata(metadata);
+		edmMetadata = populateOData4jMetadata(metadata, hypermediaEngine);
 	}
 
 	/**
 	 * Construct the metadata object
 	 */
-	public ResourceMetadataManager(String metdataXml)
+	public ResourceMetadataManager(String metdataXml, ResourceStateMachine hypermediaEngine)
 	{
 		metadata = parseMetadataXML(metdataXml);
-		edmMetadata = populateOData4jMetadata(metadata);
+		edmMetadata = populateOData4jMetadata(metadata, hypermediaEngine);
 	}
 	
 	/**
 	 * Construct the metadata object
 	 */
-	public ResourceMetadataManager()
+	public ResourceMetadataManager(ResourceStateMachine hypermediaEngine)
 	{
 		metadata = parseMetadataXML();
-		edmMetadata = populateOData4jMetadata(metadata);
+		edmMetadata = populateOData4jMetadata(metadata, hypermediaEngine);
 	}
 
 	/**
@@ -102,10 +103,10 @@ public class ResourceMetadataManager {
 	/*
 	 * Load the metadata from the metadata.xml file.
 	 */
-	protected EdmDataServices populateOData4jMetadata(Metadata metadata) {
+	protected EdmDataServices populateOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine) {
 		EdmDataServices edmMetadata;
 		try {
-			edmMetadata = new MetadataOData4j(metadata).getMetadata();
+			edmMetadata = new MetadataOData4j(metadata, hypermediaEngine).getMetadata();
 		}
 		catch(Exception e) {
 			throw new RuntimeException("Failed to create odata4j metadata: " + e.getMessage());

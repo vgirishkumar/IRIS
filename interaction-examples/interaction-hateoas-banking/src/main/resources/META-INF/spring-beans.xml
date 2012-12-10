@@ -22,7 +22,9 @@
 	</bean>
 
 	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
+        <constructor-arg ref="stateMachine" />
+	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 

@@ -62,20 +62,20 @@
                 </ReferentialConstraint>
             </Association>
             <EntityContainer Name="${artifactId}" m:IsDefaultEntityContainer="true">
-                <EntitySet Name="Airport" EntityType="${artifactId}Model.Airport"/>
-                <EntitySet Name="Flight" EntityType="${artifactId}Model.Flight"/>
-                <EntitySet Name="FlightSchedule" EntityType="${artifactId}Model.FlightSchedule"/>
+                <EntitySet Name="Airports" EntityType="${artifactId}Model.Airport"/>
+                <EntitySet Name="Flights" EntityType="${artifactId}Model.Flight"/>
+                <EntitySet Name="FlightSchedules" EntityType="${artifactId}Model.FlightSchedule"/>
                 <AssociationSet Name="FlightSchedule_Airport" Association="${artifactId}Model.FlightSchedule_Airport">
-                    <End Role="FlightSchedule" EntitySet="FlightSchedule"/>
-                    <End Role="Airport" EntitySet="Airport"/>
+                    <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
+                    <End Role="Airport" EntitySet="Airports"/>
                 </AssociationSet>
                 <AssociationSet Name="FlightSchedule_departureAirport" Association="${artifactId}Model.FlightSchedule_departureAirport">
-                    <End Role="FlightSchedule" EntitySet="FlightSchedule"/>
-                    <End Role="Airport" EntitySet="Airport"/>
+                    <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
+                    <End Role="Airport" EntitySet="Airports"/>
                 </AssociationSet>
                 <AssociationSet Name="FlightSchedule_arrivalAirport" Association="${artifactId}Model.FlightSchedule_arrivalAirport">
-                    <End Role="FlightSchedule" EntitySet="FlightSchedule"/>
-                    <End Role="Airport" EntitySet="Airport"/>
+                    <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
+                    <End Role="Airport" EntitySet="Airports"/>
                 </AssociationSet>
             </EntityContainer>
         </Schema>

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.odata4j.edm.EdmDataServices;
+import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
@@ -24,10 +25,11 @@ public class InteractionModel {
 	 * @param edmDataServices odata4j metadata 
 	 */
 	public InteractionModel(EdmDataServices edmDataServices) {
-		for (EdmEntityType entityType : edmDataServices.getEntityTypes()) {
+		for (EdmEntitySet entitySet : edmDataServices.getEntitySets()) {
+			EdmEntityType entityType = entitySet.getType();
 			//ResourceStateMachine with one collection and one resource entity state
 			String entityName = entityType.getName();
-			String collectionStateName = entityName.toLowerCase() + "s";
+			String collectionStateName = entitySet.getName();
 			String entityStateName = entityName.toLowerCase();
 			String mappedEntityProperty = entityType.getKeys().size() > 0 ? entityType.getKeys().get(0) : "id";
 			String pathParametersTemplate = getUriTemplateParameters(entityType);
@@ -44,7 +46,7 @@ public class InteractionModel {
 		for (EntityMetadata entityMetadata : metadata.getEntitiesMetadata().values()) {
 			//ResourceStateMachine with one collection and one resource entity state
 			String entityName = entityMetadata.getEntityName();
-			String collectionStateName = entityName.toLowerCase() + "s";
+			String collectionStateName = entityName + "s";
 			String entityStateName = entityName.toLowerCase();
 			List<String> idFields = entityMetadata.getIdFields();
 			String mappedEntityProperty = idFields.size() > 0 ? idFields.get(0) : "id";

@@ -36,13 +36,13 @@ public class EdmTimeTemporalITCase {
 		EdmDataServices metadata = consumer.getMetadata();
 
 		Assert.assertEquals(EdmSimpleType.TIME,
-				metadata.findEdmEntitySet("FlightSchedule").getType()
+				metadata.findEdmEntitySet("FlightSchedules").getType()
 						.findProperty("departureTime").getType());
 		Assert.assertEquals(EdmSimpleType.TIME,
-				metadata.findEdmEntitySet("FlightSchedule").getType()
+				metadata.findEdmEntitySet("FlightSchedules").getType()
 						.findProperty("arrivalTime").getType());
 		Assert.assertEquals(EdmSimpleType.DATETIME,
-				metadata.findEdmEntitySet("FlightSchedule").getType()
+				metadata.findEdmEntitySet("FlightSchedules").getType()
 						.findProperty("firstDeparture").getType());
 	}
 
@@ -54,7 +54,7 @@ public class EdmTimeTemporalITCase {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
 
 		OEntity flightSchedule = consumer
-				.createEntity("FlightSchedule")
+				.createEntity("FlightSchedules")
 				.properties(OProperties.string("flightNo", "LH460"))
 				.properties(OProperties.string("arrivalAirportCode", "MUC"))
 				.properties(
@@ -84,7 +84,7 @@ public class EdmTimeTemporalITCase {
 		Assert.assertEquals(new LocalDateTime(2011, 07, 05, 0, 0),
 				flightSchedule.getProperty("lastDeparture").getValue());
 
-		flightSchedule = consumer.getEntity("FlightSchedule", id).execute();
+		flightSchedule = consumer.getEntity("FlightSchedules", id).execute();
 		Assert.assertEquals(new LocalTime(9, 30, 0), flightSchedule
 				.getProperty("departureTime").getValue());
 		Assert.assertEquals(new LocalTime(14, 10, 0), flightSchedule
@@ -100,7 +100,7 @@ public class EdmTimeTemporalITCase {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
 
 		Enumerable<OEntity> schedules = consumer
-				.getEntities("FlightSchedule")
+				.getEntities("FlightSchedules")
 				.filter("departureTime ge time'PT11H' and departureTime lt time'PT12H'")
 				.execute();
 
