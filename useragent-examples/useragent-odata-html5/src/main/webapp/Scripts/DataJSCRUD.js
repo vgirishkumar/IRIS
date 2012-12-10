@@ -386,10 +386,13 @@ function RenderEntitySet(data, entitiesLinks)
 				body += "<tr id=\"entityRow_" + row + "\">";
 				for (obj in data[0].__metadata.properties) {
 					var prop = data[row][obj];
-					if (prop.__deferred != null && prop.__deferred.uri != null) {
+					if (prop != null && prop.__deferred != null && prop.__deferred.uri != null) {
 						body += "<td id=\"entityCell_" + row + "_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
-					} else {
+					} else if(prop != null) {
 						body += "<td id=\"entityCell_" + row + "_"+ obj +"\">" + prop + "</td>";
+					}
+					else {
+						body += "<td id=\"entityCell_" + row + "_"+ obj +"\"></td>";
 					}
 				}
 				body += "<td>";
@@ -422,10 +425,13 @@ function RenderEntity(data, links)
 		body += "<tr id=\"entityRow_0\">";
 		body += "<td>" + obj + "</td>";
 		var prop = data[obj];
-		if (prop.__deferred != null && prop.__deferred.uri != null) {
+		if (prop != null && prop.__deferred != null && prop.__deferred.uri != null) {
 			body += "<td id=\"entityCell_0_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
-		} else {
+		} else if(prop != null) {
 			body += "<td id=\"entityCell_0_"+ obj +"\">" + prop + "</td>";
+		}
+		else {
+			body += "<td id=\"entityCell_0_"+ obj +"\"></td>";
 		}
 		body += "</tr>";
 	}
