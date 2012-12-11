@@ -472,8 +472,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedules"));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedules"));
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
-		assertTrue(generator.generatedRimDsl.contains("GET *-> departureAirport id=flightScheduleID"));
-		assertTrue(generator.generatedRimDsl.contains("resource departureAirport"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
 		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedule({id})/{navdepartureAirport}\""));
 	}
 
@@ -521,8 +521,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedules"));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedules"));
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
-		assertTrue(generator.generatedRimDsl.contains("GET *-> departureAirport id=flightScheduleID"));
-		assertTrue(generator.generatedRimDsl.contains("resource departureAirport"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
 		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedule({id})/{navdepartureAirport}\""));
 	}
 
@@ -550,10 +550,10 @@ public class TestJPAResponderGen {
 		assertTrue(status);
 		
 		//Test rim dsl
-		assertTrue(generator.generatedRimDsl.contains("GET *-> departureAirport id=flightScheduleID"));
-		assertTrue(generator.generatedRimDsl.contains("GET -> departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
-		assertTrue(generator.generatedRimDsl.contains("GET *-> arrivalAirport id=flightScheduleID"));
-		assertTrue(generator.generatedRimDsl.contains("GET -> arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
-		assertTrue(generator.generatedRimDsl.contains("GET -> flightSchedules id=code"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_arrivalAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET -> airport_flightSchedules id=code"));
 	}
 }

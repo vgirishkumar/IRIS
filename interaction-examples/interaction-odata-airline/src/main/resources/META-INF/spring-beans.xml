@@ -93,10 +93,10 @@
 	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
- <!-- 
-		<constructor-arg name="navProperty" value="departingFlights" />
- -->
+	<bean id="GETNavPropertydepartureAirport" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="GETNavPropertyarrivalAirport" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
 	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
@@ -111,9 +111,11 @@
 				<entry key="GETMetadata" value-ref="GETMetadata" />
 				<entry key="GETEntity" value-ref="GETEntity" />
 				<entry key="GETEntities" value-ref="GETEntities" />
-				<entry key="GETNavProperty" value-ref="GETNavProperty" />
+				<entry key="GETNavPropertydepartureAirport" value-ref="GETNavPropertydepartureAirport" />
+				<entry key="GETNavPropertyarrivalAirport" value-ref="GETNavPropertyarrivalAirport" />
 				<entry key="CreateEntity" value-ref="CreateEntity" />
  			</util:map> 
 		</constructor-arg>
 	</bean>
 </beans>
+

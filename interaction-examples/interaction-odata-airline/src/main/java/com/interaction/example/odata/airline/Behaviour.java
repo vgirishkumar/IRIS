@@ -30,20 +30,22 @@ public class Behaviour {
 		CollectionResourceState sServiceDocument = new CollectionResourceState("ServiceDocument", "ServiceDocument", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW, actionViewProperties), null), "/");
 		// identify the initial state
 		initial = sServiceDocument;
-		ResourceState smetadata = new ResourceState("Metadata", "metadata", createActionList(new Action("GETMetadata", Action.TYPE.VIEW, actionViewProperties), null), "/$metadata", new UriSpecification("metadata", "/$metadata"));
-		CollectionResourceState sflights = new CollectionResourceState("Flight", "flights", createActionList(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/Flight");
-		ResourceState sflight = new ResourceState("Flight", "flight", createActionList(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/Flight({id})", new UriSpecification("flight", "/Flight({id})"));
-		CollectionResourceState sairports = new CollectionResourceState("Airport", "airports", createActionList(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/Airport");
-		ResourceState sairport = new ResourceState("Airport", "airport", createActionList(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/Airport({id})", new UriSpecification("airport", "/Airport({id})"));
-		CollectionResourceState sflightschedules = new CollectionResourceState("FlightSchedule", "flightschedules", createActionList(new Action("GETEntities", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule");
+		ResourceState smetadata = new ResourceState("Metadata", "metadata", createActionList(new Action("GETMetadata", Action.TYPE.VIEW, new Properties()), null), "/$metadata", new UriSpecification("metadata", "/$metadata"));
+		CollectionResourceState sflights = new CollectionResourceState("Flight", "flights", createActionList(new Action("GETEntities", Action.TYPE.VIEW, new Properties()), null), "/Flight");
+		ResourceState sflight = new ResourceState("Flight", "flight", createActionList(new Action("GETEntity", Action.TYPE.VIEW, new Properties()), null), "/Flight({id})", new UriSpecification("flight", "/Flight({id})"));
+		CollectionResourceState sairports = new CollectionResourceState("Airport", "airports", createActionList(new Action("GETEntities", Action.TYPE.VIEW, new Properties()), null), "/Airport");
+		ResourceState sairport = new ResourceState("Airport", "airport", createActionList(new Action("GETEntity", Action.TYPE.VIEW, new Properties()), null), "/Airport({id})", new UriSpecification("airport", "/Airport({id})"));
+		CollectionResourceState sflightschedules = new CollectionResourceState("FlightSchedule", "flightschedules", createActionList(new Action("GETEntities", Action.TYPE.VIEW, new Properties()), null), "/FlightSchedule");
 		ResourceState pseudo = new ResourceState(sflightschedules, "FlightSchedules_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
-		ResourceState sflightschedule = new ResourceState("FlightSchedule", "flightschedule", createActionList(new Action("GETEntity", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})", new UriSpecification("flightschedule", "/FlightSchedule({id})"));
+		ResourceState sflightschedule = new ResourceState("FlightSchedule", "flightschedule", createActionList(new Action("GETEntity", Action.TYPE.VIEW, new Properties()), null), "/FlightSchedule({id})", new UriSpecification("flightschedule", "/FlightSchedule({id})"));
+		actionViewProperties = new Properties();
 		actionViewProperties.put("entity", "FlightSchedule");
 		actionViewProperties.put("navproperty", "navDepartureAirport");
-		ResourceState sdepartureAirport = new ResourceState("Airport", "departureAirport", createActionList(new Action("GETNavProperty", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/{navDepartureAirport}", new UriSpecification("departureAirport", "/FlightSchedule({id})/{navDepartureAirport}"));
+		ResourceState sdepartureAirport = new ResourceState("Airport", "departureAirport", createActionList(new Action("GETNavPropertydepartureAirport", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/{navDepartureAirport}", new UriSpecification("departureAirport", "/FlightSchedule({id})/{navDepartureAirport}"));
+		actionViewProperties = new Properties();
 		actionViewProperties.put("entity", "FlightSchedule");
 		actionViewProperties.put("navproperty", "navArrivalAirport");
-		ResourceState sarrivalAirport = new ResourceState("Airport", "arrivalAirport", createActionList(new Action("GETNavProperty", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/{navArrivalAirport}", new UriSpecification("arrivalAirport", "/FlightSchedule({id})/{navArrivalAirport}"));
+		ResourceState sarrivalAirport = new ResourceState("Airport", "arrivalAirport", createActionList(new Action("GETNavPropertyarrivalAirport", Action.TYPE.VIEW, actionViewProperties), null), "/FlightSchedule({id})/{navArrivalAirport}", new UriSpecification("arrivalAirport", "/FlightSchedule({id})/{navArrivalAirport}"));
 
 		// create regular transitions
 		sServiceDocument.addTransition("GET", smetadata, uriLinkageEntityProperties, uriLinkageProperties);
@@ -91,3 +93,4 @@ public class Behaviour {
 	}
 
 }
+

@@ -1,13 +1,6 @@
 ﻿//ODATA Root Service URI
 var ODATA_SVC = $("#where");
-
-//User edit form Variables
-var name = $("#name"),
-	email = $("#email"),
-	password = $("#password"),
-    allFields = $([]).add(name).add(email).add(password),
-	tips = $(".validateTips");
-
+var tips = $(".validateTips");
 
 //Page Load Actions
 
@@ -21,18 +14,28 @@ function OnPageLoad()
         width: 450,
         modal: true,
         close: function () {
-            allFields.val("").removeClass("ui-state-error");
         }
     });
 
     $("#createEntity").button()
 			.click(OpenCreateUserDialog);
 
+    GetMetadata();
     GetServices();    
 } 
 
 //Page Events:
 
+//Get the metadata document
+function GetMetadata() 
+{
+    $("#loadingMetadata").show();
+	var uriMetadata = ODATA_SVC.val() + "$metadata";
+	OData.read(uriMetadata, function (metadata) {
+		OData.defaultMetadata.push(metadata);		//Set result as the default metadata document
+	    $("#loadingMetadata").hide();
+	}, onLoadServicesError, OData.metadataHandler);
+}
 //Gets all the services
 function GetServices() 
 {
@@ -50,6 +53,13 @@ function GetServicesCallback(data, request)
     ApplyServiceTemplate(data.workspaces[0].collections);
 }
 
+//Handle error message
+function onLoadServicesError(error) 
+{
+    alert("Failed to load services: " + error.message);
+}
+
+
 //***********************Get Notes (READ)***************************
 //Gets all the Entities for an EntitySet
 function GetEntitySet(uri) 
@@ -60,7 +70,7 @@ function GetEntitySet(uri)
     OData.read({ 
 		requestUri: uri,
 		headers: { Accept: "application/atom+xml" }
-	}, GetEntitySetCallback);
+	}, GetEntitySetCallback, GETErrorCallback);
 }
 
 //GetEntitySet Success Callback
@@ -126,6 +136,13 @@ function Link(title, rel, href, type) {
 	this.type = type;
 }
 
+
+//GET Error callback
+function GETErrorCallback(error)
+{
+  alert("Failed to read data: " + error.message)
+}
+
 //***********************End: Get GetEntitySet***************************
 
 //*****************************Add User (CREATE)***************************
@@ -189,24 +206,31 @@ function AddErrorCallback(error)
 
 //*************************Update User (UPDATE)***************************
 //Handle Update hyper link click
-function OpenUpdateDialog(userId) 
+function OpenUpdateDialog(entityName, row, href) 
 {
     $("#loading").hide();
-    var cells = $("#entityRow" + userId).children("td");
-    $("#name").val(cells.eq(0).text());
-    $("#email").val(cells.eq(1).text());
-    $("#password").val(cells.eq(2).text());
+    
+    //Add form fields
+    var metadata = OData.defaultMetadata[0];
+    AddFormFields(entityName, metadata, "dialog-form-fields");
 
-    $("#dialog-form").dialog("option", "title", "Update Account");
+    //Populate fields
+	var entityType = OData.lookupEntityType(entityName, metadata);
+	if(entityType != undefined) {
+  	    for (i in entityType.property) {
+  	   		var property = entityType.property[i];
+    	    var entityCell = $("#entityCell_" + row + "_" + property.name);
+    		$("#inputForm_" + property.name).val(entityCell.eq(0).text());
+  	    }
+	}
 
     $("#dialog-form").dialog("option", "buttons", [
                         {
                             text: "Save",
                             click: function () {
-                                var bValid = false;
-                                bValid = ValidateUserData();
+                                var bValid = ValidateData();
                                 if (bValid) {
-                                    UpdateUser(userId);
+                                    UpdateResource(href);
                                 }
                             }
                         },
@@ -221,31 +245,44 @@ function OpenUpdateDialog(userId)
 }
 
 //Handle DataJS calls to Update user data
-function UpdateUser(userId) 
+function UpdateResource(href) 
 {
     $("#loading").show();
-    var updateUserdata = { username: $("#name").val(), email: $("#email").val(), password: $("#password").val() };
-    var requestURI = USERS_ODATA_SVC + "(" + userId + ")";
-    var requestOptions = {
-        requestUri: requestURI,
-        method: "PUT",
-        data: updateUserdata
-    };
-
-    OData.request(requestOptions, UpdateSuccessCallback, UpdateErrorCallback);
-
+    var requestURI = ODATA_SVC.val() + href;
+	var dataJson = [];
+	$('#dialog-form').find('fieldset input').each(function(){
+		var obj = {},
+	        key = $(this).eq(0).attr('name'),
+	        val = $(this).eq(0).val();
+	    obj[key] = val;
+	    dataJson.push(obj);
+	})
+	var updateResourcedata = JSON.stringify(dataJson);
+	updateResourcedata = updateResourcedata.replace(/[[\]]/g,'');		//Remove brackets
+	updateResourcedata = updateResourcedata.replace(/[{}]/g,'');		//Remove braces
+	var link = "\"_links\" : { \"self\" : { \"href\" : \"" + requestURI + "\"}}";
+	updateResourcedata = "{" + link + "," + updateResourcedata + "}";
+	$.ajax({
+		  url : requestURI,
+		  type : "PUT",
+		  data : updateResourcedata,
+		  contentType : "application/hal+json; charset=utf-8",
+		  dataType : "html",
+		  success : UpdateSuccessCallback,
+		  error : UpdateErrorCallback
+		});	
 }
 
-//UpdateUser Suceess callback
+//UpdateResource Suceess callback
 function UpdateSuccessCallback(data, request) {
     $("#loading").hide('slow');
     $("#dialog-form").dialog("close");
     GetUsers();
 }
 
-//UpdateUser Error callback
-function UpdateErrorCallback(error) {
-    alert("Error : " + error.message)
+//UpdateResource Error callback
+function UpdateErrorCallback(xhr, ajaxOptions, thrownError) {
+    alert("Failed to update resource: " + xhr.status + "[" + thrownError + "]");
     $("#dialog-form").dialog("close");
 }
 //*************************End : Update User (UPDATE)***************************
@@ -346,13 +383,16 @@ function RenderEntitySet(data, entitiesLinks)
 		var body = "";
 		for (row in data) {
 			if (row != "__metadata") {
-				body += "<tr id=\"entityRow" + row + "\">";
+				body += "<tr id=\"entityRow_" + row + "\">";
 				for (obj in data[0].__metadata.properties) {
 					var prop = data[row][obj];
-					if (prop.__deferred != null && prop.__deferred.uri != null) {
-						body += "<td><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
-					} else {
-						body += "<td>" + prop + "</td>";
+					if (prop != null && prop.__deferred != null && prop.__deferred.uri != null) {
+						body += "<td id=\"entityCell_" + row + "_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
+					} else if(prop != null) {
+						body += "<td id=\"entityCell_" + row + "_"+ obj +"\">" + prop + "</td>";
+					}
+					else {
+						body += "<td id=\"entityCell_" + row + "_"+ obj +"\"></td>";
 					}
 				}
 				body += "<td>";
@@ -360,7 +400,7 @@ function RenderEntitySet(data, entitiesLinks)
 				var editRel = "edit";
 				if (links[editRel] != null) {
 					body +=
-						"<a href=\"javascript:OpenUpdateDialog('" + links[editRel].href + "')\">Update</a>" +
+						"<a href=\"javascript:OpenUpdateDialog('" + data[row].__metadata.type + "', '" + row + "', '" + links[editRel].href + "')\">Update</a>" +
 						" " +
 						"<a href=\"javascript:OpenDeleteDialog('" + links[editRel].href + "')\">Delete</a>";
 				}
@@ -382,13 +422,16 @@ function RenderEntity(data, links)
 
 	var body = "";
 	for (obj in data.__metadata.properties) {
-		body += "<tr id=\"entityRow" + row + "\">";
+		body += "<tr id=\"entityRow_0\">";
 		body += "<td>" + obj + "</td>";
 		var prop = data[obj];
-		if (prop.__deferred != null && prop.__deferred.uri != null) {
-			body += "<td><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
-		} else {
-			body += "<td>" + prop + "</td>";
+		if (prop != null && prop.__deferred != null && prop.__deferred.uri != null) {
+			body += "<td id=\"entityCell_0_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
+		} else if(prop != null) {
+			body += "<td id=\"entityCell_0_"+ obj +"\">" + prop + "</td>";
+		}
+		else {
+			body += "<td id=\"entityCell_0_"+ obj +"\"></td>";
 		}
 		body += "</tr>";
 	}
@@ -396,7 +439,7 @@ function RenderEntity(data, links)
 	var editRel = "edit";
 	if (links[editRel] != null) {
 		body += 
-			"<a href=\"javascript:OpenUpdateDialog('" + links[editRel].href + "')\">Update</a>" +
+			"<a href=\"javascript:OpenUpdateDialog('" + data.__metadata.type + "', '0', '" + links[editRel].href + "')\">Update</a>" +
 			" " +
 			"<a href=\"javascript:OpenDeleteDialog('" + links[editRel].href + "')\">Delete</a>";
 	}
@@ -405,18 +448,18 @@ function RenderEntity(data, links)
 }
 
 //Validation Helper, validates the user edit form
-function ValidateUserData() 
+function ValidateData() 
 {
     var bValid = true;
-    allFields.removeClass("ui-state-error");
+//    allFields.removeClass("ui-state-error");
 
-    bValid = bValid && checkLength(name, "username", 3, 16);
-    bValid = bValid && checkLength(email, "email", 6, 80);
-    bValid = bValid && checkLength(password, "password", 5, 16);
+ //   bValid = bValid && checkLength(name, "username", 3, 16);
+ //   bValid = bValid && checkLength(email, "email", 6, 80);
+ //   bValid = bValid && checkLength(password, "password", 5, 16);
 
-    bValid = bValid && checkRegexp(name, /^[a-z]([0-9a-z_])+$/i, "Username may consist of a-z, 0-9, underscores, begin with a letter.");
-    bValid = bValid && checkRegexp(email, /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i, "eg. ui@jquery.com");
-    bValid = bValid && checkRegexp(password, /^([0-9a-zA-Z])+$/, "Password field only allow : a-z 0-9");
+//    bValid = bValid && checkRegexp(name, /^[a-z]([0-9a-z_])+$/i, "Username may consist of a-z, 0-9, underscores, begin with a letter.");
+//    bValid = bValid && checkRegexp(email, /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i, "eg. ui@jquery.com");
+//    bValid = bValid && checkRegexp(password, /^([0-9a-zA-Z])+$/, "Password field only allow : a-z 0-9");
     return bValid;
 }
 
@@ -457,4 +500,49 @@ function checkRegexp(o, regexp, n) {
         return true;
     }
 }
+
+//Add form fields a form's fieldset element 
+function AddFormFields(entityName, metadata, formFieldSetElement) 
+{
+	var entityType = OData.lookupEntityType(entityName, metadata);
+	if(entityType != undefined) {
+  	    $("#dialog-form").dialog("option", "title", "Update " + entityType.name);
+        document.getElementById("dialog-form-fields").innerHTML = "<div id=\"loading\" style=\"display:none\">Loading...</div>";
+  	    for (i in entityType.property) {
+  	   		var property = entityType.property[i];
+    	    var name = property.name;
+    	    
+    	    //Field type attribute
+    	    var type = property.type;
+    	    if(type == "Edm.String")
+    	    	type = "text";
+    	    else if(type.substring(0, "Edm.Int".length) == "Edm.Int" || type == "Edm.Double")
+    	    	type = "number";
+    	    else if(type == "Edm.DateTime")
+    	    	type = "datetime";
+    	    else if(type == "Edm.Time")
+    	    	type = "time";
+    	    else if(type == "Edm.Boolean")
+    	    	type = "checkbox";
+    	    else 
+    	    	type = "text";
+
+    	    //Field required attribute
+    	    var nullable = property.nullable;
+    	    var requiredAttribute = "";
+    	    if(nullable == false) {
+    	    	requiredAttribute = "required";
+    	    }
+    	    
+    	    //Add field
+            document.getElementById(formFieldSetElement).innerHTML += "\
+            	<label for=\"inputForm_" + name + "\">" + name + "</label><br/> \
+            	<input id=\"inputForm_" + name + "\" name=\"" + name + "\" type=\"" + type + "\" " + requiredAttribute + " class=\"text ui-widget-content ui-corner-all\" /><br/>";
+    	}
+	}
+	else {
+    	alert("Failed to find entity " + entityName + " in metadata document.");
+	}
+}
+
 //*************************End : Helper Functions***************************

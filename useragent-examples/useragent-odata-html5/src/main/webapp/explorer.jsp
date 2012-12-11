@@ -4,6 +4,10 @@
     <title>DataJS CRUD Demo</title>
     <link href="Styles/Site.css" rel="stylesheet" type="text/css" />
     <link type="text/css" rel="Stylesheet" href="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.10/themes/redmond/jquery-ui.css" /> 
+
+	<script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="Scripts/datajs-1.1.0-iris.js"></script>
 </head>
 <body>
     
@@ -27,21 +31,14 @@
 				            <th>EntitySet</th>
 			            </tr>
 	            </table>
-                <span id="loadingServices" style="display:none">Loading...</span>
+                <span id="loadingServices" style="display:none">Loading services...</span>
+                <span id="loadingMetadata" style="display:none">Loading metadata...</span>
             </div>
 		</div>
         <div class="main">
             <div id="dialog-form" title="Create new user">
-	            <p class="validateTips">All form fields are required.</p>
 	            <form>
-	            <fieldset>
-		            <label for="name">Name</label>
-		            <input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all" />
-		            <label for="email">Email</label>
-		            <input type="text" name="email" id="email" value="" class="text ui-widget-content ui-corner-all" />
-		            <label for="password">Password</label>
-		            <input type="password" name="password" id="password" value="" class="text ui-widget-content ui-corner-all" />
-                    <div id="loading" style="display:none">Loading...</div>
+	            <fieldset id="dialog-form-fields">
 	            </fieldset>
 	            </form>
             </div>
@@ -58,9 +55,7 @@
         <div class="clear"></div>
         <div class="footer"></div>
     </div>
-    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.5.1.min.js"></script>
-    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.13/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="Scripts/datajs-1.0.3.js"></script>
+
     <script type="text/javascript" src="Scripts/DataJSCRUD.js"></script>
     <script type="text/javascript">
         $(OnPageLoad)
