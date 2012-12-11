@@ -103,7 +103,7 @@ public class TestAtomXMLProvider {
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 		EntityResource<OEntity> er = createMockEntityResourceOEntity(ees);
 		
-		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+		when(mockEDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(ees);
 		
         //Wrap entity resource into a JAX-RS GenericEntity instance
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(er) {};
@@ -134,7 +134,7 @@ public class TestAtomXMLProvider {
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 		EntityResource<OEntity> er = createMockEntityResourceOEntity(ees);
 		
-		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+		when(mockEDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(ees);
 
         //Wrap entity resource into a JAX-RS GenericEntity instance
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(er) {};

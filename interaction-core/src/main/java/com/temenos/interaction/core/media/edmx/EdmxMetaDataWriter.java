@@ -41,6 +41,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 
 	  //Map<Relation name, Entity relation>
       Map<String, EntityRelation> relations = new HashMap<String, EntityRelation>();
+      Map<String, EntityRelation> entitySetRelations = new HashMap<String, EntityRelation>();
 	  
     XMLWriter2 writer = XMLFactoryProvider2.getInstance().newXMLWriterFactory2().createXMLWriter(w);
     writer.startDocument();
@@ -142,18 +143,23 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 				if (sourceState.getEntityName().equals(entityName) 
 						&& !entityTransition.getTarget().isPseudoState()
 						&& !npNames.contains(npName)) {		//We can have transitions to a resource state from multiple source states
-					int multiplicity = (entityTransition.getTarget().getClass() == CollectionResourceState.class) ? EntityRelation.MULTIPLICITY_TO_MANY : EntityRelation.MULTIPLICITY_TO_ONE;
+					int multiplicity = EntityRelation.MULTIPLICITY_TO_ONE;
+					if (sourceState instanceof CollectionResourceState && targetState instanceof CollectionResourceState) {
+						multiplicity = EntityRelation.MULTIPLICITY_MANY_TO_MANY;
+					} else if (targetState instanceof CollectionResourceState) {
+						multiplicity = EntityRelation.MULTIPLICITY_TO_MANY;
+					}
 	
 					//Use the entity names to define the relation
 					String relationName;
 					if(multipleNavPropsToEntity.get(targetState.getEntityName()).equals(MULTI_NAV_PROP_TO_ENTITY)) {
 						//More than one transition => use separate associations "sourceEntityName_navPropName"
-						relationName = sourceState.getEntityName() + "_" + targetState.getName();
+						relationName = sourceState.getName() + "_" + targetState.getName();
 					}
 					else {
 						//Only one transition => use single association "sourceEntityName_targetEntityName"
-						relationName = sourceState.getEntityName() + "_" + targetState.getEntityName();
-						String invertedRelationName = targetState.getEntityName() + "_" + sourceState.getEntityName();
+						relationName = sourceState.getName() + "_" + targetState.getName();
+						String invertedRelationName = targetState.getName() + "_" + sourceState.getName();
 						if(relations.containsKey(invertedRelationName)) {
 							relationName = invertedRelationName;					
 						}
@@ -161,9 +167,13 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 					
 	        		//Obtain the relation between the source and target entities
 					EntityRelation relation = new EntityRelation(relationName, schema.getNamespace(), 
-		            		sourceState.getEntityName(), targetState.getEntityName(), multiplicity);
+		            		sourceState.getEntityName(), targetState.getEntityName(), multiplicity,
+		            		sourceState.getName(), targetState.getName());
 					if(!relations.containsKey(relationName)) {
 			            relations.put(relationName, relation);
+					}
+					if (multiplicity == EntityRelation.MULTIPLICITY_MANY_TO_MANY) {
+						entitySetRelations.put(relationName, relation);
 					}
 	
 					//Write the navigation properties
@@ -195,8 +205,7 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
           writer.writeAttribute("Type", relation.getNamespace() + "." + relation.getSourceEntityName());
           if(relation.getMultiplicity() == EntityRelation.MULTIPLICITY_TO_MANY) {
         	  writer.writeAttribute("Multiplicity", "0..1");
-          }
-          else {
+          } else {
         	  writer.writeAttribute("Multiplicity", "*");
           }
           writer.endElement("End");
@@ -204,10 +213,9 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
           writer.startElement(new QName2("End"));
           writer.writeAttribute("Role", getRoleTargetEntity(relation));
           writer.writeAttribute("Type", relation.getNamespace() + "." + relation.getTargetEntityName());
-          if(relation.getMultiplicity() == EntityRelation.MULTIPLICITY_TO_MANY) {
+          if(relation.getMultiplicity() == EntityRelation.MULTIPLICITY_TO_MANY || relation.getMultiplicity() == EntityRelation.MULTIPLICITY_MANY_TO_MANY) {
         	  writer.writeAttribute("Multiplicity", "*");
-          }
-          else {
+          } else {
         	  writer.writeAttribute("Multiplicity", "0..1");
           }
           writer.endElement("End");
@@ -264,19 +272,19 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
         }
 
         //Association set 
-        for(EntityRelation relation : relations.values()) {
+        for(EntityRelation relation : entitySetRelations.values()) {
             writer.startElement(new QName2("AssociationSet"));
             writer.writeAttribute("Name", relation.getName());
             writer.writeAttribute("Association", relation.getNamespace() + "." + relation.getName());
 
             writer.startElement(new QName2("End"));
             writer.writeAttribute("Role", getRoleSourceEntity(relation));
-            writer.writeAttribute("EntitySet", relation.getSourceEntityName());
+            writer.writeAttribute("EntitySet", relation.getSourceEntitySetName());
             writer.endElement("End");
 
             writer.startElement(new QName2("End"));
             writer.writeAttribute("Role", getRoleTargetEntity(relation));
-            writer.writeAttribute("EntitySet", relation.getTargetEntityName());
+            writer.writeAttribute("EntitySet", relation.getTargetEntitySetName());
             writer.endElement("End");
 
             writer.endElement("AssociationSet");
@@ -297,13 +305,13 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
   private static String getRoleSourceEntity(EntityRelation relation) {
 	  String sourceEntityName = relation.getSourceEntityName();
 	  String targetEntityName = relation.getTargetEntityName();
-	  return !sourceEntityName.equals(targetEntityName) ? sourceEntityName : sourceEntityName + "1";
+	  return (!sourceEntityName.equals(targetEntityName) ? sourceEntityName : sourceEntityName + "1") + "_Source";
   }
 
   private static String getRoleTargetEntity(EntityRelation relation) {
 	  String sourceEntityName = relation.getSourceEntityName();
 	  String targetEntityName = relation.getTargetEntityName();
-	  return !sourceEntityName.equals(targetEntityName) ? targetEntityName : targetEntityName + "2";
+	  return (!sourceEntityName.equals(targetEntityName) ? targetEntityName : targetEntityName + "2") + "_Target";
   }
   
   /**

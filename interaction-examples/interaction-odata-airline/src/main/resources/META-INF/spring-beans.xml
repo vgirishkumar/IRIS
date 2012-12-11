@@ -22,7 +22,9 @@
 	</bean>
 
 	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
+        <constructor-arg ref="stateMachine" />
+	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
@@ -41,7 +43,12 @@
 				<ref local="xhtmlProvider" />
  			</set>
    		</property>
-        <property name="serviceRoot" ref="ServiceRoot" />
+        <property name="serviceRoots">
+            <set>
+                <ref local="ServiceRoot" />
+                <ref local="Metadata" />
+            </set>
+        </property>
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
@@ -75,6 +82,31 @@
     <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
         <constructor-arg ref="commands" />
         <constructor-arg ref="stateMachine" />
+        <constructor-arg ref="edmMetadata" />
+    </bean>
+
+    <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
+    <bean id="Metadata" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+        <constructor-arg>
+            <bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+                <constructor-arg>
+                    <bean class="com.temenos.interaction.core.hypermedia.ResourceState">
+                        <constructor-arg name="entityName" value="Metadata" />
+                        <constructor-arg name="name" value="initial" />
+                        <constructor-arg>
+                            <list>
+                                <bean class="com.temenos.interaction.core.hypermedia.Action">
+                                    <constructor-arg value="GETMetadata" />
+                                    <constructor-arg value="VIEW" />
+                                </bean>
+                            </list>
+                        </constructor-arg>
+                        <constructor-arg name="path" value="/$metadata" />
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
         <constructor-arg ref="edmMetadata" />
     </bean>
 

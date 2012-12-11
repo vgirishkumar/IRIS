@@ -19,11 +19,11 @@ import com.sun.jersey.test.framework.JerseyTest;
 
 public class CreateReadUpdateDeleteITCase extends JerseyTest {
 
-	public final static String PERSONS_RESOURCE = "/Person";
-	public final static String NOTES_RESOURCE = "/Note";
+	public final static String PERSONS_RESOURCE = "/Persons";
+	public final static String NOTES_RESOURCE = "/Notes";
 	
-	private final static String NOTE_ENTITYSET_NAME = "Note";
-	private final static String PERSON_ENTITYSET_NAME = "Person";
+	private final static String NOTE_ENTITYSET_NAME = "Notes";
+	private final static String PERSON_ENTITYSET_NAME = "Persons";
 
 	@Before
 	public void initTest() {

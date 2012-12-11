@@ -1,6 +1,7 @@
 package com.temenos.interaction.core.entity;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -9,6 +10,11 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmType;
+
+import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestMetadataOData4j {
 	public final static String METADATA_XML_FILE = "TestMetadataParser.xml";
@@ -27,7 +33,14 @@ public class TestMetadataOData4j {
 		Assert.assertNotNull(metadata);
 		
 		//Convert metadata to odata4j metadata
-		metadataOdata4j = new MetadataOData4j(metadata);
+		metadataOdata4j = new MetadataOData4j(metadata, new ResourceStateMachine(new ResourceState("SD", "initial", new ArrayList<Action>(), "/")));
+
+		// Create mock state machine with entity sets
+		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		serviceRoot.addTransition(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule"));
+		serviceRoot.addTransition(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight"));
+		serviceRoot.addTransition(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline"));
+		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
 
 		//Read the airline metadata file
 		MetadataParser parserAirline = new MetadataParser();
@@ -36,7 +49,7 @@ public class TestMetadataOData4j {
 		Assert.assertNotNull(metadataAirline);
 		
 		//Convert metadata to odata4j metadata
-		metadataAirlineOdata4j = new MetadataOData4j(metadataAirline);
+		metadataAirlineOdata4j = new MetadataOData4j(metadataAirline, hypermediaEngine);
 	}
 	
 	@Test

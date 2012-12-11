@@ -19,17 +19,18 @@ import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestResourceMetadataManager {
 
 	@Test
 	public void testMetadata() throws Exception {
 		final ODataProducer producerA = createMockODataProducer("A");
-		ResourceMetadataManager mdProducer = new ResourceMetadataManager() {
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager(null) {
 			protected Metadata parseMetadataXML() {
 				return null;
 			}
-			protected EdmDataServices populateOData4jMetadata(Metadata metadata) {
+			protected EdmDataServices populateOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine) {
 				return producerA.getMetadata();
 			}
 		};
@@ -43,11 +44,11 @@ public class TestResourceMetadataManager {
 	@Test
 	public void testEntityType() throws Exception {
 		final ODataProducer producerA = createMockODataProducer("A");
-		ResourceMetadataManager mdProducer = new ResourceMetadataManager() {
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager(null) {
 			protected Metadata parseMetadataXML() {
 				return null;
 			}
-			protected EdmDataServices populateOData4jMetadata(Metadata metadata) {
+			protected EdmDataServices populateOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine) {
 				return producerA.getMetadata();
 			}
 		};

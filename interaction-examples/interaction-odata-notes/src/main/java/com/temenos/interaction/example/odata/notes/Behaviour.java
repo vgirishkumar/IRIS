@@ -18,11 +18,11 @@ public class Behaviour {
 	private final static String NOTE = "Note";
 	private final static String PERSON = "Person";
 	
-	private final static String PERSONS_PATH = "/Person";
-	private final static String PERSON_ITEM_PATH = "/Person({id})";
-	private final static String NOTES_PATH = "/Note";
-	private final static String NOTE_PERSON_PATH = "/Note({id})/NotePerson";
-	private final static String PERSON_NOTES_PATH = "/Person({id})/PersonNotes";
+	private final static String PERSONS_PATH = "/Persons";
+	private final static String PERSON_ITEM_PATH = "/Persons({id})";
+	private final static String NOTES_PATH = "/Notes";
+	private final static String NOTE_PERSON_PATH = "/Notes({id})/NotePerson";
+	private final static String PERSON_NOTES_PATH = "/Persons({id})/PersonNotes";
 	
 	public ResourceState getSimpleODataInteractionModel() {
 		// the service root
@@ -61,21 +61,20 @@ public class Behaviour {
 		// link from each person's notes back to person
 		((CollectionResourceState) root.getResourceStateByName("PersonNotes")).addTransitionForEachItem("GET", root.getResourceStateByName("person"), uriLinkageMap);
 		// link from each note to their person
-		((CollectionResourceState) root.getResourceStateByName("notes")).addTransitionForEachItem("GET", root.getResourceStateByName("person"), uriLinkageMap);
+		((CollectionResourceState) root.getResourceStateByName("Notes")).addTransitionForEachItem("GET", root.getResourceStateByName("person"), uriLinkageMap);
 
 		uriLinkageMap.clear();
 	
 	}
 
 	public ResourceStateMachine getNotesSM() {
-		CollectionResourceState notes = new CollectionResourceState(NOTE, "notes", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), NOTES_PATH);
+		CollectionResourceState notes = new CollectionResourceState(NOTE, "Notes", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), NOTES_PATH);
 		ResourceState pseudoCreated = new ResourceState(notes, "PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 1 for configuring the interaction - use another state as a parent
 		ResourceState note = new ResourceState(notes, 
 				"note", 
 				createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), 
-				"({id})",
-				NOTE.split(" "));
+				"({id})");
 		ResourceState noteUpdated = new ResourceState(note, 
 				"updated", 
 				createActionList(null, new Action("UpdateEntity", Action.TYPE.ENTRY)),
@@ -86,7 +85,7 @@ public class Behaviour {
 				"deleted", 
 				createActionList(null, new Action("DeleteEntity", Action.TYPE.ENTRY)),
 				null,
-				"delete".split(" ")
+				"edit".split(" ")
 				);
 		/* 
 		 * this navigation property demonstrates an Action properties and 
@@ -102,7 +101,6 @@ public class Behaviour {
 				"NotePerson", 
 				createActionList(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), 
 				NOTE_PERSON_PATH, 
-				"NotePerson".split(" "),
 				new ODataUriSpecification().getTemplate(NOTES_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
 		
 		// add collection transition to individual items
@@ -123,14 +121,13 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getPersonsSM() {
-		CollectionResourceState persons = new CollectionResourceState(PERSON, "persons", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), PERSONS_PATH);
+		CollectionResourceState persons = new CollectionResourceState(PERSON, "Persons", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), PERSONS_PATH);
 		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 2 for configuring the interaction - specify the entity, state, and fully qualified path
 		ResourceState person = new ResourceState(PERSON, 
 				"person", 
 				createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), 
-				PERSON_ITEM_PATH,
-				PERSON.split(" "));
+				PERSON_ITEM_PATH);
 		/* 
 		 * this navigation property demostrates an Action properties and 
 		 * uri specification to get conceptual configuration into a Command
@@ -145,7 +142,6 @@ public class Behaviour {
 				"PersonNotes", 
 				createActionList(new Action("GETNavProperty", Action.TYPE.VIEW, personNotesNavProperties), null), 
 				PERSON_NOTES_PATH, 
-				"PersonNotes".split(" "),
 				new ODataUriSpecification().getTemplate(PERSONS_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
 		
 		// add collection transition to individual items

@@ -12,19 +12,19 @@ commands
 end
 
 initial resource ServiceDocument
-	collection ServiceDocument
+	item ServiceDocument
 	view { GETServiceDocument }
 	path "/"
-	GET -> flights
-	GET -> airports
-	GET -> flightschedules
+	GET -> Flights
+	GET -> Airports
+	GET -> FlightSchedules
 end
 
 
-resource flights
+resource Flights
 	collection Flight
 	view { GETEntities }
-	path "/Flight()"
+	path "/Flights()"
 	GET *-> flight id=flightID
 end
 
@@ -32,24 +32,24 @@ end
 resource flight
 	item Flight
 	view { GETEntity }
-	path "/Flight({id})"
+	path "/Flights({id})"
 end
 
 
 
-resource airports
+resource Airports
 	collection Airport
 	view { GETEntities }
-	path "/Airport()"
+	path "/Airports()"
 	GET *-> airport id=code
-	GET *-> airport_flightSchedules id=code
+	GET *-> airport_flightSchedules id=code, navflightSchedules="flightSchedules"
 end
 
 
 resource airport
 	item Airport
 	view { GETEntity }
-	path "/Airport('{id}')"
+	path "/Airports('{id}')"
 	GET -> airport_flightSchedules id=code, navflightSchedules="flightSchedules"
 end
 
@@ -58,24 +58,24 @@ end
 resource airport_flightSchedules
 	collection FlightSchedule
 	view { GETNavPropertyflightSchedules }
-	path "/Airport('{id}')/{navflightSchedules}"
-	GET -> flightschedules id=flightScheduleID
+	path "/Airports('{id}')/{navflightSchedules}"
+	GET -> FlightSchedules id=flightScheduleID
 end
 
-resource flightschedules
+resource FlightSchedules
 	collection FlightSchedule
 	view { GETEntities }
-	path "/FlightSchedule()"
+	path "/FlightSchedules()"
 	GET *-> flightschedule id=flightScheduleID
-	GET *-> flightschedule_departureAirport id=flightScheduleID
-	GET *-> flightschedule_arrivalAirport id=flightScheduleID
+	GET *-> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport="departureAirport"
+	GET *-> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport="arrivalAirport"
 end
 
 
 resource flightschedule
 	item FlightSchedule
 	view { GETEntity }
-	path "/FlightSchedule({id})"
+	path "/FlightSchedules({id})"
 	GET -> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport="departureAirport"
 	GET -> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport="arrivalAirport"
 end
@@ -85,13 +85,13 @@ end
 resource flightschedule_departureAirport
 	item Airport
 	view { GETNavPropertydepartureAirport }
-	path "/FlightSchedule({id})/{navdepartureAirport}"
+	path "/FlightSchedules({id})/{navdepartureAirport}"
 	GET -> airport id=code
 end
 
 resource flightschedule_arrivalAirport
 	item Airport
 	view { GETNavPropertyarrivalAirport }
-	path "/FlightSchedule({id})/{navarrivalAirport}"
+	path "/FlightSchedules({id})/{navarrivalAirport}"
 	GET -> airport id=code
 end

@@ -26,14 +26,14 @@ public class ODataValidation {
 		Abdera abdera = new Abdera();
 		AbderaClient client = new AbderaClient(abdera);
 
-		ClientResponse response = client.get(Configuration.TEST_ENDPOINT_URI + "/Person");
+		ClientResponse response = client.get(Configuration.TEST_ENDPOINT_URI + "/Persons");
 		InputStream in = response.getInputStream();
 
 		Parser parser = abdera.getParser();
 		Document<Feed> doc = parser.parse(in);
 		Feed feed = doc.getRoot();
 		
-		assertEquals("Person", feed.getSelfLink().getHref().getASCIIPath());
+		assertEquals("Persons", feed.getSelfLink().getHref().getASCIIPath());
 	}
 
 	/**
@@ -46,14 +46,14 @@ public class ODataValidation {
 		Abdera abdera = new Abdera();
 		AbderaClient client = new AbderaClient(abdera);
 
-		ClientResponse response = client.get(Configuration.TEST_ENDPOINT_URI + "/Person(1)/PersonNotes");
+		ClientResponse response = client.get(Configuration.TEST_ENDPOINT_URI + "/Persons(1)/PersonNotes");
 		InputStream in = response.getInputStream();
 
 		Parser parser = abdera.getParser();
 		Document<Feed> doc = parser.parse(in);
 		Feed feed = doc.getRoot();
 		
-		assertEquals("Person(1)/PersonNotes", feed.getSelfLink().getHref().getPath());
+		assertEquals("Persons(1)/PersonNotes", feed.getSelfLink().getHref().getPath());
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class ODataValidation {
 		Abdera abdera = new Abdera();
 		AbderaClient client = new AbderaClient(abdera);
 
-		ClientResponse response = client.get(Configuration.TEST_ENDPOINT_URI + "/Person");
+		ClientResponse response = client.get(Configuration.TEST_ENDPOINT_URI + "/Persons");
 		InputStream in = response.getInputStream();
 
 		Parser parser = abdera.getParser();
@@ -75,7 +75,7 @@ public class ODataValidation {
 		String navPropertyRel = null;
 		for (Entry entry : feed.getEntries()) {
 			for (Link l : entry.getLinks()) {
-				if (l.getHref().getPath().contains("Person(1)/PersonNotes")) {
+				if (l.getHref().getPath().contains("Persons(1)/PersonNotes")) {
 					navPropertyRel = l.getRel();
 				}
 			}

@@ -1,7 +1,9 @@
 package com.temenos.interaction.core.entity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.odata4j.core.ODataVersion;
 import org.odata4j.edm.EdmDataServices;
@@ -17,6 +19,9 @@ import org.odata4j.edm.EdmType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 
 /**
@@ -29,9 +34,9 @@ public class MetadataOData4j {
 	 * Construct the odata metadata
 	 * @param metadata metadata
 	 */
-	public MetadataOData4j(Metadata metadata)
+	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine)
 	{
-		this.edmDataServices = createOData4jMetadata(metadata);
+		this.edmDataServices = createOData4jMetadata(metadata, hypermediaEngine);
 	}
 
 	/**
@@ -47,7 +52,7 @@ public class MetadataOData4j {
 	 * @param producers Set of odata producers
 	 * @return Merged EDM metadata
 	 */
-	public EdmDataServices createOData4jMetadata(Metadata metadata) {
+	public EdmDataServices createOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine) {
 		String serviceName = metadata.getModelName();
 		String namespace = serviceName + Metadata.MODEL_SUFFIX;
 		Builder mdBuilder = EdmDataServices.newBuilder();
@@ -55,7 +60,7 @@ public class MetadataOData4j {
     	EdmSchema.Builder bSchema = new EdmSchema.Builder();
     	List<EdmEntityContainer.Builder> bEntityContainers = new ArrayList<EdmEntityContainer.Builder>();
     	List<EdmEntitySet.Builder> bEntitySets = new ArrayList<EdmEntitySet.Builder>();
-    	List<EdmEntityType.Builder> bEntityTypes = new ArrayList<EdmEntityType.Builder>();
+    	Map<String, EdmEntityType.Builder> bEntityTypeMap = new HashMap<String, EdmEntityType.Builder>();
 		for(EntityMetadata entityMetadata : metadata.getEntitiesMetadata().values()) {
 			List<EdmProperty.Builder> bProperties = new ArrayList<EdmProperty.Builder>();
 			List<String> keys = new ArrayList<String>();
@@ -75,16 +80,26 @@ public class MetadataOData4j {
 	    	}
 			//Add entity type
 			EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
-    		bEntityTypes.add(bEntityType);
-	    	
-	    	//Add entity set
-    		EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(entityMetadata.getEntityName()).setEntityType(bEntityType);
-    		bEntitySets.add(bEntitySet);
+			bEntityTypeMap.put(entityMetadata.getEntityName(), bEntityType);
 		}
+
+		for (ResourceState state : hypermediaEngine.getStates()) {
+			if (state instanceof CollectionResourceState) {
+				EdmEntityType.Builder entityType = bEntityTypeMap.get(state.getEntityName());
+				if (entityType == null) 
+					throw new RuntimeException("Entity type not found for " + state.getEntityName());
+		    	//Add entity set
+				EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
+				bEntitySets.add(bEntitySet);
+			}
+		}
+
 		EdmEntityContainer.Builder bEntityContainer = EdmEntityContainer.newBuilder().setName(serviceName).setIsDefault(true).addEntitySets(bEntitySets);
 		bEntityContainers.add(bEntityContainer);
 
-    	bSchema.setNamespace(namespace).setAlias(serviceName).addEntityTypes(bEntityTypes).addEntityContainers(bEntityContainers);
+		List<EdmEntityType.Builder> bEntityTypes = new ArrayList<EdmEntityType.Builder>();
+		bEntityTypes.addAll(bEntityTypeMap.values());
+		bSchema.setNamespace(namespace).setAlias(serviceName).addEntityTypes(bEntityTypes).addEntityContainers(bEntityContainers);
     	bSchemas.add(bSchema);
 
 	    mdBuilder.addSchemas(bSchemas);

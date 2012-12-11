@@ -469,12 +469,12 @@ public class TestJPAResponderGen {
 		
 		//Test rim dsl
 		assertTrue(generator.generatedRimDsl.contains("initial resource ServiceDocument"));
-		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedules"));
-		assertTrue(generator.generatedRimDsl.contains("resource flightschedules"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedules"));
+		assertTrue(generator.generatedRimDsl.contains("resource FlightSchedules"));
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
-		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
-		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedule({id})/{navdepartureAirport}\""));
+		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/{navdepartureAirport}\""));
 	}
 
 	@Test
@@ -518,12 +518,12 @@ public class TestJPAResponderGen {
 		
 		//Test rim dsl
 		assertTrue(generator.generatedRimDsl.contains("initial resource ServiceDocument"));
-		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedules"));
-		assertTrue(generator.generatedRimDsl.contains("resource flightschedules"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedules"));
+		assertTrue(generator.generatedRimDsl.contains("resource FlightSchedules"));
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
-		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedule({id})/{navdepartureAirport}\""));
+		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/{navdepartureAirport}\""));
 	}
 
 	@Test
@@ -550,9 +550,9 @@ public class TestJPAResponderGen {
 		assertTrue(status);
 		
 		//Test rim dsl
-		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
-		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_arrivalAirport id=flightScheduleID"));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET -> airport_flightSchedules id=code"));
 	}

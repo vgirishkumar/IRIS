@@ -35,6 +35,7 @@ import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmEntityType;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParser;
 import org.odata4j.format.xml.XmlFormatWriter;
@@ -145,7 +146,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				
 				//Write entry
 				OEntity tempEntity = entityResource.getEntity();
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? tempEntity.getEntitySetName() : entityResource.getEntityName()));
+				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + entityResource.getEntityName();
+				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
 	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
             	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
@@ -163,13 +166,15 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links, metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
+				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();
+				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
 				Map<String, List<OLink>> entityOlinks = new HashMap<String, List<OLink>>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
 		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
 					OEntity tempEntity = collectionEntity.getEntity();
-					EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(collectionResource.getEntityName());
 	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 					
 					//Add entity links
@@ -202,7 +207,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
 					entities.add(entity);
 				}
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((collectionResource.getEntityName() == null ? collectionResource.getEntitySetName() : collectionResource.getEntityName()));
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
@@ -219,8 +223,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	public void addLinkToOLinks(List<OLink> olinks, Link link) {
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
 		String rel = link.getRel();
-		if(!rel.contains("self") && !rel.contains("edit")) {
-			rel = XmlFormatWriter.related + link.getTitle();
+		if(rel.contains("item")) {
+			rel = XmlFormatWriter.related + link.getTransition().getTarget().getEntityName();
+		} else if (rel.contains("collection")) {
+			rel = XmlFormatWriter.related + link.getTransition().getTarget().getName();
 		}
 		String href = link.getHref();
 		if(requestContext != null) {
@@ -321,7 +327,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 			// parse the request content
 			Reader reader = new InputStreamReader(entityStream);
-			Entry e = new AtomEntryFormatParser(edmDataServices, rim.getCurrentState().getEntityName(), entityKey, null).parse(reader);
+			Entry e = new AtomEntryFormatParser(edmDataServices, rim.getCurrentState().getName(), entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} else {

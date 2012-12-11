@@ -14,7 +14,7 @@ commands
 end
 
 initial resource ServiceDocument
-	collection ServiceDocument
+	item ServiceDocument
 	view { GETServiceDocument }
 	path "/"
 #foreach ( $rsm in $rim.getResourceStateMachines() )
@@ -27,10 +27,10 @@ end
 resource ${rsm.getCollectionStateName()}
 	collection ${rsm.getEntityName()}
 	view { GETEntities }
-	path "/${rsm.getEntityName()}()"
+	path "/${rsm.getCollectionStateName()}()"
 	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
 #foreach ( $transition in $rsm.getTransitions() )
-	GET *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}
+	GET *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
 #end
 end
 
@@ -38,7 +38,7 @@ end
 resource ${rsm.getEntityStateName()}
 	item ${rsm.getEntityName()}
 	view { GETEntity }
-	path "/${rsm.getEntityName()}(${rsm.getPathParametersTemplate()})"
+	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})"
 #foreach ( $transition in $rsm.getTransitions() )
 	GET -> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
 #end
@@ -52,14 +52,14 @@ resource ${rsm.getEntityStateName()}_${transition.getTargetStateName()}#*
 	Transition to collection resource state in target RSM *#
 	collection ${transition.getTargetEntityName()}
 	view { GETNavProperty${transition.getTargetStateName()} }
-	path "/${rsm.getEntityName()}(${rsm.getPathParametersTemplate()})/{nav${transition.getTargetStateName()}}"
+	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})/{nav${transition.getTargetStateName()}}"
 	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 #else#*
 	Transition to entity resource state in target RSM *#
 	item ${transition.getTargetEntityName()}
 	view { GETNavProperty${transition.getTargetStateName()} }
-	path "/${rsm.getEntityName()}(${rsm.getPathParametersTemplate()})/{nav${transition.getTargetStateName()}}"
-	GET -> ${transition.getTargetRsmStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
+	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})/{nav${transition.getTargetStateName()}}"
+	GET -> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 #end
 end
 #end
