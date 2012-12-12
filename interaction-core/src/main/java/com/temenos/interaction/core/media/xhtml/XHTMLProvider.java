@@ -157,36 +157,39 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 				if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
 					//Entity collection resource
 					CollectionResource<Entity> collectionResource = (CollectionResource<Entity>) resource;
+					Set<String> entityPropertyNames = metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties();
 					List<EntityResource<Entity>> entityResources = (List<EntityResource<Entity>>) collectionResource.getEntities();
 					List<EntityResourceWrapperXHTML> entities = new ArrayList<EntityResourceWrapperXHTML>();
 					for (EntityResource<Entity> er : entityResources) {
 						entities.add(new EntityResourceWrapperXHTML(buildFromEntity(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
-					template.setProperty("entityPropertyNames", getEntityPropertyNames(collectionResource.getEntityName(), entities));
+					template.setProperty("entityPropertyNames", entityPropertyNames);
 					template.setProperty("entityResources", entities);
 				} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 					//OEntity collection resource
 					CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
+					Set<String> entityPropertyNames = metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties();
 					List<EntityResource<OEntity>> entityResources = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 					List<EntityResourceWrapperXHTML> entities = new ArrayList<EntityResourceWrapperXHTML>();
 					for (EntityResource<OEntity> er : entityResources) {
 						entities.add(new EntityResourceWrapperXHTML(buildFromOEntity(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
-					template.setProperty("entityPropertyNames", getEntityPropertyNames(collectionResource.getEntityName(), entities));
+					template.setProperty("entityPropertyNames", entityPropertyNames);
 					template.setProperty("entityResources", entities);
 				} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
 					//JAXB collection resource
 					CollectionResource<Object> collectionResource = (CollectionResource<Object>) resource;
 					List<EntityResource<Object>> entityResources = (List<EntityResource<Object>>) collectionResource.getEntities();
 					List<EntityResourceWrapperXHTML> entities = new ArrayList<EntityResourceWrapperXHTML>();
+					Set<String> entityPropertyNames = metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties();
 					for (EntityResource<Object> er : entityResources) {
 						er.setEntityName(collectionResource.getEntityName());
 						entities.add(new EntityResourceWrapperXHTML(buildFromBean(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
-					template.setProperty("entityPropertyNames", getEntityPropertyNames(collectionResource.getEntityName(), entities));
+					template.setProperty("entityPropertyNames", entityPropertyNames);
 					template.setProperty("entityResources", entities);
 				} else {
 					logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
@@ -220,14 +223,19 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 	protected EntityResource<Map<String, Object>> buildFromOEntity(EntityResource<OEntity> entityResource) {
 		OEntity entity = entityResource.getEntity();
 		Map<String, Object> map = new HashMap<String, Object>();
-		EntityMetadata entityMetadata = metadata.getEntityMetadata(entity.getEntitySetName());
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityResource.getEntityName());
 		if (entityMetadata == null)
 			throw new IllegalStateException("Entity metadata could not be found [" + entity.getEntitySetName() + "]");
 
 		// add properties if they are present on the resolved entity
-		for (OProperty<?> property : entity.getProperties()) {
-			if (entityMetadata.getPropertyVocabulary(property.getName()) != null && property.getValue() != null) {
+		for (String propertyName : entityMetadata.getTopLevelProperties()) 
+		{
+			OProperty<?> property = getOEntityProperty(entity.getProperties(), propertyName);
+			if(property != null && property.getValue() != null) {
 				map.put(property.getName(), property.getValue().toString());				
+			}
+			else if(property != null) {
+				map.put(property.getName(), new String(""));	
 			}
 		}
 		EntityResource<Map<String, Object>> er = new EntityResource<Map<String, Object>>(map);
@@ -239,19 +247,27 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 	protected EntityResource<Map<String, Object>> buildFromEntity(EntityResource<Entity> entityResource) {
 		Entity entity = entityResource.getEntity();
 		Map<String, Object> map = new HashMap<String, Object>();
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityResource.getEntityName());
+		if (entityMetadata == null)
+			throw new IllegalStateException("Entity metadata could not be found [" + entity.getName() + "]");
+
 		Map<String, EntityProperty> properties = entity.getProperties().getProperties();
-		for (Map.Entry<String, EntityProperty> property : properties.entrySet()) 
+		for (String propertyName : entityMetadata.getTopLevelProperties()) 
 		{
-			String propertyName = property.getKey(); 
-			EntityProperty propertyValue = (EntityProperty) property.getValue();
-	   		map.put(propertyName, propertyValue.getValue());	
+			EntityProperty propertyValue = (EntityProperty) properties.get(propertyName);
+			if(propertyValue != null && propertyValue.getValue() != null) {
+				map.put(propertyName, propertyValue.getValue());	
+			}
+			else {
+				map.put(propertyName, new String(""));	
+			}
 		}
 		EntityResource<Map<String, Object>> er = new EntityResource<Map<String, Object>>(map);
 		er.setLinks(entityResource.getLinks());
 		er.setEntityName(entity.getName());
 		return er;
 	}
-	
+
 	protected EntityResource<Map<String, Object>> buildFromBean(EntityResource<Object> entityResource) {
 		Map<String, Object> map = new HashMap<String, Object>();
 
@@ -266,7 +282,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 			    String propertyName = propertyDesc.getName();
 				if (entityMetadata.getPropertyVocabulary(propertyName) != null) {
 				    Object value = propertyDesc.getReadMethod().invoke(entityResource.getEntity());
-					map.put(propertyName, value);				
+					map.put(propertyName, value != null ? value : new String(""));				
 				}
 			}
 		} catch (IllegalArgumentException e) {
@@ -329,5 +345,17 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 			logger.error("Failed to obtain template factory " + templateFactoryName);
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	/*
+	 * Return the specified OProperty or null if it does not exist
+	 */
+	private OProperty<?> getOEntityProperty(List<OProperty<?>> properties, String propertyName) {
+		for(OProperty<?> property : properties) {
+			if(property.getName().equals(propertyName)) {
+				return property;
+			}
+		}
+		return null;		
 	}
 }
