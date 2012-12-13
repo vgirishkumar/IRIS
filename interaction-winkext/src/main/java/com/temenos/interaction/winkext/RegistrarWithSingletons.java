@@ -10,7 +10,6 @@ import java.util.Set;
 import org.apache.wink.common.DynamicResource;
 import org.apache.wink.spring.Registrar;
 
-import com.temenos.interaction.core.hypermedia.ResourceRegistry;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
@@ -21,7 +20,6 @@ import com.temenos.interaction.core.rim.ResourceInteractionModel;
  */
 public class RegistrarWithSingletons extends Registrar {
     private Set<Object> singletons = Collections.emptySet();
-    private ResourceRegistry resourceRegistry = null;
 
     // key = resourcePath
     private Map<String, DynamicResourceDelegate> resources = new HashMap<String, DynamicResourceDelegate>();
@@ -35,22 +33,6 @@ public class RegistrarWithSingletons extends Registrar {
 
     public void setSingletons(final Set<Object> singletons) {
         this.singletons = singletons;
-    }
-    
-    public ResourceRegistry getResourceRegistry() {
-        return resourceRegistry;
-    }
-
-    public void setResourceRegistry(final ResourceRegistry rRegistry) {
-    	assert(rRegistry != null);
-    	resourceRegistry = rRegistry;
-    	Set<ResourceInteractionModel> interactions = rRegistry.getResourceInteractionModels();
-    	if (this.getInstances() == null) {
-        	this.setInstances(new HashSet<Object>());
-    	}
-        for (ResourceInteractionModel rim : interactions) {
-        	addDynamicResource(rim);
-        }
     }
     
     /**
