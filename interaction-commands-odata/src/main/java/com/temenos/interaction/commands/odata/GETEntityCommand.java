@@ -7,12 +7,15 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 
 public class GETEntityCommand implements InteractionCommand {
+	private final static Logger logger = LoggerFactory.getLogger(GETEntityCommand.class);
 
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
@@ -35,27 +38,27 @@ public class GETEntityCommand implements InteractionCommand {
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() == null);
 		
-		String entity = ctx.getCurrentState().getEntityName();
-		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
-		if (entitySet == null)
-			throw new RuntimeException("Entity set not found [" + entity + "]");
-		Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
-		assert(entity.equals(entitySet.getName()));
-		
-		//Create entity key (simple types only)
-		OEntityKey key;
+		String entityName = ctx.getCurrentState().getEntityName();
 		try {
-			key = CommandHelper.createEntityKey(entityTypes, entity, ctx.getId());
-		} catch(Exception e) {
+			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);
+			String entitySetName = entitySet.getName();
+
+			Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
+			
+			//Create entity key (simple types only)
+			OEntityKey key = CommandHelper.createEntityKey(entityTypes, entitySetName, ctx.getId());
+			
+			//Get the entity
+			EntityResponse er = getProducer().getEntity(entitySetName, key, null);
+			OEntity oEntity = er.getEntity();
+			
+			EntityResource<OEntity> oer = CommandHelper.createEntityResource(oEntity);
+			ctx.setResource(oer);		
+		}
+		catch(Exception e) {
+			logger.error("Failed to GET entity [" + entityName + "]: " + e.getMessage());
 			return Result.FAILURE;
 		}
-		
-		//Get the entity
-		EntityResponse er = getProducer().getEntity(entity, key, null);
-		OEntity oEntity = er.getEntity();
-		
-		EntityResource<OEntity> oer = CommandHelper.createEntityResource(oEntity);
-		ctx.setResource(oer);		
 		return Result.SUCCESS;
 	}
 
