@@ -86,9 +86,10 @@ public class MetadataOData4j {
 				//Entity properties
 	    		String type = entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME);
 	    		EdmType edmType = termValueToEdmType(type);
+	    		boolean isNullable = !(entityMetadata.getTermValue(propertyName, TermMandatory.TERM_NAME).equals("true") || entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true"));
 				EdmProperty.Builder ep = EdmProperty.newBuilder(propertyName).
 						setType(edmType).
-						setNullable(entityMetadata.getTermValue(propertyName, TermMandatory.TERM_NAME).equals("true") ? false : true);
+						setNullable(isNullable);
 				bProperties.add(ep);
 
 				//Entity keys
