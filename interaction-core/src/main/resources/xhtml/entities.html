@@ -9,9 +9,7 @@
 	</thead>
 	<tbody>
 		<tr a:foreach="entityResources" a:as="entityResource" onclick="navigate('${entityResource.entityGetHRef}');">
-			<td a:foreach="entityResource.resource.entity.entrySet()" a:as="prop">
-				<div a:if="prop.value.class.name != 'com.temenos.interaction.core.entity.EntityProperties'">${prop.value}</div>
-			</td>
+			<td a:foreach="entityResource.entityProperties" a:as="propertyValue">${propertyValue}</td>
 		</tr>
 	</tbody>
 </table>

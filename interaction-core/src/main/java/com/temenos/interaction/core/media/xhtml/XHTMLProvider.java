@@ -161,7 +161,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 					List<EntityResource<Entity>> entityResources = (List<EntityResource<Entity>>) collectionResource.getEntities();
 					List<EntityResourceWrapperXHTML> entities = new ArrayList<EntityResourceWrapperXHTML>();
 					for (EntityResource<Entity> er : entityResources) {
-						entities.add(new EntityResourceWrapperXHTML(buildFromEntity(er)));
+						entities.add(new EntityResourceWrapperXHTML(entityPropertyNames, buildFromEntity(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
 					template.setProperty("entityPropertyNames", entityPropertyNames);
@@ -173,7 +173,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 					List<EntityResource<OEntity>> entityResources = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 					List<EntityResourceWrapperXHTML> entities = new ArrayList<EntityResourceWrapperXHTML>();
 					for (EntityResource<OEntity> er : entityResources) {
-						entities.add(new EntityResourceWrapperXHTML(buildFromOEntity(er)));
+						entities.add(new EntityResourceWrapperXHTML(entityPropertyNames, buildFromOEntity(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
 					template.setProperty("entityPropertyNames", entityPropertyNames);
@@ -186,7 +186,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 					Set<String> entityPropertyNames = metadata.getEntityMetadata(collectionResource.getEntityName()).getTopLevelProperties();
 					for (EntityResource<Object> er : entityResources) {
 						er.setEntityName(collectionResource.getEntityName());
-						entities.add(new EntityResourceWrapperXHTML(buildFromBean(er)));
+						entities.add(new EntityResourceWrapperXHTML(entityPropertyNames, buildFromBean(er)));
 					}
 					template.setProperty("entitySetName", collectionResource.getEntitySetName());
 					template.setProperty("entityPropertyNames", entityPropertyNames);
@@ -219,23 +219,14 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 		}
 
 	}
-	
+
 	protected EntityResource<Map<String, Object>> buildFromOEntity(EntityResource<OEntity> entityResource) {
 		OEntity entity = entityResource.getEntity();
 		Map<String, Object> map = new HashMap<String, Object>();
-		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityResource.getEntityName());
-		if (entityMetadata == null)
-			throw new IllegalStateException("Entity metadata could not be found [" + entity.getEntitySetName() + "]");
-
-		// add properties if they are present on the resolved entity
-		for (String propertyName : entityMetadata.getTopLevelProperties()) 
+		for (OProperty<?> property : entity.getProperties()) 
 		{
-			OProperty<?> property = getOEntityProperty(entity.getProperties(), propertyName);
-			if(property != null && property.getValue() != null) {
-				map.put(property.getName(), property.getValue().toString());				
-			}
-			else if(property != null) {
-				map.put(property.getName(), new String(""));	
+			if(property != null) {
+				map.put(property.getName(), property.getValue());				
 			}
 		}
 		EntityResource<Map<String, Object>> er = new EntityResource<Map<String, Object>>(map);
@@ -247,19 +238,12 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 	protected EntityResource<Map<String, Object>> buildFromEntity(EntityResource<Entity> entityResource) {
 		Entity entity = entityResource.getEntity();
 		Map<String, Object> map = new HashMap<String, Object>();
-		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityResource.getEntityName());
-		if (entityMetadata == null)
-			throw new IllegalStateException("Entity metadata could not be found [" + entity.getName() + "]");
-
 		Map<String, EntityProperty> properties = entity.getProperties().getProperties();
-		for (String propertyName : entityMetadata.getTopLevelProperties()) 
+		for (String propertyName : properties.keySet()) 
 		{
 			EntityProperty propertyValue = (EntityProperty) properties.get(propertyName);
-			if(propertyValue != null && propertyValue.getValue() != null) {
+			if(propertyValue != null) {
 				map.put(propertyName, propertyValue.getValue());	
-			}
-			else {
-				map.put(propertyName, new String(""));	
 			}
 		}
 		EntityResource<Map<String, Object>> er = new EntityResource<Map<String, Object>>(map);
@@ -282,7 +266,7 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 			    String propertyName = propertyDesc.getName();
 				if (entityMetadata.getPropertyVocabulary(propertyName) != null) {
 				    Object value = propertyDesc.getReadMethod().invoke(entityResource.getEntity());
-					map.put(propertyName, value != null ? value : new String(""));				
+					map.put(propertyName, value);				
 				}
 			}
 		} catch (IllegalArgumentException e) {
@@ -345,17 +329,5 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 			logger.error("Failed to obtain template factory " + templateFactoryName);
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
-	}
-	
-	/*
-	 * Return the specified OProperty or null if it does not exist
-	 */
-	private OProperty<?> getOEntityProperty(List<OProperty<?>> properties, String propertyName) {
-		for(OProperty<?> property : properties) {
-			if(property.getName().equals(propertyName)) {
-				return property;
-			}
-		}
-		return null;		
 	}
 }
