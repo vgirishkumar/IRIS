@@ -1,16 +1,13 @@
 package com.temenos.interaction.core.media.edmx;
 
 import java.io.Writer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import org.odata4j.core.NamespacedAnnotation;
 import org.odata4j.core.PrefixedNamespace;
 import org.odata4j.edm.EdmAnnotationAttribute;
 import org.odata4j.edm.EdmAnnotationElement;
+import org.odata4j.edm.EdmAssociation;
+import org.odata4j.edm.EdmAssociationSet;
 import org.odata4j.edm.EdmComplexType;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmDocumentation;
@@ -20,6 +17,7 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.edm.EdmFunctionParameter;
 import org.odata4j.edm.EdmItem;
+import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmProperty.CollectionKind;
 import org.odata4j.edm.EdmSchema;
@@ -28,20 +26,9 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
-import com.temenos.interaction.core.hypermedia.CollectionResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.Transition;
-
 public class EdmxMetaDataWriter extends XmlFormatWriter {
-
-	public final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 	
-  public static void write(EdmDataServices services, Writer w, ResourceStateMachine hypermediaEngine) {
-
-	  //Map<Relation name, Entity relation>
-      Map<String, EntityRelation> relations = new HashMap<String, EntityRelation>();
-      Map<String, EntityRelation> entitySetRelations = new HashMap<String, EntityRelation>();
+  public static void write(EdmDataServices services, Writer w) {
 	  
     XMLWriter2 writer = XMLFactoryProvider2.getInstance().newXMLWriterFactory2().createXMLWriter(w);
     writer.startDocument();
@@ -112,115 +99,47 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
 
         writeProperties(eet.getDeclaredProperties(), writer);
 
-        //Obtain the relation between entities and write navigation properties
-        Collection<Transition> entityTransitions = hypermediaEngine.getTransitionsById().values();
-		if(entityTransitions != null) {
-			//Find out which target entities have more than one transition from this state
-	        Set<String> targetStateNames = new HashSet<String>();
-			Map<String, String> multipleNavPropsToEntity = new HashMap<String, String>();		//Map<TargetEntityName, TargetStateName>
-			for(Transition entityTransition : entityTransitions) {
-				if (entityTransition.getSource().getEntityName().equals(entityName) 
-						&& !entityTransition.getTarget().isPseudoState()) {
-					String targetEntityName = entityTransition.getTarget().getEntityName();
-					String targetStateName = entityTransition.getTarget().getName();
-					String lastTargetStateName = multipleNavPropsToEntity.get(targetEntityName);
-					if(lastTargetStateName == null) {
-						multipleNavPropsToEntity.put(targetEntityName, targetStateName);
-						targetStateNames.add(entityTransition.getTarget().getName());
-					}
-					else if(!targetStateName.equals(lastTargetStateName)) {		//Disregard transitions from multiple source states
-						multipleNavPropsToEntity.put(targetEntityName, MULTI_NAV_PROP_TO_ENTITY);		//null indicates to generate multiple navigation properties 
-					}
-				}
-			}
+        for (EdmNavigationProperty np : eet.getDeclaredNavigationProperties()) {
 
-			//Create navigation properties from transitions
-	        Set<String> npNames = new HashSet<String>();
-			for(Transition entityTransition : entityTransitions) {
-				ResourceState sourceState = entityTransition.getSource();
-				ResourceState targetState = entityTransition.getTarget();
-				String npName = targetState.getName();
-				if (sourceState.getEntityName().equals(entityName) 
-						&& !entityTransition.getTarget().isPseudoState()
-						&& !npNames.contains(npName)) {		//We can have transitions to a resource state from multiple source states
-					int multiplicity = EntityRelation.MULTIPLICITY_TO_ONE;
-					if (sourceState instanceof CollectionResourceState && targetState instanceof CollectionResourceState) {
-						multiplicity = EntityRelation.MULTIPLICITY_MANY_TO_MANY;
-					} else if (targetState instanceof CollectionResourceState) {
-						multiplicity = EntityRelation.MULTIPLICITY_TO_MANY;
-					}
-	
-					//Use the entity names to define the relation
-					String relationName;
-					if(multipleNavPropsToEntity.get(targetState.getEntityName()).equals(MULTI_NAV_PROP_TO_ENTITY)) {
-						//More than one transition => use separate associations "sourceEntityName_navPropName"
-						relationName = sourceState.getName() + "_" + targetState.getName();
-					}
-					else {
-						//Only one transition => use single association "sourceEntityName_targetEntityName"
-						relationName = sourceState.getName() + "_" + targetState.getName();
-						String invertedRelationName = targetState.getName() + "_" + sourceState.getName();
-						if(relations.containsKey(invertedRelationName)) {
-							relationName = invertedRelationName;					
-						}
-					}
-					
-	        		//Obtain the relation between the source and target entities
-					EntityRelation relation = new EntityRelation(relationName, schema.getNamespace(), 
-		            		sourceState.getEntityName(), targetState.getEntityName(), multiplicity,
-		            		sourceState.getName(), targetState.getName());
-					if(!relations.containsKey(relationName)) {
-			            relations.put(relationName, relation);
-					}
-					if (multiplicity == EntityRelation.MULTIPLICITY_MANY_TO_MANY) {
-						entitySetRelations.put(relationName, relation);
-					}
-	
-					//Write the navigation properties
-					writer.startElement(new QName2("NavigationProperty"));
-		            writer.writeAttribute("Name", npName);
-		            writer.writeAttribute("Relationship", relation.getNamespace() + "." + relation.getName());
-		            writer.writeAttribute("FromRole", getRoleSourceEntity(relation));
-		            writer.writeAttribute("ToRole", getRoleTargetEntity(relation));
-		            writer.endElement("NavigationProperty");
+            writer.startElement(new QName2("NavigationProperty"));
+            writer.writeAttribute("Name", np.getName());
+            writer.writeAttribute("Relationship", np.getRelationship().getFQNamespaceName());
+            writer.writeAttribute("FromRole", np.getFromRole().getRole());
+            writer.writeAttribute("ToRole", np.getToRole().getRole());
+            writeAnnotationAttributes(np, writer);
+            writeDocumentation(np, writer);
+            writeAnnotationElements(np, writer);
+            writer.endElement("NavigationProperty");
 
-		            npNames.add(npName);
-				}
-			}
-		}
+          }
         
         writeAnnotationElements(eet, writer);
         writer.endElement("EntityType");
 
       }
 
-      //Associations
-      for(EntityRelation relation : relations.values()) {
-          writer.startElement(new QName2("Association"));
-      	
-          writer.writeAttribute("Name", relation.getName());
+      // Association
+      for (EdmAssociation assoc : schema.getAssociations()) {
+        writer.startElement(new QName2("Association"));
 
-          writer.startElement(new QName2("End"));
-          writer.writeAttribute("Role", getRoleSourceEntity(relation));
-          writer.writeAttribute("Type", relation.getNamespace() + "." + relation.getSourceEntityName());
-          if(relation.getMultiplicity() == EntityRelation.MULTIPLICITY_TO_MANY) {
-        	  writer.writeAttribute("Multiplicity", "0..1");
-          } else {
-        	  writer.writeAttribute("Multiplicity", "*");
-          }
-          writer.endElement("End");
+        writer.writeAttribute("Name", assoc.getName());
+        writeAnnotationAttributes(assoc, writer);
+        writeDocumentation(assoc, writer);
 
-          writer.startElement(new QName2("End"));
-          writer.writeAttribute("Role", getRoleTargetEntity(relation));
-          writer.writeAttribute("Type", relation.getNamespace() + "." + relation.getTargetEntityName());
-          if(relation.getMultiplicity() == EntityRelation.MULTIPLICITY_TO_MANY || relation.getMultiplicity() == EntityRelation.MULTIPLICITY_MANY_TO_MANY) {
-        	  writer.writeAttribute("Multiplicity", "*");
-          } else {
-        	  writer.writeAttribute("Multiplicity", "0..1");
-          }
-          writer.endElement("End");
+        writer.startElement(new QName2("End"));
+        writer.writeAttribute("Role", assoc.getEnd1().getRole());
+        writer.writeAttribute("Type", assoc.getEnd1().getType().getFullyQualifiedTypeName());
+        writer.writeAttribute("Multiplicity", assoc.getEnd1().getMultiplicity().getSymbolString());
+        writer.endElement("End");
 
-          writer.endElement("Association");
+        writer.startElement(new QName2("End"));
+        writer.writeAttribute("Role", assoc.getEnd2().getRole());
+        writer.writeAttribute("Type", assoc.getEnd2().getType().getFullyQualifiedTypeName());
+        writer.writeAttribute("Multiplicity", assoc.getEnd2().getMultiplicity().getSymbolString());
+        writer.endElement("End");
+
+        writeAnnotationElements(assoc, writer);
+        writer.endElement("Association");
       }
 				
       // EntityContainer
@@ -271,22 +190,24 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
           writer.endElement("FunctionImport");
         }
 
-        //Association set 
-        for(EntityRelation relation : entitySetRelations.values()) {
+        for (EdmAssociationSet eas : container.getAssociationSets()) {
             writer.startElement(new QName2("AssociationSet"));
-            writer.writeAttribute("Name", relation.getName());
-            writer.writeAttribute("Association", relation.getNamespace() + "." + relation.getName());
+            writer.writeAttribute("Name", eas.getName());
+            writer.writeAttribute("Association", eas.getAssociation().getFQNamespaceName());
+            writeAnnotationAttributes(eas, writer);
+            writeDocumentation(eas, writer);
 
             writer.startElement(new QName2("End"));
-            writer.writeAttribute("Role", getRoleSourceEntity(relation));
-            writer.writeAttribute("EntitySet", relation.getSourceEntitySetName());
+            writer.writeAttribute("Role", eas.getEnd1().getRole().getRole());
+            writer.writeAttribute("EntitySet", eas.getEnd1().getEntitySet().getName());
             writer.endElement("End");
 
             writer.startElement(new QName2("End"));
-            writer.writeAttribute("Role", getRoleTargetEntity(relation));
-            writer.writeAttribute("EntitySet", relation.getTargetEntitySetName());
+            writer.writeAttribute("Role", eas.getEnd2().getRole().getRole());
+            writer.writeAttribute("EntitySet", eas.getEnd2().getEntitySet().getName());
             writer.endElement("End");
 
+            writeAnnotationElements(eas, writer);
             writer.endElement("AssociationSet");
           }
         
@@ -302,18 +223,6 @@ public class EdmxMetaDataWriter extends XmlFormatWriter {
     writer.endDocument();
   }
 
-  private static String getRoleSourceEntity(EntityRelation relation) {
-	  String sourceEntityName = relation.getSourceEntityName();
-	  String targetEntityName = relation.getTargetEntityName();
-	  return (!sourceEntityName.equals(targetEntityName) ? sourceEntityName : sourceEntityName + "1") + "_Source";
-  }
-
-  private static String getRoleTargetEntity(EntityRelation relation) {
-	  String sourceEntityName = relation.getSourceEntityName();
-	  String targetEntityName = relation.getTargetEntityName();
-	  return (!sourceEntityName.equals(targetEntityName) ? targetEntityName : targetEntityName + "2") + "_Target";
-  }
-  
   /**
    * Extensions to CSDL like Annotations appear in an application specific set
    * of namespaces.
