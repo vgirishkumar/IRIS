@@ -34,10 +34,15 @@ public class EntityResource<T> implements RESTResource {
 	public EntityResource() {
 	}
 	
-	public EntityResource(T entity) {
+	public EntityResource(String entityName, T entity) {
+		this.entityName = entityName;
 		this.entity = entity;
 	}
 
+	public EntityResource(T entity) {
+		this.entity = entity;
+	}
+	
 	public T getEntity() {
 		return entity;
 	}

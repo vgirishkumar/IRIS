@@ -190,7 +190,7 @@ public class TestXHTMLProvider {
 	}
 	
 	private EntityResource<Entity> createEntityResource(Entity entity, String id) {
-		EntityResource<Entity> entityResource = new EntityResource<Entity>(entity);
+		EntityResource<Entity> entityResource = new EntityResource<Entity>(entity.getName(), entity);
 		Collection<Link> links = new ArrayList<Link>();
 		links.add(new Link(null, id, "self", "/" + entity.getName() + "(" + id + ")", null, null, "GET", null));
 		entityResource.setLinks(links);
