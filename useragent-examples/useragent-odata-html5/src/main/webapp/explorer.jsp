@@ -7,6 +7,7 @@
 
 	<script src="http://code.jquery.com/jquery-1.8.2.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+	<script type="text/javascript" src="Scripts/underscore-1.4.3-min.js"></script>
     <script type="text/javascript" src="Scripts/datajs-1.1.0-iris.js"></script>
 </head>
 <body>
