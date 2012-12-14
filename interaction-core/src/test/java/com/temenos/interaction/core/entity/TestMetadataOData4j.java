@@ -78,6 +78,7 @@ public class TestMetadataOData4j {
 		Assert.assertTrue(type instanceof EdmEntityType);
 		EdmEntityType entityType = (EdmEntityType) type;
 		Assert.assertEquals("Customer", entityType.getName());
+		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
 		Assert.assertEquals(true, entityType.findProperty("postCode").isNullable());
 	}
