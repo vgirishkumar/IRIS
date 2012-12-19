@@ -30,18 +30,14 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
-import com.google.inject.Injector;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
-import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
-import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupGenerated;
-import com.temenos.interaction.rimdsl.generator.launcher.Generator;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.command.Parameter;
 import com.temenos.interaction.sdk.entity.EMEntity;
@@ -256,38 +252,6 @@ public class JPAResponderGen {
 		return ok;
 	}
 
-	public boolean generateBehaviourClass(File srcOutputPath, File configOutputPath) {
-		boolean ok = true;
-
-		Metadata metadata;
-		try {
-			metadata = parseMetadataXML(configOutputPath.getPath() + "/" + METADATA_FILE);
-		}
-		catch(Exception e) {
-			return false;
-		}
-		String modelName = metadata.getModelName();
-		
-		// generate the behaviour class
-		String rimDslFilename = modelName + ".rim";
-		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
-		if (!writeBehaviourClass(rimDslFile, srcOutputPath.toString())) {
-			ok = false;
-		}
-		
-		return ok;
-	}
-	
-	private Metadata parseMetadataXML(String metadataXmlFilePath) throws Exception {
-		try {
-			InputStream is = new FileInputStream(metadataXmlFilePath); 
-			return new MetadataParser().parse(is);
-		}
-		catch(Exception e) {
-			throw new Exception("Failed to parse " + metadataXmlFilePath + ": " + e.getMessage());
-		}
-	}
-	
 	protected String getLinkProperty(String associationName, String edmxFile) {
 		return ReferentialConstraintParser.getLinkProperty(associationName, edmxFile);
 	}
@@ -316,12 +280,6 @@ public class JPAResponderGen {
 			ok = false;
 		}
 
-		// generate the behaviour class
-		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
-		if (!writeBehaviourClass(rimDslFile, srcOutputPath.toString())) {
-			ok = false;
-		}
-		
 		if(generateMockResponder) {
 			//Write JPA classes
 			for(EntityInfo entityInfo : entitiesInfo) {
@@ -697,12 +655,6 @@ public class JPAResponderGen {
 		return true;
 	}
 	
-	protected boolean writeBehaviourClass(String rimDslFile, String srcOutputPath) {
-		Injector injector = new RIMDslStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
-		Generator generator = injector.getInstance(Generator.class);
-		return generator.runGenerator(rimDslFile, srcOutputPath);
-	}
-
 	protected boolean writeResponderSettings(File sourceDir, String generateResponderSettings) {
 		FileOutputStream fos = null;
 		try {
