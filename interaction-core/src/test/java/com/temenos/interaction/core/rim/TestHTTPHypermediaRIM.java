@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.internal.MultivaluedMapImpl;
@@ -151,6 +152,27 @@ public class TestHTTPHypermediaRIM {
 		rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 	}
 
+	@Test
+	public void testGETCommandInvalidRequest() throws Exception {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+
+		// this test incorrectly supplies a resource as a result of the command.
+		InteractionCommand mockCommand = new InteractionCommand() {
+			public Result execute(InteractionContext ctx) {
+				ctx.setResource(null);
+				return Result.INVALID_REQUEST;
+			}
+		};
+
+		// create mock command controller
+		NewCommandController mockCommandController = mockCommandController(mockCommand);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		assertEquals(Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+	}
+	
 	/*
 	 * This test is for a GET request where the command succeeds.
 	 * A successful GET command should set the requested resource onto

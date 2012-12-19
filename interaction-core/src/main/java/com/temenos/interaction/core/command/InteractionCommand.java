@@ -8,7 +8,7 @@ package com.temenos.interaction.core.command;
 public interface InteractionCommand {
 
 	enum Result {
-		SUCCESS, FAILURE, UNEXPECTED
+		SUCCESS, FAILURE, INVALID_REQUEST
 	}
 	
 	/**

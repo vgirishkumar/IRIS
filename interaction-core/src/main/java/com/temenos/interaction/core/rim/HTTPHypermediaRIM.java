@@ -271,7 +271,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
     	// execute GET command
     	InteractionCommand.Result result = action.execute(ctx);
-    	StatusType status = result == Result.SUCCESS ? Status.OK : Status.NOT_FOUND;
+    	
+    	// build the response
+    	StatusType status = Status.NOT_FOUND;
+    	if(result != null) {
+	    	switch(result) {
+	    	case SUCCESS:			status = Status.OK; break;
+	    	case FAILURE:			status = Status.NOT_FOUND; break;
+	    	case INVALID_REQUEST:	status = Status.BAD_REQUEST; break;
+	    	}
+    	}
     	return buildResponse(currentState, headers, pathParameters, status, ctx.getResource(), null, null);
 	}
 	
