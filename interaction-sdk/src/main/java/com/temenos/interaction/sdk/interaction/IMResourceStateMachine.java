@@ -54,7 +54,17 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine Target RSM
 	 */
 	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine) {
-		transitions.add(new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine));
+		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine);
+		
+		//Workaround - if there are multiple transitions to the same state => create intermediate 'navigation' states 
+		for(IMTransition t : transitions) {
+			if(t.getTargetResourceStateMachine().getEntityStateName().equals(targetResourceStateMachine.getEntityStateName()) ) {
+				t.notUniqueTransition();
+				transition.notUniqueTransition();
+			}
+		}
+		
+		transitions.add(transition);
 	}
 	
 	public List<IMTransition> getTransitions() {

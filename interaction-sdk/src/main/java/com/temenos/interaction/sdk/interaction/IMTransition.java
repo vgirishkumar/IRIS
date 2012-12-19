@@ -9,6 +9,7 @@ public class IMTransition {
 	private String linkProperty;			//The depend element of a referential constraint (i.e. the property that specifies the target resource)
 	private String targetStateName;			//Name of target state
 	private boolean isCollectionState;		//Indicates if target is a collection state
+	private boolean isUniqueTransition = true;		//Workaround - indicates to create intermediate 'navigation' states for this transition
 	private String reciprocalLinkState;		//State which leads a target state back to the current state
 	private IMResourceStateMachine targetResourceStateMachine;	//Resource state machine of target state
 	
@@ -35,6 +36,14 @@ public class IMTransition {
 
 	public boolean isCollectionState() {
 		return isCollectionState;
+	}
+	
+	public void notUniqueTransition() {
+		this.isUniqueTransition = false; 
+	}
+	
+	public boolean isUniqueTransition() {
+		return isUniqueTransition;
 	}
 
 	/**
