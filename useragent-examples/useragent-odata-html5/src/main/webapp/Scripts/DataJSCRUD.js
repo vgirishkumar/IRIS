@@ -67,6 +67,7 @@ function GetEntitySet(uri)
     $("#loadingEntities").show();
 	$("#createEntity").hide();
     $("#entities").find("tr:gt(0)").remove();
+    uri = _.unescape(uri);
     OData.read({ 
 		requestUri: uri,
 		headers: { Accept: "application/atom+xml" }
@@ -296,6 +297,7 @@ function OpenDeleteDialog(entityUri)
 {
     $("#loading").hide();
 
+    entityUri = _.unescape(entityUri);
     // append baseuri if the link is relative
     if (entityUri.indexOf("http://") == -1) {
     	entityUri = ODATA_SVC.val() + entityUri;
@@ -322,7 +324,8 @@ function OpenDeleteDialog(entityUri)
 //Handles DataJS calls for delete user
 function DeleteEntity(entityUri) 
 {
-    var requestOptions = {
+	entityUri = _.unescape(entityUri);
+	var requestOptions = {
                             requestUri: entityUri,
                             method: "DELETE",
                             headers: { Accept: "application/atom+xml" }
@@ -358,7 +361,7 @@ function ApplyServiceTemplate(links)
 	for (obj in links) {
 		var link = links[obj];
 		var content = "<tr id=\"entitySet_" + link.title + "\">" +
-							"<td><a href=\"javascript:GetEntitySet('" + link.href + "')\">" + link.title + "</a></td>" +
+							"<td><a href=\"javascript:GetEntitySet('" + escapeURI(link.href) + "')\">" + link.title + "</a></td>" +
 						"</tr>";
         $(content).appendTo("#services tbody");
 	}
@@ -387,7 +390,7 @@ function RenderEntitySet(data, entitiesLinks)
 				for (obj in data[0].__metadata.properties) {
 					var prop = data[row][obj];
 					if (prop != null && prop.__deferred != null && prop.__deferred.uri != null) {
-						body += "<td id=\"entityCell_" + row + "_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
+						body += "<td id=\"entityCell_" + row + "_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + escapeURI(prop.__deferred.uri) + "')\">" + obj + "</a></td>";
 					} else if(prop != null) {
 						body += "<td id=\"entityCell_" + row + "_"+ obj +"\">" + prop + "</td>";
 					}
@@ -400,9 +403,9 @@ function RenderEntitySet(data, entitiesLinks)
 				var editRel = "edit";
 				if (links[editRel] != null) {
 					body +=
-						"<a href=\"javascript:OpenUpdateDialog('" + data[row].__metadata.type + "', '" + row + "', '" + links[editRel].href + "')\">Update</a>" +
+						"<a href=\"javascript:OpenUpdateDialog('" + data[row].__metadata.type + "', '" + row + "', '" + escapeURI(links[editRel].href) + "')\">Update</a>" +
 						" " +
-						"<a href=\"javascript:OpenDeleteDialog('" + links[editRel].href + "')\">Delete</a>";
+						"<a href=\"javascript:OpenDeleteDialog('" + escapeURI(links[editRel].href) + "')\">Delete</a>";
 				}
 				body += "</td></tr>";
 			}                            
@@ -426,7 +429,7 @@ function RenderEntity(data, links)
 		body += "<td>" + obj + "</td>";
 		var prop = data[obj];
 		if (prop != null && prop.__deferred != null && prop.__deferred.uri != null) {
-			body += "<td id=\"entityCell_0_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + prop.__deferred.uri + "')\">" + obj + "</a></td>";
+			body += "<td id=\"entityCell_0_"+ obj +"\"><a href=\"javascript:GetEntitySet('" + escapeURI(prop.__deferred.uri) + "')\">" + obj + "</a></td>";
 		} else if(prop != null) {
 			body += "<td id=\"entityCell_0_"+ obj +"\">" + prop + "</td>";
 		}
@@ -439,9 +442,9 @@ function RenderEntity(data, links)
 	var editRel = "edit";
 	if (links[editRel] != null) {
 		body += 
-			"<a href=\"javascript:OpenUpdateDialog('" + data.__metadata.type + "', '0', '" + links[editRel].href + "')\">Update</a>" +
+			"<a href=\"javascript:OpenUpdateDialog('" + data.__metadata.type + "', '0', '" + escapeURI(links[editRel].href) + "')\">Update</a>" +
 			" " +
-			"<a href=\"javascript:OpenDeleteDialog('" + links[editRel].href + "')\">Delete</a>";
+			"<a href=\"javascript:OpenDeleteDialog('" + escapeURI(links[editRel].href) + "')\">Delete</a>";
 	}
 	body += "</td></tr>";
     $(body).appendTo("#entities tbody");
@@ -499,6 +502,15 @@ function checkRegexp(o, regexp, n) {
     else {
         return true;
     }
+}
+
+// function to html escape reserved characters in uri
+// plain old encodeUri, encodeComponentUri, and escape don't work here because we are actually escaping html
+function escapeURI(uri) {
+	// we need to double escape the uri because we are trying to put an escaped uri into html
+	uri = _.escape(uri);
+	uri = _.escape(uri);
+    return uri
 }
 
 //Add form fields a form's fieldset element 
