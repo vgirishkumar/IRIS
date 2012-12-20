@@ -1,7 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>DataJS CRUD Demo</title>
+    <title>IRIS navigator</title>
+	<link rel="shortcut icon" href="<%=request.getContextPath()%>/favicon.ico">
     <link href="Styles/Site.css" rel="stylesheet" type="text/css" />
     <link type="text/css" rel="Stylesheet" href="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.10/themes/redmond/jquery-ui.css" /> 
 
