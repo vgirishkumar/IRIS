@@ -63,7 +63,7 @@ resource ${rsm.getEntityStateName()}_${transition.getTargetStateName()}#*
 	Transition to collection resource state in target RSM *#
 	collection ${transition.getTargetEntityName()}
 	view { GETNavProperty${transition.getTargetStateName()} }
-	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})/{nav${transition.getTargetStateName()}}"
+	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})/{nav${transition.getTargetStateName()}}${transition.getQueryParameters()}"
 	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 #else#*
 	Transition to entity resource state in target RSM *#

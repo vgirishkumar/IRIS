@@ -45,6 +45,26 @@ public class IMResourceStateMachine {
 	}
 	
 	/**
+	 * Add a transition to a collection resource state
+	 * @param targetStateName target state 
+	 * @param targetEntityName name of entity associated to target state
+	 * @param targetResourceStateMachine target resource state machine
+	 */
+	public void addTransitionToCollectionResource(String targetStateName, String targetEntityName, IMResourceStateMachine targetResourceStateMachine, String queryParameters) {
+		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, queryParameters);
+	}
+
+	/**
+	 * Add a transition to an entity resource state
+	 * @param targetStateName target state 
+	 * @param targetEntityName name of entity associated to target state
+	 * @param targetResourceStateMachine target resource state machine
+	 */
+	public void addTransitionToEntityResource(String targetStateName, String linkProperty, String targetEntityName, IMResourceStateMachine targetResourceStateMachine) {
+		addTransition(targetEntityName, linkProperty, targetStateName, false, "", targetResourceStateMachine, null);
+	}
+	
+	/**
 	 * Add a transition to another state
 	 * @param targetEntityName Entity associated to target RSM
 	 * @param linkProperty Navigation property linking to the target RSM
@@ -54,7 +74,14 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine Target RSM
 	 */
 	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine) {
-		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine);
+		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, null);
+	}
+	
+	/*
+	 * Add a transition
+	 */
+	private void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String queryParameters) {
+		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, queryParameters != null ? queryParameters : "");
 		
 		//Workaround - if there are multiple transitions to the same state => create intermediate 'navigation' states 
 		for(IMTransition t : transitions) {
