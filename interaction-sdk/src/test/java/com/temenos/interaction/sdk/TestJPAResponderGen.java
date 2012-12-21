@@ -85,11 +85,6 @@ public class TestJPAResponderGen {
 		}
 		
 		@Override
-		protected boolean writeBehaviourClass(String rimDslFile, String behaviourClassDir) {
-			return true;
-		}
-		
-		@Override
 		protected boolean writeRimDsl(File sourceDir, String rimDslFilename, String generatedRimDsl) {
 			this.generatedRimDsl = generatedRimDsl;
 			return true;

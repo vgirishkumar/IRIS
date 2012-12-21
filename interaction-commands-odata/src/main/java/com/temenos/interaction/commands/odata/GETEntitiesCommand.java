@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InvalidRequestException;
 
 public class GETEntitiesCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
@@ -70,6 +71,10 @@ public class GETEntitiesCommand implements InteractionCommand {
 			    
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 			ctx.setResource(cr);
+		}
+		catch(InvalidRequestException ire) {
+			logger.error("Failed to GET entities [" + entityName + "]: " + ire.getMessage());
+			return Result.INVALID_REQUEST;
 		}
 		catch(Exception e) {
 			logger.error("Failed to GET entities [" + entityName + "]: " + e.getMessage());

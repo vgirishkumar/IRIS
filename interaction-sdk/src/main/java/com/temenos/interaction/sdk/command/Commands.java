@@ -122,7 +122,6 @@ public class Commands {
 				String id = "GETNavProperty" + transition.getTargetStateName();
 				List<Parameter> cmdParams = new ArrayList<Parameter>();
 				if(transition.isCollectionState()) {
-					cmdParams.add(new Parameter(transition.getTargetEntityName(), false, ""));		//target entity
 					cmdParams.add(isLinkEntitiesCmdOdataProducer ? JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER : JPAResponderGen.COMMAND_METADATA_SOURCE_MODEL);		//producer
 					cmdParams.addAll(params);													//additional params
 					addCommand(id, getLinkEntitiesCmdClass, GET_LINK_ENTITY, cmdParams);

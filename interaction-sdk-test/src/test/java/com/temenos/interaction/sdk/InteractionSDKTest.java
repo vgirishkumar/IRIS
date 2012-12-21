@@ -61,9 +61,11 @@ public class InteractionSDKTest {
         verifier.verifyErrorFreeLog();
         
         //Run the Interaction SDK to generate the Flight responder project
+        props.put("skipRIMGeneration", "false");
+        verifier.setSystemProperties(props);
         verifier.executeGoal("interaction-sdk:gen");
         verifier.verifyErrorFreeLog();
-
+        
         //Overwrite responder insert file
         try {
         	FileUtils.copyFileToDirectory( System.getProperty("insertFile"), ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID + "/src/main/resources/META-INF");
