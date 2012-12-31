@@ -9,13 +9,15 @@
                 <Property Name="name" Type="Edm.String" Nullable="true"/>
                 <Property Name="code" Type="Edm.String" Nullable="false"/>
                 <Property Name="country" Type="Edm.String" Nullable="true"/>
-                <NavigationProperty Name="flightSchedules" Relationship="${artifactId}Model.FlightSchedule_Airport" FromRole="Airport" ToRole="FlightSchedule"/>
+                <NavigationProperty Name="departures" Relationship="${artifactId}Model.FlightSchedule_departureAirport" FromRole="Airport" ToRole="FlightSchedule"/>
+                <NavigationProperty Name="arrivals" Relationship="${artifactId}Model.FlightSchedule_arrivalAirport" FromRole="Airport" ToRole="FlightSchedule"/>
             </EntityType>
             <EntityType Name="Flight">
                 <Key>
                     <PropertyRef Name="flightID"/>
                 </Key>
                 <Property Name="flightID" Type="Edm.Int64" Nullable="false"/>
+                <Property Name="flightScheduleID" Type="Edm.Int64" Nullable="false"/>
                 <Property Name="takeoffTime" Type="Edm.DateTime" Nullable="true"/>
             </EntityType>
             <EntityType Name="FlightSchedule">
@@ -33,10 +35,6 @@
                 <NavigationProperty Name="departureAirport" Relationship="${artifactId}Model.FlightSchedule_departureAirport" FromRole="FlightSchedule" ToRole="Airport"/>
                 <NavigationProperty Name="arrivalAirport" Relationship="${artifactId}Model.FlightSchedule_arrivalAirport" FromRole="FlightSchedule" ToRole="Airport"/>
             </EntityType>
-            <Association Name="FlightSchedule_Airport">
-                <End Role="FlightSchedule" Type="${artifactId}Model.FlightSchedule" Multiplicity="*"/>
-                <End Role="Airport" Type="${artifactId}Model.Airport" Multiplicity="0..1"/>
-            </Association>
             <Association Name="FlightSchedule_departureAirport">
                 <End Role="FlightSchedule" Type="${artifactId}Model.FlightSchedule" Multiplicity="*"/>
                 <End Role="Airport" Type="${artifactId}Model.Airport" Multiplicity="0..1"/>
@@ -65,10 +63,6 @@
                 <EntitySet Name="Airports" EntityType="${artifactId}Model.Airport"/>
                 <EntitySet Name="Flights" EntityType="${artifactId}Model.Flight"/>
                 <EntitySet Name="FlightSchedules" EntityType="${artifactId}Model.FlightSchedule"/>
-                <AssociationSet Name="FlightSchedule_Airport" Association="${artifactId}Model.FlightSchedule_Airport">
-                    <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
-                    <End Role="Airport" EntitySet="Airports"/>
-                </AssociationSet>
                 <AssociationSet Name="FlightSchedule_departureAirport" Association="${artifactId}Model.FlightSchedule_departureAirport">
                     <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
                     <End Role="Airport" EntitySet="Airports"/>

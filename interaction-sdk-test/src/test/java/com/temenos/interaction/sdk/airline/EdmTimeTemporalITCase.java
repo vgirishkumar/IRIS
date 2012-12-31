@@ -46,7 +46,7 @@ public class EdmTimeTemporalITCase {
 						.findProperty("firstDeparture").getType());
 	}
 
-	//@Test
+	@Test
 	/**
 	 *handling of Date fields with different @Temporal
 	 */
