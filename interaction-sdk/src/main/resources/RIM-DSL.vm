@@ -1,5 +1,6 @@
 events
 	GET GET
+	POST POST
 end
 
 commands
@@ -30,6 +31,7 @@ resource ${rsm.getCollectionStateName()}
 	collection ${rsm.getEntityName()}
 	view { GETEntities }
 	path "/${rsm.getCollectionStateName()}()"
+	POST -> ${rsm.getCollectionStateName()}_pseudo_created
 	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
 #foreach ( $transition in $rsm.getTransitions() )
 #if (!$transition.isUniqueTransition() || $transition.isCollectionState()) 
@@ -38,6 +40,14 @@ resource ${rsm.getCollectionStateName()}
 	GET *-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
 #end
 #end
+end
+
+#* Entity created resource state*#
+resource ${rsm.getCollectionStateName()}_pseudo_created
+	collection ${rsm.getEntityName()}
+	view { GETEntity }
+	actions { CreateEntity }
+	path "/${rsm.getCollectionStateName()}()"
 end
 
 #* Entity resource state*#

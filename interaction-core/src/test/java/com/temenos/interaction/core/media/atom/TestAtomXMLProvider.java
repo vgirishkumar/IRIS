@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.io.ByteArrayInputStream;
@@ -339,6 +340,9 @@ public class TestAtomXMLProvider {
 
 	@Test
 	public void testReadPath() throws Exception {
+		// enable mock of the static class (see also verifyStatic)
+		mockStatic(OEntityKey.class);
+		
 		EdmDataServices metadata = mock(EdmDataServices.class);
 		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
 		Set<ResourceState> states = new HashSet<ResourceState>();
@@ -369,13 +373,16 @@ public class TestAtomXMLProvider {
 		OEntityKey.parse("2");
 	}
 
+	/*
+	 * The create (POST) will need to parse the OEntity without a key supplied in the path
+	 */
 	@Test
 	public void testReadPathNoEntityKey() throws Exception {
 		EdmDataServices metadata = mock(EdmDataServices.class);
 		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
 		Set<ResourceState> states = new HashSet<ResourceState>();
 		states.add(mock(CollectionResourceState.class));
-		when(rsm.getResourceStatesForPath("/test/someresource")).thenReturn(states);
+		when(rsm.getResourceStatesForPathRegex("^/test/someresource(|\\(\\))")).thenReturn(states);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
 		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
@@ -395,10 +402,7 @@ public class TestAtomXMLProvider {
 		assertEquals(mockOEntity, result.getEntity());
 		
 		// verify get rim with /test/someresource
-		verify(rsm).getResourceStatesForPath("/test/someresource");
-		// verify static with entity key "2"
-		verifyStatic();
-		OEntityKey.parse("2");
+		verify(rsm).getResourceStatesForPathRegex("^/test/someresource(|\\(\\))");
 	}
 
 	@Test

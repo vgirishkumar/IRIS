@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
@@ -274,6 +276,33 @@ public class ResourceStateMachine {
 			path = initial.getPath();
 		}
 		return getResourceStatesByPath().get(path);
+	}
+
+	/**
+	 * For a given path regular expression, return the resource states.
+	 * @param state
+	 * @return
+	 */
+	public Set<ResourceState> getResourceStatesForPathRegex(String pathRegex) {
+		if (pathRegex == null) {
+			pathRegex = initial.getPath();
+		}
+		return getResourceStatesForPathRegex(Pattern.compile(pathRegex));
+	}
+
+	/**
+	 * @see {@link ResourceStateMachine#getResourceStatesForPathRegex(String)}
+	 */
+	public Set<ResourceState> getResourceStatesForPathRegex(Pattern pattern) {
+		Set<ResourceState> matchingStates = new HashSet<ResourceState>();
+		Set<String> paths = resourceStatesByPath.keySet();
+		for (String path : paths) {
+			Matcher m = pattern.matcher(path);
+			if (m.matches()) {
+				matchingStates.addAll(getResourceStatesForPath(path));
+			}
+		}
+		return matchingStates;
 	}
 
 	/**
