@@ -2,16 +2,11 @@ package com.temenos.interaction.sdk.interaction;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-import org.odata4j.core.ImmutableList;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntityContainer;
 import org.odata4j.edm.EdmEntitySet;
@@ -42,9 +37,7 @@ public class TestInteractionModel {
 
 	//@Test
 	public void testGetUriTemplateParametersEdmDataServices() {
-		EdmEntitySet ees = createMockEdmEntitySet();
 		EdmDataServices mockMetadata = createMockCustomersEdmDataServices();
-		when(mockMetadata.getEdmEntitySet(anyString())).thenReturn(ees);
 		
 		InteractionModel model = new InteractionModel(mockMetadata);
 		assertTrue(model.getResourceStateMachines().size() == 1);
@@ -52,6 +45,16 @@ public class TestInteractionModel {
 		assertEquals("{id2},'{id1}',{id4},'{id3}'", model.getResourceStateMachines().get(0).getPathParametersTemplate());
 	}
 	
+	@Test
+	public void testEntitySetsEdmDataServices() {
+		EdmDataServices mockEdmMetadata = createMockCustomersEdmDataServices();
+		
+		InteractionModel model = new InteractionModel(mockEdmMetadata);
+		assertEquals(1, model.getResourceStateMachines().size());
+		assertEquals("Customers", model.getResourceStateMachines().get(0).getCollectionStateName());
+		assertEquals("Customer", model.getResourceStateMachines().get(0).getEntityName());
+	}
+
 	private Metadata createMockCustomersMetadata() {
 		//Define vocabulary for this entity
 		Metadata metadata = new Metadata("Customers");
@@ -82,7 +85,7 @@ public class TestInteractionModel {
 	}
 
 	private EdmDataServices createMockCustomersEdmDataServices() {
-		EdmDataServices mockEDS = mock(EdmDataServices.class);
+		EdmDataServices.Builder mockEDS = EdmDataServices.newBuilder();
 
 		//Mock EdmDataServices
 		List<String> keys = new ArrayList<String>();
@@ -91,7 +94,7 @@ public class TestInteractionModel {
 		EdmProperty.Builder ep = EdmProperty.newBuilder("id1").setType(EdmSimpleType.STRING);
 		properties.add(ep);
 		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName("Customer").addKeys(keys).addProperties(properties);
-		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Customer").setEntityType(eet);
+		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Customers").setEntityType(eet);
 		List<EdmEntityType.Builder> mockEntityTypes = new ArrayList<EdmEntityType.Builder>();
 		mockEntityTypes.add(eet);
 		List<EdmEntitySet.Builder> mockEntitySets = new ArrayList<EdmEntitySet.Builder>();
@@ -100,20 +103,11 @@ public class TestInteractionModel {
 		List<EdmEntityContainer.Builder> mockEntityContainers = new ArrayList<EdmEntityContainer.Builder>();
 		mockEntityContainers.add(eec);
 		EdmSchema.Builder es = EdmSchema.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").addEntityTypes(mockEntityTypes).addEntityContainers(mockEntityContainers);
-		List<EdmSchema> mockSchemas = new ArrayList<EdmSchema>();
-		mockSchemas.add(es.build());
-		when(mockEDS.getSchemas()).thenReturn(ImmutableList.copyOf(mockSchemas));
+		List<EdmSchema.Builder> mockSchemas = new ArrayList<EdmSchema.Builder>();
+		mockSchemas.add(es);
+		mockEDS.addSchemas(mockSchemas);
 
-		return mockEDS;
+		return mockEDS.build();
 	}
 
-	private EdmEntitySet createMockEdmEntitySet() {
-		// Create an entity set
-		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
-		EdmProperty.Builder ep = EdmProperty.newBuilder("id1").setType(EdmSimpleType.STRING);
-		eprops.add(ep);
-		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setName("Customer").addKeys(Arrays.asList("id1")).addProperties(eprops);
-		EdmEntitySet.Builder eesb = EdmEntitySet.newBuilder().setName("Customer").setEntityType(eet);
-		return eesb.build();
-	}
 }

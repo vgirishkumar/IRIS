@@ -2,6 +2,7 @@ package com.temenos.interaction.core.media.xhtml;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -9,6 +10,16 @@ import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.odata4j.core.OEntities;
+import org.odata4j.core.OEntity;
+import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OLink;
+import org.odata4j.core.OProperties;
+import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmEntityType;
+import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
@@ -28,7 +39,7 @@ public class TestXHTMLProvider {
 
 	@Test
 	public void testWriteEntityResourceAcceptHTML() throws Exception {
-		EntityResource<Entity> er = new EntityResource<Entity>(createEntity("123", "Fred"));
+		EntityResource<Entity> er = new EntityResource<Entity>("Customer", createEntity("123", "Fred"));
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(null, "Fred", "Self", "/Customer(123)", null, null, "GET", null));
 		er.setLinks(links);
@@ -44,8 +55,25 @@ public class TestXHTMLProvider {
 	}
 
 	@Test
+	public void testWriteOEntityResourceAcceptHTML() throws Exception {
+		EntityResource<OEntity> er = createMockEntityResourceOEntity(createMockEdmEntitySet());
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link(null, "Fred", "Self", "/Customer(123)", null, null, "GET", null));
+		er.setLinks(links);
+
+		//Serialize metadata resource
+		XHTMLProvider p = new XHTMLProvider(createMockFlightMetadata());
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.TEXT_HTML_TYPE, null, bos);
+
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		Assert.assertTrue(responseString.contains("<li><a href=\"/Customer(123)\">Fred</a></li>"));
+		Assert.assertTrue(responseString.contains("<td>name</td><td><div contenteditable=\"true\">Fred</div></td>"));
+	}
+	
+	@Test
 	public void testWriteEntityResourceAcceptXHTML() throws Exception {
-		EntityResource<Entity> er = new EntityResource<Entity>(createEntity("123", "Fred"));
+		EntityResource<Entity> er = new EntityResource<Entity>("Customer", createEntity("123", "Fred"));
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(null, "Fred", "self", "/Customer(123)", null, null, "GET", null));
 		er.setLinks(links);
@@ -88,7 +116,6 @@ public class TestXHTMLProvider {
 		entities.add(createEntityResource(createEntity("456", "Tom"), "456"));
 		entities.add(createEntityResource(createEntity("789", "Bob"), "789"));
 		CollectionResource<Entity> cr = new CollectionResource<Entity>("Customer", entities);
-		cr.setEntityName("Customer");
 
 		//Serialize metadata resource
 		XHTMLProvider p = new XHTMLProvider(createMockFlightMetadata());
@@ -96,7 +123,7 @@ public class TestXHTMLProvider {
 		p.writeTo(cr, CollectionResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
 
 		String responseString = new String(bos.toByteArray(), "UTF-8");
-		Assert.assertTrue(responseString.contains("<li><dl><dt>id</dt><dd>123</dd>"));
+		Assert.assertTrue(responseString.contains("<li><dl><dt>id</dt><dd>123</dd><dt>address</dt><dl><dt>houseNumber</dt><dd>45</dd><dt>postcode</dt><dd>WD8 1LK</dd></dl><dt>name</dt><dd>Fred</dd></dl><ul><li><a href=\"/Customer(123)\" rel=\"self\">123</a></li></ul></li>"));
 	}
 	
 	private Metadata createMockFlightMetadata() {
@@ -163,10 +190,31 @@ public class TestXHTMLProvider {
 	}
 	
 	private EntityResource<Entity> createEntityResource(Entity entity, String id) {
-		EntityResource<Entity> entityResource = new EntityResource<Entity>(entity);
+		EntityResource<Entity> entityResource = new EntityResource<Entity>(entity.getName(), entity);
 		Collection<Link> links = new ArrayList<Link>();
 		links.add(new Link(null, id, "self", "/" + entity.getName() + "(" + id + ")", null, null, "GET", null));
 		entityResource.setLinks(links);
 		return entityResource;
+	}
+	
+	private EdmEntitySet createMockEdmEntitySet() {
+		// Create an entity set
+		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("id").setType(EdmSimpleType.STRING);
+		eprops.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Customer").addKeys(Arrays.asList("id")).addProperties(eprops);
+		EdmEntitySet.Builder eesb = EdmEntitySet.newBuilder().setName("Customer").setEntityType(eet);
+		return eesb.build();
+	}
+
+	private EntityResource<OEntity> createMockEntityResourceOEntity(EdmEntitySet ees) {
+		//Create an OEntity
+		OEntityKey entityKey = OEntityKey.create("123");
+		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+		properties.add(OProperties.string("id", "123"));
+		properties.add(OProperties.string("name", "Fred"));
+		OEntity entity = OEntities.create(ees, entityKey, properties, new ArrayList<OLink>());
+		EntityResource<OEntity> er = new EntityResource<OEntity>("Customer", entity) {};
+		return er;
 	}
 }

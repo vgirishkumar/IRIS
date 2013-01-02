@@ -62,20 +62,20 @@
                 </ReferentialConstraint>
             </Association>
             <EntityContainer Name="FlightResponder" m:IsDefaultEntityContainer="true">
-                <EntitySet Name="FlightSchedule" EntityType="FlightResponderModel.FlightSchedule"/>
-                <EntitySet Name="Airport" EntityType="FlightResponderModel.Airport"/>
-                <EntitySet Name="Flight" EntityType="FlightResponderModel.Flight"/>
+                <EntitySet Name="FlightSchedules" EntityType="FlightResponderModel.FlightSchedule"/>
+                <EntitySet Name="Airports" EntityType="FlightResponderModel.Airport"/>
+                <EntitySet Name="Flights" EntityType="FlightResponderModel.Flight"/>
                 <AssociationSet Name="FlightSchedule_Airport" Association="FlightResponderModel.FlightSchedule_Airport">
-                    <End Role="FlightSchedule" EntitySet="FlightSchedule"/>
-                    <End Role="Airport" EntitySet="Airport"/>
+                    <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
+                    <End Role="Airport" EntitySet="Airports"/>
                 </AssociationSet>
                 <AssociationSet Name="FlightSchedule_departureAirport" Association="FlightResponderModel.FlightSchedule_departureAirport">
-                    <End Role="FlightSchedule" EntitySet="FlightSchedule"/>
-                    <End Role="Airport" EntitySet="Airport"/>
+                    <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
+                    <End Role="Airport" EntitySet="Airports"/>
                 </AssociationSet>
                 <AssociationSet Name="FlightSchedule_arrivalAirport" Association="FlightResponderModel.FlightSchedule_arrivalAirport">
-                    <End Role="FlightSchedule" EntitySet="FlightSchedule"/>
-                    <End Role="Airport" EntitySet="Airport"/>
+                    <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
+                    <End Role="Airport" EntitySet="Airports"/>
                 </AssociationSet>
             </EntityContainer>
         </Schema>

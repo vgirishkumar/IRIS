@@ -21,6 +21,7 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
+import org.odata4j.core.ImmutableList;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OEntityKey.KeyType;
@@ -28,6 +29,7 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmType;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
@@ -49,6 +51,23 @@ public class TestJUnitGETEntityCommand {
 		public boolean isSimple() { return false; }
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testEntitySetFound() {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETEntityCommand gec = new GETEntityCommand(mockProducer);
+		
+		// test assertion for entity set not found
+        InteractionContext ctx = createInteractionContext("MyEntity", "1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		EntityResource<OEntity> er = (EntityResource<OEntity>) ctx.getResource();
+		assertEquals("MyEntity", er.getEntityName());
+		assertEquals("MyEntity", er.getEntity().getEntityType().getName());
+		assertEquals("MyEntity", er.getEntity().getEntitySetName());
+	}
+	
+	@SuppressWarnings("unchecked")
 	@Test(expected = AssertionError.class)
 	public void testEntitySetNotFound() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
@@ -58,6 +77,10 @@ public class TestJUnitGETEntityCommand {
         InteractionContext ctx = createInteractionContext("DOESNOTMATCH", "1");
 		InteractionCommand.Result result = gec.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		EntityResource<OEntity> er = (EntityResource<OEntity>) ctx.getResource();
+		assertEquals("DOESNOTMATCH", er.getEntityName());
+		assertEquals("DOESNOTMATCH", er.getEntity().getEntityType().getName());
+		assertEquals("DOESNOTMATCH", er.getEntity().getEntitySetName());
 	}
 
 	@Test
@@ -197,17 +220,28 @@ public class TestJUnitGETEntityCommand {
 		properties.add(ep);
 		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName(entityName).addKeys(keys).addProperties(properties);
 		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName(entityName).setEntityType(eet);
+		EdmSchema.Builder es = EdmSchema.newBuilder().setNamespace("MyNamespace");
 
 		List<EdmEntityType> mockEntityTypes = new ArrayList<EdmEntityType>();
 		mockEntityTypes.add(eet.build());
+		List<EdmSchema> mockSchemas = new ArrayList<EdmSchema>();
+		mockSchemas.add(es.build());
+		ImmutableList<EdmSchema> mockSchemaList = ImmutableList.copyOf(mockSchemas);
 
 		EdmDataServices mockEDS = mock(EdmDataServices.class);
 		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees.build());
+		when(mockEDS.getEdmEntitySet((EdmEntityType) any())).thenReturn(ees.build());
 		when(mockEDS.getEntityTypes()).thenReturn(mockEntityTypes);
+		when(mockEDS.findEdmEntityType(anyString())).thenReturn(eet.build());
+		when(mockEDS.getSchemas()).thenReturn(mockSchemaList);
 		when(mockProducer.getMetadata()).thenReturn(mockEDS);
+		
 
 		EntityResponse mockEntityResponse = mock(EntityResponse.class);
-		when(mockEntityResponse.getEntity()).thenReturn(mock(OEntity.class));
+		OEntity oe = mock(OEntity.class);
+		when(oe.getEntityType()).thenReturn(eet.build());
+		when(oe.getEntitySetName()).thenReturn(ees.build().getName());
+		when(mockEntityResponse.getEntity()).thenReturn(oe);
 		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
 				        
         return mockProducer;

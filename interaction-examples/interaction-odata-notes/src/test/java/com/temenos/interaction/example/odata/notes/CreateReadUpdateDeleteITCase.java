@@ -19,11 +19,11 @@ import com.sun.jersey.test.framework.JerseyTest;
 
 public class CreateReadUpdateDeleteITCase extends JerseyTest {
 
-	public final static String PERSONS_RESOURCE = "/Person";
-	public final static String NOTES_RESOURCE = "/Note";
+	public final static String PERSONS_RESOURCE = "/Persons";
+	public final static String NOTES_RESOURCE = "/Notes";
 	
-	private final static String NOTE_ENTITYSET_NAME = "Note";
-	private final static String PERSON_ENTITYSET_NAME = "Person";
+	private final static String NOTE_ENTITYSET_NAME = "Notes";
+	private final static String PERSON_ENTITYSET_NAME = "Persons";
 
 	@Before
 	public void initTest() {
@@ -89,7 +89,7 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 		// delete Note number 56 (which does not exist)
 		String notFoundNoteUri = NOTES_RESOURCE + "(56)";
 		ClientResponse nresponse = webResource.path(notFoundNoteUri).delete(ClientResponse.class);
-        assertEquals(204, nresponse.getStatus());
+        assertEquals(404, nresponse.getStatus());
     }
 
     @Test

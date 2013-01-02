@@ -23,6 +23,7 @@ import org.odata4j.jersey.consumer.ODataJerseyConsumer;
  */
 public class EdmTimeTemporalITCase {
 
+	private final static String FLIGHT_SCHEDULE_ENTITYSET_NAME = "FlightSchedules";
 
 	public EdmTimeTemporalITCase() throws Exception {
 		super();
@@ -35,14 +36,14 @@ public class EdmTimeTemporalITCase {
 		EdmDataServices metadata = consumer.getMetadata();
 
 		Assert.assertEquals(EdmSimpleType.DATETIME,
-				metadata.findEdmEntitySet("FlightSchedule").getType()
+				metadata.findEdmEntitySet(FLIGHT_SCHEDULE_ENTITYSET_NAME).getType()
 						.findProperty("departureTime").getType());
 		Assert.assertEquals(EdmSimpleType.DATETIME,
-				metadata.findEdmEntitySet("FlightSchedule").getType()
+				metadata.findEdmEntitySet(FLIGHT_SCHEDULE_ENTITYSET_NAME).getType()
 						.findProperty("arrivalTime").getType());
 	}
 
-	//@Test
+	@Test
 	/**
 	 *handling of Date fields with different @Temporal
 	 */
@@ -50,7 +51,7 @@ public class EdmTimeTemporalITCase {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity flightSchedule = consumer
-				.createEntity("FlightSchedule")
+				.createEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME)
 				.properties(OProperties.string("flightNo", "LH460"))
 				.properties(OProperties.string("arrivalAirportCode", "MUC"))
 				.properties(
@@ -80,7 +81,7 @@ public class EdmTimeTemporalITCase {
 		Assert.assertEquals(new LocalDateTime(2011, 07, 05, 0, 0),
 				flightSchedule.getProperty("lastDeparture").getValue());
 
-		flightSchedule = consumer.getEntity("FlightSchedule", id).execute();
+		flightSchedule = consumer.getEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME, id).execute();
 		Assert.assertEquals(new LocalTime(9, 30, 0), flightSchedule
 				.getProperty("departureTime").getValue());
 		Assert.assertEquals(new LocalTime(14, 10, 0), flightSchedule
@@ -96,7 +97,7 @@ public class EdmTimeTemporalITCase {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		Enumerable<OEntity> schedules = consumer
-				.getEntities("FlightSchedule")
+				.getEntities(FLIGHT_SCHEDULE_ENTITYSET_NAME)
 				.filter("departureTime ge time'PT11H' and departureTime lt time'PT12H'")
 				.execute();
 

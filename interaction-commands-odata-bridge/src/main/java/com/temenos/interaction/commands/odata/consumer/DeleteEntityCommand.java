@@ -46,6 +46,7 @@ public class DeleteEntityCommand implements InteractionCommand {
 			consumer.deleteEntity(entity, key).execute();
 		} catch (Exception e) {
 			// exception if the entity is not found, delete the entity if it exists;
+			return Result.FAILURE;
 		}
 		return Result.SUCCESS;
 	}

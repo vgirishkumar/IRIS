@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,6 +18,7 @@ import java.util.Map;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.internal.MultivaluedMapImpl;
@@ -25,6 +27,7 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
 import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
@@ -53,8 +56,12 @@ public class TestHTTPHypermediaRIM {
 	
 	private NewCommandController mockCommandController() {
 		NewCommandController cc = mock(NewCommandController.class);
-		when(cc.fetchCommand("DO")).thenReturn(mock(InteractionCommand.class));
-		when(cc.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+		when(cc.fetchCommand("DO")).thenReturn(mockCommand);
+		InteractionCommand mockCommand1 = mock(InteractionCommand.class);
+		when(mockCommand1.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+		when(cc.fetchCommand("GET")).thenReturn(mockCommand1);
 		return cc;
 	}
 
@@ -80,6 +87,7 @@ public class TestHTTPHypermediaRIM {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
 		// this test simply mocks a command to test the context query parameters is initialised properly
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), mock(Metadata.class));
 		
@@ -112,7 +120,7 @@ public class TestHTTPHypermediaRIM {
 	@Test
 	public void testDecodeQueryParametersNullValue() {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
-		// RIM with command controller that issues commands that always return SUCCESS
+		// RIM with command controller that issues commands that always return FAILURE
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
 
 		UriInfo uriInfo = mock(UriInfo.class);
@@ -151,6 +159,70 @@ public class TestHTTPHypermediaRIM {
 		rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 	}
 
+	/*
+	 * This test is for a GET request where the command does not return a result.
+	 */
+	@Test(expected = AssertionError.class)
+	public void testGETCommandNoResultShouldFail() throws Exception {
+		List<Action> actions = new ArrayList<Action>();
+		actions.add(new Action("GET", Action.TYPE.VIEW));
+		ResourceState initialState = new ResourceState("entity", "state", actions, "/path");
+
+		// this test mocks a command that incorrectly returns no result
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+
+		// create mock command controller
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+	}
+
+	/*
+	 * This test is for a GET request where the command does not return a result.
+	 */
+	@Test(expected = AssertionError.class)
+	public void testDELETECommandNoResultShouldFail() throws Exception {
+		List<Action> actions = new ArrayList<Action>();
+		actions.add(new Action("DELETE", Action.TYPE.ENTRY));
+		ResourceState initialState = new ResourceState("entity", "state", actions, "/path");
+		initialState.addTransition("DELETE", initialState);
+
+		// this test mocks a command that incorrectly returns no result
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+
+		// create mock command controller
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand("DELETE")).thenReturn(mockCommand);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+	}
+
+	@Test
+	public void testGETCommandInvalidRequest() throws Exception {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+
+		// this test incorrectly supplies a resource as a result of the command.
+		InteractionCommand mockCommand = new InteractionCommand() {
+			public Result execute(InteractionContext ctx) {
+				ctx.setResource(null);
+				return Result.INVALID_REQUEST;
+			}
+		};
+
+		// create mock command controller
+		NewCommandController mockCommandController = mockCommandController(mockCommand);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		assertEquals(Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+	}
+	
 	/*
 	 * This test is for a GET request where the command succeeds.
 	 * A successful GET command should set the requested resource onto

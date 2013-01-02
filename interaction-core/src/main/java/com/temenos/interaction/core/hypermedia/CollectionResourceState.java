@@ -12,7 +12,7 @@ public class CollectionResourceState extends ResourceState {
 		super(entityName, name, actions, path, "collection".split(" "), uriSpec);
 	}
 	public CollectionResourceState(String entityName, String name, List<Action> actions, String path, String[] rels, UriSpecification uriSpec) {
-		super(entityName, name, actions, path, rels, uriSpec);
+		super(entityName, name, actions, path, rels != null ? rels : "collection".split(" "), uriSpec);
 	}
 
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {

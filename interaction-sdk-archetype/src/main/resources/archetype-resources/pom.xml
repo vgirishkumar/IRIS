@@ -40,9 +40,8 @@
           </execution>
         </executions>
         <configuration>
-          <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
-          <targetDirectory>${basedir}/src-gen</targetDirectory> 
-          -->
+          <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen -->
+          <targetDirectory>${basedir}/src/main/java</targetDirectory> 
           <rimSourceFile>${basedir}/src/main/resources/${artifactId}.rim</rimSourceFile>
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
         </configuration>

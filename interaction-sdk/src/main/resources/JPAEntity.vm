@@ -30,6 +30,13 @@ public class $jpaentity.getClazz() {
 	private $fieldInfo.getType() $fieldInfo.getName();
 #end
 
+#foreach ( $joinInfo in $jpaentity.getJoinInfos() )
+#foreach ( $jannotation in $joinInfo.getAnnotations())
+    $jannotation
+#end
+    private Collection<$joinInfo.getTargetType()> $joinInfo.getName();
+#end
+
 	public $jpaentity.getClazz()() {
 	}
 }

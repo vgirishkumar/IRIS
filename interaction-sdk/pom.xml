@@ -61,18 +61,6 @@
 	    	<type>jar</type>
 	    	<scope>provided</scope>
 	    </dependency>
-        <dependency>
-            <groupId>com.temenos.interaction</groupId>
-            <artifactId>com.temenos.interaction.rimdsl</artifactId>
-            <version>${project.version}</version>
-	    	<scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.temenos.interaction</groupId>
-            <artifactId>com.temenos.interaction.rimdsl.generator</artifactId>
-            <version>${project.version}</version>
-	    	<scope>provided</scope>
-        </dependency>
 		<dependency>
 			<groupId>org.odata4j</groupId>
 			<artifactId>odata4j-core</artifactId>

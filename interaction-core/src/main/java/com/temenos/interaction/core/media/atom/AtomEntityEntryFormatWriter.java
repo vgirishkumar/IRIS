@@ -1,8 +1,11 @@
 package com.temenos.interaction.core.media.atom;
 
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -38,13 +41,12 @@ public class AtomEntityEntryFormatWriter {
 	protected UriInfo uriInfo = null;
 	protected String baseUri = "";
 
-	// Constants as defined by the odata4j XmlFormatWriter class
-	private static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
-	private static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
-	private static final String scheme = "http://schemas.microsoft.com/ado/2007/08/dataservices/scheme";
-	private static final String SCHEMA_RELATED = "http://schemas.microsoft.com/ado/2007/08/dataservices/related";
-	private static final String atom_entry_content_type = "application/atom+xml;type=entry";
-	private static final String href_lang = "en";
+	// Constants for OData
+	public static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
+	public static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
+	public static final String scheme = "http://schemas.microsoft.com/ado/2007/08/dataservices/scheme";
+	public static final String atom_entry_content_type = "application/atom+xml;type=entry";
+	public static final String href_lang = "en";
 
 	public void write(UriInfo uriInfo, Writer w, Entity entity,
 			EntityMetadata entityMetadata, List<Link> links, String modelName) {
@@ -101,9 +103,6 @@ public class AtomEntityEntryFormatWriter {
 				String type = atom_entry_content_type;
 				String href = link.getHrefTransition(baseUri);
 				String rel = link.getRel();
-				if(rel.equals("item") || rel.equals("collection")) {
-					rel = SCHEMA_RELATED + "/" + entity.getName();
-				}
 				writer.writeLink(href, rel, type, link.getTitle(), href_lang, 0);
 			}
 		}
@@ -168,7 +167,13 @@ public class AtomEntityEntryFormatWriter {
 		if(!type.equals(EdmSimpleType.STRING)) {
 			writer.writeAttribute(new QName(m, "type", "m"), type.getFullyQualifiedTypeName());
 		}
-		if (elementText != null) {
+		if(type.equals(EdmSimpleType.DATETIME)) {
+			//Write dates in UTC format
+			SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+			formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+			writer.writeElementText(formatUTC.format((Date) property.getValue()));
+		}
+		else if (elementText != null) {
 			writer.writeElementText(elementText);
 		}
 		writer.endElement();

@@ -76,14 +76,13 @@ public class ResponderGenMojo extends AbstractMojo {
 			throw new MojoExecutionException("Configuration target directory is invalid");
 		}
 
-		boolean ok;
+		boolean ok = false;
 		JPAResponderGen rg = new JPAResponderGen();
 		if (edmxFile.exists()) {
 			ok = rg.generateArtifacts(edmxFile.getAbsolutePath(), srcTargetDir, configTargetDir);
 		}
 		else {
-			getLog().info("EDMX file does not exist - attempting to regenerate behaviour class from RIM DSL.");
-			ok = rg.generateBehaviourClass(srcTargetDir, configTargetDir);
+			getLog().error("EDMX file does not exist.");
 		}
 		
 		if (!ok)

@@ -271,7 +271,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
     	// execute GET command
     	InteractionCommand.Result result = action.execute(ctx);
-    	StatusType status = result == Result.SUCCESS ? Status.OK : Status.NOT_FOUND;
+    	assert(result != null) : "Command must result a result";
+    	
+    	// build the response
+    	StatusType status = Status.NOT_FOUND;
+    	switch(result) {
+    	case SUCCESS:			status = Status.OK; break;
+    	case FAILURE:			status = Status.NOT_FOUND; break;
+    	case INVALID_REQUEST:	status = Status.BAD_REQUEST; break;
+    	}
     	return buildResponse(currentState, headers, pathParameters, status, ctx.getResource(), null, null);
 	}
 	
@@ -478,6 +486,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, currentState, metadata);
     	// execute command
     	InteractionCommand.Result result = action.execute(ctx);
+    	assert(result != null) : "Command must result a result";
     	// We do not support a delete command that returns a resource (HTTP does permit this)
     	assert(ctx.getResource() == null);
     	StatusType status = null;
@@ -544,8 +553,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         		status = Response.Status.NO_CONTENT;
     		}
     		 */
-    	} else {
+    	} else if (result == Result.FAILURE) {
     		status = Status.NOT_FOUND;
+    	} else if (result == Result.INVALID_REQUEST) {
+    		status = Status.BAD_REQUEST;
+    	} else {
+    		assert(false) : "Unhandled result from Command";
     	}
     	
     	return buildResponse(currentState, headers, pathParameters, status, null, null, target);

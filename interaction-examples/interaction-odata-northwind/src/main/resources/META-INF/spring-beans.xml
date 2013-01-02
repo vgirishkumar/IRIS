@@ -22,7 +22,9 @@
 	</bean>
 
 	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
+        <constructor-arg ref="stateMachine" />
+	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
@@ -49,18 +51,11 @@
 	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
 		<constructor-arg name="edmDataServices" ref="edmDataServices" />
 		<constructor-arg name="metadata" ref="edmMetadata" />
-		<constructor-arg name="resourceRegistry" ref="resourceRegistry" />
+		<constructor-arg name="hypermediaEngine" ref="stateMachine" />
 		<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
-	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" >
-        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
-	</bean>
+	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
-
-	<bean id="resourceRegistry" class="com.temenos.interaction.core.hypermedia.ResourceRegistry">
-		<constructor-arg name="edmDataServices" ref="edmDataServices" />
-		<constructor-arg name="root" ref="ServiceRoot" />
-	</bean>
 
     <!-- Behaviour -->
     <bean id="behaviour" class="com.interaction.example.odata.northwind.Behaviour" />

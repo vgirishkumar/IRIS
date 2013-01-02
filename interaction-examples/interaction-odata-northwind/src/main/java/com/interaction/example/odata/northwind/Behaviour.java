@@ -39,7 +39,7 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getCategoriesSM() {
-		CollectionResourceState categories = new CollectionResourceState("Categories", "categories", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Categories");
+		CollectionResourceState categories = new CollectionResourceState("Categories", "Categories", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Categories");
 		ResourceState pseudo = new ResourceState(categories, "Categories_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		ResourceState category = new ResourceState("Categories", "category", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Categories({id})");
 
@@ -53,7 +53,7 @@ public class Behaviour {
 	}
 	
 	public ResourceStateMachine getCustomersSM() {
-		CollectionResourceState customers = new CollectionResourceState("Customers", "customers", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Customers");
+		CollectionResourceState customers = new CollectionResourceState("Customers", "Customers", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Customers");
 		ResourceState pseudo = new ResourceState(customers, "Customers_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		ResourceState category = new ResourceState("Customers", "category", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Customers({id})");
 
@@ -67,7 +67,7 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getEmployeesSM() {
-		CollectionResourceState employees = new CollectionResourceState("Employees", "employees", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Employees");
+		CollectionResourceState employees = new CollectionResourceState("Employees", "Employees", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Employees");
 		ResourceState pseudo = new ResourceState(employees, "Employees_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		ResourceState employee = new ResourceState("Employees", "employee", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Employees({id})");
 
@@ -81,7 +81,7 @@ public class Behaviour {
 	}
 	
 	public ResourceStateMachine getOrdersSM() {
-		CollectionResourceState orders = new CollectionResourceState("Orders", "orders", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Orders");
+		CollectionResourceState orders = new CollectionResourceState("Orders", "Orders", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Orders");
 		ResourceState pseudo = new ResourceState(orders, "Orders_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		ResourceState order = new ResourceState("Orders", "order", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Orders({id})");
 
@@ -95,7 +95,7 @@ public class Behaviour {
 	}
 
 	public ResourceStateMachine getOrderDetailsSM() {
-		CollectionResourceState orderDetails = new CollectionResourceState("Order_Details", "orderDetails", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Order_Details");
+		CollectionResourceState orderDetails = new CollectionResourceState("Order_Details", "OrderDetails", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Order_Details");
 		ResourceState pseudo = new ResourceState(orderDetails, "OrderDetails_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		ResourceState orderDetail = new ResourceState("Order_Details", "orderDetail", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Order_Details({id})");
 
@@ -123,7 +123,7 @@ public class Behaviour {
 	}
 	
 	public ResourceStateMachine getSuppliersSM() {
-		CollectionResourceState suppliers = new CollectionResourceState("Suppliers", "suppliers", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Suppliers");
+		CollectionResourceState suppliers = new CollectionResourceState("Suppliers", "Suppliers", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), "/Suppliers");
 		ResourceState pseudo = new ResourceState(suppliers, "Suppliers_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		ResourceState supplier = new ResourceState("Suppliers", "supplier", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Suppliers({id})");
 
