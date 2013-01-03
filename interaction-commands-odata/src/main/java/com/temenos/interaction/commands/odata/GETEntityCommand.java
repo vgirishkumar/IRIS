@@ -4,7 +4,6 @@ import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.edm.EdmEntityType;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 import org.slf4j.Logger;
@@ -43,10 +42,8 @@ public class GETEntityCommand implements InteractionCommand {
 			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);
 			String entitySetName = entitySet.getName();
 
-			Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
-			
 			//Create entity key (simple types only)
-			OEntityKey key = CommandHelper.createEntityKey(entityTypes, entitySetName, ctx.getId());
+			OEntityKey key = CommandHelper.createEntityKey(edmDataServices, entitySetName, ctx.getId());
 			
 			//Get the entity
 			EntityResponse er = getProducer().getEntity(entitySetName, key, null);

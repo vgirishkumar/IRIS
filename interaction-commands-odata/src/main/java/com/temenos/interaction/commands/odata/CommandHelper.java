@@ -71,28 +71,26 @@ public class CommandHelper {
 	
 	/**
 	 * Create an OEntityKey instance for the specified entity id
-	 * @param entityTypes List of entity types
-	 * @param entity Entity name
+	 * @param edmDataServices edmDataServices
+	 * @param entity Entity set name
 	 * @param id Id
 	 * @return An OEntityKey instance
 	 * @throws Exception Error creating key 
 	 */
-	public static OEntityKey createEntityKey(Iterable<EdmEntityType> entityTypes, String entity, String id) throws Exception {
+	public static OEntityKey createEntityKey(EdmDataServices edmDataServices, String entitySetName, String id) throws Exception {
 		//Lookup type of entity key (simple keys only)
 		String keyType = null;
-		for (EdmEntityType entityType : entityTypes) {
-			if (entityType.getName().equals(entity)) {
-				List<String> keys = entityType.getKeys();
-				if(keys.size() == 1) {
-					EdmProperty prop = entityType.findDeclaredProperty(keys.get(0));
-					if(prop != null && prop.getType() != null) {
-						keyType = prop.getType().getFullyQualifiedTypeName();
-					}
-					break;
+		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entitySetName);
+		if(entitySet != null) {
+			EdmEntityType entityType = entitySet.getType();
+			List<String> keys = entityType.getKeys();
+			if(keys.size() == 1) {
+				EdmProperty prop = entityType.findDeclaredProperty(keys.get(0));
+				if(prop != null && prop.getType() != null) {
+					keyType = prop.getType().getFullyQualifiedTypeName();
 				}
 			}
-		}		
-		
+		}
 		assert(keyType != null) : "Should not be possible to get this far and find no key type";
 		
 		//Create an entity key

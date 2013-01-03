@@ -9,7 +9,6 @@ import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.edm.EdmEntityType;
 import org.odata4j.producer.BaseResponse;
 import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.EntityResponse;
@@ -50,7 +49,6 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
 		if (entitySet == null)
 			throw new RuntimeException("Entity set not found [" + entity + "]");
-		Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
 		assert(entity.equals(entitySet.getName()));
 
 		//Obtain the navigation property
@@ -65,7 +63,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		//Create entity key (simple types only)
 		OEntityKey key;
 		try {
-			key = CommandHelper.createEntityKey(entityTypes, entity, ctx.getId());
+			key = CommandHelper.createEntityKey(edmDataServices, entity, ctx.getId());
 		} catch(Exception e) {
 			return Result.FAILURE;
 		}
