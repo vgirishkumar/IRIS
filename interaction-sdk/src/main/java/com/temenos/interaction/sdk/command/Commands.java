@@ -16,6 +16,7 @@ public class Commands {
 	public final static String GET_METADATA = "GETMetadata";
 	public final static String GET_ENTITY = "GETEntity";
 	public final static String GET_ENTITIES = "GETEntities";
+	public final static String GET_ENTITIES_FILTERED = "GETEntitiesFiltered";
 	public final static String GET_NAV_PROPERTY = "GETNavProperty";
 	public final static String POST_ENTITY = "POSTEntity";
 	public final static String CREATE_ENTITY = "CreateEntity";
@@ -74,13 +75,18 @@ public class Commands {
 	 * Commands such as GETMetadata are not considered a RIM command.
 	 * @return RIM events
 	 */
-	public List<Command> getRIMCommands() {
-		List<Command> events = new ArrayList<Command>();
+	public List<String> getRIMCommands() {
+		List<String> events = new ArrayList<String>();
 		for(Command command : commands) {
 			String id = command.getId();
 			if(!id.equals(GET_METADATA) &&
 				!id.startsWith(GET_NAV_PROPERTY)) {
-				events.add(command);
+				if(id.equals(GET_ENTITIES_FILTERED)) {
+					events.add(command.getId() + " filter=filter");
+				}
+				else {
+					events.add(command.getId());
+				}
 			}
 		}
 		return events;

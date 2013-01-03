@@ -10,6 +10,7 @@ public class IMResourceStateMachine {
 
 	private String entityName;											//Entity name
 	private String collectionStateName;									//Name of collection resource state
+	private boolean collectionStateWithIncomingTransitions = false;		//True if this is a collection state with incoming transitions 
 	private String entityStateName;										//Name of individual entity resource state
 	private String mappedEntityProperty;								//Entity property to which the URI template parameter maps to
 	private String pathParametersTemplate;								//Path parameters defined in URI template
@@ -44,14 +45,22 @@ public class IMResourceStateMachine {
 		return pathParametersTemplate;
 	}
 	
+	public void collectionStateHasIncomingTransitions() {
+		collectionStateWithIncomingTransitions = true;
+	}
+	
+	public boolean isCollectionStateWithIncomingTransitions() {
+		return collectionStateWithIncomingTransitions;
+	}
+	
 	/**
 	 * Add a transition to a collection resource state
 	 * @param targetStateName target state 
 	 * @param targetEntityName name of entity associated to target state
 	 * @param targetResourceStateMachine target resource state machine
 	 */
-	public void addTransitionToCollectionResource(String targetStateName, String targetEntityName, IMResourceStateMachine targetResourceStateMachine, String queryParameters) {
-		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, queryParameters);
+	public void addTransitionToCollectionResource(String targetStateName, String targetEntityName, IMResourceStateMachine targetResourceStateMachine, String filter) {
+		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, filter);
 	}
 
 	/**
@@ -80,8 +89,8 @@ public class IMResourceStateMachine {
 	/*
 	 * Add a transition
 	 */
-	private void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String queryParameters) {
-		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, queryParameters != null ? queryParameters : "");
+	private void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter) {
+		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, filter != null ? filter : "");
 		
 		//Workaround - if there are multiple transitions to the same state => create intermediate 'navigation' states 
 		for(IMTransition t : transitions) {
@@ -89,6 +98,11 @@ public class IMResourceStateMachine {
 				t.notUniqueTransition();
 				transition.notUniqueTransition();
 			}
+		}
+		
+		//Tell the target state machine to show a filtered collection state  
+		if(isCollectionState) {
+			targetResourceStateMachine.collectionStateHasIncomingTransitions();			
 		}
 		
 		transitions.add(transition);

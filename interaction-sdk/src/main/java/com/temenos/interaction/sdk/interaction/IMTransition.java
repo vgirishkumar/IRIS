@@ -12,16 +12,16 @@ public class IMTransition {
 	private boolean isUniqueTransition = true;		//Workaround - indicates to create intermediate 'navigation' states for this transition
 	private String reciprocalLinkState;		//State which leads a target state back to the current state
 	private IMResourceStateMachine targetResourceStateMachine;	//Resource state machine of target state
-	private String queryParameters;
+	private String filter;					//Filter expression for transitions to collection resources
 
-	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String queryParameters) {
+	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter) {
 		this.targetEntityName = targetEntityName;
 		this.linkProperty = linkProperty;
 		this.targetStateName = targetStateName;
 		this.isCollectionState = isCollectionState;
 		this.reciprocalLinkState = reciprocalLinkState;
 		this.targetResourceStateMachine = targetResourceStateMachine;
-		this.queryParameters = queryParameters;
+		this.filter = filter;
 	}
 	
 	public String getTargetEntityName() {
@@ -48,10 +48,10 @@ public class IMTransition {
 		return isUniqueTransition;
 	}
 
-	public String getQueryParameters() {
-		return queryParameters;
+	public String getFilter() {
+		return filter != null && !filter.equals("") ? filter : "1 eq 1";
 	}
-
+	
 	/**
 	 * Returns the resource state name of the target RSM which is either the
 	 * reciprocal state or, if not defined, the entity state of the target RSM. 

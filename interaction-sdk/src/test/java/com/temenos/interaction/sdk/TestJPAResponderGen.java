@@ -549,6 +549,6 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
-		assertTrue(generator.generatedRimDsl.contains("GET -> airport_flightSchedules id=code"));
+		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedulesFiltered filter=\"1 eq 1\""));
 	}
 }

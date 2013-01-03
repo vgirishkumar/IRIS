@@ -5,8 +5,8 @@ end
 commands
 	GETServiceDocument
 	GETEntities
+	GETEntitiesFiltered filter=filter
 	GETEntity
-	GETNavPropertyflightSchedules entity=Airport, navproperty=navflightSchedules
 	GETNavPropertydepartureAirport entity=FlightSchedule, navproperty=navdepartureAirport
 	GETNavPropertyarrivalAirport entity=FlightSchedule, navproperty=navarrivalAirport
 end
@@ -41,8 +41,8 @@ resource Airports
 	collection Airport
 	view { GETEntities }
 	path "/Airports()"
+	GET -> FlightSchedulesFiltered filter="1 eq 1"
 	GET *-> airport id=code
-	GET *-> airport_flightSchedules id=code, navflightSchedules="flightSchedules"
 end
 
 
@@ -50,17 +50,10 @@ resource airport
 	item Airport
 	view { GETEntity }
 	path "/Airports('{id}')"
-	GET -> airport_flightSchedules id=code, navflightSchedules="flightSchedules"
+	GET -> FlightSchedulesFiltered filter="1 eq 1"
 end
 
 
-
-resource airport_flightSchedules
-	collection FlightSchedule
-	view { GETNavPropertyflightSchedules }
-	path "/Airports('{id}')/{navflightSchedules}"
-	GET -> FlightSchedules id=flightScheduleID
-end
 
 resource FlightSchedules
 	collection FlightSchedule
@@ -71,6 +64,14 @@ resource FlightSchedules
 	GET *-> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport="arrivalAirport"
 end
 
+resource FlightSchedulesFiltered
+	collection FlightSchedule
+	view { GETEntitiesFiltered }
+	path "/FlightSchedulesFiltered({filter})"
+	GET *-> flightschedule id=flightScheduleID
+	GET *-> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport="departureAirport"
+	GET *-> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport="arrivalAirport"
+end
 
 resource flightschedule
 	item FlightSchedule
