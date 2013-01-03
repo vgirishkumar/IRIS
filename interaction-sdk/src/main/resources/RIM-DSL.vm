@@ -30,14 +30,11 @@ resource ${rsm.getCollectionStateName()}
 	collection ${rsm.getEntityName()}
 	view { GETEntities }
 	path "/${rsm.getCollectionStateName()}()"
-#foreach ( $transition in $rsm.getTransitions() )
-#if ($transition.isCollectionState()) 
-	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
-#end
-#end
 	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
 #foreach ( $transition in $rsm.getTransitions() )
-#if(!$transition.isUniqueTransition())
+#if ($transition.isCollectionState()) 
+	GET *-> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
+#elseif(!$transition.isUniqueTransition())
 	GET *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
 #elseif(!$transition.isCollectionState())
 	GET *-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
@@ -50,14 +47,11 @@ resource ${rsm.getCollectionStateName()}Filtered
 	collection ${rsm.getEntityName()}
 	view { GETEntitiesFiltered }
 	path "/${rsm.getCollectionStateName()}Filtered({filter})"
-#foreach ( $transition in $rsm.getTransitions() )
-#if ($transition.isCollectionState()) 
-	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
-#end
-#end
 	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
 #foreach ( $transition in $rsm.getTransitions() )
-#if(!$transition.isUniqueTransition())
+#if ($transition.isCollectionState()) 
+	GET *-> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
+#elseif(!$transition.isUniqueTransition())
 	GET *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
 #elseif(!$transition.isCollectionState())
 	GET *-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}

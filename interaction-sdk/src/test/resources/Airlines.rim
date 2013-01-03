@@ -41,8 +41,8 @@ resource Airports
 	collection Airport
 	view { GETEntities }
 	path "/Airports()"
-	GET -> FlightSchedulesFiltered filter="1 eq 1"
 	GET *-> airport id=code
+	GET *-> FlightSchedulesFiltered filter="1 eq 1"
 end
 
 

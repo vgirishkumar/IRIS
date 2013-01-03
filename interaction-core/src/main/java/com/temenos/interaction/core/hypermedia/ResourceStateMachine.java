@@ -558,8 +558,7 @@ public class ResourceStateMachine {
 					}
 					if (uriLinkageProperties != null && uriLinkageProperties.size() > 0) {
 						//URI link properties may have path parameters which should be resolved before creating the final URI
-						URI baseUri = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).buildFromMap(properties);
-						linkTemplate = UriBuilder.fromPath(baseUri.relativize(linkTemplate.buildFromMap(properties)).getPath().replaceAll("%7B", "{").replaceAll("%7D", "}"));
+						linkTemplate = UriBuilder.fromPath(linkTemplate.buildFromMap(properties).toASCIIString().replaceAll("%7B", "{").replaceAll("%7D", "}"));
 					}
 					href = linkTemplate.buildFromMap(properties);
 				} else {
