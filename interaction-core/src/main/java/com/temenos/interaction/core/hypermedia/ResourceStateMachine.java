@@ -70,7 +70,8 @@ public class ResourceStateMachine {
 			// TODO turn interactions into Events
 			if (interactions.contains(event.getMethod())) {
 				for (Action a : s.getActions()) {
-					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
+					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW) && 
+							(action == null || s.getActions().size() == 1)) {		//Avoid overriding existing view actions 
 						action = a;
 					} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
 						action = a;
@@ -88,7 +89,9 @@ public class ResourceStateMachine {
 		for (ResourceState s : resourceStates) {
 			Set<String> interactions = getInteractionByState().get(s);
 			if (interactions.contains(event.getMethod())) {
-				state = s;
+				if(state == null || interactions.size() == 1 || !event.getMethod().equals("GET")) {		//Avoid overriding existing view actions
+					state = s;
+				}
 			}
 		}
 		
