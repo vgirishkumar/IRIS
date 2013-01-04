@@ -23,15 +23,13 @@ import org.odata4j.jersey.consumer.ODataJerseyConsumer;
  */
 public class EdmTimeTemporalITCase {
 
-	protected static final String endpointUri = "http://localhost:8080/responder/FlightResponder.svc/";
-
 	public EdmTimeTemporalITCase() throws Exception {
 		super();
 	}
 	
 	@Test
 	public void testMetadata() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		EdmDataServices metadata = consumer.getMetadata();
 
@@ -46,12 +44,12 @@ public class EdmTimeTemporalITCase {
 						.findProperty("firstDeparture").getType());
 	}
 
-	//@Test
+	@Test
 	/**
 	 *handling of Date fields with different @Temporal
 	 */
 	public void createWithDifferentTemporal() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity flightSchedule = consumer
 				.createEntity("FlightSchedules")
@@ -97,7 +95,7 @@ public class EdmTimeTemporalITCase {
 
 	@Test
 	public void filterTime() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		Enumerable<OEntity> schedules = consumer
 				.getEntities("FlightSchedules")

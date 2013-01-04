@@ -1,11 +1,13 @@
 events
 	GET GET
+	POST POST
 end
 
 commands
 	GETServiceDocument
 	GETEntities
 	GETEntity
+	CreateEntity
 	GETNavPropertydepartureAirport entity=FlightSchedule, navproperty=navdepartureAirport
 	GETNavPropertyarrivalAirport entity=FlightSchedule, navproperty=navarrivalAirport
 end
@@ -24,7 +26,16 @@ resource Flights
 	collection Flight
 	view { GETEntities }
 	path "/Flights()"
+	POST -> Flights_pseudo_created
 	GET *-> flight id=flightID
+end
+
+
+resource Flights_pseudo_created
+	collection Flight
+	view { GETEntity }
+	actions { CreateEntity }
+	path "/Flights()"
 end
 
 
@@ -40,7 +51,16 @@ resource Airports
 	collection Airport
 	view { GETEntities }
 	path "/Airports()"
+	POST -> Airports_pseudo_created
 	GET *-> airport id=code
+end
+
+
+resource Airports_pseudo_created
+	collection Airport
+	view { GETEntity }
+	actions { CreateEntity }
+	path "/Airports()"
 end
 
 
@@ -56,9 +76,18 @@ resource FlightSchedules
 	collection FlightSchedule
 	view { GETEntities }
 	path "/FlightSchedules()"
+	POST -> FlightSchedules_pseudo_created
 	GET *-> flightschedule id=flightScheduleID
 	GET *-> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport="departureAirport"
 	GET *-> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport="arrivalAirport"
+end
+
+
+resource FlightSchedules_pseudo_created
+	collection FlightSchedule
+	view { GETEntity }
+	actions { CreateEntity }
+	path "/FlightSchedules()"
 end
 
 

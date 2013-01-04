@@ -16,18 +16,20 @@ public class EntityInfo {
 	private String pckge;
 	private FieldInfo keyInfo;
 	private List<FieldInfo> properties;
+	private List<JoinInfo> joins;
 	private boolean isFeed = false;
 	private boolean isJpaEntity = true;
 
 	public EntityInfo(String clazz, String pckge, FieldInfo keyInfo, List<FieldInfo> properties) {
-		this(clazz, pckge, keyInfo, properties, true);
+		this(clazz, pckge, keyInfo, properties, new ArrayList<JoinInfo>(), true);
 	}
 	
-	public EntityInfo(String clazz, String pckge, FieldInfo keyInfo, List<FieldInfo> properties, boolean isJpaEntity) {
+	public EntityInfo(String clazz, String pckge, FieldInfo keyInfo, List<FieldInfo> properties, List<JoinInfo> joins, boolean isJpaEntity) {
 		this.clazz = clazz;
 		this.pckge = pckge;
 		this.keyInfo = keyInfo;
 		this.properties = properties;
+		this.joins = joins;
 		this.isJpaEntity = isJpaEntity;
 	}
 
@@ -72,6 +74,10 @@ public class EntityInfo {
 		return properties;
 	}
 
+	public List<JoinInfo> getJoinInfos() {
+		return joins;
+	}
+	
 	public String getPackageAsPath() {
 		if (pckge != null) {
 			return pckge.replace(".", "/");

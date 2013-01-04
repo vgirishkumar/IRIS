@@ -1,5 +1,6 @@
 events
 	GET GET
+	POST POST
 end
 
 commands
@@ -30,13 +31,14 @@ resource ${rsm.getCollectionStateName()}
 	collection ${rsm.getEntityName()}
 	view { GETEntities }
 	path "/${rsm.getCollectionStateName()}()"
+	POST -> ${rsm.getCollectionStateName()}_pseudo_created
 	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
 #foreach ( $transition in $rsm.getTransitions() )
 #if ($transition.isCollectionState()) 
 	GET *-> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
 #elseif(!$transition.isUniqueTransition())
 	GET *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
-#elseif(!$transition.isCollectionState())
+#else
 	GET *-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
 #end
 #end
@@ -53,12 +55,20 @@ resource ${rsm.getCollectionStateName()}Filtered
 	GET *-> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
 #elseif(!$transition.isUniqueTransition())
 	GET *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
-#elseif(!$transition.isCollectionState())
+#else
 	GET *-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
 #end
 #end
 end
 #end
+#* Entity created resource state*#
+resource ${rsm.getCollectionStateName()}_pseudo_created
+	collection ${rsm.getEntityName()}
+	view { GETEntity }
+	actions { CreateEntity }
+	path "/${rsm.getCollectionStateName()}()"
+end
+
 #* Entity resource state*#
 resource ${rsm.getEntityStateName()}
 	item ${rsm.getEntityName()}

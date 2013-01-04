@@ -10,7 +10,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -131,6 +133,7 @@ public class JPAResponderGen {
 
 		//Create interaction model
 		InteractionModel interactionModel = new InteractionModel(edmDataServices);
+		Map<String, String> linkPropertyMap = new HashMap<String, String>();
 		for (EdmEntitySet entitySet : edmDataServices.getEntitySets()) {
 			EdmEntityType entityType = entitySet.getType();
 			String entityName = entityType.getName();
@@ -146,6 +149,7 @@ public class JPAResponderGen {
 					
 					EdmAssociation association = np.getRelationship();
 					String linkProperty = getLinkProperty(association.getName(), edmxFile);
+					linkPropertyMap.put(association.getName(), linkProperty);
 
 					//Reciprocal link state name
 					String reciprocalLinkState = "";
@@ -187,7 +191,7 @@ public class JPAResponderGen {
 		//Obtain resource information
 		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
-			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t);
+			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t, linkPropertyMap);
 			addNavPropertiesToEntityInfo(entityInfo, interactionModel);
 			entitiesInfo.add(entityInfo);
 		}
@@ -354,7 +358,7 @@ public class JPAResponderGen {
 		return true;
 	}
 	
-	public EntityInfo createEntityInfoFromEdmEntityType(EdmType type) {
+	public EntityInfo createEntityInfoFromEdmEntityType(EdmType type, Map<String, String> linkPropertyMap) {
 		if (!(type instanceof EdmEntityType))
 			return null;
 		
@@ -385,11 +389,44 @@ public class JPAResponderGen {
 			FieldInfo field = new FieldInfo(property.getName(), javaType(property.getType()), annotations);
 			properties.add(field);
 		}
+
+		List<JoinInfo> joins = new ArrayList<JoinInfo>();
+		for (EdmNavigationProperty navProperty : entityType.getNavigationProperties()) {
+			// build the join annotations
+			List<String> annotations = new ArrayList<String>();
+			// lets see if the target has a navproperty to this type
+			boolean bidirectional = false;
+			for (EdmNavigationProperty np : navProperty.getToRole().getType().getNavigationProperties()) {
+				if (np.getRelationship().getName().equals(navProperty.getRelationship().getName())) {
+					bidirectional = true;;
+				}
+			}
+			
+			String mappedBy = "";
+			if (bidirectional) {
+				String linkProperty = linkPropertyMap.get(navProperty.getRelationship().getName());
+				mappedBy = "(mappedBy=\"" + linkProperty + "\")";
+			}
+			
+			EdmAssociationEnd from = navProperty.getFromRole();
+			if ((from.getMultiplicity().equals(EdmMultiplicity.ONE) || from.getMultiplicity().equals(EdmMultiplicity.ZERO_TO_ONE)) 
+					&& navProperty.getToRole().getMultiplicity().equals(EdmMultiplicity.MANY)) {
+				annotations.add("@OneToMany" + mappedBy);
+			} else if (from.getMultiplicity().equals(EdmMultiplicity.MANY) 
+					&& navProperty.getToRole().getMultiplicity().equals(EdmMultiplicity.MANY)) {
+				annotations.add("@ManyToMany" + mappedBy);
+			}
+			if (annotations.size() > 0) {
+				JoinInfo join = new JoinInfo(navProperty.getName(), navProperty.getToRole().getType().getName(), annotations);
+				joins.add(join);
+			}
+		}
+		
 		
 		//Check if user has specified the name of the JPA entities
 		String jpaNamespace = System.getProperty("jpaNamespace");
 		boolean isJpaEntity = (jpaNamespace == null || jpaNamespace.equals(entityType.getNamespace()));
-		return new EntityInfo(entityType.getName(), entityType.getNamespace(), keyInfo, properties, isJpaEntity);
+		return new EntityInfo(entityType.getName(), entityType.getNamespace(), keyInfo, properties, joins, isJpaEntity);
 	}
 	
 	public EntityInfo createEntityInfoFromEntityMetadata(String namespace, EntityMetadata entityMetadata) {
@@ -419,7 +456,7 @@ public class JPAResponderGen {
 		//Check if user has specified the name of the JPA entities
 		String jpaNamespace = System.getProperty("jpaNamespace");
 		boolean isJpaEntity = (jpaNamespace == null || jpaNamespace.equals(namespace));
-		return new EntityInfo(entityMetadata.getEntityName(), namespace, keyInfo, properties, isJpaEntity);
+		return new EntityInfo(entityMetadata.getEntityName(), namespace, keyInfo, properties, new ArrayList<JoinInfo>(), isJpaEntity);
 	}
 
 	/*

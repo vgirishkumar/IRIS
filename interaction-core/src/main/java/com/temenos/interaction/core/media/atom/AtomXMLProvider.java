@@ -317,8 +317,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// TODO, improve this ridiculously basic support for Update
 				if (path.contains("(")) {
 					path = path.substring(0, path.indexOf("("));
+					path = "^" + path + "(|[\\(.\\)])";
+				} else {
+					path = "^" + path + "(|\\(\\))";
 				}
-				Set<ResourceState> states = hypermediaEngine.getResourceStatesForPath(path);
+				Set<ResourceState> states = hypermediaEngine.getResourceStatesForPathRegex(path);
 				if (states != null && states.size() > 0) {
 					currentState = findCollectionResourceState(states);
 				} else {

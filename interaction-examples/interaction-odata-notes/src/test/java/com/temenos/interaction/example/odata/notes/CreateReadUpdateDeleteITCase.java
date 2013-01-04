@@ -89,7 +89,7 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 		// delete Note number 56 (which does not exist)
 		String notFoundNoteUri = NOTES_RESOURCE + "(56)";
 		ClientResponse nresponse = webResource.path(notFoundNoteUri).delete(ClientResponse.class);
-        assertEquals(204, nresponse.getStatus());
+        assertEquals(404, nresponse.getStatus());
     }
 
     @Test
