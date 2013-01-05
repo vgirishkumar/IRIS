@@ -58,7 +58,13 @@ public class TestJPAResponderGen {
 		@Override
 		protected String getLinkProperty(String associationName, String edmxFile) {
 			InputStream isEdmx = getClass().getResourceAsStream("/" + EDMX_AIRLINE_FILE);
-			return ReferentialConstraintParser.getLinkProperty(associationName, isEdmx);
+			return ReferentialConstraintParser.getDependent(associationName, isEdmx);
+		}
+
+		@Override
+		protected String getLinkPropertyOrigin(String associationName, String edmxFile) {
+			InputStream isEdmx = getClass().getResourceAsStream("/" + EDMX_AIRLINE_FILE);
+			return ReferentialConstraintParser.getPrincipal(associationName, isEdmx);
 		}
 		
 		@Override
@@ -803,6 +809,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
 		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/{navdepartureAirport}\""));
+		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedulesFiltered filter=\"arrivalAirportCode eq '{code}'\""));
+		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedulesFiltered filter=\"departureAirportCode eq '{code}'\""));
 	}
 
 	@Test

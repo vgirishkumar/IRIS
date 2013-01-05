@@ -17,18 +17,24 @@ import org.xml.sax.helpers.DefaultHandler;
  * [odata4j does not parse ReferentialConstraint elements] 
  */
 public class ReferentialConstraintParser extends DefaultHandler {
+	public final static String DEPENDENT = "Dependent";
+	public final static String PRINCIPAL = "Principal";
+	
 	String linkProperty = null;
 	boolean foundAssociation = false;
-	boolean foundDependent = false;
+	boolean found = false;
 	String associationName;
+	String searchConstraint;
 
-	public ReferentialConstraintParser(String associationName) {
+	public ReferentialConstraintParser(String associationName, String searchConstraint) {
 		this.associationName = associationName;
+		this.searchConstraint = searchConstraint;
 	}
 
-	public static String getLinkProperty(final String associationName, String edmxFile) {
+	public static String getDependent(final String associationName, String edmxFile) {
 		try {
-			return getLinkProperty(associationName,  new FileInputStream(edmxFile));
+			String searchConstraint = DEPENDENT;
+			return getProperty(associationName,  new FileInputStream(edmxFile), searchConstraint);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -36,9 +42,42 @@ public class ReferentialConstraintParser extends DefaultHandler {
 		return null;
 	}
 
-	public static String getLinkProperty(final String associationName, InputStream isEdmx) {
+	public static String getDependent(final String associationName, InputStream isEdmx) {
+		try {
+			String searchConstraint = DEPENDENT;
+			return getProperty(associationName,  isEdmx, searchConstraint);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static String getPrincipal(final String associationName, String edmxFile) {
+		try {
+			String searchConstraint = PRINCIPAL;
+			return getProperty(associationName,  new FileInputStream(edmxFile), searchConstraint);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static String getPrincipal(final String associationName, InputStream isEdmx) {
+		try {
+			String searchConstraint = PRINCIPAL;
+			return getProperty(associationName,  isEdmx, searchConstraint);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static String getProperty(final String associationName, InputStream isEdmx, String searchConstraint) {
 	    //Parse the edmx file
-		ReferentialConstraintParser handler = new ReferentialConstraintParser(associationName);
+		ReferentialConstraintParser handler = new ReferentialConstraintParser(associationName, searchConstraint);
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		try {
 			SAXParser saxParser = factory.newSAXParser();
@@ -46,24 +85,24 @@ public class ReferentialConstraintParser extends DefaultHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return handler.getLinkProperty();
+		return handler.getProperty();
 	}
 	
 	public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
 		if (qName.equals("Association") && attributes.getValue("Name").equals(associationName)) {
 			foundAssociation = true;
 		}
-		else if(foundAssociation && qName.equals("Dependent")) {
-			foundDependent = true;
+		else if(foundAssociation && qName.equals(searchConstraint)) {
+			found = true;
 		}
-		else if(foundDependent && qName.equals("PropertyRef")) {
+		else if(found && qName.equals("PropertyRef")) {
 			linkProperty = attributes.getValue("Name");
 			foundAssociation = false;
-			foundDependent = false;			
+			found = false;			
 		}
 	}
  
-	public String getLinkProperty() {
+	public String getProperty() {
 		return linkProperty;
 	}
 }

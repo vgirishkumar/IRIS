@@ -284,13 +284,23 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval) {
 		assert null != targetState;
-		this.uriLinkageProperties = uriLinkageProperties;
+		this.uriLinkageProperties = uriLinkageProperties != null ? new HashMap<String, String>(uriLinkageProperties) : null;
+		uriLinkageMap = uriLinkageMap != null ? new HashMap<String, String>(uriLinkageMap) : null;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
 		// replace uri elements with linkage entity element name
 		if (uriLinkageMap != null) {
 			for (String templateElement : uriLinkageMap.keySet()) {
 				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
+			}
+		}
+		// pre-process linkage properties containing path template elements
+		if (uriLinkageProperties != null) {
+			for (String templateElement : uriLinkageProperties.keySet()) {
+				String template = uriLinkageProperties.get(templateElement);
+				if(template.contains("{") && template.contains("}")) {
+					resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", template);
+				}
 			}
 		}
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, eval);
@@ -336,9 +346,29 @@ public class ResourceState implements Comparable<ResourceState> {
 		return foundTransition;
 	}
 
+	/**
+	 * Get the transitions to the supplied target state.
+	 * @param targetState
+	 * @return transitions
+	 */
+	public List<Transition> getTransitions(ResourceState targetState) {
+		List<Transition> transitionList = new ArrayList<Transition>();
+		for (Transition t : transitions.values()) {
+			if (t.getTarget().equals(targetState)) {
+				transitionList.add(t);
+			}
+		}
+		return transitionList;
+	}
+	
 	public Collection<ResourceState> getAllTargets() {
 		List<ResourceState> result = new ArrayList<ResourceState>();
-		for (Transition t : transitions.values()) result.add(t.getTarget());
+		for (Transition t : transitions.values()) {
+			ResourceState targetState = t.getTarget();
+			if(!result.contains(targetState)) {
+				result.add(targetState);
+			}
+		}
 		return result;
 	}
 	

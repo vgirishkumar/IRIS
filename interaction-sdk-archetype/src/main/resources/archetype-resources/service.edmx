@@ -17,7 +17,7 @@
                     <PropertyRef Name="flightID"/>
                 </Key>
                 <Property Name="flightID" Type="Edm.Int64" Nullable="false"/>
-                <Property Name="flightScheduleID" Type="Edm.Int64" Nullable="false"/>
+                <Property Name="flightScheduleNum" Type="Edm.Int64" Nullable="false"/>
                 <Property Name="takeoffTime" Type="Edm.DateTime" Nullable="true"/>
                 <NavigationProperty Name="flightSchedule" Relationship="${artifactId}Model.Flight_flightSchedule" FromRole="Flight" ToRole="FlightSchedule"/>
             </EntityType>
@@ -35,6 +35,7 @@
                 <Property Name="lastDeparture" Type="Edm.DateTime" Nullable="true"/>
                 <NavigationProperty Name="departureAirport" Relationship="${artifactId}Model.FlightSchedule_departureAirport" FromRole="FlightSchedule" ToRole="Airport"/>
                 <NavigationProperty Name="arrivalAirport" Relationship="${artifactId}Model.FlightSchedule_arrivalAirport" FromRole="FlightSchedule" ToRole="Airport"/>
+                <NavigationProperty Name="flights" Relationship="${artifactId}Model.Flight_flightSchedule" FromRole="FlightSchedule" ToRole="Flight"/>
             </EntityType>
             <Association Name="Flight_flightSchedule">
                 <End Role="Flight" Type="${artifactId}Model.Flight" Multiplicity="*"/>
@@ -44,7 +45,7 @@
                         <PropertyRef Name="flightScheduleID"/>
                     </Principal>
                     <Dependent Role="Flight">
-                        <PropertyRef Name="flightScheduleID"/>
+                        <PropertyRef Name="flightScheduleNum"/>
                     </Dependent>
                 </ReferentialConstraint>
             </Association>

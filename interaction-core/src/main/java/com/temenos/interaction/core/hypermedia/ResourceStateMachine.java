@@ -462,25 +462,27 @@ public class ResourceStateMachine {
 		 */
 		Collection<ResourceState> targetStates = state.getAllTargets();
 		for (ResourceState s : targetStates) {
-			Transition transition = state.getTransition(s);
-			TransitionCommandSpec cs = transition.getCommand();
-			/* 
-			 * build link and add to list of links
-			 */
-			UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
-			if (cs.isForEach()) {
-				if (collectionResource != null) {
-					for (EntityResource<?> er : collectionResource.getEntities()) {
-						Collection<Link> eLinks = er.getLinks();
-						if (eLinks == null) {
-							eLinks = new ArrayList<Link>();
+			List<Transition> transitions = state.getTransitions(s);
+			for(Transition transition : transitions) {
+				TransitionCommandSpec cs = transition.getCommand();
+				/* 
+				 * build link and add to list of links
+				 */
+				UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
+				if (cs.isForEach()) {
+					if (collectionResource != null) {
+						for (EntityResource<?> er : collectionResource.getEntities()) {
+							Collection<Link> eLinks = er.getLinks();
+							if (eLinks == null) {
+								eLinks = new ArrayList<Link>();
+							}
+							eLinks.add(createLink(linkTemplate, transition, er.getEntity(), pathParameters));
+							er.setLinks(eLinks);
 						}
-						eLinks.add(createLink(linkTemplate, transition, er.getEntity(), pathParameters));
-						er.setLinks(eLinks);
 					}
+				} else {
+					links.add(createLink(linkTemplate, transition, entity, pathParameters));
 				}
-			} else {
-				links.add(createLink(linkTemplate, transition, entity, pathParameters));
 			}
 		}
 		resourceEntity.setLinks(links);
@@ -588,10 +590,10 @@ public class ResourceStateMachine {
 					if (props != null) {
 						properties.putAll(props);
 					}
-					if (uriLinkageProperties != null && uriLinkageProperties.size() > 0) {
+/*					if (uriLinkageProperties != null && uriLinkageProperties.size() > 0) {
 						//URI link properties may have path parameters which should be resolved before creating the final URI
 						linkTemplate = UriBuilder.fromPath(linkTemplate.buildFromMap(properties).toASCIIString().replaceAll("%7B", "{").replaceAll("%7D", "}"));
-					}
+					}*/
 					href = linkTemplate.buildFromMap(properties);
 				} else {
 					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");

@@ -159,7 +159,12 @@ public class JPAResponderGen {
 							reciprocalLinkState = npTarget.getName();
 						}
 					}
-					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm);
+					String filter = null;
+					if(isTargetCollection) {
+						String linkPropertyOrigin = getLinkPropertyOrigin(association.getName(), edmxFile);
+						filter = linkProperty + " eq '{" + linkPropertyOrigin + "}'";
+					}
+					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm, filter);
 				}
 			}			
 		}
@@ -183,8 +188,10 @@ public class JPAResponderGen {
 		Commands commands = getDefaultCommands(interactionModel);
 		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
 			for(IMTransition transition : rsm.getTransitions()) {
-				String cmdId = Commands.GET_NAV_PROPERTY + transition.getTargetStateName();
-				commands.addCommand(cmdId, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", cmdId, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+				if(!transition.isCollectionState()) {
+					String cmdId = Commands.GET_NAV_PROPERTY + transition.getTargetStateName();
+					commands.addCommand(cmdId, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", cmdId, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+				}
 			}
 		}
 		
@@ -257,7 +264,11 @@ public class JPAResponderGen {
 	}
 
 	protected String getLinkProperty(String associationName, String edmxFile) {
-		return ReferentialConstraintParser.getLinkProperty(associationName, edmxFile);
+		return ReferentialConstraintParser.getDependent(associationName, edmxFile);
+	}
+
+	protected String getLinkPropertyOrigin(String associationName, String edmxFile) {
+		return ReferentialConstraintParser.getPrincipal(associationName, edmxFile);
 	}
 	
 	private boolean writeArtefacts(String modelName, List<EntityInfo> entitiesInfo, Commands commands, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {

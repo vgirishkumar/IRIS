@@ -9,7 +9,7 @@ commands
 #end
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 #foreach ( $transition in $rsm.getTransitions() )
-#if (!$transition.isUniqueTransition()) 
+#if (!$transition.isUniqueTransition() && !$transition.isCollectionState()) 
 	GETNavProperty${transition.getTargetStateName()} entity=${rsm.getEntityName()}, navproperty=nav${transition.getTargetStateName()}
 #end
 #end
