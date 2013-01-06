@@ -48,7 +48,9 @@ public class Link {
 	 * @param transition
 	 */
 	public Link(Transition transition, String rel, String href, String method) {
-		this(transition, transition.getTarget().getName(), rel, href, null, null, method, null);
+		this(transition, 
+				transition.getTarget().getName() + (transition.getLabel() != null ? "(" + transition.getLabel() + ")" : ""), 
+				rel, href, null, null, method, null);
 	}
 
 	public Link(Transition transition, String title, String rel, String href, String[] consumes,

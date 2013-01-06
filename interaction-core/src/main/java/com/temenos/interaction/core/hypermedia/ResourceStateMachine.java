@@ -158,8 +158,9 @@ public class ResourceStateMachine {
 	private void collectTransitionsById(Map<String,Transition> transitions) {
 		for (ResourceState s : getStates()) {
 			for (ResourceState target : s.getAllTargets()) {
-				Transition transition = s.getTransition(target);
-				transitions.put(transition.getId(), transition);
+				for(Transition transition : s.getTransitions(target)) {
+					transitions.put(transition.getId(), transition);
+				}
 			}
 		}
 	}
@@ -189,10 +190,8 @@ public class ResourceStateMachine {
 		result.put(currentState.getPath(), interactions);
 		// add interactions by iterating through the transitions from this state
 		for (ResourceState next : currentState.getAllTargets()) {
-			// is the target a state of the same entity
-//			if (next.getEntityName().equals(currentState.getEntityName())) {
-				// lookup transition to get to here
-				Transition t = currentState.getTransition(next);
+			List<Transition> transitions = currentState.getTransitions(next);
+			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
 				String path = command.getPath();
 				
@@ -204,7 +203,7 @@ public class ResourceStateMachine {
 				
 				result.put(path, interactions);
 				collectInteractionsByPath(result, states, next);
-//			}
+			}
 		}
 		
 	}
@@ -235,10 +234,8 @@ public class ResourceStateMachine {
 		result.put(currentState, interactions);
 		// add interactions by iterating through the transitions from this state
 		for (ResourceState next : currentState.getAllTargets()) {
-			// is the target a state of the same entity
-//			if (next.getEntityName().equals(currentState.getEntityName())) {
-				// lookup transition to get to here
-				Transition t = currentState.getTransition(next);
+			List<Transition> transitions = currentState.getTransitions(next);
+			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
 				
 				interactions = result.get(next);
@@ -249,7 +246,7 @@ public class ResourceStateMachine {
 				
 				result.put(next, interactions);
 				collectInteractionsByState(result, states, next);
-//			}
+			}
 		}
 		
 	}
@@ -590,10 +587,6 @@ public class ResourceStateMachine {
 					if (props != null) {
 						properties.putAll(props);
 					}
-/*					if (uriLinkageProperties != null && uriLinkageProperties.size() > 0) {
-						//URI link properties may have path parameters which should be resolved before creating the final URI
-						linkTemplate = UriBuilder.fromPath(linkTemplate.buildFromMap(properties).toASCIIString().replaceAll("%7B", "{").replaceAll("%7D", "}"));
-					}*/
 					href = linkTemplate.buildFromMap(properties);
 				} else {
 					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");

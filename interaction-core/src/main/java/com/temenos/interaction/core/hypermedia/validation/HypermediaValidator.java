@@ -126,19 +126,21 @@ public class HypermediaValidator {
 		int countFinal = 0;
 		for (ResourceState s : states) {
 			for (ResourceState targetState : s.getAllTargets()) {
-				Transition transition = s.getTransition(targetState);
-				sb.append("    ").append(s.getEntityName() + s.getName()).append("->").append(targetState.getEntityName() + targetState.getName())
-					.append("[");
-				if (transition.getCommand().isAutoTransition()) {
-					// this is an auto transition
-					sb.append("style=\"dotted\"");
-				} else {
-					sb.append("label=\"")
-					.append(transition.getCommand())
-					.append("\"");
-					
+				List<Transition> transitions = s.getTransitions(targetState);
+				for(Transition transition : transitions) {
+					sb.append("    ").append(s.getEntityName() + s.getName()).append("->").append(targetState.getEntityName() + targetState.getName())
+						.append("[");
+					if (transition.getCommand().isAutoTransition()) {
+						// this is an auto transition
+						sb.append("style=\"dotted\"");
+					} else {
+						sb.append("label=\"")
+						.append(transition.getCommand())
+						.append("\"");
+						
+					}
+					sb.append("]").append("\n");
 				}
-				sb.append("]").append("\n");
 			}
 			if (s.isFinalState()) {
 				sb.append("    ").append(FINAL_STATE);
@@ -185,11 +187,13 @@ public class HypermediaValidator {
 			// only show transition for states of this state machine
 			if (s.getEntityName().equals(sm.getInitial().getEntityName())) {
 				for (ResourceState targetState : s.getAllTargets()) {
-					Transition transition = s.getTransition(targetState);
-					sb.append("    ").append(s.getEntityName() + s.getName()).append("->").append(targetState.getEntityName() + targetState.getName())
-						.append("[label=\"")
-						.append(transition.getCommand())
-						.append("\"]").append("\n");
+					List<Transition> transitions = s.getTransitions(targetState);
+					for(Transition transition : transitions) {
+						sb.append("    ").append(s.getEntityName() + s.getName()).append("->").append(targetState.getEntityName() + targetState.getName())
+							.append("[label=\"")
+							.append(transition.getCommand())
+							.append("\"]").append("\n");
+					}
 				}
 				if (s.isFinalState()) {
 					sb.append("    ").append(FINAL_STATE);

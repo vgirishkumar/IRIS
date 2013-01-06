@@ -318,7 +318,7 @@ public class TestResponseHTTPHypermediaRIM {
 		// mock the Link header
 		HttpHeaders mockHeaders = mock(HttpHeaders.class);
 		List<String> links = new ArrayList<String>();
-		links.add("</path>; rel=\"entity.state>entity.deleted\"");
+		links.add("</path>; rel=\"entity.state>DELETE>entity.deleted\"");
 		when(mockHeaders.getRequestHeader("Link")).thenReturn(links);
 		Response response = itemRIM.delete(mockHeaders, "id", mockEmptyUriInfo());
 		

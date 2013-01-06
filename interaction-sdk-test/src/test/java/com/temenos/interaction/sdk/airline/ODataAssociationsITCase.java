@@ -85,7 +85,7 @@ public class ODataAssociationsITCase {
 		for (OEntity flightSchedule : flightSchedules.toSet()) {
 			Long id = (Long) flightSchedule.getProperty("flightScheduleID").getValue();
 
-			assertEquals(3, flightSchedule.getLinks().size());
+			assertEquals(4, flightSchedule.getLinks().size());
 			// there should be one link to self
 			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")"));
 			// there should be one link to one departureAirport for this flight schedule
@@ -106,7 +106,7 @@ public class ODataAssociationsITCase {
 		Long id = (Long) flightSchedule.getProperty("flightScheduleID").getValue();
 		assertEquals(2, id.intValue());
 
-		assertEquals(2, flightSchedule.getLinks().size());
+		assertEquals(3, flightSchedule.getLinks().size());
 		// there should be one link to one departureAirport for this flight schedule
 		assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport"));
 		// there should be one link to one departureAirport for this flight schedule
@@ -149,9 +149,9 @@ public class ODataAssociationsITCase {
 			// there should be one link to self
 			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')"));
 			// there should be one link to departures
-			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/departures"));
+			assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(departureAirportCode%20eq%20'" + code + "')"));
 			// there should be one link to arrivals
-			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/arrivals"));
+			assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(arrivalAirportCode%20eq%20'" + code + "')"));
 		}
 	}
 

@@ -63,13 +63,13 @@ public class TestResourceStateMachine {
 		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState);
 
 		// mock the Link header
-		LinkHeader linkHeader = LinkHeader.valueOf("</path>; rel=\"toaster.cooking>toaster.exists\"");
+		LinkHeader linkHeader = LinkHeader.valueOf("</path>; rel=\"toaster.cooking>DELETE>toaster.exists\"");
 
 		Link targetLink = stateMachine.getLinkFromRelations(mock(MultivaluedMap.class), testResponseEntity, linkHeader);
 
 		assertNotNull(targetLink);
 		assertEquals("/baseuri/machines/toaster", targetLink.getHref());
-		assertEquals("toaster.cooking>toaster.exists", targetLink.getId());
+		assertEquals("toaster.cooking>DELETE>toaster.exists", targetLink.getId());
 	}
 
 
@@ -95,7 +95,7 @@ public class TestResourceStateMachine {
 
 		assertNotNull(targetLink);
 		assertEquals("/baseuri/machines/toaster", targetLink.getHref());
-		assertEquals("toaster.cooking>toaster.exists", targetLink.getId());
+		assertEquals("toaster.cooking>DELETE>toaster.exists", targetLink.getId());
 	}
 
 	/*
@@ -119,7 +119,7 @@ public class TestResourceStateMachine {
 		// a target link the same as our current state equates to 205 Reset Content
 		assertEquals("/baseuri/machines", targetLink.getHref());
 		// we use createSelfLink under the covers so link id looks like transition to self
-		assertEquals("machines.MachineView>machines.MachineView", targetLink.getId());
+		assertEquals("machines.MachineView>POST>machines.MachineView", targetLink.getId());
 	}
 
 	/*
@@ -219,9 +219,9 @@ public class TestResourceStateMachine {
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		Map<String,Transition> transitions = sm.getTransitionsById();
 		assertEquals("Number of transistions", 3, transitions.size());
-		assertNotNull(transitions.get(".begin>.exists"));
-		assertNotNull(transitions.get(".exists>.exists"));
-		assertNotNull(transitions.get(".exists>.end"));
+		assertNotNull(transitions.get(".begin>PUT>.exists"));
+		assertNotNull(transitions.get(".exists>PUT>.exists"));
+		assertNotNull(transitions.get(".exists>DELETE>.end"));
 	}
 	
 	@Test
@@ -669,7 +669,7 @@ public class TestResourceStateMachine {
 		Link link = (Link) links.toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/new", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getId());
+		assertEquals("NOTE.initial>GET>NOTE.initial", link.getId());
 	}
 
 	/*
@@ -700,7 +700,7 @@ public class TestResourceStateMachine {
 		Link link = (Link) links.toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/123/reviewers", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getId());
+		assertEquals("NOTE.initial>GET>NOTE.initial", link.getId());
 	}
 
 	/*
@@ -730,7 +730,7 @@ public class TestResourceStateMachine {
 		Link link = (Link) links.toArray()[0];
 		assertEquals("self", link.getRel());
 		assertEquals("/baseuri/notes/123", link.getHref());
-		assertEquals("NOTE.initial>NOTE.initial", link.getId());
+		assertEquals("NOTE.initial>GET>NOTE.initial", link.getId());
 	}
 
 	/*
@@ -779,15 +779,15 @@ public class TestResourceStateMachine {
 		// notes
 		assertEquals("collection", links.get(0).getRel());
 		assertEquals("/baseuri/notes", links.get(0).getHref());
-		assertEquals("root.initial>NOTE.collection", links.get(0).getId());
+		assertEquals("root.initial>GET>NOTE.collection", links.get(0).getId());
 		// persons
 		assertEquals("collection", links.get(1).getRel());
 		assertEquals("/baseuri/persons", links.get(1).getHref());
-		assertEquals("root.initial>PERSON.collection", links.get(1).getId());
+		assertEquals("root.initial>GET>PERSON.collection", links.get(1).getId());
 		// service root
 		assertEquals("self", links.get(2).getRel());
 		assertEquals("/baseuri/", links.get(2).getHref());
-		assertEquals("root.initial>root.initial", links.get(2).getId());
+		assertEquals("root.initial>GET>root.initial", links.get(2).getId());
 	}
 
 	/*
@@ -840,12 +840,12 @@ public class TestResourceStateMachine {
 		assertEquals("GET", links.get(0).getMethod());
 		assertEquals("self", links.get(0).getRel());
 		assertEquals("/baseuri/notes", links.get(0).getHref());
-		assertEquals("NOTE.collection>NOTE.collection", links.get(0).getId());
+		assertEquals("NOTE.collection>GET>NOTE.collection", links.get(0).getId());
 		// new notes
 		assertEquals("POST", links.get(1).getMethod());
 		assertEquals("new", links.get(1).getRel());
 		assertEquals("/baseuri/notes/new", links.get(1).getHref());
-		assertEquals("NOTE.collection>stack.new", links.get(1).getId());
+		assertEquals("NOTE.collection>POST>stack.new", links.get(1).getId());
 		
 		/* collect the links defined in each entity */
 		List<Link> itemLinks = new ArrayList<Link>();
@@ -872,15 +872,15 @@ public class TestResourceStateMachine {
 //		assertEquals("self NOTE.item", links.get(0).getRel());
 		assertEquals("item", itemLinks.get(0).getRel());
 		assertEquals("/baseuri/notes/1", itemLinks.get(0).getHref());
-		assertEquals("NOTE.collection>NOTE.item", itemLinks.get(0).getId());
+		assertEquals("NOTE.collection>GET>NOTE.item", itemLinks.get(0).getId());
 		// link to note '2'
 		assertEquals("item", itemLinks.get(1).getRel());
 		assertEquals("/baseuri/notes/2", itemLinks.get(1).getHref());
-		assertEquals("NOTE.collection>NOTE.item", itemLinks.get(1).getId());
+		assertEquals("NOTE.collection>GET>NOTE.item", itemLinks.get(1).getId());
 		// link to note '6'
 		assertEquals("item", itemLinks.get(2).getRel());
 		assertEquals("/baseuri/notes/6", itemLinks.get(2).getHref());
-		assertEquals("NOTE.collection>NOTE.item", itemLinks.get(2).getId());
+		assertEquals("NOTE.collection>GET>NOTE.item", itemLinks.get(2).getId());
 		
 	}
 
@@ -941,32 +941,32 @@ public class TestResourceStateMachine {
 		// link to DELETE note '1'
 		assertEquals("final", links.get(0).getRel());
 		assertEquals("/baseuri/notes/1", links.get(0).getHref());
-		assertEquals("NOTE.collection>NOTE.final", links.get(0).getId());
+		assertEquals("NOTE.collection>DELETE>NOTE.final", links.get(0).getId());
 		assertEquals("DELETE", links.get(0).getMethod());
 		// link to DELETE note '2'
 		assertEquals("final", links.get(1).getRel());
 		assertEquals("/baseuri/notes/2", links.get(1).getHref());
-		assertEquals("NOTE.collection>NOTE.final", links.get(1).getId());
+		assertEquals("NOTE.collection>DELETE>NOTE.final", links.get(1).getId());
 		assertEquals("DELETE", links.get(1).getMethod());
 		// link to DELETE note '6'
 		assertEquals("final", links.get(2).getRel());
 		assertEquals("/baseuri/notes/6", links.get(2).getHref());
-		assertEquals("NOTE.collection>NOTE.final", links.get(2).getId());
+		assertEquals("NOTE.collection>DELETE>NOTE.final", links.get(2).getId());
 		assertEquals("DELETE", links.get(0).getMethod());
 		// link to GET note '1'
 		assertEquals("item", links.get(3).getRel());
 		assertEquals("/baseuri/notes/1", links.get(3).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(3).getId());
+		assertEquals("NOTE.collection>GET>NOTE.item", links.get(3).getId());
 		assertEquals("GET", links.get(3).getMethod());
 		// link to GET note '2'
 		assertEquals("item", links.get(4).getRel());
 		assertEquals("/baseuri/notes/2", links.get(4).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(4).getId());
+		assertEquals("NOTE.collection>GET>NOTE.item", links.get(4).getId());
 		assertEquals("GET", links.get(4).getMethod());
 		// link to GET note '6'
 		assertEquals("item", links.get(5).getRel());
 		assertEquals("/baseuri/notes/6", links.get(5).getHref());
-		assertEquals("NOTE.collection>NOTE.item", links.get(5).getId());
+		assertEquals("NOTE.collection>GET>NOTE.item", links.get(5).getId());
 		assertEquals("GET", links.get(5).getMethod());
 	}
 

@@ -295,16 +295,21 @@ public class ResourceState implements Comparable<ResourceState> {
 			}
 		}
 		// pre-process linkage properties containing path template elements
+		String label = null;
 		if (uriLinkageProperties != null) {
 			for (String templateElement : uriLinkageProperties.keySet()) {
 				String template = uriLinkageProperties.get(templateElement);
 				if(template.contains("{") && template.contains("}")) {
-					resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", template);
+					if(resourcePath.matches(".*\\{" + templateElement + "\\}.*")) {
+						//template parameters may be used to define multiple transitions to the same target state and the same http method
+						resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", template);
+						label = label != null ? label + ", " + template : template;		//Generate a transition label to enable creating links with different titles  
+					}
 				}
 			}
 		}
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, eval);
-		Transition transition = new Transition(this, commandSpec, targetState);
+		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.put(commandSpec, transition);
 	}
