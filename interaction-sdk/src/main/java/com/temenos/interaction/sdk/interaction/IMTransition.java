@@ -13,8 +13,9 @@ public class IMTransition {
 	private String reciprocalLinkState;		//State which leads a target state back to the current state
 	private IMResourceStateMachine targetResourceStateMachine;	//Resource state machine of target state
 	private String filter;					//Filter expression for transitions to collection resources
+	private String title;					//Transition label
 
-	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter) {
+	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String title) {
 		this.targetEntityName = targetEntityName;
 		this.linkProperty = linkProperty;
 		this.targetStateName = targetStateName;
@@ -22,6 +23,7 @@ public class IMTransition {
 		this.reciprocalLinkState = reciprocalLinkState;
 		this.targetResourceStateMachine = targetResourceStateMachine;
 		this.filter = filter;
+		this.title = title;
 	}
 	
 	public String getTargetEntityName() {
@@ -50,6 +52,18 @@ public class IMTransition {
 
 	public String getFilter() {
 		return filter != null && !filter.equals("") ? filter : "1 eq 1";
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+	
+	public String getTitleAssignment() {
+		String title = "";
+		if(getTitle() != null) {
+			title = "title=\"" + getTitle() + "\" ";
+		}
+		return title;
 	}
 	
 	/**

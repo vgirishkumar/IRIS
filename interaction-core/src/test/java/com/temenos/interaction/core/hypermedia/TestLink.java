@@ -39,7 +39,7 @@ public class TestLink {
 		when(t.getTarget()).thenReturn(state);
 		Link link = new Link(t, "arrivals", "http://localhost:8080/example/Airport/arrivals", "GET");
 
-		assertEquals("FlightSchedules()", link.getTitle());
+		assertEquals("FlightSchedules", link.getTitle());
 		assertEquals("arrivals", link.getRel());
 	}
 	
@@ -52,7 +52,7 @@ public class TestLink {
 		when(t.getTarget()).thenReturn(state);
 		Link link = new Link(t, "arrivals", "http://localhost:8080/example/Airport/arrivals", "GET");
 
-		assertEquals("FlightSchedules(arrivals)", link.getTitle());
+		assertEquals("arrivals", link.getTitle());
 		assertEquals("arrivals", link.getRel());
 	}
 }

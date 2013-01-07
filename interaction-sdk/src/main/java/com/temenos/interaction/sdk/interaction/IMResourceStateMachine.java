@@ -59,8 +59,8 @@ public class IMResourceStateMachine {
 	 * @param targetEntityName name of entity associated to target state
 	 * @param targetResourceStateMachine target resource state machine
 	 */
-	public void addTransitionToCollectionResource(String targetStateName, String targetEntityName, IMResourceStateMachine targetResourceStateMachine, String filter) {
-		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, filter);
+	public void addTransitionToCollectionResource(String targetStateName, String targetEntityName, IMResourceStateMachine targetResourceStateMachine, String filter, String title) {
+		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, filter, title);
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine target resource state machine
 	 */
 	public void addTransitionToEntityResource(String targetStateName, String linkProperty, String targetEntityName, IMResourceStateMachine targetResourceStateMachine) {
-		addTransition(targetEntityName, linkProperty, targetStateName, false, "", targetResourceStateMachine, null);
+		addTransition(targetEntityName, linkProperty, targetStateName, false, "", targetResourceStateMachine, null, null);
 	}
 	
 	/**
@@ -83,7 +83,7 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine Target RSM
 	 */
 	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine) {
-		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, null);
+		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, null, null);
 	}
 	
 	/**
@@ -96,8 +96,8 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine Target RSM
 	 * @param filter Filter for transitions to collection states
 	 */
-	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter) {
-		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, filter != null ? filter : "");
+	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String title) {
+		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, filter != null ? filter : "", title);
 		
 		//Workaround - if there are multiple transitions to the same state => create intermediate 'navigation' states 
 		for(IMTransition t : transitions) {
