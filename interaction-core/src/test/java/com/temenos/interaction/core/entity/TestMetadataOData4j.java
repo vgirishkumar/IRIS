@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -22,6 +23,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.UriSpecification;
 
 public class TestMetadataOData4j {
 	public final static String METADATA_XML_FILE = "TestMetadataParser.xml";
@@ -230,4 +232,42 @@ public class TestMetadataOData4j {
 		assertNotNull(edmMetadata.findEdmFunctionImport("AirportFlights"));
 	}
 
+	@Test
+	public void testMultipleManyToOneNavProperties() {
+		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
+
+		initial.addTransition("GET", airports, null, null);
+		airports.addTransitionForEachItem("GET", airport, null, null);
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
+		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
+		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
+
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
+		EdmDataServices edmMetadata = metadataOData4j.getMetadata();
+		
+		assertNotNull(edmMetadata);
+		EdmEntityType entityType = (EdmEntityType) edmMetadata.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
+
+		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("FlightSchedules(departureAirportCode eq '{code}')");
+		assertNotNull(flightScheduleNavProperty);
+		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
+		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
+		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
+		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
+		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+
+		flightScheduleNavProperty = entityType.findNavigationProperty("FlightSchedules(arrivalAirportCode eq '{code}')");
+		assertNotNull(flightScheduleNavProperty);
+		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
+		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
+		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
+		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
+		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+	}
 }

@@ -109,12 +109,28 @@ public class MetadataOData4j {
 			Map<String, EdmAssociation.Builder> bAssociationMap = buildAssociations(namespace, bEntityType, bEntityTypeMap, hypermediaEngine);
 			bAssociations.addAll(bAssociationMap.values());
 			
-			for (String navPropertyName : bAssociationMap.keySet()) {
-				EdmAssociation.Builder relationship = bAssociationMap.get(navPropertyName);
-				bEntityType.addNavigationProperties(EdmNavigationProperty
-						.newBuilder(navPropertyName)
-						.setRelationship(relationship)
-						.setFromTo(relationship.getEnd1(), relationship.getEnd2()));
+			//add navigation properties
+			String entityName = bEntityType.getName();
+			Collection<Transition> entityTransitions = hypermediaEngine.getTransitionsById().values();
+			if (entityTransitions != null) {
+				for(Transition entityTransition : entityTransitions) {
+					ResourceState sourceState = entityTransition.getSource();
+					ResourceState targetState = entityTransition.getTarget();
+					if (sourceState.getEntityName().equals(entityName) 
+							&& !entityTransition.getTarget().isPseudoState()
+							&& !(entityTransition.getSource() instanceof CollectionResourceState)) {		//We can have transitions to a resource state from multiple source states
+						//We can have more than one navigation property for the same association
+						String navPropertyName = targetState.getName();
+						if(entityTransition.getLabel() != null) {
+							navPropertyName += "(" + entityTransition.getLabel() + ")";
+						}
+						EdmAssociation.Builder relationship = bAssociationMap.get(targetState.getName());
+						bEntityType.addNavigationProperties(EdmNavigationProperty
+								.newBuilder(navPropertyName)
+								.setRelationship(relationship)
+								.setFromTo(relationship.getEnd1(), relationship.getEnd2()));
+					}
+				}
 			}
 		}
 		
@@ -212,11 +228,6 @@ public class MetadataOData4j {
 						&& !entityTransition.getTarget().isPseudoState()
 						&& !npNames.contains(npName)
 						&& !(entityTransition.getSource() instanceof CollectionResourceState)) {		//We can have transitions to a resource state from multiple source states
-					EdmMultiplicity multiplicity = EdmMultiplicity.ONE;
-					if (targetState instanceof CollectionResourceState) {
-						multiplicity = EdmMultiplicity.MANY;
-					}
-	
 					// Use the entity names to define the relation
 					String relationName;
 					if(multipleNavPropsToEntity.get(targetState.getEntityName()).equals(MULTI_NAV_PROP_TO_ENTITY)) {
@@ -231,18 +242,22 @@ public class MetadataOData4j {
 							relationName = invertedRelationName;					
 						}
 					}
+
+					//Multiplicity
+					EdmMultiplicity multiplicitySource = targetState instanceof CollectionResourceState ? EdmMultiplicity.ONE : EdmMultiplicity.MANY;
+					EdmMultiplicity multiplicityTarget = targetState instanceof CollectionResourceState ? EdmMultiplicity.MANY : EdmMultiplicity.ONE;
 					
 					// Association
 					EdmAssociationEnd.Builder sourceRole = EdmAssociationEnd.newBuilder()
 							.setRole(relationName + "_Source")
 							.setType(entityType)
-							.setMultiplicity(EdmMultiplicity.MANY);
+							.setMultiplicity(multiplicitySource);
 					EdmEntityType.Builder targetEntityType = bEntityTypeMap.get(targetState.getEntityName());
 					assert(targetEntityType != null);
 					EdmAssociationEnd.Builder targetRole = EdmAssociationEnd.newBuilder()
 							.setRole(relationName + "_Target")
 							.setType(targetEntityType)
-							.setMultiplicity(multiplicity);
+							.setMultiplicity(multiplicityTarget);
 					EdmAssociation.Builder bAssociation = EdmAssociation.newBuilder()
 							.setNamespace(namespace)
 							.setName(relationName)
