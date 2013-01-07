@@ -57,13 +57,13 @@ public class HypermediaITCase extends JerseyTest {
 		List<Link> links = resource.getLinks();
 		assertEquals(4, links.size());
 		for (Link link : links) {
-			if (link.getRel().equals("self") && link.getName().get().equals("HOME.home>HOME.home")) {
+			if (link.getRel().equals("self") && link.getName().get().equals("HOME.home>GET>HOME.home")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
-			} else if (link.getName().get().equals("HOME.home>Preferences.preferences")) {
+			} else if (link.getName().get().equals("HOME.home>GET>Preferences.preferences")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/preferences", link.getHref());
-			} else if (link.getName().get().equals("HOME.home>Profile.profile")) {
+			} else if (link.getName().get().equals("HOME.home>GET>Profile.profile")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/profile", link.getHref());
-			} else if (link.getName().get().equals("HOME.home>Note.notes")) {
+			} else if (link.getName().get().equals("HOME.home>GET>Note.notes")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
@@ -85,7 +85,7 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
-			} else if (link.getName().get().equals("Note.notes>ID.newNote")) {
+			} else if (link.getName().get().equals("Note.notes>POST>ID.newNote")) {
 				assertEquals("POST " + Configuration.TEST_ENDPOINT_URI + "/notes/new", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
@@ -146,7 +146,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
 			for (Link link : itemLinks) {
-				if (link.getName().isPresent() && link.getName().get().contains("Note.notes>Note.deletedNote")) {
+				if (link.getName().isPresent() && link.getName().get().contains("Note.notes>DELETE>Note.deletedNote")) {
 					deleteLink = link;
 				}
 			}
@@ -190,7 +190,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 			Link deleteLink = null;
 			for (Link link : itemLinks) {
-				if (link.getName().isPresent() && link.getName().get().contains("Note.notes>Note.deletedNote")) {
+				if (link.getName().isPresent() && link.getName().get().contains("Note.notes>DELETE>Note.deletedNote")) {
 					deleteLink = link;
 				}
 			}
@@ -255,7 +255,7 @@ public class HypermediaITCase extends JerseyTest {
 			// DELETE item link (Note.note>Note.deletedNote, Note.deletedNote is an auto transition to Note.notes)
 			Link deleteLink = null;
 			for (Link link : links) {
-				if (link.getName().get().contains("Note.note>Note.deletedNote")) {
+				if (link.getName().get().contains("Note.note>DELETE>Note.deletedNote")) {
 					deleteLink = link;
 				}
 			}

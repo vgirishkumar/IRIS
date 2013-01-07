@@ -59,9 +59,9 @@ public class HypermediaITCase extends JerseyTest {
 		List<Link> links = resource.getLinks();
 		assertEquals(2, links.size());
 		for (Link link : links) {
-			if (link.getRel().equals("self") && link.getName().get().equals("home.initial>home.initial")) {
+			if (link.getRel().equals("self") && link.getName().get().equals("home.initial>GET>home.initial")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
-			} else if (link.getName().get().equals("home.initial>User.allUsers")) {
+			} else if (link.getName().get().equals("home.initial>GET>User.allUsers")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/users", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
@@ -97,7 +97,7 @@ public class HypermediaITCase extends JerseyTest {
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/users/" + item.getProperties().get("userID").get(), link.getHref());
-				} else if (link.getName().get().contains("User.allUsers>Timeline.activity")) {
+				} else if (link.getName().get().contains("User.allUsers>GET>Timeline.activity")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/tweets/" + item.getProperties().get("twitterHandle").get(), link.getHref());
 				} else {
 					fail("unexpected link [" + link.getName().get() + "]");
