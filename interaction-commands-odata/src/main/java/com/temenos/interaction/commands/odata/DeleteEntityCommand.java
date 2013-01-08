@@ -3,7 +3,6 @@ package com.temenos.interaction.commands.odata;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.edm.EdmEntityType;
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.command.InteractionCommand;
@@ -36,13 +35,12 @@ public class DeleteEntityCommand implements InteractionCommand {
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
 		if (entitySet == null)
 			throw new RuntimeException("Entity set not found [" + entity + "]");
-		Iterable<EdmEntityType> entityTypes = edmDataServices.getEntityTypes();
 		assert(entity.equals(entitySet.getName()));
 
 		// Create entity key (simple types only)
 		OEntityKey key;
 		try {
-			key = CommandHelper.createEntityKey(entityTypes, entity, ctx.getId());
+			key = CommandHelper.createEntityKey(edmDataServices, entity, ctx.getId());
 		} catch(Exception e) {
 			return Result.FAILURE;
 		}
@@ -52,6 +50,7 @@ public class DeleteEntityCommand implements InteractionCommand {
 			producer.deleteEntity(entity, key);
 		} catch (Exception e) {
 			// exception if the entity is not found, delete the entity if it exists;
+			return Result.FAILURE;
 		}
 		return Result.SUCCESS;
 	}

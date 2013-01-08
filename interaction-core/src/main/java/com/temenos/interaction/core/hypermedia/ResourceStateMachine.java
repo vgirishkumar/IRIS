@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
@@ -68,7 +70,8 @@ public class ResourceStateMachine {
 			// TODO turn interactions into Events
 			if (interactions.contains(event.getMethod())) {
 				for (Action a : s.getActions()) {
-					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
+					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW) && 
+							(action == null || s.getActions().size() == 1)) {		//Avoid overriding existing view actions 
 						action = a;
 					} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
 						action = a;
@@ -86,7 +89,9 @@ public class ResourceStateMachine {
 		for (ResourceState s : resourceStates) {
 			Set<String> interactions = getInteractionByState().get(s);
 			if (interactions.contains(event.getMethod())) {
-				state = s;
+				if(state == null || interactions.size() == 1 || !event.getMethod().equals("GET")) {		//Avoid overriding existing view actions
+					state = s;
+				}
 			}
 		}
 		
@@ -153,8 +158,9 @@ public class ResourceStateMachine {
 	private void collectTransitionsById(Map<String,Transition> transitions) {
 		for (ResourceState s : getStates()) {
 			for (ResourceState target : s.getAllTargets()) {
-				Transition transition = s.getTransition(target);
-				transitions.put(transition.getId(), transition);
+				for(Transition transition : s.getTransitions(target)) {
+					transitions.put(transition.getId(), transition);
+				}
 			}
 		}
 	}
@@ -184,10 +190,8 @@ public class ResourceStateMachine {
 		result.put(currentState.getPath(), interactions);
 		// add interactions by iterating through the transitions from this state
 		for (ResourceState next : currentState.getAllTargets()) {
-			// is the target a state of the same entity
-//			if (next.getEntityName().equals(currentState.getEntityName())) {
-				// lookup transition to get to here
-				Transition t = currentState.getTransition(next);
+			List<Transition> transitions = currentState.getTransitions(next);
+			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
 				String path = command.getPath();
 				
@@ -199,7 +203,7 @@ public class ResourceStateMachine {
 				
 				result.put(path, interactions);
 				collectInteractionsByPath(result, states, next);
-//			}
+			}
 		}
 		
 	}
@@ -230,10 +234,8 @@ public class ResourceStateMachine {
 		result.put(currentState, interactions);
 		// add interactions by iterating through the transitions from this state
 		for (ResourceState next : currentState.getAllTargets()) {
-			// is the target a state of the same entity
-//			if (next.getEntityName().equals(currentState.getEntityName())) {
-				// lookup transition to get to here
-				Transition t = currentState.getTransition(next);
+			List<Transition> transitions = currentState.getTransitions(next);
+			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
 				
 				interactions = result.get(next);
@@ -244,7 +246,7 @@ public class ResourceStateMachine {
 				
 				result.put(next, interactions);
 				collectInteractionsByState(result, states, next);
-//			}
+			}
 		}
 		
 	}
@@ -274,6 +276,33 @@ public class ResourceStateMachine {
 			path = initial.getPath();
 		}
 		return getResourceStatesByPath().get(path);
+	}
+
+	/**
+	 * For a given path regular expression, return the resource states.
+	 * @param state
+	 * @return
+	 */
+	public Set<ResourceState> getResourceStatesForPathRegex(String pathRegex) {
+		if (pathRegex == null) {
+			pathRegex = initial.getPath();
+		}
+		return getResourceStatesForPathRegex(Pattern.compile(pathRegex));
+	}
+
+	/**
+	 * @see {@link ResourceStateMachine#getResourceStatesForPathRegex(String)}
+	 */
+	public Set<ResourceState> getResourceStatesForPathRegex(Pattern pattern) {
+		Set<ResourceState> matchingStates = new HashSet<ResourceState>();
+		Set<String> paths = resourceStatesByPath.keySet();
+		for (String path : paths) {
+			Matcher m = pattern.matcher(path);
+			if (m.matches()) {
+				matchingStates.addAll(getResourceStatesForPath(path));
+			}
+		}
+		return matchingStates;
 	}
 
 	/**
@@ -430,25 +459,27 @@ public class ResourceStateMachine {
 		 */
 		Collection<ResourceState> targetStates = state.getAllTargets();
 		for (ResourceState s : targetStates) {
-			Transition transition = state.getTransition(s);
-			TransitionCommandSpec cs = transition.getCommand();
-			/* 
-			 * build link and add to list of links
-			 */
-			UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
-			if (cs.isForEach()) {
-				if (collectionResource != null) {
-					for (EntityResource<?> er : collectionResource.getEntities()) {
-						Collection<Link> eLinks = er.getLinks();
-						if (eLinks == null) {
-							eLinks = new ArrayList<Link>();
+			List<Transition> transitions = state.getTransitions(s);
+			for(Transition transition : transitions) {
+				TransitionCommandSpec cs = transition.getCommand();
+				/* 
+				 * build link and add to list of links
+				 */
+				UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
+				if (cs.isForEach()) {
+					if (collectionResource != null) {
+						for (EntityResource<?> er : collectionResource.getEntities()) {
+							Collection<Link> eLinks = er.getLinks();
+							if (eLinks == null) {
+								eLinks = new ArrayList<Link>();
+							}
+							eLinks.add(createLink(linkTemplate, transition, er.getEntity(), pathParameters));
+							er.setLinks(eLinks);
 						}
-						eLinks.add(createLink(linkTemplate, transition, er.getEntity(), pathParameters));
-						er.setLinks(eLinks);
 					}
+				} else {
+					links.add(createLink(linkTemplate, transition, entity, pathParameters));
 				}
-			} else {
-				links.add(createLink(linkTemplate, transition, entity, pathParameters));
 			}
 		}
 		resourceEntity.setLinks(links);
@@ -528,7 +559,6 @@ public class ResourceStateMachine {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
 			String rel = transition.getTarget().getRel();
-//			String rel = transition.getTarget().getName();		//Not a self-link so use name of target state as relation name
 			if (transition.getSource().equals(transition.getTarget())) {
 				rel = "self"; 
 			}
@@ -554,8 +584,9 @@ public class ResourceStateMachine {
 				if (transformer != null) {
 					logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
 					Map<String, Object> props = transformer.transform(entity);
-					if (props != null)
+					if (props != null) {
 						properties.putAll(props);
+					}
 					href = linkTemplate.buildFromMap(properties);
 				} else {
 					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");

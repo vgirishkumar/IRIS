@@ -16,9 +16,6 @@ import com.temenos.interaction.core.hypermedia.Link;
  */
 public class CollectionResource<T> implements RESTResource {
 	
-	// TODO deprecate (we now use entityName)
-	private String entitySetName;
-	
 	private Collection<EntityResource<T>> entities;
 
 	// TODO implement collection properties, used for things like inlinecount and skiptoken
@@ -26,7 +23,8 @@ public class CollectionResource<T> implements RESTResource {
 //	private List<OProperty<?>> properties;
 
 	@XmlTransient
-    private String entityName;
+//    private String entityName;
+	private String entitySetName;
 	// links from a collection
 	@XmlTransient
     private Collection<Link> links;
@@ -82,12 +80,12 @@ public class CollectionResource<T> implements RESTResource {
 
 	@Override
 	public String getEntityName() {
-		return entityName;
+		return entitySetName;
 	}
 
 	@Override
 	public void setEntityName(String entityName) {
-		this.entityName = entityName;
+		this.entitySetName = entityName;
 	}
 
 }

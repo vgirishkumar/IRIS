@@ -1,5 +1,7 @@
 package com.temenos.interaction.commands.odata;
 
+import java.util.Properties;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.odata4j.core.OEntity;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InvalidRequestException;
 
 public class GETEntitiesCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
@@ -36,40 +39,60 @@ public class GETEntitiesCommand implements InteractionCommand {
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() == null);
 
-		String entitySetName = ctx.getCurrentState().getEntityName();
-		logger.info("Getting entities for " + entitySetName);
-		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entitySetName);
-		if (entitySet == null)
-			throw new RuntimeException("Entity set not found [" + entitySetName + "]");
+		Properties properties = ctx.getCurrentState().getViewAction().getProperties();
+		String entityName = ctx.getCurrentState().getEntityName();
+		logger.debug("Getting entities for " + entityName);
+		try {
+			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);
+			String entitySetName = entitySet.getName();
 
-		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-		String inlineCount = queryParams.getFirst("$inlinecount");
-		String top = queryParams.getFirst("$top");
-		String skip = queryParams.getFirst("$skip");
-		String filter = queryParams.getFirst("$filter");
-		String orderBy = queryParams.getFirst("$orderby");
-// TODO what are format and callback used for
-//		String format = queryParams.getFirst("$format");
-//		String callback = queryParams.getFirst("$callback");
-		String skipToken = queryParams.getFirst("$skiptoken");
-		String expand = queryParams.getFirst("$expand");
-		String select = queryParams.getFirst("$select");
-	      
-		QueryInfo query = new QueryInfo(
-				OptionsQueryParser.parseInlineCount(inlineCount),
-				OptionsQueryParser.parseTop(top),
-				OptionsQueryParser.parseSkip(skip),
-				OptionsQueryParser.parseFilter(filter),
-				OptionsQueryParser.parseOrderBy(orderBy),
-				OptionsQueryParser.parseSkipToken(skipToken),
-				null,
-				OptionsQueryParser.parseExpand(expand),
-				OptionsQueryParser.parseSelect(select));
-		
-		EntitiesResponse response = producer.getEntities(entitySetName, query);
-		    
-		CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
-		ctx.setResource(cr);
+			
+			MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+			String inlineCount = queryParams.getFirst("$inlinecount");
+			String top = queryParams.getFirst("$top");
+			String skip = queryParams.getFirst("$skip");
+			String filter;
+			if(properties != null && properties.get("filter") != null) {
+				String filterParam = (String) properties.get("filter");
+				if (!(ctx.getPathParameters().containsKey(filterParam)))
+					throw new IllegalArgumentException("Command must be bound to an OData filter parameter");
+				filter = ctx.getPathParameters().getFirst(filterParam);
+			}
+			else {
+				filter = queryParams.getFirst("$filter");
+			}
+			String orderBy = queryParams.getFirst("$orderby");
+	// TODO what are format and callback used for
+//			String format = queryParams.getFirst("$format");
+//			String callback = queryParams.getFirst("$callback");
+			String skipToken = queryParams.getFirst("$skiptoken");
+			String expand = queryParams.getFirst("$expand");
+			String select = queryParams.getFirst("$select");
+		      
+			QueryInfo query = new QueryInfo(
+					OptionsQueryParser.parseInlineCount(inlineCount),
+					OptionsQueryParser.parseTop(top),
+					OptionsQueryParser.parseSkip(skip),
+					OptionsQueryParser.parseFilter(filter),
+					OptionsQueryParser.parseOrderBy(orderBy),
+					OptionsQueryParser.parseSkipToken(skipToken),
+					null,
+					OptionsQueryParser.parseExpand(expand),
+					OptionsQueryParser.parseSelect(select));
+			
+			EntitiesResponse response = producer.getEntities(entitySetName, query);
+			    
+			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
+			ctx.setResource(cr);
+		}
+		catch(InvalidRequestException ire) {
+			logger.error("Failed to GET entities [" + entityName + "]: " + ire.getMessage());
+			return Result.INVALID_REQUEST;
+		}
+		catch(Exception e) {
+			logger.error("Failed to GET entities [" + entityName + "]: " + e.getMessage());
+			return Result.FAILURE;
+		}
 		return Result.SUCCESS;
 	}
 

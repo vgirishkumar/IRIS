@@ -17,11 +17,17 @@ public class Transition {
 
 	private final ResourceState source, target;
 	private final TransitionCommandSpec command;
+	private String label = null;
 	
 	public Transition(ResourceState source, TransitionCommandSpec command, ResourceState target) {
 		this.source = source;
 		this.target = target;
 		this.command = command;
+	}
+
+	public Transition(ResourceState source, TransitionCommandSpec command, ResourceState target, String label) {
+		this(source, command, target);
+		this.label = label;
 	}
 	
 	public ResourceState getSource() {
@@ -36,12 +42,20 @@ public class Transition {
 		return command;
 	}
 	
+	public String getLabel() {
+		return label;
+	}
+	
 	public String getId() {
+		String labelText = "";
+		if(label != null) {
+			labelText = "(" + label + ")";
+		}
 		if(source == null) {
-			return target.getId() + ">" + target.getId();		//transition to itself
+			return target.getId() + ">" + command.getMethod() + labelText + ">" + target.getId();		//transition to itself
 		}
 		else {
-			return source.getId() + ">" + target.getId();
+			return source.getId() + ">" + command.getMethod() + labelText + ">" + target.getId();
 		}
 	}
 	

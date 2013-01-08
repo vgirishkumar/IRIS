@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmDataServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +31,10 @@ public class EntityTransformer implements Transformer {
 		else if(entity instanceof Entity) {
 			return transform((Entity) entity);
 		}
-		else {
+		else if(!(entity instanceof EdmDataServices)) {		//Cater for ServiceDocument
 			logger.error("Unable to transform entity: " + entity.toString());
-			return null;
 		}
+		return null;
 	}
 	
 	private Map<String, Object> transform(OEntity entity) {

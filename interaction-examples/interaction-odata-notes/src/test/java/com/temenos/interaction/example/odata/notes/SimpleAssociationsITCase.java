@@ -28,8 +28,8 @@ import com.sun.jersey.test.framework.JerseyTest;
  */
 public class SimpleAssociationsITCase extends JerseyTest {
 
-	private final static String NOTE_ENTITYSET_NAME = "Note";
-	private final static String PERSON_ENTITYSET_NAME = "Person";
+	private final static String NOTE_ENTITYSET_NAME = "Notes";
+	private final static String PERSON_ENTITYSET_NAME = "Persons";
 	
 	public SimpleAssociationsITCase() throws Exception {
 		super();
@@ -59,7 +59,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// there should be one link to one note for this person
 		assertEquals(1, person.getLinks().size());
-		assertTrue(containsLink(person.getLinks(), "Person(1)/PersonNotes", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes"));
+		assertTrue(containsLink(person.getLinks(), "Persons(1)/PersonNotes", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes"));
 	}
 
 	/**
@@ -75,11 +75,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", note.getProperty("body").getValue());
 
 		// there should be one link to one Person for this Note
-		assertEquals(2, note.getLinks().size());
-		assertTrue(containsLink(note.getLinks(), "Note(1)/NotePerson", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/NotePerson"));
-		// 'edit' rel does not get through as a link
-		// assertTrue(containsLink(note.getLinks(), "Note(1)", "edit"));   // link to update this note
-		assertTrue(containsLink(note.getLinks(), "Note(1)", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/delete"));   // link to delete this note
+		assertEquals(1, note.getLinks().size());
+		assertTrue(containsLink(note.getLinks(), "Notes(1)/NotePerson", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
 	}
 
 	/**
@@ -155,8 +152,8 @@ public class SimpleAssociationsITCase extends JerseyTest {
 
 		// there should be one link to one note for this person
 		assertEquals(2, person.getLinks().size());
-		assertTrue(containsLink(person.getLinks(), "Person(1)", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
-		assertTrue(containsLink(person.getLinks(), "Person(1)/PersonNotes", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes"));
+		assertTrue(containsLink(person.getLinks(), "Persons(1)", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
+		assertTrue(containsLink(person.getLinks(), "Persons(1)/PersonNotes", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes"));
 		
 	}
 
@@ -186,7 +183,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
 		assertEquals(1, note.getLinks().size());
-		assertTrue(containsLink(person.getLinks(), "Person(" + id + ")", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
+		assertTrue(containsLink(person.getLinks(), "Persons(" + id + ")", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
 	}
 
 	/**
@@ -195,7 +192,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	@Test
 	public void deletePersonMethodNotAllowed() throws Exception {
 		// attempt to delete the Person root, rather than an individual
-		ClientResponse response = webResource.path("/Person").delete(ClientResponse.class);
+		ClientResponse response = webResource.path("/Persons").delete(ClientResponse.class);
         assertEquals(405, response.getStatus());
 
         assertEquals(4, response.getAllow().size());
@@ -211,7 +208,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	@Test
 	public void putPersonMethodNotAllowed() throws Exception {
 		// attempt to put to the Persons root, rather than an individual
-		ClientResponse response = webResource.path("/Person").type(MediaType.APPLICATION_ATOM_XML).put(ClientResponse.class, "<?xml version='1.0' encoding='utf-8'?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><title type=\"text\" /><updated>2012-04-02T10:33:39Z</updated><author><name /></author><category term=\"InteractionNoteModel.Person\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" /><content type=\"application/xml\"><m:properties><d:name>Noah</d:name></m:properties></content></entry>");
+		ClientResponse response = webResource.path("/Persons").type(MediaType.APPLICATION_ATOM_XML).put(ClientResponse.class, "<?xml version='1.0' encoding='utf-8'?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\"><title type=\"text\" /><updated>2012-04-02T10:33:39Z</updated><author><name /></author><category term=\"InteractionNoteModel.Person\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" /><content type=\"application/xml\"><m:properties><d:name>Noah</d:name></m:properties></content></entry>");
         assertEquals(405, response.getStatus());
 
         assertEquals(4, response.getAllow().size());

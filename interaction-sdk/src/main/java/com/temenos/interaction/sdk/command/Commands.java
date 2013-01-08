@@ -16,6 +16,7 @@ public class Commands {
 	public final static String GET_METADATA = "GETMetadata";
 	public final static String GET_ENTITY = "GETEntity";
 	public final static String GET_ENTITIES = "GETEntities";
+	public final static String GET_ENTITIES_FILTERED = "GETEntitiesFiltered";
 	public final static String GET_NAV_PROPERTY = "GETNavProperty";
 	public final static String POST_ENTITY = "POSTEntity";
 	public final static String CREATE_ENTITY = "CreateEntity";
@@ -70,6 +71,28 @@ public class Commands {
 	}
 	
 	/**
+	 * Return a list of RIM commands.
+	 * Commands such as GETMetadata are not considered a RIM command.
+	 * @return RIM events
+	 */
+	public List<String> getRIMCommands() {
+		List<String> events = new ArrayList<String>();
+		for(Command command : commands) {
+			String id = command.getId();
+			if(!id.equals(GET_METADATA) &&
+				!id.startsWith(GET_NAV_PROPERTY)) {
+				if(id.equals(GET_ENTITIES_FILTERED)) {
+					events.add(command.getId() + " filter=filter");
+				}
+				else {
+					events.add(command.getId());
+				}
+			}
+		}
+		return events;
+	}
+	
+	/**
 	 * Add commands executed when following a link to another resource.
 	 * @param interactionModel Interaction model
 	 * @param getLinkEntityCmdClass class name of command linking to an entity resource
@@ -105,7 +128,6 @@ public class Commands {
 				String id = "GETNavProperty" + transition.getTargetStateName();
 				List<Parameter> cmdParams = new ArrayList<Parameter>();
 				if(transition.isCollectionState()) {
-					cmdParams.add(new Parameter(transition.getTargetEntityName(), false, ""));		//target entity
 					cmdParams.add(isLinkEntitiesCmdOdataProducer ? JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER : JPAResponderGen.COMMAND_METADATA_SOURCE_MODEL);		//producer
 					cmdParams.addAll(params);													//additional params
 					addCommand(id, getLinkEntitiesCmdClass, GET_LINK_ENTITY, cmdParams);

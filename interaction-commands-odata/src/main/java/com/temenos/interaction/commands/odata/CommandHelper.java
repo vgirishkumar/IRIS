@@ -1,11 +1,17 @@
 package com.temenos.interaction.commands.odata;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmDataServices;
+import org.odata4j.edm.EdmSchema;
+import org.odata4j.edm.EdmType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +27,15 @@ public class CommandHelper {
 	 * @param e OEntity
 	 * @return entity resource
 	 */
-	public static<OEntity> EntityResource<OEntity> createEntityResource(OEntity e) {
-		return new EntityResource<OEntity>(e) {};	
+	public static EntityResource<OEntity> createEntityResource(OEntity e) {
+		EntityResource<OEntity> oer = null;
+		if(e != null && e.getEntityType() != null) {
+			oer = new EntityResource<OEntity>(e.getEntityType().getName(), e) {};
+		}
+		else {
+			oer = new EntityResource<OEntity>(null, e) {};			
+		}
+		return oer;
 	}
 	
 	/**
@@ -31,7 +44,7 @@ public class CommandHelper {
 	 * @param entities List of OData entities
 	 * @return collection resource
 	 */
-	public static<OEntity> CollectionResource<OEntity> createCollectionResource(String entitySetName, List<OEntity> entities) {
+	public static CollectionResource<OEntity> createCollectionResource(String entitySetName, List<OEntity> entities) {
 		List<EntityResource<OEntity>> subResources = new ArrayList<EntityResource<OEntity>>();
 		for (OEntity entity : entities)
 			subResources.add(createEntityResource(entity));
@@ -43,7 +56,7 @@ public class CommandHelper {
 	 * @param metadata Edmx
 	 * @return Service document
 	 */
-	public static<EdmDataServices> EntityResource<EdmDataServices> createServiceDocumentResource(EdmDataServices metadata) {
+	public static EntityResource<EdmDataServices> createServiceDocumentResource(EdmDataServices metadata) {
 		return new EntityResource<EdmDataServices>(metadata) {};	
 	}
 
@@ -52,34 +65,32 @@ public class CommandHelper {
 	 * @param metadata Edmx
 	 * @return metadata resource
 	 */
-	public static<EdmDataServices> MetaDataResource<EdmDataServices> createMetaDataResource(EdmDataServices metadata) {
+	public static MetaDataResource<EdmDataServices> createMetaDataResource(EdmDataServices metadata) {
 		return new MetaDataResource<EdmDataServices>(metadata) {};	
 	}
 	
 	/**
 	 * Create an OEntityKey instance for the specified entity id
-	 * @param entityTypes List of entity types
-	 * @param entity Entity name
+	 * @param edmDataServices edmDataServices
+	 * @param entity Entity set name
 	 * @param id Id
 	 * @return An OEntityKey instance
 	 * @throws Exception Error creating key 
 	 */
-	public static OEntityKey createEntityKey(Iterable<EdmEntityType> entityTypes, String entity, String id) throws Exception {
+	public static OEntityKey createEntityKey(EdmDataServices edmDataServices, String entitySetName, String id) throws Exception {
 		//Lookup type of entity key (simple keys only)
 		String keyType = null;
-		for (EdmEntityType entityType : entityTypes) {
-			if (entityType.getName().equals(entity)) {
-				List<String> keys = entityType.getKeys();
-				if(keys.size() == 1) {
-					EdmProperty prop = entityType.findDeclaredProperty(keys.get(0));
-					if(prop != null && prop.getType() != null) {
-						keyType = prop.getType().getFullyQualifiedTypeName();
-					}
-					break;
+		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entitySetName);
+		if(entitySet != null) {
+			EdmEntityType entityType = entitySet.getType();
+			List<String> keys = entityType.getKeys();
+			if(keys.size() == 1) {
+				EdmProperty prop = entityType.findDeclaredProperty(keys.get(0));
+				if(prop != null && prop.getType() != null) {
+					keyType = prop.getType().getFullyQualifiedTypeName();
 				}
 			}
-		}		
-		
+		}
 		assert(keyType != null) : "Should not be possible to get this far and find no key type";
 		
 		//Create an entity key
@@ -116,5 +127,31 @@ public class CommandHelper {
 		if (key == null)
 			throw new Exception("Entity key type " + id + " is not supported.");
 		return key;
+	}
+	
+	/**
+	 * Returns the entity set holding the specified entity (type) name
+	 * @param entityName entity type name
+	 * @param edmDataServices metadata
+	 * @return entity set
+	 * @throws Exception if entity set cannot be found
+	 */
+	public static EdmEntitySet getEntitySet(String entityName, EdmDataServices edmDataServices) throws Exception {
+		//Find entity type
+		EdmType entityType = null;
+		Iterator<EdmSchema> itSchema = edmDataServices.getSchemas().iterator();
+		while(entityType == null && itSchema.hasNext()) {
+			entityType = edmDataServices.findEdmEntityType(itSchema.next().getNamespace() + "." + entityName);
+		}
+		if(entityType == null || !(entityType instanceof EdmEntityType)) {
+			throw new Exception("Entity type does not exist");
+		}
+		
+		//Find entity set
+		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((EdmEntityType) entityType);
+		if (entitySet == null) {
+			throw new Exception("Entity set does not exist");
+		}
+		return entitySet;
 	}
 }

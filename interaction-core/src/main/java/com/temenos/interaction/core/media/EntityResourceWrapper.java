@@ -11,9 +11,9 @@ import com.temenos.interaction.core.resource.EntityResource;
  * Entity resource wrapper classes which exposes a link to itself. 
  */
 public class EntityResourceWrapper {
-	private EntityResource<Map<String, Object>> entityResource;
-	private Link entityGetLink;
-	private Link entityUpdateLink;
+	protected EntityResource<Map<String, Object>> entityResource;
+	protected Link entityGetLink;
+	protected Link entityUpdateLink;
 	
 	public EntityResourceWrapper(EntityResource<Map<String, Object>> entityResource) {
 		this.entityResource = entityResource;

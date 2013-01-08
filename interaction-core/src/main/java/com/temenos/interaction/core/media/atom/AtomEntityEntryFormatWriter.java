@@ -1,8 +1,11 @@
 package com.temenos.interaction.core.media.atom;
 
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -15,12 +18,16 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.odata4j.core.OAtomEntity;
+import org.odata4j.edm.EdmSimpleType;
+import org.odata4j.edm.EdmType;
 import org.odata4j.internal.InternalUtil;
 
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.entity.MetadataOData4j;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Link;
 
 /**
@@ -34,18 +41,16 @@ public class AtomEntityEntryFormatWriter {
 	protected UriInfo uriInfo = null;
 	protected String baseUri = "";
 
-	// Constants as defined by the odata4j XmlFormatWriter class
-	private static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
-	private static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
-	private static final String scheme = "http://schemas.microsoft.com/ado/2007/08/dataservices/scheme";
-	private static final String atom_entry_content_type = "application/atom+xml;type=entry";
-	private static final String t24_model = "T24Model";
-	private static final String href_lang = "en";
+	// Constants for OData
+	public static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
+	public static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
+	public static final String scheme = "http://schemas.microsoft.com/ado/2007/08/dataservices/scheme";
+	public static final String atom_entry_content_type = "application/atom+xml;type=entry";
+	public static final String href_lang = "en";
 
 	public void write(UriInfo uriInfo, Writer w, Entity entity,
-			EntityMetadata entityMetadata, List<Link> links) {
+			EntityMetadata entityMetadata, List<Link> links, String modelName) {
 
-		String entityName = entity.getName();
 		this.uriInfo = uriInfo;
 		String baseUri = uriInfo.getBaseUri().toString();
 
@@ -59,31 +64,22 @@ public class AtomEntityEntryFormatWriter {
 		writer.setAutoflush(false);
 		writer.setAutoIndent(true);
 		writer.startDocument();
-	    writer.startFeed();
 
-		writer.writeNamespace("m", m);
-		writer.writeNamespace("d", d);
-		writer.writeAttribute("xml:base", baseUri);
+		writeEntry(writer, entity, links, baseUri, updated, entityMetadata, modelName);
 		
-		writer.writeTitle(entityName);
-		writer.writeId(baseUri + uriInfo.getPath());
-		writer.writeUpdated(updated);
-		writer.writeLink(entityName, "self", "text", entityName, href_lang, 0);
-		writer.flush();
-
-		writeEntry(writer, entity, links, baseUri, updated, entityMetadata);
-		
-		writer.endFeed();
 		writer.endDocument();
 		writer.flush();
 	}
 
 	public String writeEntry(StreamWriter writer, Entity entity,
 			List<Link> entityLinks, String baseUri, String updated,
-			EntityMetadata entityMetadata) {
+			EntityMetadata entityMetadata, String modelName) {
 
 		writer.startEntry();
-		
+	    writer.writeNamespace("d", d);
+	    writer.writeNamespace("m", m);
+	    writer.writeAttribute("xml:base", baseUri);
+	    
 		String absid = writeKey(writer, baseUri, entity, entityMetadata);
 		OAtomEntity oae = getAtomInfo(entity);
 
@@ -105,13 +101,13 @@ public class AtomEntityEntryFormatWriter {
 		if (entityLinks != null) {
 			for (Link link : entityLinks) {
 				String type = atom_entry_content_type;
-				String href = link.getHref();
-				writer.writeLink(href, link.getRel(), type, link.getTitle(), href_lang, 0);
+				String href = link.getHrefTransition(baseUri);
+				String rel = link.getRel();
+				writer.writeLink(href, rel, type, link.getTitle(), href_lang, 0);
 			}
 		}
 
-		String term = entity == null ? t24_model : entity.getName();
-		writer.writeCategory(term, scheme);
+		writer.writeCategory(modelName + "Model." + entity.getName(), scheme);
 		writer.flush();
 		
 		writer.startContent(MediaType.APPLICATION_XML);
@@ -129,20 +125,11 @@ public class AtomEntityEntryFormatWriter {
 
 	private String writeKey(StreamWriter writer, String baseUri, Entity entity,
 			EntityMetadata entityMetadata) {
-		String relid = null;
-		String absid = null;
-
-		List<String> keys = entityMetadata.getIdFields();
-
-		if (keys.size() > 0)
-			relid = (String) entity.getProperties().getProperty(keys.get(0))
-					.getValue();
-
-		absid = baseUri + uriInfo.getPath() + "/" + relid;
+		String absid = baseUri + uriInfo.getPath();
 		writer.writeId(absid);
 		return absid;
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	private void writeProperties(StreamWriter writer, EntityMetadata entityMetadata, EntityProperties entityProperties) {
 		// Loop round all properties writing out fields and MV and SV sets
@@ -176,7 +163,17 @@ public class AtomEntityEntryFormatWriter {
 		//writeElement( writer, name, entityMetadata.getPropertyValueAsString( property ) );
 		String elementText = entityMetadata.getPropertyValueAsString( property );
 		writer.startElement(new QName(d, name, "d"));
-		if (elementText != null) {
+		EdmType type = MetadataOData4j.termValueToEdmType(entityMetadata.getTermValue(name, TermValueType.TERM_NAME));
+		if(!type.equals(EdmSimpleType.STRING)) {
+			writer.writeAttribute(new QName(m, "type", "m"), type.getFullyQualifiedTypeName());
+		}
+		if(type.equals(EdmSimpleType.DATETIME)) {
+			//Write dates in UTC format
+			SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+			formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+			writer.writeElementText(formatUTC.format((Date) property.getValue()));
+		}
+		else if (elementText != null) {
 			writer.writeElementText(elementText);
 		}
 		writer.endElement();

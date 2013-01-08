@@ -12,23 +12,27 @@ public class CollectionResourceState extends ResourceState {
 		super(entityName, name, actions, path, "collection".split(" "), uriSpec);
 	}
 	public CollectionResourceState(String entityName, String name, List<Action> actions, String path, String[] rels, UriSpecification uriSpec) {
-		super(entityName, name, actions, path, rels, uriSpec);
+		super(entityName, name, actions, path, rels != null ? rels : "collection".split(" "), uriSpec);
 	}
 
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), true);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), true, null);
 	}
 	
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), true);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), true, null);
+	}
+
+	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String label) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), true, label);
 	}
 	
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null, null);
 	}
 	
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null, null);
 	}
 
 }

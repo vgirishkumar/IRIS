@@ -5,7 +5,7 @@
   <parent>
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.2.0-SNAPSHOT</version>
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -42,13 +42,13 @@
       </plugin>   
       <plugin>
         <groupId>com.temenos.interaction</groupId>
-        <artifactId>interaction-rim-plugin</artifactId>
+        <artifactId>interaction-sdk-rim-plugin</artifactId>
         <version>${project.version}</version>
         <executions>
           <execution>
             <phase>generate-sources</phase>
             <goals>
-              <goal>generate</goal>
+              <goal>rim-generate</goal>
             </goals>
           </execution>
         </executions>
@@ -56,7 +56,7 @@
           <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
           <targetDirectory>${basedir}/src-gen</targetDirectory> 
           -->
-          <rimSourceFile>${basedir}/src/main/rim/simple.rim</rimSourceFile>
+          <rimSourceFile>${basedir}/src/main/rim/Simple.rim</rimSourceFile>
         </configuration>
       </plugin>
 
@@ -134,6 +134,44 @@
     								<versionRange>[1.7,)</versionRange>
     								<goals>
     									<goal>add-source</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									com.temenos.interaction
+    								</groupId>
+    								<artifactId>
+    									interaction-sdk-plugin
+    								</artifactId>
+    								<versionRange>
+    									[0.2.0-SNAPSHOT,)
+    								</versionRange>
+    								<goals>
+    									<goal>rim-generate</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									com.temenos.interaction
+    								</groupId>
+    								<artifactId>
+    									interaction-sdk-rim-plugin
+    								</artifactId>
+    								<versionRange>
+    									[0.2.0-SNAPSHOT,)
+    								</versionRange>
+    								<goals>
+    									<goal>rim-generate</goal>
     								</goals>
     							</pluginExecutionFilter>
     							<action>

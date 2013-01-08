@@ -1,33 +1,28 @@
 events
 	GET GET
+	POST POST
 end
 
 commands
-	GETServiceDocument
-	GETMetadata
-	GETEntities
-	GETEntity
+#foreach ( $command in $commands.getRIMCommands() )
+	$command
+#end
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 #foreach ( $transition in $rsm.getTransitions() )
+#if (!$transition.isUniqueTransition() && !$transition.isCollectionState()) 
 	GETNavProperty${transition.getTargetStateName()} entity=${rsm.getEntityName()}, navproperty=nav${transition.getTargetStateName()}
+#end
 #end
 #end
 end
 
 initial resource ServiceDocument
-	collection ServiceDocument
+	item ServiceDocument
 	view { GETServiceDocument }
 	path "/"
-	GET -> metadata
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 	GET -> ${rsm.getCollectionStateName()}
 #end
-end
-
-resource metadata
-	item Metadata
-	view { GETMetadata }
-	path "/$metadata"
 end
 
 #foreach ( $rsm in $rim.getResourceStateMachines() )
@@ -35,40 +30,71 @@ end
 resource ${rsm.getCollectionStateName()}
 	collection ${rsm.getEntityName()}
 	view { GETEntities }
-	path "/${rsm.getEntityName()}"
+	path "/${rsm.getCollectionStateName()}()"
+	POST -> ${rsm.getCollectionStateName()}_pseudo_created
 	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
 #foreach ( $transition in $rsm.getTransitions() )
-	GET *-> ${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}
+#if ($transition.isCollectionState()) 
+	GET ${transition.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
+#elseif(!$transition.isUniqueTransition())
+	GET *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
+#else
+	GET *-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
 #end
+#end
+end
+#* Filtered collection resource state*#
+#if(${rsm.isCollectionStateWithIncomingTransitions()})
+resource ${rsm.getCollectionStateName()}Filtered
+	collection ${rsm.getEntityName()}
+	view { GETEntitiesFiltered }
+	path "/${rsm.getCollectionStateName()}Filtered({filter})"
+	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
+#foreach ( $transition in $rsm.getTransitions() )
+#if ($transition.isCollectionState()) 
+	GET ${transition.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
+#elseif(!$transition.isUniqueTransition())
+	GET *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
+#else
+	GET *-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
+#end
+#end
+end
+#end
+#* Entity created resource state*#
+resource ${rsm.getCollectionStateName()}_pseudo_created
+	collection ${rsm.getEntityName()}
+	view { GETEntity }
+	actions { CreateEntity }
+	path "/${rsm.getCollectionStateName()}()"
 end
 
 #* Entity resource state*#
 resource ${rsm.getEntityStateName()}
 	item ${rsm.getEntityName()}
 	view { GETEntity }
-	path "/${rsm.getEntityName()}({id})"
+	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})"
 #foreach ( $transition in $rsm.getTransitions() )
-	GET -> ${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
+#if ($transition.isCollectionState()) 
+	GET ${transition.getTitleAssignment()}-> ${transition.getTargetResourceStateMachine().getCollectionStateName()}Filtered filter="${transition.getFilter()}"
+#elseif(!$transition.isUniqueTransition())
+	GET -> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, nav${transition.getTargetStateName()}="${transition.getTargetStateName()}"
+#else
+	GET -> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
+#end
 #end
 end
 
 #* Transition to other resource states *#
 #foreach ( $transition in $rsm.getTransitions() )
-
-resource ${transition.getTargetStateName()}#*
-*##if ($transition.isCollectionState())#* 
-	Transition to collection resource state in target RSM *#
-	collection ${transition.getTargetEntityName()}
-	view { GETNavProperty${transition.getTargetStateName()} }
-	path "/${rsm.getEntityName()}({id})/{nav${transition.getTargetStateName()}}"
-	GET -> ${transition.getTargetResourceStateMachine().getCollectionStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
-#else#*
+#if(!$transition.isUniqueTransition() && !$transition.isCollectionState())#*
 	Transition to entity resource state in target RSM *#
+resource ${rsm.getEntityStateName()}_${transition.getTargetStateName()}
 	item ${transition.getTargetEntityName()}
 	view { GETNavProperty${transition.getTargetStateName()} }
-	path "/${rsm.getEntityName()}({id})/{nav${transition.getTargetStateName()}}"
-	GET -> ${transition.getTargetRsmStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
-#end
+	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})/{nav${transition.getTargetStateName()}}"
+	GET -> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 end
+#end
 #end
 #end

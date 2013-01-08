@@ -27,8 +27,8 @@ public class GeneratorTest {
 	
 	private final static String SIMPLE_STATES_RIM = "" +
 	"commands" + LINE_SEP +
-	"	GetEntity properties" + LINE_SEP +
-	"	UpdateEntity properties" + LINE_SEP +
+	"	GetEntity" + LINE_SEP +
+	"	UpdateEntity" + LINE_SEP +
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
@@ -76,13 +76,16 @@ public class GeneratorTest {
 	"		// create states" + LINE_SEP +
 	"		List<Action> AActions = new ArrayList<Action>();" + LINE_SEP +
 	"		AActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
-	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", AActions, \"/A\");" + LINE_SEP +
+	"		String[] ARelations = null;" + LINE_SEP +
+	"		CollectionResourceState sA = new CollectionResourceState(\"ENTITY\", \"A\", AActions, \"/A\", ARelations, null);" + LINE_SEP +
 	"		// identify the initial state" + LINE_SEP +
 	"		initial = sA;" + LINE_SEP +
 	"		List<Action> BActions = new ArrayList<Action>();" + LINE_SEP +
 	"		BActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
-	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY));" + LINE_SEP +
-	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\");" + LINE_SEP +
+	"		actionViewProperties = new Properties();" + LINE_SEP +
+	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY, actionViewProperties));" + LINE_SEP +
+	"		String[] BRelations = null;" + LINE_SEP +
+	"		ResourceState sB = new ResourceState(\"ENTITY\", \"B\", BActions, \"/B\", BRelations);" + LINE_SEP +
 	LINE_SEP +
 	"		// create regular transitions" + LINE_SEP +
 	LINE_SEP +
@@ -92,15 +95,6 @@ public class GeneratorTest {
 	LINE_SEP +
 	"	    return initial;" + LINE_SEP +
 	"	}" + LINE_SEP +
-	LINE_SEP +
-	"    private List<Action> createActionList(Action view, Action entry) {" + LINE_SEP +
-	"        List<Action> actions = new ArrayList<Action>();" + LINE_SEP +
-	"        if (view != null)" + LINE_SEP +
-	"            actions.add(view);" + LINE_SEP +
-	"        if (entry != null)" + LINE_SEP +
-	"            actions.add(entry);" + LINE_SEP +
-	"        return actions;" + LINE_SEP +
-	"    }" + LINE_SEP +
 	LINE_SEP +
 	"}" + LINE_SEP;
 	
@@ -112,7 +106,7 @@ public class GeneratorTest {
 		System.out.println(fsa.getFiles());
 		assertEquals(1, fsa.getFiles().size());
 		
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Behaviour.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertEquals(SIMPLE_STATES_BEHAVIOUR, fsa.getFiles().get(expectedKey).toString());
 		
@@ -121,7 +115,7 @@ public class GeneratorTest {
 	
 	private final static String SINGLE_STATE_VIEW_COMMAND_ONLY_RIM = "" +
 	"commands" + LINE_SEP +
-	"	GetEntity properties" + LINE_SEP +
+	"	GetEntity" + LINE_SEP +
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
@@ -148,9 +142,82 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Behaviour.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties())"));
+	}
+
+	private final static String SINGLE_STATE_ACTION_COMMANDS_RIM = "" +
+	"commands" + LINE_SEP +
+	"	GetEntity getkey=getvalue" + LINE_SEP +
+	"end" + LINE_SEP +
+			
+	"initial resource A" + LINE_SEP +
+	"	collection ENTITY" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"end" + LINE_SEP +
+	"";
+
+	@Test
+	public void testGenerateSingleStateActionCommands() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(SINGLE_STATE_ACTION_COMMANDS_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+
+		String output = fsa.getFiles().get(expectedKey).toString();
+		int indexOfFirstNewProperties = output.indexOf("actionViewProperties = new Properties()");
+		assertTrue(indexOfFirstNewProperties > 0);
+		assertTrue(output.contains("actionViewProperties.put(\"getkey\", \"getvalue\""));
+		assertTrue(output.contains("new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties)"));
+	}
+
+	private final static String MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM = "" +
+	"commands" + LINE_SEP +
+	"	GetEntity" + LINE_SEP +
+	"	DoStuff key=value" + LINE_SEP +
+	"	DoSomeStuff keyB=valueB" + LINE_SEP +
+	"	DoSomeMoreStuff keyB0=valueB0, keyB1=valueB1" + LINE_SEP +
+	"end" + LINE_SEP +
+			
+	"initial resource A" + LINE_SEP +
+	"	collection ENTITY" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"	actions { DoStuff }" + LINE_SEP +
+	"	PUT -> B" + LINE_SEP +
+	"end" + LINE_SEP +
+
+	"initial resource B" + LINE_SEP +
+	"	collection ENTITY" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"	actions { DoSomeStuff, DoSomeMoreStuff }" + LINE_SEP +
+	"end" + LINE_SEP +
+	"";
+
+	@Test
+	public void testGenerateMultipleStateMultipleActionCommands() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		int indexOfFirstNewProperties = output.indexOf("actionViewProperties = new Properties()");
+		assertTrue(indexOfFirstNewProperties > 0);
+		assertTrue(output.contains("actionViewProperties.put(\"key\", \"value\""));
+		assertTrue(output.contains("new Action(\"DoStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
+
+		int indexOfSecondNewProperties = output.indexOf("actionViewProperties = new Properties()", indexOfFirstNewProperties);
+		assertTrue(indexOfSecondNewProperties > 0);
+		assertTrue(output.contains("actionViewProperties.put(\"keyB\", \"valueB\""));
+		assertTrue(output.contains("new Action(\"DoSomeStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
+		assertTrue(output.contains("actionViewProperties.put(\"keyB0\", \"valueB0\""));
+		assertTrue(output.contains("actionViewProperties.put(\"keyB1\", \"valueB1\""));
+		assertTrue(output.contains("new Action(\"DoSomeMoreStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
+	
 	}
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
@@ -185,10 +252,56 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Behaviour.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.OK))"));
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.NOT_FOUND))"));
+	}
+
+	private final static String RESOURCE_RELATIONS_RIM = "" +
+			"commands" + LINE_SEP +
+			"	Noop" + LINE_SEP +
+			"	Update" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"initial resource accTransactions" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
+			"   relations { \"archives\", \"http://www.temenos.com/statement-entries\" }" + LINE_SEP +
+			"   GET -> B" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"resource accTransaction" + LINE_SEP +
+			"	item ENTITY" + LINE_SEP +
+			"   view { Noop }" + LINE_SEP +
+			"   actions { Update }" + LINE_SEP +
+			"   relations { \"edit\" }" + LINE_SEP +
+			"end\r\n" + LINE_SEP +
+			"";
+	
+	@Test
+	public void testGenerateResourcesWithRelations() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(RESOURCE_RELATIONS_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("\"/accTransactions\", accTransactionsRelations"));
+		String expectedAccTransactionsRelArray = "" +
+			"		String accTransactionsRelationsStr = \"\";" + LINE_SEP +
+			"		accTransactionsRelationsStr += \"archives \";" + LINE_SEP +
+			"		accTransactionsRelationsStr += \"http://www.temenos.com/statement-entries \";" + LINE_SEP +
+			"		String[] accTransactionsRelations = accTransactionsRelationsStr.trim().split(\" \");" + LINE_SEP +
+			"";
+		assertTrue(output.contains(expectedAccTransactionsRelArray));
+		assertTrue(output.contains("\"/accTransaction\", accTransactionRelations"));
+		String expectedAccTransactionRelArray = "" +
+			"		String accTransactionRelationsStr = \"\";" + LINE_SEP +
+			"		accTransactionRelationsStr += \"edit \";" + LINE_SEP +
+			"		String[] accTransactionRelations = accTransactionRelationsStr.trim().split(\" \");" + LINE_SEP +
+			"";
+		assertTrue(output.contains(expectedAccTransactionRelArray));
 	}
 
 }

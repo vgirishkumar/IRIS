@@ -21,6 +21,7 @@ State:
         entity=Entity
         ('view' '{' view=[Command] '}')
         ('actions' '{' ((actions+=[Command]) (',' actions+=[Command])* ) '}')?
+        ('relations' '{' ((relations+=Relation) (',' relations+=Relation)* ) '}')?
         path=Path?
         transitionsAuto+=TransitionAuto*
         transitions+=Transition*
@@ -29,11 +30,11 @@ State:
 ;
 
 Transition:
-    (event=[Event] '->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
+    (event=[Event] title=Title? '->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
 TransitionForEach:
-    (event=[Event] '*->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
+    (event=[Event] title=Title? '*->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
 TransitionAuto:
@@ -55,6 +56,10 @@ Function_OK:
 
 Function_NOT_FOUND:
     {NotFoundFunction} 'NOT_FOUND' '(' state=[State] ')'
+;
+
+Relation:
+    name=STRING    
 ;
 
 Path:
@@ -85,4 +90,8 @@ UriLinkageEntityKeyReplace:
 
 UriLinkageProperty:
 	{UriLinkageProperty} name=STRING 
+;
+
+Title:
+    'title' '=' name=STRING    
 ;

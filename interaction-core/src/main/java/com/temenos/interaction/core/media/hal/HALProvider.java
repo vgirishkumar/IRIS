@@ -47,6 +47,7 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -230,8 +231,13 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
 								itemHref = el.getMethod() + " " + itemHref;
 							}
-							subResource.withLink(el.getRel(), itemHref, 
-									Optional.<Predicate<ReadableRepresentation>>absent(), Optional.of(el.getId()), Optional.of(el.getTitle()), Optional.<String>absent());
+							// don't add links twice, this break the client assertion of one rel per link (which seems wrong)
+							List<com.theoryinpractise.halbuilder.spi.Link> selfLinks = subResource.getLinksByRel("self");
+							assert(selfLinks != null && selfLinks.size() == 1);
+							if (!selfLinks.get(0).getHref().equals(itemHref)) {
+								subResource.withLink(el.getRel(), itemHref, 
+										Optional.<Predicate<ReadableRepresentation>>absent(), Optional.of(el.getId()), Optional.of(el.getTitle()), Optional.<String>absent());
+							}
 						}
 						// add properties to HAL sub resource
 						for (String key : propertyMap.keySet()) {
@@ -267,7 +273,12 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		Link selfLink = null;
 		if (links != null) {
 			for (Link l : links) {
-				if (l.getRel().contains("self")) {
+				Transition t = l.getTransition();
+				// TODO this bit is a bit hacky.  The latest version of the HAL spec should not require us to find a 'self' link for the subresource
+				if (l.getRel().contains("self") ||
+						(l.getTransition() != null 
+						&& t.getCommand().getMethod().equals("GET")
+						&& t.getTarget().getEntityName().equals(t.getSource().getEntityName()))) {
 					selfLink = l;
 					break;
 				}
@@ -400,12 +411,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			for (String path : pathToResourceStates.keySet()) {
 				for (ResourceState s : pathToResourceStates.get(path)) {
 					if (s.getPathIdParameter() != null) {
-						Matcher matcher = Pattern.compile("(.*)/\\{" + s.getPathIdParameter() + "\\}").matcher(path);
-						if (matcher.find()) {
-							resourcePath = matcher.group(1);
+						Matcher matcher = Pattern.compile("(.*)\\{" + s.getPathIdParameter() + "\\}(.*)").matcher(path);
+						matcher.find();
+						if (matcher.groupCount() == 1 && path.startsWith(matcher.group(1)) ||
+							matcher.groupCount() == 2 && path.startsWith(matcher.group(1)) && path.endsWith(matcher.group(2))) {
+							entityName = s.getEntityName();
 						}
 					}
-					if (path.startsWith(resourcePath)) {
+					else if(path.startsWith(resourcePath)) {
 						entityName = s.getEntityName();
 					}
 				}

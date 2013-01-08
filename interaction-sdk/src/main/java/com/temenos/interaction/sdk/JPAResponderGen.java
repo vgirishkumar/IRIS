@@ -10,7 +10,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -19,6 +21,7 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.odata4j.edm.EdmAssociation;
 import org.odata4j.edm.EdmAssociationEnd;
 import org.odata4j.edm.EdmDataServices;
+import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmMultiplicity;
 import org.odata4j.edm.EdmNavigationProperty;
@@ -29,18 +32,14 @@ import org.odata4j.format.xml.EdmxFormatParser;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
 
-import com.google.inject.Injector;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
-import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
-import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupGenerated;
-import com.temenos.interaction.rimdsl.generator.launcher.Generator;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.command.Parameter;
 import com.temenos.interaction.sdk.entity.EMEntity;
@@ -134,7 +133,9 @@ public class JPAResponderGen {
 
 		//Create interaction model
 		InteractionModel interactionModel = new InteractionModel(edmDataServices);
-		for (EdmEntityType entityType : edmDataServices.getEntityTypes()) {
+		Map<String, String> linkPropertyMap = new HashMap<String, String>();
+		for (EdmEntitySet entitySet : edmDataServices.getEntitySets()) {
+			EdmEntityType entityType = entitySet.getType();
 			String entityName = entityType.getName();
 			IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityName);
 			//Use navigation properties to define state transitions
@@ -148,6 +149,7 @@ public class JPAResponderGen {
 					
 					EdmAssociation association = np.getRelationship();
 					String linkProperty = getLinkProperty(association.getName(), edmxFile);
+					linkPropertyMap.put(association.getName(), linkProperty);
 
 					//Reciprocal link state name
 					String reciprocalLinkState = "";
@@ -157,7 +159,13 @@ public class JPAResponderGen {
 							reciprocalLinkState = npTarget.getName();
 						}
 					}
-					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm);
+					String filter = null;
+					if(isTargetCollection) {
+						String linkPropertyOrigin = getLinkPropertyOrigin(association.getName(), edmxFile);
+						filter = linkProperty + " eq '{" + linkPropertyOrigin + "}'";
+					}
+					String linkTitle = np.getName();
+					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm, filter, linkTitle);
 				}
 			}			
 		}
@@ -181,14 +189,17 @@ public class JPAResponderGen {
 		Commands commands = getDefaultCommands(interactionModel);
 		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
 			for(IMTransition transition : rsm.getTransitions()) {
-				commands.addCommand("GETNavProperty" + transition.getTargetStateName(), "com.temenos.interaction.commands.odata.GETNavPropertyCommand", "GETNavProperty" + transition.getTargetStateName(), COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+				if(!transition.isCollectionState()) {
+					String cmdId = Commands.GET_NAV_PROPERTY + transition.getTargetStateName();
+					commands.addCommand(cmdId, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", cmdId, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+				}
 			}
 		}
-
+		
 		//Obtain resource information
 		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
 		for (EdmEntityType t : edmDataServices.getEntityTypes()) {
-			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t);
+			EntityInfo entityInfo = createEntityInfoFromEdmEntityType(t, linkPropertyMap);
 			addNavPropertiesToEntityInfo(entityInfo, interactionModel);
 			entitiesInfo.add(entityInfo);
 		}
@@ -253,42 +264,12 @@ public class JPAResponderGen {
 		return ok;
 	}
 
-	public boolean generateBehaviourClass(File srcOutputPath, File configOutputPath) {
-		boolean ok = true;
-
-		Metadata metadata;
-		try {
-			metadata = parseMetadataXML(configOutputPath.getPath() + "/" + METADATA_FILE);
-		}
-		catch(Exception e) {
-			return false;
-		}
-		String modelName = metadata.getModelName();
-		String namespace = modelName + Metadata.MODEL_SUFFIX;
-		
-		// generate the behaviour class
-		String rimDslFilename = modelName + ".rim";
-		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
-		String behaviourClassDir = srcOutputPath + "/" + namespace.replace(".", "/") + "/";
-		if (!writeBehaviourClass(rimDslFile, behaviourClassDir)) {
-			ok = false;
-		}
-		
-		return ok;
-	}
-	
-	private Metadata parseMetadataXML(String metadataXmlFilePath) throws Exception {
-		try {
-			InputStream is = new FileInputStream(metadataXmlFilePath); 
-			return new MetadataParser().parse(is);
-		}
-		catch(Exception e) {
-			throw new Exception("Failed to parse " + metadataXmlFilePath + ": " + e.getMessage());
-		}
-	}
-	
 	protected String getLinkProperty(String associationName, String edmxFile) {
-		return ReferentialConstraintParser.getLinkProperty(associationName, edmxFile);
+		return ReferentialConstraintParser.getDependent(associationName, edmxFile);
+	}
+
+	protected String getLinkPropertyOrigin(String associationName, String edmxFile) {
+		return ReferentialConstraintParser.getPrincipal(associationName, edmxFile);
 	}
 	
 	private boolean writeArtefacts(String modelName, List<EntityInfo> entitiesInfo, Commands commands, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
@@ -311,17 +292,10 @@ public class JPAResponderGen {
 		// generate the rim DSL
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
 		String rimDslFilename = modelName + ".rim";
-		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel))) {
+		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands))) {
 			ok = false;
 		}
 
-		// generate the behaviour class
-		String rimDslFile = configOutputPath.getPath() + "/" + rimDslFilename;
-		String behaviourClassDir = srcOutputPath + "/" + namespace.replace(".", "/") + "/";
-		if (!writeBehaviourClass(rimDslFile, behaviourClassDir)) {
-			ok = false;
-		}
-		
 		if(generateMockResponder) {
 			//Write JPA classes
 			for(EntityInfo entityInfo : entitiesInfo) {
@@ -396,7 +370,7 @@ public class JPAResponderGen {
 		return true;
 	}
 	
-	public EntityInfo createEntityInfoFromEdmEntityType(EdmType type) {
+	public EntityInfo createEntityInfoFromEdmEntityType(EdmType type, Map<String, String> linkPropertyMap) {
 		if (!(type instanceof EdmEntityType))
 			return null;
 		
@@ -427,11 +401,44 @@ public class JPAResponderGen {
 			FieldInfo field = new FieldInfo(property.getName(), javaType(property.getType()), annotations);
 			properties.add(field);
 		}
+
+		List<JoinInfo> joins = new ArrayList<JoinInfo>();
+		for (EdmNavigationProperty navProperty : entityType.getNavigationProperties()) {
+			// build the join annotations
+			List<String> annotations = new ArrayList<String>();
+			// lets see if the target has a navproperty to this type
+			boolean bidirectional = false;
+			for (EdmNavigationProperty np : navProperty.getToRole().getType().getNavigationProperties()) {
+				if (np.getRelationship().getName().equals(navProperty.getRelationship().getName())) {
+					bidirectional = true;;
+				}
+			}
+			
+			String mappedBy = "";
+			if (bidirectional) {
+				String linkProperty = linkPropertyMap.get(navProperty.getRelationship().getName());
+				mappedBy = "(mappedBy=\"" + linkProperty + "\")";
+			}
+			
+			EdmAssociationEnd from = navProperty.getFromRole();
+			if ((from.getMultiplicity().equals(EdmMultiplicity.ONE) || from.getMultiplicity().equals(EdmMultiplicity.ZERO_TO_ONE)) 
+					&& navProperty.getToRole().getMultiplicity().equals(EdmMultiplicity.MANY)) {
+				annotations.add("@OneToMany" + mappedBy);
+			} else if (from.getMultiplicity().equals(EdmMultiplicity.MANY) 
+					&& navProperty.getToRole().getMultiplicity().equals(EdmMultiplicity.MANY)) {
+				annotations.add("@ManyToMany" + mappedBy);
+			}
+			if (annotations.size() > 0) {
+				JoinInfo join = new JoinInfo(navProperty.getName(), navProperty.getToRole().getType().getName(), annotations);
+				joins.add(join);
+			}
+		}
+		
 		
 		//Check if user has specified the name of the JPA entities
 		String jpaNamespace = System.getProperty("jpaNamespace");
 		boolean isJpaEntity = (jpaNamespace == null || jpaNamespace.equals(entityType.getNamespace()));
-		return new EntityInfo(entityType.getName(), entityType.getNamespace(), keyInfo, properties, isJpaEntity);
+		return new EntityInfo(entityType.getName(), entityType.getNamespace(), keyInfo, properties, joins, isJpaEntity);
 	}
 	
 	public EntityInfo createEntityInfoFromEntityMetadata(String namespace, EntityMetadata entityMetadata) {
@@ -461,7 +468,7 @@ public class JPAResponderGen {
 		//Check if user has specified the name of the JPA entities
 		String jpaNamespace = System.getProperty("jpaNamespace");
 		boolean isJpaEntity = (jpaNamespace == null || jpaNamespace.equals(namespace));
-		return new EntityInfo(entityMetadata.getEntityName(), namespace, keyInfo, properties, isJpaEntity);
+		return new EntityInfo(entityMetadata.getEntityName(), namespace, keyInfo, properties, new ArrayList<JoinInfo>(), isJpaEntity);
 	}
 
 	/*
@@ -697,14 +704,6 @@ public class JPAResponderGen {
 		return true;
 	}
 	
-	protected boolean writeBehaviourClass(String rimDslFile, String behaviourClassDir) {
-		File srcDir = new File(behaviourClassDir);
-		srcDir.mkdirs();
-		Injector injector = new RIMDslStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
-		Generator generator = injector.getInstance(Generator.class);
-		return generator.runGenerator(rimDslFile, behaviourClassDir);
-	}
-
 	protected boolean writeResponderSettings(File sourceDir, String generateResponderSettings) {
 		FileOutputStream fos = null;
 		try {
@@ -887,11 +886,8 @@ public class JPAResponderGen {
 		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.POST_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.POST_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_ENTITIES_FILTERED, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES_FILTERED, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.DELETE_ENTITY, "com.temenos.interaction.commands.odata.DeleteEntityCommand", Commands.DELETE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-//		commands.addLinkCommands(interactionModel, "com.temenos.interaction.commands.odata.GETLinkEntityCommand", "com.temenos.interaction.commands.odata.GETEntitiesCommand");
 		
 		return commands;
 	}

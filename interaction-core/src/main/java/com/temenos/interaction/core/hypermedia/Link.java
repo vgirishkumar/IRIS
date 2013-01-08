@@ -48,7 +48,9 @@ public class Link {
 	 * @param transition
 	 */
 	public Link(Transition transition, String rel, String href, String method) {
-		this(transition, transition.getTarget().getName(), rel, href, null, null, method, null);
+		this(transition, 
+				transition.getLabel() != null && !transition.getLabel().equals("") ? transition.getLabel() : transition.getTarget().getName(), 
+				rel, href, null, null, method, null);
 	}
 
 	public Link(Transition transition, String title, String rel, String href, String[] consumes,
@@ -95,7 +97,10 @@ public class Link {
 	 * @return Path of transition relative to REST service 
 	 */
 	public String getHrefTransition(String basePath) {
-		String regex = "(?<=" + basePath + "/)\\S+";
+		if(!basePath.endsWith("/")) {
+			basePath += "/";
+		}
+		String regex = "(?<=" + basePath + ")\\S+";
 		Pattern p = Pattern.compile(regex);
 		Matcher m = p.matcher(href);
 		while (m.find()) {

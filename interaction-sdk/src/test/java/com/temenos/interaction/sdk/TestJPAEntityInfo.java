@@ -1,6 +1,7 @@
 package com.temenos.interaction.sdk;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -30,6 +31,7 @@ public class TestJPAEntityInfo {
 	public void testGetFQTypeNameNullClass() {
 		EntityInfo ei = new EntityInfo(null, "com.temenos.stuff", null, null);
 		ei.getFQTypeName();
+		assertNotNull(ei.getClazz());
 	}
 
 	@Test

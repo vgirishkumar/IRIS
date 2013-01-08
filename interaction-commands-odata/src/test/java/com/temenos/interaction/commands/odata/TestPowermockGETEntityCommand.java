@@ -15,12 +15,14 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.odata4j.core.ImmutableList;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
@@ -31,6 +33,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 
@@ -69,7 +72,7 @@ public class TestPowermockGETEntityCommand {
 		when(resourceState.getEntityName()).thenReturn(entity);
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("id", id);
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState);
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
         return ctx;
 	}
 	
@@ -105,17 +108,27 @@ public class TestPowermockGETEntityCommand {
 		properties.add(EdmProperty.newBuilder("MyId").setType(EdmSimpleType.STRING));
 		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName(entityName).addKeys(keys).addProperties(properties);
 		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName(entityName).setEntityType(eet);
+		EdmSchema.Builder es = EdmSchema.newBuilder().setNamespace("MyNamespace");
 
 		List<EdmEntityType> mockEntityTypes = new ArrayList<EdmEntityType>();
 		mockEntityTypes.add(eet.build());
+		List<EdmSchema> mockSchemas = new ArrayList<EdmSchema>();
+		mockSchemas.add(es.build());
+		ImmutableList<EdmSchema> mockSchemaList = ImmutableList.copyOf(mockSchemas);
 
 		EdmDataServices mockEDS = mock(EdmDataServices.class);
 		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees.build());
+		when(mockEDS.getEdmEntitySet((EdmEntityType) any())).thenReturn(ees.build());
 		when(mockEDS.getEntityTypes()).thenReturn(mockEntityTypes);
+		when(mockEDS.findEdmEntityType(anyString())).thenReturn(eet.build());
+		when(mockEDS.getSchemas()).thenReturn(mockSchemaList);
 		when(mockProducer.getMetadata()).thenReturn(mockEDS);
 
 		EntityResponse mockEntityResponse = mock(EntityResponse.class);
-		when(mockEntityResponse.getEntity()).thenReturn(mock(OEntity.class));
+		OEntity oe = mock(OEntity.class);
+		when(oe.getEntityType()).thenReturn(eet.build());
+		when(oe.getEntitySetName()).thenReturn(ees.build().getName());
+		when(mockEntityResponse.getEntity()).thenReturn(oe);
 		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
 				        
         return mockProducer;

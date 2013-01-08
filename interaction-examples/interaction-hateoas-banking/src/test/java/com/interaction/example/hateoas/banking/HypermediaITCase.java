@@ -54,11 +54,11 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
-			} else if (link.getName().get().equals("home.initial>Preferences.preferences")) {
+			} else if (link.getName().get().equals("home.initial>GET>Preferences.preferences")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/preferences", link.getHref());
-			} else if (link.getName().get().equals("home.initial>FundsTransfer.initial")) {
+			} else if (link.getName().get().equals("home.initial>GET>FundsTransfer.fundstransfers")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers", link.getHref());
-			} else if (link.getName().get().equals("home.initial>Customer.customers")) {
+			} else if (link.getName().get().equals("home.initial>GET>Customer.customers")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/customers", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");
@@ -80,7 +80,7 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers", link.getHref());
-			} else if (link.getName().get().equals("FundsTransfer.initial>FundsTransfer.new")) {
+			} else if (link.getName().get().equals("FundsTransfer.fundstransfers>POST>FundsTransfer.new")) {
 				assertEquals("POST " + Configuration.TEST_ENDPOINT_URI + "/fundtransfers/new", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName().get() + "]");

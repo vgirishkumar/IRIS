@@ -53,7 +53,7 @@ public class TestTransition {
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 
 		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
-		assertEquals("entity.begin>entity.end", t.getId());
+		assertEquals("entity.begin>PUT>entity.end", t.getId());
 	}
 
 	@Test
@@ -62,7 +62,30 @@ public class TestTransition {
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "/end");
 
 		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
-		assertEquals("entity.begin>entity.end", t.toString());
+		assertEquals("entity.begin>PUT>entity.end", t.toString());
 	}
 
+	@Test
+	public void testGetLabel() {
+		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+
+		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "A");
+		assertEquals("A", ta.getLabel());
+		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "B");
+		assertEquals("B", tb.getLabel());
+	}
+
+	@Test
+	public void testIdMultiTransitions() {
+		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+
+		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "A");
+		Transition taPut = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end, "A");
+		assertEquals("entity.begin>GET(A)>entity.end", ta.getId());
+		assertEquals("entity.begin>PUT(A)>entity.end", taPut.getId());
+		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "B");
+		assertEquals("entity.begin>GET(B)>entity.end", tb.getId());
+	}
 }

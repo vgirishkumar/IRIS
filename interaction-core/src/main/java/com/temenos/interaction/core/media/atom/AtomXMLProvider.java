@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +36,7 @@ import org.odata4j.core.OLink;
 import org.odata4j.core.OLinks;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmEntityType;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParser;
 import org.odata4j.format.xml.XmlFormatWriter;
@@ -50,14 +52,14 @@ import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
-import com.temenos.interaction.core.hypermedia.ResourceRegistry;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
-import com.temenos.interaction.core.rim.ResourceInteractionModel;
 import com.temenos.interaction.core.web.RequestContext;
 
 @Provider
@@ -74,7 +76,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	private final EdmDataServices edmDataServices;
 	private final Metadata metadata;
-	private final ResourceRegistry resourceRegistry;
+	private final ResourceStateMachine hypermediaEngine;
 //	private final Transformer transformer;
 
 	/**
@@ -83,19 +85,19 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * 		The entity metadata for reading and writing OData entities.
 	 * @param metadata
 	 * 		The entity metadata for reading and writing Entity entities.
-	 * @param resourceRegistry
-	 * 		The resource registry contains all the resource to entity mappings
+	 * @param hypermediaEngine
+	 * 		The hypermedia engine contains all the resource to entity mappings
 	 * @param transformer
 	 * 		Transformer to convert an entity to a properties map
 	 */
-	public AtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata, ResourceRegistry resourceRegistry, Transformer transformer) {
+	public AtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
 		this.edmDataServices = edmDataServices;
 		this.metadata = metadata;
-		this.resourceRegistry = resourceRegistry;
+		this.hypermediaEngine = hypermediaEngine;
 //		this.transformer = transformer;
 		assert(edmDataServices != null);
 		assert(metadata != null);
-		assert(resourceRegistry != null);
+		assert(hypermediaEngine != null);
 //		assert(transformer != null);
 	}
 	
@@ -145,7 +147,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				
 				//Write entry
 				OEntity tempEntity = entityResource.getEntity();
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((entityResource.getEntityName() == null ? tempEntity.getEntitySetName() : entityResource.getEntityName()));
+				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + entityResource.getEntityName();
+				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
 	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
             	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
@@ -160,16 +164,18 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
 				// Write Entity object with Abdera implementation
 				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links);
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links, metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
+				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();
+				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
 				Map<String, List<OLink>> entityOlinks = new HashMap<String, List<OLink>>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
 		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
 					OEntity tempEntity = collectionEntity.getEntity();
-					EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(collectionResource.getEntityName());
 	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 					
 					//Add entity links
@@ -202,7 +208,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
 					entities.add(entity);
 				}
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((collectionResource.getEntityName() == null ? collectionResource.getEntitySetName() : collectionResource.getEntityName()));
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
@@ -219,8 +224,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	public void addLinkToOLinks(List<OLink> olinks, Link link) {
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
 		String rel = link.getRel();
-		if(!rel.contains("self") && !rel.contains("edit")) {
-			rel = XmlFormatWriter.related + link.getRel();
+		if(rel.contains("item")) {
+			rel = XmlFormatWriter.related + link.getTransition().getTarget().getEntityName();
+		} else if (rel.contains("collection")) {
+			rel = XmlFormatWriter.related + link.getTransition().getTarget().getName();
 		}
 		String href = link.getHref();
 		if(requestContext != null) {
@@ -278,7 +285,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		// TODO check media type can be handled
 		
 		if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
-			ResourceInteractionModel rim = null;
+			ResourceState currentState = null;
 			OEntityKey entityKey = null;
 			/* 
 			 * TODO add uritemplate helper class (something like the wink JaxRsUriTemplateProcessor) to 
@@ -294,14 +301,14 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			if (matcher.find()) {
 				// the resource path
 				String resourcePath = matcher.group(1);
-				rim = resourceRegistry.getResourceInteractionModel(resourcePath);
-
-				if (rim != null) {
+				Set<ResourceState> states = hypermediaEngine.getResourceStatesForPath(resourcePath);
+				if (states != null && states.size() > 0) {
+					currentState = findCollectionResourceState(states);
 					// at the moment things are pretty simply, the bit after the last slash is the key
 					entityKey = OEntityKey.parse(matcher.group(2));
 				}
 			}
-			if (rim == null) {
+			if (currentState == null) {
 				// might be a request without an entity key e.g. a POST
 				if (!path.startsWith("/")) {
 					// TODO remove this hack :-(
@@ -310,9 +317,14 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// TODO, improve this ridiculously basic support for Update
 				if (path.contains("(")) {
 					path = path.substring(0, path.indexOf("("));
+					path = "^" + path + "(|[\\(.\\)])";
+				} else {
+					path = "^" + path + "(|\\(\\))";
 				}
-				rim = resourceRegistry.getResourceInteractionModel(path);
-				if (rim == null) {
+				Set<ResourceState> states = hypermediaEngine.getResourceStatesForPathRegex(path);
+				if (states != null && states.size() > 0) {
+					currentState = findCollectionResourceState(states);
+				} else {
 					// give up, we can't handle this request 404
 					logger.error("resource not found in registry");
 					throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -321,7 +333,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 			// parse the request content
 			Reader reader = new InputStreamReader(entityStream);
-			Entry e = new AtomEntryFormatParser(edmDataServices, rim.getCurrentState().getEntityName(), entityKey, null).parse(reader);
+			assert(currentState != null) : "Must have found a resource or thrown exception";
+			Entry e = new AtomEntryFormatParser(edmDataServices, currentState.getName(), entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} else {
@@ -331,6 +344,15 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 	}
 
+	private CollectionResourceState findCollectionResourceState(Set<ResourceState> states) {
+		for (ResourceState state : states) {
+			if (state instanceof CollectionResourceState) {
+				return (CollectionResourceState) state;
+			}
+		}
+		return null;
+	}
+	
 	protected void setUriInfo(UriInfo uriInfo) {
 		this.uriInfo = uriInfo;
 	}

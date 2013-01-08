@@ -22,7 +22,9 @@
 	</bean>
 
 	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager" />
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
+        <constructor-arg ref="stateMachine" />
+	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
@@ -51,13 +53,12 @@
         <constructor-arg ref="stateMachine" />
 	</bean>
 
+    <bean id="behaviour" class="SimpleModel.SimpleBehaviour" />
+<!--
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
-    <bean id="interaction" factory-bean="behaviour" factory-method="getInteractionModel" />
-<!-- 
-    <bean id="behaviour" class="simpleBehaviour" />
+-->
     <bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
- -->
-     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+    <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg ref="interaction" />
         <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
     </bean>
@@ -66,6 +67,7 @@
     <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
         <constructor-arg ref="commands" />
     	<constructor-arg ref="stateMachine" />
+        <constructor-arg ref="edmMetadata" />
     </bean>
 
     <!-- Commands -->

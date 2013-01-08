@@ -53,13 +53,19 @@ public class InteractionSDKTest {
         //Verify the archetype
         verifier = new Verifier(ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID);
         verifier.setAutoclean(true);
+        // the RIM file has not been generated yet (see interaction-sdk:gen target)
+        Properties props = new Properties();
+        props.put("skipRIMGeneration", "true");
+        verifier.setSystemProperties(props);
         verifier.executeGoal("verify");
         verifier.verifyErrorFreeLog();
         
         //Run the Interaction SDK to generate the Flight responder project
+        props.put("skipRIMGeneration", "false");
+        verifier.setSystemProperties(props);
         verifier.executeGoal("interaction-sdk:gen");
         verifier.verifyErrorFreeLog();
-
+        
         //Overwrite responder insert file
         try {
         	FileUtils.copyFileToDirectory( System.getProperty("insertFile"), ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID + "/src/main/resources/META-INF");

@@ -30,7 +30,7 @@ public class ResponderDBUtils {
 			logger.fine("Attempting to connect to database");
 			conn = dataSource.getConnection();
 			Statement statement = conn.createStatement();
-
+			
 			logger.fine("Loading SQL INSERTs file");
 			InputStream xml = ResponderDBUtils.class.getResourceAsStream("/META-INF/responder_insert.sql");
 			if (xml == null){
@@ -39,6 +39,7 @@ public class ResponderDBUtils {
 			BufferedReader br = new BufferedReader(new InputStreamReader(xml, "UTF-8"));
 
 			logger.fine("Reading SQL INSERTs file");
+			statement.execute("SET REFERENTIAL_INTEGRITY FALSE;");		//The order of INSERTs may not respect foreign key constraints
 			int count = 0;
 			while ((line = br.readLine()) != null) {
 				if (!line.startsWith("#")) {
@@ -53,7 +54,8 @@ public class ResponderDBUtils {
 					}
 				}
 			}
-
+			statement.execute("SET REFERENTIAL_INTEGRITY TRUE;");
+			
 			br.close();
 			statement.close();
 			logger.info(count + " rows have been inserted into the database.");

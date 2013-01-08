@@ -22,7 +22,7 @@ import com.temenos.interaction.rimdsl.rim.Function
 class RIMDslGenerator implements IGenerator {
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		fsa.generateFile(resource.className+"Behaviour.java", toJavaCode(resource.contents.head as ResourceInteractionModel))
+		fsa.generateFile(resource.className + "Model" + "/" + resource.className+"Behaviour.java", toJavaCode(resource.contents.head as ResourceInteractionModel))
 	}
 	
 	def className(Resource res) {
@@ -93,39 +93,49 @@ class RIMDslGenerator implements IGenerator {
 			    return initial;
 			}
 
-		    private List<Action> createActionList(Action view, Action entry) {
-		        List<Action> actions = new ArrayList<Action>();
-		        if (view != null)
-		            actions.add(view);
-		        if (entry != null)
-		            actions.add(entry);
-		        return actions;
-		    }
-
 		}
 	'''
 	
 	def produceResourceStates(State state) '''
-            «IF state.actions != null && state.actions.size > 0 && state.actions.get(0).property.size > 0»
-                actionViewProperties = new Properties();
-                «FOR commandProperty : state.actions.get(0).property»
-                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
-                «ENDFOR»
-            «ENDIF»
             «produceActionSet(state, state.view, state.actions)»
+            «produceRelations(state)»
             «IF state.entity.isCollection»
-            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»");
+            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations, null);
             «ELSEIF state.entity.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»"«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
             «ENDIF»
 	'''
 
+    def produceRelations(State state) '''
+        «IF state.relations != null && state.relations.size > 0»
+        String «state.name»RelationsStr = "";
+        «FOR relation : state.relations»
+        «state.name»RelationsStr += "«relation.name» ";
+        «ENDFOR»
+        String[] «state.name»Relations = «state.name»RelationsStr.trim().split(" ");
+        «ELSE»
+        String[] «state.name»Relations = null;
+        «ENDIF»
+    '''
+
     def produceActionSet(State state, Command viewCommand, EList<Command> actions) '''
+        List<Action> «state.name»Actions = new ArrayList<Action>();
+        «IF viewCommand != null && viewCommand.property.size > 0»
+            actionViewProperties = new Properties();
+            «FOR commandProperty :viewCommand.property»
+            actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+            «ENDFOR»
+        «ENDIF»
+        «state.name»Actions.add(new Action("«viewCommand.name»", Action.TYPE.VIEW, «if (viewCommand != null && viewCommand.property.size > 0) { "actionViewProperties" } else { "new Properties()" }»));
         «IF actions != null»
-            List<Action> «state.name»Actions = new ArrayList<Action>();
-            «state.name»Actions.add(new Action("«viewCommand.name»", Action.TYPE.VIEW, «if (actions != null && actions.size > 0 && actions.get(0).property.size > 0) { "actionViewProperties" } else { "new Properties()" }»));
             «FOR action : actions»
-            «state.name»Actions.add(new Action("«action.name»", Action.TYPE.ENTRY));
+            actionViewProperties = new Properties();
+            «IF action != null && action.property.size > 0»
+                «FOR commandProperty :action.property»
+                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+                «ENDFOR»
+            «ENDIF»
+            «state.name»Actions.add(new Action("«action.name»", Action.TYPE.ENTRY, actionViewProperties));
             «ENDFOR»
         «ENDIF»'''
     
@@ -134,7 +144,7 @@ class RIMDslGenerator implements IGenerator {
             s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
             «ELSE»
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties);
+            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties«if (transition.title != null) { ", \"" + transition.title.name + "\"" }»);
             «ENDIF»
 	'''
 
@@ -147,7 +157,7 @@ class RIMDslGenerator implements IGenerator {
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties);
+            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties«if (transition.title != null) { ", \"" + transition.title.name + "\"" }»);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''

@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -251,4 +252,31 @@ public class TestResourceState {
 		assertEquals(home, reboot.getAutoTransition().getTarget());
 	}
 
+	@Test
+	public void testAddMultipleTransitionsToSameState() {
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights({filter})", null, null);
+
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, null, uriLinkageProperties);
+		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, null, uriLinkageProperties);
+		airport.addTransition("PUT", flights, null, null);
+		
+		assertEquals(3, airport.getTransitions(flights).size());
+		List<Transition> transitions = airport.getTransitions(flights);
+		assertTrue(containsTransition(transitions, "Airport.airport>GET(departureAirportCode eq '{code}')>Flight.Flights", "departureAirportCode eq '{code}'"));
+		assertTrue(containsTransition(transitions, "Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights", "arrivalAirportCode eq '{code}'"));
+		assertTrue(containsTransition(transitions, "Airport.airport>PUT>Flight.Flights", null));
+	}
+	
+	private boolean containsTransition(List<Transition> transitions, String id, String label) {
+		for(Transition t : transitions) {
+			if(t.getId().equals(id) && (t.getLabel() == null && label == null || t.getLabel().equals(label))) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
