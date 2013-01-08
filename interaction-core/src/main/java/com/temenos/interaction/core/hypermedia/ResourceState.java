@@ -301,9 +301,10 @@ public class ResourceState implements Comparable<ResourceState> {
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
 		// replace uri elements with linkage entity element name
+		String mappedResourcePath = resourcePath;
 		if (uriLinkageMap != null) {
 			for (String templateElement : uriLinkageMap.keySet()) {
-				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
+				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
 			}
 		}
 		// pre-process linkage properties containing path template elements
@@ -312,9 +313,9 @@ public class ResourceState implements Comparable<ResourceState> {
 			for (String templateElement : uriLinkageProperties.keySet()) {
 				String template = uriLinkageProperties.get(templateElement);
 				if(template.contains("{") && template.contains("}")) {
-					if(resourcePath.matches(".*\\{" + templateElement + "\\}.*")) {
+					if(mappedResourcePath.matches(".*\\{" + templateElement + "\\}.*")) {
 						//template parameters may be used to define multiple transitions to the same target state and the same http method
-						resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", template);
+						mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", template);
 						generatedLabel = generatedLabel != null ? generatedLabel + ", " + template : template;		//Generate a transition label to enable creating links with different titles  
 					}
 				}
@@ -324,7 +325,7 @@ public class ResourceState implements Comparable<ResourceState> {
 				label = generatedLabel;
 			}
 		}
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, eval);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, eval, resourcePath);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.put(commandSpec, transition);

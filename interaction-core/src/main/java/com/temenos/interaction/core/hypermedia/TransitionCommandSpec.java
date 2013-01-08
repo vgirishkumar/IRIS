@@ -13,6 +13,8 @@ public class TransitionCommandSpec {
 	private final int flags;
 	// conditional link evaluation expression 
 	private final ResourceGETExpression evaluation;
+	// the original unmapped resourcePath (required to form a correct interaction map by paths)
+	private final String originalPath;
 	// TODO will need to define query params for transitions
 	//private final List<String> queryParams;
 	
@@ -21,18 +23,23 @@ public class TransitionCommandSpec {
 	}
 
 	protected TransitionCommandSpec(String method, String path, int flags) {
-		this(method, path, flags, null);
+		this(method, path, flags, null, path);
 	}
 	
-	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation) {
+	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation, String originalPath) {
 		this.method = method;
 		this.path = path;
 		this.flags = flags;
 		this.evaluation = evaluation;
+		this.originalPath = originalPath;
 	}
 	
 	public String getPath() {
 		return path;
+	}
+	
+	public String getOriginalPath() {
+		return originalPath;
 	}
 	
 	public int getFlags() {

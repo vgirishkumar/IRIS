@@ -289,6 +289,30 @@ public class TestResourceStateMachine {
 	}
 
 	@Test
+	public void testInteractionByPathUriLinkage() {
+		String ENTITY_NAME = "";
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "/test({id})");
+		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
+	
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "entityPropertyToUse");
+		exists.addTransition("PUT", exists, uriLinkageMap);
+		exists.addTransition("DELETE", end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(exists);
+
+		Map<String, Set<String>> interactionMap = sm.getInteractionByPath();
+		assertEquals("Number of resources", 1, interactionMap.size());
+		Set<String> entrySet = interactionMap.keySet();
+		assertTrue(entrySet.contains("/test({id})"));
+		Collection<String> interactions = interactionMap.get("/test({id})");
+		assertEquals("Number of interactions", 3, interactions.size());
+		assertTrue(interactions.contains("GET"));
+		assertTrue(interactions.contains("PUT"));
+		assertTrue(interactions.contains("DELETE"));
+	}
+
+	@Test
 	public void testInteractionByPathTransient() {
 		String ENTITY_NAME = "";
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
