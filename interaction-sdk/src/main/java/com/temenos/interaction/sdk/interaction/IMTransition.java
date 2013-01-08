@@ -13,12 +13,13 @@ public class IMTransition {
 	private String reciprocalLinkState;		//State which leads a target state back to the current state
 	private IMResourceStateMachine targetResourceStateMachine;	//Resource state machine of target state
 	private String filter;					//Filter expression for transitions to collection resources
+	private String title;					//Transition label
 	private String method;					// the method for transition to pseudo state
 	private String action;					// the action for a pseudo state
 	private String relations;				// the link relations for state
 	private boolean boundToCollection;		// the pseudo state is to be bound to the collection path 
 	
-	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String method, String action, String relations, boolean boundToCollection) {
+	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String title, String method, String action, String relations, boolean boundToCollection) {
 		this.targetEntityName = targetEntityName;
 		this.linkProperty = linkProperty;
 		this.targetStateName = targetStateName;
@@ -26,6 +27,7 @@ public class IMTransition {
 		this.reciprocalLinkState = reciprocalLinkState;
 		this.targetResourceStateMachine = targetResourceStateMachine;
 		this.filter = filter;
+		this.title = title;
 		this.method = method;
 		this.action = action;
 		this.relations = relations;
@@ -60,6 +62,18 @@ public class IMTransition {
 		return filter != null && !filter.equals("") ? filter : "1 eq 1";
 	}
 	
+	public String getTitle() {
+		return title;
+	}
+	
+	public String getTitleAssignment() {
+		String title = "";
+		if(getTitle() != null) {
+			title = "title=\"" + getTitle() + "\" ";
+		}
+		return title;
+	}
+
 	public boolean isPseudoState() {
 		return action != null;
 	}

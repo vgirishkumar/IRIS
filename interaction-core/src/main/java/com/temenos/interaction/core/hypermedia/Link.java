@@ -49,7 +49,7 @@ public class Link {
 	 */
 	public Link(Transition transition, String rel, String href, String method) {
 		this(transition, 
-				transition.getTarget().getName() + (transition.getLabel() != null ? "(" + transition.getLabel() + ")" : ""), 
+				transition.getLabel() != null && !transition.getLabel().equals("") ? transition.getLabel() : transition.getTarget().getName(), 
 				rel, href, null, null, method, null);
 	}
 

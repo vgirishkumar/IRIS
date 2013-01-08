@@ -250,10 +250,10 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, 0);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, ResourceGETExpression eval) {
-		addTransition(httpMethod, targetState, null, null, 0, eval);
+		addTransition(httpMethod, targetState, null, null, 0, eval, null);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
-		addTransition(httpMethod, targetState, null, null, transitionFlags, null);
+		addTransition(httpMethod, targetState, null, null, transitionFlags, null, null);
 	}
 	
 	/**
@@ -263,7 +263,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageMap
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, 0, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, 0, null, null);
 	}
 
 	/**
@@ -274,15 +274,27 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageProperties
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null, null);
+	}
+
+	/**
+	 * Add a transition with a target state and linkage map.
+	 * @param httpMethod HTTP method
+	 * @param targetState Target state
+	 * @param uriLinkageMap map holding entity property values for resource path template parameters 
+	 * @param uriLinkageProperties map holding additional property values for resource path template parameters
+	 * @param label transition label
+	 */
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String label) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null, label);
 	}
 	
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, ResourceGETExpression eval) {
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, ResourceGETExpression eval, String label) {
 		String resourcePath = targetState.getPath();
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, eval);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, eval, label);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval, String label) {
 		assert null != targetState;
 		this.uriLinkageProperties = uriLinkageProperties != null ? new HashMap<String, String>(uriLinkageProperties) : null;
 		uriLinkageMap = uriLinkageMap != null ? new HashMap<String, String>(uriLinkageMap) : null;
@@ -295,7 +307,7 @@ public class ResourceState implements Comparable<ResourceState> {
 			}
 		}
 		// pre-process linkage properties containing path template elements
-		String label = null;
+		String generatedLabel = null;
 		if (uriLinkageProperties != null) {
 			for (String templateElement : uriLinkageProperties.keySet()) {
 				String template = uriLinkageProperties.get(templateElement);
@@ -303,9 +315,13 @@ public class ResourceState implements Comparable<ResourceState> {
 					if(resourcePath.matches(".*\\{" + templateElement + "\\}.*")) {
 						//template parameters may be used to define multiple transitions to the same target state and the same http method
 						resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", template);
-						label = label != null ? label + ", " + template : template;		//Generate a transition label to enable creating links with different titles  
+						generatedLabel = generatedLabel != null ? generatedLabel + ", " + template : template;		//Generate a transition label to enable creating links with different titles  
 					}
 				}
+			}
+			if(label == null) {
+				//Use the auto generated transition label
+				label = generatedLabel;
 			}
 		}
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, eval);
@@ -315,11 +331,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, resourcePath, (forEach ? Transition.FOR_EACH : 0), null);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, resourcePath, (forEach ? Transition.FOR_EACH : 0), null, null);
 	}
 
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, boolean forEach) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, (forEach ? Transition.FOR_EACH : 0), null);
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, boolean forEach, String label) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, (forEach ? Transition.FOR_EACH : 0), null, label);
 	}
 	
 	/**

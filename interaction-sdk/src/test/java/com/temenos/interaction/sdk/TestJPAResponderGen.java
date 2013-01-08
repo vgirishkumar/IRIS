@@ -414,8 +414,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
 		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/{navdepartureAirport}\""));
-		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedulesFiltered filter=\"arrivalAirportCode eq '{code}'\""));
-		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedulesFiltered filter=\"departureAirportCode eq '{code}'\""));
+		assertTrue(generator.generatedRimDsl.contains("GET title=\"arrivals\" -> FlightSchedulesFiltered filter=\"arrivalAirportCode eq '{code}'\""));
+		assertTrue(generator.generatedRimDsl.contains("GET title=\"departures\" -> FlightSchedulesFiltered filter=\"departureAirportCode eq '{code}'\""));
 	}
 
 	@Test
