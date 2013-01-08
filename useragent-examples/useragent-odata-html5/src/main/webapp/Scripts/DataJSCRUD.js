@@ -249,7 +249,7 @@ function OpenUpdateDialog(entityName, row, href)
 function UpdateResource(href) 
 {
     $("#loading").show();
-    var requestURI = ODATA_SVC.val() + href;
+    var requestURI = ODATA_SVC.val() + _.unescape(href);
 	var dataJson = [];
 	$('#dialog-form').find('fieldset input').each(function(){
 		var obj = {},
