@@ -27,7 +27,8 @@ import com.temenos.interaction.sdk.interaction.InteractionModel;
 public class TestJPAResponderGen {
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
 	public final static String EDMX_AIRLINE_FILE = "airlines.edmx";
-
+	private final static String RIM_LINE_SEP = "\r\n";
+	
 	//Mock out methods that write contents to files
 	class MockGenerator extends JPAResponderGen {
 		List<String> generatedClasses = new ArrayList<String>();
@@ -446,6 +447,66 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedulesFiltered filter=\"1 eq 1\""));
+	}
+	
+	/*
+	 * To support resource state transitions (as opposed to application state transitions)
+	 * we use a pseudo state in our resource interaction model.  A pseudo state does not necessarily
+	 * have an addressable uri, and always has actions.
+	 */
+	@Test
+	public void testIMWithResourcePseudoStates() {
+		//Parse the test metadata
+		MetadataParser parser = new MetadataParser();
+		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_AIRLINE_XML_FILE);
+		Metadata metadata = parser.parse(is);
+		Assert.assertNotNull(metadata);
+
+		//Define the interaction model
+		InteractionModel interactionModel = new InteractionModel(metadata);
+
+		// Add CRUD pseudo states to an entity/entityset
+		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_created", "POST", "CreateEntity", null, true);
+		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
+		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
+		
+		//Run the generator
+		MockGenerator generator = new MockGenerator();
+		boolean status = generator.generateArtifacts(metadata, interactionModel, new File("target/FlightResponder/classes"), new File("target/FlightResponder/classes"), true);
+		
+		//Check results
+		assertTrue(status);
+		
+		//Test rim dsl
+		assertTrue(generator.generatedRimDsl.contains("POST -> airport_pseudo_created"));
+		assertTrue(generator.generatedRimDsl.contains("PUT *-> airport_pseudo_updated"));
+		assertTrue(generator.generatedRimDsl.contains("DELETE *-> airport_pseudo_deleted"));
+		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_created"));
+		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_created" + RIM_LINE_SEP +
+				"\titem Airport" + RIM_LINE_SEP +
+				"\tview { GETEntity }" + RIM_LINE_SEP +
+				"\tactions { CreateEntity }" + RIM_LINE_SEP +
+				"\tpath \"/Airports()\""));
+
+		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_updated" + RIM_LINE_SEP +
+				"\titem Airport" + RIM_LINE_SEP +
+				"\tview { GETEntity }" + RIM_LINE_SEP +
+				"\tactions { UpdateEntity }" + RIM_LINE_SEP +
+				"\trelations { \"edit\" }" + RIM_LINE_SEP +
+				"\tpath \"/Airports('{id}')\""));
+		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_deleted" + RIM_LINE_SEP +
+				"\titem Airport" + RIM_LINE_SEP +
+				"\tview { GETEntity }" + RIM_LINE_SEP +
+				"\tactions { DeleteEntity }" + RIM_LINE_SEP +
+				"\trelations { \"edit\" }" + RIM_LINE_SEP +
+				"\tpath \"/Airports('{id}')\""));
+		assertTrue(generator.generatedRimDsl.contains("resource airport" + RIM_LINE_SEP +
+				"\titem Airport" + RIM_LINE_SEP +
+				"\tview { GETEntity }" + RIM_LINE_SEP +
+				"\tpath \"/Airports('{id}')\"" + RIM_LINE_SEP +
+				"\tPUT -> airport_pseudo_updated id=code" + RIM_LINE_SEP +
+				"\tDELETE -> airport_pseudo_deleted id=code"));
+
 	}
 	
 }

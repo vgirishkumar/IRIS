@@ -60,7 +60,7 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine target resource state machine
 	 */
 	public void addTransitionToCollectionResource(String targetStateName, String targetEntityName, IMResourceStateMachine targetResourceStateMachine, String filter) {
-		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, filter);
+		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, filter, null, null, null, false);
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine target resource state machine
 	 */
 	public void addTransitionToEntityResource(String targetStateName, String linkProperty, String targetEntityName, IMResourceStateMachine targetResourceStateMachine) {
-		addTransition(targetEntityName, linkProperty, targetStateName, false, "", targetResourceStateMachine, null);
+		addTransition(targetEntityName, linkProperty, targetStateName, false, "", targetResourceStateMachine, null, null, null, null, false);
 	}
 	
 	/**
@@ -83,9 +83,23 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine Target RSM
 	 */
 	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine) {
-		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, null);
+		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, null, null, null, null, false);
 	}
 	
+	/**
+	 * Add a transition to a pseudo state
+	 * @param targetEntityName Entity associated to target RSM
+	 * @param targetStateName Resource state of source RSM to which we want to move
+	 * @param action the command that will be executed when the entity is to be transitioned to this state
+	 * @param boundToCollection a flag to control whether the state is of the collection or the entity
+	 * @precondition action must be supplied
+	 */
+	public void addTransition(String targetEntityName, String targetStateName, String method, String action, String relations, boolean boundToCollection) {
+		assert(method != null);
+		assert(action != null);
+		addTransition(targetEntityName, null, targetStateName, false, null, null, null, method, action, relations, boundToCollection);
+	}
+
 	/**
 	 * Add a transition to another state
 	 * @param targetEntityName Entity associated to target RSM
@@ -97,11 +111,26 @@ public class IMResourceStateMachine {
 	 * @param filter Filter for transitions to collection states
 	 */
 	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter) {
-		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, filter != null ? filter : "");
+		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, filter, null, null, null, false);
+	}
+
+	protected void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String method, String action, String relations, boolean boundToCollection) {
+		IMTransition transition = new IMTransition(targetEntityName, 
+				linkProperty, 
+				targetStateName, 
+				isCollectionState, 
+				reciprocalLinkState, 
+				targetResourceStateMachine, 
+				filter != null ? filter : "",
+				method,
+				action,
+				relations,
+				boundToCollection);
 		
 		//Workaround - if there are multiple transitions to the same state => create intermediate 'navigation' states 
 		for(IMTransition t : transitions) {
-			if(t.getTargetResourceStateMachine().getEntityStateName().equals(targetResourceStateMachine.getEntityStateName()) ) {
+			if((t.getTargetResourceStateMachine() != null && targetResourceStateMachine != null)
+					&& t.getTargetResourceStateMachine().getEntityStateName().equals(targetResourceStateMachine.getEntityStateName()) ) {
 				t.notUniqueTransition();
 				transition.notUniqueTransition();
 			}

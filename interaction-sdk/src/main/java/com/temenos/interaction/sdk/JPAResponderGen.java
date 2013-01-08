@@ -674,6 +674,8 @@ public class JPAResponderGen {
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITIES_FILTERED, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES_FILTERED, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.UPDATE_ENTITY, "com.temenos.interaction.commands.odata.UpdateEntityCommand", Commands.UPDATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.DELETE_ENTITY, "com.temenos.interaction.commands.odata.DeleteEntityCommand", Commands.DELETE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		
 		return commands;
 	}
@@ -686,17 +688,18 @@ public class JPAResponderGen {
 		for(IMTransition transition : rsm.getTransitions()) {
 			List<FieldInfo> properties = entityInfo.getAllFieldInfos();
 			List<String> annotations = new ArrayList<String>();
-			if(!transition.isCollectionState()) {
-				//Transition to collection state
-				annotations.add("@JoinColumn(name = \"" + transition.getLinkProperty() + "\", referencedColumnName = \"" + transition.getTargetResourceStateMachine().getMappedEntityProperty() + "\", insertable = false, updatable = false)");
-				annotations.add("@ManyToOne(optional = false)");
-				properties.add(new FieldInfo(transition.getTargetStateName(), transition.getTargetEntityName(), annotations));
-			}
-			else {
-				//Transition to entity state
-				//TODO fix reciprocal links
-				//annotations.add("@OneToMany(cascade = CascadeType.ALL, mappedBy = \"" + transition.getTargetStateName() + "\")");
-				//properties.add(new FieldInfo(transition.getTargetStateName(), "Collection<" + transition.getTargetEntityName() + ">", annotations));
+			if (!transition.isPseudoState()) {
+				if (!transition.isCollectionState()) {
+					//Transition to collection state
+					annotations.add("@JoinColumn(name = \"" + transition.getLinkProperty() + "\", referencedColumnName = \"" + transition.getTargetResourceStateMachine().getMappedEntityProperty() + "\", insertable = false, updatable = false)");
+					annotations.add("@ManyToOne(optional = false)");
+					properties.add(new FieldInfo(transition.getTargetStateName(), transition.getTargetEntityName(), annotations));
+				} else {
+					//Transition to entity state
+					//TODO fix reciprocal links
+					//annotations.add("@OneToMany(cascade = CascadeType.ALL, mappedBy = \"" + transition.getTargetStateName() + "\")");
+					//properties.add(new FieldInfo(transition.getTargetStateName(), "Collection<" + transition.getTargetEntityName() + ">", annotations));
+				}
 			}
 		}
 	}

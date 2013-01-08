@@ -151,7 +151,7 @@ public class EDMXAdapter implements InteractionAdapter {
 		commands = JPAResponderGen.getDefaultCommands();
 		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
 			for(IMTransition transition : rsm.getTransitions()) {
-				if(!transition.isCollectionState()) {
+				if(!transition.isPseudoState() && !transition.isCollectionState()) {
 					String cmdId = Commands.GET_NAV_PROPERTY + transition.getTargetStateName();
 					commands.addCommand(cmdId, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", cmdId, JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 				}
@@ -240,7 +240,9 @@ public class EDMXAdapter implements InteractionAdapter {
 			}
 			
 			// add CRUD operations for each EntitySet
-			//rsm.a
+			rsm.addTransition(entityName, "pseudo_created", "POST", "CreateEntity", null, true);
+			rsm.addTransition(entityName, "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
+			rsm.addTransition(entityName, "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
 			
 		}
 		return interactionModel;

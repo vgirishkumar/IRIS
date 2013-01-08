@@ -52,6 +52,13 @@ public class TestRimDslGenerator {
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
 		
+		// Add CRUD pseudo states
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("FlightSchedule", "pseudo_created", "POST", "CreateEntity", null, true);
+		interactionModel.findResourceStateMachine("Flight").addTransition("Flight", "pseudo_created", "POST", "CreateEntity", null, true);
+		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_created", "POST", "CreateEntity", null, true);
+//		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
+//		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
+		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
 		String dsl = generator.generateRimDsl(interactionModel,commands);
@@ -79,6 +86,13 @@ public class TestRimDslGenerator {
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departureAirportCode", "flightSchedules", true, null, interactionModel.findResourceStateMachine("FlightSchedule"));
+	
+		// Add CRUD pseudo states
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("FlightSchedule", "pseudo_created", "POST", "CreateEntity", null, true);
+		interactionModel.findResourceStateMachine("Flight").addTransition("Flight", "pseudo_created", "POST", "CreateEntity", null, true);
+		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_created", "POST", "CreateEntity", null, true);
+//		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
+//		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
