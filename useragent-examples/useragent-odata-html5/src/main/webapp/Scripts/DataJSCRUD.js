@@ -34,7 +34,7 @@ function GetMetadata()
 	OData.read(uriMetadata, function (metadata) {
 		OData.defaultMetadata.push(metadata);		//Set result as the default metadata document
 	    $("#loadingMetadata").hide();
-	}, onLoadServicesError, OData.metadataHandler);
+	}, ErrorCallback, OData.metadataHandler);
 }
 //Gets all the services
 function GetServices() 
@@ -43,7 +43,7 @@ function GetServices()
     OData.read({ 
     		requestUri: ODATA_SVC.val(),
     		headers: { Accept: "application/atomsvc+xml" }
-    	}, GetServicesCallback);
+    	}, GetServicesCallback, ErrorCallback);
 }
 //GetServices Success Callback
 function GetServicesCallback(data, request) 
@@ -52,13 +52,6 @@ function GetServicesCallback(data, request)
     $("#services").find("tr:gt(0)").remove();
     ApplyServiceTemplate(data.workspaces[0].collections);
 }
-
-//Handle error message
-function onLoadServicesError(error) 
-{
-    alert("Failed to load services: " + error.message);
-}
-
 
 //***********************Get Notes (READ)***************************
 //Gets all the Entities for an EntitySet
@@ -71,7 +64,7 @@ function GetEntitySet(uri)
     OData.read({ 
 		requestUri: uri,
 		headers: { Accept: "application/atom+xml" }
-	}, GetEntitySetCallback, GETErrorCallback);
+	}, GetEntitySetCallback, ErrorCallback);
 }
 
 //GetEntitySet Success Callback
@@ -137,17 +130,10 @@ function Link(title, rel, href, type) {
 	this.type = type;
 }
 
-
-//GET Error callback
-function GETErrorCallback(error)
-{
-  alert("Failed to read data: " + error.message)
-}
-
 //***********************End: Get GetEntitySet***************************
 
-//*****************************Add User (CREATE)***************************
-//Handle Create User Account button click
+//*****************************Add Entity (CREATE)***************************
+//Handle Create User Entity button click
 function OpenCreateUserDialog() 
 {
     $("#dialog-form").dialog("option", "title", "Create An Account");
@@ -173,7 +159,7 @@ function OpenCreateUserDialog()
     $("#dialog-form").dialog("open");
 }
 
-//Handle the DataJS call for new user acccount creation
+//Handle the DataJS call for new Entity creation
 function AddUser() 
 {
     $("#loading").show();
@@ -184,11 +170,11 @@ function AddUser()
         data: newUserdata
     };
 
-    OData.request(requestOptions, AddSuccessCallback, AddErrorCallback);
+    OData.request(requestOptions, AddSuccessCallback, ErrorCallback);
 
 }
 
-//AddUser Success Callback
+//AddEntity Success Callback
 function AddSuccessCallback(data, request) 
 {
     $("#loading").hide('slow');
@@ -196,16 +182,9 @@ function AddSuccessCallback(data, request)
     GetUsers();
 }
 
-//AddUser Error Callback
-function AddErrorCallback(error) 
-{
-    alert("Error : " + error.message)
-    $("#dialog-form").dialog("close");
-}
+//*************************End Add Entity***************************
 
-//*************************End Add User***************************
-
-//*************************Update User (UPDATE)***************************
+//*************************Update Entity (UPDATE)***************************
 //Handle Update hyper link click
 function OpenUpdateDialog(entityName, row, href) 
 {
@@ -231,7 +210,7 @@ function OpenUpdateDialog(entityName, row, href)
                             click: function () {
                                 var bValid = ValidateData();
                                 if (bValid) {
-                                    UpdateResource(href);
+                                    UpdateResource(entityName, href);
                                 }
                             }
                         },
@@ -246,46 +225,36 @@ function OpenUpdateDialog(entityName, row, href)
 }
 
 //Handle DataJS calls to Update user data
-function UpdateResource(href) 
+function UpdateResource(entityName, href) 
 {
     $("#loading").show();
     var requestURI = ODATA_SVC.val() + _.unescape(href);
-	var dataJson = [];
+	var data = [];
 	$('#dialog-form').find('fieldset input').each(function(){
-		var obj = {},
-	        key = $(this).eq(0).attr('name'),
+		var key = $(this).eq(0).attr('name'),
 	        val = $(this).eq(0).val();
-	    obj[key] = val;
-	    dataJson.push(obj);
+		data[key] = val;
 	})
-	var updateResourcedata = JSON.stringify(dataJson);
-	updateResourcedata = updateResourcedata.replace(/[[\]]/g,'');		//Remove brackets
-	updateResourcedata = updateResourcedata.replace(/[{}]/g,'');		//Remove braces
-	var link = "\"_links\" : { \"self\" : { \"href\" : \"" + requestURI + "\"}}";
-	updateResourcedata = "{" + link + "," + updateResourcedata + "}";
-	$.ajax({
-		  url : requestURI,
-		  type : "PUT",
-		  data : updateResourcedata,
-		  contentType : "application/hal+json; charset=utf-8",
-		  dataType : "html",
-		  success : UpdateSuccessCallback,
-		  error : UpdateErrorCallback
-		});	
+	
+	var oHeaders = {};
+	oHeaders['Content-Type'] = "application/atom+xml; charset=utf-8";
+	oHeaders['DataServiceVersion'] = "2.0";
+	OData.defaultHandler = OData.atomHandler;
+	OData.request( {
+			headers : oHeaders, // object that contains HTTP headers as name value pairs 
+			requestUri: requestURI,
+			method: "PUT",
+			data: data
+			}, UpdateSuccessCallback, ErrorCallback);	
 }
 
 //UpdateResource Suceess callback
-function UpdateSuccessCallback(data, request) {
+function UpdateSuccessCallback(data, response) {
     $("#loading").hide('slow');
     $("#dialog-form").dialog("close");
-    GetUsers();
+    GetEntitySet(response.requestUri);
 }
 
-//UpdateResource Error callback
-function UpdateErrorCallback(xhr, ajaxOptions, thrownError) {
-    alert("Failed to update resource: " + xhr.status + "[" + thrownError + "]");
-    $("#dialog-form").dialog("close");
-}
 //*************************End : Update User (UPDATE)***************************
 
 //*************************Delete User (DELETE)***************************
@@ -331,7 +300,7 @@ function DeleteEntity(entityUri)
                             headers: { Accept: "application/atom+xml" }
                         };
 
-    OData.request(requestOptions, DeleteSuccessCallback, DeleteErrorCallback);
+    OData.request(requestOptions, DeleteSuccessCallback, ErrorCallback);
 }
 
 //DeleteUser Success callback
@@ -346,11 +315,6 @@ function DeleteSuccessCallback(data, request)
     }
 }
 
-//DeleteUser Error callback
-function DeleteErrorCallback(error)
-{
-    alert(error.message)
-}
 //*************************End : Delete User (DELETE)***************************
 
 //*************************Helper Functions***************************
@@ -555,6 +519,12 @@ function AddFormFields(entityName, metadata, formFieldSetElement)
 	else {
     	alert("Failed to find entity " + entityName + " in metadata document.");
 	}
+}
+
+//OData Error callback
+function ErrorCallback(error) {
+    alert(error.message + ": " + error.response.statusCode + "[" + error.response.statusText + "]");
+    $("#dialog-form").dialog("close");
 }
 
 //*************************End : Helper Functions***************************
