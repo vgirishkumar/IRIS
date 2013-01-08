@@ -529,12 +529,14 @@ public class TestResourceStateMachine {
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/notes");
   		ResourceState notesRegex = new ResourceState(ENTITY_NAME, "notesRegex", new ArrayList<Action>(), "/notes()");
   		ResourceState notesEntity = new ResourceState(ENTITY_NAME, "notesEntity", new ArrayList<Action>(), "/notes({id})");
+  		ResourceState notesEntityQuoted = new ResourceState(ENTITY_NAME, "notesEntityQuoted", new ArrayList<Action>(), "/notes('{id}')");
   		ResourceState notesNavProperty = new ResourceState(ENTITY_NAME, "notesEntity", new ArrayList<Action>(), "/notes({id})/{navproperty}");
   		ResourceState duffnotes = new ResourceState(ENTITY_NAME, "duffnotes", new ArrayList<Action>(), "/duff/notes");
 	
   		// create transitions
   		initial.addTransition("GET", notesRegex);
   		initial.addTransition("GET", notesEntity);
+  		initial.addTransition("GET", notesEntityQuoted);
   		initial.addTransition("GET", notesNavProperty);
   		initial.addTransition("GET", duffnotes);
   		
@@ -546,9 +548,9 @@ public class TestResourceStateMachine {
 		assertEquals("Number of states: notesRegex", 1, sm.getResourceStatesForPathRegex("^/notes(\\(\\))").size());
 		assertEquals("Number of states: initial, notesRegex", 2, sm.getResourceStatesForPathRegex("^/notes(|\\(\\))").size());
 		assertEquals("Number of states: notesEntity", 1, sm.getResourceStatesForPathRegex("^/notes(|[\\(.\\)])").size());
-		assertEquals("Number of states: initial, notesRegex, and notesEntity", 3, sm.getResourceStatesForPathRegex("^/notes(|\\(.*\\))").size());
+		assertEquals("Number of states: initial, notesRegex, notesEntityQuoted, and notesEntity", 4, sm.getResourceStatesForPathRegex("^/notes(|\\(.*\\))").size());
 		assertEquals("Number of states: initial, duffnotes", 2, sm.getResourceStatesForPathRegex(".*notes").size());
-		assertEquals("Number of states: all", 5, sm.getResourceStatesForPathRegex(".*notes.*").size());
+		assertEquals("Number of states: all", 6, sm.getResourceStatesForPathRegex(".*notes.*").size());
 	}
 	
 	
