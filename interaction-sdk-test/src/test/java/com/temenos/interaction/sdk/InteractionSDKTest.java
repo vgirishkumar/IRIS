@@ -8,6 +8,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class InteractionSDKTest {
@@ -24,6 +26,7 @@ public class InteractionSDKTest {
     public void setUp() throws VerificationException, IOException {
         Verifier verifier;
         verifier = new Verifier(ROOT.getAbsolutePath());
+        verifier.displayStreamBuffers();
         verifier.deleteArtifact(TEST_GROUP_ID, TEST_ARTIFACT_ID, System.getProperty("flightResponderVersion"), null);		//Remove archetype output artefacts
         verifier.deleteDirectory(TEST_ARTIFACT_ID);											//Remove the maven project
     }
@@ -42,9 +45,10 @@ public class InteractionSDKTest {
     }
 
     @Test
-    public void testCreateFlightResponder() throws VerificationException {
+    public void testCreateFlightResponder() throws VerificationException, InterruptedException {
         //Generate the archetype
         Verifier verifier = new Verifier(ROOT.getAbsolutePath());
+        verifier.displayStreamBuffers();
         verifier.setSystemProperties(getSystemProperties());
         verifier.setAutoclean(false);
         verifier.executeGoal("archetype:generate");
@@ -74,8 +78,61 @@ public class InteractionSDKTest {
         	new VerificationException("Failed to copy INSERT file.");
         }
 
-        //Verify the Flight responder project
+        // Verify the Flight responder project (this target builds the war)
         verifier.executeGoal("verify");
         verifier.verifyErrorFreeLog();
+        System.out.println("Finished responder generate");
+        
+        // start the Flight responder jetty server
+        Helper helper = new Helper(verifier);
+        helper.start();
+        // wail a little while until started
+        System.out.println("Waiting 5 seconds for server start..");
+        Thread.sleep(5000);
+        
+        // run the integration tests
+        Verifier airlineIntTests = new Verifier(new File("../interaction-examples/interaction-odata-airline").getAbsolutePath());
+        verifier.displayStreamBuffers();
+        Properties airlineProps = new Properties();
+        airlineProps.put("TEST_ENDPOINT_URI", "http://localhost:8080/responder/FlightResponder.svc/");
+        airlineIntTests.setSystemProperties(airlineProps);
+        List<String> goals = new ArrayList<String>();
+        goals.add("package");
+        goals.add("failsafe:integration-test");
+        goals.add("failsafe:verify");
+        airlineIntTests.executeGoals(goals);
+        airlineIntTests.verifyErrorFreeLog();
+
+        // stop the Flight responder jetty server
+        helper.stopFlightResponder();
+        verifier.verifyErrorFreeLog();
+        helper.join();
     }
+    
+    
+    private class Helper extends Thread {
+    	private Verifier verifier;
+    	Helper(Verifier verifier) {
+    		this.verifier = verifier;
+    	}
+    	public void run() {
+    		try {
+				startFlightResponder();
+			} catch (VerificationException e) {
+				throw new RuntimeException(e);
+			}
+    	}
+    	void stopFlightResponder() throws VerificationException {
+            Properties props = new Properties();
+            props.put("argLine", "-DstopPort=8005 -DstopKey=STOP");
+            verifier.setSystemProperties(props);
+            verifier.executeGoal("jetty:stop");
+    	}
+    	
+        void startFlightResponder() throws VerificationException {
+        	verifier.setAutoclean(false);
+            verifier.executeGoal("jetty:run");
+        }
+    }
+    
 }
