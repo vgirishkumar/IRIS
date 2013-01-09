@@ -132,11 +132,11 @@ function Link(title, rel, href, type) {
 
 //***********************End: Get GetEntitySet***************************
 
-//*****************************Add Entity (CREATE)***************************
-//Handle Create User Entity button click
+//*****************************Add User (CREATE)***************************
+//Handle Create Entity button click
 function OpenCreateUserDialog() 
 {
-    $("#dialog-form").dialog("option", "title", "Create An Account");
+    $("#dialog-form").dialog("option", "title", "Create An Entity");
     $("#dialog-form").dialog("option", "buttons", [
                                                             {
                                                                 text: "Save",
@@ -285,7 +285,7 @@ function OpenDeleteDialog(entityUri)
 		                        $(this).dialog("close");
 		                    }
 		                },
-		                title: 'Delete Account'
+		                title: 'Delete Entity'
 		            });
         $dialog.dialog('open');
 }
