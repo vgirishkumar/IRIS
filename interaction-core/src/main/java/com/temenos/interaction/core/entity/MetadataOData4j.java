@@ -120,10 +120,7 @@ public class MetadataOData4j {
 							&& !entityTransition.getTarget().isPseudoState()
 							&& !(entityTransition.getSource() instanceof CollectionResourceState)) {		//We can have transitions to a resource state from multiple source states
 						//We can have more than one navigation property for the same association
-						String navPropertyName = targetState.getName();
-						if(entityTransition.getLabel() != null) {
-							navPropertyName += "(" + entityTransition.getLabel() + ")";
-						}
+						String navPropertyName = entityTransition.getLabel() != null ? entityTransition.getLabel() : targetState.getName();
 						EdmAssociation.Builder relationship = bAssociationMap.get(targetState.getName());
 						bEntityType.addNavigationProperties(EdmNavigationProperty
 								.newBuilder(navPropertyName)

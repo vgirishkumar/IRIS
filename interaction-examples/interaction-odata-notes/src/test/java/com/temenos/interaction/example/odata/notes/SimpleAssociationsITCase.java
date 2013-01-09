@@ -151,8 +151,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals("example", person.getProperty("name").getValue());
 
 		// there should be one link to one note for this person
-		assertEquals(2, person.getLinks().size());
-		assertTrue(containsLink(person.getLinks(), "Persons(1)", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
+		assertEquals(1, person.getLinks().size());
 		assertTrue(containsLink(person.getLinks(), "Persons(1)/PersonNotes", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes"));
 		
 	}

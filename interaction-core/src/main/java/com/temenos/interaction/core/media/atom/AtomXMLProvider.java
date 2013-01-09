@@ -225,9 +225,16 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
 		String rel = link.getRel();
 		if(rel.contains("item")) {
-			rel = XmlFormatWriter.related + link.getTransition().getTarget().getEntityName();
+			if(link.getTransition().isGetFromCollectionToEntityResource()) {
+				//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
+				rel = "self";
+			}
+			else {
+				//entry type relations should use the entityType name
+				rel = XmlFormatWriter.related + link.getTransition().getTarget().getEntityName();
+			}
 		} else if (rel.contains("collection")) {
-			rel = XmlFormatWriter.related + link.getTransition().getTarget().getName();
+			rel = XmlFormatWriter.related + link.getTitle();
 		}
 		String href = link.getHref();
 		if(requestContext != null) {

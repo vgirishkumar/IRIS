@@ -2,6 +2,7 @@ package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 
@@ -87,5 +88,33 @@ public class TestTransition {
 		assertEquals("entity.begin>PUT(A)>entity.end", taPut.getId());
 		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "B");
 		assertEquals("entity.begin>GET(B)>entity.end", tb.getId());
+	}
+
+	@Test
+	public void testCheckTransitionFromCollectionToEntityResource() {
+		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+		Transition t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		assertFalse(t.isGetFromCollectionToEntityResource());
+
+		begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+		end = new CollectionResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		assertFalse(t.isGetFromCollectionToEntityResource());
+
+		begin = new CollectionResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+		end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		assertTrue(t.isGetFromCollectionToEntityResource());
+
+		begin = new CollectionResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+		end = new ResourceState("otherEntity", "end", new ArrayList<Action>(), "{id}");
+		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		assertFalse(t.isGetFromCollectionToEntityResource());
+
+		begin = new CollectionResourceState("otherEntity", "begin", new ArrayList<Action>(), "{id}");
+		end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		assertFalse(t.isGetFromCollectionToEntityResource());
 	}
 }
