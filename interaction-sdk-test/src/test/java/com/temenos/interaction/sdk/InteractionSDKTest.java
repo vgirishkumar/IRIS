@@ -1,5 +1,7 @@
 package com.temenos.interaction.sdk;
 
+import static org.junit.Assert.assertFalse;
+
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
 import org.apache.maven.it.util.FileUtils;
@@ -83,56 +85,74 @@ public class InteractionSDKTest {
         verifier.verifyErrorFreeLog();
         System.out.println("Finished responder generate");
         
-        // start the Flight responder jetty server
-        Helper helper = new Helper(verifier);
-        helper.start();
-        // wail a little while until started
-        System.out.println("Waiting 5 seconds for server start..");
-        Thread.sleep(5000);
-        
-        // run the integration tests
+        // create a thread to run the integration tests
         Verifier airlineIntTests = new Verifier(new File("../interaction-examples/interaction-odata-airline").getAbsolutePath());
-        verifier.displayStreamBuffers();
-        Properties airlineProps = new Properties();
-        airlineProps.put("TEST_ENDPOINT_URI", "http://localhost:8080/responder/FlightResponder.svc/");
-        airlineIntTests.setSystemProperties(airlineProps);
-        List<String> goals = new ArrayList<String>();
-        goals.add("package");
-        goals.add("failsafe:integration-test");
-        goals.add("failsafe:verify");
-        airlineIntTests.executeGoals(goals);
-        airlineIntTests.verifyErrorFreeLog();
+        Helper helper = new Helper(airlineIntTests);
+        helper.start();
 
-        // stop the Flight responder jetty server
-        helper.stopFlightResponder();
-        verifier.verifyErrorFreeLog();
+        // start the Flight responder jetty server
+        startFlightResponder(verifier);
+
+        // wait for the tests to finish
         helper.join();
+        assertFalse(helper.hasFailed());
     }
     
     
     private class Helper extends Thread {
     	private Verifier verifier;
+    	private boolean failed = false;
     	Helper(Verifier verifier) {
     		this.verifier = verifier;
     	}
+    	public boolean hasFailed() {
+    		return failed;
+    	}
     	public void run() {
     		try {
-				startFlightResponder();
+    	        // wait a little while until started
+    	        System.out.println("Waiting 10 seconds for server start..");
+    	        Thread.sleep(10000);
+    	        // run the integration tests
+    	        verifier.displayStreamBuffers();
+    	        Properties airlineProps = new Properties();
+    	        airlineProps.put("TEST_ENDPOINT_URI", "http://localhost:8080/responder/FlightResponder.svc/");
+    	        verifier.setSystemProperties(airlineProps);
+    	        List<String> goals = new ArrayList<String>();
+    	        goals.add("package");
+    	        goals.add("failsafe:integration-test");
+    	        goals.add("failsafe:verify");
+    	        verifier.executeGoals(goals);
+    	        verifier.verifyErrorFreeLog();
+			} catch (InterruptedException e) {
+				failed = true;
 			} catch (VerificationException e) {
+				e.printStackTrace();
+				failed = true;
+			}
+            try {
+				// stop the Flight responder jetty server
+				stopFlightResponder();
+			} catch (VerificationException e) {
+				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
     	}
-    	void stopFlightResponder() throws VerificationException {
-            Properties props = new Properties();
-            props.put("argLine", "-DstopPort=8005 -DstopKey=STOP");
-            verifier.setSystemProperties(props);
-            verifier.executeGoal("jetty:stop");
-    	}
-    	
-        void startFlightResponder() throws VerificationException {
-        	verifier.setAutoclean(false);
-            verifier.executeGoal("jetty:run");
-        }
     }
-    
+
+	void stopFlightResponder() throws VerificationException {
+        Verifier verifier = new Verifier(ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID);
+        verifier.displayStreamBuffers();
+        verifier.setAutoclean(false);
+//        Properties props = new Properties();
+//        props.put("argLine", "-DstopPort=8005 -DstopKey=STOP");
+//        verifier.setSystemProperties(props);
+        verifier.executeGoal("jetty:stop");
+	}
+	
+    void startFlightResponder(Verifier verifier) throws VerificationException {
+    	verifier.setAutoclean(false);
+        verifier.executeGoal("jetty:run");
+    }
+
 }

@@ -38,19 +38,16 @@ public class ODataAssociationsITCase {
 	/**
 	 * GET collection, check link to self and other entities for each item
 	 */
-	//@Test
-	public void getFlightsLinksToFlight() throws Exception {
+	@Test
+	public void getFlightsLinksToFlightSchedule() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		Enumerable<OEntity> flights = consumer.getEntities(FLIGHT_ENTITYSET_NAME).execute();
 		assertEquals(4, flights.toSet().size());
 		for (OEntity flight : flights.toSet()) {
-			Long id = (Long) flight.getProperty("flightID").getValue();
-			Long flightScheduleId = (Long) flight.getProperty("flightScheduleID").getValue();
+			Long flightScheduleId = (Long) flight.getProperty("flightScheduleNum").getValue();
 
-			assertEquals(2, flight.getLinks().size());
-			// there should be one link to self
-			assertTrue(containsLink(flight.getLinks(), FLIGHT_ENTITYSET_NAME + "(" + id + ")"));
+			assertEquals(1, flight.getLinks().size());
 			// there should be one link to one flight schedule for this flight
 			assertTrue(containsLink(flight.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + flightScheduleId + ")"));
 		}
@@ -76,7 +73,7 @@ public class ODataAssociationsITCase {
 	 * GET collection, check link to self and other entities for each item
 	 */
 	@Test
-	public void getFlightSchedulessLinksToFlightSchedule() throws Exception {
+	public void getFlightSchedulesLinksToFlightSchedule() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		Enumerable<OEntity> flightSchedules = consumer.getEntities(FLIGHT_SCHEDULE_ENTITYSET_NAME).execute();
@@ -85,11 +82,13 @@ public class ODataAssociationsITCase {
 		for (OEntity flightSchedule : flightSchedules.toSet()) {
 			Long id = (Long) flightSchedule.getProperty("flightScheduleID").getValue();
 
-			assertEquals(2, flightSchedule.getLinks().size());
+			assertEquals(3, flightSchedule.getLinks().size());
+			// there should be one link to self
+			assertTrue(containsLink(flightSchedule.getLinks(), "FlightsFiltered(flightScheduleNum%20eq%20'" + id + "')", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/flights"));
 			// there should be one link to one departureAirport for this flight schedule
-			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport"));
+			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
 			// there should be one link to one departureAirport for this flight schedule
-			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/arrivalAirport"));
+			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/arrivalAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
 		}
 	}
 
@@ -104,7 +103,9 @@ public class ODataAssociationsITCase {
 		Long id = (Long) flightSchedule.getProperty("flightScheduleID").getValue();
 		assertEquals(2, id.intValue());
 
-		assertEquals(2, flightSchedule.getLinks().size());
+		assertEquals(3, flightSchedule.getLinks().size());
+		// there should be one link to one flight
+		assertTrue(containsLink(flightSchedule.getLinks(), "FlightsFiltered(flightScheduleNum%20eq%20'2')"));
 		// there should be one link to one departureAirport for this flight schedule
 		assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport"));
 		// there should be one link to one departureAirport for this flight schedule
@@ -145,16 +146,16 @@ public class ODataAssociationsITCase {
 
 			assertEquals(2, airport.getLinks().size());
 			// there should be one link to departures
-			assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(departureAirportCode%20eq%20'MIA')"));
+			assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(departureAirportCode%20eq%20'" + code + "')"));
 			// there should be one link to arrivals
-			assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(arrivalAirportCode%20eq%20'MIA')"));
+			assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(arrivalAirportCode%20eq%20'" + code + "')"));
 		}
 	}
 
 	/**
 	 * GET item, check link to another entity
 	 */
-	//@Test
+	@Test
 	public void getAirportLinksToArrivalsDepartures() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
 
@@ -164,15 +165,15 @@ public class ODataAssociationsITCase {
 
 		assertEquals(2, airport.getLinks().size());
 		// there should be one link to one departures
-		assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "(" + code + ")/departures"));
+		assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(departureAirportCode%20eq%20'" + code + "')"));
 		// there should be one link to one departureAirport for this flight schedule
-		assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "(" + code + ")/arrivals"));
+		assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(arrivalAirportCode%20eq%20'" + code + "')"));
 	}
 
 	/**
 	 * GET nav properties for an item
 	 */
-	@Test
+//	@Test
 	public void getAirportNavProperties() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
 
@@ -200,5 +201,16 @@ public class ODataAssociationsITCase {
 		return contains;
 	}
 	
+	private boolean containsLink(List<OLink> links, String link, String relation) {
+		assert(links != null);
+		boolean contains = false;
+		for (OLink l : links) {
+			if (l.getHref().equals(link) && (relation == null || l.getRelation().equals(relation))) {
+				contains = true;
+			}
+		}
+		return contains;
+	}
+
 
 }

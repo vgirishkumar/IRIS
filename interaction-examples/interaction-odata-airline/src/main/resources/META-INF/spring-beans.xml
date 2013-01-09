@@ -122,10 +122,7 @@
 	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-    <bean id="GETNavPropertydepartures" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-        <constructor-arg name="producer" ref="odataProducer" />
-    </bean>
-    <bean id="GETNavPropertyarrivals" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+    <bean id="GETEntitiesFiltered" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
         <constructor-arg name="producer" ref="odataProducer" />
     </bean>
     <bean id="GETNavPropertyflightSchedule" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
@@ -140,6 +137,12 @@
 	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
+    <bean id="UpdateEntity" class="com.temenos.interaction.commands.odata.UpdateEntityCommand">
+        <constructor-arg name="producer" ref="odataProducer" />
+    </bean>
+    <bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
+        <constructor-arg name="producer" ref="odataProducer" />
+    </bean>
 
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -149,9 +152,10 @@
 				<entry key="GETMetadata" value-ref="GETMetadata" />
 				<entry key="GETEntity" value-ref="GETEntity" />
 				<entry key="GETEntities" value-ref="GETEntities" />
+                <entry key="GETEntitiesFiltered" value-ref="GETEntitiesFiltered" />
                 <entry key="CreateEntity" value-ref="CreateEntity" />
-                <entry key="GETNavPropertydepartures" value-ref="GETNavPropertydepartures" />
-                <entry key="GETNavPropertyarrivals" value-ref="GETNavPropertyarrivals" />
+                <entry key="UpdateEntity" value-ref="UpdateEntity" />
+                <entry key="DeleteEntity" value-ref="DeleteEntity" />
                 <entry key="GETNavPropertyflightSchedule" value-ref="GETNavPropertyflightSchedule" />
                 <entry key="GETNavPropertydepartureAirport" value-ref="GETNavPropertydepartureAirport" />
                 <entry key="GETNavPropertyarrivalAirport" value-ref="GETNavPropertyarrivalAirport" />
