@@ -59,6 +59,19 @@ public class Transition {
 		}
 	}
 	
+	/**
+	 * Indicates whether this is a GET transition from a collection resource state
+	 * to an entity resource state within the same entity.
+	 * @return true/false
+	 */
+	public boolean isGetFromCollectionToEntityResource() {
+		return source != null && command.getMethod() != null &&
+				command.getMethod().equals("GET") &&
+				source.getEntityName().equals(target.getEntityName()) &&
+				source instanceof CollectionResourceState &&
+				target instanceof ResourceState;		
+	}
+	
 	public boolean equals(Object other) {
 		//check for self-comparison
 	    if ( this == other ) return true;
