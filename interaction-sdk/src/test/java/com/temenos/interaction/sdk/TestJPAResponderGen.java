@@ -27,7 +27,7 @@ import com.temenos.interaction.sdk.interaction.InteractionModel;
 public class TestJPAResponderGen {
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
 	public final static String EDMX_AIRLINE_FILE = "airlines.edmx";
-	private final static String RIM_LINE_SEP = "\r\n";
+	private final static String RIM_LINE_SEP = System.getProperty("line.separator");
 	
 	//Mock out methods that write contents to files
 	class MockGenerator extends JPAResponderGen {
