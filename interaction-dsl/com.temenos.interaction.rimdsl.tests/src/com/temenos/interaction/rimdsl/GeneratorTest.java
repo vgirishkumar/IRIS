@@ -192,7 +192,7 @@ public class GeneratorTest {
 	"initial resource B" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"	actions { DoSomeStuff, DoSomeMoreStuff }" + LINE_SEP +
+	"	actions { DoSomeStuff; DoSomeMoreStuff }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"";
 

@@ -8,10 +8,7 @@ commands
 	GETEntity
 	GETEntities
 	CreateEntity
-	GETNavPropertydepartures entity=Airport, navproperty=navdepartures
-	GETNavPropertyarrivals entity=Airport, navproperty=navarrivals
-	GETNavPropertydepartureAirport entity=FlightSchedule, navproperty=navdepartureAirport
-	GETNavPropertyarrivalAirport entity=FlightSchedule, navproperty=navarrivalAirport
+	GETNavProperty
 end
 
 initial resource ServiceDocument
@@ -46,15 +43,15 @@ end
 
 resource departures
 	collection FlightSchedule
-	view { GETNavPropertydepartures }
-	path "/Airports('{id}')/{navdepartures}"
+	view { GETNavProperty entity=Airport, navproperty=navdepartures }
+	path "/Airports('{id}')/departures"
 	GET -> FlightSchedules id=flightScheduleID
 end
 
 resource arrivals
 	collection FlightSchedule
-	view { GETNavPropertyarrivals }
-	path "/Airports('{id}')/{navarrivals}"
+	view { GETNavProperty entity=Airport, navproperty=navarrivals }
+	path "/Airports('{id}')/arrivals"
 	GET -> FlightSchedules id=flightScheduleID
 end
 
@@ -106,14 +103,14 @@ end
 
 resource departureAirport
 	item Airport
-	view { GETNavPropertydepartureAirport }
-	path "/FlightSchedules({id})/{navdepartureAirport}"
+	view { GETNavProperty entity=FlightSchedule, navproperty=navdepartureAirport }
+	path "/FlightSchedules({id})/departureAirport"
 	GET -> airport id=code
 end
 
 resource arrivalAirport
 	item Airport
-	view { GETNavPropertyarrivalAirport }
-	path "/FlightSchedules({id})/{navarrivalAirport}"
+	view { GETNavProperty entity=FlightSchedule, navproperty=navarrivalAirport }
+	path "/FlightSchedules({id})/arrivalAirport"
 	GET -> airport id=code
 end

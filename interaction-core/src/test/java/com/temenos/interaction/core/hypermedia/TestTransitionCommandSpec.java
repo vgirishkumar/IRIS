@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
 public class TestTransitionCommandSpec {
@@ -41,6 +44,18 @@ public class TestTransitionCommandSpec {
 	}
 
 	@Test
+	public void testEqualityWithParameters() {
+		Map<String, String> params1 = new HashMap<String, String>();
+		params1.put("param", "hello");
+		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", "/test", 0, null, params1);
+		Map<String, String> params2 = new HashMap<String, String>();
+		params2.put("param", "hello");
+		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", "/test", 0, null, params2);
+		assertEquals(tcs, tcs2);
+		assertEquals(tcs.hashCode(), tcs2.hashCode());
+	}
+	
+	@Test
 	public void testInequality() {
 		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", "/test", 0);
 		TransitionCommandSpec tcs2 = new TransitionCommandSpec("PUT", "/test", 0);
@@ -52,6 +67,18 @@ public class TestTransitionCommandSpec {
 		assertFalse(tcs.hashCode() == tcs3.hashCode());
 		assertFalse(tcs.equals(tcs4));
 		assertFalse(tcs.hashCode() == tcs4.hashCode());
+	}
+
+	@Test
+	public void testInequalityWithParameters() {
+		Map<String, String> params1 = new HashMap<String, String>();
+		params1.put("param", "hello");
+		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", "/test", 0, null, params1);
+		Map<String, String> params2 = new HashMap<String, String>();
+		params2.put("param", "HELLO");
+		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", "/test", 0, null, params2);
+		assertFalse(tcs.equals(tcs2));
+		assertFalse(tcs.hashCode() == tcs2.hashCode());
 	}
 
 	@Test

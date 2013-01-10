@@ -1,5 +1,7 @@
 package com.temenos.interaction.core.hypermedia;
 
+import java.util.Map;
+
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 
 /**
@@ -13,8 +15,7 @@ public class TransitionCommandSpec {
 	private final int flags;
 	// conditional link evaluation expression 
 	private final ResourceGETExpression evaluation;
-	// TODO will need to define query params for transitions
-	//private final List<String> queryParams;
+	private final Map<String, String> parameters;
 	
 	protected TransitionCommandSpec(String method, String path) {
 		this(method, path, 0);
@@ -25,10 +26,15 @@ public class TransitionCommandSpec {
 	}
 	
 	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation) {
+		this(method, path, flags, evaluation, null);
+	}
+
+	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation, Map<String, String> parameters) {
 		this.method = method;
 		this.path = path;
 		this.flags = flags;
 		this.evaluation = evaluation;
+		this.parameters = parameters;
 	}
 	
 	public String getPath() {
@@ -47,6 +53,10 @@ public class TransitionCommandSpec {
 		return evaluation;
 	}
 
+	public Map<String, String> getParameters() {
+		return parameters;
+	}
+	
 	/**
 	 * Is this transition command to be applied to each item in a collection?
 	 * @return
@@ -69,13 +79,15 @@ public class TransitionCommandSpec {
 		TransitionCommandSpec otherObj = (TransitionCommandSpec) other;
 		return this.getFlags() == otherObj.getFlags() &&
 				((this.getPath() == null && otherObj.getPath() == null) || (this.getPath() != null && this.getPath().equals(otherObj.getPath()))) &&
-				((this.getMethod() == null && otherObj.getMethod() == null) || (this.getMethod() != null && this.getMethod().equals(otherObj.getMethod())));
+				((this.getMethod() == null && otherObj.getMethod() == null) || (this.getMethod() != null && this.getMethod().equals(otherObj.getMethod())) &&
+				((this.getParameters() == null && otherObj.getParameters() == null) || (this.getParameters() != null && this.getParameters().equals(otherObj.getParameters()))));
 	}
 	
 	public int hashCode() {
 		return this.flags 
 				+ (this.path != null ? this.path.hashCode() : 0)
-				+ (this.method != null ? this.method.hashCode() : 0);
+				+ (this.method != null ? this.method.hashCode() : 0)
+				+ (this.parameters != null ? this.parameters.hashCode() : 0);
 	}
 	
 	public String toString() {
@@ -90,6 +102,13 @@ public class TransitionCommandSpec {
 			if (evaluation.getFunction().equals(ResourceGETExpression.Function.NOT_FOUND))
 				sb.append("NOT_FOUND").append(evaluation.getState()).append(")");
 			sb.append(")");
+		}
+		if (parameters != null) {
+			sb.append(" ");
+			for(String key : parameters.keySet()) {
+				String value = parameters.get(key);
+				sb.append(key + "=" + value);
+			}
 		}
 		return sb.toString();
 	}

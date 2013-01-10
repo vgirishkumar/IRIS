@@ -255,7 +255,7 @@ public class TestResourceState {
 	@Test
 	public void testAddMultipleTransitionsToSameState() {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
-		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights({filter})", null, null);
+		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
 
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");

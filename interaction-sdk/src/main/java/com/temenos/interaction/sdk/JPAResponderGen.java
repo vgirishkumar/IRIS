@@ -163,6 +163,7 @@ public class JPAResponderGen {
 					if(isTargetCollection) {
 						String linkPropertyOrigin = getLinkPropertyOrigin(association.getName(), edmxFile);
 						filter = linkProperty + " eq '{" + linkPropertyOrigin + "}'";
+						linkProperty = np.getName();
 					}
 					String linkTitle = np.getName();
 					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm, filter, linkTitle);
@@ -886,8 +887,8 @@ public class JPAResponderGen {
 		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.GET_ENTITIES_FILTERED, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES_FILTERED, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		
 		return commands;
 	}

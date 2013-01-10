@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -116,5 +118,22 @@ public class TestTransition {
 		end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
 		assertFalse(t.isGetFromCollectionToEntityResource());
+	}
+
+	@Test
+	public void testIdMultiTransitionsWithParametersNoLabel() {
+		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("paramA", "hello A");
+		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, params), end);
+		Transition taPut = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
+		assertEquals("entity.begin>GET(hello A)>entity.end", ta.getId());
+		assertEquals("entity.begin>PUT>entity.end", taPut.getId());
+		params = new HashMap<String, String>();
+		params.put("paramB", "hello B");
+		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, params), end);
+		assertEquals("entity.begin>GET(hello B)>entity.end", tb.getId());
 	}
 }
