@@ -305,9 +305,10 @@ public class ResourceState implements Comparable<ResourceState> {
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
 
 		//Replace uri elements with linkage properties
+		String mappedResourcePath = resourcePath;
 		if (uriLinkageMap != null) {
 			for (String templateElement : uriLinkageMap.keySet()) {
-				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
+				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
 			}
 		}
 		if (uriLinkageProperties != null) {
@@ -327,7 +328,7 @@ public class ResourceState implements Comparable<ResourceState> {
 						}
 					}				
 				}						
-				resourcePath = resourcePath.replaceAll("\\{" + propKey + "\\}", uriLinkageProperties.get(propKey));
+				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + propKey + "\\}", uriLinkageProperties.get(propKey));
 			}
 		}
 		
@@ -345,7 +346,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		this.uriLinkageProperties = uriLinkageProperties != null ? new HashMap<String, String>(uriLinkageProperties) : null;
 		
 		//Create the transition
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, eval, uriLinkageProperties);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, eval, resourcePath, uriLinkageProperties);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.put(commandSpec, transition);

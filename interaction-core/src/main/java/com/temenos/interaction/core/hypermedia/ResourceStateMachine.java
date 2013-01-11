@@ -194,7 +194,7 @@ public class ResourceStateMachine {
 			List<Transition> transitions = currentState.getTransitions(next);
 			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
-				String path = command.getPath();
+				String path = command.getOriginalPath();
 				
 				interactions = result.get(path);
 				if (interactions == null)

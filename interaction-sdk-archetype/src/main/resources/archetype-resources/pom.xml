@@ -55,6 +55,8 @@
         <artifactId>maven-jetty-plugin</artifactId>
         <version>6.1.26</version>
         <configuration>
+          <stopPort>8005</stopPort>
+          <stopKey>STOP</stopKey>
           <!-- Configure the webapp -->
           <contextPath>/responder</contextPath>
         </configuration>

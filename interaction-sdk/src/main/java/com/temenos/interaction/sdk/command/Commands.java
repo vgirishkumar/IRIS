@@ -17,8 +17,8 @@ public class Commands {
 	public final static String GET_ENTITY = "GETEntity";
 	public final static String GET_ENTITIES = "GETEntities";
 	public final static String GET_NAV_PROPERTY = "GETNavProperty";
-	public final static String POST_ENTITY = "POSTEntity";
 	public final static String CREATE_ENTITY = "CreateEntity";
+	public final static String UPDATE_ENTITY = "UpdateEntity";
 	public final static String DELETE_ENTITY = "DeleteEntity";
 	public final static String GET_LINK_ENTITY = "GETLinkEntity";
 	

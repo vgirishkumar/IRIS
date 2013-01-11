@@ -165,8 +165,8 @@ public class HypermediaITCase extends JerseyTest {
 	 */
 	@Test
 	public void putMethodNotAllowed() throws Exception {
-		RepresentationFactory representationFactory = new RepresentationFactory("https://example.com/");
-		ReadableRepresentation r = representationFactory.newRepresentation("~/xyz/123");
+		RepresentationFactory representationFactory = new RepresentationFactory(Configuration.TEST_ENDPOINT_URI);
+		ReadableRepresentation r = representationFactory.newRepresentation("~/fundtransfers/123");
 		String halRequest = r.renderContent(RepresentationFactory.HAL_XML);
 		
 		// attempt to put to the notes collection, rather than an individual
@@ -177,6 +177,20 @@ public class HypermediaITCase extends JerseyTest {
         assertTrue(response.getAllow().contains("GET"));
         assertTrue(response.getAllow().contains("OPTIONS"));
         assertTrue(response.getAllow().contains("HEAD"));
+	}
+
+	/**
+	 * Attempt to PUT an invalid resource representation.  The supplied self link is not correctly formed.
+	 */
+	@Test
+	public void putInvalidResource() throws Exception {
+		RepresentationFactory representationFactory = new RepresentationFactory("https://example.com/");
+		ReadableRepresentation r = representationFactory.newRepresentation("~/xyz/123");
+		String halRequest = r.renderContent(RepresentationFactory.HAL_XML);
+		
+		// attempt to put to the notes collection, rather than an individual
+		ClientResponse response = webResource.path("/fundtransfers").type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
+        assertEquals(400, response.getStatus());
 	}
 
 }

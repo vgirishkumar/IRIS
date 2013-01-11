@@ -17,28 +17,39 @@ public class TransitionCommandSpec {
 	private final ResourceGETExpression evaluation;
 	private final Map<String, String> parameters;
 	
-	protected TransitionCommandSpec(String method, String path) {
+	// the original unmapped resourcePath (required to form a correct interaction map by paths)
+	private final String originalPath;
+		protected TransitionCommandSpec(String method, String path) {
 		this(method, path, 0);
 	}
 
 	protected TransitionCommandSpec(String method, String path, int flags) {
-		this(method, path, flags, null);
+		this(method, path, flags, null, path);
 	}
 	
-	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation) {
-		this(method, path, flags, evaluation, null);
+	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation, String originalPath) {
+		this(method, path, flags, evaluation, originalPath, null);
 	}
 
 	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation, Map<String, String> parameters) {
+		this(method, path, flags, evaluation, path, parameters);
+	}
+	
+	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation, String originalPath, Map<String, String> parameters) {
 		this.method = method;
 		this.path = path;
 		this.flags = flags;
 		this.evaluation = evaluation;
+		this.originalPath = originalPath;		
 		this.parameters = parameters;
 	}
 	
 	public String getPath() {
 		return path;
+	}
+	
+	public String getOriginalPath() {
+		return originalPath;
 	}
 	
 	public int getFlags() {

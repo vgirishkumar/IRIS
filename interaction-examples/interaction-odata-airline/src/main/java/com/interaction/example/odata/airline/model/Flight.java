@@ -13,7 +13,7 @@ public class Flight {
 	@Id
 	@Basic(optional = false)
 	private Long flightID;
-	private Long flightScheduleID;
+	private Long flightScheduleNum;
 	@Temporal(TemporalType.TIMESTAMP)
 	private java.util.Date takeoffTime;
 		

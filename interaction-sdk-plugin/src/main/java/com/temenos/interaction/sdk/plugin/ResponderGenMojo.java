@@ -7,6 +7,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import com.temenos.interaction.sdk.JPAResponderGen;
+import com.temenos.interaction.sdk.adapter.edmx.EDMXAdapter;
 
 /**
  * A Maven plugin that generates a responder from a given EDMX file.
@@ -90,7 +91,7 @@ public class ResponderGenMojo extends AbstractMojo {
 		JPAResponderGen rg = new JPAResponderGen(strictOdata);
 		if (edmxFile.exists()) {
 			getLog().info("Generating artifacts (strict odata compliance: " + (strictOdata ? "true" : "false") + ")");
-			ok = rg.generateArtifacts(edmxFile.getAbsolutePath(), srcTargetDir, configTargetDir);
+			ok = rg.generateArtifacts(new EDMXAdapter(edmxFile.getAbsolutePath()), srcTargetDir, configTargetDir);
 		}
 		else {
 			getLog().error("EDMX file does not exist.");

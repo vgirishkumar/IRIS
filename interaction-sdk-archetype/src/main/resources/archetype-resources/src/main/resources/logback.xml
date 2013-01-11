@@ -9,12 +9,12 @@
 
   <!-- Log debug information about links -->
   <logger name="com.temenos.interaction.core.hypermedia">
-    <level value="WARN" />
+    <level value="INFO" />
   </logger>
 
   <!-- Log debug information about resource interactions -->
   <logger name="com.temenos.interaction.core.rim">
-    <level value="WARN" />
+    <level value="INFO" />
   </logger>
 
   <!-- Log all resource endpoints -->

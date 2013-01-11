@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -410,15 +411,19 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
 			for (String path : pathToResourceStates.keySet()) {
 				for (ResourceState s : pathToResourceStates.get(path)) {
+					String pathIdParameter = InteractionContext.DEFAULT_ID_PATH_ELEMENT;
 					if (s.getPathIdParameter() != null) {
-						Matcher matcher = Pattern.compile("(.*)\\{" + s.getPathIdParameter() + "\\}(.*)").matcher(path);
-						matcher.find();
-						if (matcher.groupCount() == 1 && path.startsWith(matcher.group(1)) ||
-							matcher.groupCount() == 2 && path.startsWith(matcher.group(1)) && path.endsWith(matcher.group(2))) {
+						pathIdParameter = s.getPathIdParameter();
+					}
+					Matcher matcher = Pattern.compile("(.*)\\{" + pathIdParameter + "\\}(.*)").matcher(path);
+					if (matcher.find()) {
+						int groupCount = matcher.groupCount();
+						if ((groupCount == 1 && resourcePath.startsWith(matcher.group(1))) ||
+							(groupCount == 2 && resourcePath.startsWith(matcher.group(1)) && resourcePath.endsWith(matcher.group(2)))) {
 							entityName = s.getEntityName();
 						}
 					}
-					else if(path.startsWith(resourcePath)) {
+					if (entityName == null && path.startsWith(resourcePath)) {
 						entityName = s.getEntityName();
 					}
 				}
