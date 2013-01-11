@@ -45,11 +45,11 @@ public class ODataAssociationsITCase {
 		Enumerable<OEntity> flights = consumer.getEntities(FLIGHT_ENTITYSET_NAME).execute();
 		assertEquals(4, flights.toSet().size());
 		for (OEntity flight : flights.toSet()) {
-			Long flightScheduleId = (Long) flight.getProperty("flightScheduleNum").getValue();
+			Long flightID = (Long) flight.getProperty("flightID").getValue();
 
 			assertEquals(1, flight.getLinks().size());
 			// there should be one link to one flight schedule for this flight
-			assertTrue(containsLink(flight.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + flightScheduleId + ")"));
+			assertTrue(containsLink(flight.getLinks(), FLIGHT_ENTITYSET_NAME + "(" + flightID + ")/flightSchedule"));
 		}
 	}
 
@@ -61,12 +61,12 @@ public class ODataAssociationsITCase {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 
 		OEntity flight = consumer.getEntity(FLIGHT_ENTITYSET_NAME, 2).execute();
-		Long id = (Long) flight.getProperty("flightID").getValue();
-		assertEquals(2, id.intValue());
+		Long flightID = (Long) flight.getProperty("flightID").getValue();
+		assertEquals(2, flightID.intValue());
 
 		// there should be one link to one flight schedule for this flight
 		assertEquals(1, flight.getLinks().size());
-		assertTrue(containsLink(flight.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(2055)"));
+		assertTrue(containsLink(flight.getLinks(), FLIGHT_ENTITYSET_NAME + "(" + flightID + ")/flightSchedule"));
 	}
 
 	/**

@@ -115,7 +115,6 @@ public class TestCommandHelper {
         return ctx;
 	}
 
-	@SuppressWarnings("unchecked")
 	private InteractionContext createInteractionContextWithQueryParams(String entity, String id) {
 		ResourceState resourceState = mock(ResourceState.class);
 		when(resourceState.getEntityName()).thenReturn(entity);

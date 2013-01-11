@@ -76,6 +76,8 @@ public class JPAResponderGen {
 	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
 	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
 			
+	private final boolean strictOData; 		//Indicates whether it should generate strict odata paths etc. (e.g. Flight(1)/flightschedule rather than FlightSchedule(2051))
+	
 	/*
 	 *  create a new instance of the engine
 	 */
@@ -85,12 +87,22 @@ public class JPAResponderGen {
 	 * Construct an instance of this class
 	 */
 	public JPAResponderGen() {
+		this(true);
+	}
+
+	/**
+	 * Construct an instance of this class
+	 * @param strictOData indicates whether to generate a strict odata model
+	 */
+	public JPAResponderGen(boolean strictOData) {
+		this.strictOData = strictOData;
+		
 		// load .vm templates using classloader
 		ve.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
 		ve.setProperty("classpath." + VelocityEngine.RESOURCE_LOADER + ".class", ClasspathResourceLoader.class.getName());
 		ve.init();
 	}
-
+	
 	/**
 	 * Generate project artefacts from an EDMX file.
 	 * @param edmxFile EDMX file
@@ -188,14 +200,6 @@ public class JPAResponderGen {
 		
 		//Create commands
 		Commands commands = getDefaultCommands(interactionModel);
-		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
-			for(IMTransition transition : rsm.getTransitions()) {
-				if(!transition.isCollectionState()) {
-					String cmdId = Commands.GET_NAV_PROPERTY + transition.getTargetStateName();
-					commands.addCommand(cmdId, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", cmdId, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-				}
-			}
-		}
 		
 		//Obtain resource information
 		List<EntityInfo> entitiesInfo = new ArrayList<EntityInfo>();
@@ -293,7 +297,7 @@ public class JPAResponderGen {
 		// generate the rim DSL
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
 		String rimDslFilename = modelName + ".rim";
-		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands))) {
+		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands, strictOData))) {
 			ok = false;
 		}
 

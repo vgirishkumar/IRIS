@@ -29,10 +29,10 @@ resource ${rsm.getCollectionStateName()}
 #foreach ( $transition in $rsm.getTransitions() )
 #if ($transition.isCollectionState()) 
 	GET ${transition.getTitleAssignment()}*-> ${rsm.getEntityStateName()}_${transition.getLinkProperty()} id=${rsm.getMappedEntityProperty()}, filter="${transition.getFilter()}"
-#elseif(!$transition.isUniqueTransition())
+#elseif($strictOData)
 	GET ${transition.getTitleAssignment()}*-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, navproperty="${transition.getTargetStateName()}"
 #else
-	GET *-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
+	GET ${transition.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
 #end
 #end
 end
@@ -51,10 +51,10 @@ resource ${rsm.getEntityStateName()}
 #foreach ( $transition in $rsm.getTransitions() )
 #if ($transition.isCollectionState()) 
 	GET ${transition.getTitleAssignment()}-> ${rsm.getEntityStateName()}_${transition.getLinkProperty()} id=${rsm.getMappedEntityProperty()}, filter="${transition.getFilter()}"
-#elseif(!$transition.isUniqueTransition())
+#elseif($strictOData)
 	GET ${transition.getTitleAssignment()}-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}, navproperty="${transition.getTargetStateName()}"
 #else
-	GET -> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
+	GET ${transition.getTitleAssignment()}-> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getLinkProperty()}
 #end
 #end
 end
@@ -70,20 +70,19 @@ resource ${rsm.getEntityStateName()}_${transition.getLinkProperty()}
 #foreach ( $transitionTarget in $transition.getTargetResourceStateMachine().getTransitions() )
 #if ($transitionTarget.isCollectionState()) 
 	GET ${transitionTarget.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getEntityStateName()}_${transitionTarget.getLinkProperty()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}, filter="${transitionTarget.getFilter()}"
-#elseif(!$transitionTarget.isUniqueTransition())
+#elseif($strictOData)
 	GET ${transitionTarget.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getEntityStateName()}_${transitionTarget.getTargetStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}, navproperty="${transitionTarget.getTargetStateName()}"
 #else
-	GET *-> ${transitionTarget.getTargetResourceStateMachine().getEntityStateName()} id=${transitionTarget.getLinkProperty()}
+	GET ${transitionTarget.getTitleAssignment()}*-> ${transitionTarget.getTargetResourceStateMachine().getEntityStateName()} id=${transitionTarget.getLinkProperty()}
 #end
 #end
 end
-#elseif(!$transition.isUniqueTransition())#*
+#elseif($strictOData)#*
 	Transition to entity resource state*#
 resource ${rsm.getEntityStateName()}_${transition.getTargetStateName()}
 	item ${transition.getTargetEntityName()}
 	view { GETNavProperty navproperty=navproperty, entity=${rsm.getEntityName()} }
 	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})/${transition.getTargetStateName()}"
-	GET -> ${transition.getTargetResourceStateMachine().getEntityStateName()} id=${transition.getTargetResourceStateMachine().getMappedEntityProperty()}
 end
 #end
 #end

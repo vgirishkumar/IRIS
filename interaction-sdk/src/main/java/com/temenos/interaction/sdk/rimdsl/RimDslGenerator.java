@@ -27,10 +27,11 @@ public class RimDslGenerator {
 		assert(velocityEngine != null);
 	}
 
-	public String generateRimDsl(InteractionModel interactionModel, Commands commands) {
+	public String generateRimDsl(InteractionModel interactionModel, Commands commands, boolean strictOData) {
 		VelocityContext context = new VelocityContext();
 		context.put("rim", interactionModel);
 		context.put("commands", commands);
+		context.put("strictOData", strictOData);
 		
 		Template t = velocityEngine.getTemplate("/RIM-DSL.vm");
 		StringWriter sw = new StringWriter();

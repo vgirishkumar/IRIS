@@ -27,6 +27,7 @@ public class TestRimDslGenerator {
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
 	public final static String RIM_DSL_AIRLINE_SIMPLE_FILE = "AirlinesSimple.rim";
 	public final static String RIM_DSL_AIRLINE_FILE = "Airlines.rim";
+	public final static String RIM_DSL_AIRLINE_NON_STRICT_ODATA_FILE = "AirlinesNonStrictOData.rim";
 	
 	public final static Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
 	public final static Parameter COMMAND_EDM_DATA_SERVICES = new Parameter("edmDataServices", true, "");
@@ -55,7 +56,7 @@ public class TestRimDslGenerator {
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
-		String dsl = generator.generateRimDsl(interactionModel,commands);
+		String dsl = generator.generateRimDsl(interactionModel,commands, true);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -63,7 +64,24 @@ public class TestRimDslGenerator {
 	}
 	
 	@Test
-	public void testGenerateRimDslAirportWithoutReciprocalLinks() {
+	public void testGenerateRimDslAirlines() {
+		String dsl = createAirlineModelDSL(true);
+		
+		//Check results
+		assertTrue(dsl != null && !dsl.equals(""));
+		assertEquals(readTextFile(RIM_DSL_AIRLINE_FILE), dsl);
+	}
+
+	@Test
+	public void testGenerateRimDslAirlinesNonStrictOData() {
+		String dsl = createAirlineModelDSL(false);
+		
+		//Check results
+		assertTrue(dsl != null && !dsl.equals(""));
+		assertEquals(readTextFile(RIM_DSL_AIRLINE_NON_STRICT_ODATA_FILE), dsl);
+	}
+
+	public String createAirlineModelDSL(boolean strictOData) {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
@@ -77,20 +95,17 @@ public class TestRimDslGenerator {
 		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 
 		//Add transitions but without reciprocal links
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
+		interactionModel.findResourceStateMachine("Flight").addTransition("FlightSchedule", "flightScheduleNum", "flightschedule", false, null, interactionModel.findResourceStateMachine("FlightSchedule"), null, "flightschedule");
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"), null, "departureAirport");
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"), null, "arrivalAirport");
 		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departures", "departures", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "departureAirportCode eq '{code}'", "departures");
 		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "arrivals", "arrivals", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "arrivalAirportCode eq '{code}'", "arrivals");
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
-		String dsl = generator.generateRimDsl(interactionModel,commands);
-		
-		//Check results
-		assertTrue(dsl != null && !dsl.equals(""));
-		assertEquals(readTextFile(RIM_DSL_AIRLINE_FILE), dsl);
+		return generator.generateRimDsl(interactionModel,commands, strictOData);
 	}
-
+	
 	/*
 	 * Create a velocity engine which loads velocity 
 	 * templates from the classpath.

@@ -12,6 +12,7 @@
 
   <properties>
     <skipRIMGeneration>false</skipRIMGeneration>
+    <strictOdata>true</strictOdata>
   </properties>
 
   <build>
@@ -24,6 +25,7 @@
           <edmxFile>${basedir}/service.edmx</edmxFile>
           <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
           <configTargetDirectory>${basedir}/src/main/resources</configTargetDirectory>
+          <strictOdata>${strictOdata}</strictOdata>
         </configuration>
       </plugin>
       <plugin>
