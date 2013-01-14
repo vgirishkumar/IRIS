@@ -7,6 +7,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Test;
 import org.odata4j.core.OEntityKey;
@@ -15,6 +18,12 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmType;
+
+import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 
 public class TestCommandHelper {
 
@@ -48,6 +57,30 @@ public class TestCommandHelper {
 			throw new Exception(ae.getMessage());
 		}
 	}
+
+	@Test
+	public void testGetViewActionProperty() {
+		try {
+			InteractionContext ctx = createInteractionContext("MyEntity", "123");
+			String prop = CommandHelper.getViewActionProperty(ctx, "filter");
+			assertEquals("customer eq '123'", prop);
+		}
+		catch(Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testGetViewActionPropertyWithQueryParams() {
+		try {
+			InteractionContext ctx = createInteractionContextWithQueryParams("MyEntity", "123");
+			String prop = CommandHelper.getViewActionProperty(ctx, "filter");
+			assertEquals("customer eq '123'", prop);
+		}
+		catch(Exception e) {
+			fail(e.getMessage());
+		}
+	}
 	
 	private EdmDataServices createMockEdmDataServices(String entityName, String keyTypeName) {
 		List<String> keys = new ArrayList<String>();
@@ -65,5 +98,36 @@ public class TestCommandHelper {
 		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees.build());
 		when(mockEDS.getEntityTypes()).thenReturn(mockEntityTypes);
         return mockEDS;
+	}
+
+	@SuppressWarnings("unchecked")
+	private InteractionContext createInteractionContext(String entity, String id) {
+		ResourceState resourceState = mock(ResourceState.class);
+		when(resourceState.getEntityName()).thenReturn(entity);
+		when(resourceState.getUriSpecification()).thenReturn(new ODataUriSpecification().getTemplate("/" + entity, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("id", id);
+		Properties properties = new Properties();
+		properties.put("filter", "customer eq '{id}'");
+		when(resourceState.getViewAction()).thenReturn(new Action("GETEntitiesCommand", Action.TYPE.VIEW, properties));
+		
+        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
+        return ctx;
+	}
+
+	private InteractionContext createInteractionContextWithQueryParams(String entity, String id) {
+		ResourceState resourceState = mock(ResourceState.class);
+		when(resourceState.getEntityName()).thenReturn(entity);
+		when(resourceState.getUriSpecification()).thenReturn(new ODataUriSpecification().getTemplate("/" + entity, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("id", id);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("code", id);
+		Properties properties = new Properties();
+		properties.put("filter", "customer eq '{code}'");
+		when(resourceState.getViewAction()).thenReturn(new Action("GETEntitiesCommand", Action.TYPE.VIEW, properties));
+		
+        InteractionContext ctx = new InteractionContext(pathParams, queryParams, resourceState, mock(Metadata.class));
+        return ctx;
 	}
 }

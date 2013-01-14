@@ -5,7 +5,7 @@
 #INSERT INTO `Airport`(`name` , `code` , `country`) VALUES('example' , 'example' , 'example');	
 #INSERT INTO `FlightSchedule`(`arrivalAirportCode` , `flightScheduleID` , `arrivalTime` , `flightNo` , `firstDeparture` , `departureTime` , `departureAirportCode` , `lastDeparture`) VALUES('example' , '1' , '00:00:00' , 'example' , '1996-08-20 00:00:00' , '00:00:00' , 'example' , '1996-08-20 00:00:00');	
 #INSERT INTO `Flight`(`flightID` , `flightScheduleID` , `takeoffTime`) VALUES('1' , '1' , '1996-08-20 00:00:00');	
-INSERT INTO AIRPORT (CODE, NAME, COUNTRY) VALUES ('MUC', 'Franz Josef Strauß', 'Germany');
+INSERT INTO AIRPORT (CODE, NAME, COUNTRY) VALUES ('MUC', 'Franz Josef Strauï¿½', 'Germany');
 INSERT INTO AIRPORT (CODE, NAME, COUNTRY) VALUES ('MIA', 'Miami International Airport', 'United States');
 INSERT INTO AIRPORT (CODE, NAME, COUNTRY) VALUES ('SFO', 'San Francisco International', 'United States');
 INSERT INTO AIRPORT (CODE, NAME, COUNTRY) VALUES ('JFK', 'John F Kennedy International', 'United States');
@@ -20,7 +20,7 @@ INSERT INTO `FlightSchedule`(`arrivalAirportCode` , `flightScheduleID` , `arriva
 INSERT INTO `FlightSchedule`(`arrivalAirportCode` , `flightScheduleID` , `arrivalTime` , `flightNo` , `firstDeparture` , `departureTime` , `departureAirportCode` , `lastDeparture`) VALUES('LTN' , '2052' , '11:25:00' , 'EZY2052' , '1996-08-20 10:45:00' , '10:45:00' , 'GVA' , '2014-08-20 10:45:00'); 
 INSERT INTO `FlightSchedule`(`arrivalAirportCode` , `flightScheduleID` , `arrivalTime` , `flightNo` , `firstDeparture` , `departureTime` , `departureAirportCode` , `lastDeparture`) VALUES('LTN' , '2062' , '22:10:00' , 'EZY2062' , '1996-08-20 21:30:00' , '21:30:00' , 'GVA' , '2014-08-20 21:30:00'); 
 
-INSERT INTO `Flight`(`flightID` , `flightScheduleID` , `takeoffTime`) VALUES('1' , '1' , '1996-08-20 00:00:00');
-INSERT INTO `Flight`(`flightID` , `flightScheduleID` , `takeoffTime`) VALUES('2' , '2055' , '2012-08-12 13:21:05');
-INSERT INTO `Flight`(`flightID` , `flightScheduleID` , `takeoffTime`) VALUES('3' , '2051' , '2012-08-12 07:26:08'); 
-INSERT INTO `Flight`(`flightID` , `flightScheduleID` , `takeoffTime`) VALUES('4' , '2062' , '2012-08-15 22:34:45'); 
+INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('1' , '1' , '1996-08-20 00:00:00');
+INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('2' , '2055' , '2012-08-12 13:21:05');
+INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('3' , '2051' , '2012-08-12 07:26:08'); 
+INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('4' , '2062' , '2012-08-15 22:34:45'); 

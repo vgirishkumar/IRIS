@@ -7,10 +7,10 @@
 		<Property Name="flightNo" />
 		<Property Name="arrivalAirportCode" />
 		<Property Name="arrivalTime">
-			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+			<Term Name="TERM_VALUE_TYPE">TIME</Term>
 		</Property>
 		<Property Name="departureTime">
-			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+			<Term Name="TERM_VALUE_TYPE">TIME</Term>
 		</Property>
 		<Property Name="departureAirportCode" />
 		<Property Name="flightScheduleID">
@@ -38,6 +38,10 @@
 			<Term Name="TERM_MANDATORY">true</Term>
 			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
 			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="flightScheduleNum">
+			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
 		</Property>
 		<Property Name="takeoffTime">
 			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>

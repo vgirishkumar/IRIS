@@ -148,10 +148,10 @@ public class TestGETNavPropertyCommand {
 		when(resourceState.getUriSpecification()).thenReturn(new ODataUriSpecification().getTemplate("/" + entity, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("id", id);
-		pathParams.add("navproperty", "mock");
 		// action configuration is required to make the NavPropertyCommand work
 		Properties properties = new Properties();
 		properties.put("entity", entity);
+		properties.put("navproperty", "mock");
 		when(resourceState.getViewAction()).thenReturn(new Action("NavPropertyCommand", Action.TYPE.VIEW, properties));
 		
         InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));

@@ -122,22 +122,16 @@
 	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-    <bean id="GETNavPropertydepartures" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-        <constructor-arg name="producer" ref="odataProducer" />
-    </bean>
-    <bean id="GETNavPropertyarrivals" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-        <constructor-arg name="producer" ref="odataProducer" />
-    </bean>
-    <bean id="GETNavPropertyflightSchedule" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-        <constructor-arg name="producer" ref="odataProducer" />
-    </bean>
-    <bean id="GETNavPropertydepartureAirport" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-        <constructor-arg name="producer" ref="odataProducer" />
-    </bean>
-    <bean id="GETNavPropertyarrivalAirport" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
-        <constructor-arg name="producer" ref="odataProducer" />
-    </bean>
+	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
 	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="UpdateEntity" class="com.temenos.interaction.commands.odata.UpdateEntityCommand">
+		<constructor-arg name="producer" ref="odataProducer" />
+	</bean>
+	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
 
@@ -149,12 +143,10 @@
 				<entry key="GETMetadata" value-ref="GETMetadata" />
 				<entry key="GETEntity" value-ref="GETEntity" />
 				<entry key="GETEntities" value-ref="GETEntities" />
-                <entry key="CreateEntity" value-ref="CreateEntity" />
-                <entry key="GETNavPropertydepartures" value-ref="GETNavPropertydepartures" />
-                <entry key="GETNavPropertyarrivals" value-ref="GETNavPropertyarrivals" />
-                <entry key="GETNavPropertyflightSchedule" value-ref="GETNavPropertyflightSchedule" />
-                <entry key="GETNavPropertydepartureAirport" value-ref="GETNavPropertydepartureAirport" />
-                <entry key="GETNavPropertyarrivalAirport" value-ref="GETNavPropertyarrivalAirport" />
+				<entry key="GETNavProperty" value-ref="GETNavProperty" />
+				<entry key="CreateEntity" value-ref="CreateEntity" />
+				<entry key="UpdateEntity" value-ref="UpdateEntity" />
+				<entry key="DeleteEntity" value-ref="DeleteEntity" />
  			</util:map> 
 		</constructor-arg>
 	</bean>

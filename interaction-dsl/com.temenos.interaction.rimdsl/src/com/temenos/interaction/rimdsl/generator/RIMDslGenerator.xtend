@@ -6,7 +6,7 @@ package com.temenos.interaction.rimdsl.generator
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
-import com.temenos.interaction.rimdsl.rim.Command
+import com.temenos.interaction.rimdsl.rim.ResourceCommand
 import com.temenos.interaction.rimdsl.rim.State
 import com.temenos.interaction.rimdsl.rim.Transition
 import com.temenos.interaction.rimdsl.rim.TransitionForEach
@@ -118,24 +118,30 @@ class RIMDslGenerator implements IGenerator {
         «ENDIF»
     '''
 
-    def produceActionSet(State state, Command viewCommand, EList<Command> actions) '''
+    def produceActionSet(State state, ResourceCommand view, EList<ResourceCommand> actions) '''
         List<Action> «state.name»Actions = new ArrayList<Action>();
-        «IF viewCommand != null && viewCommand.property.size > 0»
+        «IF view != null && (view.command.properties.size > 0 || view.parameters.size > 0)»
             actionViewProperties = new Properties();
-            «FOR commandProperty :viewCommand.property»
+            «FOR commandProperty :view.command.properties»
+            actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+            «ENDFOR»
+            «FOR commandProperty :view.parameters»
             actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
             «ENDFOR»
         «ENDIF»
-        «state.name»Actions.add(new Action("«viewCommand.name»", Action.TYPE.VIEW, «if (viewCommand != null && viewCommand.property.size > 0) { "actionViewProperties" } else { "new Properties()" }»));
+        «state.name»Actions.add(new Action("«view.command.name»", Action.TYPE.VIEW, «if (view != null && (view.command.properties.size > 0 || view.parameters.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
         «IF actions != null»
             «FOR action : actions»
             actionViewProperties = new Properties();
-            «IF action != null && action.property.size > 0»
-                «FOR commandProperty :action.property»
+            «IF action != null && (action.command.properties.size > 0 || action.parameters.size > 0)»
+                «FOR commandProperty :action.command.properties»
+                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+                «ENDFOR»
+                «FOR commandProperty :action.parameters»
                 actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
                 «ENDFOR»
             «ENDIF»
-            «state.name»Actions.add(new Action("«action.name»", Action.TYPE.ENTRY, actionViewProperties));
+            «state.name»Actions.add(new Action("«action.command.name»", Action.TYPE.ENTRY, actionViewProperties));
             «ENDFOR»
         «ENDIF»'''
     
@@ -144,7 +150,7 @@ class RIMDslGenerator implements IGenerator {
             s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
             «ELSE»
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties«if (transition.title != null) { ", \"" + transition.title.name + "\"" }»);
+            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
             «ENDIF»
 	'''
 
@@ -157,7 +163,7 @@ class RIMDslGenerator implements IGenerator {
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties«if (transition.title != null) { ", \"" + transition.title.name + "\"" }»);
+            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''

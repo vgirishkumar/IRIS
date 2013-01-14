@@ -8,6 +8,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.support.membermodification.MemberModifier.suppress;
+import static org.powermock.api.support.membermodification.MemberMatcher.constructor;
 import static org.powermock.api.support.membermodification.MemberMatcher.method;
 
 import java.io.File;
@@ -21,6 +22,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.sdk.JPAResponderGen;
+import com.temenos.interaction.sdk.adapter.edmx.EDMXAdapter;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ResponderGenMojo.class)
@@ -57,7 +59,7 @@ public class TestResponderGenMojo {
 
 	@Test(expected = MojoExecutionException.class)
 	public void testMojoExecuteEDMXFileNotFound() throws Exception {
-		suppress(method(JPAResponderGen.class, "generateArtifacts", String.class, File.class, File.class));
+		suppress(method(JPAResponderGen.class, "generateArtifacts", EDMXAdapter.class, File.class, File.class));
 		
 		ResponderGenMojo rgm = new ResponderGenMojo();
 		
@@ -72,6 +74,7 @@ public class TestResponderGenMojo {
 
 	@Test
 	public void testMojoExecuteSrcNotExist() throws Exception {
+		suppress(constructor(EDMXAdapter.class, String.class));
 		ResponderGenMojo rgm = new ResponderGenMojo();
 		
 		File edmxFileMock = mock(File.class);
@@ -85,8 +88,8 @@ public class TestResponderGenMojo {
 		when(configDirMock.isDirectory()).thenReturn(true);
 		
 		JPAResponderGen mockResponderGen = mock(JPAResponderGen.class);
-		when(mockResponderGen.generateArtifacts(any(String.class), any(File.class), any(File.class))).thenReturn(true);
-		whenNew(JPAResponderGen.class).withNoArguments().thenReturn(mockResponderGen);
+		when(mockResponderGen.generateArtifacts(any(EDMXAdapter.class), any(File.class), any(File.class))).thenReturn(true);
+		whenNew(JPAResponderGen.class).withArguments(any(boolean.class)).thenReturn(mockResponderGen);
 
 		rgm.execute(edmxFileMock, srcDirMock, configDirMock);
 		Mockito.verify(srcDirMock, times(1)).mkdirs();
@@ -95,7 +98,7 @@ public class TestResponderGenMojo {
 
 	@Test(expected = MojoExecutionException.class)
 	public void testMojoExecuteSrcNotDir() throws Exception {
-		suppress(method(JPAResponderGen.class, "generateArtifacts", String.class, File.class, File.class));
+		suppress(method(JPAResponderGen.class, "generateArtifacts", EDMXAdapter.class, File.class, File.class));
 		
 		ResponderGenMojo rgm = new ResponderGenMojo();
 		
@@ -112,6 +115,7 @@ public class TestResponderGenMojo {
 
 	@Test
 	public void testMojoExecuteConfigNotExist() throws Exception {
+		suppress(constructor(EDMXAdapter.class, String.class));
 		ResponderGenMojo rgm = new ResponderGenMojo();
 		
 		File edmxFileMock = mock(File.class);
@@ -125,8 +129,8 @@ public class TestResponderGenMojo {
 		when(configDirMock.isDirectory()).thenReturn(true);
 		
 		JPAResponderGen mockResponderGen = mock(JPAResponderGen.class);
-		when(mockResponderGen.generateArtifacts(any(String.class), any(File.class), any(File.class))).thenReturn(true);
-		whenNew(JPAResponderGen.class).withNoArguments().thenReturn(mockResponderGen);
+		when(mockResponderGen.generateArtifacts(any(EDMXAdapter.class), any(File.class), any(File.class))).thenReturn(true);
+		whenNew(JPAResponderGen.class).withArguments(any(boolean.class)).thenReturn(mockResponderGen);
 		
 		rgm.execute(edmxFileMock, srcDirMock, configDirMock);
 		Mockito.verify(srcDirMock, times(0)).mkdirs();
@@ -135,7 +139,7 @@ public class TestResponderGenMojo {
 
 	@Test(expected = MojoExecutionException.class)
 	public void testMojoExecuteConfigNotDir() throws Exception {
-		suppress(method(JPAResponderGen.class, "generateArtifacts", String.class, File.class, File.class));
+		suppress(method(JPAResponderGen.class, "generateArtifacts", EDMXAdapter.class, File.class, File.class));
 		
 		ResponderGenMojo rgm = new ResponderGenMojo();
 		
@@ -152,5 +156,4 @@ public class TestResponderGenMojo {
 		rgm.execute(edmxFileMock, srcDirMock, configDirMock);
 		
 	}
-
 }

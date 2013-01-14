@@ -289,6 +289,30 @@ public class TestResourceStateMachine {
 	}
 
 	@Test
+	public void testInteractionByPathUriLinkage() {
+		String ENTITY_NAME = "";
+		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "/test({id})");
+		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
+	
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "entityPropertyToUse");
+		exists.addTransition("PUT", exists, uriLinkageMap);
+		exists.addTransition("DELETE", end);
+		
+		ResourceStateMachine sm = new ResourceStateMachine(exists);
+
+		Map<String, Set<String>> interactionMap = sm.getInteractionByPath();
+		assertEquals("Number of resources", 1, interactionMap.size());
+		Set<String> entrySet = interactionMap.keySet();
+		assertTrue(entrySet.contains("/test({id})"));
+		Collection<String> interactions = interactionMap.get("/test({id})");
+		assertEquals("Number of interactions", 3, interactions.size());
+		assertTrue(interactions.contains("GET"));
+		assertTrue(interactions.contains("PUT"));
+		assertTrue(interactions.contains("DELETE"));
+	}
+
+	@Test
 	public void testInteractionByPathTransient() {
 		String ENTITY_NAME = "";
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
@@ -505,12 +529,14 @@ public class TestResourceStateMachine {
   		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/notes");
   		ResourceState notesRegex = new ResourceState(ENTITY_NAME, "notesRegex", new ArrayList<Action>(), "/notes()");
   		ResourceState notesEntity = new ResourceState(ENTITY_NAME, "notesEntity", new ArrayList<Action>(), "/notes({id})");
+  		ResourceState notesEntityQuoted = new ResourceState(ENTITY_NAME, "notesEntityQuoted", new ArrayList<Action>(), "/notes('{id}')");
   		ResourceState notesNavProperty = new ResourceState(ENTITY_NAME, "notesEntity", new ArrayList<Action>(), "/notes({id})/{navproperty}");
   		ResourceState duffnotes = new ResourceState(ENTITY_NAME, "duffnotes", new ArrayList<Action>(), "/duff/notes");
 	
   		// create transitions
   		initial.addTransition("GET", notesRegex);
   		initial.addTransition("GET", notesEntity);
+  		initial.addTransition("GET", notesEntityQuoted);
   		initial.addTransition("GET", notesNavProperty);
   		initial.addTransition("GET", duffnotes);
   		
@@ -522,9 +548,9 @@ public class TestResourceStateMachine {
 		assertEquals("Number of states: notesRegex", 1, sm.getResourceStatesForPathRegex("^/notes(\\(\\))").size());
 		assertEquals("Number of states: initial, notesRegex", 2, sm.getResourceStatesForPathRegex("^/notes(|\\(\\))").size());
 		assertEquals("Number of states: notesEntity", 1, sm.getResourceStatesForPathRegex("^/notes(|[\\(.\\)])").size());
-		assertEquals("Number of states: initial, notesRegex, and notesEntity", 3, sm.getResourceStatesForPathRegex("^/notes(|\\(.*\\))").size());
+		assertEquals("Number of states: initial, notesRegex, notesEntityQuoted, and notesEntity", 4, sm.getResourceStatesForPathRegex("^/notes(|\\(.*\\))").size());
 		assertEquals("Number of states: initial, duffnotes", 2, sm.getResourceStatesForPathRegex(".*notes").size());
-		assertEquals("Number of states: all", 5, sm.getResourceStatesForPathRegex(".*notes.*").size());
+		assertEquals("Number of states: all", 6, sm.getResourceStatesForPathRegex(".*notes.*").size());
 	}
 	
 	

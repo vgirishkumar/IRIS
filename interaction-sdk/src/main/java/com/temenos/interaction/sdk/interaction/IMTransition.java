@@ -14,8 +14,12 @@ public class IMTransition {
 	private IMResourceStateMachine targetResourceStateMachine;	//Resource state machine of target state
 	private String filter;					//Filter expression for transitions to collection resources
 	private String title;					//Transition label
-
-	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String title) {
+	private String method;					// the method for transition to pseudo state
+	private String action;					// the action for a pseudo state
+	private String relations;				// the link relations for state
+	private boolean boundToCollection;		// the pseudo state is to be bound to the collection path 
+	
+	public IMTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String title, String method, String action, String relations, boolean boundToCollection) {
 		this.targetEntityName = targetEntityName;
 		this.linkProperty = linkProperty;
 		this.targetStateName = targetStateName;
@@ -24,6 +28,10 @@ public class IMTransition {
 		this.targetResourceStateMachine = targetResourceStateMachine;
 		this.filter = filter;
 		this.title = title;
+		this.method = method;
+		this.action = action;
+		this.relations = relations;
+		this.boundToCollection = boundToCollection;
 	}
 	
 	public String getTargetEntityName() {
@@ -64,6 +72,30 @@ public class IMTransition {
 			title = "title=\"" + getTitle() + "\" ";
 		}
 		return title;
+	}
+
+	public boolean isPseudoState() {
+		return action != null;
+	}
+	
+	public String getMethod() {
+		return method;
+	}
+	
+	public String getAction() {
+		return action;
+	}
+
+	public String getRelations() {
+		return relations;
+	}
+	
+	public boolean hasRelations() {
+		return relations != null;		
+	}
+	
+	public boolean isBoundToCollection() {
+		return boundToCollection;
 	}
 	
 	/**

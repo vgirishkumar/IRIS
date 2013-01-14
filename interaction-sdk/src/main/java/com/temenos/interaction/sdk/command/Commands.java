@@ -16,10 +16,9 @@ public class Commands {
 	public final static String GET_METADATA = "GETMetadata";
 	public final static String GET_ENTITY = "GETEntity";
 	public final static String GET_ENTITIES = "GETEntities";
-	public final static String GET_ENTITIES_FILTERED = "GETEntitiesFiltered";
 	public final static String GET_NAV_PROPERTY = "GETNavProperty";
-	public final static String POST_ENTITY = "POSTEntity";
 	public final static String CREATE_ENTITY = "CreateEntity";
+	public final static String UPDATE_ENTITY = "UpdateEntity";
 	public final static String DELETE_ENTITY = "DeleteEntity";
 	public final static String GET_LINK_ENTITY = "GETLinkEntity";
 	
@@ -79,14 +78,8 @@ public class Commands {
 		List<String> events = new ArrayList<String>();
 		for(Command command : commands) {
 			String id = command.getId();
-			if(!id.equals(GET_METADATA) &&
-				!id.startsWith(GET_NAV_PROPERTY)) {
-				if(id.equals(GET_ENTITIES_FILTERED)) {
-					events.add(command.getId() + " filter=filter");
-				}
-				else {
-					events.add(command.getId());
-				}
+			if(!id.equals(GET_METADATA)) {
+				events.add(command.getId());
 			}
 		}
 		return events;

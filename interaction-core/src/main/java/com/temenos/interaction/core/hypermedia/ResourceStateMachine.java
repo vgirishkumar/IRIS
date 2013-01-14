@@ -48,6 +48,7 @@ public class ResourceStateMachine {
 	private Map<ResourceState, Set<String>> interactionsByState = new HashMap<ResourceState, Set<String>>();
 	private Map<String, Set<ResourceState>> resourceStatesByPath = new HashMap<String, Set<ResourceState>>();
 	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
+	private Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
 	
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null);
@@ -193,7 +194,7 @@ public class ResourceStateMachine {
 			List<Transition> transitions = currentState.getTransitions(next);
 			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
-				String path = command.getPath();
+				String path = command.getOriginalPath();
 				
 				interactions = result.get(path);
 				if (interactions == null)
@@ -465,7 +466,6 @@ public class ResourceStateMachine {
 				/* 
 				 * build link and add to list of links
 				 */
-				UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
 				if (cs.isForEach()) {
 					if (collectionResource != null) {
 						for (EntityResource<?> er : collectionResource.getEntities()) {
@@ -473,11 +473,13 @@ public class ResourceStateMachine {
 							if (eLinks == null) {
 								eLinks = new ArrayList<Link>();
 							}
+							UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
 							eLinks.add(createLink(linkTemplate, transition, er.getEntity(), pathParameters));
 							er.setLinks(eLinks);
 						}
 					}
 				} else {
+					UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
 					links.add(createLink(linkTemplate, transition, entity, pathParameters));
 				}
 			}
@@ -563,36 +565,51 @@ public class ResourceStateMachine {
 				rel = "self"; 
 			}
 			String method = cs.getMethod();
-			URI href = null;
-			
-			//Apply path parameters to URI template
+
+			//Obtain path parameters and linkage properties
 			Map<String, Object> properties = new HashMap<String, Object>();
 			if (map != null) {
 				for (String key : map.keySet()) {
 					properties.put(key, map.getFirst(key));
 				}
 			}
-
-			//Apply linkage properties defined in the RIM
 			Map<String, String> uriLinkageProperties = transition.getSource().getUriLinkageProperties();
 			if (uriLinkageProperties != null) {
 				properties.putAll(uriLinkageProperties);
 			}
 			
-			//Apply entity properties to URI template
-			if (entity != null) {
-				if (transformer != null) {
-					logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
-					Map<String, Object> props = transformer.transform(entity);
-					if (props != null) {
-						properties.putAll(props);
-					}
-					href = linkTemplate.buildFromMap(properties);
-				} else {
-					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
-					href = linkTemplate.build(entity);
+			//Obtain entity properties
+			if (entity != null && transformer != null) {
+				logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
+				Map<String, Object> props = transformer.transform(entity);
+				if (props != null) {
+					properties.putAll(props);
 				}
-			} else {
+			}
+
+			//Add query parameters - template elements in linkage properties e.g. filter=fld eq {code}
+			if (transition.getTarget() instanceof CollectionResourceState && uriLinkageProperties != null) {
+				for(String linkProperty : uriLinkageProperties.values()) {
+					if(linkProperty.contains("{") && linkProperty.contains("}")) {
+						Matcher m = templatePattern.matcher(linkProperty);
+						while(m.find()) {
+							String param = m.group(1);		//e.g. code
+							if(properties.containsKey(param) &&
+									!map.containsKey(param)) {		//Do not add query param if it exists as path parameter
+								linkTemplate.queryParam(param, properties.get(param));
+							}
+						}				
+					}
+				}
+			}
+			
+			//Build href from template
+			URI href;
+			if(entity != null && transformer == null) {
+				logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
+				href = linkTemplate.build(entity);
+			}
+			else {
 				href = linkTemplate.buildFromMap(properties);
 			}
 			

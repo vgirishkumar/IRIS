@@ -10,7 +10,6 @@ public class IMResourceStateMachine {
 
 	private String entityName;											//Entity name
 	private String collectionStateName;									//Name of collection resource state
-	private boolean collectionStateWithIncomingTransitions = false;		//True if this is a collection state with incoming transitions 
 	private String entityStateName;										//Name of individual entity resource state
 	private String mappedEntityProperty;								//Entity property to which the URI template parameter maps to
 	private String pathParametersTemplate;								//Path parameters defined in URI template
@@ -45,12 +44,19 @@ public class IMResourceStateMachine {
 		return pathParametersTemplate;
 	}
 	
-	public void collectionStateHasIncomingTransitions() {
-		collectionStateWithIncomingTransitions = true;
-	}
-	
-	public boolean isCollectionStateWithIncomingTransitions() {
-		return collectionStateWithIncomingTransitions;
+	/**
+	 * Return a list of target resource state machines to which there are transitions
+	 * @return target resource state machines
+	 */
+	public List<IMResourceStateMachine> getTargetResourceStateMachines() {
+		List<IMResourceStateMachine> targetRsms = new ArrayList<IMResourceStateMachine>();
+		for(IMTransition transition : transitions) {
+			if(!targetRsms.contains(transition.getTargetResourceStateMachine()) &&
+					transition.isCollectionState()) {
+				targetRsms.add(transition.getTargetResourceStateMachine());
+			}
+		}
+		return targetRsms;
 	}
 	
 	/**
@@ -60,7 +66,7 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine target resource state machine
 	 */
 	public void addTransitionToCollectionResource(String targetStateName, String targetEntityName, IMResourceStateMachine targetResourceStateMachine, String filter, String title) {
-		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, filter, title);
+		addTransition(targetEntityName, targetStateName, targetStateName, true, "", targetResourceStateMachine, filter, title, null, null, null, false);
 	}
 
 	/**
@@ -70,7 +76,7 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine target resource state machine
 	 */
 	public void addTransitionToEntityResource(String targetStateName, String linkProperty, String targetEntityName, IMResourceStateMachine targetResourceStateMachine) {
-		addTransition(targetEntityName, linkProperty, targetStateName, false, "", targetResourceStateMachine, null, null);
+		addTransition(targetEntityName, linkProperty, targetStateName, false, "", targetResourceStateMachine, null, null, null, null, null, false);
 	}
 	
 	/**
@@ -83,9 +89,23 @@ public class IMResourceStateMachine {
 	 * @param targetResourceStateMachine Target RSM
 	 */
 	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine) {
-		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, null, null);
+		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, null, null, null, null, null, false);
 	}
 	
+	/**
+	 * Add a transition to a pseudo state
+	 * @param targetEntityName Entity associated to target RSM
+	 * @param targetStateName Resource state of source RSM to which we want to move
+	 * @param action the command that will be executed when the entity is to be transitioned to this state
+	 * @param boundToCollection a flag to control whether the state is of the collection or the entity
+	 * @precondition action must be supplied
+	 */
+	public void addTransition(String targetEntityName, String targetStateName, String method, String action, String relations, boolean boundToCollection) {
+		assert(method != null);
+		assert(action != null);
+		addTransition(targetEntityName, null, targetStateName, false, null, null, null, null, method, action, relations, boundToCollection);
+	}
+
 	/**
 	 * Add a transition to another state
 	 * @param targetEntityName Entity associated to target RSM
@@ -97,21 +117,32 @@ public class IMResourceStateMachine {
 	 * @param filter Filter for transitions to collection states
 	 */
 	public void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String title) {
-		IMTransition transition = new IMTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, filter != null ? filter : "", title);
+		addTransition(targetEntityName, linkProperty, targetStateName, isCollectionState, reciprocalLinkState, targetResourceStateMachine, filter, title, null, null, null, false);
+	}
+
+	protected void addTransition(String targetEntityName, String linkProperty, String targetStateName, boolean isCollectionState, String reciprocalLinkState, IMResourceStateMachine targetResourceStateMachine, String filter, String title, String method, String action, String relations, boolean boundToCollection) {
+		IMTransition transition = new IMTransition(targetEntityName, 
+				linkProperty, 
+				targetStateName, 
+				isCollectionState, 
+				reciprocalLinkState, 
+				targetResourceStateMachine, 
+				filter != null ? filter : "",
+				title,
+				method,
+				action,
+				relations,
+				boundToCollection);
 		
 		//Workaround - if there are multiple transitions to the same state => create intermediate 'navigation' states 
 		for(IMTransition t : transitions) {
-			if(t.getTargetResourceStateMachine().getEntityStateName().equals(targetResourceStateMachine.getEntityStateName()) ) {
+			if((t.getTargetResourceStateMachine() != null && targetResourceStateMachine != null)
+					&& t.getTargetResourceStateMachine().getEntityStateName().equals(targetResourceStateMachine.getEntityStateName()) ) {
 				t.notUniqueTransition();
 				transition.notUniqueTransition();
 			}
 		}
-		
-		//Tell the target state machine to show a filtered collection state  
-		if(isCollectionState) {
-			targetResourceStateMachine.collectionStateHasIncomingTransitions();			
-		}
-		
+
 		transitions.add(transition);
 	}
 	

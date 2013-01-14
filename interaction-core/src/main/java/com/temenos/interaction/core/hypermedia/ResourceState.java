@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,7 @@ import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 
 public class ResourceState implements Comparable<ResourceState> {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
+	private Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
 
 	/* the parent state (same entity, pseudo state is same path) */
 	private final ResourceState parent;
@@ -296,35 +300,53 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval, String label) {
 		assert null != targetState;
-		this.uriLinkageProperties = uriLinkageProperties != null ? new HashMap<String, String>(uriLinkageProperties) : null;
 		uriLinkageMap = uriLinkageMap != null ? new HashMap<String, String>(uriLinkageMap) : null;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
-		// replace uri elements with linkage entity element name
+
+		//Replace uri elements with linkage properties
+		String mappedResourcePath = resourcePath;
 		if (uriLinkageMap != null) {
 			for (String templateElement : uriLinkageMap.keySet()) {
-				resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
+				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
 			}
 		}
-		// pre-process linkage properties containing path template elements
-		String generatedLabel = null;
 		if (uriLinkageProperties != null) {
-			for (String templateElement : uriLinkageProperties.keySet()) {
-				String template = uriLinkageProperties.get(templateElement);
-				if(template.contains("{") && template.contains("}")) {
-					if(resourcePath.matches(".*\\{" + templateElement + "\\}.*")) {
-						//template parameters may be used to define multiple transitions to the same target state and the same http method
-						resourcePath = resourcePath.replaceAll("\\{" + templateElement + "\\}", template);
-						generatedLabel = generatedLabel != null ? generatedLabel + ", " + template : template;		//Generate a transition label to enable creating links with different titles  
+			for (String propKey : uriLinkageProperties.keySet()) {
+				//Replace template elements in property value, e.g. {code} in filter=fld eq '{code}'
+				String propValue = uriLinkageProperties.get(propKey);
+				if(propValue != null && uriLinkageMap != null
+						&& propValue.contains("{") && propValue.contains("}")) {
+					Matcher m = templatePattern.matcher(propValue);
+					while(m.find()) {
+						String templateElement = m.group(1);	//e.g. code
+						for (String key : uriLinkageMap.keySet()) {		//e.g. id=code -> replace templateElement {code} with {id}
+							if(templateElement.equals(uriLinkageMap.get(key))) {
+								propValue = propValue.replaceAll("\\{" + templateElement + "\\}", "\\{" + key + "\\}");
+								uriLinkageProperties.put(propKey, propValue);
+							}
+						}
+					}				
+				}						
+				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + propKey + "\\}", uriLinkageProperties.get(propKey));
+			}
+		}
+		
+		//Replace action parameters with linkage properties
+		if (uriLinkageProperties != null) {
+			for(Action action  : targetState.getActions()) {
+				for(Entry<Object, Object> actionParameter : action.getProperties().entrySet()) {
+					String paramRef = (String) actionParameter.getValue();		//Reference to a linkage property, e.g. filter=myfilter where myfilter references myfilter=fld eq '{code}'
+					if(uriLinkageProperties.containsKey(paramRef)) {
+						actionParameter.setValue(uriLinkageProperties.get(paramRef));
 					}
 				}
 			}
-			if(label == null) {
-				//Use the auto generated transition label
-				label = generatedLabel;
-			}
 		}
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, eval);
+		this.uriLinkageProperties = uriLinkageProperties != null ? new HashMap<String, String>(uriLinkageProperties) : null;
+		
+		//Create the transition
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, eval, resourcePath, uriLinkageProperties);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.put(commandSpec, transition);

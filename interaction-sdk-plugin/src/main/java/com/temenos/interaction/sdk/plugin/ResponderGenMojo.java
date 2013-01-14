@@ -7,6 +7,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import com.temenos.interaction.sdk.JPAResponderGen;
+import com.temenos.interaction.sdk.adapter.edmx.EDMXAdapter;
 
 /**
  * A Maven plugin that generates a responder from a given EDMX file.
@@ -20,6 +21,12 @@ public class ResponderGenMojo extends AbstractMojo {
      */
     private String edmxFileStr;
 
+    /**
+     * Enable/disable strict odata compliance.
+     * @parameter
+     */
+    private boolean strictOdata = true;
+    
     /**
      * @parameter property="srcTargetDirectory"
      */
@@ -42,6 +49,10 @@ public class ResponderGenMojo extends AbstractMojo {
 		this.configTargetDirectory = targetDirectory;
 	}
 
+    public void setStrictOdata(String strictOdata) {
+		this.strictOdata = (strictOdata != null && strictOdata.equalsIgnoreCase("true"));
+	}
+	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		// check our configuration
 		if (edmxFileStr == null)
@@ -77,9 +88,10 @@ public class ResponderGenMojo extends AbstractMojo {
 		}
 
 		boolean ok = false;
-		JPAResponderGen rg = new JPAResponderGen();
+		JPAResponderGen rg = new JPAResponderGen(strictOdata);
 		if (edmxFile.exists()) {
-			ok = rg.generateArtifacts(edmxFile.getAbsolutePath(), srcTargetDir, configTargetDir);
+			getLog().info("Generating artifacts (strict odata compliance: " + (strictOdata ? "true" : "false") + ")");
+			ok = rg.generateArtifacts(new EDMXAdapter(edmxFile.getAbsolutePath()), srcTargetDir, configTargetDir);
 		}
 		else {
 			getLog().error("EDMX file does not exist.");
