@@ -89,7 +89,7 @@ public class TestResponderGenMojo {
 		
 		JPAResponderGen mockResponderGen = mock(JPAResponderGen.class);
 		when(mockResponderGen.generateArtifacts(any(EDMXAdapter.class), any(File.class), any(File.class))).thenReturn(true);
-		whenNew(JPAResponderGen.class).withNoArguments().thenReturn(mockResponderGen);
+		whenNew(JPAResponderGen.class).withArguments(any(boolean.class)).thenReturn(mockResponderGen);
 
 		rgm.execute(edmxFileMock, srcDirMock, configDirMock);
 		Mockito.verify(srcDirMock, times(1)).mkdirs();
@@ -130,7 +130,7 @@ public class TestResponderGenMojo {
 		
 		JPAResponderGen mockResponderGen = mock(JPAResponderGen.class);
 		when(mockResponderGen.generateArtifacts(any(EDMXAdapter.class), any(File.class), any(File.class))).thenReturn(true);
-		whenNew(JPAResponderGen.class).withNoArguments().thenReturn(mockResponderGen);
+		whenNew(JPAResponderGen.class).withArguments(any(boolean.class)).thenReturn(mockResponderGen);
 		
 		rgm.execute(edmxFileMock, srcDirMock, configDirMock);
 		Mockito.verify(srcDirMock, times(0)).mkdirs();
@@ -156,5 +156,4 @@ public class TestResponderGenMojo {
 		rgm.execute(edmxFileMock, srcDirMock, configDirMock);
 		
 	}
-
 }

@@ -10,7 +10,6 @@ public class IMResourceStateMachine {
 
 	private String entityName;											//Entity name
 	private String collectionStateName;									//Name of collection resource state
-	private boolean collectionStateWithIncomingTransitions = false;		//True if this is a collection state with incoming transitions 
 	private String entityStateName;										//Name of individual entity resource state
 	private String mappedEntityProperty;								//Entity property to which the URI template parameter maps to
 	private String pathParametersTemplate;								//Path parameters defined in URI template
@@ -45,12 +44,19 @@ public class IMResourceStateMachine {
 		return pathParametersTemplate;
 	}
 	
-	public void collectionStateHasIncomingTransitions() {
-		collectionStateWithIncomingTransitions = true;
-	}
-	
-	public boolean isCollectionStateWithIncomingTransitions() {
-		return collectionStateWithIncomingTransitions;
+	/**
+	 * Return a list of target resource state machines to which there are transitions
+	 * @return target resource state machines
+	 */
+	public List<IMResourceStateMachine> getTargetResourceStateMachines() {
+		List<IMResourceStateMachine> targetRsms = new ArrayList<IMResourceStateMachine>();
+		for(IMTransition transition : transitions) {
+			if(!targetRsms.contains(transition.getTargetResourceStateMachine()) &&
+					transition.isCollectionState()) {
+				targetRsms.add(transition.getTargetResourceStateMachine());
+			}
+		}
+		return targetRsms;
 	}
 	
 	/**
@@ -136,12 +142,7 @@ public class IMResourceStateMachine {
 				transition.notUniqueTransition();
 			}
 		}
-		
-		//Tell the target state machine to show a filtered collection state  
-		if(isCollectionState) {
-			targetResourceStateMachine.collectionStateHasIncomingTransitions();			
-		}
-		
+
 		transitions.add(transition);
 	}
 	

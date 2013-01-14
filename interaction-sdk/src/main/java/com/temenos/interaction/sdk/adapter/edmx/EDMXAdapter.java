@@ -39,7 +39,6 @@ import com.temenos.interaction.sdk.entity.EMProperty;
 import com.temenos.interaction.sdk.entity.EMTerm;
 import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
-import com.temenos.interaction.sdk.interaction.IMTransition;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
 
@@ -149,14 +148,6 @@ public class EDMXAdapter implements InteractionAdapter {
 		
 		//Create commands
 		commands = JPAResponderGen.getDefaultCommands();
-		for(IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
-			for(IMTransition transition : rsm.getTransitions()) {
-				if(!transition.isPseudoState() && !transition.isCollectionState()) {
-					String cmdId = Commands.GET_NAV_PROPERTY + transition.getTargetStateName();
-					commands.addCommand(cmdId, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", cmdId, JPAResponderGen.COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-				}
-			}
-		}
 		
 		//Obtain resource information
 		entitiesInfo = new ArrayList<EntityInfo>();
@@ -234,6 +225,7 @@ public class EDMXAdapter implements InteractionAdapter {
 					if(isTargetCollection) {
 						String linkPropertyOrigin = linkPropertyOriginMap.get(association.getName());
 						filter = linkProperty + " eq '{" + linkPropertyOrigin + "}'";
+						linkProperty = np.getName();
 					}
 					String linkTitle = np.getName();
 					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm, filter, linkTitle);

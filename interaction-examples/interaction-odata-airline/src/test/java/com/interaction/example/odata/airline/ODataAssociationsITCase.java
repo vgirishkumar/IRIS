@@ -25,6 +25,8 @@ public class ODataAssociationsITCase {
 	private final static String FLIGHT_SCHEDULE_ENTITYSET_NAME = "FlightSchedules";
 	private final static String AIRPORT_ENTITYSET_NAME = "Airports";
 	
+	private final static String NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX = "NonStrictOData";
+	
 	public ODataAssociationsITCase() throws Exception {
 		super();
 	}
@@ -45,11 +47,13 @@ public class ODataAssociationsITCase {
 		Enumerable<OEntity> flights = consumer.getEntities(FLIGHT_ENTITYSET_NAME).execute();
 		assertEquals(4, flights.toSet().size());
 		for (OEntity flight : flights.toSet()) {
-			Long flightScheduleId = (Long) flight.getProperty("flightScheduleNum").getValue();
+			Long flightID = (Long) flight.getProperty("flightID").getValue();
+			Long flightScheduleNum = (Long) flight.getProperty("flightScheduleNum").getValue();
 
 			assertEquals(1, flight.getLinks().size());
 			// there should be one link to one flight schedule for this flight
-			assertTrue(containsLink(flight.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + flightScheduleId + ")"));
+			assertTrue(containsLink(flight.getLinks(), FLIGHT_ENTITYSET_NAME + "(" + flightID + ")/flightSchedule") ||
+					containsLink(flight.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + flightScheduleNum + ")"));
 		}
 	}
 
@@ -61,12 +65,14 @@ public class ODataAssociationsITCase {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		OEntity flight = consumer.getEntity(FLIGHT_ENTITYSET_NAME, 2).execute();
-		Long id = (Long) flight.getProperty("flightID").getValue();
-		assertEquals(2, id.intValue());
+		Long flightID = (Long) flight.getProperty("flightID").getValue();
+		assertEquals(2, flightID.intValue());
+		Long flightScheduleNum = (Long) flight.getProperty("flightScheduleNum").getValue();
 
 		// there should be one link to one flight schedule for this flight
 		assertEquals(1, flight.getLinks().size());
-		assertTrue(containsLink(flight.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(2055)"));
+		assertTrue(containsLink(flight.getLinks(), FLIGHT_ENTITYSET_NAME + "(" + flightID + ")/flightSchedule") ||
+				containsLink(flight.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + flightScheduleNum + ")"));
 	}
 
 	/**
@@ -81,14 +87,18 @@ public class ODataAssociationsITCase {
 		assertTrue(flightSchedules.toSet().size() >= 7);
 		for (OEntity flightSchedule : flightSchedules.toSet()) {
 			Long id = (Long) flightSchedule.getProperty("flightScheduleID").getValue();
+			String departureAirportCode = (String) flightSchedule.getProperty("departureAirportCode").getValue();
+			String arrivalAirportCode = (String) flightSchedule.getProperty("arrivalAirportCode").getValue();
 
 			assertEquals(3, flightSchedule.getLinks().size());
 			// there should be one link to self
-			assertTrue(containsLink(flightSchedule.getLinks(), "FlightsFiltered(flightScheduleNum%20eq%20'" + id + "')", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/flights"));
+			assertTrue(containsLink(flightSchedule.getLinks(), "FlightSchedules(" + id + ")/flights", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/flights"));
 			// there should be one link to one departureAirport for this flight schedule
-			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
+			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport") ||
+					containsLink(flightSchedule.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + departureAirportCode + "')", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
 			// there should be one link to one departureAirport for this flight schedule
-			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/arrivalAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
+			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/arrivalAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport") ||
+					containsLink(flightSchedule.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + arrivalAirportCode + "')", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
 		}
 	}
 
@@ -101,15 +111,17 @@ public class ODataAssociationsITCase {
 
 		OEntity flightSchedule = consumer.getEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME, 2).execute();
 		Long id = (Long) flightSchedule.getProperty("flightScheduleID").getValue();
+		String departureAirportCode = (String) flightSchedule.getProperty("departureAirportCode").getValue();
+		String arrivalAirportCode = (String) flightSchedule.getProperty("arrivalAirportCode").getValue();
 		assertEquals(2, id.intValue());
 
 		assertEquals(3, flightSchedule.getLinks().size());
-		// there should be one link to one flight
-		assertTrue(containsLink(flightSchedule.getLinks(), "FlightsFiltered(flightScheduleNum%20eq%20'2')"));
 		// there should be one link to one departureAirport for this flight schedule
-		assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport"));
+		assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport") ||
+				containsLink(flightSchedule.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + departureAirportCode + "')", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
 		// there should be one link to one departureAirport for this flight schedule
-		assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/arrivalAirport"));
+		assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/arrivalAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport") ||
+				containsLink(flightSchedule.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + arrivalAirportCode + "')", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
 	}
 
 	/**
@@ -118,18 +130,20 @@ public class ODataAssociationsITCase {
 	@Test
 	public void getFlightScheduleNavProperties() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
-
 		// now follow links to departure airport and arrival airport
-		OEntity departureAirport = consumer
-				.getEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME, 2055)
-				.nav("departureAirport")
-				.execute();
-		assertEquals("LTN", departureAirport.getProperty("code").getValue());
-		OEntity arrivalAirport = consumer
-				.getEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME, 2055)
-				.nav("arrivalAirport")
-				.execute();
-		assertEquals("GVA", arrivalAirport.getProperty("code").getValue());
+		if(!consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
+			//do this only for strict odata
+			OEntity departureAirport = consumer
+					.getEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME, 2055)
+					.nav("departureAirport")
+					.execute();
+			assertEquals("LTN", departureAirport.getProperty("code").getValue());
+			OEntity arrivalAirport = consumer
+					.getEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME, 2055)
+					.nav("arrivalAirport")
+					.execute();
+			assertEquals("GVA", arrivalAirport.getProperty("code").getValue());
+		}
 	}
 	
 	/**
@@ -146,9 +160,9 @@ public class ODataAssociationsITCase {
 
 			assertEquals(2, airport.getLinks().size());
 			// there should be one link to departures
-			assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(departureAirportCode%20eq%20'" + code + "')"));
+			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/departures"));
 			// there should be one link to arrivals
-			assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(arrivalAirportCode%20eq%20'" + code + "')"));
+			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/arrivals"));
 		}
 	}
 
@@ -165,15 +179,15 @@ public class ODataAssociationsITCase {
 
 		assertEquals(2, airport.getLinks().size());
 		// there should be one link to one departures
-		assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(departureAirportCode%20eq%20'" + code + "')"));
+		assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/departures"));
 		// there should be one link to one departureAirport for this flight schedule
-		assertTrue(containsLink(airport.getLinks(), "FlightSchedulesFiltered(arrivalAirportCode%20eq%20'" + code + "')"));
+		assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/arrivals"));
 	}
 
 	/**
 	 * GET nav properties for an item
 	 */
-//	@Test
+	@Test
 	public void getAirportNavProperties() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
 
@@ -191,14 +205,7 @@ public class ODataAssociationsITCase {
 	}
 	
 	private boolean containsLink(List<OLink> links, String link) {
-		assert(links != null);
-		boolean contains = false;
-		for (OLink l : links) {
-			if (l.getHref().equals(link)) {
-				contains = true;
-			}
-		}
-		return contains;
+		return containsLink(links, link, null);
 	}
 	
 	private boolean containsLink(List<OLink> links, String link, String relation) {
@@ -211,6 +218,4 @@ public class ODataAssociationsITCase {
 		}
 		return contains;
 	}
-
-
 }

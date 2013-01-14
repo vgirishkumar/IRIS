@@ -93,6 +93,7 @@ public class Behaviour {
 		 */
 		Properties personNotesNavProperties = new Properties();
 		personNotesNavProperties.put("entity", NOTE);
+		personNotesNavProperties.put("navproperty", "NotePerson");
 
 		/*
 		 * The link relation for a NavProperty must match the NavProperty name to keep ODataExplorer happy
@@ -134,7 +135,8 @@ public class Behaviour {
 		 */
 		Properties personNotesNavProperties = new Properties();
 		personNotesNavProperties.put("entity", PERSON);
-		
+		personNotesNavProperties.put("navproperty", "PersonNotes");
+				
 		/*
 		 * The link relation for a NavProperty must match the NavProperty name to keep ODataExplorer happy
 		 */

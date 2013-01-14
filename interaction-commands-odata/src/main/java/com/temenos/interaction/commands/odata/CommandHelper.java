@@ -3,6 +3,9 @@ package com.temenos.interaction.commands.odata;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -15,12 +18,14 @@ import org.odata4j.edm.EdmType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 
 public class CommandHelper {
 	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
+	private static Pattern parameterPattern = Pattern.compile("\\{(.*?)\\}");
 
 	/**
 	 * Create an OData entity resource (entry)
@@ -153,5 +158,32 @@ public class CommandHelper {
 			throw new Exception("Entity set does not exist");
 		}
 		return entitySet;
+	}
+	
+	/**
+	 * Returns a view action property
+	 * This method will try to replace template parameters "{param}"
+	 * with query parameters if available 
+	 * @param ctx interaction context
+	 * @param property action property
+	 * @return property value
+	 */
+	public static String getViewActionProperty(InteractionContext ctx, String property) {
+		Properties properties = ctx.getCurrentState().getViewAction().getProperties();
+		String prop = null;
+		if(properties != null && properties.get(property) != null) {
+			prop = (String) properties.get(property);		//e.g. fld eq '{id}'
+			Matcher m = parameterPattern.matcher(prop);
+			while(m.find()) {
+				String param = m.group(1);	//e.g. id
+				if(ctx.getQueryParameters().containsKey(param)) {
+					prop = prop.replaceAll("\\{" + param + "\\}", ctx.getQueryParameters().getFirst(param));
+				}
+				else if(ctx.getPathParameters().containsKey(param)) {
+					prop = prop.replaceAll("\\{" + param + "\\}", ctx.getPathParameters().getFirst(param));
+				}
+			}
+		}
+		return prop;
 	}
 }

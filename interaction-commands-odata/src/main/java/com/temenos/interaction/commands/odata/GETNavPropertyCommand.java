@@ -52,13 +52,10 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		assert(entity.equals(entitySet.getName()));
 
 		//Obtain the navigation property
-		String navPropertyParam = "navproperty";
-		if(properties != null && properties.get("navproperty") != null) {
-			navPropertyParam = (String) properties.get("navproperty");
-		}
-		if (!(ctx.getPathParameters().containsKey(navPropertyParam)))
+		if(properties.get("navproperty") == null) {
 			throw new IllegalArgumentException("Command must be bound to an OData navigation property resource");
-		String navProperty = ctx.getPathParameters().getFirst(navPropertyParam);
+		}
+		String navProperty = (String) properties.get("navproperty");
 		
 		//Create entity key (simple types only)
 		OEntityKey key;

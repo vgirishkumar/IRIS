@@ -1,7 +1,5 @@
 package com.temenos.interaction.commands.odata;
 
-import java.util.Properties;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.odata4j.core.OEntity;
@@ -39,7 +37,6 @@ public class GETEntitiesCommand implements InteractionCommand {
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() == null);
 
-		Properties properties = ctx.getCurrentState().getViewAction().getProperties();
 		String entityName = ctx.getCurrentState().getEntityName();
 		logger.debug("Getting entities for " + entityName);
 		try {
@@ -51,14 +48,8 @@ public class GETEntitiesCommand implements InteractionCommand {
 			String inlineCount = queryParams.getFirst("$inlinecount");
 			String top = queryParams.getFirst("$top");
 			String skip = queryParams.getFirst("$skip");
-			String filter;
-			if(properties != null && properties.get("filter") != null) {
-				String filterParam = (String) properties.get("filter");
-				if (!(ctx.getPathParameters().containsKey(filterParam)))
-					throw new IllegalArgumentException("Command must be bound to an OData filter parameter");
-				filter = ctx.getPathParameters().getFirst(filterParam);
-			}
-			else {
+			String filter = CommandHelper.getViewActionProperty(ctx, "filter");
+			if(filter == null) {
 				filter = queryParams.getFirst("$filter");
 			}
 			String orderBy = queryParams.getFirst("$orderby");

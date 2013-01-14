@@ -60,6 +60,8 @@ public class JPAResponderGen {
 	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
 	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
 			
+	private final boolean strictOData; 		//Indicates whether it should generate strict odata paths etc. (e.g. Flight(1)/flightschedule rather than FlightSchedule(2051))
+	
 	/*
 	 *  create a new instance of the engine
 	 */
@@ -69,15 +71,26 @@ public class JPAResponderGen {
 	 * Construct an instance of this class
 	 */
 	public JPAResponderGen() {
+		this(true);
+	}
+
+	/**
+	 * Construct an instance of this class
+	 * @param strictOData indicates whether to generate a strict odata model
+	 */
+	public JPAResponderGen(boolean strictOData) {
+		this.strictOData = strictOData;
+		
 		// load .vm templates using classloader
 		ve.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
 		ve.setProperty("classpath." + VelocityEngine.RESOURCE_LOADER + ".class", ClasspathResourceLoader.class.getName());
 		ve.init();
 	}
-
+	
 
 	
 	/**
+
 	 * Generate project artefacts from conceptual interaction and metadata models.
 	 * @param metadata metadata model
 	 * @param interactionModel Conceptual interaction model
@@ -173,7 +186,7 @@ public class JPAResponderGen {
 		// generate the rim DSL
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
 		String rimDslFilename = modelName + ".rim";
-		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands))) {
+		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands, strictOData))) {
 			ok = false;
 		}
 
@@ -672,8 +685,8 @@ public class JPAResponderGen {
 		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.GET_ENTITIES_FILTERED, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES_FILTERED, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.UPDATE_ENTITY, "com.temenos.interaction.commands.odata.UpdateEntityCommand", Commands.UPDATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.DELETE_ENTITY, "com.temenos.interaction.commands.odata.DeleteEntityCommand", Commands.DELETE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		

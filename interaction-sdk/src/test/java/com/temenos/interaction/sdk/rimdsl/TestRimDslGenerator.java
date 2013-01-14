@@ -27,6 +27,7 @@ public class TestRimDslGenerator {
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
 	public final static String RIM_DSL_AIRLINE_SIMPLE_FILE = "AirlinesSimple.rim";
 	public final static String RIM_DSL_AIRLINE_FILE = "Airlines.rim";
+	public final static String RIM_DSL_AIRLINE_NON_STRICT_ODATA_FILE = "AirlinesNonStrictOData.rim";
 	
 	public final static Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
 	public final static Parameter COMMAND_EDM_DATA_SERVICES = new Parameter("edmDataServices", true, "");
@@ -47,6 +48,7 @@ public class TestRimDslGenerator {
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 
 		//Add transitions
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
@@ -61,7 +63,7 @@ public class TestRimDslGenerator {
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
-		String dsl = generator.generateRimDsl(interactionModel,commands);
+		String dsl = generator.generateRimDsl(interactionModel,commands, true);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -69,7 +71,24 @@ public class TestRimDslGenerator {
 	}
 	
 	@Test
-	public void testGenerateRimDslAirportWithoutReciprocalLinks() {
+	public void testGenerateRimDslAirlines() {
+		String dsl = createAirlineModelDSL(true);
+		
+		//Check results
+		assertTrue(dsl != null && !dsl.equals(""));
+		assertEquals(readTextFile(RIM_DSL_AIRLINE_FILE), dsl);
+	}
+
+	@Test
+	public void testGenerateRimDslAirlinesNonStrictOData() {
+		String dsl = createAirlineModelDSL(false);
+		
+		//Check results
+		assertTrue(dsl != null && !dsl.equals(""));
+		assertEquals(readTextFile(RIM_DSL_AIRLINE_NON_STRICT_ODATA_FILE), dsl);
+	}
+
+	public String createAirlineModelDSL(boolean strictOData) {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
@@ -78,14 +97,16 @@ public class TestRimDslGenerator {
 		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_SERVICE_DOCUMENT, COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
 		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.GET_ENTITIES_FILTERED, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES_FILTERED, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 
 		//Add transitions but without reciprocal links
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departureAirportCode", "flightSchedules", true, null, interactionModel.findResourceStateMachine("FlightSchedule"));
+		interactionModel.findResourceStateMachine("Flight").addTransition("FlightSchedule", "flightScheduleNum", "flightschedule", false, null, interactionModel.findResourceStateMachine("FlightSchedule"), null, "flightschedule");
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"), null, "departureAirport");
+		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"), null, "arrivalAirport");
+		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departures", "departures", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "departureAirportCode eq '{code}'", "departures");
+		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "arrivals", "arrivals", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "arrivalAirportCode eq '{code}'", "arrivals");
 	
 		// Add CRUD pseudo states
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("FlightSchedule", "pseudo_created", "POST", "CreateEntity", null, true);
@@ -96,13 +117,9 @@ public class TestRimDslGenerator {
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
-		String dsl = generator.generateRimDsl(interactionModel,commands);
-		
-		//Check results
-		assertTrue(dsl != null && !dsl.equals(""));
-		assertEquals(readTextFile(RIM_DSL_AIRLINE_FILE), dsl);
+		return generator.generateRimDsl(interactionModel,commands, strictOData);
 	}
-
+	
 	/*
 	 * Create a velocity engine which loads velocity 
 	 * templates from the classpath.

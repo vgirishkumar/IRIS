@@ -22,6 +22,12 @@ public class ResponderGenMojo extends AbstractMojo {
     private String edmxFileStr;
 
     /**
+     * Enable/disable strict odata compliance.
+     * @parameter
+     */
+    private boolean strictOdata = true;
+    
+    /**
      * @parameter property="srcTargetDirectory"
      */
     private String srcTargetDirectory;
@@ -43,6 +49,10 @@ public class ResponderGenMojo extends AbstractMojo {
 		this.configTargetDirectory = targetDirectory;
 	}
 
+    public void setStrictOdata(String strictOdata) {
+		this.strictOdata = (strictOdata != null && strictOdata.equalsIgnoreCase("true"));
+	}
+	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		// check our configuration
 		if (edmxFileStr == null)
@@ -78,8 +88,9 @@ public class ResponderGenMojo extends AbstractMojo {
 		}
 
 		boolean ok = false;
-		JPAResponderGen rg = new JPAResponderGen();
+		JPAResponderGen rg = new JPAResponderGen(strictOdata);
 		if (edmxFile.exists()) {
+			getLog().info("Generating artifacts (strict odata compliance: " + (strictOdata ? "true" : "false") + ")");
 			ok = rg.generateArtifacts(new EDMXAdapter(edmxFile.getAbsolutePath()), srcTargetDir, configTargetDir);
 		}
 		else {

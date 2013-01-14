@@ -372,9 +372,9 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedules"));
 		assertTrue(generator.generatedRimDsl.contains("resource FlightSchedules"));
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
-		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID, navproperty=\"departureAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
-		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/{navdepartureAirport}\""));
+		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/departureAirport\""));
 	}
 
 	@Test
@@ -413,9 +413,9 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("GET title=\"departureAirport\" *-> flightschedule_departureAirport id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
-		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/{navdepartureAirport}\""));
-		assertTrue(generator.generatedRimDsl.contains("GET title=\"arrivals\" -> FlightSchedulesFiltered filter=\"arrivalAirportCode eq '{code}'\""));
-		assertTrue(generator.generatedRimDsl.contains("GET title=\"departures\" -> FlightSchedulesFiltered filter=\"departureAirportCode eq '{code}'\""));
+		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET title=\"arrivals\" -> airport_arrivals id=code, filter=\"arrivalAirportCode eq '{code}'\""));
+		assertTrue(generator.generatedRimDsl.contains("GET title=\"departures\" -> airport_departures id=code, filter=\"departureAirportCode eq '{code}'\""));
 	}
 
 	@Test
@@ -432,7 +432,8 @@ public class TestJPAResponderGen {
 		//Do not specify a reciprocal link
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, "", interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departureAirportCode", "flightSchedules", true, "", interactionModel.findResourceStateMachine("FlightSchedule"));
+		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departures", "departures", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "departureAirportCode eq '{code}'", "departures");
+		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "arrivals", "arrivals", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "arrivalAirportCode eq '{code}'", "arrivals");
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
@@ -442,11 +443,12 @@ public class TestJPAResponderGen {
 		assertTrue(status);
 		
 		//Test rim dsl
-		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
-		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_departureAirport id=flightScheduleID, navdepartureAirport=\"departureAirport\""));
-		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
-		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_arrivalAirport id=flightScheduleID, navarrivalAirport=\"arrivalAirport\""));
-		assertTrue(generator.generatedRimDsl.contains("GET -> FlightSchedulesFiltered filter=\"1 eq 1\""));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID, navproperty=\"departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_departureAirport id=flightScheduleID, navproperty=\"departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty=\"arrivalAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_arrivalAirport id=flightScheduleID, navproperty=\"arrivalAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET title=\"arrivals\" -> airport_arrivals id=code, filter=\"arrivalAirportCode eq '{code}'\""));
+		assertTrue(generator.generatedRimDsl.contains("GET title=\"departures\" -> airport_departures id=code, filter=\"departureAirportCode eq '{code}'\""));
 	}
 	
 	/*

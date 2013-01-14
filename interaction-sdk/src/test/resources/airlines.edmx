@@ -32,8 +32,22 @@
                     <PropertyRef Name="flightID"/>
                 </Key>
                 <Property Name="flightID" Type="Edm.Int64" Nullable="false"/>
+                <Property Name="flightScheduleNum" Type="Edm.Int64" Nullable="false"/>
                 <Property Name="takeoffTime" Type="Edm.DateTime" Nullable="true"/>
+                <NavigationProperty Name="flightSchedule" Relationship="FlightResponderModel.Flight_flightSchedule" FromRole="Flight" ToRole="FlightSchedule"/>
             </EntityType>
+            <Association Name="Flight_flightSchedule">
+                <End Role="Flight" Type="FlightResponderModel.Flight" Multiplicity="*"/>
+                <End Role="FlightSchedule" Type="FlightResponderModel.FlightSchedule" Multiplicity="0..1"/>
+                <ReferentialConstraint>
+                    <Principal Role="FlightSchedule">
+                        <PropertyRef Name="flightScheduleID"/>
+                    </Principal>
+                    <Dependent Role="Flight">
+                        <PropertyRef Name="flightScheduleNum"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
             <Association Name="FlightSchedule_departureAirport">
                 <End Role="FlightSchedule" Type="FlightResponderModel.FlightSchedule" Multiplicity="*"/>
                 <End Role="Airport" Type="FlightResponderModel.Airport" Multiplicity="0..1"/>
@@ -62,6 +76,10 @@
                 <EntitySet Name="FlightSchedules" EntityType="FlightResponderModel.FlightSchedule"/>
                 <EntitySet Name="Airports" EntityType="FlightResponderModel.Airport"/>
                 <EntitySet Name="Flights" EntityType="FlightResponderModel.Flight"/>
+                <AssociationSet Name="Flight_flightSchedule" Association="FlightResponderModel.Flight_flightSchedule">
+                    <End Role="Flight" EntitySet="Flights"/>
+                    <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
+                </AssociationSet>
                 <AssociationSet Name="FlightSchedule_departureAirport" Association="FlightResponderModel.FlightSchedule_departureAirport">
                     <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
                     <End Role="Airport" EntitySet="Airports"/>

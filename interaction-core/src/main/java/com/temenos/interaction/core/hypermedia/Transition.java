@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.hypermedia;
 
+
 public class Transition {
 
 	/**
@@ -17,17 +18,29 @@ public class Transition {
 
 	private final ResourceState source, target;
 	private final TransitionCommandSpec command;
-	private String label = null;
+	private final String label;
 	
 	public Transition(ResourceState source, TransitionCommandSpec command, ResourceState target) {
-		this.source = source;
-		this.target = target;
-		this.command = command;
+		this(source, command, target, null);
 	}
 
 	public Transition(ResourceState source, TransitionCommandSpec command, ResourceState target, String label) {
-		this(source, command, target);
-		this.label = label;
+		this.source = source;
+		this.target = target;
+		this.command = command;
+		if(label == null) {
+			//Generate label from command parameters
+			String s = null;
+			if(command.getParameters() != null) {
+				for(String parameter : command.getParameters().values()) {
+					s = s != null ? s + ", " + parameter : parameter;
+				}
+			}
+			this.label = s;
+		}
+		else {
+			this.label = label;
+		}
 	}
 	
 	public ResourceState getSource() {
@@ -48,7 +61,7 @@ public class Transition {
 	
 	public String getId() {
 		String labelText = "";
-		if(label != null) {
+		if(label != null && !label.equals(target.getName())) {
 			labelText = "(" + label + ")";
 		}
 		if(source == null) {

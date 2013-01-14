@@ -22,24 +22,24 @@ public class InteractionSDKTest {
     public static final String ARCHETYPE_ARTEFACT_ID = "interaction-sdk-archetype";
 
     public static final String TEST_GROUP_ID = "com.mycorp.airtraffic";
-    public static final String TEST_ARTIFACT_ID = "FlightResponder";
+    
+    public static final String ARTIFACT_ID_FLIGHT_RESPONDER = "FlightResponder";
+    public static final String ARTIFACT_ID_FLIGHT_RESPONDER_NON_STRICT_ODATA = "FlightResponderNonStrictOData";
+    
+    private Verifier verifier;
 
     @Before
     public void setUp() throws VerificationException, IOException {
-        Verifier verifier;
         verifier = new Verifier(ROOT.getAbsolutePath());
-        verifier.displayStreamBuffers();
-        verifier.deleteArtifact(TEST_GROUP_ID, TEST_ARTIFACT_ID, System.getProperty("flightResponderVersion"), null);		//Remove archetype output artefacts
-        verifier.deleteDirectory(TEST_ARTIFACT_ID);											//Remove the maven project
     }
 
-    private Properties getSystemProperties() {
+    private Properties getSystemProperties(String artifactId) {
         Properties props = new Properties(System.getProperties());
         props.put("archetypeGroupId", ARCHETYPE_GROUP_ID);
         props.put("archetypeArtifactId", ARCHETYPE_ARTEFACT_ID);
         props.put("archetypeVersion", System.getProperty("archetypeVersion"));
         props.put("groupId", TEST_GROUP_ID);
-        props.put("artifactId", TEST_ARTIFACT_ID);
+        props.put("artifactId", artifactId);
         props.put("version", System.getProperty("flightResponderVersion"));
         props.put("interactiveMode", "false");
 
@@ -47,20 +47,42 @@ public class InteractionSDKTest {
     }
 
     @Test
-    public void testCreateFlightResponder() throws VerificationException, InterruptedException {
+    public void testCreateFlightResponder() throws VerificationException, IOException, InterruptedException {
+    	String artifactId = ARTIFACT_ID_FLIGHT_RESPONDER;
+		verifier.displayStreamBuffers();
+        verifier.deleteArtifact(TEST_GROUP_ID, artifactId, System.getProperty("flightResponderVersion"), null);		//Remove archetype output artefacts
+        verifier.deleteDirectory(artifactId);											//Remove the maven project
+
+        createFlightResponder(artifactId, true);
+    }
+
+    @Test
+    public void testCreateFlightResponderNonStrictOData() throws VerificationException, IOException, InterruptedException {
+    	String artifactId = ARTIFACT_ID_FLIGHT_RESPONDER_NON_STRICT_ODATA;
+		verifier.displayStreamBuffers();
+        verifier.deleteArtifact(TEST_GROUP_ID, artifactId, System.getProperty("flightResponderVersion"), null);		//Remove archetype output artefacts
+        verifier.deleteDirectory(artifactId);											//Remove the maven project
+
+        createFlightResponder(artifactId, false);
+    }
+    
+    private void createFlightResponder(String artifactId, boolean strictOdata) throws VerificationException, InterruptedException {
+    	System.out.println("Creating project " + artifactId);
+    	
         //Generate the archetype
         Verifier verifier = new Verifier(ROOT.getAbsolutePath());
-        verifier.displayStreamBuffers();
-        verifier.setSystemProperties(getSystemProperties());
+		verifier.displayStreamBuffers();
+        verifier.setSystemProperties(getSystemProperties(artifactId));
         verifier.setAutoclean(false);
         verifier.executeGoal("archetype:generate");
         verifier.verifyErrorFreeLog();
 
         //Verify the archetype
-        verifier = new Verifier(ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID);
+        verifier = new Verifier(ROOT.getAbsolutePath() + "/" + artifactId);
         verifier.setAutoclean(true);
         // the RIM file has not been generated yet (see interaction-sdk:gen target)
         Properties props = new Properties();
+        props.put("strictOdata", strictOdata ? "true" : "false");
         props.put("skipRIMGeneration", "true");
         verifier.setSystemProperties(props);
         verifier.executeGoal("verify");
@@ -74,7 +96,7 @@ public class InteractionSDKTest {
         
         //Overwrite responder insert file
         try {
-        	FileUtils.copyFileToDirectory( System.getProperty("insertFile"), ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID + "/src/main/resources/META-INF");
+        	FileUtils.copyFileToDirectory( System.getProperty("insertFile"), ROOT.getAbsolutePath() + "/" + artifactId + "/src/main/resources/META-INF");
         }
         catch(IOException ioe) {
         	new VerificationException("Failed to copy INSERT file.");
@@ -87,7 +109,7 @@ public class InteractionSDKTest {
         
         // create a thread to run the integration tests
         Verifier airlineIntTests = new Verifier(new File("../interaction-examples/interaction-odata-airline").getAbsolutePath());
-        Helper helper = new Helper(airlineIntTests);
+        Helper helper = new Helper(airlineIntTests, artifactId);
         helper.start();
 
         // start the Flight responder jetty server
@@ -102,8 +124,11 @@ public class InteractionSDKTest {
     private class Helper extends Thread {
     	private Verifier verifier;
     	private boolean failed = false;
-    	Helper(Verifier verifier) {
+    	private String artifactId;
+    	
+    	Helper(Verifier verifier, String artifactId) {
     		this.verifier = verifier;
+    		this.artifactId = artifactId;
     	}
     	public boolean hasFailed() {
     		return failed;
@@ -116,7 +141,7 @@ public class InteractionSDKTest {
     	        // run the integration tests
     	        verifier.displayStreamBuffers();
     	        Properties airlineProps = new Properties();
-    	        airlineProps.put("TEST_ENDPOINT_URI", "http://localhost:8080/responder/FlightResponder.svc/");
+    	        airlineProps.put("TEST_ENDPOINT_URI", "http://localhost:8080/responder/" + artifactId + ".svc/");
     	        verifier.setSystemProperties(airlineProps);
     	        List<String> goals = new ArrayList<String>();
     	        goals.add("package");
@@ -132,7 +157,7 @@ public class InteractionSDKTest {
 			}
             try {
 				// stop the Flight responder jetty server
-				stopFlightResponder();
+				stopFlightResponder(artifactId);
 			} catch (VerificationException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
@@ -140,8 +165,8 @@ public class InteractionSDKTest {
     	}
     }
 
-	void stopFlightResponder() throws VerificationException {
-        Verifier verifier = new Verifier(ROOT.getAbsolutePath() + "/" + TEST_ARTIFACT_ID);
+	void stopFlightResponder(String artifactId) throws VerificationException {
+        Verifier verifier = new Verifier(ROOT.getAbsolutePath() + "/" + artifactId);
         verifier.displayStreamBuffers();
         verifier.setAutoclean(false);
 //        Properties props = new Properties();
