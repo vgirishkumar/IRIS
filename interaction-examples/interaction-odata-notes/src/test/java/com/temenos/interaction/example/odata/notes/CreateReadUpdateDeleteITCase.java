@@ -2,15 +2,33 @@ package com.temenos.interaction.example.odata.notes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.util.Arrays;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
+import org.odata4j.core.ODataConstants;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OProperties;
+import org.odata4j.edm.EdmDataServices;
+import org.odata4j.format.Entry;
+import org.odata4j.format.FormatParser;
+import org.odata4j.format.FormatParserFactory;
+import org.odata4j.format.FormatType;
+import org.odata4j.format.Settings;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 
 import com.sun.jersey.api.client.Client;
@@ -108,6 +126,63 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 				.execute();
 
 		assertTrue(person != null);
+    }
+
+    /**
+     * Tests create with application/x-www-form-urlencoded request Content-Type.
+     * 
+     * @throws HttpException
+     * @throws IOException
+     */
+    @Test
+    public void testCreateUrlEncodedForm() throws HttpException, IOException {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
+		EdmDataServices metadata = consumer.getMetadata();
+
+		HttpClient client = new HttpClient();
+        PostMethod postMethod = new PostMethod(Configuration.TEST_ENDPOINT_URI + PERSONS_RESOURCE);
+        postMethod.setRequestEntity(new StringRequestEntity("name=RonOnForm&abcd=",
+                                                            "application/x-www-form-urlencoded",
+                                                            "UTF-8"));
+
+        String personId = null;
+        try {
+            client.executeMethod(postMethod);
+
+            assertEquals(201, postMethod.getStatusCode());
+            InputStream is = postMethod.getResponseBodyAsStream();
+
+            InputStreamReader isr = new InputStreamReader(is);
+            char[] buffer = new char[1];
+            int read = 0;
+            int offset = 0;
+            while ((read = isr.read(buffer, offset, buffer.length - offset)) != -1) {
+                offset += read;
+                if (offset >= buffer.length) {
+                	buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+            }
+            char[] carr = Arrays.copyOf(buffer, offset);
+
+            int checkEOF = is.read();
+            assertEquals(-1, checkEOF);
+            String str = new String(carr);
+
+            assertEquals("application/atom+xml", postMethod.getResponseHeader("Content-Type").getValue());
+            FormatParser<Entry> parser = FormatParserFactory.getParser(Entry.class,
+            		FormatType.ATOM, new Settings(ODataConstants.DATA_SERVICE_VERSION, metadata, PERSON_ENTITYSET_NAME, null, null));
+            Entry entry = parser.parse(new StringReader(str));
+            personId = entry.getEntity().getProperty("id").getValue().toString();
+            assertEquals("RonOnForm", entry.getEntity().getProperty("name").getValue().toString());
+        } finally {
+            postMethod.releaseConnection();
+        }
+        assertNotNull(personId);
+        
+		// read the person to check it was created ok
+		OEntity person = consumer.getEntity(PERSON_ENTITYSET_NAME, Integer.valueOf(personId)).execute();
+		assertTrue(person != null);
+		assertEquals("RonOnForm", person.getProperty("name").getValue());
     }
     
     @Test

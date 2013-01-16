@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.UriInfo;
 
-import org.odata4j.core.OProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +37,9 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.entity.Entity;
+import com.temenos.interaction.core.entity.EntityProperties;
+import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Event;
@@ -324,14 +325,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		return responseBuilder.build();
     }
 	
-	protected Map<String, Object> buildMapFromOEntity(List<OProperty<?>> properties) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		for (OProperty<?> property : properties) {
-			map.put(property.getName(), property.getValue());				
-		}
-		return map;
-	}
-	
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
     	try {
@@ -354,6 +347,33 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
     }
     
+    /**
+	 * Handle a POST from a regular html form.
+	 */
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
+    		MultivaluedMap<String, String> formParams) {
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	Event event = new Event("POST", HttpMethod.POST);
+    	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
+    	if (action == null) {
+    		return buildResponse(null, headers, pathParameters, HttpStatusTypes.METHOD_NOT_ALLOWED, null, getInteractions(), null);
+    	}
+    	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
+    	String entityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + currentState.getEntityName();
+		EntityResource<Entity> er = new EntityResource<Entity>(entityName, createEntity(entityName, formParams));
+		return post(headers, id, uriInfo, er);
+    }
+    
+    private Entity createEntity(String entityName, MultivaluedMap<String, String> formParams) {
+		EntityProperties fields = new EntityProperties();
+		for (String key : formParams.keySet()) {
+			fields.setProperty(new EntityProperty(key, formParams.getFirst(key)));
+		}
+		return new Entity(entityName, fields);
+    }
+
     /**
 	 * POST a document to a resource.
 	 * @precondition a valid POST command for this resourcePath + id must be registered with the command controller
