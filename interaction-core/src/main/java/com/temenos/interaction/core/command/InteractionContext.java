@@ -1,6 +1,8 @@
 package com.temenos.interaction.core.command;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -34,6 +36,7 @@ public class InteractionContext {
 	
 	/* Command context */
 	private RESTResource resource;
+	private Map<String, Object> attributes = new HashMap<String, Object>();
 	
 	/**
 	 * Construct the context for execution of an interaction.
@@ -122,4 +125,21 @@ public class InteractionContext {
     	return id;
     }
 
+    /**
+     * Store an attribute in this interaction context.
+     * @param name
+     * @param value
+     */
+    public void setAttribute(String name, Object value) {
+    	attributes.put(name, value);
+    }
+    
+    /**
+     * Retrieve an attribute from this interaction context.
+     * @param name
+     * @return
+     */
+    public Object getAttribute(String name) {
+    	return attributes.get(name);
+    }
 }
