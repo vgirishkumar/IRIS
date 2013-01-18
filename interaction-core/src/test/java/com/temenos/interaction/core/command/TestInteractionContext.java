@@ -72,7 +72,7 @@ public class TestInteractionContext {
 
 	@Test
 	public void testAttributes() {
-		InteractionContext ctx = new InteractionContext(new MultivaluedMapImpl(), new MultivaluedMapImpl(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(new MultivaluedMapImpl<String, String>(), new MultivaluedMapImpl<String, String>(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
 		ctx.setAttribute("abc", "test");
 		
 		assertEquals(ctx.getAttribute("abc"), "test");
