@@ -21,11 +21,15 @@ initial resource ServiceDocument
 end
 
 #foreach ( $rsm in $rim.getResourceStateMachines() )
-#* Collection resource state*#
+#* --------------- Collection resource state ---------------- *#
 resource ${rsm.getCollectionStateName()}
 	collection ${rsm.getEntityName()}
 	view { GETEntities }
-	path "/${rsm.getCollectionStateName()}()"
+	path "/${rsm.getCollectionStateName()}()"#*
+	Transitions bound to collection state*#
+#foreach ( $transition in $rsm.getTransitionsBoundToCollectionState() )
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityStateName()}_${transition.getTargetState().getName()}
+#end
 #foreach ( $transition in $rsm.getTransitions() )
 #if ($transition.isPseudoState() && $transition.isBoundToCollection()) 
 	${transition.getMethod()} -> ${rsm.getEntityStateName()}_${transition.getTargetStateName()}
@@ -36,7 +40,11 @@ resource ${rsm.getCollectionStateName()}
 	${transition.getMethod()} *-> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}
 #end
 #end
-	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}
+	GET *-> ${rsm.getEntityStateName()} id=${rsm.getMappedEntityProperty()}#*
+	Transitions bound to entity state*#
+#foreach ( $transition in $rsm.getTransitionsBoundToEntityState() )
+	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${rsm.getEntityStateName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
+#end
 #foreach ( $transition in $rsm.getTransitions() )
 #if (!$transition.isPseudoState())
 #if ($transition.isCollectionState()) 
@@ -49,7 +57,7 @@ resource ${rsm.getCollectionStateName()}
 #end
 #end
 end
-#* Entity resource state*#
+#* ------------------ Entity resource state ---------------------*#
 resource ${rsm.getEntityStateName()}
 	item ${rsm.getEntityName()}
 	view { GETEntity }
@@ -58,6 +66,14 @@ resource ${rsm.getEntityStateName()}
 #if ($transition.isPseudoState() && !$transition.isBoundToCollection()) 
 	${transition.getMethod()} -> ${rsm.getEntityStateName()}_${transition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}
 #end
+#end
+#foreach ( $stateTransition in $rsm.getStateTransitions() )
+#if (!$stateTransition.isBoundToCollection()) 
+	${stateTransition.getMethod()} ${stateTransition.getTitleAssignment()}-> ${stateTransition.getTargetStateName()} id=${rsm.getMappedEntityProperty()}
+#end
+#end
+#foreach ( $transition in $rsm.getTransitionsBoundToEntityState() )
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityStateName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
 #end
 #foreach ( $transition in $rsm.getTransitions() )
 #if (!$transition.isPseudoState())
@@ -71,7 +87,7 @@ resource ${rsm.getEntityStateName()}
 #end
 #end
 end
-#* Transitions to other resource states *#
+#* -------------------- Navigation states ------------------ *#
 #foreach ( $transition in $rsm.getTransitions() )
 #if($transition.isCollectionState())#*
 	Transition to collection resource state*#
@@ -120,6 +136,34 @@ resource ${rsm.getEntityStateName()}_${transition.getTargetStateName()}
 	path "/${rsm.getCollectionStateName()}(${rsm.getPathParametersTemplate()})/${transition.getTargetStateName()}"
 #end
 end
+#end
+#end
+#* -------------------- Resource states with actions ------------------ *#
+#foreach ( $state in $rsm.getResourceStates() )
+#if (!$state.equals($rsm.getEntityState()) && !$state.equals($rsm.getCollectionState())) 
+resource ${rsm.getEntityStateName()}_${state.getName()}
+	item ${rsm.getEntityName()}
+	view { GETEntity }
+#if ($state.getActions().size() > 0)
+	actions { ##
+#foreach ( $action in $state.getActions() )
+$action## 
+#end
+ }
+#end
+#if ($state.hasRelations())
+	relations { "${state.getRelations()}" }
+#end
+	path "${state.getPath()}"
+#foreach ( $transition in $state.getTransitions() )
+#if ($transition.isAutoTransition())
+	${transition.getMethod()} --> ${rsm.getEntityStateName()}_${transition.getTargetState().getName()} (OK(${rsm.getEntityStateName()}_${transition.getTargetState().getName()}))
+#else
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityStateName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
+#end
+#end
+end
+
 #end
 #end
 #end

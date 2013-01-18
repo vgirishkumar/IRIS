@@ -47,6 +47,7 @@ resource flight_pseudo_created
 	path "/Flights()"
 end
 
+
 resource Airports
 	collection Airport
 	view { GETEntities }
@@ -93,6 +94,7 @@ resource airport_pseudo_created
 	path "/Airports()"
 end
 
+
 resource FlightSchedules
 	collection FlightSchedule
 	view { GETEntities }
@@ -118,3 +120,4 @@ resource flightschedule_pseudo_created
 	actions { CreateEntity }
 	path "/FlightSchedules()"
 end
+

@@ -18,6 +18,8 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.command.Parameter;
+import com.temenos.interaction.sdk.interaction.IMPseudoState;
+import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 
 /**
@@ -28,6 +30,9 @@ public class TestRimDslGenerator {
 	public final static String RIM_DSL_AIRLINE_SIMPLE_FILE = "AirlinesSimple.rim";
 	public final static String RIM_DSL_AIRLINE_FILE = "Airlines.rim";
 	public final static String RIM_DSL_AIRLINE_NON_STRICT_ODATA_FILE = "AirlinesNonStrictOData.rim";
+
+	public final static String METADATA_BANKING_XML_FILE = "Banking.xml";
+	public final static String RIM_DSL_BANKING_FILE = "Banking.rim";
 	
 	public final static Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
 	public final static Parameter COMMAND_EDM_DATA_SERVICES = new Parameter("edmDataServices", true, "");
@@ -88,6 +93,40 @@ public class TestRimDslGenerator {
 		assertEquals(readTextFile(RIM_DSL_AIRLINE_NON_STRICT_ODATA_FILE), dsl);
 	}
 
+	@Test
+	public void createBankingRimDsl() {
+		//Define the basic interaction model based on the available metadata
+		Metadata metadata = parseMetadata(METADATA_BANKING_XML_FILE);
+		InteractionModel interactionModel = new InteractionModel(metadata);
+		Commands commands = new Commands();
+		
+		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_SERVICE_DOCUMENT, COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand("AuthoriseEntity", "com.temenos.interaction.commands.odata.UpdateEntityCommand", Commands.UPDATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.DELETE_ENTITY, "com.temenos.interaction.commands.odata.DeleteEntityCommand", Commands.DELETE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+
+		//Add state transitions
+		IMResourceStateMachine rsm = interactionModel.findResourceStateMachine("Sector");
+		rsm.addStateTransition("sector", "Live", "GET", "live records", null, null, false);
+		rsm.addStateTransition("sector", "IAuth", "GET", "unauthorised input records", null, null, false);
+		IMPseudoState pseudoState = rsm.addPseudoStateTransition("Sectors", "input", "POST", null, "CreateEntity", null, true);
+		pseudoState.addAutoTransition(rsm.getResourceState("IAuth"), "GET");
+		pseudoState.addAutoTransition(rsm.getResourceState("Live"), "GET");
+		pseudoState = rsm.addPseudoStateTransition("IAuth", "authorise", "PUT", "authorise", "AuthoriseEntity", "edit", false);
+		pseudoState.addAutoTransition(rsm.getResourceState("IAuth"), "GET");
+		pseudoState.addAutoTransition(rsm.getResourceState("Live"), "GET");
+		pseudoState = rsm.addPseudoStateTransition("IAuth", "delete", "DELETE", "delete", "DeleteEntity", "edit", false);
+		pseudoState.addAutoTransition(rsm.getResourceState("Live"), "GET");
+		
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		String dsl = generator.generateRimDsl(interactionModel,commands, false);
+		assertEquals(readTextFile(RIM_DSL_BANKING_FILE), dsl);
+	}
+	
 	public String createAirlineModelDSL(boolean strictOData) {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);

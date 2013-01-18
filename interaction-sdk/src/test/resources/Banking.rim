@@ -1,0 +1,85 @@
+events
+	GET GET
+	POST POST
+	PUT PUT
+	DELETE DELETE
+end
+
+commands
+	GETServiceDocument
+	GETEntities
+	GETEntity
+	CreateEntity
+	AuthoriseEntity
+	DeleteEntity
+end
+
+initial resource ServiceDocument
+	item ServiceDocument
+	view { GETServiceDocument }
+	path "/"
+	GET -> Sectors
+end
+
+
+resource Sectors
+	collection Sector
+	view { GETEntities }
+	path "/Sectors()"
+	POST -> sector_Sectors_input
+	GET *-> sector id=SectorCode
+	GET title="live records" *-> sector_Live id=SectorCode
+	GET title="unauthorised input records" *-> sector_IAuth id=SectorCode
+end
+
+resource sector
+	item Sector
+	view { GETEntity }
+	path "/Sectors('{id}')"
+	GET title="live records" -> sector_Live id=SectorCode
+	GET title="unauthorised input records" -> sector_IAuth id=SectorCode
+end
+
+
+resource sector_IAuth
+	item Sector
+	view { GETEntity }
+	path "/Sectors('{id}')/IAuth"
+	PUT title="authorise" -> sector_IAuth_authorise id=SectorCode
+	DELETE title="delete" -> sector_IAuth_delete id=SectorCode
+end
+
+resource sector_IAuth_authorise
+	item Sector
+	view { GETEntity }
+	actions { AuthoriseEntity }
+	relations { "edit" }
+	path "/Sectors('{id}')/IAuth"
+	GET --> sector_IAuth (OK(sector_IAuth))
+	GET --> sector_Live (OK(sector_Live))
+end
+
+resource sector_IAuth_delete
+	item Sector
+	view { GETEntity }
+	actions { DeleteEntity }
+	relations { "edit" }
+	path "/Sectors('{id}')/IAuth"
+	GET --> sector_Live (OK(sector_Live))
+end
+
+resource sector_Live
+	item Sector
+	view { GETEntity }
+	path "/Sectors('{id}')/Live"
+end
+
+resource sector_Sectors_input
+	item Sector
+	view { GETEntity }
+	actions { CreateEntity }
+	path "/Sectors()"
+	GET --> sector_IAuth (OK(sector_IAuth))
+	GET --> sector_Live (OK(sector_Live))
+end
+
