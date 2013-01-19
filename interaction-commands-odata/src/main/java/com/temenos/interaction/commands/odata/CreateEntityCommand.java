@@ -10,6 +10,8 @@ import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
+import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
@@ -68,7 +70,12 @@ public class CreateEntityCommand implements InteractionCommand {
 				if (prop.getName().equals("Id")) {
 					id = prop.getValue().toString();
 				} else if (entityType.findProperty(prop.getName()) != null) {
-					eProps.add(OProperties.string(prop.getName(), prop.getValue().toString()));
+					EdmProperty eProp = entityType.findProperty(prop.getName());
+					if (eProp.getType().equals(EdmSimpleType.STRING)) {
+						eProps.add(OProperties.string(prop.getName(), prop.getValue().toString()));
+					} else if (eProp.getType().equals(EdmSimpleType.INT32)) {
+						eProps.add(OProperties.int32(prop.getName(), new Integer(prop.getValue().toString())));
+					}
 				}
 			}
 //			assert(id != null) : "Id property not found";
