@@ -12,6 +12,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -84,6 +85,11 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 		    FormatWriter<EdmDataServices> fw = FormatWriterFactory.getFormatWriter(EdmDataServices.class, Arrays.asList(acceptedMediaTypes), "atom", null);
 		    fw.write(uriInfo, sw, metadata);
 			svcDocString = sw.toString();
+			
+			//Set HTTP response headers
+			if(httpHeaders != null) {
+				httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE);
+			}
 		}
 		else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
