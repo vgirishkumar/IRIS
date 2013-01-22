@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.odata4j.edm.EdmAssociation;
+import org.odata4j.edm.EdmComplexType;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
@@ -28,11 +29,13 @@ import com.temenos.interaction.core.hypermedia.UriSpecification;
 public class TestMetadataOData4j {
 	public final static String METADATA_XML_FILE = "TestMetadataParser.xml";
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
-
+	public final static String METADATA_CUSTOMER_NON_EXP_XML_FILE = "CustomerNonExpandedMetadata.xml";
+	
 	private static String AIRLINE_NAMESPACE = "FlightResponderModel";
 	private static Metadata metadataAirline;
 	private static MetadataOData4j metadataOdata4j;
 	private static MetadataOData4j metadataAirlineOdata4j;
+	private static MetadataOData4j metadataCustomerNonExpandableModelOdata4j;
 	
 	@BeforeClass
 	public static void setup()
@@ -61,6 +64,15 @@ public class TestMetadataOData4j {
 		
 		//Convert metadata to odata4j metadata
 		metadataAirlineOdata4j = new MetadataOData4j(metadataAirline, hypermediaEngine);
+		
+		//Read the Complex metadata file
+		MetadataParser parserCustomerComplex = new MetadataParser();
+		InputStream isCustomer = parserCustomerComplex.getClass().getClassLoader().getResourceAsStream(METADATA_CUSTOMER_NON_EXP_XML_FILE);
+		Metadata complexMetadata = parserCustomerComplex.parse(isCustomer);
+		Assert.assertNotNull(complexMetadata);
+				
+		//Convert metadata to odata4j metadata
+		metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, new ResourceStateMachine(new ResourceState("SD", "initial", new ArrayList<Action>(), "/")));
 	}
 	
 	@Test(expected = AssertionError.class)
@@ -82,9 +94,44 @@ public class TestMetadataOData4j {
 		Assert.assertEquals("Customer", entityType.getName());
 		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
-		Assert.assertEquals(true, entityType.findProperty("postCode").isNullable());
+		Assert.assertEquals(false, entityType.findProperty("address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
+		
+		
+		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer.address");
+		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
+		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
+		Assert.assertEquals(false, addressType.findProperty("street").getType().isSimple());
+		
+		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer.street");
+		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
+		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}
 
+	@Test
+	public void testCustomerComplexEntity() {
+		EdmDataServices edmDataServices = metadataCustomerNonExpandableModelOdata4j.getMetadata();
+		EdmType type = edmDataServices.findEdmEntityType("CustomerServiceTestModel.Customer");
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("CustomerServiceTestModel.Customer"));
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		Assert.assertEquals("Customer", entityType.getName());
+		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
+		Assert.assertEquals(false, entityType.findProperty("address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
+		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
+		
+		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer.address");
+		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
+		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
+		Assert.assertEquals(false, addressType.findProperty("street").getType().isSimple());
+		
+		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer.street");
+		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
+		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
+	}
+	
 	@Test
 	public void testAirlineSchemaCount()
 	{	

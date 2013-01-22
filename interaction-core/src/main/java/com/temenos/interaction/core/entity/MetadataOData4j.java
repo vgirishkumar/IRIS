@@ -12,9 +12,10 @@ import javax.ws.rs.HttpMethod;
 
 import org.odata4j.core.ODataVersion;
 import org.odata4j.edm.EdmAssociation;
+import org.odata4j.edm.EdmAssociationEnd;
+import org.odata4j.edm.EdmComplexType;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmDataServices.Builder;
-import org.odata4j.edm.EdmAssociationEnd;
 import org.odata4j.edm.EdmEntityContainer;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
@@ -26,6 +27,8 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
 
+import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
@@ -75,6 +78,7 @@ public class MetadataOData4j {
     	EdmSchema.Builder bSchema = new EdmSchema.Builder();
     	List<EdmEntityContainer.Builder> bEntityContainers = new ArrayList<EdmEntityContainer.Builder>();
     	Map<String, EdmEntityType.Builder> bEntityTypeMap = new HashMap<String, EdmEntityType.Builder>();
+    	Map<String, EdmComplexType.Builder> bComplexTypeMap = new HashMap<String, EdmComplexType.Builder>();
 		Map<String, EdmEntitySet.Builder> bEntitySetMap = new HashMap<String, EdmEntitySet.Builder>();
 		Map<String, EdmFunctionImport.Builder> bFunctionImportMap = new HashMap<String, EdmFunctionImport.Builder>();
 		List<EdmAssociation.Builder> bAssociations = new ArrayList<EdmAssociation.Builder>();
@@ -82,16 +86,46 @@ public class MetadataOData4j {
 		for(EntityMetadata entityMetadata : metadata.getEntitiesMetadata().values()) {
 			List<EdmProperty.Builder> bProperties = new ArrayList<EdmProperty.Builder>();
 			List<String> keys = new ArrayList<String>();
+			String typeNameSpace = new StringBuilder(namespace)
+									.append(".").append(entityMetadata.getEntityName()).toString();
 			for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
-				//Entity properties
-	    		String type = entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME);
-	    		EdmType edmType = termValueToEdmType(type);
-	    		boolean isNullable = !(entityMetadata.getTermValue(propertyName, TermMandatory.TERM_NAME).equals("true") || entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true"));
-				EdmProperty.Builder ep = EdmProperty.newBuilder(propertyName).
-						setType(edmType).
-						setNullable(isNullable);
-				bProperties.add(ep);
-
+				//Entity properties, lets gather some information about the property
+				String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);		// Is vocabulary a group (Complex Type)
+				String termComplexGroup = entityMetadata.getTermValue(propertyName, TermComplexGroup.TERM_NAME);// Is vocabulary belongs to a group (ComplexType) 
+				boolean isNullable = !(entityMetadata.getTermValue(propertyName, TermMandatory.TERM_NAME).equals("true") || entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true"));
+				if (termComplex.equals("false")) {
+					// This means we are dealing with plain property, either belongs to Entity or ComplexType (decide later, lets build it first)
+					EdmType edmType = termValueToEdmType(entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME));
+					EdmProperty.Builder ep = EdmProperty.newBuilder(propertyName).
+							setType(edmType).
+							setNullable(isNullable);
+					if (termComplexGroup == null) {
+						// Property belongs to an Entity Type, simply add it 
+						bProperties.add(ep);
+					} else {
+						// Property belongs to a group (complex type), first make sure we have a group 
+						// so add a group with Entity name space and group name
+						addComplexType(typeNameSpace, termComplexGroup, bComplexTypeMap);
+						// And then add the property into complex type
+						addPropertyToComplexType(typeNameSpace, termComplexGroup, ep, bComplexTypeMap);
+					}
+				} else {
+					// This means vocabulary is a group (complex type), so add it in a map
+					addComplexType(typeNameSpace, propertyName, bComplexTypeMap);
+					if (termComplexGroup != null) {
+						// This mean group (complex type) belongs to a group (complex type), so make sure add the parent group and add
+						// nested group as group property
+						addComplexType(typeNameSpace, termComplexGroup, bComplexTypeMap);
+						addComplexTypeToComplexType(typeNameSpace, termComplexGroup, propertyName, isNullable, bComplexTypeMap);
+					} else {
+						// This means group (complex type) belongs to an Entity, so simply build and add as a Entity prop
+						EdmProperty.Builder ep = EdmProperty.newBuilder(propertyName).
+								setType(bComplexTypeMap.get(typeNameSpace + "." + propertyName)).
+								setNullable(isNullable);
+						bProperties.add(ep);
+					}
+				}	
+				
 				//Entity keys
 				if(entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true")) {
 					keys.add(propertyName);					
@@ -102,7 +136,7 @@ public class MetadataOData4j {
 			EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
 			bEntityTypeMap.put(entityMetadata.getEntityName(), bEntityType);
 		}
-
+		
 		// Add Navigation Properties
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
 			// build associations
@@ -172,10 +206,15 @@ public class MetadataOData4j {
 
 		List<EdmEntityType.Builder> bEntityTypes = new ArrayList<EdmEntityType.Builder>();
 		bEntityTypes.addAll(bEntityTypeMap.values());
+		
+		List<EdmComplexType.Builder> bComplexTypes = new ArrayList<EdmComplexType.Builder>();
+		bComplexTypes.addAll(bComplexTypeMap.values());
+		
 		bSchema
 			.setNamespace(namespace)
 			.setAlias(serviceName)
 			.addEntityTypes(bEntityTypes)
+			.addComplexTypes(bComplexTypes)
 			.addAssociations(bAssociations)
 			.addEntityContainers(bEntityContainers);
     	bSchemas.add(bSchema);
@@ -298,5 +337,61 @@ public class MetadataOData4j {
 		}
 		return edmType;
 	}
-
+	
+	/**
+	 * Build the complex type if and only if same name group is not found in the map
+	 * @param complexTypeName
+	 * @param bComplexTypeMap
+	 */
+	private void addComplexType(String typeNameSpace, String complexTypeName, 
+			Map<String, EdmComplexType.Builder> bComplexTypeMap) {
+		String complexTypeFullName = new StringBuilder(typeNameSpace)
+										.append(".").append(complexTypeName)
+										.toString();
+		if (bComplexTypeMap.get(complexTypeFullName) == null ) {
+			EdmComplexType.Builder cb = 
+					EdmComplexType.newBuilder().setNamespace(typeNameSpace)
+					.setName(complexTypeName);
+			bComplexTypeMap.put(complexTypeFullName, cb);
+		}
+	}
+	
+	/**
+	 * Adding the property to complex type if and only if not already added as a property of the complex type
+	 * @param serviceNameSpace
+	 * @param complexTypeName
+	 * @param edmPropertyBuilder
+	 * @param bComplexTypeMap
+	 */
+	private void addPropertyToComplexType(String typeNameSpace, String complexTypeName, EdmProperty.Builder edmPropertyBuilder, Map<String, EdmComplexType.Builder> bComplexTypeMap) {
+		String complexTypeFullName = new StringBuilder(typeNameSpace)
+										.append(".").append(complexTypeName)
+										.toString();
+		if (bComplexTypeMap.get(complexTypeFullName).findProperty(edmPropertyBuilder.getName()) == null) {
+			List<EdmProperty.Builder> bl = new ArrayList<EdmProperty.Builder>();
+			bl.add(edmPropertyBuilder);
+			bComplexTypeMap.get(complexTypeFullName).addProperties(bl);
+		}
+	}
+	
+	/**
+	 * Adding the ComplexType to Complex Type if and only is not already added as a property of the complex type
+	 * @param serviceNameSpace
+	 * @param complexTypeName
+	 * @param edmPropertyBuilder
+	 * @param bComplexTypeMap
+	 */
+	private void addComplexTypeToComplexType(String typeNameSpace, String complexTypeName, String nestedComplexType, boolean isNullable, Map<String, EdmComplexType.Builder> bComplexTypeMap) {
+		String complexTypeFullName = new StringBuilder(typeNameSpace).append(".").append(complexTypeName).toString();
+		String nestComplexTypeFullName = new StringBuilder(typeNameSpace).append(".").append(nestedComplexType).toString();
+		if (bComplexTypeMap.get(complexTypeFullName).findProperty(nestedComplexType) == null) {
+			List<EdmProperty.Builder> bl = new ArrayList<EdmProperty.Builder>();
+			EdmProperty.Builder ep = EdmProperty.newBuilder(nestedComplexType)
+					.setType(bComplexTypeMap.get(nestComplexTypeFullName))
+					.setNullable(isNullable);
+			bl.add(ep);
+			bComplexTypeMap.get(complexTypeFullName).addProperties(bl);
+		}
+	}
+	
 }
