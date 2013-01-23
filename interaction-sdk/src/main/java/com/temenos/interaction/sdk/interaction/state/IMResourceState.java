@@ -1,7 +1,13 @@
-package com.temenos.interaction.sdk.interaction;
+package com.temenos.interaction.sdk.interaction.state;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
+import com.temenos.interaction.sdk.interaction.transition.IMCollectionStateTransition;
+import com.temenos.interaction.sdk.interaction.transition.IMEntityStateTransition;
+import com.temenos.interaction.sdk.interaction.transition.IMStateTransition;
+import com.temenos.interaction.sdk.interaction.transition.IMTransition;
 
 /**
  * This class holds information about a resource state
@@ -10,7 +16,7 @@ public class IMResourceState {
 
 	private String name;										//Name
 	private String path;										//Path
-	private List<IMStateTransition> transitions = new ArrayList<IMStateTransition>(); 
+	private List<IMTransition> transitions = new ArrayList<IMTransition>(); 
 	
 	/**
 	 * Construct a new resource state 
@@ -42,13 +48,37 @@ public class IMResourceState {
 	}
 	
 	/**
-	 * Add a transition to resource state
+	 * Add a transition to another resource state
 	 * @param title				Transition label
 	 * @param targetState		Target state
 	 * @param method			HTTP command
 	 */
 	public void addTransition(String title, IMResourceState targetState, String method) {
 		this.addTransition(title, targetState, method, false, false);
+	}
+	
+	/**
+	 * Add a transition to a collection state of a resource state machine
+	 * @param title Transition label
+	 * @param targetResourceStateMachine Target resource state machine
+	 * @param targetState Target state
+	 * @param method HTTP command
+	 * @param filter Filter expression on collection
+	 */
+	public void addTransitionToCollectionState(String title, IMResourceStateMachine targetResourceStateMachine, IMResourceState targetState, String method, String filter) {
+		transitions.add(new IMCollectionStateTransition(targetResourceStateMachine, targetState, targetState.getName(), filter, title, method));
+	}
+	
+	/**
+	 * Add a transition to an entity state of a resource state machine
+	 * @param title
+	 * @param targetResourceStateMachine
+	 * @param targetState
+	 * @param method
+	 * @param linkProperty
+	 */
+	public void addTransitionToEntityState(String title, IMResourceStateMachine targetResourceStateMachine, IMResourceState targetState, String method, String linkProperty) {
+		transitions.add(new IMEntityStateTransition(targetResourceStateMachine, targetState, linkProperty, title, method));
 	}
 
 	/* Add a transition  
@@ -66,7 +96,7 @@ public class IMResourceState {
 	 * Return a list of outgoing transitions
 	 * @return
 	 */
-	public List<IMStateTransition> getTransitions() {
+	public List<IMTransition> getTransitions() {
 		return transitions;
 	}
 	

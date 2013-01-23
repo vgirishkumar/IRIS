@@ -18,7 +18,7 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.command.Parameter;
-import com.temenos.interaction.sdk.interaction.IMPseudoState;
+import com.temenos.interaction.sdk.interaction.state.IMPseudoState;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 
@@ -56,15 +56,16 @@ public class TestRimDslGenerator {
 		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 
 		//Add transitions
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
+		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
+		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
+		IMResourceStateMachine rsmFlight = interactionModel.findResourceStateMachine("Flight");
 		
-		// Add CRUD pseudo states
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("FlightSchedule", "pseudo_created", "POST", "CreateEntity", null, true);
-		interactionModel.findResourceStateMachine("Flight").addTransition("Flight", "pseudo_created", "POST", "CreateEntity", null, true);
-		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_created", "POST", "CreateEntity", null, true);
-//		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
-//		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", null);
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", null);
+
+		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "POST", null, "CreateEntity", null, true);
+		rsmFlight.addPseudoStateTransition("Flights", "created", "POST", null, "CreateEntity", null, true);
+		rsmAirport.addPseudoStateTransition("Airports", "created", "POST", null, "CreateEntity", null, true);
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
@@ -140,19 +141,21 @@ public class TestRimDslGenerator {
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 
-		//Add transitions but without reciprocal links
-		interactionModel.findResourceStateMachine("Flight").addTransition("FlightSchedule", "flightScheduleNum", "flightschedule", false, null, interactionModel.findResourceStateMachine("FlightSchedule"), null, "flightschedule");
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, null, interactionModel.findResourceStateMachine("Airport"), null, "departureAirport");
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"), null, "arrivalAirport");
-		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departures", "departures", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "departureAirportCode eq '{code}'", "departures");
-		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "arrivals", "arrivals", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "arrivalAirportCode eq '{code}'", "arrivals");
-	
-		// Add CRUD pseudo states
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("FlightSchedule", "pseudo_created", "POST", "CreateEntity", null, true);
-		interactionModel.findResourceStateMachine("Flight").addTransition("Flight", "pseudo_created", "POST", "CreateEntity", null, true);
-		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_created", "POST", "CreateEntity", null, true);
-//		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
-//		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
+		//Add transitions
+		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
+		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
+		IMResourceStateMachine rsmFlight = interactionModel.findResourceStateMachine("Flight");
+		
+		rsmFlight.addTransitionToEntityState("flight", rsmFlightSchedule, "flightschedule", "flightScheduleNum", "flightschedule");
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", "departureAirport");
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", "arrivalAirport");
+
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", "departures");
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", "arrivals");
+
+		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "POST", null, "CreateEntity", null, true);
+		rsmFlight.addPseudoStateTransition("Flights", "created", "POST", null, "CreateEntity", null, true);
+		rsmAirport.addPseudoStateTransition("Airports", "created", "POST", null, "CreateEntity", null, true);
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());

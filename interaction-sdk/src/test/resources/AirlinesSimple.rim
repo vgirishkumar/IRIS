@@ -22,12 +22,11 @@ initial resource ServiceDocument
 	GET -> FlightSchedules
 end
 
-
 resource Flights
 	collection Flight
 	view { GETEntities }
 	path "/Flights()"
-	POST -> flight_pseudo_created
+	POST -> flight_Flights_created
 	GET *-> flight id=flightID
 end
 
@@ -37,20 +36,18 @@ resource flight
 	path "/Flights({id})"
 end
 
-
-resource flight_pseudo_created
+resource flight_Flights_created
 	item Flight
 	view { GETEntity }
 	actions { CreateEntity }
 	path "/Flights()"
 end
 
-
 resource Airports
 	collection Airport
 	view { GETEntities }
 	path "/Airports()"
-	POST -> airport_pseudo_created
+	POST -> airport_Airports_created
 	GET *-> airport id=code
 end
 
@@ -60,20 +57,18 @@ resource airport
 	path "/Airports('{id}')"
 end
 
-
-resource airport_pseudo_created
+resource airport_Airports_created
 	item Airport
 	view { GETEntity }
 	actions { CreateEntity }
 	path "/Airports()"
 end
 
-
 resource FlightSchedules
 	collection FlightSchedule
 	view { GETEntities }
 	path "/FlightSchedules()"
-	POST -> flightschedule_pseudo_created
+	POST -> flightschedule_FlightSchedules_created
 	GET *-> flightschedule id=flightScheduleID
 	GET *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
 	GET *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
@@ -87,6 +82,11 @@ resource flightschedule
 	GET -> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
 end
 
+resource flightschedule_arrivalAirport
+	item Airport
+	view { GETNavProperty navproperty=navproperty, entity=FlightSchedule }
+	path "/FlightSchedules({id})/arrivalAirport"
+end
 
 resource flightschedule_departureAirport
 	item Airport
@@ -94,16 +94,9 @@ resource flightschedule_departureAirport
 	path "/FlightSchedules({id})/departureAirport"
 end
 
-resource flightschedule_arrivalAirport
-	item Airport
-	view { GETNavProperty navproperty=navproperty, entity=FlightSchedule }
-	path "/FlightSchedules({id})/arrivalAirport"
-end
-
-resource flightschedule_pseudo_created
+resource flightschedule_FlightSchedules_created
 	item FlightSchedule
 	view { GETEntity }
 	actions { CreateEntity }
 	path "/FlightSchedules()"
 end
-

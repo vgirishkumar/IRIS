@@ -1,4 +1,4 @@
-package com.temenos.interaction.sdk.interaction;
+package com.temenos.interaction.sdk.interaction.state;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -22,12 +22,11 @@ initial resource ServiceDocument
 	GET -> FlightSchedules
 end
 
-
 resource Flights
 	collection Flight
 	view { GETEntities }
 	path "/Flights()"
-	POST -> flight_pseudo_created
+	POST -> flight_Flights_created
 	GET *-> flight id=flightID
 	GET title="flightschedule" *-> flightschedule id=flightScheduleNum
 end
@@ -39,20 +38,18 @@ resource flight
 	GET title="flightschedule" -> flightschedule id=flightScheduleNum
 end
 
-
-resource flight_pseudo_created
+resource flight_Flights_created
 	item Flight
 	view { GETEntity }
 	actions { CreateEntity }
 	path "/Flights()"
 end
 
-
 resource Airports
 	collection Airport
 	view { GETEntities }
 	path "/Airports()"
-	POST -> airport_pseudo_created
+	POST -> airport_Airports_created
 	GET *-> airport id=code
 	GET title="departures" *-> airport_departures id=code, filter="departureAirportCode eq '{code}'"
 	GET title="arrivals" *-> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
@@ -66,40 +63,36 @@ resource airport
 	GET title="arrivals" -> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
 end
 
-
-resource airport_departures
-	collection FlightSchedule
-	view { GETEntities filter=filter }
-	path "/Airports('{id}')/departures"
-	POST -> flightschedule_pseudo_created
-	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> airport id=departureAirportCode
-	GET title="arrivalAirport" *-> airport id=arrivalAirportCode
-end
-
-resource airport_arrivals
-	collection FlightSchedule
-	view { GETEntities filter=filter }
-	path "/Airports('{id}')/arrivals"
-	POST -> flightschedule_pseudo_created
-	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> airport id=departureAirportCode
-	GET title="arrivalAirport" *-> airport id=arrivalAirportCode
-end
-
-resource airport_pseudo_created
+resource airport_Airports_created
 	item Airport
 	view { GETEntity }
 	actions { CreateEntity }
 	path "/Airports()"
 end
 
+resource airport_arrivals
+	collection FlightSchedule
+	view { GETEntities filter=filter }
+	path "/Airports('{id}')/arrivals"
+	GET *-> flightschedule id=flightScheduleID
+	GET title="departureAirport" *-> airport id=departureAirportCode
+	GET title="arrivalAirport" *-> airport id=arrivalAirportCode
+end
+
+resource airport_departures
+	collection FlightSchedule
+	view { GETEntities filter=filter }
+	path "/Airports('{id}')/departures"
+	GET *-> flightschedule id=flightScheduleID
+	GET title="departureAirport" *-> airport id=departureAirportCode
+	GET title="arrivalAirport" *-> airport id=arrivalAirportCode
+end
 
 resource FlightSchedules
 	collection FlightSchedule
 	view { GETEntities }
 	path "/FlightSchedules()"
-	POST -> flightschedule_pseudo_created
+	POST -> flightschedule_FlightSchedules_created
 	GET *-> flightschedule id=flightScheduleID
 	GET title="departureAirport" *-> airport id=departureAirportCode
 	GET title="arrivalAirport" *-> airport id=arrivalAirportCode
@@ -113,11 +106,9 @@ resource flightschedule
 	GET title="arrivalAirport" -> airport id=arrivalAirportCode
 end
 
-
-resource flightschedule_pseudo_created
+resource flightschedule_FlightSchedules_created
 	item FlightSchedule
 	view { GETEntity }
 	actions { CreateEntity }
 	path "/FlightSchedules()"
 end
-

@@ -213,30 +213,24 @@ public class EDMXAdapter implements InteractionAdapter {
 					EdmAssociation association = np.getRelationship();
 					String linkProperty = linkPropertyMap.get(association.getName());
 
-					//Reciprocal link state name
-					String reciprocalLinkState = "";
-					for(EdmNavigationProperty npTarget : targetEntityType.getNavigationProperties()) {
-						String targetNavPropTargetEntityName = npTarget.getToRole().getType().getName();
-						if(targetNavPropTargetEntityName.equals(entityName)) {
-							reciprocalLinkState = npTarget.getName();
-						}
-					}
+					String linkTitle = np.getName();
 					String filter = null;
 					if(isTargetCollection) {
 						String linkPropertyOrigin = linkPropertyOriginMap.get(association.getName());
 						filter = linkProperty + " eq '{" + linkPropertyOrigin + "}'";
 						linkProperty = np.getName();
+						rsm.addTransitionToCollectionState(rsm.getEntityState().getName(), targetRsm, np.getName(), filter, linkTitle);
 					}
-					String linkTitle = np.getName();
-					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm, filter, linkTitle);
+					else {
+						rsm.addTransitionToEntityState(rsm.getEntityState().getName(), targetRsm, np.getName(), linkProperty, linkTitle);
+					}
 				}
 			}
 			
 			// add CRUD operations for each EntitySet
-			rsm.addTransition(entityName, "pseudo_created", "POST", "CreateEntity", null, true);
-			rsm.addTransition(entityName, "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
-			rsm.addTransition(entityName, "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
-			
+			rsm.addPseudoStateTransition(rsm.getCollectionState().getName(), "created", "POST", null, "CreateEntity", null, true);
+			rsm.addPseudoStateTransition(rsm.getEntityState().getName(), "updated", "PUT", null, "UpdateEntity", "edit", false);
+			rsm.addPseudoStateTransition(rsm.getEntityState().getName(), "deleted", "DELETE", null, "DeleteEntity", "edit", false);
 		}
 		return interactionModel;
 	}

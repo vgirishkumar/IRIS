@@ -21,7 +21,6 @@ initial resource ServiceDocument
 	GET -> Sectors
 end
 
-
 resource Sectors
 	collection Sector
 	view { GETEntities }
@@ -39,7 +38,6 @@ resource sector
 	GET title="live records" -> sector_Live id=SectorCode
 	GET title="unauthorised input records" -> sector_IAuth id=SectorCode
 end
-
 
 resource sector_IAuth
 	item Sector
@@ -82,4 +80,3 @@ resource sector_Sectors_input
 	GET --> sector_IAuth (OK(sector_IAuth))
 	GET --> sector_Live (OK(sector_Live))
 end
-

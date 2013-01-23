@@ -19,6 +19,7 @@ import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.sdk.adapter.edmx.EDMXAdapter;
+import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 
 /**
@@ -339,9 +340,14 @@ public class TestJPAResponderGen {
 		//Define the interaction model
 		InteractionModel interactionModel = new InteractionModel(metadata);
 
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, "flightschedules", interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, "flightschedules", interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departureAirportCode", "flightSchedules", true, "departureAirport", interactionModel.findResourceStateMachine("FlightSchedule"));
+		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
+		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
+		IMResourceStateMachine rsmFlight = interactionModel.findResourceStateMachine("Flight");
+		rsmFlight.addTransitionToEntityState("flight", rsmFlightSchedule, "flightschedule", "flightScheduleNum", null);
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", null);
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", null);
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", null);
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", null);
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
@@ -430,10 +436,14 @@ public class TestJPAResponderGen {
 		InteractionModel interactionModel = new InteractionModel(metadata);
 
 		//Do not specify a reciprocal link
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, "", interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
-		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departures", "departures", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "departureAirportCode eq '{code}'", "departures");
-		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "arrivals", "arrivals", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "arrivalAirportCode eq '{code}'", "arrivals");
+		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
+		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
+		IMResourceStateMachine rsmFlight = interactionModel.findResourceStateMachine("Flight");
+		rsmFlight.addTransitionToEntityState("flight", rsmFlightSchedule, "flightschedule", "flightScheduleNum", null);
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", null);
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", null);
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", "departures");
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", "arrivals");
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
@@ -468,9 +478,10 @@ public class TestJPAResponderGen {
 		InteractionModel interactionModel = new InteractionModel(metadata);
 
 		// Add CRUD pseudo states to an entity/entityset
-		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_created", "POST", "CreateEntity", null, true);
-		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
-		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
+		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
+		rsmAirport.addPseudoStateTransition("Airports", "created", "POST", null, "CreateEntity", null, true);
+		rsmAirport.addPseudoStateTransition("airport", "updated", "PUT", null, "UpdateEntity", "edit", false);
+		rsmAirport.addPseudoStateTransition("airport", "deleted", "DELETE", null, "DeleteEntity", "edit", false);
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
@@ -480,23 +491,25 @@ public class TestJPAResponderGen {
 		assertTrue(status);
 		
 		//Test rim dsl
-		assertTrue(generator.generatedRimDsl.contains("POST -> airport_pseudo_created"));
-		assertTrue(generator.generatedRimDsl.contains("PUT *-> airport_pseudo_updated"));
-		assertTrue(generator.generatedRimDsl.contains("DELETE *-> airport_pseudo_deleted"));
-		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_created"));
-		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_created" + RIM_LINE_SEP +
+		assertTrue(generator.generatedRimDsl.contains("POST -> airport_Airports_created"));
+		assertTrue(generator.generatedRimDsl.contains("PUT *-> airport_airport_updated"));
+		assertTrue(generator.generatedRimDsl.contains("PUT -> airport_airport_updated"));
+		assertTrue(generator.generatedRimDsl.contains("DELETE *-> airport_airport_deleted"));
+		assertTrue(generator.generatedRimDsl.contains("DELETE -> airport_airport_deleted"));
+		assertTrue(generator.generatedRimDsl.contains("resource airport_Airports_created"));
+		assertTrue(generator.generatedRimDsl.contains("resource airport_Airports_created" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { CreateEntity }" + RIM_LINE_SEP +
 				"\tpath \"/Airports()\""));
 
-		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_updated" + RIM_LINE_SEP +
+		assertTrue(generator.generatedRimDsl.contains("resource airport_airport_updated" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { UpdateEntity }" + RIM_LINE_SEP +
 				"\trelations { \"edit\" }" + RIM_LINE_SEP +
 				"\tpath \"/Airports('{id}')\""));
-		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_deleted" + RIM_LINE_SEP +
+		assertTrue(generator.generatedRimDsl.contains("resource airport_airport_deleted" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { DeleteEntity }" + RIM_LINE_SEP +
@@ -506,8 +519,8 @@ public class TestJPAResponderGen {
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tpath \"/Airports('{id}')\"" + RIM_LINE_SEP +
-				"\tPUT -> airport_pseudo_updated id=code" + RIM_LINE_SEP +
-				"\tDELETE -> airport_pseudo_deleted id=code"));
+				"\tPUT -> airport_airport_updated id=code" + RIM_LINE_SEP +
+				"\tDELETE -> airport_airport_deleted id=code"));
 
 	}
 	
