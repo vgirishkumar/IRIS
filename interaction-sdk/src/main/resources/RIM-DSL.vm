@@ -22,11 +22,12 @@ initial resource ServiceDocument
 	GET -> ${rsm.getCollectionState().getName()}
 #end
 end
+## -----------------------------------------------------
+## Resource state machines
+## -----------------------------------------------------
 #foreach ( $rsm in $rim.getResourceStateMachines() )
+## ----- Resource state -----
 #foreach ( $state in $rsm.getResourceStates() )
-## -----------------------------------------------------
-## Resource states
-## -----------------------------------------------------
 #if(!(${state.class.simpleName} == "IMNavigationState" && !${state.isNavigationToCollectionResource()} && !$strictOData))## Do not generate nav states to entity resources if strictOdata=false
 
 #if($state.equals($rsm.getCollectionState()) || $state.equals($rsm.getEntityState()))
@@ -62,45 +63,26 @@ $action##
 #else
 	path "${state.getPath()}"
 #end
-## ----- Transitions ------
-#foreach ( $transition in $state.getTransitions() )
-#if (${transition.class.simpleName} == "IMStateTransition" && $transition.isAutoTransition())
-## Auto transition from pseudo state
-	${transition.getMethod()} --> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} (OK(${rsm.getEntityState().getName()}_${transition.getTargetState().getName()}))
-#elseif(${transition.getTargetState().class.simpleName} == "IMPseudoState" && $transition.isBoundToCollection())
-## Collection transition to a pseudo state
-	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()}
-#elseif(${transition.class.simpleName} == "IMCollectionStateTransition")
-## Transition to a navigation state representing another RSM's collection state
-	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getLinkProperty()} id=${rsm.getMappedEntityProperty()}, filter="${transition.getFilter()}"
-#elseif(${transition.class.simpleName} == "IMEntityStateTransition" && $strictOData)
-## Transition to a navigation state representing another RSM's entity state
-	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}, navproperty="${transition.getTargetState().getName()}"
-#elseif(${transition.class.simpleName} == "IMEntityStateTransition" && !$strictOData)
-## Transition to a navigation state representing another RSM's entity state
-	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${transition.getTargetResourceStateMachine().getEntityState().getName()} id=${transition.getLinkProperty()}
-#else
-## Transition to other state
-	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
-#end
-#end
-## ------ Transitions from collection type navigation state ------
+## ----- Transitions from an entity-type state or a pseudo state -----
+#writeStateTransitions($rsm $state)
+## ----- Transitions from collection type navigation state -----
 #if(${state.class.simpleName} == "IMNavigationState" && ${state.isNavigationToCollectionResource()})
-	GET *-> ${state.getTargetResourceStateMachine().getEntityState().getName()} id=${state.getTargetResourceStateMachine().getMappedEntityProperty()}
-#foreach ( $targetTransition in ${state.getTargetResourceStateMachine().getCollectionStateTransitions()} )
-#if (${targetTransition.getTargetState().class.simpleName} != "IMPseudoState")
-#if (${targetTransition.class.simpleName} == "IMCollectionStateTransition") 
-	${targetTransition.getMethod()} ${targetTransition.getTitleAssignment()}*-> ${state.getTargetResourceStateMachine().getEntityState().getName()}_${targetTransition.getLinkProperty()} id=${state.getTargetResourceStateMachine().getMappedEntityProperty()}, filter="${targetTransition.getFilter()}"
-#elseif(${targetTransition.class.simpleName} == "IMEntityStateTransition" && $strictOData)
-	${targetTransition.getMethod()} ${targetTransition.getTitleAssignment()}*-> ${state.getTargetResourceStateMachine().getEntityState().getName()}_${targetTransition.getTargetState().getName()} id=${state.getTargetResourceStateMachine().getMappedEntityProperty()}, navproperty="${targetTransition.getTargetState().getName()}"
-#else
-	${targetTransition.getMethod()} ${targetTransition.getTitleAssignment()}*-> ${targetTransition.getTargetResourceStateMachine().getEntityState().getName()} id=${targetTransition.getLinkProperty()}
+#writeCollectionStateTransitions($state.getTargetResourceStateMachine() $state)
 #end
-#end
-#end
-#end
-## ------ Transitions from an RSM's collection state ------
+## ----- Transitions from an RSM's collection state -----
 #if($state.equals($rsm.getCollectionState()))
+#writeCollectionStateTransitions($rsm $state)
+#end
+end
+#end
+#end
+#end
+##
+## -----------------------------------------------------
+## writeCollectionStateTransitions
+##       Macro to write outgoing transitions on a collection state 
+## -----------------------------------------------------
+#macro( writeCollectionStateTransitions $rsm $state )
 	GET *-> ${rsm.getEntityState().getName()} id=${rsm.getMappedEntityProperty()}
 #foreach ( $transition in $rsm.getEntityStateTransitions() )
 #if(${transition.getTargetState().class.simpleName} == "IMPseudoState")
@@ -120,7 +102,31 @@ $action##
 #end
 #end
 #end
-end
+##
+## -----------------------------------------------------
+## writeStateTransitions
+##       Macro to write outgoing transitions on an entity-type or pseudo state 
+## -----------------------------------------------------
+#macro( writeStateTransitions $rsm $state )
+#foreach ( $transition in $state.getTransitions() )
+#if (${transition.class.simpleName} == "IMStateTransition" && $transition.isAutoTransition())
+## Auto transition from pseudo state
+	${transition.getMethod()} --> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} (OK(${rsm.getEntityState().getName()}_${transition.getTargetState().getName()}))
+#elseif(${transition.getTargetState().class.simpleName} == "IMPseudoState" && $transition.isBoundToCollection())
+## Collection transition to a pseudo state
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()}
+#elseif(${transition.class.simpleName} == "IMCollectionStateTransition")
+## Transition to a navigation state representing another RSM's collection state
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getLinkProperty()} id=${rsm.getMappedEntityProperty()}, filter="${transition.getFilter()}"
+#elseif(${transition.class.simpleName} == "IMEntityStateTransition" && $strictOData)
+## Transition to a navigation state representing another RSM's entity state
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}, navproperty="${transition.getTargetState().getName()}"
+#elseif(${transition.class.simpleName} == "IMEntityStateTransition" && !$strictOData)
+## Transition to a navigation state representing another RSM's entity state
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${transition.getTargetResourceStateMachine().getEntityState().getName()} id=${transition.getLinkProperty()}
+#else
+## Transition to other state
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
 #end
 #end
 #end
