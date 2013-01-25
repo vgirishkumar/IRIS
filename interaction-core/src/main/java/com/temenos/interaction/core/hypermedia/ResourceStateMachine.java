@@ -72,11 +72,11 @@ public class ResourceStateMachine {
 			// TODO turn interactions into Events
 			if (interactions.contains(event.getMethod())) {
 				for (Action a : s.getActions()) {
-					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW) && 
-							(actions.size() == 0 || s.getActions().size() == 1)) {
+					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
 						// catch problem if overriding existing view actions 
-						assert(actions.size() == 0) : "Multiple view actions detected";
-						actions.add(a);
+//						assert(actions.size() == 0) : "Multiple view actions detected";
+						if (actions.size() == 0)
+							actions.add(a);
 					} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
 						actions.add(a);
 					}
