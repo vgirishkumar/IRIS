@@ -1,11 +1,15 @@
 package com.temenos.interaction.commands.webhook;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.odata4j.core.OEntity;
+import org.odata4j.core.OProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +42,16 @@ public class WebhookCommand implements InteractionCommand {
 	@Override
 	public Result execute(InteractionContext ctx) {
 		assert(url != null);
-		Entity entity = ((EntityResource<Entity>) ctx.getResource()).getEntity();
+		Map<String,Object> properties = null;
 		try {
-			String formData = getFormData(entity);
+			OEntity oentity = ((EntityResource<OEntity>) ctx.getResource()).getEntity();
+			properties = transform(oentity);
+		} catch (ClassCastException cce) {
+			Entity entity = ((EntityResource<Entity>) ctx.getResource()).getEntity();
+			properties = transform(entity);
+		}
+		String formData = getFormData(properties);
+		try {
 			logger.info("POST [" + formData + "]");
 			HttpClient client = new HttpClient();
 			PostMethod postMethod = new PostMethod(url);
@@ -56,16 +67,39 @@ public class WebhookCommand implements InteractionCommand {
 		return Result.SUCCESS;
 	}
 
+	protected Map<String, Object> transform(OEntity entity) {
+		assert(entity != null);
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {
+			OEntity oentity = (OEntity) entity;
+			for (OProperty<?> property : oentity.getProperties()) {
+				map.put(property.getName(), property.getValue());				
+			}
+		} catch (RuntimeException e) {
+			logger.error("Error transforming OEntity to map", e);
+			throw e;
+		}
+		return map;
+	}
+
+	protected Map<String, Object> transform(Entity entity) {
+		assert(entity != null);
+		Map<String, Object> map = new HashMap<String, Object>();
+    	EntityProperties props = entity.getProperties();
+    	for (String propKey : props.getProperties().keySet()) {
+      		map.put(propKey, props.getProperty(propKey).getValue());
+    	}
+		return map;
+	}
+
     /**
      * Get this Entity as form data to send to our webhook.
      * @return
      */
-    protected String getFormData(Entity entity) {
+    protected String getFormData(Map<String,Object> props) {
     	StringBuilder b = new StringBuilder();
-    	EntityProperties props = entity.getProperties();
-    	
     	// guarantee the order of the fields (makes testing easier too)
-    	Set<String> keySet = new TreeSet<String>(props.getProperties().keySet());
+    	Set<String> keySet = new TreeSet<String>(props.keySet());
     	
     	boolean first = true;
     	for (String propKey : keySet) {
@@ -75,7 +109,7 @@ public class WebhookCommand implements InteractionCommand {
     			first = false;
     		}
     		b.append(propKey + "=");
-    		Object value = props.getProperty(propKey).getValue();
+    		Object value = props.get(propKey);
     		if (value != null) {
             	b.append(value.toString()).append("");
     		}

@@ -3,6 +3,8 @@ package com.temenos.interaction.commands.webhook;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
+import java.util.Map;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.wink.client.MockHttpServer;
@@ -35,7 +37,8 @@ public class TestWebhookCommand {
 		fields.setProperty(new EntityProperty("email", "test@test.com"));
 		Entity entity = new Entity("blah", fields);
 		
-		assertEquals("email=test@test.com&first_name=Bob&last_name=Dodge", c.getFormData(entity));
+		Map<String,Object> map = c.transform(entity);
+		assertEquals("email=test@test.com&first_name=Bob&last_name=Dodge", c.getFormData(map));
 	}
 
 	@Test
@@ -47,7 +50,8 @@ public class TestWebhookCommand {
 		fields.setProperty(new EntityProperty("last_name", "Dodge"));
 		Entity entity = new Entity("blah", fields);
 		
-		assertEquals("first_name=&last_name=Dodge", c.getFormData(entity));
+		Map<String,Object> map = c.transform(entity);
+		assertEquals("first_name=&last_name=Dodge", c.getFormData(map));
 	}
 
 	@SuppressWarnings("unchecked")
