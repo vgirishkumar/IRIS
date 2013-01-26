@@ -75,6 +75,7 @@ public class WebhookCommand implements InteractionCommand {
 			for (OProperty<?> property : oentity.getProperties()) {
 				map.put(property.getName(), property.getValue());				
 			}
+			map.put("id", oentity.getEntityKey().toKeyStringWithoutParentheses());
 		} catch (RuntimeException e) {
 			logger.error("Error transforming OEntity to map", e);
 			throw e;
