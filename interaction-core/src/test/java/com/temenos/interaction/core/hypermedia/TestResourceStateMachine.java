@@ -7,6 +7,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -23,10 +25,9 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.resource.CollectionResource;
@@ -34,7 +35,6 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.web.RequestContext;
 
 public class TestResourceStateMachine {
-	public static String result = "";
 	
 	@Before
 	public void setup() {
@@ -996,7 +996,6 @@ public class TestResourceStateMachine {
 		assertEquals("GET", links.get(5).getMethod());
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void testDetermineAction() {
 		String ENTITY_NAME = "";
@@ -1015,26 +1014,44 @@ public class TestResourceStateMachine {
 		//Define resource state machine
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		NewCommandController mockCommandController = mock(NewCommandController.class);
-		when(mockCommandController.fetchCommand(anyString())).thenAnswer(new Answer() {
-		     public Object answer(InvocationOnMock invocation) {
-		    	 result = invocation.getArguments()[0].toString();
-		         return null;
-		     }
-		 });
+		when(mockCommandController.fetchCommand(anyString())).thenReturn(mock(InteractionCommand.class));
 		sm.setCommandController(mockCommandController);
 
 		//Ensure the correct actions are used
-		result = "";
 		sm.determineAction(new Event("GET", "GET"), "/entity/notes");
-        assertEquals("GETEntities", result);
-
-		result = "";
+		verify(mockCommandController).fetchCommand("GETEntities");
+		
+		reset();
 		sm.determineAction(new Event("GET", "GET"), "/entity/created");
-        assertEquals("GETEntity", result);
+		verify(mockCommandController).fetchCommand("GETEntity");
 
-		result = "";
+		reset();
 		sm.determineAction(new Event("POST", "POST"), "/entity/created");
-        assertEquals("CreateEntity", result);
+		verify(mockCommandController).fetchCommand("CreateEntity");
+	}
+
+	@Test
+	public void testDetermineActionWorkflow() {
+		String ENTITY_NAME = "";
+  		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entity");
+  		List<Action> actions = new ArrayList<Action>();
+  		actions.add(new Action("GETEntity", Action.TYPE.VIEW));
+  		actions.add(new Action("ValidateWithSomeService", Action.TYPE.ENTRY));
+  		actions.add(new Action("CreateEntity", Action.TYPE.ENTRY));
+		ResourceState created = new ResourceState(initial, "created", actions, "/created");
+	
+		initial.addTransition("POST", created);
+		
+		//Define resource state machine
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		when(mockCommandController.fetchCommand(anyString())).thenReturn(mock(InteractionCommand.class));
+		sm.setCommandController(mockCommandController);
+		
+		sm.determineAction(new Event("POST", "POST"), "/entity/created");
+		verify(mockCommandController).fetchCommand("ValidateWithSomeService");
+		verify(mockCommandController).fetchCommand("CreateEntity");
+		
 	}
 
 	@Test

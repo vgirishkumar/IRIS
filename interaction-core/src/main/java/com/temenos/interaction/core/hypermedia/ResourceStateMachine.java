@@ -26,6 +26,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.web.RequestContext;
+import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand;
 
 /**
  * A state machine that is responsible for creating the links (hypermedia) to other
@@ -64,24 +65,34 @@ public class ResourceStateMachine {
 
 	// TODO support Event
 	public InteractionCommand determineAction(Event event, String resourcePath) {
-		Action action = null;
+		List<Action> actions = new ArrayList<Action>();
 		Set<ResourceState> resourceStates = getResourceStatesByPath().get(resourcePath);
 		for (ResourceState s : resourceStates) {
 			Set<String> interactions = getInteractionByState().get(s);
 			// TODO turn interactions into Events
 			if (interactions.contains(event.getMethod())) {
 				for (Action a : s.getActions()) {
-					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW) && 
-							(action == null || s.getActions().size() == 1)) {		//Avoid overriding existing view actions 
-						action = a;
+					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
+						// catch problem if overriding existing view actions 
+//						assert(actions.size() == 0) : "Multiple view actions detected";
+						if (actions.size() == 0)
+							actions.add(a);
 					} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
-						action = a;
+						actions.add(a);
 					}
 				}
 			}
 		}
 		
-		return (action != null ? getCommandController().fetchCommand(action.getName()) : null);
+		if (actions.size() > 0) {
+			AbortOnErrorWorkflowStrategyCommand workflow = new AbortOnErrorWorkflowStrategyCommand();
+			for (Action action : actions) {
+				assert(action != null);
+				workflow.addCommand(getCommandController().fetchCommand(action.getName()));
+			}
+			return workflow;
+		}
+		return null;
 	}
 	
 	public ResourceState determineState(Event event, String resourcePath) {

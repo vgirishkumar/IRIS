@@ -89,3 +89,4 @@
 *.ipr
 *.iws
 /interaction-examples/interaction-odata-airline/src-gen/AirlineModel/AirlineBehaviour.java
+/interaction-commands-webhook/target
