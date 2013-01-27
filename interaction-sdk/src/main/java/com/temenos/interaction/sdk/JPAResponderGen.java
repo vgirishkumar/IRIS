@@ -680,17 +680,28 @@ public class JPAResponderGen {
 		return sb.toString();
 	}
 
+	/**
+	 * Returns a list of default commands
+	 * @return
+	 */
 	public static Commands getDefaultCommands() {
 		Commands commands = new Commands();
+
+		//Add RIM events
+		commands.addRimEvent("GET", Commands.HTTP_COMMAND_GET);
+		commands.addRimEvent("POST", Commands.HTTP_COMMAND_POST);
+		commands.addRimEvent("PUT", Commands.HTTP_COMMAND_PUT);
+		commands.addRimEvent("DELETE", Commands.HTTP_COMMAND_DELETE);
 		
-		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_SERVICE_DOCUMENT, COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
-		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", Commands.GET_METADATA, COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
-		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", Commands.GET_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", Commands.GET_ENTITIES, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", Commands.CREATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", Commands.GET_NAV_PROPERTY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.UPDATE_ENTITY, "com.temenos.interaction.commands.odata.UpdateEntityCommand", Commands.UPDATE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
-		commands.addCommand(Commands.DELETE_ENTITY, "com.temenos.interaction.commands.odata.DeleteEntityCommand", Commands.DELETE_ENTITY, COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		//Add commands
+		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.GET_NAV_PROPERTY, "com.temenos.interaction.commands.odata.GETNavPropertyCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.UPDATE_ENTITY, "com.temenos.interaction.commands.odata.UpdateEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand(Commands.DELETE_ENTITY, "com.temenos.interaction.commands.odata.DeleteEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		
 		return commands;
 	}

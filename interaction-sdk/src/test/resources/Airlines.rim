@@ -1,16 +1,18 @@
 events
+	DELETE DELETE
 	GET GET
 	POST POST
 	PUT PUT
-	DELETE DELETE
 end
 
 commands
-	GETServiceDocument
+	CreateEntity
+	DeleteEntity
 	GETEntities
 	GETEntity
-	CreateEntity
 	GETNavProperty
+	GETServiceDocument
+	UpdateEntity
 end
 
 initial resource ServiceDocument
@@ -26,7 +28,7 @@ resource Flights
 	collection Flight
 	view { GETEntities }
 	path "/Flights()"
-	POST -> flight_Flights_created
+	POST -> Flights_created
 	GET *-> flight id=flightID
 	GET title="flightschedule" *-> flight_flightschedule id=flightID, navproperty="flightschedule"
 end
@@ -38,7 +40,7 @@ resource flight
 	GET title="flightschedule" -> flight_flightschedule id=flightID, navproperty="flightschedule"
 end
 
-resource flight_Flights_created
+resource Flights_created
 	item Flight
 	view { GETEntity }
 	actions { CreateEntity }
@@ -55,7 +57,7 @@ resource Airports
 	collection Airport
 	view { GETEntities }
 	path "/Airports()"
-	POST -> airport_Airports_created
+	POST -> Airports_created
 	GET *-> airport id=code
 	GET title="departures" *-> airport_departures id=code, filter="departureAirportCode eq '{code}'"
 	GET title="arrivals" *-> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
@@ -69,7 +71,7 @@ resource airport
 	GET title="arrivals" -> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
 end
 
-resource airport_Airports_created
+resource Airports_created
 	item Airport
 	view { GETEntity }
 	actions { CreateEntity }
@@ -98,7 +100,7 @@ resource FlightSchedules
 	collection FlightSchedule
 	view { GETEntities }
 	path "/FlightSchedules()"
-	POST -> flightschedule_FlightSchedules_created
+	POST -> FlightSchedules_created
 	GET *-> flightschedule id=flightScheduleID
 	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
 	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
@@ -124,7 +126,7 @@ resource flightschedule_departureAirport
 	path "/FlightSchedules({id})/departureAirport"
 end
 
-resource flightschedule_FlightSchedules_created
+resource FlightSchedules_created
 	item FlightSchedule
 	view { GETEntity }
 	actions { CreateEntity }

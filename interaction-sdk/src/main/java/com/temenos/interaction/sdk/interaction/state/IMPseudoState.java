@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * This class holds information about a resource state
  */
-public class IMPseudoState extends IMResourceState {
+public class IMPseudoState extends IMState {
 
 	private Set<String> actions = new HashSet<String>();		//Actions
 	private String pseudoStateId = null;						//Pseudo state Id or null if this is not a pseudo state
@@ -47,7 +47,7 @@ public class IMPseudoState extends IMResourceState {
 	 * @param targetState		Target state
 	 * @param method			HTTP command
 	 */
-	public void addAutoTransition(IMResourceState targetState, String method) {
+	public void addAutoTransition(IMState targetState, String method) {
 		this.addTransition(null, targetState, method, true, false);
 	}
 	

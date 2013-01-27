@@ -491,25 +491,25 @@ public class TestJPAResponderGen {
 		assertTrue(status);
 		
 		//Test rim dsl
-		assertTrue(generator.generatedRimDsl.contains("POST -> airport_Airports_created"));
-		assertTrue(generator.generatedRimDsl.contains("PUT *-> airport_airport_updated"));
-		assertTrue(generator.generatedRimDsl.contains("PUT -> airport_airport_updated"));
-		assertTrue(generator.generatedRimDsl.contains("DELETE *-> airport_airport_deleted"));
-		assertTrue(generator.generatedRimDsl.contains("DELETE -> airport_airport_deleted"));
-		assertTrue(generator.generatedRimDsl.contains("resource airport_Airports_created"));
-		assertTrue(generator.generatedRimDsl.contains("resource airport_Airports_created" + RIM_LINE_SEP +
+		assertTrue(generator.generatedRimDsl.contains("POST -> Airports_created"));
+		assertTrue(generator.generatedRimDsl.contains("PUT *-> airport_updated"));
+		assertTrue(generator.generatedRimDsl.contains("PUT -> airport_updated"));
+		assertTrue(generator.generatedRimDsl.contains("DELETE *-> airport_deleted"));
+		assertTrue(generator.generatedRimDsl.contains("DELETE -> airport_deleted"));
+		assertTrue(generator.generatedRimDsl.contains("resource Airports_created"));
+		assertTrue(generator.generatedRimDsl.contains("resource Airports_created" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { CreateEntity }" + RIM_LINE_SEP +
 				"\tpath \"/Airports()\""));
 
-		assertTrue(generator.generatedRimDsl.contains("resource airport_airport_updated" + RIM_LINE_SEP +
+		assertTrue(generator.generatedRimDsl.contains("resource airport_updated" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { UpdateEntity }" + RIM_LINE_SEP +
 				"\trelations { \"edit\" }" + RIM_LINE_SEP +
 				"\tpath \"/Airports('{id}')\""));
-		assertTrue(generator.generatedRimDsl.contains("resource airport_airport_deleted" + RIM_LINE_SEP +
+		assertTrue(generator.generatedRimDsl.contains("resource airport_deleted" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { DeleteEntity }" + RIM_LINE_SEP +
@@ -519,8 +519,8 @@ public class TestJPAResponderGen {
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tpath \"/Airports('{id}')\"" + RIM_LINE_SEP +
-				"\tPUT -> airport_airport_updated id=code" + RIM_LINE_SEP +
-				"\tDELETE -> airport_airport_deleted id=code"));
+				"\tPUT -> airport_updated id=code" + RIM_LINE_SEP +
+				"\tDELETE -> airport_deleted id=code"));
 
 	}
 	

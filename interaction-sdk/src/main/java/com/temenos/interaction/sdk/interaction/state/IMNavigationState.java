@@ -5,7 +5,7 @@ import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 /**
  * This class holds information about a resource state
  */
-public class IMNavigationState extends IMResourceState {
+public class IMNavigationState extends IMState {
 
 	private boolean toCollectionResource;		//true collection state, false entity state
 	private IMResourceStateMachine resourceStateMachine;		//Target RSM

@@ -12,7 +12,7 @@ import com.temenos.interaction.sdk.interaction.transition.IMTransition;
 /**
  * This class holds information about a resource state
  */
-public class IMResourceState {
+public abstract class IMState {
 
 	private String name;										//Name
 	private String path;										//Path
@@ -23,7 +23,7 @@ public class IMResourceState {
 	 * @param name resource state name
 	 * @param path URI path associated to this resource state
 	 */
-	public IMResourceState(String name, String path) {
+	public IMState(String name, String path) {
 		this.name = name;
 		this.path = path;
 	}
@@ -43,7 +43,7 @@ public class IMResourceState {
 	 * @param method			HTTP command
 	 * @param boundToCollection Bound to collection state
 	 */
-	public void addTransitionToPseudoState(String title, IMResourceState targetState, String method, boolean boundToCollection) {
+	public void addTransitionToPseudoState(String title, IMState targetState, String method, boolean boundToCollection) {
 		this.addTransition(title, targetState, method, false, boundToCollection);
 	}
 	
@@ -52,9 +52,10 @@ public class IMResourceState {
 	 * @param title				Transition label
 	 * @param targetState		Target state
 	 * @param method			HTTP command
+	 * @param boundToCollection Transition is bound to the collection resource
 	 */
-	public void addTransition(String title, IMResourceState targetState, String method) {
-		this.addTransition(title, targetState, method, false, false);
+	public void addTransition(String title, IMState targetState, String method, boolean boundToCollection) {
+		this.addTransition(title, targetState, method, false, boundToCollection);
 	}
 	
 	/**
@@ -65,7 +66,7 @@ public class IMResourceState {
 	 * @param method HTTP command
 	 * @param filter Filter expression on collection
 	 */
-	public void addTransitionToCollectionState(String title, IMResourceStateMachine targetResourceStateMachine, IMResourceState targetState, String method, String filter) {
+	public void addTransitionToCollectionState(String title, IMResourceStateMachine targetResourceStateMachine, IMState targetState, String method, String filter) {
 		transitions.add(new IMCollectionStateTransition(targetResourceStateMachine, targetState, targetState.getName(), filter, title, method));
 	}
 	
@@ -77,7 +78,7 @@ public class IMResourceState {
 	 * @param method
 	 * @param linkProperty
 	 */
-	public void addTransitionToEntityState(String title, IMResourceStateMachine targetResourceStateMachine, IMResourceState targetState, String method, String linkProperty) {
+	public void addTransitionToEntityState(String title, IMResourceStateMachine targetResourceStateMachine, IMState targetState, String method, String linkProperty) {
 		transitions.add(new IMEntityStateTransition(targetResourceStateMachine, targetState, linkProperty, title, method));
 	}
 
@@ -88,7 +89,7 @@ public class IMResourceState {
 	 * @param auto true if this is an auto transition
 	 * @param boundToCollection true if this transition is to be bound to the collection state of an entity
 	 */
-	protected void addTransition(String title, IMResourceState targetState, String method, boolean auto, boolean boundToCollection) {
+	protected void addTransition(String title, IMState targetState, String method, boolean auto, boolean boundToCollection) {
 		transitions.add(new IMStateTransition(title, targetState, method, auto, boundToCollection));
 	}
 	
@@ -102,8 +103,8 @@ public class IMResourceState {
 	
 	public boolean equals(Object other) {
 	    if ( this == other ) return true;
-	    if ( !(other instanceof IMResourceState) ) return false;
-	    IMResourceState otherState = (IMResourceState) other;
+	    if ( !(other instanceof IMState) ) return false;
+	    IMState otherState = (IMState) other;
 	    return name.equals(otherState.name);
 	}
 }

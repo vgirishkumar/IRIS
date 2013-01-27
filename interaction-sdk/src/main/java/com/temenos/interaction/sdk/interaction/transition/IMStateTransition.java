@@ -1,6 +1,6 @@
 package com.temenos.interaction.sdk.interaction.transition;
 
-import com.temenos.interaction.sdk.interaction.state.IMResourceState;
+import com.temenos.interaction.sdk.interaction.state.IMState;
 
 /**
  * This class holds information about a state transition 
@@ -8,10 +8,10 @@ import com.temenos.interaction.sdk.interaction.state.IMResourceState;
 public class IMStateTransition extends IMTransition {
 
 	private boolean auto;					//Auto transition
-	private boolean boundToCollection;		// the pseudo state is to be bound to the collection path 
+	private boolean boundToCollection;		//The target state is bound to the collection path 
 	
 	public IMStateTransition(String title, 
-			IMResourceState targetState, 
+			IMState targetState, 
 			String method, 
 			boolean auto, 
 			boolean boundToCollection) {

@@ -1,7 +1,7 @@
 package com.temenos.interaction.sdk.interaction.transition;
 
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
-import com.temenos.interaction.sdk.interaction.state.IMResourceState;
+import com.temenos.interaction.sdk.interaction.state.IMState;
 
 /**
  * This class holds information about a transition to a collection state
@@ -13,7 +13,7 @@ public class IMEntityStateTransition extends IMTransition {
 	
 	public IMEntityStateTransition(
 			IMResourceStateMachine targetResourceStateMachine, 
-			IMResourceState targetState, 
+			IMState targetState, 
 			String linkProperty,
 			String title, 
 			String method) {

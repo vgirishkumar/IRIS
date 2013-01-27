@@ -1,16 +1,16 @@
 package com.temenos.interaction.sdk.interaction.transition;
 
-import com.temenos.interaction.sdk.interaction.state.IMResourceState;
+import com.temenos.interaction.sdk.interaction.state.IMState;
 
 /**
  * This class holds information about a state transition
  */
 public class IMTransition {
 	private String title;					//Transition label
-	private IMResourceState targetState;	//Name of target state
+	private IMState targetState;	//Name of target state
 	private String method;					//Method for transition to pseudo state
 	
-	public IMTransition(String title, IMResourceState targetState,	String method) {
+	public IMTransition(String title, IMState targetState,	String method) {
 		this.title = title;
 		this.targetState = targetState;
 		this.method = method;
@@ -20,7 +20,7 @@ public class IMTransition {
 		return title;
 	}
 
-	public IMResourceState getTargetState() {
+	public IMState getTargetState() {
 		return targetState;
 	}
 	
