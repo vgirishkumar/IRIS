@@ -52,7 +52,7 @@ public class WebhookCommand implements InteractionCommand {
 		}
 		String formData = getFormData(properties);
 		try {
-			logger.info("POST [" + formData + "]");
+			logger.info("POST " + url + " [" + formData + "]");
 			HttpClient client = new HttpClient();
 			PostMethod postMethod = new PostMethod(url);
 			postMethod.setRequestEntity(new StringRequestEntity(formData,
