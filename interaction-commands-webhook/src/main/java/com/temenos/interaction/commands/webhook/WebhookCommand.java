@@ -37,6 +37,7 @@ public class WebhookCommand implements InteractionCommand {
 	
 	/**
 	 * @precondition url has been supplied
+	 * @postcondition Result.Success if {@link InteractionContext#getResource()} is successfully POSTed to url
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -64,6 +65,8 @@ public class WebhookCommand implements InteractionCommand {
 				e.printStackTrace();
 				return Result.FAILURE;
 			}
+		} else {
+			logger.warn("DISABLED - no url supplied");
 		}
 		return Result.SUCCESS;
 	}
