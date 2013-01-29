@@ -31,7 +31,7 @@ public class EdmTimeTemporalITCase {
 	
 	@Test
 	public void testMetadata() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		EdmDataServices metadata = consumer.getMetadata();
 
@@ -51,7 +51,7 @@ public class EdmTimeTemporalITCase {
 	 *handling of Date fields with different @Temporal
 	 */
 	public void createWithDifferentTemporal() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		OEntity flightSchedule = consumer
 				.createEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME)
@@ -97,7 +97,7 @@ public class EdmTimeTemporalITCase {
 
 	@Test
 	public void filterTime() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI))).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
 
 		Enumerable<OEntity> schedules = consumer
 				.getEntities(FLIGHT_SCHEDULE_ENTITYSET_NAME)
