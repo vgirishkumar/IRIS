@@ -24,6 +24,7 @@ import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 public class EdmTimeTemporalITCase {
 
 	private final static String FLIGHT_SCHEDULE_ENTITYSET_NAME = "FlightSchedules";
+	private final static String PASSENGERS_ENTITYSET_NAME = "Passengers";
 
 	public EdmTimeTemporalITCase() throws Exception {
 		super();
@@ -46,6 +47,31 @@ public class EdmTimeTemporalITCase {
 						.findProperty("firstDeparture").getType());
 	}
 
+	@Test
+	public void testComplexMetadata() {
+		// TODO: Test assertions will be enabled to verify metadata for complex types  
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
+		
+		EdmDataServices metadata = consumer.getMetadata();
+
+		Assert.assertEquals(EdmSimpleType.STRING,
+				metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+						.findProperty("name").getType());
+		Assert.assertEquals(EdmSimpleType.DATETIME,
+				metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+						.findProperty("dateOfBirth").getType());
+//		Assert.assertEquals(false,
+//				metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+//						.findProperty("Passenger_address").getType().isSimple());
+//		Assert.assertEquals(null,
+//				metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+//						.findProperty("Passenger_street"));
+//		Assert.assertEquals(false,
+//				((EdmComplexType)metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+//						.findProperty("Passenger_address").getType()).findProperty("Passenger_street").getType().isSimple());
+	}
+	
+	
 	@Test
 	/**
 	 *handling of Date fields with different @Temporal

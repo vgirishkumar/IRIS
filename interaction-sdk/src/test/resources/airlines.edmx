@@ -36,6 +36,16 @@
                 <Property Name="takeoffTime" Type="Edm.DateTime" Nullable="true"/>
                 <NavigationProperty Name="flightSchedule" Relationship="FlightResponderModel.Flight_flightSchedule" FromRole="Flight" ToRole="FlightSchedule"/>
             </EntityType>
+            <EntityType Name="Passenger">
+                <Key>
+                    <PropertyRef Name="passengerNo" />
+                </Key>
+                <Property Name="dateOfBirth" Type="Edm.DateTime" Nullable="false" />
+                <Property Name="passengerNo" Type="Edm.Int64" Nullable="false" />
+                <Property Name="flightID" Type="Edm.Int64" Nullable="false" />
+                <Property Name="name" Type="Edm.String" Nullable="true" />
+                <NavigationProperty Name="flight" Relationship="FlightResponderModel.Passenger_flight" FromRole="Passenger" ToRole="Flight"/>
+            </EntityType>
             <Association Name="Flight_flightSchedule">
                 <End Role="Flight" Type="FlightResponderModel.Flight" Multiplicity="*"/>
                 <End Role="FlightSchedule" Type="FlightResponderModel.FlightSchedule" Multiplicity="0..1"/>
@@ -72,10 +82,23 @@
                 	</Dependent>
                 </ReferentialConstraint>
             </Association>
+            <Association Name="Passenger_flight">
+                <End Role="Flight" Type="FlightResponderModel.Flight" Multiplicity="0..1"/>
+                <End Role="Passenger" Type="FlightResponderModel.Passenger" Multiplicity="*"/>
+                <ReferentialConstraint>
+                	<Principal Role="Flight">
+                		<PropertyRef Name="flightID"/>
+                	</Principal>
+                	<Dependent Role="Passenger">
+                		<PropertyRef Name="flightID"/>
+                	</Dependent>
+                </ReferentialConstraint>
+            </Association>
             <EntityContainer Name="FlightResponder" m:IsDefaultEntityContainer="true">
                 <EntitySet Name="FlightSchedules" EntityType="FlightResponderModel.FlightSchedule"/>
                 <EntitySet Name="Airports" EntityType="FlightResponderModel.Airport"/>
                 <EntitySet Name="Flights" EntityType="FlightResponderModel.Flight"/>
+                <EntitySet Name="Passengers" EntityType="FlightResponderModel.Passenger"/>
                 <AssociationSet Name="Flight_flightSchedule" Association="FlightResponderModel.Flight_flightSchedule">
                     <End Role="Flight" EntitySet="Flights"/>
                     <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
@@ -87,6 +110,10 @@
                 <AssociationSet Name="FlightSchedule_arrivalAirport" Association="FlightResponderModel.FlightSchedule_arrivalAirport">
                     <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
                     <End Role="Airport" EntitySet="Airports"/>
+                </AssociationSet>
+                <AssociationSet Name="Passenger_flight" Association="FlightResponderModel.Passenger_flight">
+                    <End Role="Flight" EntitySet="Flights"/>
+                    <End Role="Passenger" EntitySet="Passengers"/>
                 </AssociationSet>
             </EntityContainer>
         </Schema>

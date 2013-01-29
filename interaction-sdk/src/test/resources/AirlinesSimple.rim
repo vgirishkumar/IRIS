@@ -22,6 +22,7 @@ initial resource ServiceDocument
 	GET -> Flights
 	GET -> Airports
 	GET -> FlightSchedules
+	GET -> Passengers
 end
 
 resource Flights
@@ -101,4 +102,26 @@ resource FlightSchedules_created
 	view { GETEntity }
 	actions { CreateEntity }
 	path "/FlightSchedules()"
+end
+
+resource Passengers
+	collection Passenger
+	view { GETEntities }
+	path "/Passengers()"
+	POST -> passenger_pseudo_created
+	GET *-> passenger id=passengerNo
+end
+
+resource passenger
+	item Passenger
+	view { GETEntity }
+	path "/Passengers({id})"
+end
+
+
+resource passenger_pseudo_created
+	item Passenger
+	view { GETEntity }
+	actions { CreateEntity }
+	path "/Passengers()"
 end
