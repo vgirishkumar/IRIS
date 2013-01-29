@@ -93,19 +93,30 @@ public class TestRimDslGenerator {
 		InteractionModel interactionModel = new InteractionModel(metadata);
 		Commands commands =  JPAResponderGen.getDefaultCommands();
 		commands.addCommand("AuthoriseEntity", "com.temenos.interaction.commands.odata.UpdateEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand("ReverseEntity", "com.temenos.interaction.commands.odata.UpdateEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand("GETReversedEntities", "com.temenos.interaction.commands.odata.GETEntitiesCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
+		commands.addCommand("GETReversedEntity", "com.temenos.interaction.commands.odata.GETEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addRimEvent("AUTHORISE", "PUT");
+		commands.addRimEvent("REVERSE", "PUT");
 
 		//Add state transitions
 		IMResourceStateMachine rsm = interactionModel.findResourceStateMachine("Sector");
 		rsm.addCollectionAndEntityState("IAuth", "unauthorised input records");
+		rsm.addCollectionAndEntityState("Reversed", "reversed records", "GETReversedEntities", "GETReversedEntity");
+
 		IMPseudoState pseudoState = rsm.addPseudoStateTransition("Sectors", "input", "POST", null, "CreateEntity", null, true);
 		pseudoState.addAutoTransition(rsm.getResourceState("sector_IAuth"), "GET");
 		pseudoState.addAutoTransition(rsm.getResourceState("sector"), "GET");
+
 		pseudoState = rsm.addPseudoStateTransition("sector_IAuth", "authorise", "PUT", "authorise", "AuthoriseEntity", "edit", false);
 		pseudoState.addAutoTransition(rsm.getResourceState("sector_IAuth"), "GET");
 		pseudoState.addAutoTransition(rsm.getResourceState("sector"), "GET");
+		
 		pseudoState = rsm.addPseudoStateTransition("sector_IAuth", "delete", "DELETE", "delete", "DeleteEntity", "edit", false);
 		pseudoState.addAutoTransition(rsm.getResourceState("sector"), "GET");
+
+		pseudoState = rsm.addPseudoStateTransition("sector", "reverse", "REVERSE", "reverse", "ReverseEntity", "edit", false);
+		pseudoState.addAutoTransition(rsm.getResourceState("sector_Reversed"), "GET");
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());

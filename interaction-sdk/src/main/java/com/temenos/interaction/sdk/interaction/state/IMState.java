@@ -16,6 +16,7 @@ public abstract class IMState {
 
 	private String name;										//Name
 	private String path;										//Path
+	private String view;										//View
 	private List<IMTransition> transitions = new ArrayList<IMTransition>(); 
 	
 	/**
@@ -23,9 +24,10 @@ public abstract class IMState {
 	 * @param name resource state name
 	 * @param path URI path associated to this resource state
 	 */
-	public IMState(String name, String path) {
+	public IMState(String name, String path, String view) {
 		this.name = name;
 		this.path = path;
+		this.view = view;
 	}
 	
 	public String getName() {
@@ -34,6 +36,14 @@ public abstract class IMState {
 	
 	public String getPath() {
 		return path;
+	}
+	
+	public String getView() {
+		return view;
+	}
+	
+	public void setView(String view) {
+		this.view = view;
 	}
 
 	/**

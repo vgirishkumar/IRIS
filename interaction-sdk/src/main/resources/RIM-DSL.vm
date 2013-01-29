@@ -42,10 +42,10 @@ resource ${state.getName()}
 	view { GETNavProperty navproperty=navproperty, entity=${rsm.getEntityName()} }
 #elseif(${state.class.simpleName} == "IMCollectionState")
 	collection ${rsm.getEntityName()}
-	view { GETEntities }
+	view { $state.getView() }
 #else
 	item ${rsm.getEntityName()}
-	view { GETEntity }
+	view { $state.getView() }
 #end
 #if(${state.class.simpleName} == "IMPseudoState" && $state.getActions().size() > 0)
 	actions { ##

@@ -11,7 +11,7 @@ public class IMNavigationState extends IMState {
 	private IMResourceStateMachine resourceStateMachine;		//Target RSM
 
 	public IMNavigationState(String name, String path, IMResourceStateMachine resourceStateMachine, boolean toCollectionResource) {
-		super(name, path);
+		super(name, path, null);
 		this.resourceStateMachine = resourceStateMachine;
 		this.toCollectionResource = toCollectionResource;
 	}

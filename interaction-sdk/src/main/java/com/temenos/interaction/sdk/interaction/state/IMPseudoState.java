@@ -12,12 +12,8 @@ public class IMPseudoState extends IMState {
 	private String pseudoStateId = null;						//Pseudo state Id or null if this is not a pseudo state
 	private String relations = null;							//Link relations to this state
 
-	public IMPseudoState(String name, String path, String pseudoStateId, String relations) {
-		this(name, path, pseudoStateId, relations, null);
-	}
-	
-	public IMPseudoState(String name, String path, String pseudoStateId, String relations, String action) {
-		super(name, path);
+	public IMPseudoState(String name, String path, String view, String pseudoStateId, String relations, String action) {
+		super(name, path, view);
 		this.pseudoStateId = pseudoStateId;
 		this.relations = relations;
 		if(action != null) {
