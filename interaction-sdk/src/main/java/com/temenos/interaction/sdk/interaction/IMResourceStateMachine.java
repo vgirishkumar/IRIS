@@ -197,7 +197,7 @@ public class IMResourceStateMachine {
 			//This is a resource state
 			path = sourceStateName.equals(collectionState.getName()) ? collectionState.getPath() : entityState.getPath();
 			if(!(targetStateName.equals(sourceStateName) && (targetStateName.equals(entityState.getName()) || targetStateName.equals(collectionState.getName())))) {
-				path += "/" + stateId;
+				path = getPathWithStateId(path, stateId);
 			}
 			//Create source state if necessary
 			if(!resourceStates.containsKey(sourceStateName)) {
@@ -225,7 +225,7 @@ public class IMResourceStateMachine {
 				//Create collection state (and entity state if required)
 				String entityStateName = entityState.getName() + "_" + stateId;
 				if(!resourceStates.containsKey(entityStateName)) {
-					resourceStates.put(entityStateName, new IMEntityState(entityStateName, entityState.getPath() + "/" + stateId));
+					resourceStates.put(entityStateName, new IMEntityState(entityStateName, getPathWithStateId(entityState.getPath(), stateId)));
 				}
 				targetState = new IMCollectionState(targetStateName, path, view, (IMEntityState) getResourceState(entityStateName));				
 			}
@@ -247,6 +247,21 @@ public class IMResourceStateMachine {
 		else {
 			sourceState.addTransition(title, targetState, method, boundToCollection);
 		}
+	}
+	
+	/*
+	 * Get specified path with the state id
+	 */
+	protected String getPathWithStateId(String path, String stateId) {
+		StringBuffer sbPath = new StringBuffer(path);
+		int iParentheses = path.indexOf('(');
+		if(iParentheses >= 0) {
+			sbPath.insert(iParentheses, stateId);
+		}
+		else {
+			path += "/" + stateId;
+		}
+		return sbPath.toString();
 	}
 	
 	/**
