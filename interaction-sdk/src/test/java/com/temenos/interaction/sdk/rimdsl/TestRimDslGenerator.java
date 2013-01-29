@@ -58,6 +58,7 @@ public class TestRimDslGenerator {
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("FlightSchedule", "pseudo_created", "POST", "CreateEntity", null, true);
 		interactionModel.findResourceStateMachine("Flight").addTransition("Flight", "pseudo_created", "POST", "CreateEntity", null, true);
 		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_created", "POST", "CreateEntity", null, true);
+		interactionModel.findResourceStateMachine("Passenger").addTransition("Passenger", "pseudo_created", "POST", "CreateEntity", null, true);
 //		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
 //		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
 		
@@ -107,11 +108,13 @@ public class TestRimDslGenerator {
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"), null, "arrivalAirport");
 		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departures", "departures", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "departureAirportCode eq '{code}'", "departures");
 		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "arrivals", "arrivals", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "arrivalAirportCode eq '{code}'", "arrivals");
+		interactionModel.findResourceStateMachine("Passenger").addTransition("Flight", "flightID", "flight", false, null, interactionModel.findResourceStateMachine("Flight"), null, "flight");
 	
 		// Add CRUD pseudo states
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("FlightSchedule", "pseudo_created", "POST", "CreateEntity", null, true);
 		interactionModel.findResourceStateMachine("Flight").addTransition("Flight", "pseudo_created", "POST", "CreateEntity", null, true);
 		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_created", "POST", "CreateEntity", null, true);
+		interactionModel.findResourceStateMachine("Passenger").addTransition("Passenger", "pseudo_created", "POST", "CreateEntity", null, true);
 //		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
 //		interactionModel.findResourceStateMachine("Airport").addTransition("Airport", "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
 		

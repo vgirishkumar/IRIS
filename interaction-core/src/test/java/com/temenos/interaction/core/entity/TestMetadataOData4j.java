@@ -94,16 +94,16 @@ public class TestMetadataOData4j {
 		Assert.assertEquals("Customer", entityType.getName());
 		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
-		Assert.assertEquals(false, entityType.findProperty("address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(false, entityType.findProperty("Customer_address").getType().isSimple());//address should be Complex
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
 		
 		
-		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer.address");
+		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer_address");
 		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
 		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
-		Assert.assertEquals(false, addressType.findProperty("street").getType().isSimple());
+		Assert.assertEquals(false, addressType.findProperty("Customer_street").getType().isSimple());
 		
-		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer.street");
+		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer_street");
 		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
 		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}
@@ -118,16 +118,16 @@ public class TestMetadataOData4j {
 		EdmEntityType entityType = (EdmEntityType) type;
 		Assert.assertEquals("Customer", entityType.getName());
 		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
-		Assert.assertEquals(false, entityType.findProperty("address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(false, entityType.findProperty("Customer_address").getType().isSimple());//address should be Complex
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
 		
-		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer.address");
+		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer_address");
 		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
 		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
-		Assert.assertEquals(false, addressType.findProperty("street").getType().isSimple());
+		Assert.assertEquals(false, addressType.findProperty("Customer_street").getType().isSimple());
 		
-		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer.street");
+		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer_street");
 		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
 		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}

@@ -342,6 +342,7 @@ public class TestJPAResponderGen {
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "departureAirportCode", "departureAirport", false, "flightschedules", interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, "flightschedules", interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departureAirportCode", "flightSchedules", true, "departureAirport", interactionModel.findResourceStateMachine("FlightSchedule"));
+		interactionModel.findResourceStateMachine("Passenger").addTransition("Passenger", "flightID", "flight", true, "flight", interactionModel.findResourceStateMachine("Flight"));
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
@@ -350,18 +351,21 @@ public class TestJPAResponderGen {
 		//Check results
 		assertTrue(status);
 		
-		assertTrue(generator.generatedClasses.size() == 3);
+		assertTrue(generator.generatedClasses.size() == 4);
 		assertTrue(generator.generatedClasses.get(0).contains("public class Flight"));
 		assertTrue(generator.generatedClasses.get(1).contains("public class Airport"));
 		assertTrue(generator.generatedClasses.get(2).contains("public class FlightSchedule"));
+		assertTrue(generator.generatedClasses.get(3).contains("public class Passenger"));
 
 		assertTrue(generator.generateResponderDML.contains("INSERT INTO `Flight`("));
 		assertTrue(generator.generateResponderDML.contains("INSERT INTO `Airport`("));
 		assertTrue(generator.generateResponderDML.contains("INSERT INTO `FlightSchedule`("));
+		assertTrue(generator.generateResponderDML.contains("INSERT INTO `Passenger`("));
 
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Flight</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Airport</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.FlightSchedule</class>"));
+		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Passenger</class>"));
 
 		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.FlightResponderBehaviour\" />"));
 
@@ -375,6 +379,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID, navproperty=\"departureAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
 		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("GET -> Passengers"));
+		assertTrue(generator.generatedRimDsl.contains("resource Passengers"));
 	}
 
 	@Test
@@ -389,18 +395,21 @@ public class TestJPAResponderGen {
 		//Check results
 		assertTrue(status);
 		
-		assertTrue(generator.generatedClasses.size() == 3);
+		assertTrue(generator.generatedClasses.size() == 4);
 		assertTrue(generator.generatedClasses.get(0).contains("public class FlightSchedule"));
 		assertTrue(generator.generatedClasses.get(1).contains("public class Airport"));
 		assertTrue(generator.generatedClasses.get(2).contains("public class Flight"));
+		assertTrue(generator.generatedClasses.get(3).contains("public class Passenger"));
 
 		assertTrue(generator.generateResponderDML.contains("INSERT INTO `Flight`("));
 		assertTrue(generator.generateResponderDML.contains("INSERT INTO `Airport`("));
 		assertTrue(generator.generateResponderDML.contains("INSERT INTO `FlightSchedule`("));
+		assertTrue(generator.generateResponderDML.contains("INSERT INTO `Passenger`("));
 
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Flight</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Airport</class>"));
 		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.FlightSchedule</class>"));
+		assertTrue(generator.generatedPersistenceXML.contains("<class>FlightResponderModel.Passenger</class>"));
 
 		assertTrue(generator.generatedSpringXML.contains("<bean id=\"behaviour\" class=\"FlightResponderModel.FlightResponderBehaviour\" />"));
 
@@ -416,6 +425,8 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/departureAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET title=\"arrivals\" -> airport_arrivals id=code, filter=\"arrivalAirportCode eq '{code}'\""));
 		assertTrue(generator.generatedRimDsl.contains("GET title=\"departures\" -> airport_departures id=code, filter=\"departureAirportCode eq '{code}'\""));
+		assertTrue(generator.generatedRimDsl.contains("GET -> Passengers"));
+		assertTrue(generator.generatedRimDsl.contains("resource Passengers"));
 	}
 
 	@Test
@@ -434,6 +445,7 @@ public class TestJPAResponderGen {
 		interactionModel.findResourceStateMachine("FlightSchedule").addTransition("Airport", "arrivalAirportCode", "arrivalAirport", false, null, interactionModel.findResourceStateMachine("Airport"));
 		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "departures", "departures", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "departureAirportCode eq '{code}'", "departures");
 		interactionModel.findResourceStateMachine("Airport").addTransition("FlightSchedule", "arrivals", "arrivals", true, null, interactionModel.findResourceStateMachine("FlightSchedule"), "arrivalAirportCode eq '{code}'", "arrivals");
+		interactionModel.findResourceStateMachine("Passenger").addTransition("Flight", "flight", "flight", true, null, interactionModel.findResourceStateMachine("Flight"), "flightID eq {flightID}", "flight");
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
@@ -449,6 +461,7 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET -> flightschedule_arrivalAirport id=flightScheduleID, navproperty=\"arrivalAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET title=\"arrivals\" -> airport_arrivals id=code, filter=\"arrivalAirportCode eq '{code}'\""));
 		assertTrue(generator.generatedRimDsl.contains("GET title=\"departures\" -> airport_departures id=code, filter=\"departureAirportCode eq '{code}'\""));
+		assertTrue(generator.generatedRimDsl.contains("GET title=\"flight\" -> passenger_flight"));
 	}
 	
 	/*

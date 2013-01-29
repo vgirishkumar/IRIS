@@ -9,6 +9,7 @@
 		<class>com.interaction.example.odata.airline.model.Airport</class>
 		<class>com.interaction.example.odata.airline.model.FlightSchedule</class>
 		<class>com.interaction.example.odata.airline.model.Flight</class>
+		<class>com.interaction.example.odata.airline.model.Passenger</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 

@@ -32,11 +32,11 @@ public class FlightSchedule {
 		@Temporal(TemporalType.TIMESTAMP)
 		private java.util.Date lastDeparture;
 		
-		@JoinColumn(name = "departureAirportCode", referencedColumnName = "Code",
+		@JoinColumn(name = "departureAirportCode", referencedColumnName = "code",
 				insertable = false, updatable = false)
 		@ManyToOne(optional = false)
 		private Airport departureAirport;
-		@JoinColumn(name = "arrivalAirportCode", referencedColumnName = "Code",
+		@JoinColumn(name = "arrivalAirportCode", referencedColumnName = "code",
 				insertable = false, updatable = false)
 		@ManyToOne(optional = false)
 		private Airport arrivalAirport;
