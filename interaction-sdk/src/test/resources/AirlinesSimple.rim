@@ -108,7 +108,7 @@ resource Passengers
 	collection Passenger
 	view { GETEntities }
 	path "/Passengers()"
-	POST -> passenger_pseudo_created
+	POST -> Passengers_created
 	GET *-> passenger id=passengerNo
 end
 
@@ -118,8 +118,7 @@ resource passenger
 	path "/Passengers({id})"
 end
 
-
-resource passenger_pseudo_created
+resource Passengers_created
 	item Passenger
 	view { GETEntity }
 	actions { CreateEntity }

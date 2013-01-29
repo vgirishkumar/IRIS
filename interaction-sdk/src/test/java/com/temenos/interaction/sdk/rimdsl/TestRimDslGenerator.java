@@ -59,7 +59,7 @@ public class TestRimDslGenerator {
 		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "POST", null, "CreateEntity", null, true);
 		rsmFlight.addPseudoStateTransition("Flights", "created", "POST", null, "CreateEntity", null, true);
 		rsmAirport.addPseudoStateTransition("Airports", "created", "POST", null, "CreateEntity", null, true);
-		rsmPassenger.addPseudoStateTransition("Passenger", "created", "POST", null, "CreateEntity", null, true);
+		rsmPassenger.addPseudoStateTransition("Passengers", "created", "POST", null, "CreateEntity", null, true);
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
@@ -148,7 +148,7 @@ public class TestRimDslGenerator {
 		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "POST", null, "CreateEntity", null, true);
 		rsmFlight.addPseudoStateTransition("Flights", "created", "POST", null, "CreateEntity", null, true);
 		rsmAirport.addPseudoStateTransition("Airports", "created", "POST", null, "CreateEntity", null, true);
-		rsmPassenger.addPseudoStateTransition("Passenger", "created", "POST", null, "CreateEntity", null, true);
+		rsmPassenger.addPseudoStateTransition("Passengers", "created", "POST", null, "CreateEntity", null, true);
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());

@@ -343,12 +343,13 @@ public class TestJPAResponderGen {
 		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
 		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
 		IMResourceStateMachine rsmFlight = interactionModel.findResourceStateMachine("Flight");
+		IMResourceStateMachine rsmPassenger = interactionModel.findResourceStateMachine("Passenger");
 		rsmFlight.addTransitionToEntityState("flight", rsmFlightSchedule, "flightschedule", "flightScheduleNum", null);
 		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", null);
 		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", null);
 		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", null);
 		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", null);
-		interactionModel.findResourceStateMachine("Passenger").addTransition("Passenger", "flightID", "flight", true, "flight", interactionModel.findResourceStateMachine("Flight"));
+		rsmPassenger.addTransitionToEntityState("passenger", rsmFlight, "flight", "flightID", null);
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
@@ -450,12 +451,13 @@ public class TestJPAResponderGen {
 		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
 		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
 		IMResourceStateMachine rsmFlight = interactionModel.findResourceStateMachine("Flight");
+		IMResourceStateMachine rsmPassenger = interactionModel.findResourceStateMachine("Passenger");
 		rsmFlight.addTransitionToEntityState("flight", rsmFlightSchedule, "flightschedule", "flightScheduleNum", null);
 		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", null);
 		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", null);
 		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", "departures");
 		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", "arrivals");
-		interactionModel.findResourceStateMachine("Passenger").addTransition("Flight", "flight", "flight", true, null, interactionModel.findResourceStateMachine("Flight"), "flightID eq {flightID}", "flight");
+		rsmPassenger.addTransitionToEntityState("passenger", rsmFlight, "flight", "flightID", "flight");
 		
 		//Run the generator
 		MockGenerator generator = new MockGenerator();
