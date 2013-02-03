@@ -37,32 +37,36 @@ public class WebhookCommand implements InteractionCommand {
 	
 	/**
 	 * @precondition url has been supplied
+	 * @postcondition Result.Success if {@link InteractionContext#getResource()} is successfully POSTed to url
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public Result execute(InteractionContext ctx) {
-		assert(url != null);
-		Map<String,Object> properties = null;
-		try {
-			OEntity oentity = ((EntityResource<OEntity>) ctx.getResource()).getEntity();
-			properties = transform(oentity);
-		} catch (ClassCastException cce) {
-			Entity entity = ((EntityResource<Entity>) ctx.getResource()).getEntity();
-			properties = transform(entity);
-		}
-		String formData = getFormData(properties);
-		try {
-			logger.info("POST [" + formData + "]");
-			HttpClient client = new HttpClient();
-			PostMethod postMethod = new PostMethod(url);
-			postMethod.setRequestEntity(new StringRequestEntity(formData,
-			                                                    "application/x-www-form-urlencoded",
-			                                                    "UTF-8"));
-			client.executeMethod(postMethod);
-			logger.info("Status [" + postMethod.getStatusCode() + "]");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Result.FAILURE;
+		if (url != null && url.length() > 0) {
+			Map<String,Object> properties = null;
+			try {
+				OEntity oentity = ((EntityResource<OEntity>) ctx.getResource()).getEntity();
+				properties = transform(oentity);
+			} catch (ClassCastException cce) {
+				Entity entity = ((EntityResource<Entity>) ctx.getResource()).getEntity();
+				properties = transform(entity);
+			}
+			String formData = getFormData(properties);
+			try {
+				logger.info("POST " + url + " [" + formData + "]");
+				HttpClient client = new HttpClient();
+				PostMethod postMethod = new PostMethod(url);
+				postMethod.setRequestEntity(new StringRequestEntity(formData,
+				                                                    "application/x-www-form-urlencoded",
+				                                                    "UTF-8"));
+				client.executeMethod(postMethod);
+				logger.info("Status [" + postMethod.getStatusCode() + "]");
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Result.FAILURE;
+			}
+		} else {
+			logger.warn("DISABLED - no url supplied");
 		}
 		return Result.SUCCESS;
 	}

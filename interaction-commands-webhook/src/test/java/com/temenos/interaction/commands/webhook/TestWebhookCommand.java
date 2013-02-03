@@ -10,6 +10,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.wink.client.MockHttpServer;
 import org.junit.Test;
 
+import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -21,11 +22,6 @@ import com.temenos.interaction.core.resource.EntityResource;
 public class TestWebhookCommand {
 
 	public int serverPort;
-	
-	@Test(expected = AssertionError.class)
-	public void testUrlSupplied() {
-		new WebhookCommand(null).execute(null);
-	}
 	
 	@Test
 	public void testFormData() {
@@ -83,4 +79,35 @@ public class TestWebhookCommand {
 		httpServer.stopServer();
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testNullDisabled() {
+		WebhookCommand c = new WebhookCommand(null);
+
+		EntityProperties fields = new EntityProperties();
+		EntityResource<Entity> before = new EntityResource<Entity>(new Entity("blah", fields));
+		
+		InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
+		ctx.setResource(before);
+		InteractionCommand.Result result = c.execute(ctx);
+		
+		assertEquals("Should return success code, operating as disabled", InteractionCommand.Result.SUCCESS, result);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testEmptyStringDisabled() {
+		WebhookCommand c = new WebhookCommand("");
+
+		EntityProperties fields = new EntityProperties();
+		EntityResource<Entity> before = new EntityResource<Entity>(new Entity("blah", fields));
+		
+		InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
+		ctx.setResource(before);
+		InteractionCommand.Result result = c.execute(ctx);
+		
+		assertEquals("Should return success code, operating as disabled", InteractionCommand.Result.SUCCESS, result);
+	}
+
+	
 }
