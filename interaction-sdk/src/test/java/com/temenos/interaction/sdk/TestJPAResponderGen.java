@@ -486,7 +486,7 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_created"));
 		assertTrue(generator.generatedRimDsl.contains("resource airport_pseudo_created" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
-				"\tview { GETEntity }" + RIM_LINE_SEP +
+				"\tview { GETEntities }" + RIM_LINE_SEP +
 				"\tactions { CreateEntity }" + RIM_LINE_SEP +
 				"\tpath \"/Airports()\""));
 

@@ -105,7 +105,11 @@ end
 resource ${rsm.getEntityStateName()}_${transition.getTargetStateName()}
 	item ${transition.getTargetEntityName()}
 #if ($transition.isPseudoState())
+#if ($transition.isBoundToCollection()) 
+	view { GETEntities }
+#else
 	view { GETEntity }
+#end
 	actions { ${transition.getAction()} }
 #if ($transition.hasRelations())
 	relations { "${transition.getRelations()}" }

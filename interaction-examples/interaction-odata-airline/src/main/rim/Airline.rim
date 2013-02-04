@@ -82,7 +82,7 @@ end
 
 resource airport_pseudo_created
 	item Airport
-	view { GETEntity }
+	view { GETEntities }
 	actions { CreateEntity }
 	path "/Airports()"
 end
@@ -132,7 +132,7 @@ end
 
 resource flight_pseudo_created
 	item Flight
-	view { GETEntity }
+	view { GETEntities }
 	actions { CreateEntity }
 	path "/Flights()"
 end
@@ -206,7 +206,7 @@ end
 
 resource flightschedule_pseudo_created
 	item FlightSchedule
-	view { GETEntity }
+	view { GETEntities }
 	actions { CreateEntity }
 	path "/FlightSchedules()"
 end
