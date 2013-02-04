@@ -149,10 +149,10 @@ class RIMDslGenerator implements IGenerator {
     
 	def produceTransitions(State fromState, Transition transition) '''
             «IF transition.eval != null»
-            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
+            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
             «ELSE»
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
             «ENDIF»
 	'''
 
@@ -165,7 +165,7 @@ class RIMDslGenerator implements IGenerator {
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''

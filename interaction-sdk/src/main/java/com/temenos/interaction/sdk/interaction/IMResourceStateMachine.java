@@ -32,8 +32,11 @@ public class IMResourceStateMachine {
 
 	private Map<String, IMState> resourceStates = new HashMap<String, IMState>();	//Resource states 
 	
-	
 	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String mappedEntityProperty, String pathParametersTemplate) {
+		this(entityName, collectionStateName, entityStateName, HttpMethod.GET, mappedEntityProperty, pathParametersTemplate);
+	}
+	
+	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String methodGetEntity, String mappedEntityProperty, String pathParametersTemplate) {
 		this.entityName = entityName;
 		this.entityState = new IMEntityState(entityStateName, "/" + collectionStateName + "(" + pathParametersTemplate + ")");
 		resourceStates.put(entityStateName, entityState);
@@ -41,6 +44,9 @@ public class IMResourceStateMachine {
 		resourceStates.put(collectionStateName, collectionState);
 		this.mappedEntityProperty = mappedEntityProperty;
 		this.pathParametersTemplate = pathParametersTemplate;
+
+		//Add a transition from the collection state to the entity state
+		addStateTransition(collectionState.getName(), entityState.getName(), methodGetEntity, null, null, null, null, null);
 	}
 	
 	public String getEntityName() {
@@ -133,11 +139,20 @@ public class IMResourceStateMachine {
 	 * @param title Label representing this resource
 	 */
 	public void addCollectionAndEntityState(String stateId, String title, String collectionView, String entityView) {
+		addCollectionAndEntityState(stateId, title, HttpMethod.GET, collectionView, HttpMethod.GET, entityView);
+	}
+	
+	/**
+	 * Add a new resource state and it's associated collection state. 
+	 * @param stateId State identifier
+	 * @param title Label representing this resource
+	 */
+	public void addCollectionAndEntityState(String stateId, String title, String collectionMethod, String collectionView, String entityMethod, String entityView) {
 		//Add collection state
-		addStateTransition(collectionState.getName(), collectionState.getName() + "_" + stateId, HttpMethod.GET, stateId, title, collectionView, null, null);
+		addStateTransition(collectionState.getName(), collectionState.getName() + "_" + stateId, collectionMethod, stateId, title, collectionView, null, null);
 
 		//Add entity state
-		addStateTransition(collectionState.getName() + "_" + stateId, entityState.getName() + "_" + stateId, HttpMethod.GET, stateId, null, entityView, null, null);
+		addStateTransition(collectionState.getName() + "_" + stateId, entityState.getName() + "_" + stateId, entityMethod, stateId, null, entityView, null, null);
 	}
 	
 	/**
@@ -150,7 +165,7 @@ public class IMResourceStateMachine {
 	 * @param relations			Relations
 	 */
 	public void addStateTransition(String sourceStateName, String targetStateName, String method, String stateId, String title, String view, String action, String relations) {
-		boolean boundToCollection = sourceStateName.equals(collectionState.getName());	//rsm's collection state can only have transition to other collection states or to the rsm's entity state
+		boolean boundToCollection = sourceStateName.equals(collectionState.getName()) && !targetStateName.equals(entityState.getName());	//rsm's collection state can only have transition to other collection states or to the rsm's entity state
 		this.addStateTransition(sourceStateName, targetStateName, null, method, stateId, title, view, action, relations, false, boundToCollection);
 	}
 	
