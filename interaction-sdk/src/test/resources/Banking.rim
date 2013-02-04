@@ -56,7 +56,6 @@ end
 
 resource sector_IAuth_authorise
 	item Sector
-	view { GETEntity }
 	actions { AuthoriseEntity }
 	relations { "edit" }
 	path "/SectorsIAuth('{id}')"
@@ -66,7 +65,6 @@ end
 
 resource sector_IAuth_delete
 	item Sector
-	view { GETEntity }
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/SectorsIAuth('{id}')"
@@ -75,7 +73,6 @@ end
 
 resource sector_reverse
 	item Sector
-	view { GETEntity }
 	actions { ReverseEntity }
 	relations { "edit" }
 	path "/Sectors('{id}')"
@@ -99,7 +96,6 @@ end
 
 resource Sectors_input
 	item Sector
-	view { GETEntities }
 	actions { CreateEntity }
 	path "/Sectors()"
 	GET --> sector_IAuth (OK(sector_IAuth))

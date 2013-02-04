@@ -60,7 +60,6 @@ public class ParserTest {
 
 	"resource B" + LINE_SEP +
 	"	item ENTITY" + LINE_SEP +
-	"	view { GetEntity }" + LINE_SEP +
 	"	actions { UpdateEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"";
@@ -132,7 +131,6 @@ public class ParserTest {
 			"commands" + LINE_SEP +
 			"	GetEntity properties" + LINE_SEP +
 			"	GetEntities properties" + LINE_SEP +
-			"	PutEntity properties" + LINE_SEP +
 			"end" + LINE_SEP +
 					
 			"initial resource A" + LINE_SEP +
@@ -144,7 +142,6 @@ public class ParserTest {
 			"resource B" +
 			"	item ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
-			"	actions { PutEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"";
 
@@ -181,7 +178,6 @@ public class ParserTest {
 			"resource B" +
 			"	item ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
-			"	actions { PutEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"";
 
@@ -255,11 +251,10 @@ public class ParserTest {
 			"	collection ENTITY" + LINE_SEP +
 			"   view { Noop }" + LINE_SEP +
 			"   relations { \"archives\", \"http://www.temenos.com/statement-entries\" }" + LINE_SEP +
-			"   GET -> B" + LINE_SEP +
+			"   PUT -> accTransaction" + LINE_SEP +
 			"end\r\n" + LINE_SEP +
 			"resource accTransaction" + LINE_SEP +
 			"	item ENTITY" + LINE_SEP +
-			"   view { Noop }" + LINE_SEP +
 			"   actions { Update }" + LINE_SEP +
 			"   relations { \"edit\" }" + LINE_SEP +
 			"end\r\n" + LINE_SEP +

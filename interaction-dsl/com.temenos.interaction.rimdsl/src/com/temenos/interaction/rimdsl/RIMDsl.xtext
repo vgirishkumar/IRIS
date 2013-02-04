@@ -19,8 +19,8 @@ Event:
 State: 
     (isInitial?='initial' | isException?='exception')? 'resource' name=ID
         entity=Entity
-        ('view' '{' view=ResourceCommand '}')
-        ('actions' '{' ((actions+=ResourceCommand) (';' actions+=ResourceCommand)* ) '}')?
+        // it is only valid to have a view command or action commands.
+        (('view' '{' view=ResourceCommand '}') | ('actions' '{' ((actions+=ResourceCommand) (';' actions+=ResourceCommand)* ) '}'))
         ('relations' '{' ((relations+=Relation) (',' relations+=Relation)* ) '}')?
         path=Path?
         transitionsAuto+=TransitionAuto*

@@ -514,19 +514,16 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("resource Airports_created"));
 		assertTrue(generator.generatedRimDsl.contains("resource Airports_created" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
-				"\tview { GETEntities }" + RIM_LINE_SEP +
 				"\tactions { CreateEntity }" + RIM_LINE_SEP +
 				"\tpath \"/Airports()\""));
 
 		assertTrue(generator.generatedRimDsl.contains("resource airport_updated" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
-				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { UpdateEntity }" + RIM_LINE_SEP +
 				"\trelations { \"edit\" }" + RIM_LINE_SEP +
 				"\tpath \"/Airports('{id}')\""));
 		assertTrue(generator.generatedRimDsl.contains("resource airport_deleted" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
-				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { DeleteEntity }" + RIM_LINE_SEP +
 				"\trelations { \"edit\" }" + RIM_LINE_SEP +
 				"\tpath \"/Airports('{id}')\""));

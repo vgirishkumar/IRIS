@@ -81,14 +81,12 @@ end
 
 resource airport_pseudo_created
 	item Airport
-	view { GETEntities }
 	actions { CreateEntity }
 	path "/Airports()"
 end
 
 resource airport_pseudo_updated
 	item Airport
-	view { GETEntity }
 	actions { UpdateEntity }
 	relations { "edit" }
 	path "/Airports('{id}')"
@@ -96,7 +94,6 @@ end
 
 resource airport_pseudo_deleted
 	item Airport
-	view { GETEntity }
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/Airports('{id}')"
@@ -130,14 +127,12 @@ end
 
 resource flight_pseudo_created
 	item Flight
-	view { GETEntities }
 	actions { CreateEntity }
 	path "/Flights()"
 end
 
 resource flight_pseudo_updated
 	item Flight
-	view { GETEntity }
 	actions { UpdateEntity }
 	relations { "edit" }
 	path "/Flights({id})"
@@ -145,7 +140,6 @@ end
 
 resource flight_pseudo_deleted
 	item Flight
-	view { GETEntity }
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/Flights({id})"
@@ -204,14 +198,12 @@ end
 
 resource flightschedule_pseudo_created
 	item FlightSchedule
-	view { GETEntities }
 	actions { CreateEntity }
 	path "/FlightSchedules()"
 end
 
 resource flightschedule_pseudo_updated
 	item FlightSchedule
-	view { GETEntity }
 	actions { UpdateEntity }
 	relations { "edit" }
 	path "/FlightSchedules({id})"
@@ -219,7 +211,6 @@ end
 
 resource flightschedule_pseudo_deleted
 	item FlightSchedule
-	view { GETEntity }
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/FlightSchedules({id})"
@@ -248,14 +239,12 @@ end
 
 resource passenger_pseudo_created
 	item Passenger
-	view { GETEntity }
 	actions { CreateEntity }
 	path "/Passengers()"
 end
 
 resource passenger_pseudo_updated
 	item Passenger
-	view { GETEntity }
 	actions { UpdateEntity }
 	relations { "edit" }
 	path "/Passengers({id})"
@@ -263,7 +252,6 @@ end
 
 resource passenger_pseudo_deleted
 	item Passenger
-	view { GETEntity }
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/Passengers({id})"
