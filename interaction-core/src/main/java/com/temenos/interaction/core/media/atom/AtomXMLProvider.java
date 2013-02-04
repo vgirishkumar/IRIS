@@ -49,7 +49,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.EntityProperties;
+import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -104,8 +107,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class) ||
-				ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class) ||
+		return 	ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
 				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
 				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class);
 	}
@@ -165,6 +167,24 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// Write Entity object with Abdera implementation
 				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
 				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links, metadata.getModelName());
+			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
+				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
+
+				//Links and entity properties
+				Collection<Link> linksCollection = entityResource.getLinks();
+				List<Link> links = linksCollection != null ? Lists.newArrayList(linksCollection) : new ArrayList<Link>();
+				Object entity = entityResource.getEntity();
+				String entityName = entityResource.getEntityName();
+				EntityProperties props = new EntityProperties();
+				if(entity != null) {
+					Map<String, Object> objProps = new BeanTransformer().transform(entity);
+					for(String propName : objProps.keySet()) {
+						props.setProperty(new EntityProperty(propName, objProps.get(propName)));
+					}
+				}
+				EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), new Entity(entityName, props), entityMetadata, links, metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
 				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();

@@ -24,6 +24,7 @@ import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 public class EdmTimeTemporalITCase {
 
 	private final static String FLIGHT_SCHEDULE_ENTITYSET_NAME = "FlightSchedules";
+	private final static String PASSENGERS_ENTITYSET_NAME = "Passengers";
 
 	public EdmTimeTemporalITCase() throws Exception {
 		super();
@@ -31,7 +32,7 @@ public class EdmTimeTemporalITCase {
 	
 	@Test
 	public void testMetadata() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		EdmDataServices metadata = consumer.getMetadata();
 
@@ -47,11 +48,36 @@ public class EdmTimeTemporalITCase {
 	}
 
 	@Test
+	public void testComplexMetadata() {
+		// TODO: Test assertions will be enabled to verify metadata for complex types  
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
+		
+		EdmDataServices metadata = consumer.getMetadata();
+
+		Assert.assertEquals(EdmSimpleType.STRING,
+				metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+						.findProperty("name").getType());
+		Assert.assertEquals(EdmSimpleType.DATETIME,
+				metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+						.findProperty("dateOfBirth").getType());
+//		Assert.assertEquals(false,
+//				metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+//						.findProperty("Passenger_address").getType().isSimple());
+//		Assert.assertEquals(null,
+//				metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+//						.findProperty("Passenger_street"));
+//		Assert.assertEquals(false,
+//				((EdmComplexType)metadata.findEdmEntitySet(PASSENGERS_ENTITYSET_NAME).getType()
+//						.findProperty("Passenger_address").getType()).findProperty("Passenger_street").getType().isSimple());
+	}
+	
+	
+	@Test
 	/**
 	 *handling of Date fields with different @Temporal
 	 */
 	public void createWithDifferentTemporal() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		OEntity flightSchedule = consumer
 				.createEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME)
@@ -97,7 +123,7 @@ public class EdmTimeTemporalITCase {
 
 	@Test
 	public void filterTime() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI))).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
 
 		Enumerable<OEntity> schedules = consumer
 				.getEntities(FLIGHT_SCHEDULE_ENTITYSET_NAME)

@@ -31,6 +31,8 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.DifferenceListener;
@@ -58,6 +60,7 @@ import org.odata4j.internal.FeedCustomizationMapping;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.temenos.interaction.core.NestedObject;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -304,6 +307,16 @@ public class TestAtomXMLProvider {
 		return er;
 	}
 	
+	@SuppressWarnings("unchecked")
+	private EntityResource<NestedObject> createMockEntityResourceObject() throws Exception {
+		String testXMLString = "<resource><Test><name>rob</name></Test></resource>";
+		JAXBContext jc = JAXBContext.newInstance(EntityResource.class, NestedObject.class);
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        EntityResource<NestedObject> er = (EntityResource<NestedObject>) unmarshaller.unmarshal(new ByteArrayInputStream(testXMLString.getBytes()));
+        er.setEntityName("Flight");
+        return er;
+	}
+	
 	@Test (expected = WebApplicationException.class)
 	public void testUnhandledRawType() throws IOException {
 		EdmDataServices metadata = mock(EdmDataServices.class);
@@ -496,6 +509,56 @@ public class TestAtomXMLProvider {
 		XMLUnit.setIgnoreWhitespace(true);
 	    DifferenceListener myDifferenceListener = new IgnoreTextAndAttributeValuesDifferenceListener();
 	    Diff myDiff = new Diff(responseString, EXPECTED_ENTITY_XML);
+	    myDiff.overrideDifferenceListener(myDifferenceListener);
+	    assertTrue(myDiff.similar());		
+	}
+
+	@Test
+	public void testWriteEntityResourceObject_AtomXML() throws Exception {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		EdmDataServices mockEDS = createMockFlightEdmDataServices();		
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+		
+		Metadata mockMetadata = createMockFlightMetadata();
+		EntityResource<NestedObject> er = createMockEntityResourceObject();
+		
+        //Wrap entity resource into a JAX-RS GenericEntity instance
+		GenericEntity<EntityResource<NestedObject>> ge = new GenericEntity<EntityResource<NestedObject>>(er) {};
+
+		//Create provider
+		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		UriInfo uriInfo = mock(UriInfo.class);
+		URI uri = new URI("http://localhost:8080/responder/rest/");
+		when(uriInfo.getBaseUri()).thenReturn(uri);
+		when(uriInfo.getPath()).thenReturn("Flight(123)");
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+
+		//Assert xml string but ignore text and attribute values
+		String expected = 
+				"<?xml version='1.0' encoding='UTF-8'?>" +
+						"<entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xml:base=\"http://localhost:8080/responder/rest/\">" +
+						"  <id>http://localhost:8080/responder/rest/Flight(123)</id>" +
+						"  <title type=\"text\"></title>" +
+						"  <updated>2013-02-01T15:24:17Z</updated>" +
+						"  <author>" +
+						"    <name></name>" +
+						"  </author>" +
+						"  <category term=\"FlightModelModel.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\">" +
+						"  </category>" +
+						"  <content type=\"application/xml\">" +
+						"    <m:properties>" +
+						"      <d:name>rob</d:name>" +
+						"    </m:properties>" +
+						"  </content>" +
+						"</entry>";
+		XMLUnit.setIgnoreWhitespace(true);
+	    DifferenceListener myDifferenceListener = new IgnoreTextAndAttributeValuesDifferenceListener();
+	    Diff myDiff = new Diff(responseString, expected);
 	    myDiff.overrideDifferenceListener(myDifferenceListener);
 	    assertTrue(myDiff.similar());		
 	}

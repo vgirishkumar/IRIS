@@ -37,6 +37,16 @@
                 <NavigationProperty Name="arrivalAirport" Relationship="${artifactId}Model.FlightSchedule_arrivalAirport" FromRole="FlightSchedule" ToRole="Airport"/>
                 <NavigationProperty Name="flights" Relationship="${artifactId}Model.Flight_flightSchedule" FromRole="FlightSchedule" ToRole="Flight"/>
             </EntityType>
+            <EntityType Name="Passenger">
+                <Key>
+                    <PropertyRef Name="passengerNo" />
+                </Key>
+                <Property Name="dateOfBirth" Type="Edm.DateTime" Nullable="false" />
+                <Property Name="passengerNo" Type="Edm.Int64" Nullable="false" />
+                <Property Name="flightID" Type="Edm.Int64" Nullable="false" />
+                <Property Name="name" Type="Edm.String" Nullable="true" />
+                <NavigationProperty Name="flight" Relationship="${artifactId}Model.Passenger_flight" FromRole="Passenger" ToRole="Flight"/>
+            </EntityType>
             <Association Name="Flight_flightSchedule">
                 <End Role="Flight" Type="${artifactId}Model.Flight" Multiplicity="*"/>
                 <End Role="FlightSchedule" Type="${artifactId}Model.FlightSchedule" Multiplicity="0..1"/>
@@ -73,10 +83,23 @@
                 	</Dependent>
                 </ReferentialConstraint>
             </Association>
+            <Association Name="Passenger_flight">
+                <End Role="Flight" Type="${artifactId}Model.Flight" Multiplicity="0..1"/>
+                <End Role="Passenger" Type="${artifactId}Model.Passenger" Multiplicity="*"/>
+                <ReferentialConstraint>
+                	<Principal Role="Flight">
+                		<PropertyRef Name="flightID"/>
+                	</Principal>
+                	<Dependent Role="Passenger">
+                		<PropertyRef Name="flightID"/>
+                	</Dependent>
+                </ReferentialConstraint>
+            </Association>
             <EntityContainer Name="${artifactId}" m:IsDefaultEntityContainer="true">
                 <EntitySet Name="Airports" EntityType="${artifactId}Model.Airport"/>
                 <EntitySet Name="Flights" EntityType="${artifactId}Model.Flight"/>
                 <EntitySet Name="FlightSchedules" EntityType="${artifactId}Model.FlightSchedule"/>
+                <EntitySet Name="Passengers" EntityType="${artifactId}Model.Passenger"/>
                 <AssociationSet Name="Flight_flightSchedule" Association="${artifactId}Model.Flight_flightSchedule">
                     <End Role="Flight" EntitySet="Flights"/>
                     <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
@@ -88,6 +111,10 @@
                 <AssociationSet Name="FlightSchedule_arrivalAirport" Association="${artifactId}Model.FlightSchedule_arrivalAirport">
                     <End Role="FlightSchedule" EntitySet="FlightSchedules"/>
                     <End Role="Airport" EntitySet="Airports"/>
+                </AssociationSet>
+                <AssociationSet Name="Passenger_flight" Association="${artifactId}Model.Passenger_flight">
+                    <End Role="Flight" EntitySet="Flights"/>
+                    <End Role="Passenger" EntitySet="Passengers"/>
                 </AssociationSet>
             </EntityContainer>
         </Schema>

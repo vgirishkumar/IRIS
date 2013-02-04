@@ -1,16 +1,18 @@
 events
+	DELETE DELETE
 	GET GET
 	POST POST
 	PUT PUT
-	DELETE DELETE
 end
 
 commands
-	GETServiceDocument
+	CreateEntity
+	DeleteEntity
 	GETEntities
 	GETEntity
-	CreateEntity
 	GETNavProperty
+	GETServiceDocument
+	UpdateEntity
 end
 
 initial resource ServiceDocument
@@ -20,14 +22,14 @@ initial resource ServiceDocument
 	GET -> Flights
 	GET -> Airports
 	GET -> FlightSchedules
+	GET -> Passengers
 end
-
 
 resource Flights
 	collection Flight
 	view { GETEntities }
 	path "/Flights()"
-	POST -> flight_pseudo_created
+	POST -> Flights_created
 	GET *-> flight id=flightID
 	GET title="flightschedule" *-> flight_flightschedule id=flightID, navproperty="flightschedule"
 end
@@ -39,6 +41,12 @@ resource flight
 	GET title="flightschedule" -> flight_flightschedule id=flightID, navproperty="flightschedule"
 end
 
+resource Flights_created
+	item Flight
+	view { GETEntities }
+	actions { CreateEntity }
+	path "/Flights()"
+end
 
 resource flight_flightschedule
 	item FlightSchedule
@@ -46,18 +54,11 @@ resource flight_flightschedule
 	path "/Flights({id})/flightschedule"
 end
 
-resource flight_pseudo_created
-	item Flight
-	view { GETEntities }
-	actions { CreateEntity }
-	path "/Flights()"
-end
-
 resource Airports
 	collection Airport
 	view { GETEntities }
 	path "/Airports()"
-	POST -> airport_pseudo_created
+	POST -> Airports_created
 	GET *-> airport id=code
 	GET title="departures" *-> airport_departures id=code, filter="departureAirportCode eq '{code}'"
 	GET title="arrivals" *-> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
@@ -71,41 +72,36 @@ resource airport
 	GET title="arrivals" -> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
 end
 
-
-resource airport_departures
-	collection FlightSchedule
-	view { GETEntities filter=filter }
-	path "/Airports('{id}')/departures"
-	POST -> flightschedule_pseudo_created
-	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
-	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
-	GET *-> flightschedule_pseudo_created id=flightScheduleID, navproperty="pseudo_created"
-end
-
-resource airport_arrivals
-	collection FlightSchedule
-	view { GETEntities filter=filter }
-	path "/Airports('{id}')/arrivals"
-	POST -> flightschedule_pseudo_created
-	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
-	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
-	GET *-> flightschedule_pseudo_created id=flightScheduleID, navproperty="pseudo_created"
-end
-
-resource airport_pseudo_created
+resource Airports_created
 	item Airport
 	view { GETEntities }
 	actions { CreateEntity }
 	path "/Airports()"
 end
 
+resource airport_arrivals
+	collection FlightSchedule
+	view { GETEntities filter=filter }
+	path "/Airports('{id}')/arrivals"
+	GET *-> flightschedule id=flightScheduleID
+	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
+	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
+end
+
+resource airport_departures
+	collection FlightSchedule
+	view { GETEntities filter=filter }
+	path "/Airports('{id}')/departures"
+	GET *-> flightschedule id=flightScheduleID
+	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
+	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
+end
+
 resource FlightSchedules
 	collection FlightSchedule
 	view { GETEntities }
 	path "/FlightSchedules()"
-	POST -> flightschedule_pseudo_created
+	POST -> FlightSchedules_created
 	GET *-> flightschedule id=flightScheduleID
 	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
 	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
@@ -119,6 +115,11 @@ resource flightschedule
 	GET title="arrivalAirport" -> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
 end
 
+resource flightschedule_arrivalAirport
+	item Airport
+	view { GETNavProperty navproperty=navproperty, entity=FlightSchedule }
+	path "/FlightSchedules({id})/arrivalAirport"
+end
 
 resource flightschedule_departureAirport
 	item Airport
@@ -126,15 +127,38 @@ resource flightschedule_departureAirport
 	path "/FlightSchedules({id})/departureAirport"
 end
 
-resource flightschedule_arrivalAirport
-	item Airport
-	view { GETNavProperty navproperty=navproperty, entity=FlightSchedule }
-	path "/FlightSchedules({id})/arrivalAirport"
-end
-
-resource flightschedule_pseudo_created
+resource FlightSchedules_created
 	item FlightSchedule
 	view { GETEntities }
 	actions { CreateEntity }
 	path "/FlightSchedules()"
+end
+
+resource Passengers
+	collection Passenger
+	view { GETEntities }
+	path "/Passengers()"
+	POST -> Passengers_created
+	GET *-> passenger id=passengerNo
+	GET title="flight" *-> passenger_flight id=passengerNo, navproperty="flight"
+end
+
+resource passenger
+	item Passenger
+	view { GETEntity }
+	path "/Passengers({id})"
+	GET title="flight" -> passenger_flight id=passengerNo, navproperty="flight"
+end
+
+resource passenger_flight
+	item Flight
+	view { GETNavProperty navproperty=navproperty, entity=Passenger }
+	path "/Passengers({id})/flight"
+end
+
+resource Passengers_created
+	item Passenger
+	view { GETEntities }
+	actions { CreateEntity }
+	path "/Passengers()"
 end
