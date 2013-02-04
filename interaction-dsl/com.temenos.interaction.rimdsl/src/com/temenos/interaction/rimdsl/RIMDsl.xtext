@@ -13,7 +13,7 @@ ResourceInteractionModel:
 ;
 
 Event:
-    name=ID
+    name=ID httpMethod=ID
 ;
 
 State: 

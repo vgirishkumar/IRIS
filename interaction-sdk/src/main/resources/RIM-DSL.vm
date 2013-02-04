@@ -66,7 +66,7 @@ $action##
 #writeStateTransitions($rsm $state)
 ## ----- Transitions from collection type navigation state -----
 #if(${state.class.simpleName} == "IMNavigationState" && ${state.isNavigationToCollectionResource()})
-#writeCollectionStateTransitions($state.getTargetResourceStateMachine() $state ${state.getTargetResourceStateMachine().getEntityState()})
+#writeCollectionStateTransitions($state.getTargetResourceStateMachine() ${state.getTargetResourceStateMachine().getCollectionState()} ${state.getTargetResourceStateMachine().getEntityState()})
 #end
 ## ----- Transitions from an RSM's collection state -----
 #if(${state.class.simpleName} == "IMCollectionState")
@@ -79,10 +79,18 @@ end
 ##
 ## -----------------------------------------------------
 ## writeCollectionStateTransitions
-##       Macro to write outgoing transitions on a collection state 
+##       Macro to write outgoing transitions on a collection state
+## Parameters:
+##     $rsm Resource state machine
+##     $collectionState Collection state
+##     $entityState Entity state 
 ## -----------------------------------------------------
-#macro( writeCollectionStateTransitions $rsm $state $entityState)
-	GET *-> ${entityState.getName()} id=${rsm.getMappedEntityProperty()}
+#macro( writeCollectionStateTransitions $rsm $collectionState $entityState)
+#foreach ( $transition in $collectionState.getTransitions() )
+#if(${transition.getTargetState().equals($entityState)})
+	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
+#end
+#end
 #foreach ( $transition in $entityState.getTransitions() )
 #if(${transition.getTargetState().class.simpleName} == "IMPseudoState" || ${transition.class.simpleName} == "IMStateTransition")
 ## Collection transition to a pseudo state or a state transition to this RSM's collection state
@@ -104,6 +112,9 @@ end
 ## -----------------------------------------------------
 ## writeStateTransitions
 ##       Macro to write outgoing transitions on an entity-type or pseudo state 
+## Parameters:
+##     $rsm Resource state machine
+##     $state Resource state
 ## -----------------------------------------------------
 #macro( writeStateTransitions $rsm $state )
 #foreach ( $transition in $state.getTransitions() )

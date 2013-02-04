@@ -3,6 +3,8 @@ package com.temenos.interaction.sdk.interaction;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.HttpMethod;
+
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
@@ -21,20 +23,18 @@ public class InteractionModel {
 	private List<IMResourceStateMachine> resourceStateMachines = new ArrayList<IMResourceStateMachine>();
 
 	/**
+	 * Construct an empty model
+	 */
+	public InteractionModel() {
+	}	
+	
+	/**
 	 * Construct an initial model from odata4j metadata
 	 * @param edmDataServices odata4j metadata 
 	 */
 	public InteractionModel(EdmDataServices edmDataServices) {
 		for (EdmEntitySet entitySet : edmDataServices.getEntitySets()) {
-			EdmEntityType entityType = entitySet.getType();
-			//ResourceStateMachine with one collection and one resource entity state
-			String entityName = entityType.getName();
-			String collectionStateName = entitySet.getName();
-			String entityStateName = entityName.toLowerCase();
-			String mappedEntityProperty = entityType.getKeys().size() > 0 ? entityType.getKeys().get(0) : "id";
-			String pathParametersTemplate = getUriTemplateParameters(entityType);
-			IMResourceStateMachine rsm = new IMResourceStateMachine(entityName, collectionStateName, entityStateName, mappedEntityProperty, pathParametersTemplate);
-			addResourceStateMachine(rsm);
+			addResourceStateMachine(createInitialResourceStateMachine(entitySet));
 		}
 	}
 	
@@ -44,16 +44,48 @@ public class InteractionModel {
 	 */
 	public InteractionModel(Metadata metadata) {
 		for (EntityMetadata entityMetadata : metadata.getEntitiesMetadata().values()) {
-			//ResourceStateMachine with one collection and one resource entity state
-			String entityName = entityMetadata.getEntityName();
-			String collectionStateName = entityName + "s";
-			String entityStateName = entityName.toLowerCase();
-			List<String> idFields = entityMetadata.getIdFields();
-			String mappedEntityProperty = idFields.size() > 0 ? idFields.get(0) : "id";
-			String pathParametersTemplate = getUriTemplateParameters(entityMetadata);
-			IMResourceStateMachine rsm = new IMResourceStateMachine(entityName, collectionStateName, entityStateName, mappedEntityProperty, pathParametersTemplate);
-			addResourceStateMachine(rsm);
+			addResourceStateMachine(createInitialResourceStateMachine(entityMetadata));
 		}
+	}
+
+	/**
+	 * Create an initial RSM with a collection and entity state
+	 * @param entitySet Entity metadata
+	 * @return resource state machine
+	 */
+	public IMResourceStateMachine createInitialResourceStateMachine(EdmEntitySet entitySet) {
+		EdmEntityType entityType = entitySet.getType();
+		String entityName = entityType.getName();
+		String collectionStateName = entitySet.getName();
+		String entityStateName = entityName.toLowerCase();
+		String mappedEntityProperty = entityType.getKeys().size() > 0 ? entityType.getKeys().get(0) : "id";
+		String pathParametersTemplate = getUriTemplateParameters(entityType);
+		return new IMResourceStateMachine(entityName, collectionStateName, entityStateName, mappedEntityProperty, pathParametersTemplate);
+	}
+
+	/**
+	 * Create an initial RSM with a collection and entity state
+	 * @param entityMetadata Entity metadata
+	 * @return resource state machine
+	 */
+	public IMResourceStateMachine createInitialResourceStateMachine(EntityMetadata entityMetadata) {
+		return createInitialResourceStateMachine(entityMetadata, HttpMethod.GET);
+	}
+	
+	/**
+	 * Create an initial RSM with a collection and entity state
+	 * @param entityMetadata Entity metadata
+	 * @param methodGetEntity Method for GET entity 
+	 * @return resource state machine
+	 */
+	public IMResourceStateMachine createInitialResourceStateMachine(EntityMetadata entityMetadata, String methodGetEntity) {
+		String entityName = entityMetadata.getEntityName();
+		String collectionStateName = entityName + "s";
+		String entityStateName = entityName.toLowerCase();
+		List<String> idFields = entityMetadata.getIdFields();
+		String mappedEntityProperty = idFields.size() > 0 ? idFields.get(0) : "id";
+		String pathParametersTemplate = getUriTemplateParameters(entityMetadata);
+		return new IMResourceStateMachine(entityName, collectionStateName, entityStateName, methodGetEntity, mappedEntityProperty, pathParametersTemplate);
 	}
 	
 	public String getUriTemplateParameters(EntityMetadata entityMetadata) {

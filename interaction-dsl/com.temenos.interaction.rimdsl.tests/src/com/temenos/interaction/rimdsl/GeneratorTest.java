@@ -304,4 +304,43 @@ public class GeneratorTest {
 		assertTrue(output.contains(expectedAccTransactionRelArray));
 	}
 
+	private final static String TRANSITION_WITH_UPDATE_EVENT = "" +
+			"events" + LINE_SEP +
+			"	GET GET" + LINE_SEP +
+			"	UPDATE PUT" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"commands" + LINE_SEP +
+			"	GetEntities properties" + LINE_SEP +
+			"	GetEntity properties" + LINE_SEP +
+			"	PutEntity properties" + LINE_SEP +
+			"end" + LINE_SEP +
+					
+			"initial resource A" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"	view { GetEntities }" + LINE_SEP +
+			"	GET *-> B" + LINE_SEP +
+			"end" + LINE_SEP +
+
+			"resource B" +
+			"	item ENTITY" + LINE_SEP +
+			"	view { GetEntity }" + LINE_SEP +
+			"	actions { PutEntity }" + LINE_SEP +
+			"	UPDATE -> B" + LINE_SEP +
+			"end" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateUpdateTransition() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(TRANSITION_WITH_UPDATE_EVENT);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		System.out.println(fsa.getFiles().get(expectedKey).toString());
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransitionForEachItem(\"GET\", sB, uriLinkageEntityProperties, uriLinkageProperties, \"B\");"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sB.addTransition(\"PUT\", sB, uriLinkageEntityProperties, uriLinkageProperties, \"B\");"));
+	}
+	
 }
