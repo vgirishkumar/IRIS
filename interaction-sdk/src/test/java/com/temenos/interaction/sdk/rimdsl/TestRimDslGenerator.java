@@ -56,10 +56,10 @@ public class TestRimDslGenerator {
 		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", null);
 		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", null);
 
-		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "POST", null, "CreateEntity", null, true);
-		rsmFlight.addPseudoStateTransition("Flights", "created", "POST", null, "CreateEntity", null, true);
-		rsmAirport.addPseudoStateTransition("Airports", "created", "POST", null, "CreateEntity", null, true);
-		rsmPassenger.addPseudoStateTransition("Passengers", "created", "POST", null, "CreateEntity", null, true);
+		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "FlightSchedules", "POST", null, "CreateEntity", null, true);
+		rsmFlight.addPseudoStateTransition("Flights", "created", "Flights", "POST", null, "CreateEntity", null, true);
+		rsmAirport.addPseudoStateTransition("Airports", "created", "Airports", "POST", null, "CreateEntity", null, true);
+		rsmPassenger.addPseudoStateTransition("Passengers", "created", "Passengers", "POST", null, "CreateEntity", null, true);
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
@@ -106,7 +106,7 @@ public class TestRimDslGenerator {
 		rsm.addCollectionAndEntityState("IAuth", "unauthorised input records");
 		rsm.addCollectionAndEntityState("Reversed", "reversed records", "GETReversedEntities", "GETReversedEntity");
 
-		IMPseudoState pseudoState = rsm.addPseudoStateTransition("Sectors", "input", "POST", null, "CreateEntity", null, true);
+		IMPseudoState pseudoState = rsm.addPseudoStateTransition("Sectors", "input", "Sectors", "POST", null, "CreateEntity", null, true);
 		pseudoState.addAutoTransition(rsm.getResourceState("sector_IAuth"), "GET");
 		pseudoState.addAutoTransition(rsm.getResourceState("sector"), "GET");
 
@@ -117,7 +117,7 @@ public class TestRimDslGenerator {
 		pseudoState = rsm.addPseudoStateTransition("sector_IAuth", "delete", "DELETE", "delete", "DeleteEntity", "edit", false);
 		pseudoState.addAutoTransition(rsm.getResourceState("sector"), "GET");
 
-		pseudoState = rsm.addPseudoStateTransition("sector", "reverse", "REVERSE", "reverse", "ReverseEntity", "edit", false);
+		pseudoState = rsm.addPseudoStateTransition("sector", "reverse", "sector_Reversed", "REVERSE", "reverse", "ReverseEntity", "edit", false);
 		pseudoState.addAutoTransition(rsm.getResourceState("sector_Reversed"), "GET");
 		
 		//Run the generator
@@ -145,10 +145,10 @@ public class TestRimDslGenerator {
 		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", "departures");
 		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", "arrivals");
 
-		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "POST", null, "CreateEntity", null, true);
-		rsmFlight.addPseudoStateTransition("Flights", "created", "POST", null, "CreateEntity", null, true);
-		rsmAirport.addPseudoStateTransition("Airports", "created", "POST", null, "CreateEntity", null, true);
-		rsmPassenger.addPseudoStateTransition("Passengers", "created", "POST", null, "CreateEntity", null, true);
+		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "FlightSchedules", "POST", null, "CreateEntity", null, true);
+		rsmFlight.addPseudoStateTransition("Flights", "created", "Flights", "POST", null, "CreateEntity", null, true);
+		rsmAirport.addPseudoStateTransition("Airports", "created", "Airports", "POST", null, "CreateEntity", null, true);
+		rsmPassenger.addPseudoStateTransition("Passengers", "created", "Passengers", "POST", null, "CreateEntity", null, true);
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
