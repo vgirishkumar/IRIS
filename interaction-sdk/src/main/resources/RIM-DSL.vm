@@ -45,14 +45,15 @@ resource ${state.getName()}
 	view { $state.getView() }
 #else
 	item ${rsm.getEntityName()}
-	view { $state.getView() }
-#end
 #if(${state.class.simpleName} == "IMPseudoState" && $state.getActions().size() > 0)
 	actions { ##
 #foreach ( $action in $state.getActions() )
 $action## 
 #end
  }
+#else
+	view { $state.getView() }
+#end
 #end
 #if ($state.hasRelations())
 	relations { "${state.getRelations()}" }

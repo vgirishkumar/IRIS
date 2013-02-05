@@ -258,12 +258,7 @@ public class IMResourceStateMachine {
 				if(sourceState == null) {
 					throw new RuntimeException("Failed to find resource state [" + targetStateName + "] for pseudo state [" + pseudoStateId + "].");
 				}
-				if(sourceState instanceof IMCollectionState) {
-					view = ((IMCollectionState) sourceState).getEntityState().getView();
-				}
-				else {
-					view = sourceState.getView();
-				}
+				view = sourceState.getView();
 				targetState = new IMPseudoState(targetStateName, path, view, pseudoStateId, relations, action);				
 			}
 			else if(boundToCollection) {

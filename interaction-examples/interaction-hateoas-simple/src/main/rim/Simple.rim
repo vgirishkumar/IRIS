@@ -53,7 +53,6 @@ end
 
 resource deletedNote
 	item Note
-	view { GETNote }
 	actions { DELETENote }
 	path "/notes/{noteID}"
 	GET --> notes
@@ -61,7 +60,6 @@ end
 
 resource newNote
     item ID
-    view { NoopGET }
     actions { NoopPOST }
     path "/notes/new"
     PUT --> note

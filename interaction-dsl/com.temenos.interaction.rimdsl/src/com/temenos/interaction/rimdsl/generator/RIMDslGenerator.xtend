@@ -129,7 +129,9 @@ class RIMDslGenerator implements IGenerator {
             actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
             «ENDFOR»
         «ENDIF»
+        «IF view != null»
         «state.name»Actions.add(new Action("«view.command.name»", Action.TYPE.VIEW, «if (view != null && (view.command.properties.size > 0 || view.parameters.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
+        «ENDIF»
         «IF actions != null»
             «FOR action : actions»
             actionViewProperties = new Properties();

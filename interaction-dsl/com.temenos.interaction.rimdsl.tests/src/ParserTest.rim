@@ -32,7 +32,6 @@ end
 
 resource demo_deleted
 	item TICKET
-	view { t24Get }
 	actions {t24Delete}
 	GET -> demo_tickets
 end

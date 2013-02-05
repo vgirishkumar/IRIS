@@ -1,5 +1,6 @@
 events
     GET GET
+    PUT PUT
 end
 
 commands
@@ -17,5 +18,10 @@ end
 resource B
 	item ENTITY
 	view { GetEntity }
-	actions { UpdateEntity }
+	PUT -> B_update
+end
+
+resource B_update
+    item ENTITY
+    actions { UpdateEntity }
 end

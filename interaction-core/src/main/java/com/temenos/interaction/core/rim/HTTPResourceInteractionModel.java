@@ -10,6 +10,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -35,6 +36,15 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 			@PathParam("id") String id,
 			@Context UriInfo uriInfo);
 
+	/**
+	 * POST a resource representation from a from.
+	 */
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
+    		MultivaluedMap<String, String> formParams);
+
+    	
 	/**
 	 * POST a resource representation.
 	 */

@@ -5,6 +5,7 @@ import java.util.Collection;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -71,6 +72,12 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	@Override
 	public Response get(HttpHeaders headers, String id, UriInfo uriInfo) {
 		return resource.get(headers, id, uriInfo);
+	}
+
+	@Override
+    public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
+    		MultivaluedMap<String, String> formParams) {
+		return resource.post(headers, id, uriInfo, formParams);
 	}
 
 	@Override

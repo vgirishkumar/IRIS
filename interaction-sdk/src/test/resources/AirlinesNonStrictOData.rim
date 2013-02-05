@@ -43,7 +43,6 @@ end
 
 resource Flights_created
 	item Flight
-	view { GETEntity }
 	actions { CreateEntity }
 	path "/Flights()"
 end
@@ -68,7 +67,6 @@ end
 
 resource Airports_created
 	item Airport
-	view { GETEntity }
 	actions { CreateEntity }
 	path "/Airports()"
 end
@@ -111,7 +109,6 @@ end
 
 resource FlightSchedules_created
 	item FlightSchedule
-	view { GETEntity }
 	actions { CreateEntity }
 	path "/FlightSchedules()"
 end
@@ -134,7 +131,6 @@ end
 
 resource Passengers_created
 	item Passenger
-	view { GETEntity }
 	actions { CreateEntity }
 	path "/Passengers()"
 end

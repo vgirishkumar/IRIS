@@ -51,7 +51,7 @@
 	<!-- OData producer -->
 	<bean id="odataProducer" class="org.odata4j.producer.jpa.JPAProducer">
 		<constructor-arg name="emf" ref="entityManagerFactory" />
-		<constructor-arg name="namespace" value="Notes" />		
+		<constructor-arg name="namespace" value="InteractionNote" />		
 		<constructor-arg name="maxResults" value="100" />				
 	</bean>
 </beans>
