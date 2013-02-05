@@ -317,7 +317,6 @@ public class GeneratorTest {
 
 			"resource B" +
 			"	item ENTITY" + LINE_SEP +
-			"	view { GetEntity }" + LINE_SEP +
 			"	actions { PutEntity }" + LINE_SEP +
 			"	UPDATE -> B" + LINE_SEP +
 			"end" + LINE_SEP +
