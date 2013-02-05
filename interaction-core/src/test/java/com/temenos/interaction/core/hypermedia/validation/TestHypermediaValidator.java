@@ -141,8 +141,8 @@ public class TestHypermediaValidator {
 				"    Ginitial[shape=circle, width=.25, label=\"\", color=black, style=filled]\n" +
 				"    Gexists[label=\"G.exists /entities/{id}\"]\n" +
 				"    Gdeleted[label=\"G.deleted /entities/{id}\"]\n" +
-				"    Ginitial->Gdeleted[label=\"*DELETE /entities/{id}\"]\n" +
 				"    Ginitial->Gexists[label=\"*GET /entities/{id}\"]\n" +
+				"    Ginitial->Gdeleted[label=\"*DELETE /entities/{id}\"]\n" +
 				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n    Gexists->final[label=\"\"]\n    Gdeleted->Ginitial[style=\"dotted\"]\n}";
 		
 		String ENTITY_NAME = "G";
@@ -251,8 +251,8 @@ public class TestHypermediaValidator {
 				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
 				+ "    processprocesses->processnew[label=\"POST /processes/new\"]\n"
 				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id}\"]\n"
-				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n"
 				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
+				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n"
 				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			    + "    processcompletedProcess->final2[label=\"\"]\n"
 			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
