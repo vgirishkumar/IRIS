@@ -1,0 +1,110 @@
+events
+	AUTHORISE PUT
+	DELETE DELETE
+	GET GET
+	POST POST
+	PUT PUT
+	REVERSE PUT
+end
+
+commands
+	AuthoriseEntity
+	CreateEntity
+	DeleteEntity
+	GETEntities
+	GETEntity
+	GETNavProperty
+	GETReversedEntities
+	GETReversedEntity
+	GETServiceDocument
+	ReverseEntity
+	UpdateEntity
+end
+
+initial resource ServiceDocument
+	item ServiceDocument
+	view { GETServiceDocument }
+	path "/"
+	GET -> Sectors
+end
+
+resource Sectors
+	collection Sector
+	view { GETEntities }
+	path "/Sectors()"
+	GET title="unauthorised input records" -> Sectors_IAuth
+	GET title="reversed records" -> Sectors_Reversed
+	POST -> Sectors_input
+	GET *-> sector id=SectorCode
+	REVERSE title="reverse" *-> sector_reverse id=SectorCode
+end
+
+resource sector
+	item Sector
+	view { GETEntity }
+	path "/Sectors('{id}')"
+	REVERSE title="reverse" -> sector_reverse id=SectorCode
+end
+
+resource sector_IAuth
+	item Sector
+	view { GETEntity }
+	path "/SectorsIAuth('{id}')"
+	PUT title="authorise" -> sector_IAuth_authorise id=SectorCode
+	DELETE title="delete" -> sector_IAuth_delete id=SectorCode
+end
+
+resource sector_IAuth_authorise
+	item Sector
+	actions { AuthoriseEntity }
+	relations { "edit" }
+	path "/SectorsIAuth('{id}')/authorise"
+	GET --> sector_IAuth (OK(sector_IAuth))
+	GET --> sector (OK(sector))
+end
+
+resource sector_IAuth_delete
+	item Sector
+	actions { DeleteEntity }
+	relations { "edit" }
+	path "/SectorsIAuth('{id}')/delete"
+	GET --> sector (OK(sector))
+end
+
+resource sector_reverse
+	item Sector
+	actions { ReverseEntity }
+	relations { "edit" }
+	path "/SectorsReversed('{id}')"
+	GET --> sector_Reversed (OK(sector_Reversed))
+end
+
+resource sector_Reversed
+	item Sector
+	view { GETReversedEntity }
+	path "/SectorsReversed('{id}')"
+end
+
+resource Sectors_IAuth
+	collection Sector
+	view { GETEntities }
+	path "/SectorsIAuth()"
+	GET *-> sector_IAuth id=SectorCode
+	PUT title="authorise" *-> sector_IAuth_authorise id=SectorCode
+	DELETE title="delete" *-> sector_IAuth_delete id=SectorCode
+end
+
+resource Sectors_input
+	item Sector
+	actions { CreateEntity }
+	path "/Sectors()"
+	GET --> sector_IAuth (OK(sector_IAuth))
+	GET --> sector (OK(sector))
+end
+
+resource Sectors_Reversed
+	collection Sector
+	view { GETReversedEntities }
+	path "/SectorsReversed()"
+	GET *-> sector_Reversed id=SectorCode
+end

@@ -38,7 +38,6 @@ public class GeneratorTest {
 
 	"resource B" +
 	"	item ENTITY" + LINE_SEP +
-	"	view { GetEntity }" + LINE_SEP +
 	"	actions { UpdateEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"";
@@ -81,7 +80,6 @@ public class GeneratorTest {
 	"		// identify the initial state" + LINE_SEP +
 	"		initial = sA;" + LINE_SEP +
 	"		List<Action> BActions = new ArrayList<Action>();" + LINE_SEP +
-	"		BActions.add(new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties()));" + LINE_SEP +
 	"		actionViewProperties = new Properties();" + LINE_SEP +
 	"		BActions.add(new Action(\"UpdateEntity\", Action.TYPE.ENTRY, actionViewProperties));" + LINE_SEP +
 	"		String[] BRelations = null;" + LINE_SEP +
@@ -176,7 +174,6 @@ public class GeneratorTest {
 
 	private final static String MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM = "" +
 	"commands" + LINE_SEP +
-	"	GetEntity" + LINE_SEP +
 	"	DoStuff key=value" + LINE_SEP +
 	"	DoSomeStuff keyB=valueB" + LINE_SEP +
 	"	DoSomeMoreStuff keyB0=valueB0, keyB1=valueB1" + LINE_SEP +
@@ -184,14 +181,11 @@ public class GeneratorTest {
 			
 	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
-	"	view { GetEntity }" + LINE_SEP +
 	"	actions { DoStuff }" + LINE_SEP +
-	"	PUT -> B" + LINE_SEP +
 	"end" + LINE_SEP +
 
 	"initial resource B" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
-	"	view { GetEntity }" + LINE_SEP +
 	"	actions { DoSomeStuff; DoSomeMoreStuff }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"";
@@ -272,7 +266,6 @@ public class GeneratorTest {
 			"end\r\n" + LINE_SEP +
 			"resource accTransaction" + LINE_SEP +
 			"	item ENTITY" + LINE_SEP +
-			"   view { Noop }" + LINE_SEP +
 			"   actions { Update }" + LINE_SEP +
 			"   relations { \"edit\" }" + LINE_SEP +
 			"end\r\n" + LINE_SEP +
@@ -304,4 +297,42 @@ public class GeneratorTest {
 		assertTrue(output.contains(expectedAccTransactionRelArray));
 	}
 
+	private final static String TRANSITION_WITH_UPDATE_EVENT = "" +
+			"events" + LINE_SEP +
+			"	GET GET" + LINE_SEP +
+			"	UPDATE PUT" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"commands" + LINE_SEP +
+			"	GetEntities properties" + LINE_SEP +
+			"	GetEntity properties" + LINE_SEP +
+			"	PutEntity properties" + LINE_SEP +
+			"end" + LINE_SEP +
+					
+			"initial resource A" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"	view { GetEntities }" + LINE_SEP +
+			"	GET *-> B" + LINE_SEP +
+			"end" + LINE_SEP +
+
+			"resource B" +
+			"	item ENTITY" + LINE_SEP +
+			"	actions { PutEntity }" + LINE_SEP +
+			"	UPDATE -> B" + LINE_SEP +
+			"end" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateUpdateTransition() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(TRANSITION_WITH_UPDATE_EVENT);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		System.out.println(fsa.getFiles().get(expectedKey).toString());
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransitionForEachItem(\"GET\", sB, uriLinkageEntityProperties, uriLinkageProperties, \"B\");"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sB.addTransition(\"PUT\", sB, uriLinkageEntityProperties, uriLinkageProperties, \"B\");"));
+	}
+	
 }

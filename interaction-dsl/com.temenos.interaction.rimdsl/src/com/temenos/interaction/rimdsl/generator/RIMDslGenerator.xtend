@@ -129,7 +129,9 @@ class RIMDslGenerator implements IGenerator {
             actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
             «ENDFOR»
         «ENDIF»
+        «IF view != null»
         «state.name»Actions.add(new Action("«view.command.name»", Action.TYPE.VIEW, «if (view != null && (view.command.properties.size > 0 || view.parameters.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
+        «ENDIF»
         «IF actions != null»
             «FOR action : actions»
             actionViewProperties = new Properties();
@@ -147,10 +149,10 @@ class RIMDslGenerator implements IGenerator {
     
 	def produceTransitions(State fromState, Transition transition) '''
             «IF transition.eval != null»
-            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
+            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
             «ELSE»
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransition("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
             «ENDIF»
 	'''
 
@@ -163,7 +165,7 @@ class RIMDslGenerator implements IGenerator {
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransitionForEachItem("«transition.event.name»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''

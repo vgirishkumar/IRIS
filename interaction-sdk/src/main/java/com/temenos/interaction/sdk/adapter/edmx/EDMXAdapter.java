@@ -194,13 +194,16 @@ public class EDMXAdapter implements InteractionAdapter {
 	 * Build the interaction model from an EDMX model.
 	 */
 	protected InteractionModel buildInteractionModel(Map<String, String> linkPropertyMap, Map<String, String> linkPropertyOriginMap, EdmDataServices edmDataServices) {
-		
+
 		// this constructor creates all the resource state machines from the entity metadata
 		InteractionModel interactionModel = new InteractionModel(edmDataServices);
 		for (EdmEntitySet entitySet : edmDataServices.getEntitySets()) {
 			EdmEntityType entityType = entitySet.getType();
 			String entityName = entityType.getName();
 			IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityName);
+			String collectionStateName = rsm.getCollectionState().getName();
+			String entityStateName = rsm.getEntityState().getName();
+			
 			//Use navigation properties to define state transitions
 			if(entityType.getNavigationProperties() != null) {
 				for (EdmNavigationProperty np : entityType.getNavigationProperties()) {
@@ -213,30 +216,24 @@ public class EDMXAdapter implements InteractionAdapter {
 					EdmAssociation association = np.getRelationship();
 					String linkProperty = linkPropertyMap.get(association.getName());
 
-					//Reciprocal link state name
-					String reciprocalLinkState = "";
-					for(EdmNavigationProperty npTarget : targetEntityType.getNavigationProperties()) {
-						String targetNavPropTargetEntityName = npTarget.getToRole().getType().getName();
-						if(targetNavPropTargetEntityName.equals(entityName)) {
-							reciprocalLinkState = npTarget.getName();
-						}
-					}
+					String linkTitle = np.getName();
 					String filter = null;
 					if(isTargetCollection) {
 						String linkPropertyOrigin = linkPropertyOriginMap.get(association.getName());
 						filter = linkProperty + " eq '{" + linkPropertyOrigin + "}'";
 						linkProperty = np.getName();
+						rsm.addTransitionToCollectionState(entityStateName, targetRsm, np.getName(), filter, linkTitle);
 					}
-					String linkTitle = np.getName();
-					rsm.addTransition(targetEntityName, linkProperty, np.getName(), isTargetCollection, reciprocalLinkState, targetRsm, filter, linkTitle);
+					else {
+						rsm.addTransitionToEntityState(entityStateName, targetRsm, np.getName(), linkProperty, linkTitle);
+					}
 				}
 			}
 			
 			// add CRUD operations for each EntitySet
-			rsm.addTransition(entityName, "pseudo_created", "POST", "CreateEntity", null, true);
-			rsm.addTransition(entityName, "pseudo_updated", "PUT", "UpdateEntity", "edit", false);
-			rsm.addTransition(entityName, "pseudo_deleted", "DELETE", "DeleteEntity", "edit", false);
-			
+			rsm.addPseudoStateTransition(collectionStateName, "created", collectionStateName, "POST", null, "CreateEntity", null, true);
+			rsm.addPseudoStateTransition(entityStateName, "updated", entityStateName, "PUT", null, "UpdateEntity", "edit", false);
+			rsm.addPseudoStateTransition(entityStateName, "deleted", "DELETE", null, "DeleteEntity", "edit", false);
 		}
 		return interactionModel;
 	}

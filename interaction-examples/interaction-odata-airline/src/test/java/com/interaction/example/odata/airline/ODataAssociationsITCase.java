@@ -1,6 +1,7 @@
 package com.interaction.example.odata.airline;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class ODataAssociationsITCase {
 	 */
 	@Test
 	public void getFlightsLinksToFlightSchedule() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		Enumerable<OEntity> flights = consumer.getEntities(FLIGHT_ENTITYSET_NAME).execute();
 		assertEquals(4, flights.toSet().size());
@@ -62,7 +63,7 @@ public class ODataAssociationsITCase {
 	 */
 	@Test
 	public void getFlightLinksToFlightSchedule() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		OEntity flight = consumer.getEntity(FLIGHT_ENTITYSET_NAME, 2).execute();
 		Long flightID = (Long) flight.getProperty("flightID").getValue();
@@ -80,7 +81,7 @@ public class ODataAssociationsITCase {
 	 */
 	@Test
 	public void getFlightSchedulesLinksToFlightSchedule() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		Enumerable<OEntity> flightSchedules = consumer.getEntities(FLIGHT_SCHEDULE_ENTITYSET_NAME).execute();
 		// if the test is run multiple times it will be greater than 7
@@ -107,7 +108,7 @@ public class ODataAssociationsITCase {
 	 */
 	@Test
 	public void getFlightScheduleLinksToAirports() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		OEntity flightSchedule = consumer.getEntity(FLIGHT_SCHEDULE_ENTITYSET_NAME, 2).execute();
 		Long id = (Long) flightSchedule.getProperty("flightScheduleID").getValue();
@@ -129,7 +130,7 @@ public class ODataAssociationsITCase {
 	 */
 	@Test
 	public void getFlightScheduleNavProperties() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 		// now follow links to departure airport and arrival airport
 		if(!consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
 			//do this only for strict odata
@@ -151,7 +152,7 @@ public class ODataAssociationsITCase {
 	 */
 	@Test
 	public void getAirportsLinksToAirport() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		Enumerable<OEntity> airports = consumer.getEntities(AIRPORT_ENTITYSET_NAME).execute();
 		assertEquals(6, airports.toSet().size());
@@ -171,7 +172,7 @@ public class ODataAssociationsITCase {
 	 */
 	@Test
 	public void getAirportLinksToArrivalsDepartures() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		OEntity airport = consumer.getEntity(AIRPORT_ENTITYSET_NAME, "LTN").execute();
 		String code = airport.getProperty("code").getValue().toString();
@@ -189,7 +190,7 @@ public class ODataAssociationsITCase {
 	 */
 	@Test
 	public void getAirportNavProperties() throws Exception {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpintUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		// now follow links to departure airport and arrival airport
 		OEntity departuresFlightSchedule = consumer

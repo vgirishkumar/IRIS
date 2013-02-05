@@ -23,4 +23,8 @@ INSERT INTO `FlightSchedule`(`arrivalAirportCode` , `flightScheduleID` , `arriva
 INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('1' , '1' , '1996-08-20 00:00:00');
 INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('2' , '2055' , '2012-08-12 13:21:05');
 INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('3' , '2051' , '2012-08-12 07:26:08'); 
-INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('4' , '2062' , '2012-08-15 22:34:45'); 
+INSERT INTO `Flight`(`flightID` , `flightScheduleNum` , `takeoffTime`) VALUES('4' , '2062' , '2012-08-15 22:34:45');
+
+INSERT INTO `Passenger`(`passengerNo` , `flightID` , `name`, `dateOfBirth`) VALUES('1' , '1' , 'Passenger One', '1985-09-27 00:00:00');
+INSERT INTO `Passenger`(`passengerNo` , `flightID` , `name`, `dateOfBirth`) VALUES('2' , '3' , 'Passenger Two', '1982-09-27 00:00:00');
+INSERT INTO `Passenger`(`passengerNo` , `flightID` , `name`, `dateOfBirth`) VALUES('3' , '1' , 'Passenger Three', '1982-09-27 00:00:00');

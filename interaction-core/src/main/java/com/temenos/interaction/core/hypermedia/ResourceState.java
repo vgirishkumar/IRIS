@@ -3,9 +3,11 @@ package com.temenos.interaction.core.hypermedia;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +47,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	/* the linkage properties (defined in the RIM) to apply to the URI template */
 	private Map<String, String> uriLinkageProperties = null;
 	
-	private Map<TransitionCommandSpec, Transition> transitions = new HashMap<TransitionCommandSpec, Transition>();
+	private Set<Transition> transitions = new HashSet<Transition>();
 
 	
 	/**
@@ -349,7 +351,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, eval, resourcePath, uriLinkageProperties);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
-		transitions.put(commandSpec, transition);
+		transitions.add(transition);
 	}
 
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {
@@ -368,7 +370,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void addTransition(String httpMethod, ResourceStateMachine resourceStateModel) {
 		assert resourceStateModel != null;
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourceStateModel.getInitial().getPath());
-		transitions.put(commandSpec, new Transition(this, commandSpec, resourceStateModel.getInitial()));
+		transitions.add(new Transition(this, commandSpec, resourceStateModel.getInitial()));
 	}
 
 	/**
@@ -378,7 +380,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 */
 	public Transition getTransition(ResourceState targetState) {
 		Transition foundTransition = null;
-		for (Transition t : transitions.values()) {
+		for (Transition t : transitions) {
 			if (t.getTarget().equals(targetState)) {
 				if (foundTransition != null)
 					logger.error("Duplicate transition definition [" + t + "]");
@@ -396,7 +398,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 */
 	public List<Transition> getTransitions(ResourceState targetState) {
 		List<Transition> transitionList = new ArrayList<Transition>();
-		for (Transition t : transitions.values()) {
+		for (Transition t : transitions) {
 			if (t.getTarget().equals(targetState)) {
 				transitionList.add(t);
 			}
@@ -406,7 +408,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public Collection<ResourceState> getAllTargets() {
 		List<ResourceState> result = new ArrayList<ResourceState>();
-		for (Transition t : transitions.values()) {
+		for (Transition t : transitions) {
 			ResourceState targetState = t.getTarget();
 			if(!result.contains(targetState)) {
 				result.add(targetState);

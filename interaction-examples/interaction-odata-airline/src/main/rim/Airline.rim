@@ -22,8 +22,8 @@ initial resource ServiceDocument
 	GET -> Airports
 	GET -> Flights
 	GET -> FlightSchedules
+	GET -> Passengers
 end
-
 
 resource Airports
 	collection Airport
@@ -46,7 +46,6 @@ resource airport
 	GET title="departures" -> airport_departures id=code, filter="departureAirportCode eq '{code}'"
 	GET title="arrivals" -> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
 end
-
 
 resource airport_departures
 	collection FlightSchedule
@@ -82,14 +81,12 @@ end
 
 resource airport_pseudo_created
 	item Airport
-	view { GETEntity }
 	actions { CreateEntity }
 	path "/Airports()"
 end
 
 resource airport_pseudo_updated
 	item Airport
-	view { GETEntity }
 	actions { UpdateEntity }
 	relations { "edit" }
 	path "/Airports('{id}')"
@@ -97,7 +94,6 @@ end
 
 resource airport_pseudo_deleted
 	item Airport
-	view { GETEntity }
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/Airports('{id}')"
@@ -123,7 +119,6 @@ resource flight
 	GET title="flightSchedule" -> flight_flightSchedule id=flightID, navproperty="flightSchedule"
 end
 
-
 resource flight_flightSchedule
 	item FlightSchedule
 	view { GETNavProperty navproperty=navproperty, entity=Flight }
@@ -132,14 +127,12 @@ end
 
 resource flight_pseudo_created
 	item Flight
-	view { GETEntity }
 	actions { CreateEntity }
 	path "/Flights()"
 end
 
 resource flight_pseudo_updated
 	item Flight
-	view { GETEntity }
 	actions { UpdateEntity }
 	relations { "edit" }
 	path "/Flights({id})"
@@ -147,7 +140,6 @@ end
 
 resource flight_pseudo_deleted
 	item Flight
-	view { GETEntity }
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/Flights({id})"
@@ -206,14 +198,12 @@ end
 
 resource flightschedule_pseudo_created
 	item FlightSchedule
-	view { GETEntity }
 	actions { CreateEntity }
 	path "/FlightSchedules()"
 end
 
 resource flightschedule_pseudo_updated
 	item FlightSchedule
-	view { GETEntity }
 	actions { UpdateEntity }
 	relations { "edit" }
 	path "/FlightSchedules({id})"
@@ -221,8 +211,54 @@ end
 
 resource flightschedule_pseudo_deleted
 	item FlightSchedule
-	view { GETEntity }
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/FlightSchedules({id})"
+end
+
+resource Passengers
+	collection Passenger
+	view { GETEntities }
+	path "/Passengers()"
+	POST -> passenger_pseudo_created
+	PUT *-> passenger_pseudo_updated id=passengerNo
+	DELETE *-> passenger_pseudo_deleted id=passengerNo
+	GET *-> passenger id=passengerNo
+	GET title="flight" *-> passenger_flight id=passengerNo, navproperty="flight"
+end
+
+resource passenger
+	item Passenger
+	view { GETEntity }
+	path "/Passengers({id})"
+	PUT -> passenger_pseudo_updated id=passengerNo
+	DELETE -> passenger_pseudo_deleted id=passengerNo
+	GET title="flight" -> passenger_flight id=passengerNo, navproperty="flight"
+end
+
+
+resource passenger_pseudo_created
+	item Passenger
+	actions { CreateEntity }
+	path "/Passengers()"
+end
+
+resource passenger_pseudo_updated
+	item Passenger
+	actions { UpdateEntity }
+	relations { "edit" }
+	path "/Passengers({id})"
+end
+
+resource passenger_pseudo_deleted
+	item Passenger
+	actions { DeleteEntity }
+	relations { "edit" }
+	path "/Passengers({id})"
+end
+
+resource passenger_flight
+	item Flight
+	view { GETNavProperty navproperty=navproperty, entity=Passenger }
+	path "/Passenger({id})/flight"
 end

@@ -3,6 +3,8 @@ package com.temenos.interaction.core.media;
 import java.util.Collection;
 import java.util.Map;
 
+import javax.ws.rs.HttpMethod;
+
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -32,13 +34,19 @@ public class EntityResourceWrapper {
 	public Link getEntityUpdateLink() {
 		return entityUpdateLink;
 	}
-	
+
+	/**
+	 * Get the link to the entity resource state.
+	 * @param links links
+	 * @return link to entity state
+	 */
 	protected Link findEntityGetLink(Collection<Link> links) {
 		Link selfLink = null;
 		if (links != null) {
 			for (Link l : links) {
 				Transition t = l.getTransition();
 				if (l.getRel().equals("self") || t != null &&
+						t.getCommand().getMethod().equals(HttpMethod.GET) &&
 						t.getSource().getEntityName().equals(t.getTarget().getEntityName()) &&
 						t.getSource().getRel().equals("collection") &&
 						t.getTarget().getRel().equals("item")) {

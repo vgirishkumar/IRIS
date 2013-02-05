@@ -51,7 +51,7 @@ public class TestInteractionModel {
 		
 		InteractionModel model = new InteractionModel(mockEdmMetadata);
 		assertEquals(1, model.getResourceStateMachines().size());
-		assertEquals("Customers", model.getResourceStateMachines().get(0).getCollectionStateName());
+		assertEquals("Customers", model.getResourceStateMachines().get(0).getCollectionState().getName());
 		assertEquals("Customer", model.getResourceStateMachines().get(0).getEntityName());
 	}
 

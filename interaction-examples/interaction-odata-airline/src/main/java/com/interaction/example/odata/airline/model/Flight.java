@@ -16,6 +16,9 @@ public class Flight {
 	private Long flightScheduleNum;
 	@Temporal(TemporalType.TIMESTAMP)
 	private java.util.Date takeoffTime;
-		
+	
+	//@OneToMany(cascade = CascadeType.ALL, mappedBy = "flight")
+	//private Collection<Passenger> flightPassengers;
+	
 	public Flight() {}
 }
