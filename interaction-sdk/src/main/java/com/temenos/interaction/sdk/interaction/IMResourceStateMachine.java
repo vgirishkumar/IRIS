@@ -182,7 +182,26 @@ public class IMResourceStateMachine {
 	 * @param boundToCollection	true if this transition should be bound to a collection state
 	 */
 	public IMPseudoState addPseudoStateTransition(String sourceStateName, String pseudoStateId, String method, String title, String action, String relations, boolean boundToCollection) {
-		this.addStateTransition(sourceStateName, sourceStateName, pseudoStateId, method, null, title, null, action, relations, false, boundToCollection);
+		return this.addPseudoStateTransition(sourceStateName, pseudoStateId, null, method, title, action, relations, boundToCollection);
+	}
+
+	/**
+	 * Add a transition to a pseudo state.
+	 * A pseudo state is an intermediate state to handle an action. The transitive target state
+	 * is used set the resource path of this pseudo state. If a logical transitive target state
+	 * is not available, it will make up the path by appending the pseudo state id. 
+	 * @param title				Transition label
+	 * @param sourceStateName	Source state 
+	 * @param pseudoStateId		Pseudo state identifier 
+	 * @param transitiveTargetStateName	Transitive target state or null if there is no logical target state 
+	 * @param method			HTTP command
+	 * @param view				View to execute
+	 * @param action			Action to execute
+	 * @param relations			Relations
+	 * @param boundToCollection	true if this transition should be bound to a collection state
+	 */
+	public IMPseudoState addPseudoStateTransition(String sourceStateName, String pseudoStateId, String transitiveTargetStateName, String method, String title, String action, String relations, boolean boundToCollection) {
+		this.addStateTransition(sourceStateName, transitiveTargetStateName, pseudoStateId, method, null, title, null, action, relations, false, boundToCollection);
 		return (IMPseudoState) getResourceState(sourceStateName + "_" + pseudoStateId);
 	}
 	
@@ -201,11 +220,22 @@ public class IMResourceStateMachine {
 		String path;
 		if(pseudoStateId != null && !pseudoStateId.equals("")) {
 			//This is a pseudo state
-			IMState state = getResourceState(sourceStateName);		//Source states must be created before pseudo states
-			if(state == null) {
-				throw new RuntimeException("Failed to find resource state [" + targetStateName + "] for pseudo state [" + pseudoStateId + "].");
+			if(targetStateName != null) {
+				//This pseudo state has a logical transitive state defined
+				IMState transitiveTargetState = getResourceState(targetStateName);
+				if(transitiveTargetState == null) {
+					throw new RuntimeException("Failed to find resource state [" + targetStateName + "].");
+				}
+				path = transitiveTargetState.getPath();
 			}
-			path = state.getPath();		
+			else {
+				//Make up a path with the pseudo state id
+				IMState state = getResourceState(sourceStateName);							//Source states must be created before pseudo states
+				if(state == null) {
+					throw new RuntimeException("Failed to find resource state [" + sourceStateName + "] for pseudo state [" + pseudoStateId + "].");
+				}
+				path = state.getPath() + "/" + pseudoStateId;
+			}
 			targetStateName = sourceStateName + "_" + pseudoStateId;
 		}
 		else {

@@ -194,13 +194,16 @@ public class EDMXAdapter implements InteractionAdapter {
 	 * Build the interaction model from an EDMX model.
 	 */
 	protected InteractionModel buildInteractionModel(Map<String, String> linkPropertyMap, Map<String, String> linkPropertyOriginMap, EdmDataServices edmDataServices) {
-		
+
 		// this constructor creates all the resource state machines from the entity metadata
 		InteractionModel interactionModel = new InteractionModel(edmDataServices);
 		for (EdmEntitySet entitySet : edmDataServices.getEntitySets()) {
 			EdmEntityType entityType = entitySet.getType();
 			String entityName = entityType.getName();
 			IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityName);
+			String collectionStateName = rsm.getCollectionState().getName();
+			String entityStateName = rsm.getEntityState().getName();
+			
 			//Use navigation properties to define state transitions
 			if(entityType.getNavigationProperties() != null) {
 				for (EdmNavigationProperty np : entityType.getNavigationProperties()) {
@@ -219,18 +222,18 @@ public class EDMXAdapter implements InteractionAdapter {
 						String linkPropertyOrigin = linkPropertyOriginMap.get(association.getName());
 						filter = linkProperty + " eq '{" + linkPropertyOrigin + "}'";
 						linkProperty = np.getName();
-						rsm.addTransitionToCollectionState(rsm.getEntityState().getName(), targetRsm, np.getName(), filter, linkTitle);
+						rsm.addTransitionToCollectionState(entityStateName, targetRsm, np.getName(), filter, linkTitle);
 					}
 					else {
-						rsm.addTransitionToEntityState(rsm.getEntityState().getName(), targetRsm, np.getName(), linkProperty, linkTitle);
+						rsm.addTransitionToEntityState(entityStateName, targetRsm, np.getName(), linkProperty, linkTitle);
 					}
 				}
 			}
 			
 			// add CRUD operations for each EntitySet
-			rsm.addPseudoStateTransition(rsm.getCollectionState().getName(), "created", "POST", null, "CreateEntity", null, true);
-			rsm.addPseudoStateTransition(rsm.getEntityState().getName(), "updated", "PUT", null, "UpdateEntity", "edit", false);
-			rsm.addPseudoStateTransition(rsm.getEntityState().getName(), "deleted", "DELETE", null, "DeleteEntity", "edit", false);
+			rsm.addPseudoStateTransition(collectionStateName, "created", collectionStateName, "POST", null, "CreateEntity", null, true);
+			rsm.addPseudoStateTransition(entityStateName, "updated", entityStateName, "PUT", null, "UpdateEntity", "edit", false);
+			rsm.addPseudoStateTransition(entityStateName, "deleted", "DELETE", null, "DeleteEntity", "edit", false);
 		}
 		return interactionModel;
 	}

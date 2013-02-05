@@ -494,8 +494,8 @@ public class TestJPAResponderGen {
 
 		// Add CRUD pseudo states to an entity/entityset
 		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
-		rsmAirport.addPseudoStateTransition("Airports", "created", "POST", null, "CreateEntity", null, true);
-		rsmAirport.addPseudoStateTransition("airport", "updated", "PUT", null, "UpdateEntity", "edit", false);
+		rsmAirport.addPseudoStateTransition("Airports", "created", "Airports", "POST", null, "CreateEntity", null, true);
+		rsmAirport.addPseudoStateTransition("airport", "updated", "airport", "PUT", null, "UpdateEntity", "edit", false);
 		rsmAirport.addPseudoStateTransition("airport", "deleted", "DELETE", null, "DeleteEntity", "edit", false);
 		
 		//Run the generator
@@ -529,7 +529,7 @@ public class TestJPAResponderGen {
 				"\tview { GETEntity }" + RIM_LINE_SEP +
 				"\tactions { DeleteEntity }" + RIM_LINE_SEP +
 				"\trelations { \"edit\" }" + RIM_LINE_SEP +
-				"\tpath \"/Airports('{id}')\""));
+				"\tpath \"/Airports('{id}')/deleted\""));
 		assertTrue(generator.generatedRimDsl.contains("resource airport" + RIM_LINE_SEP +
 				"\titem Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
