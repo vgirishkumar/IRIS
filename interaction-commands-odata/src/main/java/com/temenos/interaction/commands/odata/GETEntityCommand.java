@@ -1,17 +1,21 @@
 package com.temenos.interaction.commands.odata;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
+import org.odata4j.producer.resources.OptionsQueryParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.resource.EntityResource;
 
 public class GETEntityCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(GETEntityCommand.class);
@@ -46,10 +50,9 @@ public class GETEntityCommand implements InteractionCommand {
 			OEntityKey key = CommandHelper.createEntityKey(edmDataServices, entitySetName, ctx.getId());
 			
 			//Get the entity
-			EntityResponse er = getProducer().getEntity(entitySetName, key, null);
-			OEntity oEntity = er.getEntity();
+			EntityResponse er = getProducer().getEntity(entitySetName, key, getEntityQueryInfo(ctx));
 			
-			EntityResource<OEntity> oer = CommandHelper.createEntityResource(oEntity);
+			EntityResource<OEntity> oer = CommandHelper.createEntityResource(er.getEntity());
 			ctx.setResource(oer);		
 		}
 		catch(Exception e) {
@@ -59,4 +62,24 @@ public class GETEntityCommand implements InteractionCommand {
 		return Result.SUCCESS;
 	}
 
+	/*
+	 * Obtain the odata query information from the context's query parameters
+	 * @param ctx interaction context
+	 * @return query details
+	 */
+	private EntityQueryInfo getEntityQueryInfo(InteractionContext ctx) {
+		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+		String filter = CommandHelper.getViewActionProperty(ctx, "filter");
+		if(filter == null) {
+			filter = queryParams.getFirst("$filter");
+		}
+		String expand = queryParams.getFirst("$expand");
+		String select = queryParams.getFirst("$select");
+	      
+		return new EntityQueryInfo(
+				OptionsQueryParser.parseFilter(filter),
+				null,
+				OptionsQueryParser.parseExpand(expand),
+				OptionsQueryParser.parseSelect(select));		
+	}
 }
