@@ -21,13 +21,13 @@ resource demo_tickets
 	collection TICKET
 	view { t24Get }
 	GET -> demo_aticket
-	DELETE *-> demo_deleted
+	C *-> demo_deleted
 end
 
 resource demo_aticket
 	item TICKET
 	view { t24Get }
-	DELETE -> demo_deleted
+	C -> demo_deleted
 end
 
 resource demo_deleted

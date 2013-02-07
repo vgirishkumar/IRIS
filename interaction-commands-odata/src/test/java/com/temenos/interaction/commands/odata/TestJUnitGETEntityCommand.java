@@ -7,7 +7,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.Matchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -103,7 +103,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), isNull(EntityQueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
 	@Test
@@ -126,7 +126,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), isNull(EntityQueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new StringOEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
 	@Test
@@ -149,7 +149,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new Int64OEntityKey()), isNull(EntityQueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new Int64OEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
 	@Test
@@ -185,7 +185,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new TimestampOEntityKey()), isNull(EntityQueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new TimestampOEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
 	@Test
@@ -208,7 +208,7 @@ public class TestJUnitGETEntityCommand {
 		          return true;
 		      }
 		   }
-		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new DateOEntityKey()), isNull(EntityQueryInfo.class));
+		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new DateOEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
 	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {
