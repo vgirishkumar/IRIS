@@ -2,7 +2,7 @@ package com.temenos.interaction.core.hypermedia;
 
 import java.util.Map;
 
-import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+import com.temenos.interaction.core.hypermedia.expression.Expression;
 
 /**
  * Define how a transition from one state to another should occur.
@@ -14,7 +14,7 @@ public class TransitionCommandSpec {
 	private final String path;
 	private final int flags;
 	// conditional link evaluation expression 
-	private final ResourceGETExpression evaluation;
+	private final Expression evaluation;
 	private final Map<String, String> parameters;
 	
 	// the original unmapped resourcePath (required to form a correct interaction map by paths)
@@ -27,15 +27,15 @@ public class TransitionCommandSpec {
 		this(method, path, flags, null, path);
 	}
 	
-	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation, String originalPath) {
+	protected TransitionCommandSpec(String method, String path, int flags, Expression evaluation, String originalPath) {
 		this(method, path, flags, evaluation, originalPath, null);
 	}
 
-	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation, Map<String, String> parameters) {
+	protected TransitionCommandSpec(String method, String path, int flags, Expression evaluation, Map<String, String> parameters) {
 		this(method, path, flags, evaluation, path, parameters);
 	}
 	
-	protected TransitionCommandSpec(String method, String path, int flags, ResourceGETExpression evaluation, String originalPath, Map<String, String> parameters) {
+	protected TransitionCommandSpec(String method, String path, int flags, Expression evaluation, String originalPath, Map<String, String> parameters) {
 		this.method = method;
 		this.path = path;
 		this.flags = flags;
@@ -60,7 +60,7 @@ public class TransitionCommandSpec {
 		return method;
 	}
 
-	public ResourceGETExpression getEvaluation() {
+	public Expression getEvaluation() {
 		return evaluation;
 	}
 
@@ -108,10 +108,7 @@ public class TransitionCommandSpec {
 		sb.append(method + (path != null && path.length() > 0 ? " " + path : ""));
 		if (evaluation != null) {
 			sb.append(" (");
-			if (evaluation.getFunction().equals(ResourceGETExpression.Function.OK))
-				sb.append("OK(").append(evaluation.getState()).append(")");
-			if (evaluation.getFunction().equals(ResourceGETExpression.Function.NOT_FOUND))
-				sb.append("NOT_FOUND").append(evaluation.getState()).append(")");
+			sb.append(evaluation.toString());
 			sb.append(")");
 		}
 		if (parameters != null) {

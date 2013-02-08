@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 
 public class ResourceState implements Comparable<ResourceState> {
@@ -295,12 +296,12 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null, label);
 	}
 	
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, ResourceGETExpression eval, String label) {
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, Expression eval, String label) {
 		String resourcePath = targetState.getPath();
 		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, eval, label);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval, String label) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, Expression eval, String label) {
 		assert null != targetState;
 		uriLinkageMap = uriLinkageMap != null ? new HashMap<String, String>(uriLinkageMap) : null;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)

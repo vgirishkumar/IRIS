@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -250,7 +252,6 @@ public class TestResponseHTTPHypermediaRIM {
 	 * A successful DELETE command does not return a new resource and should inform
 	 * the user agent to refresh the current view.
 	 */
-	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith205ContentReset() throws Exception {
 		/*
@@ -262,10 +263,6 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState deletedState = new ResourceState(initialState, "deleted", mockActions());
 		initialState.addTransition("DELETE", deletedState);
 		deletedState.addTransition(initialState);
-		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
-		testContext.setResource(null);
-		// mock 'new InteractionContext()' in call to delete
-		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
@@ -337,7 +334,6 @@ public class TestResponseHTTPHypermediaRIM {
 	 * some information about which link the client followed, and therefore
 	 * what state/links to show them next.
 	 */
-	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith303SeeOtherSameEntity() throws Exception {
 		/*
@@ -357,11 +353,6 @@ public class TestResponseHTTPHypermediaRIM {
 		// stop the toast cooking
 		cookingState.addTransition("DELETE", idleState);
 		idleState.addTransition(existsState);
-		
-		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
-		testContext.setResource(null);
-		// mock 'new InteractionContext()' in call to delete
-		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
@@ -451,4 +442,47 @@ public class TestResponseHTTPHypermediaRIM {
 		return commandController;
 	}
 	
+	/*
+	 * This test is for an OPTIONS request.
+	 * A OPTIONS request uses a GET command, the response must include an Allow header
+	 * and no body plus HttpStatus 204 "No Content".
+	 */
+	@Test
+	public void testOPTIONSBuildResponseWithNoContent() throws Exception {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+		initialState.addTransition(HttpMethod.GET, initialState);
+		/*
+		 * Construct an InteractionCommand that simply mocks the result of 
+		 * a successful command.
+		 */
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) {
+				ctx.setResource(new EntityResource<Object>(null));
+				return Result.SUCCESS;
+			}
+		};
+		
+		// create mock command controller
+		NewCommandController mockCommandController = new NewCommandController();
+		mockCommandController.addCommand("GET", mockCommand);
+		mockCommandController.addCommand("DO", mockCommand);
+
+		// RIM with command controller that issues our mock InteractionCommand
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		Response response = rim.options(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		
+		// 204 http status for no content
+		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+		// check Allow header
+		Object allow = response.getMetadata().getFirst("Allow");
+        assertNotNull(allow);
+        String[] allows = allow.toString().split(", ");
+		assertEquals(3, allows.length);
+		List<String> allowsList = Arrays.asList(allows);
+        assertTrue(allowsList.contains("GET"));
+        assertTrue(allowsList.contains("OPTIONS"));
+        assertTrue(allowsList.contains("HEAD"));
+	}
+
 }

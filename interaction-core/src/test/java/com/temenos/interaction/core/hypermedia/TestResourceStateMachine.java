@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -28,7 +29,15 @@ import org.junit.Test;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.Action.TYPE;
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function;
+import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -655,10 +664,14 @@ public class TestResourceStateMachine {
 		assertEquals(10, serviceDocumentSM.getStates().size());
 	}
 
+	@SuppressWarnings("unchecked")
+	private InteractionContext createMockInteractionContext(ResourceState state) {
+		return new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), state, mock(Metadata.class));
+	}
+	
 	/*
 	 * Test we do not return any links if our entity is null (not found).
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinksEntityNotFound() {
 		ResourceState initial = new ResourceState("NOTE", "initial", new ArrayList<Action>(), "/note/{id}");
@@ -668,7 +681,7 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(mock(MultivaluedMap.class), testResponseEntity, initial, null);
+		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity, null);
 		assertNotNull(links);
 		assertTrue(links.isEmpty());
 	}
@@ -677,7 +690,6 @@ public class TestResourceStateMachine {
 	 * We use links (hypermedia) for controlling / describing application 
 	 * state.  Test we return the link to 'self' correctly for our test resource.
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinksSelf() {
 		String ENTITY_NAME = "NOTE";
@@ -687,7 +699,7 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(mock(MultivaluedMap.class), testResponseEntity, initial, null);
+		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity, null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -703,6 +715,7 @@ public class TestResourceStateMachine {
 	 * state.  Test we return the link to 'self' correctly for our test 
 	 * resource; in this self link we have used a path parameter.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinksSelfPathParameters() {
 		String ENTITY_NAME = "NOTE";
@@ -718,7 +731,7 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(mockPathparameters, testResponseEntity, initial, null);
+		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity, null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -733,6 +746,7 @@ public class TestResourceStateMachine {
 	 * We use links (hypermedia) for controlling / describing application 
 	 * state.  Test we return the link to 'self' correctly for our test resource.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinksSelfTemplate() {
 		String ENTITY_NAME = "NOTE";
@@ -748,7 +762,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(mockPathparameters, testResponseEntity, initial, null);
+		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity, null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -764,7 +778,6 @@ public class TestResourceStateMachine {
 	 * state.  Test we return the links to other resource in our state
 	 * machine.
 	 */
-	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testGetLinksOtherResources() {
 		String rootResourcePath = "/";
@@ -782,7 +795,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(mock(MultivaluedMap.class), new EntityResource<Object>(null), initial, null);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(null), null);
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -816,11 +829,208 @@ public class TestResourceStateMachine {
 		assertEquals("root.initial>GET>root.initial", links.get(2).getId());
 	}
 
+	private NewCommandController mockCommandController() {
+		InteractionCommand notfound = mock(InteractionCommand.class);
+		when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+		InteractionCommand found = mock(InteractionCommand.class);
+		when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+		
+		NewCommandController cc = new NewCommandController();
+		cc.addCommand("notfound", notfound);
+		cc.addCommand("found", found);
+		return cc;
+	}
+
+	/*
+	 * We use links (hypermedia) for controlling / describing application 
+	 * state.  Test we return the conditional links to other resource in our state
+	 * machine.
+	 */
+	@Test
+	public void testShowConditionalLinks() {
+		String rootResourcePath = "/bookings/{bookingId}";
+		ResourceState initial = new ResourceState("BOOKING", "initial", new ArrayList<Action>(), rootResourcePath);
+		// room reserved for the booking
+		ResourceState room = new ResourceState(initial, "room", new ArrayList<Action>(), "/room");
+		// booking cancelled
+		ResourceState cancelled = new ResourceState(initial, "cancelled", new ArrayList<Action>(), "/cancelled", "cancelled".split(" "));
+		ResourceState paid = new ResourceState(initial, "paid", new ArrayList<Action>(), "/payment", "pay".split(" "));
+		List<Action> mockNotFound = new ArrayList<Action>();
+		mockNotFound.add(new Action("notfound", TYPE.VIEW));
+		ResourceState pwaiting = new ResourceState(paid, "pwaiting", mockNotFound, "/pwaiting", "wait".split(" "));
+		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockNotFound, "/pconfirmed", "confirmed".split(" "));
+		
+		// create transitions that indicate state
+		initial.addTransition(room);
+		initial.addTransition(cancelled);
+		initial.addTransition(paid);
+		// TODO, expressions should also be followed in determining resource state graph
+		initial.addTransition(pwaiting);
+		initial.addTransition(pconfirmed);
+
+		// pseudo states that do the processing
+		ResourceState cancel = new ResourceState(cancelled, "psuedo_cancel", new ArrayList<Action>(), null, "cancel".split(" "));
+		ResourceState assignRoom = new ResourceState(room, "psuedo_assignroom", new ArrayList<Action>());
+		ResourceState paymentDetails = new ResourceState(paid, "psuedo_setcarddetails", new ArrayList<Action>(), null, "pay".split(" "));
+
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		int transitionFlags = 0;  // regular transition
+		// create the transitions (links)
+		initial.addTransition("POST", cancel);
+		initial.addTransition("PUT", assignRoom);
+		
+		List<Expression> expressions = new ArrayList<Expression>();
+		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
+		Expression condition = new SimpleLogicalExpressionEvaluator(expressions);
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, condition, "Make a payment");
+
+		// initialise and get the application state (links)
+		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
+		stateMachine.setCommandController(mockCommandController());
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")), null);
+
+		assertNotNull(unsortedLinks);
+		assertFalse(unsortedLinks.isEmpty());
+		assertEquals(9, unsortedLinks.size());
+		/*
+		 * expect 4 links
+		 * 'self'
+		 * GET room
+		 * GET cancelled
+		 * GET paid
+		 * GET pwaiting
+		 * GET pconfirmed
+		 * POST cancellation
+		 * PUT room
+		 * & link to PUT pwaiting (as the booking has not been paid 'pconfirmed' and is not waiting 'pwaiting')
+		 */
+		List<Link> links = new ArrayList<Link>(unsortedLinks);
+		// sort the links so we have a predictable order for this test
+		Collections.sort(links, new Comparator<Link>() {
+			@Override
+			public int compare(Link o1, Link o2) {
+				return o1.getId().compareTo(o2.getId());
+			}
+			
+		});
+		// booking
+		assertEquals("self", links.get(0).getRel());
+		assertEquals("/baseuri/bookings/123", links.get(0).getHref());
+		assertEquals("BOOKING.initial>GET>BOOKING.initial", links.get(0).getId());
+		// cancel
+		assertEquals("cancel", links.get(1).getRel());
+		assertEquals("/baseuri/bookings/123/cancelled", links.get(1).getHref());
+		assertEquals("BOOKING.initial>POST>BOOKING.psuedo_cancel", links.get(1).getId());
+		// make payment
+		assertEquals("pay", links.get(2).getRel());
+		assertEquals("/baseuri/bookings/123/payment", links.get(2).getHref());
+		assertEquals("BOOKING.initial>PUT(Make a payment)>BOOKING.psuedo_setcarddetails", links.get(2).getId());
+		// set room
+		assertEquals("item", links.get(3).getRel());
+		assertEquals("/baseuri/bookings/123/room", links.get(3).getHref());
+		assertEquals("BOOKING.initial>PUT>BOOKING.psuedo_assignroom", links.get(3).getId());
+	}
+
+	/*
+	 * We use links (hypermedia) for controlling / describing application 
+	 * state.  Test we return the conditional links to other resource in our state
+	 * machine.
+	 */
+	@Test
+	public void testDontShowConditionalLinks() {
+		String rootResourcePath = "/bookings/{bookingId}";
+		ResourceState initial = new ResourceState("BOOKING", "initial", new ArrayList<Action>(), rootResourcePath);
+		// room reserved for the booking
+		ResourceState room = new ResourceState(initial, "room", new ArrayList<Action>(), "/room");
+		// booking cancelled
+		ResourceState cancelled = new ResourceState(initial, "cancelled", new ArrayList<Action>(), "/cancelled", "cancel".split(" "));
+		ResourceState paid = new ResourceState(initial, "paid", new ArrayList<Action>(), "/payment", "pay".split(" "));
+		List<Action> mockNotFound = new ArrayList<Action>();
+		mockNotFound.add(new Action("notfound", TYPE.VIEW));
+		ResourceState pwaiting = new ResourceState(paid, "pwaiting", mockNotFound, "/pwaiting", "wait".split(" "));
+		List<Action> mockFound = new ArrayList<Action>();
+		mockFound.add(new Action("found", TYPE.VIEW));
+		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockFound, "/pconfirmed", "confirmed".split(" "));
+		
+		// create transitions that indicate state
+		initial.addTransition(room);
+		initial.addTransition(cancelled);
+		initial.addTransition(paid);
+		// TODO, expressions should also be followed in determining resource state graph
+		initial.addTransition(pwaiting);
+		initial.addTransition(pconfirmed);
+
+		// pseudo states that do the processing
+		ResourceState cancel = new ResourceState(cancelled, "psuedo_cancel", new ArrayList<Action>(), null, "cancel".split(" "));
+		ResourceState assignRoom = new ResourceState(room, "psuedo_assignroom", new ArrayList<Action>());
+		ResourceState paymentDetails = new ResourceState(paid, "psuedo_setcarddetails", new ArrayList<Action>(), null, "pay".split(" "));
+		
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		int transitionFlags = 0;  // regular transition
+		// create the transitions (links)
+		initial.addTransition("POST", cancel);
+		initial.addTransition("PUT", assignRoom);
+		
+		/*
+		 *  In this test case we are mocking that the 'pwaiting' resource
+		 *  was actually found or OK, rather then NOT_FOUND
+		 */
+		List<Expression> expressions = new ArrayList<Expression>();
+		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
+		Expression condition = new SimpleLogicalExpressionEvaluator(expressions);
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, condition, "Make a payment");
+
+		// initialise and get the application state (links)
+		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
+		stateMachine.setCommandController(mockCommandController());
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")), null);
+
+		assertNotNull(unsortedLinks);
+		assertFalse(unsortedLinks.isEmpty());
+		assertEquals(8, unsortedLinks.size());
+		/*
+		 * expect 3 links
+		 * 'self'
+		 * GET room
+		 * GET cancelled
+		 * GET paid
+		 * GET pwaiting
+		 * GET pconfirmed
+		 * POST cancellation
+		 * PUT room
+		 * & DO NOT show the payment link, payment should already be confirmed
+		 */
+		List<Link> links = new ArrayList<Link>(unsortedLinks);
+		// sort the links so we have a predictable order for this test
+		Collections.sort(links, new Comparator<Link>() {
+			@Override
+			public int compare(Link o1, Link o2) {
+				return o1.getId().compareTo(o2.getId());
+			}
+			
+		});
+		// booking
+		assertEquals("self", links.get(0).getRel());
+		assertEquals("/baseuri/bookings/123", links.get(0).getHref());
+		assertEquals("BOOKING.initial>GET>BOOKING.initial", links.get(0).getId());
+		// cancel
+		assertEquals("cancel", links.get(1).getRel());
+		assertEquals("/baseuri/bookings/123/cancelled", links.get(1).getHref());
+		assertEquals("BOOKING.initial>POST>BOOKING.psuedo_cancel", links.get(1).getId());
+		// set room
+		assertEquals("item", links.get(2).getRel());
+		assertEquals("/baseuri/bookings/123/room", links.get(2).getHref());
+		assertEquals("BOOKING.initial>PUT>BOOKING.psuedo_assignroom", links.get(2).getId());
+	}
+
 	/*
 	 * We use links (hypermedia) for controlling / describing application 
 	 * state.  Test we return the links for the collection itself.
 	 */
-	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testGetLinksCollection() {
 		String NOTE_ENTITY = "NOTE";
@@ -846,7 +1056,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(mock(MultivaluedMap.class), testResponseEntity, notesResource, null);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity, null);
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -914,7 +1124,6 @@ public class TestResourceStateMachine {
 	 * We use links (hypermedia) for controlling / describing application 
 	 * state.  Test we return the links for items in the collection.
 	 */
-	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testGetLinksCollectionItems() {
 		String NOTE_ENTITY = "NOTE";
@@ -940,7 +1149,7 @@ public class TestResourceStateMachine {
 				
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> baseLinks = stateMachine.injectLinks(mock(MultivaluedMap.class), testResponseEntity, notesResource, null);
+		Collection<Link> baseLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity, null);
 		// just one link to self, not really testing that here
 		assertEquals(1, baseLinks.size());
 		
