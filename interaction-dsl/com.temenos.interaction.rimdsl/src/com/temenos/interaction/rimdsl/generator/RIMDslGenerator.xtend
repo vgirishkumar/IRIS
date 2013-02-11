@@ -149,7 +149,8 @@ class RIMDslGenerator implements IGenerator {
     
 	def produceTransitions(State fromState, Transition transition) '''
             «IF transition.eval != null»
-            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
+            «produceUriLinkage(transition.uriLinks)»
+            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, 0, «produceExpression(transition.eval.expressions.get(0))», «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
             «ELSE»
             «produceUriLinkage(transition.uriLinks)»
             s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);

@@ -248,8 +248,8 @@ public class GeneratorTest {
 		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.OK))"));
-		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.NOT_FOUND))"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, uriLinkageEntityProperties, uriLinkageProperties, 0, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.OK), \"B\")"));
+		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("sA.addTransition(\"GET\", sB, uriLinkageEntityProperties, uriLinkageProperties, 0, new ResourceGETExpression(\"B\", ResourceGETExpression.Function.NOT_FOUND), \"B\")"));
 	}
 
 	private final static String RESOURCE_RELATIONS_RIM = "" +
