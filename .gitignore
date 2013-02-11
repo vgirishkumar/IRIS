@@ -90,3 +90,5 @@
 *.iws
 /interaction-examples/interaction-odata-airline/src-gen/AirlineModel/AirlineBehaviour.java
 /interaction-commands-webhook/target
+/interaction-dsl/com.temenos.interaction.rimdsl.tests/test-output
+/interaction-examples/interaction-odata-airline/log.txt
