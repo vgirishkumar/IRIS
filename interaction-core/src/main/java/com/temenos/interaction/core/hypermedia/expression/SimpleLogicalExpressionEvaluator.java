@@ -27,4 +27,11 @@ public class SimpleLogicalExpressionEvaluator implements Expression {
 		}
 		return true;
 	}
+	
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		for (Expression e : expressions)
+			sb.append(e);		
+		return sb.toString();
+	}
 }

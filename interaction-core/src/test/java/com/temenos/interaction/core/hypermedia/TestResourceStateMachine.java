@@ -37,7 +37,6 @@ import com.temenos.interaction.core.hypermedia.Action.TYPE;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function;
-import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -883,8 +882,7 @@ public class TestResourceStateMachine {
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		Expression condition = new SimpleLogicalExpressionEvaluator(expressions);
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, condition, "Make a payment");
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, expressions, "Make a payment");
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
@@ -981,8 +979,7 @@ public class TestResourceStateMachine {
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		Expression condition = new SimpleLogicalExpressionEvaluator(expressions);
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, condition, "Make a payment");
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, expressions, "Make a payment");
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());

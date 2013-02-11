@@ -78,8 +78,7 @@ public class TestResourceGETExpression {
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		Expression condition = new SimpleLogicalExpressionEvaluator(expressions);
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, condition, "Make a payment");
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, expressions, "Make a payment");
 
 		return new ResourceStateMachine(initial);
 	}

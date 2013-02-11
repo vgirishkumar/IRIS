@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -15,6 +16,7 @@ import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 
 public class TestHypermediaValidator {
@@ -100,7 +102,9 @@ public class TestHypermediaValidator {
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/");
 		ResourceState other = new ResourceState(ENTITY_NAME, "other", new ArrayList<Action>(), "/entities/{id}");
 	
-		initial.addTransition("PUT", other, new ResourceGETExpression("other", ResourceGETExpression.Function.OK));
+		List<Expression> expressions = new ArrayList<Expression>();
+		expressions.add(new ResourceGETExpression("other", ResourceGETExpression.Function.OK));
+		initial.addTransition("PUT", other, expressions);
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		HypermediaValidator v = HypermediaValidator.createValidator(sm);
