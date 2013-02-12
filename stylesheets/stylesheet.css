@@ -66,7 +66,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin: 10px 0;
+  margin: 0px 0;
   font-weight: 700;
   color:#222222;
   font-family: 'Lucida Grande', 'Calibri', Helvetica, Arial, sans-serif;
@@ -79,7 +79,7 @@ h1 {
 }
 
 h2 {
-  padding-bottom: 10px;
+  padding-bottom: 0px;
   font-size: 32px;
   background: url('../images/bg_hr.png') repeat-x bottom;
 }
@@ -147,8 +147,8 @@ img {
   position: relative;
   margin: 0 auto;
   max-width: 739px;
-  padding: 5px;
-  margin: 10px 0 10px 0;
+  padding: 0;
+  margin: 0 0 0 0;
   border: 1px solid #ebebeb;
 
   box-shadow: 0 0 5px #ebebeb;
@@ -204,7 +204,6 @@ ul, ol, dl {
 }
 
 ul li {
-  list-style: inside;
   padding-left: 20px;
 }
 
@@ -272,10 +271,20 @@ Full-Width Styles
 
 .inner {
   position: relative;
-  max-width: 640px;
-  padding: 20px 10px;
+  max-width: 960px;
+  padding: 0px 0px;
   margin: 0 auto;
 }
+
+.col-left { /* menu */
+	position:relative;
+	float:left;
+	width: 180px;
+	margin-left:0;
+	margin-right:0;
+}
+
+.clear { clear: both; }
 
 #forkme_banner {
   display: block;
@@ -293,16 +302,14 @@ Full-Width Styles
 }
 
 #header_wrap {
-  background: #212121;
-  background: -moz-linear-gradient(top, #373737, #212121);
-  background: -webkit-linear-gradient(top, #373737, #212121);
-  background: -ms-linear-gradient(top, #373737, #212121);
-  background: -o-linear-gradient(top, #373737, #212121);
-  background: linear-gradient(top, #373737, #212121);
+	background: url('../images/header_background.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-origin: content-box
 }
 
 #header_wrap .inner {
-  padding: 50px 10px 30px 10px;
+  padding: 0px 0px 0px 0px;
 }
 
 #project_title {
@@ -323,10 +330,11 @@ Full-Width Styles
 
 #logo {
   position: absolute;
-  width: 70px;
-  bottom: 60px;
+  width: 100px;
+  bottom: 0px;
   right: 0;
-  height: 70px;
+  height: 100px;
+  border: none;
 }
 
 #downloads {
@@ -401,7 +409,7 @@ Small Device Styles
     min-width: 320px;
     max-width: 480px;
   }
-
+  
   #project_title {
   font-size: 32px;
   }

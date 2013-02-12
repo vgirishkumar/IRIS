@@ -30,39 +30,74 @@
     <!-- HEADER -->
     <div id="header_wrap" class="outer">
         <header class="inner">
-          <a id="forkme_banner" href="https://github.com/aphethean/IRIS">View on GitHub</a>
-
           <h1 id="project_title">IRIS</h1>
           <h2 id="project_tagline">Interaction, Reporting &amp; Information Services</h2>
-
 		  <img id="logo" src="images/iris-logo.png" />
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/aphethean/IRIS/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/aphethean/IRIS/tarball/master">Download this project as a tar.gz file</a>
-            </section>
         </header>
     </div>
 
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h1>IRIS</h1>
+		<div id="main_content" class="inner">
+			<section id="menu" class="col-left">
+				<h4>Overview</h4>
+				<ul>
+					<li><a href="#">Home</a></li>
+					<li><a href="#">Introduction</a></li>
+					<li><a href="#">Architecture</a></li>
+					<li><a href="#">FAQ</a></li>
+					<li><a href="#">Blogs</a></li>
+				</ul>
+				<p>
+				<h4>Getting started</h4>
+				<ul>
+					<li><a href="#">Download</a></li>
+					<li><a href="#">Quickstart</a></li>
+					<li><a href="#">Get help</a></li>
+					<li><a href="#">Mailing lists</a></li>
+				</ul>
+				<h4>Knowledgebase</h4>
+				<ul>
+					<li><a href="#">Examples</a></li>
+					<li><a href="#">Projects</a></li>
+					<li><a href="#">Wiki</a></li>
+				</ul>
+				<h4>Documentation</h4>
+				<ul>
+					<li><a href="#">Core</a></li>
+					<li><a href="#">RIM language</a></li>
+					<li><a href="#">SDK</a></li>
+				</ul>
+			</section>
+			<section id="content">
+		<h3>Welcome to IRIS</h3>
+		<p>
+			The IRIS interaction framework is a new way to define application interaction and intends to makes it easy
+			for developers to create interactive REST serivces, or put another way a service accessed on behalf of a human.
+			We think one of the best ways to provide separation of view and resource manager concerns is to introduce an 
+			interaction layer between the user agent and resource manager.  In MVC terms we are facilitating rich interactions 
+			and great user experience by putting a gateway between the view and controller in the user agent and a model 
+			mapped to the resources in the resource managers.
+		</p>
+		<p>
+			This interaction layer solves a major headache for managers of self assisted channel services, where it is typically
+			very labor intenstive to achieve unified interaction or experience across all channels.  To manage interactions 
+			across internet, mobile, tablet, voice, or specialist devices, IRIS provides a common access point for the various
+			user agents, mash-up / synchronous call-out capabilities, and a language to describe the Resource Interaction Model. 
+		</p>
+		<p>
+			<h4>Our mains goals:</h4>
+			<ul>
+			<li>to create web based services according to RESTful constraints</li>
+			<li>aggregate / mashup multiple resource managers into a single interaction service</li>
+			<li>program Hypermedia (HATEOAS) interactions with a state machine domain specific language (DSL)</li>
+			</ul>
+		</p>
 
-<p>A runtime for Interaction, Reporting &amp; Information Services.</p>
-
-<h2>Purpose</h2>
-
-<p>Quickly and easily create REST APIs for use by humans and machines.</p>
-
-<p>The project allow you to:</p>
-
-<ul>
-<li>create web based services according to RESTful constraints</li>
-<li>aggregate / mashup multiple resource managers into a single interaction service</li>
-<li>program Hypermedia (HATEOAS) interactions with a state machine domain specific language (DSL)</li>
-</ul>
-      </section>
+		[images/interaction_layer.png] Interaction layer
+			</section>
+			<br class="clear" />
+		</div>
     </div>
 
     <!-- FOOTER  -->
