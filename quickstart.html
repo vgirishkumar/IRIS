@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="IRIS : Interaction, Reporting &amp; Information Services" />
+
+	<link rel="shortcut icon" href="./favicon.ico">
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-38439210-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+	
+    <title>IRIS</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <h1 id="project_title">IRIS</h1>
+          <h2 id="project_tagline">Interaction, Reporting &amp; Information Services</h2>
+		  <img id="logo" src="images/iris-logo.png" />
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+		<div id="main_content" class="inner">
+			<section id="menu" class="col-left">
+				<h4>Overview</h4>
+				<ul>
+					<li><a href="./index.html">Home</a></li>
+					<li><a href="#">Introduction</a></li>
+					<li><a href="#">Architecture</a></li>
+					<li><a href="#">FAQ</a></li>
+					<li><a href="http://aphethean.blogspot.co.uk/">Blogs</a></li>
+				</ul>
+				<p>
+				<h4>Getting started</h4>
+				<ul>
+					<li><a href="#">Download</a></li>
+					<li><a href="./quickstart.html">Quickstart</a></li>
+					<li><a href="./oneclick.html">Clickstart</a></li>
+					<li><a href="#">Get help</a></li>
+					<li><a href="#">Mailing lists</a></li>
+				</ul>
+				<h4>Knowledgebase</h4>
+				<ul>
+					<li><a href="#">Examples</a></li>
+					<li><a href="#">Projects</a></li>
+					<li><a href="#">Wiki</a></li>
+				</ul>
+				<h4>Documentation</h4>
+				<ul>
+					<li><a href="#">Core</a></li>
+					<li><a href="#">RIM language</a></li>
+					<li><a href="#">SDK</a></li>
+				</ul>
+				<br style="line-height: 7000%;">
+			</section>
+			<section id="content">
+<h4>Create an IRIS Quickstart</h4>
+<p>
+The quickstart method for creating an IRIS interaction service will set up a ready-to-use project in under a minute (depending on 
+your bandwidth).  Once you've created your project you can either start developing against your real resource managers (back end 
+systems) or you can really accelerate your project by providing a mock responder database to your user agent team.
+</p>
+<p>
+Quickstarts are made from a Maven archetype. So, you will need to have <a href="http://maven.apache.org/download.cgi">Maven 3</a> installed and working (from the command line) before following this guide.
+</p>
+<p>
+Creating a quickstart provides only a very basic starting point for your IRIS project.  If you really don't have 5 minutes to get up and 
+running, why not try the <a href="./oneclick.html"><b>One Click!</b></a> version for <i>Getting started</i>.  If you are looking for 
+indepth examples of how to use IRIS and its various features, please refer to the interaction-examples instead!
+</p>
+<p>
+  This section describes how to use the interaction SDK to create REST services from an existing EDMX model.  
+  The archetype provided with IRIS facilitates creating the initial project structure with a sample EDMX file
+  based on an Airline sample. The generated project can either be run directly through maven by hosting it on
+  a Jetty web server, or it may be packaged as a WAR file for deployment on other web servers.
+
+</p>
+<ol style="list-style-type: decimal">
+	<li>Create the Airline project skeleton by running the archetype:
+	<p>
+		<b>$ mvn archetype:generate -DgroupId=</b><i>com.mycorp.airtraffic</i><b> -DartifactId=</b><i>FlightResponder</i><b> -DarchetypeRepository=https://repository-aphethean.forge.cloudbees.com/snapshot/ -DarchetypeGroupId=com.temenos.interaction -DarchetypeArtifactId=interaction-sdk-archetype -DarchetypeVersion=0.2.0-SNAPSHOT -DinteractiveMode=false</b>
+	</p>
+	<p>This command will create a subdirectory named FlightResponder which contains a maven project with the following artifacts:</p>
+	<ul>
+		<li>WEB-INF/web.xml and application server specific deployment descriptors</li>
+		<li>service.edmx</li>
+	</ul>
+	</li>
+	<li>Edit the sample EDMX file to define the entity model.
+	<dl>
+		<dt>Note:</dt>
+		<dd>The entity name (on the container) currently has to match the name of the entity type.  If you have editted the EDMX file in Visual Studio you might have 
+		Schemas other than the conceptual model (i.e. data storage, design, etc. schemas), these should be removed. </dd>
+	</dl>
+	</li>
+	<li>Build the FlightReponder
+	<p><b>$ mvn interaction-sdk:gen</b></p>
+	<p>This command will generate the design-time artifacts mentioned in the <i>architecture</i> section.</p>
+	<ul>
+		<li><b>metadata.xml</b> - define entities and their properties as vocabulary terms</li>
+		<li><b>Behaviour.java</b> - defines the resource states and the transitions between those states </li>
+		<li><b>spring-beans.xml</b> - defines the runtime configuration of the resource model with the respective commands used to access the resource managers.</li>
+		<li><b>JPA producer</b> - JPA classes and configuration files (jpa-persistence.xml, responder_insert.sql, resourcemanager-context.xml) to provide a mock responder with data stored inside an in-memory HSQL database.</li>
+		<li><b>responder.properties</b> - Responder configuration.</li>
+	</ul>
+	<p>It is useful to generate a JPA based mock responder for testing or providing out generic behaviour. Switching resource instances to use a different resource manager should be as simple as changing the producer property in the spring configuration file.</p>
+	<dl>
+		<dt>Note:</dt>
+		<dd>The JPA classes, jpa-persistence.xml, resourcemanager-context.xml and responder_insert.sql apply to the <b>JPA producer</b>. If we wire up our resources to a different producer these artifacts would not be required. </dd>
+	</dl>
+	</li>
+	<li>Start the FlightReponder with an in-built Jetty web server
+	<p><b>$ mvn jetty:run</b></p>
+	</li>
+	<li>Access the FlightReponder
+	<ol style="list-style-type: upper-alpha">
+		<li>Service document: <a class="externalLink" href="http://localhost:8080/responder/FlightResponder.svc">http://localhost:8080/responder/FlightResponder.svc</a></li>
+		<li>Metadata document: <a class="externalLink" href="http://localhost:8080/responder/FlightResponder.svc/$metadata">http://localhost:8080/responder/FlightResponder.svc/$metadata</a></li>
+		<li>Flights feed: <a class="externalLink" href="http://localhost:8080/responder/FlightResponder.svc/Flight">http://localhost:8080/responder/FlightResponder.svc/Flights</a></li>
+		<li>Flight entry: <a class="externalLink" href="http://localhost:8080/responder/FlightResponder.svc/Flight(1)">http://localhost:8080/responder/FlightResponder.svc/Flights(1)</a></li>
+		<li>JavaScript (ODataJS) User-Agent: <a class="externalLink" href="http://localhost:8080/responder/">http://localhost:8080/responder/</a></li>
+	</ol>
+	</li>
+	<li>Create the FlightResponder web application archive
+	<p><b>$ mvn package</b></p>
+	</li>
+	</ol>
+			</section>
+			<br class="clear" />
+		</div>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">IRIS maintained by <a href="https://github.com/aphethean">aphethean</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
