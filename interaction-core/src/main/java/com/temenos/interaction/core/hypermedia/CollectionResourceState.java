@@ -3,6 +3,8 @@ package com.temenos.interaction.core.hypermedia;
 import java.util.List;
 import java.util.Map;
 
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+
 public class CollectionResourceState extends ResourceState {
 
 	public CollectionResourceState(String entityName, String name, List<Action> actions, String path) {
@@ -27,6 +29,10 @@ public class CollectionResourceState extends ResourceState {
 		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), true, label);
 	}
 	
+	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, List<Expression> linkConditions, String label) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), Transition.FOR_EACH, linkConditions, label);
+	}
+
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags) {
 		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null, null);
 	}

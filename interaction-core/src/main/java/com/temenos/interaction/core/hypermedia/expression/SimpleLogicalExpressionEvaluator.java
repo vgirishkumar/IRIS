@@ -2,7 +2,8 @@ package com.temenos.interaction.core.hypermedia.expression;
 
 import java.util.List;
 
-import javax.ws.rs.core.MultivaluedMap;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 /**
  * A very simple Expression implementation that supports left to right, 'AND' expression
@@ -19,11 +20,18 @@ public class SimpleLogicalExpressionEvaluator implements Expression {
 	}
 	
 	@Override
-	public boolean evaluate(MultivaluedMap<String, String> pathParams) {
+	public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
 		for (Expression e : expressions) {
-			if (!e.evaluate(pathParams))
+			if (!e.evaluate(hypermediaEngine, ctx))
 				return false;
 		}
 		return true;
+	}
+	
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		for (Expression e : expressions)
+			sb.append(e);		
+		return sb.toString();
 	}
 }

@@ -20,4 +20,11 @@ public interface Transformer {
 	 */
 	public Map<String, Object> transform(Object entity);
 	
+	/**
+	 * Used to check whether this object can handle the transformation of the supplied
+	 * entity to a Map<String, Object>
+	 * @param entity
+	 * @return
+	 */
+	public boolean canTransform(Object entity);
 }

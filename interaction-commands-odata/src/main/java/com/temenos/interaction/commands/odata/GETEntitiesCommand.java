@@ -12,10 +12,10 @@ import org.odata4j.producer.resources.OptionsQueryParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InvalidRequestException;
+import com.temenos.interaction.core.resource.CollectionResource;
 
 public class GETEntitiesCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
@@ -43,35 +43,7 @@ public class GETEntitiesCommand implements InteractionCommand {
 			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);
 			String entitySetName = entitySet.getName();
 
-			
-			MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-			String inlineCount = queryParams.getFirst("$inlinecount");
-			String top = queryParams.getFirst("$top");
-			String skip = queryParams.getFirst("$skip");
-			String filter = CommandHelper.getViewActionProperty(ctx, "filter");
-			if(filter == null) {
-				filter = queryParams.getFirst("$filter");
-			}
-			String orderBy = queryParams.getFirst("$orderby");
-	// TODO what are format and callback used for
-//			String format = queryParams.getFirst("$format");
-//			String callback = queryParams.getFirst("$callback");
-			String skipToken = queryParams.getFirst("$skiptoken");
-			String expand = queryParams.getFirst("$expand");
-			String select = queryParams.getFirst("$select");
-		      
-			QueryInfo query = new QueryInfo(
-					OptionsQueryParser.parseInlineCount(inlineCount),
-					OptionsQueryParser.parseTop(top),
-					OptionsQueryParser.parseSkip(skip),
-					OptionsQueryParser.parseFilter(filter),
-					OptionsQueryParser.parseOrderBy(orderBy),
-					OptionsQueryParser.parseSkipToken(skipToken),
-					null,
-					OptionsQueryParser.parseExpand(expand),
-					OptionsQueryParser.parseSelect(select));
-			
-			EntitiesResponse response = producer.getEntities(entitySetName, query);
+			EntitiesResponse response = producer.getEntities(entitySetName, getQueryInfo(ctx));
 			    
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 			ctx.setResource(cr);
@@ -87,4 +59,34 @@ public class GETEntitiesCommand implements InteractionCommand {
 		return Result.SUCCESS;
 	}
 
+	/*
+	 * Obtain the odata query information from the context's query parameters
+	 * @param ctx interaction context
+	 * @return query details
+	 */
+	private QueryInfo getQueryInfo(InteractionContext ctx) {
+		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+		String inlineCount = queryParams.getFirst("$inlinecount");
+		String top = queryParams.getFirst("$top");
+		String skip = queryParams.getFirst("$skip");
+		String filter = CommandHelper.getViewActionProperty(ctx, "filter");
+		if(filter == null) {
+			filter = queryParams.getFirst("$filter");
+		}
+		String orderBy = queryParams.getFirst("$orderby");
+		String skipToken = queryParams.getFirst("$skiptoken");
+		String expand = queryParams.getFirst("$expand");
+		String select = queryParams.getFirst("$select");
+	      
+		return new QueryInfo(
+				OptionsQueryParser.parseInlineCount(inlineCount),
+				OptionsQueryParser.parseTop(top),
+				OptionsQueryParser.parseSkip(skip),
+				OptionsQueryParser.parseFilter(filter),
+				OptionsQueryParser.parseOrderBy(orderBy),
+				OptionsQueryParser.parseSkipToken(skipToken),
+				null,
+				OptionsQueryParser.parseExpand(expand),
+				OptionsQueryParser.parseSelect(select));		
+	}
 }

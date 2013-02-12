@@ -286,6 +286,7 @@ public class TestHTTPHypermediaRIM {
 		initialState.addTransition("PUT", initialState);
 		// create a mock command to test the context is initialised correctly
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), mock(Metadata.class));
 		
@@ -320,6 +321,7 @@ public class TestHTTPHypermediaRIM {
 		initialState.addTransition("POST", initialState);
 		// create a mock command to test the context is initialised correctly
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), mock(Metadata.class));
 		

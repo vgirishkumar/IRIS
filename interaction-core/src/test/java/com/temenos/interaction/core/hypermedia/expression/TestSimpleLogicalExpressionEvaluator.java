@@ -10,25 +10,22 @@ import static org.mockito.Matchers.any;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.MultivaluedMap;
-
 import org.junit.Test;
 
-import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestSimpleLogicalExpressionEvaluator {
 
-	@SuppressWarnings("unchecked")
 	private Expression createFalseExpression() {
 		Expression expression = mock(Expression.class);
-		when(expression.evaluate(any(MultivaluedMap.class))).thenReturn(false);
+		when(expression.evaluate(any(ResourceStateMachine.class), any(InteractionContext.class))).thenReturn(false);
 		return expression;
 	}
 
-	@SuppressWarnings("unchecked")
 	private Expression createTrueExpression() {
 		Expression expression = mock(Expression.class);
-		when(expression.evaluate(any(MultivaluedMap.class))).thenReturn(true);
+		when(expression.evaluate(any(ResourceStateMachine.class), any(InteractionContext.class))).thenReturn(true);
 		return expression;
 	}
 
@@ -37,7 +34,7 @@ public class TestSimpleLogicalExpressionEvaluator {
 		List<Expression> expressions = new ArrayList<Expression>();
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertTrue(expEvaluator.evaluate(new MultivaluedMapImpl<String>()));
+		assertTrue(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
 	}
 
 	@Test
@@ -46,7 +43,7 @@ public class TestSimpleLogicalExpressionEvaluator {
 		expressions.add(createTrueExpression());
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertTrue(expEvaluator.evaluate(new MultivaluedMapImpl<String>()));
+		assertTrue(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
 	}
 	
 	@Test
@@ -55,10 +52,9 @@ public class TestSimpleLogicalExpressionEvaluator {
 		expressions.add(createFalseExpression());
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertFalse(expEvaluator.evaluate(new MultivaluedMapImpl<String>()));
+		assertFalse(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testTrueFalseExpression() {
 		Expression trueEX = createTrueExpression();
@@ -69,12 +65,11 @@ public class TestSimpleLogicalExpressionEvaluator {
 		expressions.add(falseEX);
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertFalse(expEvaluator.evaluate(new MultivaluedMapImpl<String>()));
-		verify(trueEX).evaluate(any(MultivaluedMap.class));
-		verify(falseEX).evaluate(any(MultivaluedMap.class));
+		assertFalse(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
+		verify(trueEX).evaluate(any(ResourceStateMachine.class), any(InteractionContext.class));
+		verify(falseEX).evaluate(any(ResourceStateMachine.class), any(InteractionContext.class));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testFalseTrueExpression() {
 		Expression falseEX = createFalseExpression();
@@ -85,9 +80,9 @@ public class TestSimpleLogicalExpressionEvaluator {
 		expressions.add(trueEX);
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertFalse(expEvaluator.evaluate(new MultivaluedMapImpl<String>()));
-		verify(falseEX).evaluate(any(MultivaluedMap.class));
-		verify(trueEX, never()).evaluate(any(MultivaluedMap.class));
+		assertFalse(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
+		verify(falseEX).evaluate(any(ResourceStateMachine.class), any(InteractionContext.class));
+		verify(trueEX, never()).evaluate(any(ResourceStateMachine.class), any(InteractionContext.class));
 	}
 
 }

@@ -20,7 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -442,7 +444,9 @@ public class ResourceStateMachine {
 	 * @param linkRelations
 	 * @return
 	 */
-	public Collection<Link> injectLinks(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity, ResourceState state, List<String> linkRelations) {
+	public Collection<Link> injectLinks(InteractionContext ctx, RESTResource resourceEntity, List<String> linkRelations) {
+		MultivaluedMap<String, String> pathParameters = ctx.getPathParameters();
+		ResourceState state = ctx.getCurrentState();
 		List<Link> links = new ArrayList<Link>();
 		if (resourceEntity == null)
 			return links;
@@ -490,8 +494,17 @@ public class ResourceStateMachine {
 						}
 					}
 				} else {
-					UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
-					links.add(createLink(linkTemplate, transition, entity, pathParameters));
+					boolean addLink = true;
+					// evaluate the conditional expression
+					Expression conditionalExp = cs.getEvaluation();
+					if (conditionalExp != null) {
+						addLink = conditionalExp.evaluate(this, ctx);
+					}
+						
+					if (addLink) {
+						UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
+						links.add(createLink(linkTemplate, transition, entity, pathParameters));
+					}
 				}
 			}
 		}

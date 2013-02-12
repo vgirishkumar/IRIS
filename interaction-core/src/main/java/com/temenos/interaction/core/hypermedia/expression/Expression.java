@@ -1,6 +1,7 @@
 package com.temenos.interaction.core.hypermedia.expression;
 
-import javax.ws.rs.core.MultivaluedMap;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public interface Expression {
 
@@ -9,5 +10,5 @@ public interface Expression {
 	 * @param pathParams
 	 * @return
 	 */
-	public boolean evaluate(MultivaluedMap<String, String> pathParams);
+	public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx);
 }

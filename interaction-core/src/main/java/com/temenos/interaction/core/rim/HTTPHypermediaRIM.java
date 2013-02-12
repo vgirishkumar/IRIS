@@ -256,35 +256,172 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.info("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
-    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-    	
     	Event event = new Event("GET", HttpMethod.GET);
+    	// handle request
+    	return handleRequest(headers, uriInfo, event, null);
+	}
+	
+	private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event, EntityResource<?> resource) {
+		assert(event != null);
+		StatusType status = Status.NOT_FOUND;
+    	// create the interaction context
+    	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
+    	// determine action
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
     	if (action == null) {
-    		return buildResponse(null, headers, pathParameters, Status.NOT_FOUND, null, getInteractions(), null);
+    		if (event.isUnSafe()) {
+    			status = HttpStatusTypes.METHOD_NOT_ALLOWED;
+    		}
+    		return buildResponse(headers, ctx.getPathParameters(), status, null, getInteractions(), null);
     	}
-    	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
+    	// determine current state, target state, and link used
+    	initialiseInteractionContext(headers, event, ctx, resource);
+    	// execute action
+    	InteractionCommand.Result result = action.execute(ctx);
+    	assert(result != null) : "InteractionCommand must result a result";
+    	// determine status
+    	status = determineStatus(event, ctx, result);
+    	if (ctx.getResource() != null) {
+    		/*
+    		 * Add entity information to this resource
+    		 */
+    		ctx.getResource().setEntityName(ctx.getCurrentState().getEntityName());
+    		/*
+    		 * Add hypermedia information to this resource
+    		 */
+    		hypermediaEngine.injectLinks(ctx, ctx.getResource(), headers.getRequestHeader("Link"));
+    	}
+    	// build response
+    	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx.getTargetState());
+    }
+	
+	private ResourceState initialiseInteractionContext(HttpHeaders headers, Event event, InteractionContext ctx, EntityResource<?> resource) {
+    	if (resource != null) {
+    		// set the resource for the commands to access
+        	ctx.setResource(resource);
+    	}
+    	// work out the target state and link used
+		ResourceState targetState = null;
+		LinkHeader linkHeader = null;
+		List<String> linkHeaders = headers.getRequestHeader("Link");
+		if (linkHeaders != null && linkHeaders.size() > 0) {
+    		// there must be only one Link header
+    		assert(linkHeaders.size() == 1);
+			linkHeader = LinkHeader.valueOf(linkHeaders.get(0));
+		}
+		Link linkUsed = hypermediaEngine.getLinkFromRelations(ctx.getPathParameters(), null, linkHeader);
+		ctx.setLinkUsed(linkUsed);
+		if (linkUsed != null)
+			targetState = linkUsed.getTransition().getTarget();
+		if (targetState == null)
+			targetState = ctx.getCurrentState();
+		ctx.setTargetState(targetState);
+		return targetState;
+	}
+	
+	private StatusType determineStatus(Event event, InteractionContext ctx, InteractionCommand.Result result) {
+		assert(event != null);
+		assert(ctx != null);
+    	StatusType status = Status.NOT_FOUND;
+		if (event.getMethod().equals(HttpMethod.GET)) {
+	    	switch(result) {
+	    	case SUCCESS:			status = Status.OK; break;
+	    	case FAILURE:			status = Status.NOT_FOUND; break;
+	    	case INVALID_REQUEST:	status = Status.BAD_REQUEST; break;
+	    	}
+		} else if (event.getMethod().equals(HttpMethod.POST)) {
+	    	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
+	   		status = result == Result.SUCCESS ? Status.CREATED : Status.INTERNAL_SERVER_ERROR;
+		} else if (event.getMethod().equals(HttpMethod.PUT)) {
+	    	/*
+	    	 * The resource manager must return an error result code or have stored this 
+	    	 * resource in a consistent state (conceptually a transaction)
+	    	 */
+	    	/*
+	    	 * TODO add support for PUTs that create (CREATED) and PUTs that replace (OK)
+	    	 */
+	   		if (result == Result.SUCCESS && ctx.getResource() == null) {
+	   			status = Status.NO_CONTENT;
+	   		} else if (result == Result.SUCCESS) {
+	   			status = Status.OK;
+	   		} else {
+	   			logger.error("InteractionCommand result [" + result + "]");
+	   			status = Status.INTERNAL_SERVER_ERROR;
+	   		}
+		} else if (event.getMethod().equals(HttpMethod.DELETE)) {
+	    	if (result == Result.SUCCESS) {
+	        	// We do not support a delete command that returns a resource (HTTP does permit this)
+	        	assert(ctx.getResource() == null);
+	    		ResourceState targetState = ctx.getTargetState();
+	    		Link linkUsed = ctx.getLinkUsed();
+	        	if (targetState.isTransientState()) {
+					Transition autoTransition = targetState.getAutoTransition();
+					if (autoTransition.getTarget().getPath().equals(ctx.getCurrentState().getPath())
+							|| (linkUsed != null && autoTransition.getTarget().equals(linkUsed.getTransition().getSource()))) {
+	            		// this transition has been configured to reset content
+	               		status = HttpStatusTypes.RESET_CONTENT;
+	        		} else {
+	        			status = Status.SEE_OTHER;
+	        		}
+				} else if (targetState.isPseudoState() || targetState.getPath().equals(ctx.getCurrentState().getPath())) {
+	    			// did we delete ourselves or pseudo final state, both are transitions to No Content
+	        		status = Response.Status.NO_CONTENT;
+	    		} else {
+	    			throw new IllegalArgumentException("Resource interaction exception, should not be " +
+	    					"possible to use a link where target state is not our current state");
+	    		}
 
+	    		/*
+	    		 * No target found using link relations, try to find a transition from ourself
+	    		if (linkUsed == null) {
+	    			linkUsed = hypermediaEngine.getLinkFromMethod(pathParameters, null, currentState, "DELETE");
+	    		}
+	    		if (linkUsed != null) {
+	    			ResourceState targetState = linkUsed.getTransition().getTarget();
+	    			if (targetState.isTransientState()) {
+	    				Transition autoTransition = targetState.getAutoTransition();
+	    				if (autoTransition.getTarget().equals(linkUsed.getTransition().getSource())) {
+	                		// this transition has been configured to reset content
+	                   		status = HttpStatusTypes.RESET_CONTENT;
+	            		} else {
+	            			status = Status.SEE_OTHER;
+	            			target = hypermediaEngine.createLinkToTarget(autoTransition, ctx.getResource(), pathParameters);
+	            		}
+	    			} else if (targetState.isPseudoState() || targetState.equals(currentState)) {
+	        			// did we delete ourselves or pseudo final state, both are transitions to No Content
+	            		status = Response.Status.NO_CONTENT;
+	        		} else {
+	        			throw new IllegalArgumentException("Resource interaction exception, should not be " +
+	        					"possible to use a link where target state is not our current state");
+	        		}
+	    		} else {
+	    			// null target (pseudo final state) is effectively a transition to No Content
+	        		status = Response.Status.NO_CONTENT;
+	    		}
+	    		 */
+	    	} else if (result == Result.FAILURE) {
+	    		status = Status.NOT_FOUND;
+	    	} else if (result == Result.INVALID_REQUEST) {
+	    		status = Status.BAD_REQUEST;
+	    	} else {
+	    		assert(false) : "Unhandled result from Command";
+	    	}
+		}
+		return status;
+	}
+	
+	private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, Event event) {
+    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);
     	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
-    	// execute GET command
-    	InteractionCommand.Result result = action.execute(ctx);
-    	assert(result != null) : "Command must result a result";
-    	
-    	// build the response
-    	StatusType status = Status.NOT_FOUND;
-    	switch(result) {
-    	case SUCCESS:			status = Status.OK; break;
-    	case FAILURE:			status = Status.NOT_FOUND; break;
-    	case INVALID_REQUEST:	status = Status.BAD_REQUEST; break;
-    	}
-    	return buildResponse(currentState, headers, pathParameters, status, ctx.getResource(), null, null);
+    	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
+    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, currentState, metadata);
+    	return ctx;
 	}
-	
-    private Response buildResponse(ResourceState currentState, HttpHeaders headers, MultivaluedMap<String, String> pathParameters, StatusType status, RESTResource resource, Set<String> interactions, Link target) {	
+
+    private Response buildResponse(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, StatusType status, RESTResource resource, Set<String> interactions, ResourceState targetState) {	
     	RESTResponse response = new RESTResponse(status, resource);
 
     	assert (response != null);
@@ -300,17 +437,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.equals(Response.Status.NO_CONTENT)) {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.equals(Response.Status.SEE_OTHER)) {
+			Transition autoTransition = targetState.getAutoTransition();
+    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, resource, pathParameters);
 			responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 		} else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
-			/*
-			 * Add entity information to this resource
-			 */
-    		resource.setEntityName(currentState.getEntityName());
-    		/*
-    		 * Add hypermedia information to this resource
-    		 */
-    		hypermediaEngine.injectLinks(pathParameters, resource, currentState, headers.getRequestHeader("Link"));
     		/*
     		 * Wrap response into a JAX-RS GenericEntity object to ensure we have the type 
     		 * information available to the Providers
@@ -354,16 +485,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams) {
-    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	assert(getResourcePath() != null);
     	Event event = new Event("POST", HttpMethod.POST);
-    	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
-    	if (action == null) {
-    		return buildResponse(null, headers, pathParameters, HttpStatusTypes.METHOD_NOT_ALLOWED, null, getInteractions(), null);
-    	}
-    	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
-    	String entityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + currentState.getEntityName();
-		EntityResource<Entity> er = new EntityResource<Entity>(entityName, createEntity(entityName, formParams));
-		return post(headers, id, uriInfo, er);
+    	// handle request
+    	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
+    	initialiseInteractionContext(headers, event, ctx, null);
+    	String entityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + ctx.getCurrentState().getEntityName();
+		EntityResource<Entity> resource = new EntityResource<Entity>(entityName, createEntity(entityName, formParams));
+    	return handleRequest(headers, uriInfo, event, resource);
     }
     
     private Entity createEntity(String entityName, MultivaluedMap<String, String> formParams) {
@@ -396,27 +525,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.info("POST " + getFQResourcePath());
     	assert(getResourcePath() != null);
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
-    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-    	
     	Event event = new Event("POST", HttpMethod.POST);
-    	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
-    	if (action == null) {
-    		return buildResponse(null, headers, pathParameters, HttpStatusTypes.METHOD_NOT_ALLOWED, null, getInteractions(), null);
-    	}
-    	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
-
-    	// work around an issue in wink, wink does not decode query parameters in 1.1.3
-    	decodeQueryParams(queryParameters);
-    	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
-    	// set the resource for the command to access
-    	ctx.setResource(resource);
-    	// execute commands
-    	InteractionCommand.Result result = action.execute(ctx);
-    	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
-   		StatusType status = result == Result.SUCCESS ? Status.CREATED : Status.INTERNAL_SERVER_ERROR;
-    	return buildResponse(currentState, headers, pathParameters, status, ctx.getResource(), null, null);
+    	// handle request
+    	return handleRequest(headers, uriInfo, event, resource);
     }
 
     /**
@@ -437,45 +548,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.info("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
-    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-    	
     	Event event = new Event("PUT", HttpMethod.PUT);
-    	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
-    	if (action == null) {
-    		return buildResponse(null, headers, pathParameters, HttpStatusTypes.METHOD_NOT_ALLOWED, null, getInteractions(), null);
-    	}
-    	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
-
-    	// work around an issue in wink, wink does not decode query parameters in 1.1.3
-    	decodeQueryParams(queryParameters);
-    	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
-    	// set the resource for the command to access
-    	ctx.setResource(resource);
-    	// execute commands
-    	InteractionCommand.Result result = action.execute(ctx);
-    	/*
-    	 * The resource manager must return an error result code or have stored this 
-    	 * resource in a consistent state (conceptually a transaction)
-    	 */
-    	/*
-    	 * TODO add support for PUTs that create (CREATED) and PUTs that replace (OK)
-    	 */
-   		StatusType status = null;
-   		if (result == Result.SUCCESS && ctx.getResource() == null) {
-   			status = Status.NO_CONTENT;
-   		} else if (result == Result.SUCCESS) {
-   			status = Status.OK;
-   		} else {
-   			logger.error("InteractionCommand result [" + result + "]");
-   			status = Status.INTERNAL_SERVER_ERROR;
-   		}
-   			
-  		/*
-   		 * TODO need to add support for list of commands, action, workflow, wtf
-   		 */
-    	return buildResponse(currentState, headers, pathParameters, status, ctx.getResource(), null, null);
+    	// handle request
+    	return handleRequest(headers, uriInfo, event, resource);
     }
 
 	/**
@@ -487,103 +562,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 */
     @Override
 	@DELETE
-    public Response delete( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
+	public Response delete( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
     	logger.info("DELETE " + getFQResourcePath());
     	assert(getResourcePath() != null);
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
-    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-    	
     	Event event = new Event("DELETE", HttpMethod.DELETE);
-    	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
-    	if (action == null) {
-    		return buildResponse(null, headers, pathParameters, HttpStatusTypes.METHOD_NOT_ALLOWED, null, getInteractions(), null);
-    	}
-    	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
-
-    	// work around an issue in wink, wink does not decode query parameters in 1.1.3
-    	decodeQueryParams(queryParameters);
-    	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, currentState, metadata);
-    	// execute command
-    	InteractionCommand.Result result = action.execute(ctx);
-    	assert(result != null) : "Command must result a result";
-    	// We do not support a delete command that returns a resource (HTTP does permit this)
-    	assert(ctx.getResource() == null);
-    	StatusType status = null;
-    	Link target = null;
-    	if (result == Result.SUCCESS) {
-    		LinkHeader linkHeader = null;
-    		List<String> linkHeaders = headers.getRequestHeader("Link");
-    		if (linkHeaders != null && linkHeaders.size() > 0) {
-        		// there must be only one Link header
-        		assert(linkHeaders.size() == 1);
-    			linkHeader = LinkHeader.valueOf(linkHeaders.get(0));
-    		}
-        	
-    		ResourceState targetState = null;
-    		Link linkUsed = hypermediaEngine.getLinkFromRelations(pathParameters, null, linkHeader);
-    		if (linkUsed != null)
-    			targetState = linkUsed.getTransition().getTarget();
-    		if (targetState == null)
-    			targetState = currentState;
-
-        	if (targetState.isTransientState()) {
-				Transition autoTransition = targetState.getAutoTransition();
-				if (autoTransition.getTarget().getPath().equals(currentState.getPath())
-						|| (linkUsed != null && autoTransition.getTarget().equals(linkUsed.getTransition().getSource()))) {
-            		// this transition has been configured to reset content
-               		status = HttpStatusTypes.RESET_CONTENT;
-        		} else {
-        			status = Status.SEE_OTHER;
-        			target = hypermediaEngine.createLinkToTarget(autoTransition, ctx.getResource(), pathParameters);
-        		}
-			} else if (targetState.isPseudoState() || targetState.getPath().equals(getCurrentState().getPath())) {
-    			// did we delete ourselves or pseudo final state, both are transitions to No Content
-        		status = Response.Status.NO_CONTENT;
-    		} else {
-    			throw new IllegalArgumentException("Resource interaction exception, should not be " +
-    					"possible to use a link where target state is not our current state");
-    		}
-
-    		/*
-    		 * No target found using link relations, try to find a transition from ourself
-    		if (linkUsed == null) {
-    			linkUsed = hypermediaEngine.getLinkFromMethod(pathParameters, null, currentState, "DELETE");
-    		}
-    		if (linkUsed != null) {
-    			ResourceState targetState = linkUsed.getTransition().getTarget();
-    			if (targetState.isTransientState()) {
-    				Transition autoTransition = targetState.getAutoTransition();
-    				if (autoTransition.getTarget().equals(linkUsed.getTransition().getSource())) {
-                		// this transition has been configured to reset content
-                   		status = HttpStatusTypes.RESET_CONTENT;
-            		} else {
-            			status = Status.SEE_OTHER;
-            			target = hypermediaEngine.createLinkToTarget(autoTransition, ctx.getResource(), pathParameters);
-            		}
-    			} else if (targetState.isPseudoState() || targetState.equals(currentState)) {
-        			// did we delete ourselves or pseudo final state, both are transitions to No Content
-            		status = Response.Status.NO_CONTENT;
-        		} else {
-        			throw new IllegalArgumentException("Resource interaction exception, should not be " +
-        					"possible to use a link where target state is not our current state");
-        		}
-    		} else {
-    			// null target (pseudo final state) is effectively a transition to No Content
-        		status = Response.Status.NO_CONTENT;
-    		}
-    		 */
-    	} else if (result == Result.FAILURE) {
-    		status = Status.NOT_FOUND;
-    	} else if (result == Result.INVALID_REQUEST) {
-    		status = Status.BAD_REQUEST;
-    	} else {
-    		assert(false) : "Unhandled result from Command";
-    	}
-    	
-    	return buildResponse(currentState, headers, pathParameters, status, null, null, target);
+    	// handle request
+    	return handleRequest(headers, uriInfo, event, null);
     }
-
+    
 	/**
 	 * OPTIONS for a resource.
 	 * @precondition a valid GET command for this resourcePath must be registered with the command controller
@@ -594,25 +580,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     public Response options( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.info("OPTIONS " + getFQResourcePath());
     	assert(getResourcePath() != null);
-
     	Event event = new Event("OPTIONS", HttpMethod.GET);
-    	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
-    	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
-    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-
-    	// work around an issue in wink, wink does not decode query parameters in 1.1.3
-    	decodeQueryParams(queryParameters);
     	// create the interaction context
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, getCurrentState(), metadata);
-    	
+    	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
     	// TODO add support for OPTIONS /resource/* which will provide information about valid interactions for any entity
-    	
-    	// execute GET command
-    	InteractionCommand.Result result = action.execute(ctx);
-    	StatusType status = result == Result.SUCCESS ? Status.NO_CONTENT : Status.NOT_FOUND;
-    	return buildResponse(currentState, headers, pathParameters, status, null, getInteractions(), null);
-	}
+		return buildResponse(headers, ctx.getPathParameters(), Status.NO_CONTENT, null, getInteractions(), null);
+    }
     
     /**
      * Get the valid methods for interacting with this resource.

@@ -1,6 +1,7 @@
 package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +33,12 @@ public class TestEntityTransformer {
 		assertEquals(2, map.keySet().size());
 		assertEquals("123", map.get("id"));
 		assertEquals("EI218", map.get("flight"));
+	}
+
+	@Test
+	public void testTypeNotSupported() {
+		EntityTransformer transformer = new EntityTransformer();
+		assertNull(transformer.transform(""));
 	}
 
 	private EdmEntitySet createMockEdmEntitySet() {

@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 
 public class ResourceState implements Comparable<ResourceState> {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
@@ -246,6 +247,9 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void addTransition(ResourceState targetState) {
 		addTransition(null, targetState, Transition.AUTO);
 	}
+	public void addTransition(ResourceState targetState, List<Expression> conditionalExpressions) {
+		addTransition(null, targetState, Transition.AUTO, conditionalExpressions);
+	}
 
 	/**
 	 * Normal transitions, transition from this resource state to target resource state by user agent following link.
@@ -255,11 +259,14 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void addTransition(String httpMethod, ResourceState targetState) {
 		addTransition(httpMethod, targetState, 0);
 	}
-	public void addTransition(String httpMethod, ResourceState targetState, ResourceGETExpression eval) {
-		addTransition(httpMethod, targetState, null, null, 0, eval, null);
+	public void addTransition(String httpMethod, ResourceState targetState, List<Expression> conditionalExpressions) {
+		addTransition(httpMethod, targetState, null, null, 0, conditionalExpressions, null);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
 		addTransition(httpMethod, targetState, null, null, transitionFlags, null, null);
+	}
+	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags, List<Expression> conditionalExpressions) {
+		addTransition(httpMethod, targetState, null, null, transitionFlags, conditionalExpressions, null);
 	}
 	
 	/**
@@ -295,12 +302,12 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null, label);
 	}
 	
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, ResourceGETExpression eval, String label) {
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, List<Expression> conditionalExpressions, String label) {
 		String resourcePath = targetState.getPath();
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, eval, label);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, conditionalExpressions, label);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval, String label) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, List<Expression> conditionalExpressions, String label) {
 		assert null != targetState;
 		uriLinkageMap = uriLinkageMap != null ? new HashMap<String, String>(uriLinkageMap) : null;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
@@ -348,7 +355,8 @@ public class ResourceState implements Comparable<ResourceState> {
 		this.uriLinkageProperties = uriLinkageProperties != null ? new HashMap<String, String>(uriLinkageProperties) : null;
 		
 		//Create the transition
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, eval, resourcePath, uriLinkageProperties);
+		Expression condition = conditionalExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalExpressions) : null;
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, condition, resourcePath, uriLinkageProperties);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.add(transition);

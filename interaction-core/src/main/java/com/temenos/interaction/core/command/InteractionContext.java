@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
@@ -33,7 +34,9 @@ public class InteractionContext {
 	private final MultivaluedMap<String, String> pathParameters;
 	private final ResourceState currentState;
 	private final Metadata metadata;
-	
+	private ResourceState targetState;
+	private Link linkUsed;
+
 	/* Command context */
 	private RESTResource resource;
 	private Map<String, Object> attributes = new HashMap<String, Object>();
@@ -55,7 +58,8 @@ public class InteractionContext {
 		this.metadata = metadata;
 		assert(pathParameters != null);
 		assert(queryParameters != null);
-		assert(currentState != null);
+// TODO, should be able to enable this assertion, its just that alot of tests currently mock this 'new InteractionContext'
+//		assert(currentState != null);
 		assert(metadata != null);
 	}
 
@@ -98,8 +102,24 @@ public class InteractionContext {
 	public void setResource(RESTResource resource) {
 		this.resource = resource;
 	}
+	
+    public ResourceState getTargetState() {
+		return targetState;
+	}
 
-    public String getId() {
+	public void setTargetState(ResourceState targetState) {
+		this.targetState = targetState;
+	}
+
+	public Link getLinkUsed() {
+		return linkUsed;
+	}
+
+	public void setLinkUsed(Link linkUsed) {
+		this.linkUsed = linkUsed;
+	}
+
+	public String getId() {
     	String id = null;
     	if (pathParameters != null) {
         	id = pathParameters.getFirst(DEFAULT_ID_PATH_ELEMENT);

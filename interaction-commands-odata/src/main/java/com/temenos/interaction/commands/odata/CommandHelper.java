@@ -9,10 +9,10 @@ import java.util.regex.Pattern;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmType;
 import org.slf4j.Logger;
@@ -169,18 +169,20 @@ public class CommandHelper {
 	 * @return property value
 	 */
 	public static String getViewActionProperty(InteractionContext ctx, String property) {
-		Properties properties = ctx.getCurrentState().getViewAction().getProperties();
 		String prop = null;
-		if(properties != null && properties.get(property) != null) {
-			prop = (String) properties.get(property);		//e.g. fld eq '{id}'
-			Matcher m = parameterPattern.matcher(prop);
-			while(m.find()) {
-				String param = m.group(1);	//e.g. id
-				if(ctx.getQueryParameters().containsKey(param)) {
-					prop = prop.replaceAll("\\{" + param + "\\}", ctx.getQueryParameters().getFirst(param));
-				}
-				else if(ctx.getPathParameters().containsKey(param)) {
-					prop = prop.replaceAll("\\{" + param + "\\}", ctx.getPathParameters().getFirst(param));
+		if(ctx.getCurrentState().getViewAction() != null) {
+			Properties properties = ctx.getCurrentState().getViewAction().getProperties();
+			if(properties != null && properties.get(property) != null) {
+				prop = (String) properties.get(property);		//e.g. fld eq '{id}'
+				Matcher m = parameterPattern.matcher(prop);
+				while(m.find()) {
+					String param = m.group(1);	//e.g. id
+					if(ctx.getQueryParameters().containsKey(param)) {
+						prop = prop.replaceAll("\\{" + param + "\\}", ctx.getQueryParameters().getFirst(param));
+					}
+					else if(ctx.getPathParameters().containsKey(param)) {
+						prop = prop.replaceAll("\\{" + param + "\\}", ctx.getPathParameters().getFirst(param));
+					}
 				}
 			}
 		}
