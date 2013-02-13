@@ -44,8 +44,6 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final List<Action> actions;
 	/* the UriSpecification is used to append the path parameter template to the path */
 	private final UriSpecification uriSpecification;
-	/* the linkage properties (defined in the RIM) to apply to the URI template */
-	private Map<String, String> uriLinkageProperties = null;
 	
 	private Set<Transition> transitions = new HashSet<Transition>();
 
@@ -226,11 +224,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	public UriSpecification getUriSpecification() {
 		return uriSpecification;
 	}
-	
-	public Map<String, String> getUriLinkageProperties() {
-		return uriLinkageProperties;
-	}
-	
+
 	/**
 	 * Return the transition to get to this state.
 	 * @return
@@ -302,9 +296,16 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, ResourceGETExpression eval, String label) {
 		assert null != targetState;
-		uriLinkageMap = uriLinkageMap != null ? new HashMap<String, String>(uriLinkageMap) : null;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
+		
+		//Copy linkage properties to ensure they are not overwritten
+		uriLinkageMap = uriLinkageMap != null ? new HashMap<String, String>(uriLinkageMap) : null;
+		Map<String, String> linkParameters = null;
+		if(uriLinkageProperties != null) {
+			linkParameters = new HashMap<String, String>(uriLinkageProperties);
+			uriLinkageProperties.clear();		//Subsequent invocations to addTransition are expected to provide new link properties
+		}
 
 		//Replace uri elements with linkage properties
 		String mappedResourcePath = resourcePath;
@@ -313,42 +314,20 @@ public class ResourceState implements Comparable<ResourceState> {
 				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
 			}
 		}
-		if (uriLinkageProperties != null) {
-			for (String propKey : uriLinkageProperties.keySet()) {
-				//Replace template elements in property value, e.g. {code} in filter=fld eq '{code}'
-				String propValue = uriLinkageProperties.get(propKey);
-				if(propValue != null && uriLinkageMap != null
-						&& propValue.contains("{") && propValue.contains("}")) {
-					Matcher m = templatePattern.matcher(propValue);
-					while(m.find()) {
-						String templateElement = m.group(1);	//e.g. code
-						for (String key : uriLinkageMap.keySet()) {		//e.g. id=code -> replace templateElement {code} with {id}
-							if(templateElement.equals(uriLinkageMap.get(key))) {
-								propValue = propValue.replaceAll("\\{" + templateElement + "\\}", "\\{" + key + "\\}");
-								uriLinkageProperties.put(propKey, propValue);
-							}
-						}
-					}				
-				}						
-				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + propKey + "\\}", uriLinkageProperties.get(propKey));
+		if (linkParameters != null) {
+			for (String templateElement : linkParameters.keySet()) {
+				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", linkParameters.get(templateElement));		//Replace template elements, e.g. {code} in filter=fld eq '{code}'
 			}
 		}
 		
-		//Replace action parameters with linkage properties
-		if (uriLinkageProperties != null) {
-			for(Action action  : targetState.getActions()) {
-				for(Entry<Object, Object> actionParameter : action.getProperties().entrySet()) {
-					String paramRef = (String) actionParameter.getValue();		//Reference to a linkage property, e.g. filter=myfilter where myfilter references myfilter=fld eq '{code}'
-					if(uriLinkageProperties.containsKey(paramRef)) {
-						actionParameter.setValue(uriLinkageProperties.get(paramRef));
-					}
-				}
-			}
-		}
-		this.uriLinkageProperties = uriLinkageProperties != null ? new HashMap<String, String>(uriLinkageProperties) : null;
+		//Replace templates in link properties with path parameters
+		replaceLinkPropertyTemplates(linkParameters, uriLinkageMap);
+		
+		//Apply link properties to action parameters
+		applyLinkPropertiesToActionParameters(linkParameters, targetState);
 		
 		//Create the transition
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, eval, resourcePath, uriLinkageProperties);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, eval, resourcePath, linkParameters);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.add(transition);
@@ -371,6 +350,73 @@ public class ResourceState implements Comparable<ResourceState> {
 		assert resourceStateModel != null;
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourceStateModel.getInitial().getPath());
 		transitions.add(new Transition(this, commandSpec, resourceStateModel.getInitial()));
+	}
+	
+	/**
+	 * Replace templates in link properties with path parameters.
+	 * e.g. [id=code, filter=fld eq '{code}'] => [filter=fld eq '{id}']
+	 * @param linkParameters link properties
+	 * @param uriLinkageMap map of properties to path parameters
+	 */
+	protected void replaceLinkPropertyTemplates(Map<String, String> linkParameters, Map<String, String> uriLinkageMap) {
+		//Replace templates in link properties with path parameters, e.g. {code} in filter=fld eq '{code}'
+		if (linkParameters != null) {
+			for (String propKey : linkParameters.keySet()) {
+				String propValue = linkParameters.get(propKey);
+				if(propValue != null && uriLinkageMap != null
+						&& propValue.contains("{") && propValue.contains("}")) {
+					Matcher m = templatePattern.matcher(propValue);
+					while(m.find()) {
+						String templateElement = m.group(1);	//e.g. code
+						for (String key : uriLinkageMap.keySet()) {		//e.g. id=code -> replace templateElement {code} with {id}
+							if(!linkParameters.containsKey(templateElement) &&
+									templateElement.equals(uriLinkageMap.get(key))) {
+								propValue = propValue.replaceAll("\\{" + templateElement + "\\}", "\\{" + key + "\\}");
+								linkParameters.put(propKey, propValue);
+							}
+						}
+					}				
+				}						
+			}
+		}		
+	}
+	
+	/**
+	 * Apply link properties to action parameters.
+	 * e.g. [GETEntities filter=myfilter] where [myfilter=fld eq '{code}', code="mycode"] => [filter=fld eq '{mycode}']
+	 * @param linkParameters link properties
+	 * @param targetState target resource state
+	 */
+	protected void applyLinkPropertiesToActionParameters(Map<String, String> linkParameters, ResourceState targetState) {
+		if (linkParameters != null) {
+			for(Action action  : targetState.getActions()) {
+				for(Entry<Object, Object> actionParameter : action.getProperties().entrySet()) {
+					Object paramValue = actionParameter.getValue();				//reference to link property (e.g. myfilter) or the actual link property  
+					if(paramValue != null) {
+						//Reference to a linkage property, e.g. filter=myfilter where myfilter references myfilter=fld eq '{code}'
+						if(paramValue instanceof String && linkParameters.containsKey(paramValue)) {
+							actionParameter.setValue(new ActionPropertyReference((String) paramValue));	
+						}
+						if(actionParameter.getValue() instanceof ActionPropertyReference) {
+							ActionPropertyReference actionRefProperty = (ActionPropertyReference) actionParameter.getValue();
+							String paramRefValue = linkParameters.get(actionRefProperty.getKey());
+							String paramRefKey = "_";		
+							Matcher m = templatePattern.matcher(paramRefValue);
+							while(m.find()) {
+								String param = m.group(1);								//e.g. code
+								String linkParameter = linkParameters.get(param);		//e.g. mycode
+								if(linkParameter != null) {
+									//replace template parameter with uri linkage properties (e.g. code => mycode if code="mycode")
+									paramRefValue = m.replaceAll("{" + linkParameter + "}");		//e.g. a eq {code1} && b eq {code2}
+									paramRefKey += "_" + linkParameter;								//e.g. _code1_code2
+								}
+							}
+							actionRefProperty.addProperty(paramRefKey, paramRefValue);
+						}
+					}
+				}
+			}
+		}		
 	}
 
 	/**

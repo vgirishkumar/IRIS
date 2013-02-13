@@ -584,9 +584,9 @@ public class ResourceStateMachine {
 					properties.put(key, map.getFirst(key));
 				}
 			}
-			Map<String, String> uriLinkageProperties = transition.getSource().getUriLinkageProperties();
-			if (uriLinkageProperties != null) {
-				properties.putAll(uriLinkageProperties);
+			Map<String, String> linkParameters = transition.getCommand().getParameters();
+			if (linkParameters != null) {
+				properties.putAll(linkParameters);
 			}
 			
 			//Obtain entity properties
@@ -598,21 +598,8 @@ public class ResourceStateMachine {
 				}
 			}
 
-			//Add query parameters - template elements in linkage properties e.g. filter=fld eq {code}
-			if (transition.getTarget() instanceof CollectionResourceState && uriLinkageProperties != null) {
-				for(String linkProperty : uriLinkageProperties.values()) {
-					if(linkProperty.contains("{") && linkProperty.contains("}")) {
-						Matcher m = templatePattern.matcher(linkProperty);
-						while(m.find()) {
-							String param = m.group(1);		//e.g. code
-							if(properties.containsKey(param) &&
-									!map.containsKey(param)) {		//Do not add query param if it exists as path parameter
-								linkTemplate.queryParam(param, properties.get(param));
-							}
-						}				
-					}
-				}
-			}
+			//Add template elements in linkage properties e.g. filter=fld eq {code} as query parameters
+			setQueryParameters(linkTemplate, linkParameters, properties, transition.getTarget().getPath());
 			
 			//Build href from template
 			URI href;
@@ -634,6 +621,40 @@ public class ResourceStateMachine {
 		} catch (UriBuilderException e) {
 			logger.error("An error occurred while creating link [" + transition + "]", e);
 			throw e;
+		}
+	}
+	
+	/**
+	 * Set template elements in link properties as query parameters.
+	 * e.g. filter=fld eq {code} => ?code=123
+	 * e.g. filter=fld eq {code}, code="mycode" => ?mycode=123
+	 * @param linkTemplate URI builder
+	 * @param linkParameters link properties
+	 * @param properties entity and link properties
+	 * @param targetStatePath Resource path of target state
+	 */
+	protected void setQueryParameters(UriBuilder linkTemplate, Map<String, String> linkParameters, Map<String, Object> properties, String targetStatePath) {
+		if (linkParameters != null) {
+			for(String linkPropertyKey : linkParameters.keySet()) {
+				String linkProperty = linkParameters.get(linkPropertyKey);
+				if(linkProperty.contains("{") && linkProperty.contains("}")) {
+					Matcher m = templatePattern.matcher(linkProperty);
+					while(m.find()) {
+						String param = m.group(1);		//e.g. code
+						if(properties.containsKey(param) &&
+								(targetStatePath == null || !targetStatePath.contains("{" + param + "}"))) {		
+							//Add query parameter
+							String paramValue = (String) properties.get(param);
+							if(linkParameters.containsKey(param)) {		//Check whether to use a customized query parameter name such as (code="MyCode"  => ...?MyCode=123) 
+								linkTemplate.queryParam(linkParameters.get(param), paramValue);
+							}
+							else {
+								linkTemplate.queryParam(param, paramValue);
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 

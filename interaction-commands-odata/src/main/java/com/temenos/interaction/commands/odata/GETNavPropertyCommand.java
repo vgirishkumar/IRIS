@@ -1,7 +1,6 @@
 package com.temenos.interaction.commands.odata;
 
 import java.util.List;
-import java.util.Properties;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -42,20 +41,21 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		assert(ctx.getCurrentState().getViewAction() != null);
 		assert(ctx.getResource() == null);
 		
-		Properties properties = ctx.getCurrentState().getViewAction().getProperties();
-		if (properties == null || properties.get("entity") == null)
+		String entity = CommandHelper.getViewActionProperty(ctx, "entity"); 
+		if(entity == null) {
 			throw new IllegalArgumentException("'entity' must be provided");
-		String entity = (String) properties.get("entity");
+		}
+		
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
 		if (entitySet == null)
 			throw new RuntimeException("Entity set not found [" + entity + "]");
 		assert(entity.equals(entitySet.getName()));
 
 		//Obtain the navigation property
-		if(properties.get("navproperty") == null) {
+		String navProperty = CommandHelper.getViewActionProperty(ctx, "navproperty"); 
+		if(navProperty == null) {
 			throw new IllegalArgumentException("Command must be bound to an OData navigation property resource");
 		}
-		String navProperty = (String) properties.get("navproperty");
 		
 		//Create entity key (simple types only)
 		OEntityKey key;
