@@ -1202,6 +1202,7 @@ public class TestResourceStateMachine {
 		assertEquals("GET", links.get(5).getMethod());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLinkToCollectionResource() {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
@@ -1218,7 +1219,7 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(pathParameters, new EntityResource<Object>(createAirport("123")), airport, null);
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123")), null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1248,7 +1249,7 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(pathParameters, new EntityResource<Object>(createAirport("456")), airport, null);
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("456")), null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1279,7 +1280,7 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(pathParameters, new EntityResource<Object>(createAirport("London Luton")), airport, null);
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")), null);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
