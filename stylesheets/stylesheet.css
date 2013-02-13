@@ -34,10 +34,6 @@ footer, header, hgroup, menu, nav, section {
   display: block;
 }
 
-ol, ul {
-  list-style: none;
-}
-
 blockquote, q {
 }
 
@@ -107,7 +103,7 @@ footer p {
   color: #f2f2f2;
 }
 
-a {
+#main_content a {
   text-decoration: none;
   color: #007edf;
   text-shadow: none;
@@ -127,6 +123,13 @@ a {
 #main_content a:hover {
   color: #0069ba;
   text-shadow: #0090ff 0px 0px 2px;
+}
+
+
+#main_content a.comingsoon {
+  text-decoration: none;
+  color: #82787C;
+  text-shadow: none;
 }
 
 footer a:hover {
@@ -195,17 +198,25 @@ blockquote {
   border-left: 3px solid #bbb;
 }
 
-ul, ol, dl {
-  margin-bottom: 15px
+dl {
+  margin-bottom: 15px;
 }
 
-ul li {
-  padding-left: 20px;
-}
-
-ol li {
+#main_content ol.primary-list {
   list-style: decimal inside;
+  margin-bottom: 15px;
   padding-left: 20px;
+}
+
+#main_content ol.secondary-list {
+  list-style: upper-alpha inside;
+  margin: 10px 70px 15px 120px;
+  padding-left: 60px;
+}
+
+#main_content ul.secondary-list {
+  margin: 10px 70px 15px 120px;
+  padding-left: 60px;
 }
 
 dl dt {
