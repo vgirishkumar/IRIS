@@ -18,6 +18,7 @@ import com.temenos.interaction.rimdsl.rim.UriLinkageEntityKeyReplace
 import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction
 import com.temenos.interaction.rimdsl.rim.Function
+import com.temenos.interaction.rimdsl.rim.Expression
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -45,6 +46,7 @@ class RIMDslGenerator implements IGenerator {
 		import com.temenos.interaction.core.hypermedia.ResourceState;
 		import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 		import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
+		import com.temenos.interaction.core.hypermedia.expression.Expression;
 		import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 		
 		public class «rim.eResource.className»Behaviour {
@@ -58,6 +60,7 @@ class RIMDslGenerator implements IGenerator {
 			public ResourceState getRIM() {
 				Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
 				Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+				List<Expression> conditionalLinkExpressions = null;
 				Properties actionViewProperties;
 				ResourceState initial = null;
 				// create states
@@ -148,13 +151,21 @@ class RIMDslGenerator implements IGenerator {
         «ENDIF»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
-            «IF transition.eval != null»
-            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», «produceExpression(transition.eval.expressions.get(0))»);
-            «ELSE»
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            «IF transition.eval != null»
+            «produceExpressions(transition.eval)»
+            «ELSE»
+            conditionalLinkExpressions = null;
             «ENDIF»
+            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, 0, conditionalLinkExpressions, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
 	'''
+
+    def produceExpressions(Expression conditionExpression) '''
+        conditionalLinkExpressions = new ArrayList<Expression>();
+        «FOR function : conditionExpression.expressions»
+            conditionalLinkExpressions.add(«produceExpression(function)»);
+        «ENDFOR»
+    '''
 
     def produceExpression(Function expression) '''
         «IF expression instanceof OKFunction»
@@ -165,15 +176,27 @@ class RIMDslGenerator implements IGenerator {
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
             «produceUriLinkage(transition.uriLinks)»
-            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            «IF transition.eval != null»
+            «produceExpressions(transition.eval)»
+            «ELSE»
+            conditionalLinkExpressions = null;
+            «ENDIF»
+            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
+            «IF transition.eval != null»
+            «produceExpressions(transition.eval)»
+            s«fromState.name».addTransition(s«transition.state.name», conditionalLinkExpressions);
+            «ELSE»
             s«fromState.name».addTransition(s«transition.state.name»);
+            «ENDIF»
     '''
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''
         «IF uriLinks != null»
+            uriLinkageEntityProperties.clear();
+            uriLinkageProperties.clear();
             «FOR prop : uriLinks»
             «IF prop.entityProperty instanceof UriLinkageEntityKeyReplace»
             uriLinkageEntityProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");

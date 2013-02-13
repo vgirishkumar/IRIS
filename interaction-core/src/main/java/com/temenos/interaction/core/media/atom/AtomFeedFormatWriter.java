@@ -67,15 +67,13 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     	String href = link.getHref();
     	String title = link.getTitle();
     	String rel = link.getRel();
-    	// only include the self link until we add better integration tests
-    	if (link.getRel().equals("self")) {
-        	// TODO include href without base path in link
-        	// chop the leading base path
-        	if (href.startsWith(baseUri)) {
-        		href = href.substring(baseUri.length());
-        	}
-            writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
+
+    	// TODO include href without base path in link
+    	// chop the leading base path
+    	if (href.startsWith(baseUri)) {
+    		href = href.substring(baseUri.length());
     	}
+        writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
     }
 
     Integer inlineCount = response.getInlineCount();

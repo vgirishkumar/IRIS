@@ -8,17 +8,6 @@ import org.junit.Test;
 
 public class TestBeanTransformer {
 
-	class TestBean {
-		TestBean(String s, int i) {
-			stringField = s;
-			intField = i;
-		}
-		private String stringField;
-		private int intField;
-		public String getStringField() { return stringField; }
-		public int getIntField() { return intField; }
-	};
-	
 	@Test
 	public void testMapTransform() {
 		Transformer t = new BeanTransformer();

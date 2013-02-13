@@ -61,4 +61,18 @@ public class EntityTransformer implements Transformer {
 		}
 		return map;
 	}
+
+	/**
+	 * This transformer will accept any {@link Entity} and push its {@link EntityProperties} 
+	 * into the returned Map.
+	 */
+	@Override
+	public boolean canTransform(Object entity) {
+		if (entity != null 
+				&& (entity instanceof Entity || entity instanceof OEntity)) {
+			return true;
+		}
+		return false;
+	}
+
 }

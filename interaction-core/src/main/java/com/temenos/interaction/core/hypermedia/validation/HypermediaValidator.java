@@ -59,7 +59,9 @@ public class HypermediaValidator {
 				InteractionCommand command = commandController.fetchCommand(action.getName());
 				if (command == null)
 					fireActionNotAvailable(hypermediaEngine, currentState, action);
-				if (action.getType().equals(Action.TYPE.VIEW)) {
+				// TODO refine this validation to view action for regular resource state; entry action for pseudo state
+//				if (action.getType().equals(Action.TYPE.VIEW)) {
+				if (action.getType().equals(Action.TYPE.VIEW) || action.getType().equals(Action.TYPE.ENTRY)) {
 					viewActionSeen = true;
 				}
 			}

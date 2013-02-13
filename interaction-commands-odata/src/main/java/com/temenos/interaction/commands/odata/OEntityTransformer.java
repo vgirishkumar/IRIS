@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,4 +49,16 @@ public class OEntityTransformer implements Transformer {
 		return map;
 	}
 
+	/**
+	 * This transformer will accept any {@link OEntity} and push its {@link OProperties} 
+	 * into the returned Map.
+	 */
+	@Override
+	public boolean canTransform(Object entity) {
+		if (entity != null && entity instanceof OEntity) {
+			return true;
+		}
+		return false;
+	}
+	
 }

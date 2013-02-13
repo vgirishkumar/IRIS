@@ -62,4 +62,15 @@ public class BeanTransformer implements Transformer {
 		return map;
 	}
 
+	/**
+	 * This transformer will accept any object and push its properties
+	 * {@see PropertyDescriptor} into the returned Map
+	 */
+	@Override
+	public boolean canTransform(Object entity) {
+		if (entity != null) {
+			return true;
+		}
+		return false;
+	}
 }
