@@ -657,7 +657,7 @@ public class ResourceStateMachine {
 						if(properties.containsKey(param) &&
 								(targetStatePath == null || !targetStatePath.contains("{" + param + "}"))) {		
 							//Add query parameter
-							String paramValue = (String) properties.get(param);
+							Object paramValue = properties.get(param);
 							if(linkParameters.containsKey(param)) {		//Check whether to use a customized query parameter name such as (code="MyCode"  => ...?MyCode=123) 
 								linkTemplate.queryParam(linkParameters.get(param), paramValue);
 							}

@@ -77,8 +77,8 @@ public class IMResourceStateMachine {
 	 * @param filter filter expression on collection
 	 * @param title Transition label
 	 */
-	public void addTransitionToCollectionState(String sourceStateName, IMResourceStateMachine targetResourceStateMachine, String targetStateName, String filter, String title) {
-		this.addResourceTransition(sourceStateName, targetResourceStateMachine, targetStateName, HttpMethod.GET, title, targetStateName, true, null, filter);
+	public void addTransitionToCollectionState(String sourceStateName, IMResourceStateMachine targetResourceStateMachine, String targetStateName, String filter, String linkProperty, String title) {
+		this.addResourceTransition(sourceStateName, targetResourceStateMachine, targetStateName, HttpMethod.GET, title, targetStateName, true, linkProperty, filter);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class IMResourceStateMachine {
 		IMState sourceState = getResourceState(sourceStateName);
 		IMState targetState = getResourceState(targetStateName);
 		if(isToCollectionState) {
-			sourceState.addTransitionToCollectionState(title, targetResourceStateMachine, targetState, method, filter);
+			sourceState.addTransitionToCollectionState(title, targetResourceStateMachine, targetState, linkProperty, method, filter);
 		}
 		else {
 			sourceState.addTransitionToEntityState(title, targetResourceStateMachine, targetState, method, linkProperty);

@@ -220,7 +220,7 @@ public class CommandHelper {
 			return propRef.getProperty(key);
 		}
 		else {
-			return (String) actionProperties.get(propertyName);		//e.g. fld eq '{code}'
+			return actionProperties.get(propertyName).toString();		//e.g. fld eq '{code}'
 		}		
 	}
 }

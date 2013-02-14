@@ -27,7 +27,7 @@ end
 
 resource Flights
 	collection Flight
-	view { GETEntities }
+	view { GETEntities filter=filter }
 	path "/Flights()"
 	POST -> Flights_created
 	GET *-> flight id=flightID
@@ -49,20 +49,20 @@ end
 
 resource Airports
 	collection Airport
-	view { GETEntities }
+	view { GETEntities filter=filter }
 	path "/Airports()"
 	POST -> Airports_created
 	GET *-> airport id=code
-	GET title="departures" *-> airport_departures id=code, filter="departureAirportCode eq '{code}'"
-	GET title="arrivals" *-> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
+	GET title="departures" *-> FlightSchedules filter="departureAirportCode eq '{code}'", code="departureAirportCode"
+	GET title="arrivals" *-> FlightSchedules filter="arrivalAirportCode eq '{code}'", code="arrivalAirportCode"
 end
 
 resource airport
 	item Airport
 	view { GETEntity }
 	path "/Airports('{id}')"
-	GET title="departures" -> airport_departures id=code, filter="departureAirportCode eq '{code}'"
-	GET title="arrivals" -> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
+	GET title="departures" -> FlightSchedules filter="departureAirportCode eq '{code}'", code="departureAirportCode"
+	GET title="arrivals" -> FlightSchedules filter="arrivalAirportCode eq '{code}'", code="arrivalAirportCode"
 end
 
 resource Airports_created
@@ -71,27 +71,9 @@ resource Airports_created
 	path "/Airports()"
 end
 
-resource airport_arrivals
-	collection FlightSchedule
-	view { GETEntities filter=filter }
-	path "/Airports('{id}')/arrivals"
-	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> airport id=departureAirportCode
-	GET title="arrivalAirport" *-> airport id=arrivalAirportCode
-end
-
-resource airport_departures
-	collection FlightSchedule
-	view { GETEntities filter=filter }
-	path "/Airports('{id}')/departures"
-	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> airport id=departureAirportCode
-	GET title="arrivalAirport" *-> airport id=arrivalAirportCode
-end
-
 resource FlightSchedules
 	collection FlightSchedule
-	view { GETEntities }
+	view { GETEntities filter=filter }
 	path "/FlightSchedules()"
 	POST -> FlightSchedules_created
 	GET *-> flightschedule id=flightScheduleID
@@ -115,7 +97,7 @@ end
 
 resource Passengers
 	collection Passenger
-	view { GETEntities }
+	view { GETEntities filter=filter }
 	path "/Passengers()"
 	POST -> Passengers_created
 	GET *-> passenger id=passengerNo

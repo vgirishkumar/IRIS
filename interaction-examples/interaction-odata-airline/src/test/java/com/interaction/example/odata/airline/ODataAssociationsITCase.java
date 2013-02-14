@@ -93,7 +93,12 @@ public class ODataAssociationsITCase {
 
 			assertEquals(3, flightSchedule.getLinks().size());
 			// there should be one link to self
-			assertTrue(containsLink(flightSchedule.getLinks(), "FlightSchedules(" + id + ")/flights", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/flights"));
+			if(consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
+				assertTrue(containsLink(flightSchedule.getLinks(), "Flights()?flights=" + id, "http://schemas.microsoft.com/ado/2007/08/dataservices/related/flights"));
+			}
+			else {
+				assertTrue(containsLink(flightSchedule.getLinks(), "FlightSchedules(" + id + ")/flights", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/flights"));
+			}
 			// there should be one link to one departureAirport for this flight schedule
 			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport") ||
 					containsLink(flightSchedule.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + departureAirportCode + "')", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport"));
@@ -161,9 +166,14 @@ public class ODataAssociationsITCase {
 
 			assertEquals(2, airport.getLinks().size());
 			// there should be one link to departures
-			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/departures"));
-			// there should be one link to arrivals
-			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/arrivals"));
+			if(consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
+				assertTrue(containsLink(airport.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "()?departures=" + code));
+				assertTrue(containsLink(airport.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "()?arrivals=" + code));
+			}
+			else {
+				assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/departures"));
+				assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/arrivals"));
+			}
 		}
 	}
 
@@ -179,10 +189,14 @@ public class ODataAssociationsITCase {
 		assertEquals("LTN", code);
 
 		assertEquals(2, airport.getLinks().size());
-		// there should be one link to one departures
-		assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/departures"));
-		// there should be one link to one departureAirport for this flight schedule
-		assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/arrivals"));
+		if(consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
+			assertTrue(containsLink(airport.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "()?departures=" + code));
+			assertTrue(containsLink(airport.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "()?arrivals=" + code));
+		}
+		else {
+			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/departures"));
+			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/arrivals"));
+		}
 	}
 
 	/**
@@ -193,16 +207,18 @@ public class ODataAssociationsITCase {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 
 		// now follow links to departure airport and arrival airport
-		OEntity departuresFlightSchedule = consumer
-				.getEntity(AIRPORT_ENTITYSET_NAME, "LTN")
-				.nav("departures")
-				.execute();
-		assertEquals(2051L, departuresFlightSchedule.getProperty("flightScheduleID").getValue());
-		OEntity arrivalsFlightSchedule = consumer
-				.getEntity(AIRPORT_ENTITYSET_NAME, "LTN")
-				.nav("arrivals")
-				.execute();
-		assertEquals(2052L, arrivalsFlightSchedule.getProperty("flightScheduleID").getValue());
+		if(!consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
+			OEntity departuresFlightSchedule = consumer
+					.getEntity(AIRPORT_ENTITYSET_NAME, "LTN")
+					.nav("departures")
+					.execute();
+			assertEquals(2051L, departuresFlightSchedule.getProperty("flightScheduleID").getValue());
+			OEntity arrivalsFlightSchedule = consumer
+					.getEntity(AIRPORT_ENTITYSET_NAME, "LTN")
+					.nav("arrivals")
+					.execute();
+			assertEquals(2052L, arrivalsFlightSchedule.getProperty("flightScheduleID").getValue());
+		}
 	}
 	
 	private boolean containsLink(List<OLink> links, String link) {

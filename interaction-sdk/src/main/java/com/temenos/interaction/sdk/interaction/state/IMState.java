@@ -76,8 +76,8 @@ public abstract class IMState {
 	 * @param method HTTP command
 	 * @param filter Filter expression on collection
 	 */
-	public void addTransitionToCollectionState(String title, IMResourceStateMachine targetResourceStateMachine, IMState targetState, String method, String filter) {
-		transitions.add(new IMCollectionStateTransition(targetResourceStateMachine, targetState, targetState.getName(), filter, title, method));
+	public void addTransitionToCollectionState(String title, IMResourceStateMachine targetResourceStateMachine, IMState targetState, String linkProperty, String method, String filter) {
+		transitions.add(new IMCollectionStateTransition(targetResourceStateMachine, targetState, linkProperty, filter, title, method));
 	}
 	
 	/**

@@ -222,7 +222,7 @@ public class EDMXAdapter implements InteractionAdapter {
 						String linkPropertyOrigin = linkPropertyOriginMap.get(association.getName());
 						filter = linkProperty + " eq '{" + linkPropertyOrigin + "}'";
 						linkProperty = np.getName();
-						rsm.addTransitionToCollectionState(entityStateName, targetRsm, np.getName(), filter, linkTitle);
+						rsm.addTransitionToCollectionState(entityStateName, targetRsm, np.getName(), filter, linkProperty, linkTitle);
 					}
 					else {
 						rsm.addTransitionToEntityState(entityStateName, targetRsm, np.getName(), linkProperty, linkTitle);
