@@ -30,7 +30,7 @@ end
 
 resource Sectors
 	collection Sector
-	view { GETEntities }
+	view { GETEntities filter=filter }
 	path "/Sectors()"
 	GET title="unauthorised input records" -> Sectors_IAuth
 	GET title="reversed records" -> Sectors_Reversed
@@ -87,7 +87,7 @@ end
 
 resource Sectors_IAuth
 	collection Sector
-	view { GETEntities }
+	view { GETEntities filter=filter }
 	path "/SectorsIAuth()"
 	GET *-> sector_IAuth id=SectorCode
 	PUT title="authorise" *-> sector_IAuth_authorise id=SectorCode
@@ -104,7 +104,7 @@ end
 
 resource Sectors_Reversed
 	collection Sector
-	view { GETReversedEntities }
+	view { GETReversedEntities filter=filter }
 	path "/SectorsReversed()"
 	GET *-> sector_Reversed id=SectorCode
 end

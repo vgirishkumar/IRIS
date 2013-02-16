@@ -69,9 +69,10 @@ public class GETEntityCommand implements InteractionCommand {
 	 */
 	private EntityQueryInfo getEntityQueryInfo(InteractionContext ctx) {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-		String filter = CommandHelper.getViewActionProperty(ctx, "filter");
-		if(filter == null) {
-			filter = queryParams.getFirst("$filter");
+		String actionFilter = CommandHelper.getViewActionProperty(ctx, "filter");		//Filter defined as action property 
+		String filter = queryParams.getFirst("$filter");								//Query filter
+		if(actionFilter != null && !actionFilter.isEmpty()) {
+			filter = filter != null ? filter + " and " + actionFilter : actionFilter;
 		}
 		String expand = queryParams.getFirst("$expand");
 		String select = queryParams.getFirst("$select");

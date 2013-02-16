@@ -1202,6 +1202,95 @@ public class TestResourceStateMachine {
 		assertEquals("GET", links.get(5).getMethod());
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetLinkToCollectionResource() {
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Airports('{id}')/Flights", null, null);
+
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
+		uriLinkageMap.put("id", "code");
+		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+
+		// initialise and get the application state (links)
+		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
+		
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		pathParameters.add("id", "123");
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123")), null);
+
+		assertNotNull(links);
+		assertFalse(links.isEmpty());
+		assertEquals(2, links.size());
+
+		assertTrue(containsLink(links, "Airport.airport>GET>Airport.airport", "/baseuri/Airports('123')"));
+		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode eq '{id}')>Flight.Flights", "/baseuri/Airports('123')/Flights"));
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testGetMultipleLinksToCollectionResource() {
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
+
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
+		uriLinkageProperties.put("code", "arrivalAirportCode");		//applies query parameter ?arrivalAirportCode=xxx
+		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
+		uriLinkageProperties.put("code", "departureAirportCode");		//applies query parameter ?departureAirportCode=xxx
+		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+
+		// initialise and get the application state (links)
+		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
+		
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
+		pathParameters.add("id", "123");
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("456")), null);
+
+		assertNotNull(links);
+		assertFalse(links.isEmpty());
+		assertEquals(3, links.size());
+
+		assertTrue(containsLink(links, "Airport.airport>GET>Airport.airport", "/baseuri/Airports('123')"));
+		assertTrue(containsLink(links, "Airport.airport>GET(departureAirportCode, departureAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?departureAirportCode=456"));
+		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode, arrivalAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?arrivalAirportCode=456"));
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testGetMultipleLinksToCollectionResourceWithSpacesInQueryParams() {
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
+
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
+		uriLinkageProperties.put("code", "arrivalAirportCode");		//applies query parameter ?arrivalAirportCode=xxx
+		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
+		uriLinkageProperties.put("code", "departureAirportCode");		//applies query parameter ?departureAirportCode=xxx
+		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+
+		// initialise and get the application state (links)
+		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
+		
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
+		pathParameters.add("id", "123");
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")), null);
+
+		assertNotNull(links);
+		assertFalse(links.isEmpty());
+		assertEquals(3, links.size());
+
+		assertTrue(containsLink(links, "Airport.airport>GET>Airport.airport", "/baseuri/Airports('123')"));
+		assertTrue(containsLink(links, "Airport.airport>GET(departureAirportCode, departureAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?departureAirportCode=London+Luton"));
+		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode, arrivalAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?arrivalAirportCode=London+Luton"));
+	}
+	
 	@Test
 	public void testDetermineAction() {
 		String ENTITY_NAME = "";
@@ -1294,4 +1383,22 @@ public class TestResourceStateMachine {
 		};
 	}
 
+	private Object createAirport(final String id) {
+		return new Object() {
+			final String code = id;
+			@SuppressWarnings("unused")
+			public String getCode() {
+				return code;
+			}
+		};
+	}
+	
+	private boolean containsLink(Collection<Link> links, String id, String href) {
+		for(Link l : links) {
+			if(l.getId().equals(id) && l.getHref().equals(href)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

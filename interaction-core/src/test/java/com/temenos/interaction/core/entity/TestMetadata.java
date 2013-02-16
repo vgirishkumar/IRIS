@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.entity;
 
+import java.util.Date;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -56,6 +57,7 @@ public class TestMetadata {
 		
 		Vocabulary vocDob = new Vocabulary();
 		vocDob.setTerm(new TermComplexType(false));
+		vocDob.setTerm(new TermValueType(TermValueType.DATE));
 		vocs.setPropertyVocabulary("dateOfBirth", vocDob);
 		
 		Vocabulary vocSector = new Vocabulary();
@@ -122,7 +124,7 @@ public class TestMetadata {
 		Assert.assertTrue(vocs.isPropertyText("street"));
 		Assert.assertTrue(vocs.isPropertyText("town"));
 		Assert.assertTrue(vocs.isPropertyText("postCode"));
-		Assert.assertTrue(vocs.isPropertyText("dateOfBirth"));
+		Assert.assertFalse(vocs.isPropertyText("dateOfBirth"));
 		Assert.assertTrue(vocs.isPropertyText("sector"));
 		Assert.assertTrue(vocs.isPropertyText("industry"));
 	}
@@ -145,5 +147,12 @@ public class TestMetadata {
 	public void testIdFields() {
 		Assert.assertEquals(1, vocs.getIdFields().size());
 		Assert.assertEquals("name", vocs.getIdFields().get(0));
+	}
+
+	@Test
+	public void testCreateEmptyEntityProperty() {
+		Assert.assertEquals(0, ((Long) vocs.createEmptyEntityProperty("number").getValue()).longValue());
+		Assert.assertEquals("", vocs.createEmptyEntityProperty("name").getValue());
+		Assert.assertTrue(vocs.createEmptyEntityProperty("dateOfBirth").getValue() instanceof Date);
 	}
 }

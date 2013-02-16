@@ -23,6 +23,7 @@ import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.ActionPropertyReference;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
 public class TestCommandHelper {
@@ -81,6 +82,34 @@ public class TestCommandHelper {
 			fail(e.getMessage());
 		}
 	}
+
+	@Test
+	public void testGetViewActionPropertyWithMultipleParams() {
+		try {
+			InteractionContext ctx = createInteractionContextWithMultipleParams("Airport", "departureAirportCode", "123");
+			String prop = CommandHelper.getViewActionProperty(ctx, "filter");
+			assertEquals("departureAirportCode eq '123'", prop);
+
+			ctx = createInteractionContextWithMultipleParams("Airport", "arrivalAirportCode", "456");
+			prop = CommandHelper.getViewActionProperty(ctx, "filter");
+			assertEquals("arrivalAirportCode eq '456'", prop);
+		}
+		catch(Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testGetViewActionPropertyWithQueryParamsContainingSpaces() {
+		try {
+			InteractionContext ctx = createInteractionContextWithQueryParams("MyEntity", "123 456 789");
+			String prop = CommandHelper.getViewActionProperty(ctx, "filter");
+			assertEquals("customer eq '123 456 789'", prop);
+		}
+		catch(Exception e) {
+			fail(e.getMessage());
+		}
+	}
 	
 	private EdmDataServices createMockEdmDataServices(String entityName, String keyTypeName) {
 		List<String> keys = new ArrayList<String>();
@@ -128,6 +157,25 @@ public class TestCommandHelper {
 		when(resourceState.getViewAction()).thenReturn(new Action("GETEntitiesCommand", Action.TYPE.VIEW, properties));
 		
         InteractionContext ctx = new InteractionContext(pathParams, queryParams, resourceState, mock(Metadata.class));
+        return ctx;
+	}
+
+	private InteractionContext createInteractionContextWithMultipleParams(String entity, String queryParamKey, String queryParamValue) {
+		ResourceState resourceState = mock(ResourceState.class);
+		when(resourceState.getEntityName()).thenReturn(entity);
+		when(resourceState.getUriSpecification()).thenReturn(new ODataUriSpecification().getTemplate("/" + entity, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add(queryParamKey, queryParamValue);
+
+		Properties actionViewProperties = new Properties();
+		actionViewProperties.put("entity", "Airport");
+		ActionPropertyReference propRef= new ActionPropertyReference("myfilter");
+		propRef.addProperty("__arrivalAirportCode", "arrivalAirportCode eq '{arrivalAirportCode}'");
+		propRef.addProperty("__departureAirportCode", "departureAirportCode eq '{departureAirportCode}'");
+		actionViewProperties.put("filter", propRef);
+		when(resourceState.getViewAction()).thenReturn(new Action("GetMyEntities", Action.TYPE.VIEW, actionViewProperties));
+		
+        InteractionContext ctx = new InteractionContext(new MultivaluedMapImpl<String>(), queryParams, resourceState, mock(Metadata.class));
         return ctx;
 	}
 }

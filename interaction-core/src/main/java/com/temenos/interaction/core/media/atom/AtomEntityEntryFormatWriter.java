@@ -26,6 +26,7 @@ import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Link;
@@ -37,7 +38,6 @@ import com.temenos.interaction.core.hypermedia.Link;
  * 
  */
 public class AtomEntityEntryFormatWriter {
-
 	protected UriInfo uriInfo = null;
 	protected String baseUri = "";
 
@@ -107,13 +107,13 @@ public class AtomEntityEntryFormatWriter {
 			}
 		}
 
-		writer.writeCategory(modelName + "Model." + entity.getName(), scheme);
+		writer.writeCategory(modelName + Metadata.MODEL_SUFFIX + "." + entity.getName(), scheme);
 		writer.flush();
 		
 		writer.startContent(MediaType.APPLICATION_XML);
 		
 		writer.startElement(new QName(m, "properties", "m"));
-		writeProperties(writer, entityMetadata, entity.getProperties());
+		writeProperties(writer, entityMetadata, entity.getProperties(), modelName);
 		writer.endElement();
 		
 		writer.endContent();
@@ -131,7 +131,7 @@ public class AtomEntityEntryFormatWriter {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void writeProperties(StreamWriter writer, EntityMetadata entityMetadata, EntityProperties entityProperties) {
+	private void writeProperties(StreamWriter writer, EntityMetadata entityMetadata, EntityProperties entityProperties, String modelName) {
 		// Loop round all properties writing out fields and MV and SV sets
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 		
@@ -141,50 +141,49 @@ public class AtomEntityEntryFormatWriter {
 			String propertyName = property.getKey(); 
 			EntityProperty propertyValue = (EntityProperty) property.getValue();
 			boolean isComplex = entityMetadata.isPropertyComplex( propertyName );
-	   		
-	   		if ( !isComplex )
+	   		if( !isComplex )
 	   		{
 	   			// Simple field
 	   			writeProperty( writer, entityMetadata, propertyName, (EntityProperty) propertyValue  );
 	   		}
-	   		else if ( isComplex )
-	   		{
-	   			// Complex List
-	   			writePropertyComplexList( writer, entityMetadata, propertyName, (List<EntityProperties>) propertyValue.getValue() );
-	   		}
 	   		else
 	   		{
-	   			throw new RuntimeException("Unable to establish type of property to write");
+	   			// Complex List
+	   			propertyName = entityMetadata.getEntityName() + "_" + propertyName;
+	   			writePropertyComplexList( writer, entityMetadata, propertyName, (List<EntityProperties>) propertyValue.getValue(), modelName );
 	   		}
 		}	
 	}
 	
 	private void writeProperty( StreamWriter writer, EntityMetadata entityMetadata, String name, EntityProperty property ) {
-		//writeElement( writer, name, entityMetadata.getPropertyValueAsString( property ) );
 		String elementText = entityMetadata.getPropertyValueAsString( property );
 		writer.startElement(new QName(d, name, "d"));
 		EdmType type = MetadataOData4j.termValueToEdmType(entityMetadata.getTermValue(name, TermValueType.TERM_NAME));
 		if(!type.equals(EdmSimpleType.STRING)) {
 			writer.writeAttribute(new QName(m, "type", "m"), type.getFullyQualifiedTypeName());
 		}
+
+		//Write the property text
 		if(type.equals(EdmSimpleType.DATETIME)) {
 			//Write dates in UTC format
 			SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 			writer.writeElementText(formatUTC.format((Date) property.getValue()));
-		}
+		}		
 		else if (elementText != null) {
 			writer.writeElementText(elementText);
 		}
 		writer.endElement();
 	}
 	
-	private void writePropertyComplexList( StreamWriter writer, EntityMetadata entityMetadata, String name, List<EntityProperties> propertiesList ) {
+	private void writePropertyComplexList( StreamWriter writer, EntityMetadata entityMetadata, String name, List<EntityProperties> propertiesList, String modelName ) {
 		
 		for ( EntityProperties properties : propertiesList )
 		{
 			writer.startElement(new QName(d, name, "d"));
-			writeProperties( writer, entityMetadata, properties );
+			String fqTypeName = modelName + Metadata.MODEL_SUFFIX + "." + name;
+			writer.writeAttribute(new QName(m, "type", "m"), fqTypeName);
+			writeProperties( writer, entityMetadata, properties, modelName );
 			writer.endElement(); 
 		}
 		

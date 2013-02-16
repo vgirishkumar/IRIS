@@ -237,4 +237,29 @@ public class EntityMetadata  {
 		}
 		return idFields;
 	}
+	
+	/**
+	 * Returns a new empty EntityProperty.
+	 * The value will be defaulted to according to the properties value type.
+	 * @param propertyName Entity property name
+	 * @return Entity property
+	 */
+	public EntityProperty createEmptyEntityProperty(String propertyName) {
+		String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
+		if(termValue.equals(TermValueType.INTEGER_NUMBER)) {
+			return new EntityProperty(propertyName, new Long(0));
+		}
+		else if(termValue.equals(TermValueType.NUMBER)) {
+			return new EntityProperty(propertyName, new Double(0.0));
+		}
+		else if(termValue.equals(TermValueType.BOOLEAN)) {
+			return new EntityProperty(propertyName, new Boolean(false));
+		}
+		else if(termValue.equals(TermValueType.TIMESTAMP) ||
+				termValue.equals(TermValueType.DATE) ||
+				termValue.equals(TermValueType.TIME)) {
+			return new EntityProperty(propertyName, new Date());
+		}
+		return new EntityProperty(propertyName, "");
+	}
 }

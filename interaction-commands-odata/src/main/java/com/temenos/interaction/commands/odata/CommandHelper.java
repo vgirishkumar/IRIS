@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.ActionPropertyReference;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -172,20 +174,53 @@ public class CommandHelper {
 		String prop = null;
 		if(ctx.getCurrentState().getViewAction() != null) {
 			Properties properties = ctx.getCurrentState().getViewAction().getProperties();
-			if(properties != null && properties.get(property) != null) {
-				prop = (String) properties.get(property);		//e.g. fld eq '{id}'
-				Matcher m = parameterPattern.matcher(prop);
-				while(m.find()) {
-					String param = m.group(1);	//e.g. id
-					if(ctx.getQueryParameters().containsKey(param)) {
-						prop = prop.replaceAll("\\{" + param + "\\}", ctx.getQueryParameters().getFirst(param));
-					}
-					else if(ctx.getPathParameters().containsKey(param)) {
-						prop = prop.replaceAll("\\{" + param + "\\}", ctx.getPathParameters().getFirst(param));
+			if(properties != null && properties.containsKey(property)) {
+				//Get the specified action property
+				prop = getActionProperty(property, properties, ctx.getQueryParameters().keySet());
+				
+				//Fill in template parameters
+				if(prop != null) {
+					Matcher m = parameterPattern.matcher(prop);
+					while(m.find()) {
+						String templateParam = m.group(1);			//e.g. code
+						if(ctx.getQueryParameters().containsKey(templateParam)) {
+							prop = prop.replaceAll("\\{" + templateParam + "\\}", ctx.getQueryParameters().getFirst(templateParam));
+						}
+						else if(ctx.getPathParameters().containsKey(templateParam)) {
+							prop = prop.replaceAll("\\{" + templateParam + "\\}", ctx.getPathParameters().getFirst(templateParam));
+						}
 					}
 				}
 			}
 		}
-		return prop;
+		return prop != null && !prop.equals(property) ? prop : null;
+	}
+	
+	/**
+	 * Obtain the specified action property.
+	 * An action property can either contain a simple value or reference a link property.
+	 * If it is the latter it will obtain the referenced value stored in the link property.
+	 * e.g. GetEntities filter=myfilter and filter="CreditAcctNo eq '{Acc}'", Acc="CreditAcctNo"
+	 * => filter=CreditAcctNo eq '{CreditAcctNo}'
+	 * @param propertyName Action property name
+	 * @param actionProperties Action properties
+	 * @param queryParameters Query parameters (keys)
+	 * @return Action property string
+	 */
+	protected static String getActionProperty(String propertyName, Properties actionProperties, Set<String> queryParameters) {
+		Object propObj = actionProperties.get(propertyName);
+		if(propObj != null && propObj instanceof ActionPropertyReference) {
+			ActionPropertyReference propRef = (ActionPropertyReference) propObj;
+			String key = "_";
+			for(String queryParamKey : queryParameters) {
+				if(!queryParamKey.startsWith("$")) {		//Do not consider $filter, $select, etc.
+					key += "_" + queryParamKey;
+				}
+			}
+			return propRef.getProperty(key);
+		}
+		else {
+			return actionProperties.get(propertyName).toString();		//e.g. fld eq '{code}'
+		}		
 	}
 }

@@ -142,8 +142,8 @@ public class TestRimDslGenerator {
 		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", "arrivalAirport");
 		rsmPassenger.addTransitionToEntityState("passenger", rsmFlight, "flight", "flightID", "flight");
 
-		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", "departures");
-		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", "arrivals");
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", "departureAirportCode", "departures");
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", "arrivalAirportCode", "arrivals");
 
 		rsmFlightSchedule.addPseudoStateTransition("FlightSchedules", "created", "FlightSchedules", "POST", null, "CreateEntity", null, true);
 		rsmFlight.addPseudoStateTransition("Flights", "created", "Flights", "POST", null, "CreateEntity", null, true);
