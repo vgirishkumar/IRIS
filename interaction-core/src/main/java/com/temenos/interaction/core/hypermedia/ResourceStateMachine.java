@@ -636,7 +636,7 @@ public class ResourceStateMachine {
 			throw e;
 		}
 	}
-	
+		
 	/**
 	 * Set template elements in link properties as query parameters.
 	 * e.g. filter=fld eq {code} => ?code=123
@@ -662,10 +662,14 @@ public class ResourceStateMachine {
 								linkTemplate.queryParam(linkParameters.get(param), paramValue);
 							}
 							else {
-								linkTemplate.queryParam(param, paramValue);
+								String newValue = linkProperty.replaceAll("\\{" + param + "\\}", paramValue.toString());
+								linkTemplate.queryParam(linkPropertyKey, newValue);
 							}
 						}
 					}
+				} else {
+					// add query parameter with literal value
+					linkTemplate.queryParam(linkPropertyKey, linkProperty);
 				}
 			}
 		}

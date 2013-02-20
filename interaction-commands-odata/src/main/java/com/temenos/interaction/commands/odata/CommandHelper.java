@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
@@ -176,7 +178,7 @@ public class CommandHelper {
 			Properties properties = ctx.getCurrentState().getViewAction().getProperties();
 			if(properties != null && properties.containsKey(property)) {
 				//Get the specified action property
-				prop = getActionProperty(property, properties, ctx.getQueryParameters().keySet());
+				prop = getActionProperty(property, properties, ctx.getQueryParameters());
 				
 				//Fill in template parameters
 				if(prop != null) {
@@ -200,19 +202,25 @@ public class CommandHelper {
 	 * Obtain the specified action property.
 	 * An action property can either contain a simple value or reference a link property.
 	 * If it is the latter it will obtain the referenced value stored in the link property.
-	 * e.g. GetEntities filter=myfilter and filter="CreditAcctNo eq '{Acc}'", Acc="CreditAcctNo"
+	 * e.g. GetEntities filter=myfilter and myfilter="CreditAcctNo eq '{Acc}'", Acc="CreditAcctNo"
 	 * => filter=CreditAcctNo eq '{CreditAcctNo}'
 	 * @param propertyName Action property name
 	 * @param actionProperties Action properties
 	 * @param queryParameters Query parameters (keys)
 	 * @return Action property string
 	 */
-	protected static String getActionProperty(String propertyName, Properties actionProperties, Set<String> queryParameters) {
+	protected static String getActionProperty(String propertyName, Properties actionProperties, MultivaluedMap<String, String> queryParameters) {
 		Object propObj = actionProperties.get(propertyName);
 		if(propObj != null && propObj instanceof ActionPropertyReference) {
 			ActionPropertyReference propRef = (ActionPropertyReference) propObj;
+			Set<String> queryParamKeys = queryParameters.keySet();
+
+			if (queryParameters.containsKey(propRef.getKey())) {
+				return queryParameters.getFirst(propRef.getKey());
+			}
+			
 			String key = "_";
-			for(String queryParamKey : queryParameters) {
+			for(String queryParamKey : queryParamKeys) {
 				if(!queryParamKey.startsWith("$")) {		//Do not consider $filter, $select, etc.
 					key += "_" + queryParamKey;
 				}
