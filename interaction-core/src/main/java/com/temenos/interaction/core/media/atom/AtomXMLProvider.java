@@ -163,6 +163,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				
 				//Write entry
 				Entity entity = entityResource.getEntity();
+				assert(entity.getName().equals(entityResource.getEntityName()));
 				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
 				// Write Entity object with Abdera implementation
 				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
