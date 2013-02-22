@@ -75,7 +75,7 @@ Command:
 ;
 
 CommandProperty:
-    name=ID '=' value=ID
+    name=ID '=' (value=ID | value=STRING)
 ;
 
 ResourceCommand:
