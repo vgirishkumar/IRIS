@@ -408,18 +408,22 @@ public class ResourceState implements Comparable<ResourceState> {
 						if(actionParameter.getValue() instanceof ActionPropertyReference) {
 							ActionPropertyReference actionRefProperty = (ActionPropertyReference) actionParameter.getValue();
 							String paramRefValue = linkParameters.get(actionRefProperty.getKey());
-							String paramRefKey = "_";		
-							Matcher m = templatePattern.matcher(paramRefValue);
-							while(m.find()) {
-								String param = m.group(1);								//e.g. code
-								String linkParameter = linkParameters.get(param);		//e.g. mycode
-								if(linkParameter != null) {
-									//replace template parameter with uri linkage properties (e.g. code => mycode if code="mycode")
-									paramRefValue = m.replaceAll("{" + linkParameter + "}");		//e.g. a eq {code1} && b eq {code2}
-									paramRefKey += "_" + linkParameter;								//e.g. _code1_code2
+							if (paramRefValue != null) {
+								String paramRefKey = "_";		
+								Matcher m = templatePattern.matcher(paramRefValue);
+								while(m.find()) {
+									String param = m.group(1);								//e.g. code
+									String linkParameter = linkParameters.get(param);		//e.g. mycode
+									if(linkParameter != null) {
+										//replace template parameter with uri linkage properties (e.g. code => mycode if code="mycode")
+										paramRefValue = m.replaceAll("{" + linkParameter + "}");		//e.g. a eq {code1} && b eq {code2}
+										paramRefKey += "_" + linkParameter;								//e.g. _code1_code2
+									}
 								}
+								actionRefProperty.addProperty(paramRefKey, paramRefValue);
+							} else {
+								logger.error("You appear to have specified a transition to a resource that requires command parameters, but you have not specified any parameters in your trasition");
 							}
-							actionRefProperty.addProperty(paramRefKey, paramRefValue);
 						}
 					}
 				}
