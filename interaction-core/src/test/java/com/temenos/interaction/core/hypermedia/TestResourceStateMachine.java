@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -1230,86 +1231,6 @@ public class TestResourceStateMachine {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-//	@Test
-	public void testGetMultipleLinksToCollectionResource() {
-		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
-		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
-
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		uriLinkageProperties.put("code", "arrivalAirportCode");		//applies query parameter ?arrivalAirportCode=xxx
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
-		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		uriLinkageProperties.put("code", "departureAirportCode");		//applies query parameter ?departureAirportCode=xxx
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
-
-		// initialise and get the application state (links)
-		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
-		
-		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
-		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("456")), null);
-
-		assertNotNull(links);
-		assertFalse(links.isEmpty());
-		assertEquals(3, links.size());
-
-		// sort the links so we have a predictable order for this test
-		List<Link> sortedLinks = new ArrayList<Link>();
-		sortedLinks.addAll(links);
-		Collections.sort(sortedLinks, new Comparator<Link>() {
-			@Override
-			public int compare(Link o1, Link o2) {
-				return o1.getId().compareTo(o2.getId());
-			}
-			
-		});
-		assertEquals("Airport.airport>GET(arrivalAirportCode, arrivalAirportCode eq '{code}')>Flight.Flights", sortedLinks.get(0).getId());
-		assertEquals("/baseuri/Flights()?arrivalAirportCode=456", sortedLinks.get(0).getHref());
-		assertEquals("Airport.airport>GET(departureAirportCode, departureAirportCode eq '{code}')>Flight.Flights", sortedLinks.get(1).getId());
-		assertEquals("/baseuri/Flights()?departureAirportCode=456", sortedLinks.get(1).getHref());
-		assertEquals("Airport.airport>GET>Airport.airport", sortedLinks.get(2).getId());
-		assertEquals("/baseuri/Airports('123')", sortedLinks.get(2).getHref());
-
-		// this method of asserting it's impossible to see what's wrong
-		assertTrue(containsLink(links, "Airport.airport>GET>Airport.airport", "/baseuri/Airports('123')"));
-		assertTrue(containsLink(links, "Airport.airport>GET(departureAirportCode, departureAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?departureAirportCode=456"));
-		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode, arrivalAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?arrivalAirportCode=456"));
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-//	@Test
-	public void testGetMultipleLinksToCollectionResourceWithSpacesInQueryParams() {
-		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
-		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
-
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		uriLinkageProperties.put("code", "arrivalAirportCode");		//applies query parameter ?arrivalAirportCode=xxx
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
-		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		uriLinkageProperties.put("code", "departureAirportCode");		//applies query parameter ?departureAirportCode=xxx
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
-
-		// initialise and get the application state (links)
-		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
-		
-		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
-		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")), null);
-
-		assertNotNull(links);
-		assertFalse(links.isEmpty());
-		assertEquals(3, links.size());
-
-		assertTrue(containsLink(links, "Airport.airport>GET>Airport.airport", "/baseuri/Airports('123')"));
-		assertTrue(containsLink(links, "Airport.airport>GET(departureAirportCode, departureAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?departureAirportCode=London+Luton"));
-		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode, arrivalAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?arrivalAirportCode=London+Luton"));
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testGetMultipleLinksToCollectionResourceWithTokenInQueryParams() {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
@@ -1356,6 +1277,64 @@ public class TestResourceStateMachine {
 		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?$filter=arrivalAirportCode+eq+'London+Luton'"));
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testGetLinkToCollectionResourceWithReferenceToExistingQueryParam() {
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
+		CollectionResourceState passengers = new CollectionResourceState("Passenger", "Passengers", new ArrayList<Action>(), "/Passengers()", null, null);
+
+		//Add link to list flights
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageProperties.put("myfilter", "arrivalAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageProperties.put("myfilter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+
+		//Add link to list passengers for all those flights
+		uriLinkageProperties.put("myfilter", "{myfilter}");
+		flights.addTransition("GET", passengers, uriLinkageMap, uriLinkageProperties);
+		
+		// initialise and get the application state (links)
+		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
+
+		//Generate links from airport to flights
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
+		pathParameters.add("id", "123");
+		Collection<Link> airportLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")), null);
+		assertNotNull(airportLinks);
+		assertFalse(airportLinks.isEmpty());
+		assertEquals(3, airportLinks.size());
+
+		//Generate links from airport to flights
+		for(Link airportLink : airportLinks) {
+			pathParameters = new MultivaluedMapImpl();
+			
+			//Obtain query parameters from link
+			MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl();
+			UriBuilder uriBuilder = UriBuilder.fromUri(airportLink.getHref());
+			String query = uriBuilder.build(new HashMap<String, Object>()).getQuery();
+			if(query != null && !query.isEmpty()) {
+				String[] queryParams = query.split("&");		
+				for(String queryParam : queryParams) {
+					String[] keyValuePair = queryParam.split("=");
+					queryParameters.add(keyValuePair[0], keyValuePair[1]);
+				}
+			}
+			
+			//Create links
+			Collection<Link> flightsLinks = rsm.injectLinks(new InteractionContext(pathParameters, queryParameters, flights, mock(Metadata.class)), new EntityResource<Object>(null), null);
+
+			if(airportLink.getId().equals("Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights")) {
+				assertTrue(containsLink(flightsLinks, "Flight.Flights>GET({myfilter})>Passenger.Passengers", "/baseuri/Passengers()?myfilter=arrivalAirportCode+eq+'London+Luton'"));
+			}
+			else if(airportLink.getId().equals("Airport.airport>GET(departureAirportCode eq '{code}')>Flight.Flights")) {
+				assertTrue(containsLink(flightsLinks, "Flight.Flights>GET({myfilter})>Passenger.Passengers", "/baseuri/Passengers()?myfilter=departureAirportCode+eq+'London+Luton'"));
+			}
+		}
+	}
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testGetLinkWithLiteralQueryParams() {
@@ -1500,6 +1479,11 @@ public class TestResourceStateMachine {
 			if(l.getId().equals(id) && l.getHref().equals(href)) {
 				return true;
 			}
+		}
+		//Link not found => print debug info
+		System.out.println("Links with id [" + id + "] and href [" + href + "] does not exist:");
+		for(Link l : links) {
+			System.out.println("   Link: id [" + l.getId() + "], href [" + l.getHref() + "]");
 		}
 		return false;
 	}

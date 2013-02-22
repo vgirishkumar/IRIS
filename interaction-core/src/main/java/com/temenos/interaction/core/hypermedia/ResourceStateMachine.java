@@ -19,6 +19,7 @@ import javax.ws.rs.core.UriBuilderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
@@ -445,7 +446,11 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Collection<Link> injectLinks(InteractionContext ctx, RESTResource resourceEntity, List<String> linkRelations) {
-		MultivaluedMap<String, String> pathParameters = ctx.getPathParameters();
+		//Add path and query parameters to the list of resource properties
+		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
+		resourceProperties.putAll(ctx.getPathParameters());
+		resourceProperties.putAll(ctx.getQueryParameters());
+
 		ResourceState state = ctx.getCurrentState();
 		List<Link> links = new ArrayList<Link>();
 		if (resourceEntity == null)
@@ -468,7 +473,7 @@ public class ResourceStateMachine {
 		}
 		
 		// add link to GET 'self'
-		links.add(createSelfLink(state.getSelfTransition(), entity, pathParameters));
+		links.add(createSelfLink(state.getSelfTransition(), entity, resourceProperties));
 
 		/*
 		 * Add links to other application states (resources)
@@ -489,7 +494,7 @@ public class ResourceStateMachine {
 								eLinks = new ArrayList<Link>();
 							}
 							UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
-							eLinks.add(createLink(linkTemplate, transition, er.getEntity(), pathParameters));
+							eLinks.add(createLink(linkTemplate, transition, er.getEntity(), resourceProperties));
 							er.setLinks(eLinks);
 						}
 					}
@@ -503,7 +508,7 @@ public class ResourceStateMachine {
 						
 					if (addLink) {
 						UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
-						links.add(createLink(linkTemplate, transition, entity, pathParameters));
+						links.add(createLink(linkTemplate, transition, entity, resourceProperties));
 					}
 				}
 			}
@@ -599,7 +604,11 @@ public class ResourceStateMachine {
 			}
 			Map<String, String> linkParameters = transition.getCommand().getParameters();
 			if (linkParameters != null) {
-				properties.putAll(linkParameters);
+				for (String key : linkParameters.keySet()) {
+					if(!linkParameters.containsKey(key)) {		//Do not overwrite resource properties
+						properties.put(key, linkParameters.get(key));
+					}
+				}
 			}
 			
 			//Obtain entity properties
@@ -657,12 +666,17 @@ public class ResourceStateMachine {
 						if(properties.containsKey(param) &&
 								(targetStatePath == null || !targetStatePath.contains("{" + param + "}"))) {		
 							//Add query parameter
-							Object paramValue = properties.get(param);
-							if(linkParameters.containsKey(param)) {		//Check whether to use a customized query parameter name such as (code="MyCode"  => ...?MyCode=123) 
-								linkTemplate.queryParam(linkParameters.get(param), paramValue);
-							}
-							else {
-								String newValue = linkProperty.replaceAll("\\{" + param + "\\}", paramValue.toString());
+							if(properties.containsKey(param)) {
+								String newValue;
+								String paramValue = properties.get(param).toString();
+								if(linkProperty.equals("{" + param + "}")) {
+									//link property is a reference to an existing resource property
+									newValue = paramValue;
+								}
+								else {
+									//replace template tokens in link property
+									newValue = linkProperty.replaceAll("\\{" + param + "\\}", paramValue);
+								}
 								linkTemplate.queryParam(linkPropertyKey, newValue);
 							}
 						}
