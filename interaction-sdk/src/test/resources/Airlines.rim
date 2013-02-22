@@ -31,14 +31,14 @@ resource Flights
 	path "/Flights()"
 	POST -> Flights_created
 	GET *-> flight id=flightID
-	GET title="flightschedule" *-> flight_flightschedule id=flightID, navproperty="flightschedule"
+	GET title="flightschedule" *-> flight_flightschedule id=flightID
 end
 
 resource flight
 	item Flight
 	view { GETEntity }
 	path "/Flights({id})"
-	GET title="flightschedule" -> flight_flightschedule id=flightID, navproperty="flightschedule"
+	GET title="flightschedule" -> flight_flightschedule id=flightID
 end
 
 resource Flights_created
@@ -49,7 +49,7 @@ end
 
 resource flight_flightschedule
 	item FlightSchedule
-	view { GETNavProperty navproperty=navproperty, entity=Flight }
+	view { GETNavProperty navproperty="flightschedule", entity=Flight }
 	path "/Flights({id})/flightschedule"
 end
 
@@ -82,8 +82,8 @@ resource airport_arrivals
 	view { GETEntities filter=filter }
 	path "/Airports('{id}')/arrivals"
 	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
-	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
+	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID
+	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID
 end
 
 resource airport_departures
@@ -91,8 +91,8 @@ resource airport_departures
 	view { GETEntities filter=filter }
 	path "/Airports('{id}')/departures"
 	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
-	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
+	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID
+	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID
 end
 
 resource FlightSchedules
@@ -101,27 +101,27 @@ resource FlightSchedules
 	path "/FlightSchedules()"
 	POST -> FlightSchedules_created
 	GET *-> flightschedule id=flightScheduleID
-	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
-	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
+	GET title="departureAirport" *-> flightschedule_departureAirport id=flightScheduleID
+	GET title="arrivalAirport" *-> flightschedule_arrivalAirport id=flightScheduleID
 end
 
 resource flightschedule
 	item FlightSchedule
 	view { GETEntity }
 	path "/FlightSchedules({id})"
-	GET title="departureAirport" -> flightschedule_departureAirport id=flightScheduleID, navproperty="departureAirport"
-	GET title="arrivalAirport" -> flightschedule_arrivalAirport id=flightScheduleID, navproperty="arrivalAirport"
+	GET title="departureAirport" -> flightschedule_departureAirport id=flightScheduleID
+	GET title="arrivalAirport" -> flightschedule_arrivalAirport id=flightScheduleID
 end
 
 resource flightschedule_arrivalAirport
 	item Airport
-	view { GETNavProperty navproperty=navproperty, entity=FlightSchedule }
+	view { GETNavProperty navproperty="arrivalAirport", entity=FlightSchedule }
 	path "/FlightSchedules({id})/arrivalAirport"
 end
 
 resource flightschedule_departureAirport
 	item Airport
-	view { GETNavProperty navproperty=navproperty, entity=FlightSchedule }
+	view { GETNavProperty navproperty="departureAirport", entity=FlightSchedule }
 	path "/FlightSchedules({id})/departureAirport"
 end
 
@@ -137,19 +137,19 @@ resource Passengers
 	path "/Passengers()"
 	POST -> Passengers_created
 	GET *-> passenger id=passengerNo
-	GET title="flight" *-> passenger_flight id=passengerNo, navproperty="flight"
+	GET title="flight" *-> passenger_flight id=passengerNo
 end
 
 resource passenger
 	item Passenger
 	view { GETEntity }
 	path "/Passengers({id})"
-	GET title="flight" -> passenger_flight id=passengerNo, navproperty="flight"
+	GET title="flight" -> passenger_flight id=passengerNo
 end
 
 resource passenger_flight
 	item Flight
-	view { GETNavProperty navproperty=navproperty, entity=Passenger }
+	view { GETNavProperty navproperty="flight", entity=Passenger }
 	path "/Passengers({id})/flight"
 end
 

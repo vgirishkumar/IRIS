@@ -39,7 +39,7 @@ resource ${state.getName()}
 	view { GETEntities filter=filter }
 #elseif(${state.class.simpleName} == "IMNavigationState" && !${state.isNavigationToCollectionResource()})
 	item ${state.getTargetResourceStateMachine().getEntityName()}
-	view { GETNavProperty navproperty=navproperty, entity=${rsm.getEntityName()} }
+	view { GETNavProperty navproperty="${state.getName()}", entity=${rsm.getEntityName()} }
 #elseif(${state.class.simpleName} == "IMCollectionState")
 	collection ${rsm.getEntityName()}
 #if($strictOData)
@@ -105,12 +105,12 @@ end
 #if($strictOData)
 	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${entityState.getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}, filter="${transition.getFilter()}"
 #else
-	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getCollectionState().getName()} filter="${transition.getFilter()}", ${rsm.getMappedEntityProperty()}="${transition.getLinkProperty()}"
+	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getCollectionState().getName()} filter="${transition.getFilter()}"
 #end
 #elseif(${transition.class.simpleName} == "IMEntityStateTransition")
 ## Transition to a navigation state representing another RSM's entity state
 #if($strictOData)
-	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${entityState.getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}, navproperty="${transition.getTargetState().getName()}"
+	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${entityState.getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
 #else
 	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getEntityState().getName()} id=${transition.getLinkProperty()}
 #end
@@ -138,12 +138,12 @@ end
 #if($strictOData)
 	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}, filter="${transition.getFilter()}"
 #else
-	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${transition.getTargetResourceStateMachine().getCollectionState().getName()} filter="${transition.getFilter()}", ${rsm.getMappedEntityProperty()}="${transition.getLinkProperty()}"
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${transition.getTargetResourceStateMachine().getCollectionState().getName()} filter="${transition.getFilter()}"
 #end
 #elseif(${transition.class.simpleName} == "IMEntityStateTransition")
 ## Transition to a navigation state representing another RSM's entity state
 #if($strictOData)
-	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}, navproperty="${transition.getTargetState().getName()}"
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
 #else
 	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${transition.getTargetResourceStateMachine().getEntityState().getName()} id=${transition.getLinkProperty()}
 #end

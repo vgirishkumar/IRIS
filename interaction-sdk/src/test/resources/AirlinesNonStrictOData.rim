@@ -53,16 +53,16 @@ resource Airports
 	path "/Airports()"
 	POST -> Airports_created
 	GET *-> airport id=code
-	GET title="departures" *-> FlightSchedules filter="departureAirportCode eq '{code}'", code="departureAirportCode"
-	GET title="arrivals" *-> FlightSchedules filter="arrivalAirportCode eq '{code}'", code="arrivalAirportCode"
+	GET title="departures" *-> FlightSchedules filter="departureAirportCode eq '{code}'"
+	GET title="arrivals" *-> FlightSchedules filter="arrivalAirportCode eq '{code}'"
 end
 
 resource airport
 	item Airport
 	view { GETEntity }
 	path "/Airports('{id}')"
-	GET title="departures" -> FlightSchedules filter="departureAirportCode eq '{code}'", code="departureAirportCode"
-	GET title="arrivals" -> FlightSchedules filter="arrivalAirportCode eq '{code}'", code="arrivalAirportCode"
+	GET title="departures" -> FlightSchedules filter="departureAirportCode eq '{code}'"
+	GET title="arrivals" -> FlightSchedules filter="arrivalAirportCode eq '{code}'"
 end
 
 resource Airports_created
