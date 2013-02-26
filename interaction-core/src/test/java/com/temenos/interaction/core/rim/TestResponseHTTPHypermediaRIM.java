@@ -37,6 +37,7 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -49,6 +50,16 @@ import com.temenos.interaction.core.web.RequestContext;
 @PrepareForTest({HTTPHypermediaRIM.class})
 public class TestResponseHTTPHypermediaRIM {
 	
+	class MockEntity {
+		String id;
+		MockEntity(String id) {
+			this.id = id;
+		}
+		public String getId() {
+			return id;
+		}
+	};
+
 	@Before
 	public void setup() {
 		// initialise the thread local request context with requestUri and baseUri
@@ -382,6 +393,51 @@ public class TestResponseHTTPHypermediaRIM {
         assertEquals("/baseuri/machines/toaster", locationHeader.get(0));
 	}
 
+	/*
+	 * This test is for a POST request that creates a new resource.
+	 */
+	@Test
+	public void testBuildResponseWith201Created() throws Exception {
+		/*
+		 * construct an InteractionContext that simply mocks the result of 
+		 * deleting a resource, with no updated resource for the user agent
+		 * to re-display
+		 */
+		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
+		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
+		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
+		
+		// create new machine
+		initialState.addTransition("POST", createPsuedoState);
+		// an auto transition to the new resource
+		createPsuedoState.addTransition(individualMachine);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), mock(Metadata.class));
+		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
+
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
+		/*
+		 *  201 "Created" informs the user agent that 'the request has been fulfilled and resulted 
+		 *  in a new resource being created'.  It can be accessed by a GET to the resource specified 
+		 *  by the 'Location' header
+		 */
+		assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+		List<Object> locationHeader = response.getMetadata().get("Location");
+		assertNotNull(locationHeader);
+        assertEquals(1, locationHeader.size());
+        assertEquals("/baseuri/machines/123", locationHeader.get(0));
+	}
+	
+	private EntityResource<Object> mockEntityResourceWithId(final String id) {
+		return new EntityResource<Object>(new MockEntity(id));
+	}
+	
 	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWithLinks() throws Exception {
