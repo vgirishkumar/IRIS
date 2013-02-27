@@ -59,8 +59,8 @@ resource sector_IAuth_authorise
 	actions { AuthoriseEntity }
 	relations { "edit" }
 	path "/SectorsIAuth('{id}')/authorise"
-	GET --> sector_IAuth (OK(sector_IAuth))
-	GET --> sector (OK(sector))
+	GET --> sector_IAuth (OK(sector_IAuth)) id=SectorCode
+	GET --> sector (OK(sector)) id=SectorCode
 end
 
 resource sector_IAuth_delete
@@ -68,7 +68,7 @@ resource sector_IAuth_delete
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/SectorsIAuth('{id}')/delete"
-	GET --> sector (OK(sector))
+	GET --> sector (OK(sector)) id=SectorCode
 end
 
 resource sector_reverse
@@ -76,7 +76,7 @@ resource sector_reverse
 	actions { ReverseEntity }
 	relations { "edit" }
 	path "/SectorsReversed('{id}')"
-	GET --> sector_Reversed (OK(sector_Reversed))
+	GET --> sector_Reversed (OK(sector_Reversed)) id=SectorCode
 end
 
 resource sector_Reversed
@@ -98,8 +98,8 @@ resource Sectors_input
 	item Sector
 	actions { CreateEntity }
 	path "/Sectors()"
-	GET --> sector_IAuth (OK(sector_IAuth))
-	GET --> sector (OK(sector))
+	GET --> sector_IAuth (OK(sector_IAuth)) id=SectorCode
+	GET --> sector (OK(sector)) id=SectorCode
 end
 
 resource Sectors_Reversed

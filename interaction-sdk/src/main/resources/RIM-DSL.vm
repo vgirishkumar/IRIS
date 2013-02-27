@@ -129,7 +129,7 @@ end
 #foreach ( $transition in $state.getTransitions() )
 #if (${transition.class.simpleName} == "IMStateTransition" && $transition.isAutoTransition())
 ## Auto transition from pseudo state
-	${transition.getMethod()} --> ${transition.getTargetState().getName()} (OK(${transition.getTargetState().getName()}))
+	${transition.getMethod()} --> ${transition.getTargetState().getName()} (OK(${transition.getTargetState().getName()})) id=${rsm.getMappedEntityProperty()}
 #elseif($transition.isBoundToCollection() && (${transition.getTargetState().class.simpleName} == "IMPseudoState" || ${transition.class.simpleName} == "IMStateTransition" && ${state.class.simpleName} == "IMCollectionState"))
 ## Collection transition to a pseudo state or collection state in same RSM
 	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${transition.getTargetState().getName()}

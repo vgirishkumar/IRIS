@@ -40,6 +40,7 @@ import com.temenos.interaction.sdk.entity.EMTerm;
 import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
+import com.temenos.interaction.sdk.interaction.state.IMPseudoState;
 import com.temenos.interaction.sdk.util.ReferentialConstraintParser;
 
 public class EDMXAdapter implements InteractionAdapter {
@@ -231,7 +232,8 @@ public class EDMXAdapter implements InteractionAdapter {
 			}
 			
 			// add CRUD operations for each EntitySet
-			rsm.addPseudoStateTransition(collectionStateName, "created", collectionStateName, "POST", null, "CreateEntity", null, true);
+			IMPseudoState pseudoState = rsm.addPseudoStateTransition(collectionStateName, "created", collectionStateName, "POST", null, "CreateEntity", null, true);
+			pseudoState.addAutoTransition(rsm.getResourceState(entityStateName), "GET");
 			rsm.addPseudoStateTransition(entityStateName, "updated", entityStateName, "PUT", null, "UpdateEntity", "edit", false);
 			rsm.addPseudoStateTransition(entityStateName, "deleted", "DELETE", null, "DeleteEntity", "edit", false);
 		}

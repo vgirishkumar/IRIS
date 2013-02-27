@@ -83,6 +83,7 @@ resource airport_pseudo_created
 	item Airport
 	actions { CreateEntity }
 	path "/Airports()"
+	GET --> airport
 end
 
 resource airport_pseudo_updated
@@ -129,6 +130,7 @@ resource flight_pseudo_created
 	item Flight
 	actions { CreateEntity }
 	path "/Flights()"
+    GET --> flight	
 end
 
 resource flight_pseudo_updated
@@ -200,6 +202,7 @@ resource flightschedule_pseudo_created
 	item FlightSchedule
 	actions { CreateEntity }
 	path "/FlightSchedules()"
+    GET --> flightschedule id=flightScheduleID
 end
 
 resource flightschedule_pseudo_updated
@@ -241,6 +244,7 @@ resource passenger_pseudo_created
 	item Passenger
 	actions { CreateEntity }
 	path "/Passengers()"
+    GET --> passenger
 end
 
 resource passenger_pseudo_updated

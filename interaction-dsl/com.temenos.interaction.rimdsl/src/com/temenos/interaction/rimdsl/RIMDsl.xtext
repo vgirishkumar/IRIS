@@ -38,7 +38,7 @@ TransitionForEach:
 ;
 
 TransitionAuto:
-    (event=[Event] '-->' state=[State] (eval=Expression)?)
+    (event=[Event] '-->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
 Expression:

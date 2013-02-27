@@ -239,10 +239,16 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param targetState
 	 */
 	public void addTransition(ResourceState targetState) {
-		addTransition(null, targetState, Transition.AUTO);
+		addTransition(targetState, null, null, null);
 	}
 	public void addTransition(ResourceState targetState, List<Expression> conditionalExpressions) {
-		addTransition(null, targetState, Transition.AUTO, conditionalExpressions);
+		addTransition(targetState, null, null, conditionalExpressions);
+	}
+	public void addTransition(ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
+		addTransition(targetState, uriLinkageMap, uriLinkageProperties, null);
+	}
+	public void addTransition(ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, List<Expression> conditionalExpressions) {
+		addTransition(null, targetState, uriLinkageMap, uriLinkageProperties, Transition.AUTO, conditionalExpressions, null);
 	}
 
 	/**
