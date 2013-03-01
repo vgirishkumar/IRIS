@@ -578,12 +578,24 @@ public class ResourceStateMachine {
 	}
 
 	/*
-	 * @invariant {@link RequestContext} must have been initialised
+	 * @precondition {@link RequestContext} must have been initialised
 	 */
 	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		assert(RequestContext.getRequestContext() != null);
 		UriBuilder selfUriTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
 		return createLink(selfUriTemplate, transition, entity, pathParameters);
+	}
+
+	/**
+	 * Create a Link using the supplied transition and entity.
+	 * @param transition
+	 * @param entity
+	 * @param pathParameters
+	 * @return
+	 * @precondition {@link RequestContext} must have been initialised
+	 */
+	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
+		return createSelfLink(transition, entity, pathParameters);
 	}
 
 	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity, MultivaluedMap<String, String> map) {

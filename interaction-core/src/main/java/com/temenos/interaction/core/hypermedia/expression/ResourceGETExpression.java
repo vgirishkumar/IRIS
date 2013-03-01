@@ -32,7 +32,8 @@ public class ResourceGETExpression implements Expression {
 	@Override
 	public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
 		ResourceState target = hypermediaEngine.getResourceStateByName(state);
-		assert(target != null) : "Indicates a problem with the RIM, it allowed an invalid state to be supplied";
+		if (target == null)
+			throw new IllegalArgumentException("Indicates a problem with the RIM, it allowed an invalid state to be supplied");
 		assert(target.getActions() != null);
 		assert(target.getActions().size() == 1);
 		Action viewAction = target.getActions().get(0);

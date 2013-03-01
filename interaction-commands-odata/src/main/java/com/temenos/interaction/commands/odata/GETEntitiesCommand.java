@@ -71,8 +71,10 @@ public class GETEntitiesCommand implements InteractionCommand {
 		String skip = queryParams.getFirst("$skip");
 		String actionFilter = CommandHelper.getViewActionProperty(ctx, "filter");		//Filter defined as action property 
 		String filter = queryParams.getFirst("$filter");								//Query filter
-		if(actionFilter != null && !actionFilter.isEmpty()) {
-			filter = filter != null ? filter + " and " + actionFilter : actionFilter;
+		if (filter == null 
+				&& actionFilter != null && !actionFilter.isEmpty()
+				&& !actionFilter.contains("{") && !actionFilter.contains("}")) {
+			filter = actionFilter;
 		}
 		String orderBy = queryParams.getFirst("$orderby");
 		String skipToken = queryParams.getFirst("$skiptoken");

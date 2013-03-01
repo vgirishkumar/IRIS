@@ -292,7 +292,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		hypermediaEngine.injectLinks(ctx, ctx.getResource(), headers.getRequestHeader("Link"));
     	}
     	// build response
-    	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx.getTargetState());
+    	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx);
     }
 	
 	private ResourceState initialiseInteractionContext(HttpHeaders headers, Event event, InteractionContext ctx, EntityResource<?> resource) {
@@ -331,7 +331,21 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	    	}
 		} else if (event.getMethod().equals(HttpMethod.POST)) {
 	    	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
-	   		status = result == Result.SUCCESS ? Status.CREATED : Status.INTERNAL_SERVER_ERROR;
+			ResourceState currentState = ctx.getCurrentState();
+			if (result == Result.SUCCESS) {
+				if (currentState != null && currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0
+						&& ctx.getResource() != null) {
+			   		status = Status.CREATED;
+				} else if (ctx.getResource() == null) {
+		   			status = Status.NO_CONTENT;
+				} else {
+					logger.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
+			   		status = Status.OK;
+				}
+			} else {
+		   		status = Status.INTERNAL_SERVER_ERROR;				
+			}
+
 		} else if (event.getMethod().equals(HttpMethod.PUT)) {
 	    	/*
 	    	 * The resource manager must return an error result code or have stored this 
@@ -421,7 +435,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	return ctx;
 	}
 
-    private Response buildResponse(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, StatusType status, RESTResource resource, Set<String> interactions, ResourceState targetState) {	
+    private Response buildResponse(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, StatusType status, RESTResource resource, Set<String> interactions, InteractionContext ctx) {	
     	RESTResponse response = new RESTResponse(status, resource);
 
     	assert (response != null);
@@ -437,9 +451,24 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.equals(Response.Status.NO_CONTENT)) {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.equals(Response.Status.SEE_OTHER)) {
+			ResourceState targetState = ctx.getTargetState();
 			Transition autoTransition = targetState.getAutoTransition();
     		Link target = hypermediaEngine.createLinkToTarget(autoTransition, resource, pathParameters);
 			responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
+		} else if (status.equals(Response.Status.CREATED)) {
+			ResourceState currentState = ctx.getCurrentState();
+			assert(currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
+			ResourceState targetState = currentState.getAllTargets().iterator().next();
+			// TODO need to support conditional auto transitions
+			Transition autoTransition = ctx.getCurrentState().getTransition(targetState);
+			if (autoTransition != null) {
+				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
+	    		@SuppressWarnings("rawtypes")
+				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource)resource).getEntity(), pathParameters);
+				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
+			}
+			assert(response.getResource() != null);
+    		responseBuilder.entity(resource.getGenericEntity());
 		} else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
     		/*

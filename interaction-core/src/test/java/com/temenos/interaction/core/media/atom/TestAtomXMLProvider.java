@@ -304,6 +304,7 @@ public class TestAtomXMLProvider {
 	
 		Entity entity = new Entity("Flight", properties);
 		when(er.getEntity()).thenReturn(entity);
+		when(er.getEntityName()).thenReturn("Flight");
 		return er;
 	}
 	

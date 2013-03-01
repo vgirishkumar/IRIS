@@ -185,11 +185,12 @@ class RIMDslGenerator implements IGenerator {
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
+            «produceUriLinkage(transition.uriLinks)»
             «IF transition.eval != null»
             «produceExpressions(transition.eval)»
-            s«fromState.name».addTransition(s«transition.state.name», conditionalLinkExpressions);
+            s«fromState.name».addTransition(s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);
             «ELSE»
-            s«fromState.name».addTransition(s«transition.state.name»);
+            s«fromState.name».addTransition(s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties);
             «ENDIF»
     '''
 

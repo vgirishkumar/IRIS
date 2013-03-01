@@ -282,6 +282,48 @@ public class GeneratorTest {
 		assertTrue(indexOfAddTransition > 0);
 	}
 
+	private final static String AUTO_TRANSITION_WITH_URI_LINKAGE_RIM = "" +
+			"events" + LINE_SEP +
+			"	GET GET" + LINE_SEP +
+			"end" + LINE_SEP +
+			
+			"commands" + LINE_SEP +
+			"	GetEntity properties" + LINE_SEP +
+			"	GetEntities properties" + LINE_SEP +
+			"	CreateEntity properties" + LINE_SEP +
+			"end" + LINE_SEP +
+					
+			"initial resource A" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"	view { GetEntities }" + LINE_SEP +
+			"	POST -> create_pseudo_state" + LINE_SEP +
+			"end" + LINE_SEP +
+
+			"resource create_pseudo_state" +
+			"	item ENTITY" + LINE_SEP +
+			"	actions { CreateEntity }" + LINE_SEP +
+			"   GET --> created id=MyId" + LINE_SEP +
+			"end" + LINE_SEP +
+			"resource created" +
+			"	item ENTITY" + LINE_SEP +
+			"	view { GetEntity }" + LINE_SEP +
+			"end" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateAutoTransitionsWithUriLinkage() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(AUTO_TRANSITION_WITH_URI_LINKAGE_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		
+		assertTrue(output.contains("uriLinkageEntityProperties.put(\"id\", \"MyId\");"));
+		assertTrue(output.contains("screate_pseudo_state.addTransition(screated, uriLinkageEntityProperties, uriLinkageProperties);"));
+	}
+
 	private final static String RESOURCE_RELATIONS_RIM = "" +
 			"commands" + LINE_SEP +
 			"	Noop" + LINE_SEP +
@@ -373,8 +415,8 @@ public class GeneratorTest {
 		
 		assertTrue(output.contains("sA.addTransitionForEachItem(\"GET\", sB, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions, \"B\");"));
 		assertTrue(output.contains("sB.addTransition(\"PUT\", sB_pseudo, uriLinkageEntityProperties, uriLinkageProperties, 0, conditionalLinkExpressions, \"B_pseudo\");"));
-		assertTrue(output.contains("sB_pseudo.addTransition(sA, conditionalLinkExpressions);"));
-		assertTrue(output.contains("sB_pseudo.addTransition(sB, conditionalLinkExpressions);"));
+		assertTrue(output.contains("sB_pseudo.addTransition(sA, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
+		assertTrue(output.contains("sB_pseudo.addTransition(sB, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
 	}
 	
 }
