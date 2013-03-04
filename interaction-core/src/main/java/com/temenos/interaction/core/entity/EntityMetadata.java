@@ -178,14 +178,19 @@ public class EntityMetadata  {
 		String propertyName = property.getName();
 		String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
 		Object propertyValue = property.getValue();
-		if (termValue.equals(TermValueType.TEXT) ||
+		if ((termValue.equals(TermValueType.TEXT) ||
 				termValue.equals(TermValueType.RECURRENCE) ||
-				termValue.equals(TermValueType.ENCRYPTED_TEXT) ||
+				termValue.equals(TermValueType.ENCRYPTED_TEXT)) &&
 				propertyValue != null && propertyValue instanceof String) {
 			value = (String) propertyValue;
 		}
-		else if(termValue.equals(TermValueType.INTEGER_NUMBER)) {
-			value = Long.toString( (Long) propertyValue );
+		else if(termValue.equals(TermValueType.INTEGER_NUMBER)
+				&& (propertyValue instanceof Integer || propertyValue instanceof Long)) {
+			if (propertyValue instanceof Integer) {
+				value = Integer.toString( (Integer) propertyValue );
+			} else if (propertyValue instanceof Long) {
+				value = Long.toString( (Long) propertyValue );
+			}
 		}
 		else if(termValue.equals(TermValueType.NUMBER)) {
 			value = Double.toString( (Double) propertyValue );
