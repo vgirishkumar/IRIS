@@ -18,7 +18,7 @@ public abstract class AbstractODataCommand {
 		if (ctx.getCurrentState().getActions().size() > 0)
 			action = ctx.getCurrentState().getActions().get(0);
 		
-		if (action != null && action.getProperties().getProperty(ENTITY_PROPERTY) != null) {
+		if (action != null && action.getProperties() != null && action.getProperties().getProperty(ENTITY_PROPERTY) != null) {
 			entityName = action.getProperties().getProperty(ENTITY_PROPERTY);
 		}
 		return entityName;
