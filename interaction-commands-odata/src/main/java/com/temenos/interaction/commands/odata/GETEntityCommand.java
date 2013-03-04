@@ -17,7 +17,7 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.EntityResource;
 
-public class GETEntityCommand implements InteractionCommand {
+public class GETEntityCommand extends AbstractODataCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(GETEntityCommand.class);
 
 	private ODataProducer producer;
@@ -41,7 +41,8 @@ public class GETEntityCommand implements InteractionCommand {
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() == null);
 		
-		String entityName = ctx.getCurrentState().getEntityName();
+		String entityName = getEntityName(ctx);
+		logger.debug("Getting entity for " + entityName);
 		try {
 			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);
 			String entitySetName = entitySet.getName();
