@@ -14,6 +14,8 @@ import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
@@ -22,7 +24,8 @@ import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 
-public class CreateEntityCommand implements InteractionCommand {
+public class CreateEntityCommand extends AbstractODataCommand implements InteractionCommand {
+	private final Logger logger = LoggerFactory.getLogger(CreateEntityCommand.class);
 
 	private ODataProducer producer;
 
@@ -47,7 +50,9 @@ public class CreateEntityCommand implements InteractionCommand {
 		} catch (ClassCastException cce) {
 			entity = create(((EntityResource<Entity>) ctx.getResource()).getEntity());
 		}
-		EntityResponse er = producer.createEntity(ctx.getCurrentState().getEntityName(), entity);
+		String entityName = getEntityName(ctx);
+		logger.debug("Creating entity for " + entityName);
+		EntityResponse er = producer.createEntity(entityName, entity);
 		OEntity oEntity = er.getEntity();
 		
 		ctx.setResource(CommandHelper.createEntityResource(oEntity));

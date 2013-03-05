@@ -143,8 +143,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 				//Convert Links to list of OLink
 				List<OLink> olinks = new ArrayList<OLink>();
-				for(Link link : entityResource.getLinks()) {
-					addLinkToOLinks(olinks, link);
+				if (entityResource.getLinks() != null) {
+					for(Link link : entityResource.getLinks()) {
+						addLinkToOLinks(olinks, link);
+					}
 				}
 				
 				//Write entry

@@ -281,7 +281,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	assert(result != null) : "InteractionCommand must result a result";
     	// determine status
     	status = determineStatus(event, ctx, result);
-    	if (ctx.getResource() != null) {
+    	if (ctx.getResource() != null && status.getFamily() == Status.Family.SUCCESSFUL) {
     		/*
     		 * Add entity information to this resource
     		 */

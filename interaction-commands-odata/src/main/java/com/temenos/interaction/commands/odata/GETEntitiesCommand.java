@@ -17,7 +17,7 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InvalidRequestException;
 import com.temenos.interaction.core.resource.CollectionResource;
 
-public class GETEntitiesCommand implements InteractionCommand {
+public class GETEntitiesCommand extends AbstractODataCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
 
 	private ODataProducer producer;
@@ -37,7 +37,7 @@ public class GETEntitiesCommand implements InteractionCommand {
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() == null);
 
-		String entityName = ctx.getCurrentState().getEntityName();
+		String entityName = getEntityName(ctx);
 		logger.debug("Getting entities for " + entityName);
 		try {
 			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);

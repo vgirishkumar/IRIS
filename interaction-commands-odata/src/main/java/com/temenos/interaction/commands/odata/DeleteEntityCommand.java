@@ -4,11 +4,14 @@ import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.ODataProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 
-public class DeleteEntityCommand implements InteractionCommand {
+public class DeleteEntityCommand extends AbstractODataCommand implements InteractionCommand {
+	private final Logger logger = LoggerFactory.getLogger(DeleteEntityCommand.class);
 
 	private ODataProducer producer;
 	private EdmDataServices edmDataServices;
@@ -31,7 +34,8 @@ public class DeleteEntityCommand implements InteractionCommand {
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		assert(ctx.getResource() == null);
 		
-		String entity = ctx.getCurrentState().getEntityName();
+		String entity = getEntityName(ctx);
+		logger.debug("Deleting entity for " + entity);
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
 		if (entitySet == null)
 			throw new RuntimeException("Entity set not found [" + entity + "]");
