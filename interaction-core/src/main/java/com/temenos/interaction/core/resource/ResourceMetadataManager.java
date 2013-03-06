@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.MetadataParser;
+import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 
@@ -52,6 +53,15 @@ public class ResourceMetadataManager {
 	}
 
 	/**
+	 * Construct the metadata object
+	 */
+	public ResourceMetadataManager(ResourceStateMachine hypermediaEngine, TermFactory termFactory)
+	{
+		metadata = parseMetadataXML(termFactory);
+		edmMetadata = populateOData4jMetadata(metadata, hypermediaEngine);
+	}
+	
+	/**
 	 * Return the entity model metadata
 	 * @return metadata
 	 */
@@ -68,15 +78,22 @@ public class ResourceMetadataManager {
 	}
 	
 	/*
-	 * Parse the XML metadata file
+	 * Parse the XML metadata file with the default Vocabulary Term Factory
 	 */
 	protected Metadata parseMetadataXML() {
+		return parseMetadataXML(new TermFactory());
+	}
+
+	/*
+	 * Parse the XML metadata file
+	 */
+	protected Metadata parseMetadataXML(TermFactory termFactory) {
 		try {
 			InputStream is = getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
 			if(is == null) {
 				throw new Exception("Unable to load " + METADATA_XML_FILE + " from classpath.");
 			}
-			return new MetadataParser().parse(is);
+			return new MetadataParser(termFactory).parse(is);
 		}
 		catch(Exception e) {
 			logger.error("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
@@ -84,7 +101,7 @@ public class ResourceMetadataManager {
 			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
 		}
 	}
-
+	
 	/*
 	 * Parse the XML metadata string
 	 */

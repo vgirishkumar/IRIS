@@ -7,6 +7,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.temenos.interaction.core.entity.vocabulary.Term;
+import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
@@ -157,4 +159,25 @@ public class TestMetadataParser {
 		Assert.assertEquals("true", md.getTermValue("name", TermIdField.TERM_NAME));
 		Assert.assertEquals("false", md.getTermValue("dateOfBirth", TermIdField.TERM_NAME));
 	}	
+
+	@Test
+	public void testCustomTermFactory()
+	{	
+		TermFactory termFactory = new TermFactory() {
+			public Term createTerm(String name, String value) throws Exception {
+				if(name.equals(TermIdField.TERM_NAME)) {
+					return new TermIdField(false);		//Override all ID fields to false
+				}
+				else {
+					return super.createTerm(name, value);
+				}
+			}			
+		};
+		MetadataParser parser = new MetadataParser(termFactory);
+		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
+		Metadata metadata = parser.parse(is);
+		Assert.assertNotNull(metadata);
+		EntityMetadata md = metadata.getEntityMetadata("Customer");
+		Assert.assertEquals("false", md.getTermValue("name", TermIdField.TERM_NAME));
+	}
 }

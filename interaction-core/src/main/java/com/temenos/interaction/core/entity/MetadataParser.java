@@ -19,7 +19,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
  * Parser to read metadata from an XML file.
  */
 public class MetadataParser extends DefaultHandler {
-	TermFactory termFactory = new TermFactory();
+	TermFactory termFactory;
 
 	Metadata metadata = null;
 	EntityMetadata entityMetadata = null;									//Meta data for current entity
@@ -29,7 +29,14 @@ public class MetadataParser extends DefaultHandler {
 	String termName = null;													//Name of vocabulary term
 	String termValue = null;												//Value of vocabulary term
 
+	public MetadataParser() {
+		termFactory = new TermFactory();
+	}
 
+	public MetadataParser(TermFactory termFactory) {
+		this.termFactory = termFactory;
+	}
+	
 	/**
 	 * Parse an XML document.
 	 * @param reader I/O Reader providing the xml document
