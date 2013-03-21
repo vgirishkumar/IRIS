@@ -26,6 +26,8 @@ import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
@@ -42,6 +44,7 @@ import com.temenos.interaction.core.hypermedia.Transition;
  * This class converts a Metadata structure to odata4j's EdmDataServices.
  */
 public class MetadataOData4j {
+	private final static Logger logger = LoggerFactory.getLogger(MetadataOData4j.class);
 
 	private final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 
@@ -133,8 +136,12 @@ public class MetadataOData4j {
 	    	}
 			
 			// Add entity type
-			EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
-			bEntityTypeMap.put(entityMetadata.getEntityName(), bEntityType);
+			if (keys.size() > 0) {
+				EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
+				bEntityTypeMap.put(entityMetadata.getEntityName(), bEntityType);
+			} else {
+				logger.error("Unable to add EntityType for [" + entityMetadata.getEntityName() + "] - no ID column defined");
+			}
 		}
 		
 		// Add Navigation Properties
