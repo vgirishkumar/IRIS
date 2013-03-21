@@ -174,39 +174,51 @@ public class EntityMetadata  {
 	 */
 	public String getPropertyValueAsString( EntityProperty property )
 	{
-		String value = "";
 		String propertyName = property.getName();
-		String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
 		Object propertyValue = property.getValue();
-		if ((termValue.equals(TermValueType.TEXT) ||
-				termValue.equals(TermValueType.RECURRENCE) ||
-				termValue.equals(TermValueType.ENCRYPTED_TEXT)) &&
-				propertyValue != null && propertyValue instanceof String) {
-			value = (String) propertyValue;
+		return getPropertyValueAsString(propertyName, propertyValue);
+	}
+
+	/**
+	 * Converts the field value in to a string
+	 * @param propertyName Property name
+	 * @param propertyValue Property value
+	 * @return The property value as a string
+	 */
+	public String getPropertyValueAsString(String propertyName, Object propertyValue)
+	{
+		String value = "";
+		String termValueType = getTermValue(propertyName, TermValueType.TERM_NAME);
+		if(propertyValue == null) {
+			value = "";
 		}
-		else if(termValue.equals(TermValueType.INTEGER_NUMBER)
-				&& (propertyValue instanceof Integer || propertyValue instanceof Long)) {
-			if (propertyValue instanceof Integer) {
-				value = Integer.toString( (Integer) propertyValue );
-			} else if (propertyValue instanceof Long) {
-				value = Long.toString( (Long) propertyValue );
-			}
+		else if(termValueType.equals(TermValueType.TEXT) ||
+				termValueType.equals(TermValueType.RECURRENCE) ||
+				termValueType.equals(TermValueType.ENCRYPTED_TEXT) ||				
+				termValueType.equals(TermValueType.INTEGER_NUMBER) ||
+				termValueType.equals(TermValueType.NUMBER) ||
+				termValueType.equals(TermValueType.BOOLEAN)) {
+			value = String.valueOf(propertyValue);
 		}
-		else if(termValue.equals(TermValueType.NUMBER)) {
-			value = Double.toString( (Double) propertyValue );
-		}
-		else if(termValue.equals(TermValueType.BOOLEAN)) {
-			value = Boolean.toString( (Boolean) propertyValue );
-		}
-		else if(termValue.equals(TermValueType.TIMESTAMP) ||
-				termValue.equals(TermValueType.DATE) ||
-				termValue.equals(TermValueType.TIME)) {
+		else if(termValueType.equals(TermValueType.TIMESTAMP) ||
+				termValueType.equals(TermValueType.DATE) ||
+				termValueType.equals(TermValueType.TIME)) {
 			value = DateFormat.getDateTimeInstance().format((Date) propertyValue);
 		}
-		else {
-			logger.warn("Unable to return a text representation for field " + propertyName + " of type " + termValue);
+		else if(termValueType.equals(TermValueType.ENUMERATION)) {
+			if(propertyValue instanceof String[]) {
+				String[] enumValues = (String[]) propertyValue;
+				for(String item : enumValues) {
+					value += value.isEmpty() ? item : "," + item;
+				}
+			}
+			else {
+				value = String.valueOf(propertyValue);
+			}
 		}
-		
+		else {
+			logger.warn("Unable to return a text representation for field " + propertyName + " of type " + termValueType);
+		}		
 		return value;
 	}
 	
@@ -265,6 +277,10 @@ public class EntityMetadata  {
 				termValue.equals(TermValueType.TIME)) {
 			return new EntityProperty(propertyName, new Date());
 		}
+		else if(termValue.equals(TermValueType.ENUMERATION)) {
+			String[] enumValues = {};
+			return new EntityProperty(propertyName, enumValues);
+		}		
 		return new EntityProperty(propertyName, "");
 	}
 }

@@ -20,5 +20,6 @@ Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.temenos.interaction.rimdsl.ui.contentassist,
  com.temenos.interaction.rimdsl.ui.contentassist.antlr,
- com.temenos.interaction.rimdsl.ui.internal
+ com.temenos.interaction.rimdsl.ui.internal,
+ com.temenos.interaction.rimdsl.ui.quickfix
 Bundle-Activator: com.temenos.interaction.rimdsl.ui.internal.RIMDslActivator

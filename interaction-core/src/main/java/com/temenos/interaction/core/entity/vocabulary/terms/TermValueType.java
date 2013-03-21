@@ -18,6 +18,7 @@ public class TermValueType implements Term {
 	public final static String RECURRENCE = "RECURRENCE";
 	public final static String ENCRYPTED_TEXT = "ENCRYPTED_TEXT";
 	public final static String IMAGE = "IMAGE";
+	public final static String ENUMERATION = "ENUMERATION";
 	
 	private String valueType;
 	

@@ -2,6 +2,7 @@ package com.temenos.interaction.core.media.atom;
 
 import java.io.Writer;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +39,6 @@ import com.temenos.interaction.core.hypermedia.Link;
  * 
  */
 public class AtomEntityEntryFormatWriter {
-	protected UriInfo uriInfo = null;
-	protected String baseUri = "";
-
 	// Constants for OData
 	public static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 	public static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
@@ -49,11 +47,11 @@ public class AtomEntityEntryFormatWriter {
 	public static final String href_lang = "en";
 
 	public void write(UriInfo uriInfo, Writer w, Entity entity,
-			EntityMetadata entityMetadata, List<Link> links, String modelName) {
-
-		this.uriInfo = uriInfo;
+			EntityMetadata entityMetadata, Collection<Link> links, String modelName) 
+	{
 		String baseUri = uriInfo.getBaseUri().toString();
-
+		String absoluteId = baseUri + uriInfo.getPath();
+		
 		DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
 		String updated = InternalUtil.toString(utc);
 
@@ -65,22 +63,33 @@ public class AtomEntityEntryFormatWriter {
 		writer.setAutoIndent(true);
 		writer.startDocument();
 
-		writeEntry(writer, entity, links, baseUri, updated, entityMetadata, modelName);
-		
-		writer.endDocument();
-		writer.flush();
-	}
-
-	public String writeEntry(StreamWriter writer, Entity entity,
-			List<Link> entityLinks, String baseUri, String updated,
-			EntityMetadata entityMetadata, String modelName) {
-
 		writer.startEntry();
 	    writer.writeNamespace("d", d);
 	    writer.writeNamespace("m", m);
 	    writer.writeAttribute("xml:base", baseUri);
-	    
-		String absid = writeKey(writer, baseUri, entity, entityMetadata);
+		writeEntry(writer, entity, links, baseUri, absoluteId, updated, entityMetadata, modelName);
+		writer.endEntry();
+		writer.endDocument();
+		writer.flush();
+	}
+
+	public void writeEntry(StreamWriter writer, String entitySetName, Entity entity,
+			Collection<Link> entityLinks, UriInfo uriInfo, String updated,
+			EntityMetadata entityMetadata, String modelName) 
+	{
+		String baseUri = uriInfo.getBaseUri().toString();
+		String absoluteId = getAbsoluteId(baseUri, entitySetName, entity, entityMetadata);
+		
+		writer.startEntry();
+		writeEntry(writer, entity, entityLinks, baseUri, absoluteId, updated, entityMetadata, modelName);
+		writer.endEntry();
+	}
+	
+	protected void writeEntry(StreamWriter writer, Entity entity,
+			Collection<Link> entityLinks, String baseUri, String absoluteId, String updated,
+			EntityMetadata entityMetadata, String modelName) 
+	{		
+		writer.writeId(absoluteId);
 		OAtomEntity oae = getAtomInfo(entity);
 
 		writer.writeTitle(oae.getAtomEntityTitle());
@@ -117,17 +126,23 @@ public class AtomEntityEntryFormatWriter {
 		writer.endElement();
 		
 		writer.endContent();
-
-		writer.endEntry();
-		writer.flush();
-		return absid;
 	}
 
-	private String writeKey(StreamWriter writer, String baseUri, Entity entity,
-			EntityMetadata entityMetadata) {
-		String absid = baseUri + uriInfo.getPath();
-		writer.writeId(absid);
-		return absid;
+	private String getAbsoluteId(String baseUri, String entitySetName, Entity entity, EntityMetadata entityMetadata) {
+		String absId = "";
+		for(String key : entityMetadata.getIdFields()) {		
+			EntityProperty prop = entity.getProperties().getProperty(key);
+			if(prop != null) {
+				absId += absId.isEmpty() ? baseUri + entitySetName : ",";
+				if(entityMetadata.isPropertyNumber(key)) {
+					absId += "(" + entityMetadata.getPropertyValueAsString(prop) + ")";
+				}
+				else {
+					absId += "('" + entityMetadata.getPropertyValueAsString(prop) + "')";
+				}
+			}
+		}
+		return absId;
 	}
 	
 	@SuppressWarnings("unchecked")

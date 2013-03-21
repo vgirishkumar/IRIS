@@ -4,19 +4,22 @@ package com.temenos.interaction.core.media.atom;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.net.URI;
@@ -60,7 +63,8 @@ import org.odata4j.internal.FeedCustomizationMapping;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.temenos.interaction.core.NestedObject;
+import com.temenos.interaction.core.Flight;
+import com.temenos.interaction.core.IgnoreNamedElementsXMLDifferenceListener;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -77,6 +81,7 @@ import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transformer;
+import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -86,7 +91,9 @@ import com.temenos.interaction.core.resource.RESTResource;
 public class TestAtomXMLProvider {
 	
 	private final static String EXPECTED_XML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xml:base=\"http://localhost:8080/responder/rest\"><id>http://localhost:8080/responder/restFlight('123')</id><title type=\"text\"></title><updated>2012-03-14T11:29:19Z</updated><author><name></name></author><category term=\"InteractionTest.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\"></category><content type=\"application/xml\"><m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content></entry>";
-	private final static String EXPECTED_ENTITY_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xml:base=\"http://localhost:8080/responder/rest/\"><id>http://localhost:8080/responder/rest/Flight(123)</id><title type=\"text\"></title><updated>2012-10-04T10:17:00Z</updated><author><name></name></author><category term=\"FlightModelModel.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\"></category><content type=\"application/xml\"><m:properties><d:id>123</d:id><d:flight>EI218</d:flight><d:Flight_MvSvGroup m:type=\"FlightModelModel.Flight_MvSvGroup\"><d:Flight_MvSvStartGroup m:type=\"FlightModelModel.Flight_MvSvStartGroup\"><d:MvSvEnd>mv sv end 1:1</d:MvSvEnd><d:MvSvStart>mv sv start 1:1</d:MvSvStart></d:Flight_MvSvStartGroup><d:Flight_MvSvStartGroup m:type=\"FlightModelModel.Flight_MvSvStartGroup\"><d:MvSvEnd>mv sv end 1:2</d:MvSvEnd><d:MvSvStart>mv sv start 1:2</d:MvSvStart></d:Flight_MvSvStartGroup><d:MvSv>mv sv 1:1</d:MvSv></d:Flight_MvSvGroup><d:Flight_MvSvGroup m:type=\"FlightModelModel.Flight_MvSvGroup\"><d:Flight_MvSvStartGroup m:type=\"FlightModelModel.Flight_MvSvStartGroup\"><d:MvSvEnd>mv sv end 2:1</d:MvSvEnd><d:MvSvStart>mv sv start 2:1</d:MvSvStart></d:Flight_MvSvStartGroup><d:Flight_MvSvStartGroup m:type=\"FlightModelModel.Flight_MvSvStartGroup\"><d:MvSvEnd>mv sv end 2:2</d:MvSvEnd><d:MvSvStart>mv sv start 2:2</d:MvSvStart></d:Flight_MvSvStartGroup><d:MvSv>mv sv 2:1</d:MvSv></d:Flight_MvSvGroup></m:properties></content></entry>";
+	public final static String FLIGHT_ENTRY_XML = "FlightEntry.xml";
+	public final static String FLIGHT_ENTRY_SIMPLE_XML = "FlightEntrySimple.xml";
+	public final static String FLIGHT_COLLECTION_XML = "FlightsFeed.xml";
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
@@ -219,7 +226,7 @@ public class TestAtomXMLProvider {
 		EntityMetadata entityMetadata = new EntityMetadata("Flight");
 		
 		Vocabulary voc_id = new Vocabulary();
-		voc_id.setTerm(new TermValueType(TermValueType.TEXT));
+		voc_id.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
 		voc_id.setTerm(new TermIdField(true));
 		entityMetadata.setPropertyVocabulary("id", voc_id);
 		
@@ -255,6 +262,16 @@ public class TestAtomXMLProvider {
 		mockMetadata.setEntityMetadata(entityMetadata);
 
 		return mockMetadata;
+	}
+
+	private CollectionResource<Entity> createMockCollectionResourceEntity() {
+		List<EntityResource<Entity>> erList = new ArrayList<EntityResource<Entity>>(); 
+		erList.add(createMockEntityResourceEntity());
+		
+		CollectionResource<Entity> cr = new CollectionResource<Entity>("Flights", erList);
+		cr.setLinks(new ArrayList<Link>());
+		cr.setEntityName("Flight");
+		return cr;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -309,11 +326,11 @@ public class TestAtomXMLProvider {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private EntityResource<NestedObject> createMockEntityResourceObject() throws Exception {
-		String testXMLString = "<resource><Test><name>rob</name></Test></resource>";
-		JAXBContext jc = JAXBContext.newInstance(EntityResource.class, NestedObject.class);
+	private EntityResource<Flight> createMockEntityResourceObject() throws Exception {
+		String testXMLString = "<resource><Flight><id>123</id><flight>EI218</flight></Flight></resource>";
+		JAXBContext jc = JAXBContext.newInstance(EntityResource.class, Flight.class);
         Unmarshaller unmarshaller = jc.createUnmarshaller();
-        EntityResource<NestedObject> er = (EntityResource<NestedObject>) unmarshaller.unmarshal(new ByteArrayInputStream(testXMLString.getBytes()));
+        EntityResource<Flight> er = (EntityResource<Flight>) unmarshaller.unmarshal(new ByteArrayInputStream(testXMLString.getBytes()));
         er.setEntityName("Flight");
         return er;
 	}
@@ -482,6 +499,40 @@ public class TestAtomXMLProvider {
 	}
 	
 	@Test
+	public void testWriteCollectionResourceEntity_AtomXML() throws Exception {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		EdmDataServices mockEDS = createMockFlightEdmDataServices();		
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+		
+		Metadata mockMetadata = createMockFlightMetadata();
+		CollectionResource<Entity> cr = createMockCollectionResourceEntity();
+		
+        //Wrap entity resource into a JAX-RS GenericEntity instance
+		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
+
+		//Create provider
+		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		UriInfo uriInfo = mock(UriInfo.class);
+		URI uri = new URI("http://localhost:8080/responder/rest/");
+		when(uriInfo.getBaseUri()).thenReturn(uri);
+		when(uriInfo.getPath()).thenReturn("Flight()");
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(readTextFile(FLIGHT_COLLECTION_XML), responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+	
+	@Test
 	public void testWriteEntityResourceEntity_AtomXML() throws Exception {
 		EdmEntitySet ees = createMockEdmEntitySet();
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();		
@@ -506,12 +557,13 @@ public class TestAtomXMLProvider {
 		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 
-		//Assert xml string but ignore text and attribute values
+		//Check response
 		XMLUnit.setIgnoreWhitespace(true);
-	    DifferenceListener myDifferenceListener = new IgnoreTextAndAttributeValuesDifferenceListener();
-	    Diff myDiff = new Diff(responseString, EXPECTED_ENTITY_XML);
-	    myDiff.overrideDifferenceListener(myDifferenceListener);
-	    assertTrue(myDiff.similar());		
+		Diff myDiff = XMLUnit.compareXML(readTextFile(FLIGHT_ENTRY_XML), responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
 	}
 
 	@Test
@@ -521,10 +573,10 @@ public class TestAtomXMLProvider {
 		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
 		
 		Metadata mockMetadata = createMockFlightMetadata();
-		EntityResource<NestedObject> er = createMockEntityResourceObject();
+		EntityResource<Flight> er = createMockEntityResourceObject();
 		
         //Wrap entity resource into a JAX-RS GenericEntity instance
-		GenericEntity<EntityResource<NestedObject>> ge = new GenericEntity<EntityResource<NestedObject>>(er) {};
+		GenericEntity<EntityResource<Flight>> ge = new GenericEntity<EntityResource<Flight>>(er) {};
 
 		//Create provider
 		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
@@ -539,29 +591,13 @@ public class TestAtomXMLProvider {
 		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 
-		//Assert xml string but ignore text and attribute values
-		String expected = 
-				"<?xml version='1.0' encoding='UTF-8'?>" +
-						"<entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xml:base=\"http://localhost:8080/responder/rest/\">" +
-						"  <id>http://localhost:8080/responder/rest/Flight(123)</id>" +
-						"  <title type=\"text\"></title>" +
-						"  <updated>2013-02-01T15:24:17Z</updated>" +
-						"  <author>" +
-						"    <name></name>" +
-						"  </author>" +
-						"  <category term=\"FlightModelModel.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\">" +
-						"  </category>" +
-						"  <content type=\"application/xml\">" +
-						"    <m:properties>" +
-						"      <d:name>rob</d:name>" +
-						"    </m:properties>" +
-						"  </content>" +
-						"</entry>";
+		//Check response
 		XMLUnit.setIgnoreWhitespace(true);
-	    DifferenceListener myDifferenceListener = new IgnoreTextAndAttributeValuesDifferenceListener();
-	    Diff myDiff = new Diff(responseString, expected);
-	    myDiff.overrideDifferenceListener(myDifferenceListener);
-	    assertTrue(myDiff.similar());		
+		Diff myDiff = XMLUnit.compareXML(readTextFile(FLIGHT_ENTRY_SIMPLE_XML), responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
 	}
 	
 	@Test
@@ -582,4 +618,22 @@ public class TestAtomXMLProvider {
 		
 	}
 	
+	/*
+	 * Read a text file
+	 */
+	private String readTextFile(String textFile) {
+		InputStream is = this.getClass().getClassLoader().getResourceAsStream(textFile);
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+		StringBuilder sb = new StringBuilder();
+		String read;
+		try {
+			while((read = br.readLine()) != null) {
+			    sb.append(read).append(System.getProperty("line.separator"));
+			}
+		}
+		catch(IOException ioe) {
+			fail(ioe.getMessage());
+		}
+		return sb.toString();		
+	}
 }
