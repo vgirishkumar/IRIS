@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="mule-conf">
+    <global-element name="DataMapper" type="http://www.mulesoft.org/schema/mule/ee/data-mapper/config" entity-id="DataMapper#1">
+        <properties>
+            <property name="name" value="MapToXML"/>
+            <property name="transformationGraphPath" value="maptoxml.grf"/>
+            <property name="auxiliary;index" value="1"/>
+            <property name="auxiliary;index" value="1"/>
+            <property name="auxiliary;index" value="1"/>
+        </properties>
+    </global-element>
+    <global-element name="Java" type="http://www.mulesoft.org/schema/mule/core/custom-transformer" entity-id="Java#1">
+        <properties>
+            <property name="returnClass"/>
+            <property name="ignoreBadInput"/>
+            <property name="encoding"/>
+            <property name="auxiliary;index" value="2"/>
+            <property name="mimeType"/>
+            <property name="auxiliary;index" value="2"/>
+            <property name="auxiliary;index" value="2"/>
+            <property name="class" value="org.mule.module.xml.transformer.XmlPrettyPrinter"/>
+            <property name="auxiliary;index" value="2"/>
+            <property name="name" value="Java"/>
+            <property name="auxiliary;index" value="2"/>
+            <property name="auxiliary;index" value="2"/>
+            <property name="auxiliary;index" value="2"/>
+            <property-collection name="@http://www.springframework.org/schema/beans/property;0">
+                <property name="name" value="trimText"/>
+                <property name="value" value="true"/>
+                <property name="auxiliary;wrapIn" value="3"/>
+                <property name="auxiliary;index" value="3"/>
+            </property-collection>
+            <property-collection name="@http://www.springframework.org/schema/beans/property;1">
+                <property name="name" value="padText"/>
+                <property name="value" value="false"/>
+                <property name="auxiliary;wrapIn" value="4"/>
+                <property name="auxiliary;index" value="4"/>
+            </property-collection>
+            <property-collection name="@http://www.springframework.org/schema/beans/property;2">
+                <property name="name" value="newlines"/>
+                <property name="value" value="false"/>
+                <property name="auxiliary;wrapIn" value="5"/>
+                <property name="auxiliary;index" value="5"/>
+            </property-collection>
+            <property-collection name="@http://www.springframework.org/schema/beans/property;3">
+                <property name="name" value="suppressDeclaration"/>
+                <property name="value" value="true"/>
+                <property name="auxiliary;wrapIn" value="6"/>
+                <property name="auxiliary;index" value="6"/>
+            </property-collection>
+            <property-collection name="@http://www.springframework.org/schema/beans/property;4">
+                <property name="name" value="indentSize"/>
+                <property name="value" value="0"/>
+                <property name="auxiliary;wrapIn" value="7"/>
+                <property name="auxiliary;index" value="7"/>
+            </property-collection>
+            <property-collection name="@http://www.springframework.org/schema/beans/property;5">
+                <property name="name" value="indentEnabled"/>
+                <property name="value" value="false"/>
+                <property name="auxiliary;wrapIn" value="8"/>
+                <property name="auxiliary;index" value="8"/>
+            </property-collection>
+        </properties>
+    </global-element>
+    <flow SubFlow="false" name="vm://maptoxml" entity-id="8bfb3c6a-9527-4a64-8c22-47be72ead5eb">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="auxiliary;index" value="9"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property name="auxiliary;index" value="9"/>
+            <property name="auxiliary;index" value="9"/>
+            <property name="auxiliary;index" value="9"/>
+        </properties>
+        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#1">
+            <endpoint direction="Inbound" message-exchange-pattern="OneWay" name="VM Endpoint" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#1">
+                <properties>
+                    <property name="exchange-pattern" value="one-way"/>
+                    <property name="exchange-pattern" value="request-response"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="path" value="maptoxml"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="address"/>
+                    <property name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="responseTransformer-refs"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="auxiliary;index" value="10"/>
+                    <property name="auxiliary;index" value="10"/>
+                </properties>
+            </endpoint>
+            <pattern name="Object to XML" type="org.mule.tooling.ui.modules.core.pattern.objectToXmlTransformer" entity-id="Object to XML#1">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="auxiliary;index" value="11"/>
+                    <property name="mimeType"/>
+                    <property name="auxiliary;index" value="11"/>
+                    <property name="auxiliary;index" value="11"/>
+                    <property name="auxiliary;index" value="11"/>
+                    <property name="auxiliary;index" value="11"/>
+                    <property name="driverClass"/>
+                    <property name="acceptMuleMessage"/>
+                    <property name="auxiliary;index" value="11"/>
+                    <property name="auxiliary;index" value="11"/>
+                    <property name="auxiliary;index" value="11"/>
+                </properties>
+            </pattern>
+            <pattern name="UnPrettyPrint" type="org.mule.tooling.ui.modules.core.pattern.globalXformRef" entity-id="Transformer Reference#1">
+                <properties>
+                    <property name="ref" value="Java"/>
+                    <property name="auxiliary;index" value="12"/>
+                    <property name="auxiliary;index" value="12"/>
+                    <property name="auxiliary;index" value="12"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="vm://datamapper" entity-id="d81818f1-0204-4e14-a57c-ca2851a30b96">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="auxiliary;index" value="13"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property name="auxiliary;index" value="13"/>
+            <property name="auxiliary;index" value="13"/>
+            <property name="auxiliary;index" value="13"/>
+        </properties>
+        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#2">
+            <endpoint direction="Inbound" message-exchange-pattern="OneWay" name="VM" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#2">
+                <properties>
+                    <property name="exchange-pattern" value="one-way"/>
+                    <property name="exchange-pattern" value="request-response"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="path" value="datamapper"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="address"/>
+                    <property name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="responseTransformer-refs"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="auxiliary;index" value="14"/>
+                    <property name="auxiliary;index" value="14"/>
+                </properties>
+            </endpoint>
+            <pattern name="Object to JSON" type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" entity-id="Object to JSON#1">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="auxiliary;index" value="15"/>
+                    <property name="mimeType"/>
+                    <property name="auxiliary;index" value="15"/>
+                    <property name="auxiliary;index" value="15"/>
+                    <property name="mapper-ref"/>
+                    <property name="sourceClass"/>
+                    <property name="auxiliary;index" value="15"/>
+                    <property name="auxiliary;index" value="15"/>
+                    <property name="auxiliary;index" value="15"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="vm://view-command" entity-id="e8e5c324-1fcd-4dd6-b09d-8bc6e60fcbde">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="auxiliary;index" value="16"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property name="auxiliary;index" value="16"/>
+            <property name="auxiliary;index" value="16"/>
+            <property name="auxiliary;index" value="16"/>
+        </properties>
+        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#3">
+            <endpoint direction="Inbound" message-exchange-pattern="OneWay" name="VM" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#3">
+                <properties>
+                    <property name="exchange-pattern" value="one-way"/>
+                    <property name="exchange-pattern" value="request-response"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="path" value="view-command"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="address"/>
+                    <property name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="responseTransformer-refs"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="auxiliary;index" value="17"/>
+                    <property name="auxiliary;index" value="17"/>
+                </properties>
+            </endpoint>
+            <pattern name="Logger" type="http://www.mulesoft.org/schema/mule/core/logger" entity-id="Logger#1">
+                <properties>
+                    <property name="message" value="VM Request: #[mule:message.payload(java.lang.String)]"/>
+                    <property name="level" value="INFO"/>
+                    <property name="category"/>
+                    <property name="auxiliary;index" value="18"/>
+                    <property name="auxiliary;index" value="18"/>
+                    <property name="auxiliary;index" value="18"/>
+                </properties>
+            </pattern>
+            <pattern name="Set Payload" type="http://www.mulesoft.org/schema/mule/core/set-payload" entity-id="Set Payload#1">
+                <properties>
+                    <property name="value" value="#[mule:message.payload(java.lang.String)]"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="auxiliary;index" value="19"/>
+                </properties>
+            </pattern>
+            <endpoint direction="Outbound" message-exchange-pattern="OneWay" name="File" type="http://www.mulesoft.org/schema/mule/file/endpoint" entity-id="File#1">
+                <properties>
+                    <property name="exchange-pattern" value="one-way"/>
+                    <property name="path" value="C:\logs"/>
+                    <property name="outputPattern" value="#[function:datestamp]-view-command.xml"/>
+                    <property name="moveToPattern"/>
+                    <property name="moveToDirectory"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="pollingFrequency"/>
+                    <property name="fileAge"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="address"/>
+                    <property name="responseTimeout" value="10000"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="comparator"/>
+                    <property name="reverseOrder"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="auxiliary;index" value="20"/>
+                    <property name="auxiliary;index" value="20"/>
+                </properties>
+            </endpoint>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="vm://action-command" entity-id="774a7451-1a4f-4b94-85e5-05af8939e110">
+        <properties>
+            <property name="processingStrategy2" value=""/>
+            <property name="bussinessEventsLabel" value=""/>
+            <property name="tracking:enable-default-events" value="false"/>
+            <property name="auxiliary;erased;processingStrategy2" value="true"/>
+            <property name="updated"/>
+            <property-collection name="@http://www.mulesoft.org/schema/mule/ee/tracking/transaction;534639183"/>
+        </properties>
+        <description></description>
+        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="00cf64a4-8a6c-4240-a411-038d0bdde3a4">
+            <endpoint direction="Inbound" message-exchange-pattern="OneWay" name="VM" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="837f9a7c-a8d0-446d-9ce5-638001221b13">
+                <properties>
+                    <property name="auxiliary;erased;mimeType" value="true"/>
+                    <property name="ref" value=""/>
+                    <property name="transformer-refs" value=""/>
+                    <property name="address" value=""/>
+                    <property name="businessEventsLabel" value=""/>
+                    <property name="auxiliary;erased;encoding" value="true"/>
+                    <property name="encoding" value=""/>
+                    <property name="path" value="action-command"/>
+                    <property name="responseTransformer-refs" value=""/>
+                    <property name="disableTransportTransformer" value="false"/>
+                    <property name="mimeType" value=""/>
+                    <property name="responseTimeout" value=""/>
+                    <property name="tracking:enable-default-events" value="false"/>
+                    <property name="exchange-pattern" value="request-response"/>
+                    <property name="connector-ref" value=""/>
+                    <property name="updated"/>
+                </properties>
+                <description></description>
+            </endpoint>
+            <pattern name="Logger" type="http://www.mulesoft.org/schema/mule/core/logger" entity-id="4a3f02e8-8193-4a72-a328-d70b5b3c95cd">
+                <properties>
+                    <property name="message" value="VM Request: #[mule:message.payload(java.lang.String)]"/>
+                    <property name="category" value=""/>
+                    <property name="level" value="INFO"/>
+                    <property name="updated"/>
+                </properties>
+                <description></description>
+            </pattern>
+            <pattern name="Set Payload" type="http://www.mulesoft.org/schema/mule/core/set-payload" entity-id="56f7519a-f036-4968-ae7a-114528c712ed">
+                <properties>
+                    <property name="value" value="#[mule:message.payload(java.lang.String)]"/>
+                    <property name="updated"/>
+                </properties>
+                <description></description>
+            </pattern>
+            <endpoint direction="Outbound" message-exchange-pattern="OneWay" name="File" type="http://www.mulesoft.org/schema/mule/file/endpoint" entity-id="8048d19c-c65e-4300-b954-47899cea425d">
+                <properties>
+                    <property name="auxiliary;erased;mimeType" value="true"/>
+                    <property name="ref" value=""/>
+                    <property name="transformer-refs" value=""/>
+                    <property name="address" value=""/>
+                    <property name="businessEventsLabel" value=""/>
+                    <property name="auxiliary;erased;encoding" value="true"/>
+                    <property name="encoding" value=""/>
+                    <property name="path" value="c:\logs"/>
+                    <property name="disableTransportTransformer" value="false"/>
+                    <property name="outputPattern" value="#[function:datestamp]-action-command.xml"/>
+                    <property name="mimeType" value=""/>
+                    <property name="responseTimeout" value="10000"/>
+                    <property name="tracking:enable-default-events" value="false"/>
+                    <property name="exchange-pattern" value="one-way"/>
+                    <property name="connector-ref" value=""/>
+                    <property name="updated"/>
+                </properties>
+                <description></description>
+            </endpoint>
+        </lane>
+    </flow>
+</mule-configuration>

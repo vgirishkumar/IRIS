@@ -94,7 +94,7 @@
 		<powermock.version>1.4.11</powermock.version>
 		<wink.version>1.2.0-incubating</wink.version>
 		<slf4j.version>1.6.2</slf4j.version>
-		<spring.version>3.0.6.RELEASE</spring.version>
+		<spring.version>3.1.0.RELEASE</spring.version>
 	</properties>
 
 	<build>
@@ -332,7 +332,7 @@
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
-				<version>4.8.2</version>
+				<version>4.9</version>
 			</dependency>
 			<dependency>
 				<groupId>xmlunit</groupId>

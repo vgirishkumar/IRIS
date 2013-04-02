@@ -92,3 +92,4 @@
 /interaction-commands-webhook/target
 /interaction-dsl/com.temenos.interaction.rimdsl.tests/test-output
 /interaction-examples/interaction-odata-airline/log.txt
+/interaction-commands-mule/target
