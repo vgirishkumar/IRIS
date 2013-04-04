@@ -40,7 +40,7 @@ public class MetadataParser extends DefaultHandler {
 	/**
 	 * Parse an XML document.
 	 * @param reader I/O Reader providing the xml document
-	 * @return Metadata containing the metadata
+	 * @return Metadata containing the metadata or null if error
 	 */
 	public Metadata parse(InputStream is) {
 		SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -49,6 +49,7 @@ public class MetadataParser extends DefaultHandler {
 			saxParser.parse(is, this);
 		} catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
 		return metadata;
 	}
@@ -104,7 +105,14 @@ public class MetadataParser extends DefaultHandler {
 		}
 		else if (qName.equalsIgnoreCase("Term")) {
 			try {
-				propertyVocabulary.peek().setTerm(termFactory.createTerm(termName, termValue));
+				if(propertyName.size() > 0) {
+					propertyVocabulary.peek().setTerm(termFactory.createTerm(termName, termValue));
+				}
+				else {
+					Vocabulary voc = new Vocabulary();
+					voc.setTerm(termFactory.createTerm(termName, termValue));
+					entityMetadata.setVocabulary(voc);
+				}
 				termValue = null;
 			}
 			catch(Exception e) {

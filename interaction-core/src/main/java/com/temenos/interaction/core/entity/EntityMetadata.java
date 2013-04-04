@@ -27,8 +27,8 @@ public class EntityMetadata  {
 	private final static Logger logger = LoggerFactory.getLogger(EntityMetadata.class);
 
 	private TermFactory termFactory = new TermFactory();
-	private String entityName;			//Entity name
-	private Vocabulary vocabulary;		//Entity Vocabulary
+	private String entityName;					//Entity name
+	private Vocabulary vocabulary = null;		//Entity Vocabulary
 
 	//Map of <Entity property, Vocabulary>
 	private Map<String, Vocabulary> propertyVocabularies = new HashMap<String, Vocabulary>();
@@ -223,7 +223,7 @@ public class EntityMetadata  {
 	}
 	
 	/**
-	 * Returns the value of a vocabulary term. 
+	 * Returns the value of a property vocabulary term. 
 	 * If the term does not exist it returns it default value or null if it 
 	 * does not have a default value.
 	 * @param propertyName Property name
@@ -234,6 +234,23 @@ public class EntityMetadata  {
 		Vocabulary voc = getPropertyVocabulary(propertyName);
 		if(voc != null) {
 			Term term = voc.getTerm(termName);
+			if(term != null) {
+				return term.getValue();
+			}
+		}
+		return termFactory.getTermDefaultValue(termName);
+	}
+
+	/**
+	 * Returns the value of an entity vocabulary term. 
+	 * If the term does not exist it returns it default value or null if it 
+	 * does not have a default value.
+	 * @param termName Vocabulary term name
+	 * @return The term value as a string or null if not available
+	 */
+	public String getTermValue(String termName) {
+		if(vocabulary != null) {
+			Term term = vocabulary.getTerm(termName);
 			if(term != null) {
 				return term.getValue();
 			}
