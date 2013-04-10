@@ -52,6 +52,7 @@ public class TestXHTMLProvider {
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		Assert.assertTrue(responseString.contains("<li><a href=\"/Customer(123)\">Fred</a></li>"));
 		Assert.assertTrue(responseString.contains("WD8 1LK"));
+		Assert.assertTrue(responseString.contains("<td>hobbies</td><td><div contenteditable=\"true\">Tennis,Basketball,Swimming</div></td>"));
 	}
 
 	@Test
@@ -123,7 +124,7 @@ public class TestXHTMLProvider {
 		p.writeTo(cr, CollectionResource.class, Entity.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
 
 		String responseString = new String(bos.toByteArray(), "UTF-8");
-		Assert.assertTrue(responseString.contains("<li><dl><dt>id</dt><dd>123</dd><dt>address</dt><dl><dt>houseNumber</dt><dd>45</dd><dt>postcode</dt><dd>WD8 1LK</dd></dl><dt>name</dt><dd>Fred</dd></dl><ul><li><a href=\"/Customer(123)\" rel=\"self\">123</a></li></ul></li>"));
+		Assert.assertTrue(responseString.contains("<li><dl><dt>id</dt><dd>123</dd><dt>address</dt><dl><dt>houseNumber</dt><dd>45</dd><dt>postcode</dt><dd>WD8 1LK</dd></dl><dt>name</dt><dd>Fred</dd><dt>hobbies</dt><dd>Tennis,Basketball,Swimming</dd></dl><ul><li><a href=\"/Customer(123)\" rel=\"self\">123</a></li></ul></li>"));
 	}
 	
 	private Metadata createMockFlightMetadata() {
@@ -172,6 +173,10 @@ public class TestXHTMLProvider {
 		vocIndustry.setTerm(new TermComplexType(false));
 		vocs.setPropertyVocabulary("industry", vocIndustry);
 		
+		Vocabulary vocHobbies = new Vocabulary();
+		vocHobbies.setTerm(new TermValueType(TermValueType.ENUMERATION));
+		vocs.setPropertyVocabulary("hobbies", vocHobbies);
+		
 		metadata.setEntityMetadata(vocs);
 		
 		return metadata;
@@ -186,6 +191,8 @@ public class TestXHTMLProvider {
 		customerFields.setProperty(new EntityProperty("id", id));
 		customerFields.setProperty(new EntityProperty("name", name));
 		customerFields.setProperty(new EntityProperty("address", addressFields));
+		String[] hobbies = { "Tennis", "Basketball",  "Swimming"};
+		customerFields.setProperty(new EntityProperty("hobbies", hobbies));
 		return new Entity("Customer", customerFields);
 	}
 	

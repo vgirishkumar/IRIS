@@ -1,5 +1,8 @@
 package com.temenos.interaction.core.entity;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.InputStream;
 import java.util.Set;
 
@@ -23,7 +26,20 @@ public class TestMetadataParser {
 	@BeforeClass
 	public static void setup()
 	{
-		MetadataParser parser = new MetadataParser();
+		TermFactory termFactory = new TermFactory() {
+			public Term createTerm(String name, String value) throws Exception {
+				if(name.equals("TEST_ENTITY_ALIAS")) {
+					Term mockTerm = mock(Term.class);
+					when(mockTerm.getValue()).thenReturn(value);
+					when(mockTerm.getName()).thenReturn(name);
+					return mockTerm;
+				}
+				else {
+					return super.createTerm(name, value);
+				}
+			}			
+		};
+		MetadataParser parser = new MetadataParser(termFactory);
 		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
 		metadata = parser.parse(is);
 		Assert.assertNotNull(metadata);
@@ -165,7 +181,13 @@ public class TestMetadataParser {
 	{	
 		TermFactory termFactory = new TermFactory() {
 			public Term createTerm(String name, String value) throws Exception {
-				if(name.equals(TermIdField.TERM_NAME)) {
+				if(name.equals("TEST_ENTITY_ALIAS")) {
+					Term mockTerm = mock(Term.class);
+					when(mockTerm.getValue()).thenReturn(value);
+					when(mockTerm.getName()).thenReturn(name);
+					return mockTerm;
+				}
+				else if(name.equals(TermIdField.TERM_NAME)) {
 					return new TermIdField(false);		//Override all ID fields to false
 				}
 				else {
@@ -179,5 +201,21 @@ public class TestMetadataParser {
 		Assert.assertNotNull(metadata);
 		EntityMetadata md = metadata.getEntityMetadata("Customer");
 		Assert.assertEquals("false", md.getTermValue("name", TermIdField.TERM_NAME));
+	}
+
+	@Test
+	public void testNonCustomTermFactory()
+	{	
+		MetadataParser parser = new MetadataParser();
+		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
+		Metadata metadata = parser.parse(is);
+		Assert.assertNull(metadata);	//Expecting parse error (Term TEST_ENTITY_ALIAS does not exist)
+	}
+	
+	@Test
+	public void testEntityTerm()
+	{	
+		EntityMetadata md = metadata.getEntityMetadata("Customer");
+		Assert.assertEquals("MyCustomer", md.getTermValue("TEST_ENTITY_ALIAS"));
 	}
 }

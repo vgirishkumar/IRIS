@@ -1,10 +1,13 @@
 package com.temenos.interaction.core.media.xhtml;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.hypermedia.Link;
@@ -16,14 +19,23 @@ import com.temenos.interaction.core.resource.EntityResource;
  */
 public class EntityResourceWrapperXHTML extends EntityResourceWrapper {
 	private Set<String> entityPropertyNames = null;
+	private EntityMetadata entityMetadata;
 
-	public EntityResourceWrapperXHTML(EntityResource<Map<String, Object>> entityResource) {
+	public EntityResourceWrapperXHTML(EntityMetadata entityMetadata, EntityResource<Map<String, Object>> entityResource) {
 		super(entityResource);
+		this.entityMetadata = entityMetadata;
+		if(entityMetadata == null) {
+			throw new RuntimeException("Failed to obtain metadata for entity [" + entityResource.getEntityName() + "]");
+		}
 	}	
 	
-	public EntityResourceWrapperXHTML(Set<String> entityPropertyNames, EntityResource<Map<String, Object>> entityResource) {
+	public EntityResourceWrapperXHTML(EntityMetadata entityMetadata, Set<String> entityPropertyNames, EntityResource<Map<String, Object>> entityResource) {
 		super(entityResource);
 		this.entityPropertyNames = entityPropertyNames;
+		this.entityMetadata = entityMetadata;
+		if(entityMetadata == null) {
+			throw new RuntimeException("Failed to obtain metadata for entity [" + entityResource.getEntityName() + "]");
+		}
 	}	
 
 	/**
@@ -50,8 +62,9 @@ public class EntityResourceWrapperXHTML extends EntityResourceWrapper {
 	}
 	
 	private String getEntityResourceMapString(EntityProperty entityProperty) {
-		String s = "<dt>" + entityProperty.getName() + "</dt>";
+		String name = entityProperty.getName();
 		Object value = entityProperty.getValue();
+		String s = "<dt>" + name + "</dt>";
 		if(value instanceof EntityProperties) {
 			s += "<dl>";
 			for(EntityProperty prop : ((EntityProperties) value).getProperties().values()) {
@@ -60,7 +73,7 @@ public class EntityResourceWrapperXHTML extends EntityResourceWrapper {
 			s += "</dl>";
 		}
 		else {
-			s += "<dd>" + value + "</dd>";
+			s += "<dd>" + entityMetadata.getPropertyValueAsString(name, value) + "</dd>";
 		}
 		return s;
 	}
@@ -81,11 +94,30 @@ public class EntityResourceWrapperXHTML extends EntityResourceWrapper {
 				Map<String, Object> data = getResource().getEntity();
 				Object value = data.get(entityPropertyName);
 				if(value != null && !value.getClass().equals(EntityProperties.class)) {
-					entityProperties.add(value.toString());
+					entityProperties.add(entityMetadata.getPropertyValueAsString(entityPropertyName, value));
 				}
 				else {
 					entityProperties.add(new String(""));
 				}
+			}
+		}
+		return entityProperties;
+	}
+	
+	/**
+	 * Returns the entity properties as a map of property name and value pairs.
+	 * @return properties
+	 */
+	public Map<String, Object> getEntityPropertyMap() {
+		Map<String, Object> entityProperties = new HashMap<String, Object>();
+		for(Entry<String, Object> entry : getResource().getEntity().entrySet()) {
+			String name = entry.getKey();
+			Object value = entry.getValue();
+			if(value.getClass().equals(EntityProperties.class)) {
+				entityProperties.put(name, value);
+			}
+			else {
+				entityProperties.put(name, entityMetadata.getPropertyValueAsString(name, value));
 			}
 		}
 		return entityProperties;

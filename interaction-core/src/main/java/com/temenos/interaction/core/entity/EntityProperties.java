@@ -34,4 +34,18 @@ public class EntityProperties  {
 	public void setProperty(EntityProperty property) {
 		properties.put(property.getName(), property);
 	}
+	
+	/**
+	 * Return a comma-separated list of property-value pairs
+	 */
+	public String toString() {
+		StringBuilder str = new StringBuilder();
+		for(String prop : properties.keySet()) {
+			if(str.length() > 0) {
+				str.append(", ");
+			}
+			str.append(prop + " = " + properties.get(prop));
+		}
+		return str.toString();
+	}
 }

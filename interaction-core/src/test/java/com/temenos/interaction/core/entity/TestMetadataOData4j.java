@@ -3,6 +3,8 @@ package com.temenos.interaction.core.entity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -20,6 +22,8 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmType;
 
+import com.temenos.interaction.core.entity.vocabulary.Term;
+import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -41,7 +45,20 @@ public class TestMetadataOData4j {
 	public static void setup()
 	{
 		//Read the metadata file
-		MetadataParser parser = new MetadataParser();
+		TermFactory termFactory = new TermFactory() {
+			public Term createTerm(String name, String value) throws Exception {
+				if(name.equals("TEST_ENTITY_ALIAS")) {
+					Term mockTerm = mock(Term.class);
+					when(mockTerm.getValue()).thenReturn(value);
+					when(mockTerm.getName()).thenReturn(name);
+					return mockTerm;
+				}
+				else {
+					return super.createTerm(name, value);
+				}
+			}			
+		};
+		MetadataParser parser = new MetadataParser(termFactory);
 		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
 		Metadata metadata = parser.parse(is);
 		Assert.assertNotNull(metadata);
