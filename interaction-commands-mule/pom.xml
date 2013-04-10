@@ -15,7 +15,7 @@
     <description>TODO</description>
 
     <properties>
-        <muleVersion>3.3.1</muleVersion>
+        <mule.version>3.3.1</mule.version>
     </properties>
 
     <build>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-ibeans</artifactId>
-            <version>${muleVersion}</version>
+            <version>${mule.version}</version>
             <scope>provided</scope>
         </dependency>
 -->
@@ -56,27 +56,27 @@
         <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-client</artifactId>
-            <version>${muleVersion}</version>
+            <version>${mule.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-json</artifactId>
-            <version>${muleVersion}</version>
+            <version>${mule.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mule.transports</groupId>
             <artifactId>mule-transport-vm</artifactId>
-            <version>${muleVersion}</version>
+            <version>${mule.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mule.transports</groupId>
             <artifactId>mule-transport-file</artifactId>
-            <version>${muleVersion}</version>
+            <version>${mule.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mule.tests</groupId>
             <artifactId>mule-tests-functional</artifactId>
-            <version>${muleVersion}</version>
+            <version>${mule.version}</version>
             <scope>test</scope>
         </dependency>
         
