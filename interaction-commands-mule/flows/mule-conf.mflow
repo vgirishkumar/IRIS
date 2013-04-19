@@ -53,7 +53,7 @@
             </property-collection>
         </properties>
     </global-element>
-    <flow SubFlow="false" name="vm://maptoxml" entity-id="a895138d-a23a-4807-8493-3b0febe6f73e">
+    <flow SubFlow="false" name="vm://maptoxml" entity-id="988dd7e8-b913-4c45-9764-dacaa8062874">
         <properties>
             <property name="processingStrategy2"/>
             <property name="processingStrategy"/>
@@ -121,7 +121,7 @@
             </pattern>
         </lane>
     </flow>
-    <flow SubFlow="false" name="vm://datamapper" entity-id="925acd41-e1a5-471f-a8b9-d82513e6b397">
+    <flow SubFlow="false" name="vm://datamapper" entity-id="4ea7a914-f1d7-4992-b09a-42e80d6c9617">
         <properties>
             <property name="processingStrategy2"/>
             <property name="processingStrategy"/>
@@ -179,7 +179,7 @@
             </pattern>
         </lane>
     </flow>
-    <flow SubFlow="false" name="vm://view-command" entity-id="12e62fac-f688-4ae5-8bf2-80aaf7bf63af">
+    <flow SubFlow="false" name="vm://view-command" entity-id="18b474a0-7e75-47c7-add1-366768d0f242">
         <properties>
             <property name="processingStrategy2"/>
             <property name="processingStrategy"/>
@@ -233,35 +233,47 @@
                 <properties>
                     <property name="value" value="#[mule:message.payload(java.lang.String)]"/>
                     <property name="auxiliary;index" value="18"/>
-                    <property name="updated"/>
+                    <property name="auxiliary;index" value="18"/>
+                    <property name="auxiliary;index" value="18"/>
                 </properties>
-                <description></description>
             </pattern>
             <endpoint direction="Outbound" message-exchange-pattern="OneWay" name="File" type="http://www.mulesoft.org/schema/mule/file/endpoint" entity-id="File#1">
                 <properties>
-                    <property name="auxiliary;erased;mimeType" value="true"/>
-                    <property name="ref" value=""/>
-                    <property name="transformer-refs" value=""/>
-                    <property name="address" value=""/>
-                    <property name="businessEventsLabel" value=""/>
-                    <property name="auxiliary;erased;encoding" value="true"/>
-                    <property name="encoding" value=""/>
-                    <property name="path" value="C:\logs"/>
-                    <property name="disableTransportTransformer" value="false"/>
-                    <property name="outputPattern" value="#[function:datestamp]-view-command.xml"/>
-                    <property name="mimeType" value=""/>
-                    <property name="responseTimeout" value="10000"/>
-                    <property name="tracking:enable-default-events" value="false"/>
                     <property name="exchange-pattern" value="one-way"/>
-                    <property name="connector-ref" value=""/>
+                    <property name="path" value="./target/logs"/>
+                    <property name="outputPattern" value="#[function:datestamp]-view-command.xml"/>
+                    <property name="moveToPattern"/>
+                    <property name="moveToDirectory"/>
                     <property name="auxiliary;index" value="19"/>
-                    <property name="updated"/>
+                    <property name="pollingFrequency"/>
+                    <property name="fileAge"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="address"/>
+                    <property name="responseTimeout" value="10000"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="comparator"/>
+                    <property name="reverseOrder"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="auxiliary;index" value="19"/>
+                    <property name="auxiliary;index" value="19"/>
                 </properties>
-                <description></description>
             </endpoint>
         </lane>
     </flow>
-    <flow SubFlow="false" name="vm://action-command" entity-id="41d11645-cf62-4cee-9c5e-f9eb8ff43b36">
+    <flow SubFlow="false" name="vm://action-command" entity-id="964cbc9f-9565-4eac-a96f-75ddf36c7753">
         <properties>
             <property name="processingStrategy2"/>
             <property name="processingStrategy"/>
@@ -322,7 +334,7 @@
             <endpoint direction="Outbound" message-exchange-pattern="OneWay" name="File" type="http://www.mulesoft.org/schema/mule/file/endpoint" entity-id="File#2">
                 <properties>
                     <property name="exchange-pattern" value="one-way"/>
-                    <property name="path" value="c:\logs"/>
+                    <property name="path" value="./target/logs"/>
                     <property name="outputPattern" value="#[function:datestamp]-action-command.xml"/>
                     <property name="moveToPattern"/>
                     <property name="moveToDirectory"/>
