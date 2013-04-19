@@ -9,7 +9,7 @@
 </appender>
 
 <appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
-    <param name="File" value="c:/logs/mule.log" />
+    <param name="File" value="./target/logs/mule.log" />
     <param name="DatePattern" value="'.'yyyy-MM-dd" />
     <layout class="org.apache.log4j.PatternLayout">
         <param name="ConversionPattern" value="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
