@@ -77,6 +77,7 @@
 /interaction-dsl/com.temenos.interaction.rimdsl.tests/target
 /interaction-dsl/com.temenos.interaction.rimdsl.ui/target
 /interaction-dsl/com.temenos.interaction.rimdsl.ui/bin
+/interaction-dsl/com.temenos.interaction.rimdsl.site/target
 /useragent-examples/useragent-odata-html5/target
 /interaction-dsl/interaction-rim-plugin/target
 /interaction-dsl/interaction-rim-plugin/.settings
