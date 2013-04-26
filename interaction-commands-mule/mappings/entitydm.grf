@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="aphethean" created="Fri Mar 22 10:21:07 GMT 2013" guiVersion="3.3.0.M2" id="1363969796159" licenseCode="Unlicensed" licenseType="Commercial" modified="Fri Mar 22 10:21:07 GMT 2013" modifiedBy="aphethean" name="EntityDM" revision="1.0" showComponentDetails="false">
+<Global>
+<Metadata __sourcePath="{}/inputMetadata" _dataStructure="OBJECT" _id="__id" _type="Input" id="956c0647-42cc-4fd6-9f80-d765afb1ddae">
+<Record fieldDelimiter="|" label="inputMetadata" name="inputMetadata" recordDelimiter="&#10;" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __sourcePath="{}/inputMetadata/id" label="id" name="id" type="string"/>
+<Field __sourcePath="{}/inputMetadata/properties" containerType="list" label="properties" name="properties" type="string"/>
+<Field __sourcePath="{}/inputMetadata/address_line1" label="address_line1" name="address_line1" type="string"/>
+<Field __sourcePath="{}/inputMetadata/name" label="name" name="name" type="string"/>
+</Record>
+</Metadata>
+<Metadata __sourcePath="{}/inputMetadata" _dataStructure="OBJECT" _id="__id" _type="Output" id="1f5803bc-ce8e-4147-aefe-9b0a74571480">
+<Record fieldDelimiter="|" label="inputMetadata" name="inputMetadata" recordDelimiter="&#10;" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __sourcePath="{}/inputMetadata/id" label="id" name="id" type="string"/>
+<Field __sourcePath="{}/inputMetadata/properties" containerType="list" label="properties" name="properties" type="string"/>
+<Field __sourcePath="{}/inputMetadata/address_line1" label="address_line1" name="address_line1" type="string"/>
+<Field __sourcePath="{}/inputMetadata/name" label="name" name="name" type="string"/>
+</Record>
+</Metadata>
+<Dictionary>
+<Entry id="DictionaryEntry0" input="true" name="inputPayload" output="false" type="object"/>
+<Entry id="DictionaryEntry1" input="false" name="outputPayload" output="true" type="object"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" fileURL="dict:inputPayload" guiHeight="0" guiName="Maps / List of Maps  READER" guiWidth="0" guiX="20" guiY="20" id="BEAN_READER0" type="BEAN_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context outPort="0" sequenceField="__id" xpath=".">
+  <Mapping cloverField="id" trim="true" xpath="id"/>
+  <Mapping cloverField="properties" trim="true" xpath="properties"/>
+  <Mapping cloverField="address_line1" trim="true" xpath="address_line1"/>
+  <Mapping cloverField="name" trim="true" xpath="name"/>
+</Context>
+]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+</Node>
+<Node enabled="enabled" fileURL="dict:outputPayload" guiHeight="0" guiName="Maps / List of Maps  WRITER" guiWidth="0" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<inputMetadata xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" clover:inPort="0">
+  <id>$0.id</id>
+  <clover:collection clover:name="properties">$0.properties</clover:collection>
+  <address_x005fline1>$0.address_line1</address_x005fline1>
+  <name>$0.name</name>
+</inputMetadata>]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+</Node>
+<Node enabled="enabled" guiHeight="0" guiName="inputMetadata_to_inputMetadata" guiWidth="0" guiX="460" guiY="20" id="REFORMAT0" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+$out.0.__id=$in.0.__id;
+	$out.0.id=$in.0.id;
+	$out.0.properties=$in.0.properties;
+	$out.0.address_line1=$in.0.address_line1;
+	$out.0.name=$in.0.name;
+		return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="BEAN_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="956c0647-42cc-4fd6-9f80-d765afb1ddae" outPort="Port 0 (out)" toNode="REFORMAT0:0"/>
+<Edge debugMode="true" fromNode="REFORMAT0:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="1f5803bc-ce8e-4147-aefe-9b0a74571480" outPort="Port 0 (out)" toNode="MAP_WRITER0:0"/>
+</Phase>
+</Graph>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://ws.cdyne.com/WeatherWS/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="GetCityForecastByZIP" type="weat:GetCityForecastByZIPType" xmlns:weat="http://ws.cdyne.com/WeatherWS/"/>
+  <xs:complexType name="GetCityForecastByZIPType">
+    <xs:sequence>
+      <xs:element type="xs:int" name="ZIP">
+        <xs:annotation>
+          <xs:documentation>Optional:</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

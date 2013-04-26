@@ -213,7 +213,7 @@
     <dependency>
     	<groupId>org.springframework</groupId>
     	<artifactId>spring-orm</artifactId>
-    	<version>3.0.5.RELEASE</version>
+    	<version>3.1.4.RELEASE</version>
     </dependency>
 
     <!-- Add dependency for our javascript user-agent -->

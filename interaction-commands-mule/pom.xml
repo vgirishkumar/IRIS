@@ -1,0 +1,128 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-parent</artifactId>
+        <version>0.3.0-SNAPSHOT</version>
+        <relativePath>../interaction-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>interaction-commands-mule</artifactId>
+    <packaging>jar</packaging>
+    <name>interaction-commands-mule</name>
+    <description>TODO</description>
+
+    <properties>
+        <mule.version>3.3.1</mule.version>
+    </properties>
+
+    <build>
+        <plugins>
+<!-- 
+            <plugin>
+                <groupId>org.mule.tools</groupId>
+                <artifactId>maven-mule-plugin</artifactId>
+                <version>1.6</version>
+                <extensions>true</extensions>
+            </plugin>
+ -->
+             <plugin>
+                <groupId>org.mule.tools</groupId>
+                <artifactId>studio-maven-plugin</artifactId>
+                <version>1.3.0</version>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+   	    <!-- IRIS dependencies -->
+   		<dependency>
+			<groupId>com.temenos.interaction</groupId>
+			<artifactId>interaction-core</artifactId>
+		</dependency>
+   
+<!-- 
+        <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-module-ibeans</artifactId>
+            <version>${mule.version}</version>
+            <scope>provided</scope>
+        </dependency>
+-->
+
+        <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-module-client</artifactId>
+            <version>${mule.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-module-json</artifactId>
+            <version>${mule.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.transports</groupId>
+            <artifactId>mule-transport-vm</artifactId>
+            <version>${mule.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.transports</groupId>
+            <artifactId>mule-transport-file</artifactId>
+            <version>${mule.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.tests</groupId>
+            <artifactId>mule-tests-functional</artifactId>
+            <version>${mule.version}</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- TESTING -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+   </dependencies>
+
+    <repositories>
+<!-- 
+        <repository> 
+            <id>mule-deps</id> 
+            <name>Mule Dependencies</name> 
+            <url>http://dist.codehaus.org/mule/dependencies/maven2</url> 
+        </repository> 
+        <repository>
+            <id>ibeans-releases</id>
+            <name>ibeans Release Repository</name>
+            <url>http://repository.ibeans.muleforge.org</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>ibeans-snapshots</id>
+            <name>ibeans Snapshots Repository</name>
+            <url>http://snapshots.repository.ibeans.muleforge.org</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+ -->
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mulesoft-release</id>
+            <name>mulesoft release repository</name>
+            <layout>default</layout>
+            <url>https://repository.mulesoft.org/releases/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+</project>
