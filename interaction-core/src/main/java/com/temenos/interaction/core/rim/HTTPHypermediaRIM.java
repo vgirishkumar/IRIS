@@ -129,9 +129,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		assert(metadata != null);
 		assert(resourcePath != null);
 		hypermediaEngine.setCommandController(commandController);
-		HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine);
+		HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, metadata);
 		validator.setLogicalConfigurationListener(new LogicalConfigurationListener() {
 			
+			@Override
+			public void noMetadataFound(ResourceStateMachine rsm,
+					ResourceState state) {
+				throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no metadata for entity ["+state.getEntityName()+"]");
+			}
+
 			@Override
 			public void noActionsConfigured(ResourceStateMachine rsm,
 					ResourceState state) {

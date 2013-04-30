@@ -8,6 +8,13 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 public interface LogicalConfigurationListener {
 
 	/**
+	 * Called when a ResourceState does not have any Metadata for entity in metadata.xml.
+	 * @param rsm
+	 * @param state
+	 */
+	public void noMetadataFound(ResourceStateMachine rsm, ResourceState state);
+
+	/**
 	 * Called when a ResourceState does not have any Action bound to the resource.
 	 * @param rsm
 	 * @param state

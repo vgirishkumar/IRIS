@@ -33,6 +33,7 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
+import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action.TYPE;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
@@ -189,7 +190,9 @@ public class TestResourceStateMachine {
 			assertTrue(sm.getStates().contains(s));
 		}
 		
-		System.out.println(HypermediaValidator.createValidator(sm).graph());
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("T24CONTRACT"));
+		System.out.println(HypermediaValidator.createValidator(sm, metadata).graph());
 	}
 	
 	/**

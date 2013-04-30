@@ -11,6 +11,8 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -37,7 +39,9 @@ public class TestHypermediaValidator {
 		states.add(end);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
-		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata(""));
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
 		assertTrue(v.validate(states, sm));	
 	}
 
@@ -59,8 +63,22 @@ public class TestHypermediaValidator {
 		states.add(end);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
-		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata(""));
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
 		assertFalse(v.validate(states, sm));	
+	}
+
+	@Test
+	public void testValidateMetadataNotFound() {
+		String ENTITY_NAME = "root_entity";
+		ResourceState root = new ResourceState(ENTITY_NAME, "root", new ArrayList<Action>(), "/root");
+		
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("root_entity"));
+		ResourceStateMachine sm = new ResourceStateMachine(root);
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
+		assertFalse(v.validate());	
 	}
 
 	@Test
@@ -82,7 +100,9 @@ public class TestHypermediaValidator {
 		initial.addTransition("PUT", exists);
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial, exception, null);
-		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata(""));
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
 		String result = v.graph();
 		System.out.println("DOTException: \n" + result);
 		assertEquals(expected, result);	
@@ -107,7 +127,9 @@ public class TestHypermediaValidator {
 		initial.addTransition("PUT", other, expressions);
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
-		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("G"));
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
 		String result = v.graph();
 		System.out.println("DOTTransitionEval: \n" + result);
 		assertEquals(expected, result);	
@@ -133,7 +155,9 @@ public class TestHypermediaValidator {
 		exists.addTransition("DELETE", deleted);
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
-		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("G"));
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
 		String result = v.graph();
 		System.out.println("DOTNoContent: \n" + result);
 		assertEquals(expected, result);	
@@ -161,7 +185,9 @@ public class TestHypermediaValidator {
 		initial.addTransitionForEachItem("DELETE", deleted, null, Transition.FOR_EACH);
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
-		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("G"));
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
 		String result = v.graph();
 		System.out.println("DOTResetContent: \n" + result);
 		assertEquals(expected, result);	
@@ -189,7 +215,9 @@ public class TestHypermediaValidator {
 		exists.addTransition("DELETE", deleted);
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
-		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("G"));
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
 		String result = v.graph();
 		System.out.println("DOTSeeOther: \n" + result);
 		assertEquals(expected, result);	
@@ -221,7 +249,9 @@ public class TestHypermediaValidator {
 		exists.addTransition("DELETE", deleted);
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
-		HypermediaValidator v = HypermediaValidator.createValidator(sm);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("CRUD_ENTITY"));
+		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
 		String result = v.graph();
 		assertEquals(expected, result);	
 	}
@@ -232,8 +262,10 @@ public class TestHypermediaValidator {
 		ResourceStateMachine processSM = getProcessSM();
 		home.addTransition("GET", processSM);
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("SERVICE_ROOT"));
 		
-		String result = HypermediaValidator.createValidator(serviceDocumentSM).graph();
+		String result = HypermediaValidator.createValidator(serviceDocumentSM, metadata).graph();
 		System.out.println("DOTTransitionToStateMachine: \n" + result);
 
 		String expected = "digraph SERVICE_ROOT {\n"
@@ -276,6 +308,8 @@ public class TestHypermediaValidator {
 		home.addTransition("GET", notesSM);
 		
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
+		Metadata metadata = new Metadata("");
+		metadata.setEntityMetadata(new EntityMetadata("SERVICE_ROOT"));
 		String expected = "digraph SERVICE_ROOT {\n"
 				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
 			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
@@ -284,7 +318,7 @@ public class TestHypermediaValidator {
 				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
 				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
 				+ "}";
-		assertEquals(expected, HypermediaValidator.createValidator(serviceDocumentSM).graphEntityNextStates());
+		assertEquals(expected, HypermediaValidator.createValidator(serviceDocumentSM, metadata).graphEntityNextStates());
 	}
 
 	private ResourceStateMachine getProcessSM() {

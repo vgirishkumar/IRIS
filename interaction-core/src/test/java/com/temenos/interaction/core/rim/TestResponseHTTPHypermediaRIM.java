@@ -35,6 +35,7 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
@@ -74,6 +75,12 @@ public class TestResponseHTTPHypermediaRIM {
 		return actions;
 	}
 	
+	private Metadata createMockMetadata() {
+		Metadata metadata = mock(Metadata.class);
+		when(metadata.getEntityMetadata(any(String.class))).thenReturn(mock(EntityMetadata.class));
+		return metadata;
+	}
+
 	/*
 	 * This test checks that we receive a 404 'Not Found' if a GET command is not registered.
 	 * Every resource must have a GET command, so no command means no resource (404)
@@ -85,7 +92,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
 	}
@@ -101,7 +108,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.put(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
 		assertEquals(HttpStatusTypes.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());
         // as per the http spec, 405 MUST include an Allow header
@@ -122,7 +129,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
 		assertEquals(HttpStatusTypes.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());
         // as per the http spec, 405 MUST include an Allow header
@@ -143,7 +150,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		assertEquals(HttpStatusTypes.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());
         // as per the http spec, 405 MUST include an Allow header
@@ -184,7 +191,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
 
 		// RIM with command controller that issues our mock InteractionCommand
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.put(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
 		
 		// null resource for no content
@@ -216,7 +223,7 @@ public class TestResponseHTTPHypermediaRIM {
 		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		
 		// null resource
@@ -248,7 +255,7 @@ public class TestResponseHTTPHypermediaRIM {
 		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		
 		// null resource
@@ -276,7 +283,7 @@ public class TestResponseHTTPHypermediaRIM {
 		deletedState.addTransition(initialState);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.delete(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		
 		// null resource
@@ -314,7 +321,7 @@ public class TestResponseHTTPHypermediaRIM {
 		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Collection<ResourceInteractionModel> children = rim.getChildren();
 		// find the resource interaction model for the entity item
 		HTTPHypermediaRIM itemRIM = null;
@@ -366,7 +373,7 @@ public class TestResponseHTTPHypermediaRIM {
 		idleState.addTransition(existsState);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Collection<ResourceInteractionModel> children = rim.getChildren();
 		// find the resource interaction model for the 'cooking' state
 		HTTPHypermediaRIM cookingStateRIM = null;
@@ -413,7 +420,7 @@ public class TestResponseHTTPHypermediaRIM {
 		createPsuedoState.addTransition(individualMachine);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
 		// null resource
@@ -451,7 +458,7 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link("id", "self", "href", null, null));
 		
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		
 		RESTResource resourceWithLinks = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
@@ -472,7 +479,7 @@ public class TestResponseHTTPHypermediaRIM {
 		// mock 'new InteractionContext()' in call to get
 		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		
 		RESTResource resource = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
@@ -525,7 +532,7 @@ public class TestResponseHTTPHypermediaRIM {
 		mockCommandController.addCommand("DO", mockCommand);
 
 		// RIM with command controller that issues our mock InteractionCommand
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), mock(Metadata.class));
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.options(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		
 		// 204 http status for no content

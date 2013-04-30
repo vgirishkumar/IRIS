@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -23,14 +24,16 @@ public class HypermediaValidator {
 	private final static String FINAL_STATE = "final";
 	
 	private ResourceStateMachine hypermediaEngine;
+	private Metadata metadata;
 	private LogicalConfigurationListener logicalConfigurationListener;
 	
-	protected HypermediaValidator(ResourceStateMachine rsm) {
+	protected HypermediaValidator(ResourceStateMachine rsm, Metadata metadata) {
 		this.hypermediaEngine = rsm;
+		this.metadata = metadata;
 	}
 	
-	public static HypermediaValidator createValidator(ResourceStateMachine rsm) {
-		return new HypermediaValidator(rsm);
+	public static HypermediaValidator createValidator(ResourceStateMachine rsm, Metadata metadata) {
+		return new HypermediaValidator(rsm, metadata);
 	}
 	
 	public void setLogicalConfigurationListener(LogicalConfigurationListener lcl) {
@@ -40,16 +43,24 @@ public class HypermediaValidator {
 	/*
 	 * @precondition ResourceStateMachine must have had a CommandController set.
 	 */
-	public void validate() {
+	public boolean validate() {
+		boolean valid = true;
 		/*
 		 * Validate the resource by attempting to fetch a command for all the required
 		 * actions for the resource state.
 		 */
 		for (ResourceState currentState : hypermediaEngine.getStates()) {
 			logger.debug("Checking configuration for [" + currentState + "] " + currentState.getPath());
+			if (metadata.getEntityMetadata(currentState.getEntityName()) == null) {
+				fireNoMetadataFound(hypermediaEngine, currentState);
+				valid = false;
+				continue;
+			}
+			
 			List<Action> actions = currentState.getActions();
 			if (actions == null) {
 				fireNoActionsConfigured(hypermediaEngine, currentState);
+				valid = false;
 				continue;
 			}
 			boolean viewActionSeen = false;
@@ -57,8 +68,10 @@ public class HypermediaValidator {
 				NewCommandController commandController = hypermediaEngine.getCommandController();
 				assert(commandController != null);
 				InteractionCommand command = commandController.fetchCommand(action.getName());
-				if (command == null)
+				if (command == null) {
 					fireActionNotAvailable(hypermediaEngine, currentState, action);
+					valid = false;
+				}
 				// TODO refine this validation to view action for regular resource state; entry action for pseudo state
 //				if (action.getType().equals(Action.TYPE.VIEW)) {
 				if (action.getType().equals(Action.TYPE.VIEW) || action.getType().equals(Action.TYPE.ENTRY)) {
@@ -67,12 +80,19 @@ public class HypermediaValidator {
 			}
 
 			// every resource MUST have a GET command
-			if (!viewActionSeen)
+			if (!viewActionSeen) {
 				fireViewActionNotSeen(hypermediaEngine, currentState);
+				valid = false;
+			}
 		}
-		
+		return valid;
 	}
 	
+	private void fireNoMetadataFound(ResourceStateMachine rsm, ResourceState state) {
+		if (logicalConfigurationListener != null)
+			logicalConfigurationListener.noMetadataFound(hypermediaEngine, state);
+	}
+
 	private void fireNoActionsConfigured(ResourceStateMachine rsm, ResourceState state) {
 		if (logicalConfigurationListener != null)
 			logicalConfigurationListener.noActionsConfigured(hypermediaEngine, state);
