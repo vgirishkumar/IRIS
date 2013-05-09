@@ -3,6 +3,8 @@
           xmlns="http://iris.temenos.com/metadata.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
+    <Entity Name="ServiceDocument"></Entity>
+    <Entity Name="Metadata"></Entity>
 	<Entity Name="FlightSchedule">
 		<Property Name="flightNo" />
 		<Property Name="arrivalAirportCode" />

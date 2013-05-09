@@ -140,12 +140,13 @@ class RIMDslGenerator implements IGenerator {
 		import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 		import com.temenos.interaction.core.hypermedia.expression.Expression;
 		import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+		import com.temenos.interaction.core.resource.ResourceMetadataManager;
 		
 		public class «rim.eResource.className»Behaviour {
 		
 		    public static void main(String[] args) {
 		        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(new «rim.eResource.className»Behaviour().getRIM());
-		        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine);
+		        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, new ResourceMetadataManager(hypermediaEngine).getMetadata());
 		        System.out.println(validator.graph());
 		    }
 		

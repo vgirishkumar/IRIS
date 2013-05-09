@@ -3,7 +3,9 @@
           xmlns="http://iris.temenos.com/metadata.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
-	<Entity Name="Preferences">
+    <Entity Name="HOME"></Entity>
+    <Entity Name="ID"></Entity>
+	<Entity Name="Profile">
 		<Property Name="userID">
 			<Term Name="TERM_MANDATORY">true</Term>
 			<Term Name="TERM_ID_FIELD">true</Term>

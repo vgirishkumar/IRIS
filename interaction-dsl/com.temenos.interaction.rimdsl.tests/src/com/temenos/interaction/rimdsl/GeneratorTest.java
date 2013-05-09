@@ -60,12 +60,13 @@ public class GeneratorTest {
 	"import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.expression.Expression;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;" + LINE_SEP +
+	"import com.temenos.interaction.core.resource.ResourceMetadataManager;" + LINE_SEP +
 	LINE_SEP +
 	"public class __synthetic0Behaviour {" + LINE_SEP +
 	LINE_SEP +
 	"    public static void main(String[] args) {" + LINE_SEP +
 	"        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(new __synthetic0Behaviour().getRIM());" + LINE_SEP +
-	"        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine);" + LINE_SEP +
+	"        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, new ResourceMetadataManager(hypermediaEngine).getMetadata());" + LINE_SEP +
 	"        System.out.println(validator.graph());" + LINE_SEP +
 	"    }" + LINE_SEP +
 	LINE_SEP +
