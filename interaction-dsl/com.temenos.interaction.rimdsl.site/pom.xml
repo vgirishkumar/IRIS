@@ -12,5 +12,44 @@
 	</parent>
 
 	<artifactId>com.temenos.interaction.rimdsl.site</artifactId>
-	<packaging>eclipse-update-site</packaging>
+	<packaging>eclipse-repository</packaging>
+	
+	<!-- FTP Server configurations -->
+	<profiles>
+    	<!-- Plugin update site -->
+    	<profile>
+	        <id>pluginRelease</id>
+	        <properties>
+	            <pluginReleaseHost>PluginReleaseSite</pluginReleaseHost>
+	            <pluginReleaseDir>/var/www/html/releases/Technology/plugins/IRIS/${project.version}/RIM_DSL/</pluginReleaseDir>
+	            <pluginReleaseUrl>scp://ukhml-bladeas4.temenosgroup.com</pluginReleaseUrl>
+	        </properties>
+	    </profile>
+  	</profiles>
+	
+	<!-- Upload configurations are specific to project -->
+	<build>
+		<plugins>
+  			 <plugin>
+		        <groupId>com.atlassian.maven.plugins</groupId>
+		        <artifactId>maven-upload-plugin</artifactId>
+		        <version>1.1</version>
+		        <dependencies>
+		        	<dependency>
+			          	<groupId>org.apache.maven.wagon</groupId>
+			          	<artifactId>wagon-ssh</artifactId>
+			          	<version>2.4</version>
+		        	</dependency>
+		      	</dependencies>
+      			<configuration>
+      				<resourceSrc>
+						${project.build.directory}/repository/*
+				  	</resourceSrc>
+		          	<resourceDest>${pluginReleaseDir}</resourceDest>
+		          	<serverId>${pluginReleaseHost}</serverId>
+		          	<url>${pluginReleaseUrl}</url>
+		        </configuration>
+		     </plugin>
+  		</plugins>
+  	</build>
 </project>
