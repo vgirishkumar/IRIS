@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.temenos.interaction</groupId>
+		<artifactId>com.temenos.interaction.rimdsl.parent</artifactId>
+		<!-- You should change this and the MANIFEST.MF to your versioning scheme -->
+		<version>0.3.0-SNAPSHOT</version>
+		<relativePath>../com.temenos.interaction.rimdsl.parent/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>com.temenos.interaction.rimdsl.site</artifactId>
+	<packaging>eclipse-repository</packaging>
+	
+	<!-- FTP Server configurations -->
+	<profiles>
+    	<!-- Plugin update site -->
+    	<profile>
+	        <id>pluginRelease</id>
+	        <properties>
+	            <pluginReleaseHost>PluginReleaseSite</pluginReleaseHost>
+	            <pluginReleaseDir>/var/www/html/releases/Technology/plugins/IRIS/${project.version}/RIM_DSL/</pluginReleaseDir>
+	            <pluginReleaseUrl>scp://ukhml-bladeas4.temenosgroup.com</pluginReleaseUrl>
+	        </properties>
+	    </profile>
+  	</profiles>
+	
+	<!-- Upload configurations are specific to project -->
+	<build>
+		<plugins>
+  			 <plugin>
+		        <groupId>com.atlassian.maven.plugins</groupId>
+		        <artifactId>maven-upload-plugin</artifactId>
+		        <version>1.1</version>
+		        <dependencies>
+		        	<dependency>
+			          	<groupId>org.apache.maven.wagon</groupId>
+			          	<artifactId>wagon-ssh</artifactId>
+			          	<version>2.4</version>
+		        	</dependency>
+		      	</dependencies>
+      			<configuration>
+      				<resourceSrc>
+						${project.build.directory}/repository/*
+				  	</resourceSrc>
+		          	<resourceDest>${pluginReleaseDir}</resourceDest>
+		          	<serverId>${pluginReleaseHost}</serverId>
+		          	<url>${pluginReleaseUrl}</url>
+		        </configuration>
+		     </plugin>
+  		</plugins>
+  	</build>
+</project>
