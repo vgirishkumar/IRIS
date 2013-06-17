@@ -52,4 +52,12 @@
 		     </plugin>
   		</plugins>
   	</build>
+	
+    <pluginRepositories>
+        <pluginRepository>
+    		<id>atlassian-public-repository</id>
+    		<url>https://maven.atlassian.com/content/repositories/atlassian-public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+	
 </project>
