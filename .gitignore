@@ -95,3 +95,5 @@
 /interaction-examples/interaction-odata-airline/log.txt
 /interaction-commands-mule/target
 /interaction-dsl/com.temenos.interaction.rimdsl.parent/target
+
+/interaction-commands-solr/target
