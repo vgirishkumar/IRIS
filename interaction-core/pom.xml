@@ -126,10 +126,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.theoryinpractise</groupId>
-			<artifactId>halbuilder</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.codehaus.jettison</groupId>
 			<artifactId>jettison</artifactId>
 			<version>1.0.1</version>
@@ -155,9 +151,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>com.googlecode.cambridge</groupId>
-			<artifactId>cambridge-core</artifactId>
-			<version>1.0</version>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>10.0.1</version>
 		</dependency>
 	</dependencies>
 </project>

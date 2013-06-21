@@ -18,7 +18,7 @@ import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.temenos.interaction.core.media.hal.MediaType;
+import com.temenos.interaction.media.hal.MediaType;
 import com.temenos.interaction.example.mashup.twitter.OAuthRequestor;
 import com.temenos.interaction.example.mashup.twitter.Twitter4JConsumer;
 import com.theoryinpractise.halbuilder.RepresentationFactory;

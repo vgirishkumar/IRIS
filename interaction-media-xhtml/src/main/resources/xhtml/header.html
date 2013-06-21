@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+	   <title>${siteName}</title>
+		<style type="text/css">
+			#tableT1 {font-family:"Lucida Sans Unicode", "Lucida Grande", Sans-Serif;font-size:12px;background:#fff;width:480px;border-collapse:collapse;text-align:left;margin:20px;}
+			#tableT1 th{font-size:14px;font-weight:normal;color:#039;border-bottom:2px solid #6678b1;padding:10px 8px;}
+			#tableT1 td{color:#669;padding:9px 8px 0;white-space:nowrap;}
+			#tableT1 tbody tr:hover td{color:#009;}
+			
+			#tableT2 {font-family:"Lucida Sans Unicode", "Lucida Grande", Sans-Serif;font-size:12px;width:480px;text-align:left;border-collapse:collapse;margin:20px;}
+			#tableT2 th {font-size:13px;font-weight:normal;background:#b9c9fe;border-top:4px solid #aabcfe;border-bottom:1px solid #fff;color:#039;padding:8px;}
+			#tableT2 td {background:#e8edff;border-bottom:1px solid #fff;color:#669;border-top:1px solid transparent;padding:8px;white-space:nowrap;max-width: 800px;text-overflow:ellipsis;-o-text-overflow: ellipsis;overflow:hidden;}
+			#tableT2 tr:hover td {background:#d0dafd;color:#339;}
+		</style>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
+		<script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+		<script src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+		<script type="text/javascript">
+			//Navigate link
+			function navigate(url) {
+				document.location.href = url;
+			}
+			
+			//Read the table and put as json object
+			function updateEntity(updateLink)
+			{
+				var dataJson = [];
+				var dataJsonText = "";
+				var link = "\"_links\" : { \"self\" : { \"href\" : \"" + updateLink + "\"}}";
+				$('#tableT1').find('tbody tr').each(function(){
+				    var obj = {},
+				        $td = $(this).find('td'),
+				        key = $td.eq(0).text(),
+				        val = $td.eq(1).text();
+				    obj[key] = val;
+				    dataJson.push(obj);
+				});			
+			    dataJsonText = JSON.stringify(dataJson);
+			    dataJsonText = dataJsonText.replace(/[[\]]/g,'');		//Remove brackets
+			    dataJsonText = dataJsonText.replace(/[{}]/g,'');		//Remove braces
+			    dataJsonText = "{" + link + "," + dataJsonText + "}";
+				//alert("Sending: " + dataJsonText);
+				$.ajax({
+					  url : updateLink,
+					  type : "PUT",
+					  data : dataJsonText,
+					  contentType : "application/hal+json; charset=utf-8",
+					  dataType : "html",
+					  success: function(data, textStatus, jqXHR){
+						document.location.reload(true);
+					  },
+					  error: function (xhr, ajaxOptions, thrownError) {
+						alert("Failed to save changes: " + xhr.status + " [" + thrownError + "]");
+				      }
+					});
+			}
+		</script>
+	</head>
+	<body>

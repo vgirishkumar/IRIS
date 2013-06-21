@@ -48,7 +48,7 @@
 		<property name="serviceRoot" ref="ServiceRoot" />
 	</bean>
 
-	<bean id="halProvider" class="com.temenos.interaction.core.media.hal.HALProvider">
+	<bean id="halProvider" class="com.temenos.interaction.media.hal.HALProvider">
     	<constructor-arg ref="edmMetadata" />
         <constructor-arg ref="stateMachine" />
 	</bean>

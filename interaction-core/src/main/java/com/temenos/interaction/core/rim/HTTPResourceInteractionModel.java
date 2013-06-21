@@ -30,8 +30,7 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 			MediaType.APPLICATION_JSON,
 			MediaType.APPLICATION_XHTML_XML,
 			MediaType.TEXT_HTML,
-			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML,
-			com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+			MediaType.WILDCARD})
 	public abstract Response get(@Context HttpHeaders headers,
 			@PathParam("id") String id,
 			@Context UriInfo uriInfo);
@@ -53,14 +52,12 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 		MediaType.APPLICATION_ATOM_XML,
     	MediaType.APPLICATION_XML, 
     	MediaType.APPLICATION_JSON, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+    	MediaType.WILDCARD})
 	@Produces({
 		MediaType.APPLICATION_ATOM_XML,
     	MediaType.APPLICATION_XML, 
     	MediaType.APPLICATION_JSON, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+    	MediaType.WILDCARD})
 	public abstract Response post(@Context HttpHeaders headers,
 			@PathParam("id") String id,
 			@Context UriInfo uriInfo,
@@ -74,8 +71,7 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 		MediaType.APPLICATION_ATOM_XML,
     	MediaType.APPLICATION_XML, 
     	MediaType.APPLICATION_JSON, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+    	MediaType.WILDCARD})
 	public abstract Response put(@Context HttpHeaders headers,
 			@PathParam("id") String id,
 			@Context UriInfo uriInfo,

@@ -1,0 +1,15 @@
+<label>${entitySetName}</label>
+<table id="tableT2">
+	<thead>
+		<tr>
+			<div a:foreach="entityPropertyNames">
+				<th>${self}</td>
+			</div>
+		</tr>
+	</thead>
+	<tbody>
+		<tr a:foreach="entityResources" a:as="entityResource" onclick="navigate('${entityResource.entityGetHRef}');">
+			<td a:foreach="entityResource.entityProperties" a:as="propertyValue">${propertyValue}</td>
+		</tr>
+	</tbody>
+</table>

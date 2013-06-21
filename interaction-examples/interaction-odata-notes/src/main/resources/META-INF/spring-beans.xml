@@ -59,7 +59,7 @@
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
- 	<bean id="xhtmlProvider" class="com.temenos.interaction.core.media.xhtml.XHTMLProvider">
+ 	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
     	<constructor-arg ref="edmMetadata" />
 	</bean>
  

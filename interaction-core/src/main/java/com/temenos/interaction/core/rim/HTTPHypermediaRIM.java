@@ -253,12 +253,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 */
 	@Override
 	@GET
-    @Produces({MediaType.APPLICATION_ATOM_XML, 
-    	MediaType.APPLICATION_XML, 
-    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
-    	MediaType.APPLICATION_JSON, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+	@Produces({
+		MediaType.APPLICATION_ATOM_XML,
+		MediaType.APPLICATION_XML,
+		ExtendedMediaTypes.APPLICATION_ATOMSVC_XML,
+		MediaType.APPLICATION_JSON,
+		MediaType.APPLICATION_XHTML_XML,
+		MediaType.TEXT_HTML,
+		MediaType.WILDCARD})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.info("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
@@ -545,18 +547,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * @invariant resourcePath not null
 	 */
     @POST
-    @Consumes({MediaType.APPLICATION_ATOM_XML, 
+	@Consumes({
+		MediaType.APPLICATION_ATOM_XML,
     	MediaType.APPLICATION_XML, 
-    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
     	MediaType.APPLICATION_JSON, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
-    @Produces({MediaType.APPLICATION_ATOM_XML, 
+    	MediaType.WILDCARD})
+	@Produces({
+		MediaType.APPLICATION_ATOM_XML,
     	MediaType.APPLICATION_XML, 
-    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
     	MediaType.APPLICATION_JSON, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+    	MediaType.WILDCARD})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.info("POST " + getFQResourcePath());
     	assert(getResourcePath() != null);
@@ -574,12 +574,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 */
     @Override
 	@PUT
-    @Consumes({MediaType.APPLICATION_ATOM_XML, 
+	@Consumes({
+		MediaType.APPLICATION_ATOM_XML,
     	MediaType.APPLICATION_XML, 
-    	ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, 
     	MediaType.APPLICATION_JSON, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_XML, 
-    	com.temenos.interaction.core.media.hal.MediaType.APPLICATION_HAL_JSON})
+    	MediaType.WILDCARD})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.info("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);

@@ -15,6 +15,8 @@
 		<module>../interaction-commands-webhook</module>
         <module>../interaction-commands-odata</module>
 		<module>../interaction-commands-odata-bridge</module>
+        <module>../interaction-media-hal</module>
+        <module>../interaction-media-xhtml</module>
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../useragent-examples/useragent-odata-html5</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
@@ -171,6 +173,16 @@
 				<artifactId>interaction-commands-odata</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+            <dependency>
+                <groupId>com.temenos.interaction</groupId>
+                <artifactId>interaction-media-hal</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.temenos.interaction</groupId>
+                <artifactId>interaction-media-xhtml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 			<dependency>
 				<groupId>com.temenos.interaction</groupId>
 				<artifactId>interaction-sdk</artifactId>
