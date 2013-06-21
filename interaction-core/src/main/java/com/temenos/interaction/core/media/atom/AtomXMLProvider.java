@@ -46,7 +46,6 @@ import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -161,7 +160,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
 
 				Collection<Link> linksCollection = entityResource.getLinks();
-				List<Link> links = Lists.newArrayList(linksCollection);
+				List<Link> links = new ArrayList<Link>(linksCollection);
 				
 				//Write entry
 				Entity entity = entityResource.getEntity();
@@ -175,7 +174,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 				//Links and entity properties
 				Collection<Link> linksCollection = entityResource.getLinks();
-				List<Link> links = linksCollection != null ? Lists.newArrayList(linksCollection) : new ArrayList<Link>();
+				List<Link> links = linksCollection != null ? new ArrayList<Link>(linksCollection) : new ArrayList<Link>();
 				Object entity = entityResource.getEntity();
 				String entityName = entityResource.getEntityName();
 				EntityProperties props = new EntityProperties();

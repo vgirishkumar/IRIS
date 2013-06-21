@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.hypermedia;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -7,8 +8,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Lists;
 
 public class StrategyBasedTransformer implements Transformer {
 	private final Logger logger = LoggerFactory.getLogger(StrategyBasedTransformer.class);
@@ -21,7 +20,7 @@ public class StrategyBasedTransformer implements Transformer {
 	 * <li>{@link EntityTransformer}</li>
 	 */
 	public StrategyBasedTransformer() {
-		transformers = Lists.newArrayList();
+		transformers = new ArrayList<Transformer>();
 		transformers.add(new EntityTransformer());
 		transformers.add(new BeanTransformer());
 	}
@@ -32,7 +31,7 @@ public class StrategyBasedTransformer implements Transformer {
 	public StrategyBasedTransformer(Collection<Transformer> newTransformers) {
 		if (newTransformers == null)
 			throw new IllegalArgumentException("Must supply a collection of transformers to this constructor");
-		transformers = Lists.newArrayList();
+		transformers = new ArrayList<Transformer>();
 		transformers.addAll(newTransformers);
 	}
 
