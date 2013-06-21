@@ -204,7 +204,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.antlr</groupId>
-			<artifactId>antlr</artifactId>
+			<artifactId>antlr-runtime</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
