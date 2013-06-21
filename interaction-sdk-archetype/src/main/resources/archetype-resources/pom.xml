@@ -156,6 +156,7 @@
     <dependency>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-media-xhtml</artifactId>
+    	<version>${irisVersion}</version>
         <scope>runtime</scope>
     </dependency>
 
