@@ -12,6 +12,7 @@
 		<module>../interaction-core</module>
 		<module>../interaction-winkext</module>
 		<module>../interaction-commands-mule</module>
+		<module>../interaction-commands-solr</module>
 		<module>../interaction-commands-webhook</module>
         <module>../interaction-commands-odata</module>
 		<module>../interaction-commands-odata-bridge</module>
