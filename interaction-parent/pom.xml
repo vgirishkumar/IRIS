@@ -9,6 +9,7 @@
 	<name>interaction-parent</name>
 
 	<modules>
+		<module>../interaction-odata4j-ext</module>
 		<module>../interaction-core</module>
 		<module>../interaction-winkext</module>
 		<module>../interaction-commands-mule</module>
