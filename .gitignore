@@ -89,7 +89,7 @@
 *.log
 *.ipr
 *.iws
-/interaction-examples/interaction-odata-airline/src-gen/AirlineModel/AirlineBehaviour.java
+/interaction-examples/interaction-odata-airline/src-gen
 /interaction-commands-webhook/target
 /interaction-dsl/com.temenos.interaction.rimdsl.tests/test-output
 /interaction-examples/interaction-odata-airline/log.txt
@@ -97,3 +97,4 @@
 /interaction-dsl/com.temenos.interaction.rimdsl.parent/target
 
 /interaction-commands-solr/target
+/interaction-odata4j-ext/target
