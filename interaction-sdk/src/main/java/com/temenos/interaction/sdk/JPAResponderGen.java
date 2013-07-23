@@ -1,8 +1,10 @@
 package com.temenos.interaction.sdk;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -167,7 +169,20 @@ public class JPAResponderGen {
 		}
 		return ok;
 	}
-
+	
+	/**
+	 * Returns a character stream representing the RIM from the conceptual interaction and metadata models.
+	 * @param interactionModel Conceptual interaction model
+	 * @param commands Commands
+	 * @return RIM as character stream 
+	 * @throws Exception
+	 */
+	public InputStream getRIM(InteractionModel interactionModel, Commands commands) throws Exception {
+		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
+		String dsl = rimDslGenerator.generateRimDsl(interactionModel, commands, strictOData);
+		return new ByteArrayInputStream(dsl.getBytes());
+	}
+	
 	private boolean writeArtefacts(String modelName, List<EntityInfo> entitiesInfo, Commands commands, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		boolean ok = true;
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
