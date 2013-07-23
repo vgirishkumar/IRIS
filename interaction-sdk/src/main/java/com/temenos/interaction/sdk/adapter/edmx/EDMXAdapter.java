@@ -24,8 +24,8 @@ import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
 import org.odata4j.format.xml.EdmxFormatParser;
-import org.odata4j.internal.InternalUtil;
 import org.odata4j.stax2.XMLEventReader2;
+import org.odata4j.stax2.util.StaxUtil;
 
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.sdk.EntityInfo;
@@ -118,7 +118,7 @@ public class EDMXAdapter implements InteractionAdapter {
 	private void initialiseModels() {
 		assert(bufferedEdmx != null);
 		//Parse emdx file
-		XMLEventReader2 reader =  InternalUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bufferedEdmx.toByteArray()))));
+		XMLEventReader2 reader =  StaxUtil.newXMLEventReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bufferedEdmx.toByteArray()))));
 		EdmDataServices edmDataServices = new EdmxFormatParser().parseMetadata(reader);
 
 		//Make sure we have at least one entity container

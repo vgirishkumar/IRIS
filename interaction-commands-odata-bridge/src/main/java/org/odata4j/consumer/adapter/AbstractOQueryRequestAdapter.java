@@ -57,7 +57,6 @@ public abstract class AbstractOQueryRequestAdapter<T> implements
     return serviceRootUri;
   }
 
-  @Override
   public Iterator<T> iterator() {
     return execute().iterator();
   }

@@ -3,8 +3,8 @@ package org.odata4j.consumer.adapter;
 import org.odata4j.core.OEntityId;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OEntityRequest;
+import org.odata4j.exceptions.NotImplementedException;
 import org.odata4j.producer.ODataProducer;
-import org.odata4j.producer.exceptions.NotImplementedException;
 
 public class CreateLinkRequestAdapter<T> implements OEntityRequest<T> {
 

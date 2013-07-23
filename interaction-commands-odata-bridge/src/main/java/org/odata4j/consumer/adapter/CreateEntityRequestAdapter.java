@@ -114,4 +114,10 @@ public class CreateEntityRequestAdapter<T> extends
     return this;
   }
 
+@Override
+public OCreateRequest<T> inline(String navProperty, Iterable<OEntity> entities) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
 }

@@ -16,14 +16,13 @@ import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.consumer.ODataConsumerAdapter;
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OEntityIds;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OProperties;
 import org.odata4j.core.OQueryRequest;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.producer.command.ProducerCommandContext;
-import org.odata4j.producer.exceptions.NotFoundException;
 import org.odata4j.producer.jdbc.JdbcModelToMetadata;
 import org.odata4j.producer.jdbc.JdbcProducer;
 import org.odata4j.producer.jdbc.LoggingCommand;
@@ -188,7 +187,7 @@ public class JdbcConsumerTest {
 	*/
     
     // deleteEntity - id = 3
-    consumer.deleteEntity(CUSTOMER, OEntityKey.create(3)).execute();
+    consumer.deleteEntity(CUSTOMER, OEntityKey.create(3));
     entities = consumer.getEntities(CUSTOMER).execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(2, entities.count());
@@ -204,7 +203,7 @@ public class JdbcConsumerTest {
     Assert.assertEquals(3, entities.count());
     
     // deleteEntity - id = 3
-    consumer.deleteEntity(CUSTOMER, 3).execute();
+    consumer.deleteEntity(CUSTOMER, 3);
     entities = consumer.getEntities(CUSTOMER).execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(2, entities.count());
@@ -220,7 +219,7 @@ public class JdbcConsumerTest {
     Assert.assertEquals(3, entities.count());
     
     // deleteEntity - id = 3
-    consumer.deleteEntity(OEntityIds.create(CUSTOMER, 3)).execute();
+    consumer.deleteEntity(entity);
     entities = consumer.getEntities(CUSTOMER).execute();
     Assert.assertNotNull(entities);
     Assert.assertEquals(2, entities.count());

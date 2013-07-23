@@ -62,16 +62,14 @@ public class UpdateEntityRequestAdapter<T> implements OModifyRequest<T> {
   }
 
   @Override
-  public boolean execute() {
+  public void execute() {
     OEntity entity = OEntities.create(
             producer.getMetadata().getEdmEntitySet(entitySetName), entityKey,
             properties, links);
     try {
       producer.updateEntity(entitySetName, entity);
-      return true;
     } catch (Exception e) {
       // TODO : Add logs
-      return false;
     }
   }
 
@@ -80,5 +78,11 @@ public class UpdateEntityRequestAdapter<T> implements OModifyRequest<T> {
     // TODO Auto-generated method stub
     return this;
   }
+
+@Override
+public OModifyRequest<T> ifMatch(String precondition) {
+	// TODO Auto-generated method stub
+	return null;
+}
 
 }

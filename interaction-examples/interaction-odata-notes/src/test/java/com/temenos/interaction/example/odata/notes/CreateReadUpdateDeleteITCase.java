@@ -1,8 +1,8 @@
 package com.temenos.interaction.example.odata.notes;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,14 +51,24 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 
     	// Create note 3, linked to person 2 if it doesn't exist
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
-		OEntity person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();
+		OEntity person = null;
+		try {
+				person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();
+		} catch (Exception e)  {
+			// Ignore as Odata4j client 0.7 is expecting incorrect result
+		}
 		if (person == null) {
 			person = consumer
 						.createEntity(PERSON_ENTITYSET_NAME)
 						.properties(OProperties.string("name", "Ron"))
 						.execute();
 		}
-		OEntity note = consumer.getEntity(NOTE_ENTITYSET_NAME, 3).execute();
+		OEntity note = null;
+		try {
+			note = consumer.getEntity(NOTE_ENTITYSET_NAME, 3).execute();
+		} catch (Exception e) {
+			// Ignore as Odata4j client 0.7 is expecting incorrect result
+		}
 		if (note == null) {
 			note = consumer
 					.createEntity(NOTE_ENTITYSET_NAME)
@@ -190,16 +200,26 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
 		
 		// find a person
-		OEntity person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();
+		OEntity person = null;
+		try {
+			person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();
+		} catch (Exception e) {
+			// Ignore as Odata4j client 0.7 is expecting incorrect result
+		}
 		if (person == null) {
 			person = consumer
 						.createEntity(PERSON_ENTITYSET_NAME)
 						.properties(OProperties.string("name", "Ron"))
 						.execute();
 		}
-		
+	
 		// create a note
-		OEntity note = consumer.getEntity(NOTE_ENTITYSET_NAME, 6).execute();
+		OEntity note = null;
+		try {
+			note = consumer.getEntity(NOTE_ENTITYSET_NAME, 6).execute();
+		} catch (Exception e) {
+			// Ignore as Odata4j client 0.7 is expecting incorrect result
+		}
 		if (note == null) {
 			note = consumer
 					.createEntity(NOTE_ENTITYSET_NAME)
@@ -212,8 +232,16 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 		consumer.deleteEntity(note).execute();
 
 		// check its deleted
-		OEntity afterDelete = consumer.getEntity(note).execute();
+		OEntity afterDelete = null;
+		boolean exceptionThrown = false;
+		try {
+			afterDelete = consumer.getEntity(note).execute();
+		} catch (Exception e) {
+			exceptionThrown = true;
+		}
+		assertEquals(true, exceptionThrown);
 		assertEquals(null, afterDelete);
+		
     }
 
     // TODO AtomXMLProvider needs better support for matching of URIs to resources

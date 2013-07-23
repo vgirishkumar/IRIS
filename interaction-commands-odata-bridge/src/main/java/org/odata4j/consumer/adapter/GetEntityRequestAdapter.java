@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.odata4j.core.OEntityGetRequest;
 import org.odata4j.core.OEntityKey;
-import org.odata4j.core.OEntityRequest;
 import org.odata4j.expression.BoolCommonExpression;
 import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.expression.ExpressionParser;
@@ -40,13 +39,13 @@ public class GetEntityRequestAdapter<T> extends
   }
 
   @Override
-  public OEntityRequest<T> select(String select) {
+  public OEntityGetRequest<T> select(String select) {
     this.select = ExpressionParser.parseExpand(select);
     return this;
   }
 
   @Override
-  public OEntityRequest<T> expand(String expand) {
+  public OEntityGetRequest<T> expand(String expand) {
     this.expand = ExpressionParser.parseExpand(expand);
     return this;
   }

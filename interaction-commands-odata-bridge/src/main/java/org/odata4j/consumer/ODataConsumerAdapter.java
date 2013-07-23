@@ -19,6 +19,7 @@ import org.odata4j.consumer.adapter.UpdateLinkRequestAdapter;
 import org.odata4j.core.EntitySetInfo;
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OEntityDeleteRequest;
 import org.odata4j.core.OEntityGetRequest;
 import org.odata4j.core.OEntityId;
 import org.odata4j.core.OEntityKey;
@@ -149,24 +150,24 @@ public class ODataConsumerAdapter extends AbstractODataConsumer implements
   }
 
   @Override
-  public OEntityRequest<Void> deleteEntity(OEntityId entity) {
-    DeleteEntityRequestAdapter<Void> request = new DeleteEntityRequestAdapter<Void>(
+  public OEntityDeleteRequest deleteEntity(OEntity entity) {
+    DeleteEntityRequestAdapter<OEntityDeleteRequest> request = new DeleteEntityRequestAdapter<OEntityDeleteRequest>(
             producer, entity.getEntitySetName(), entity.getEntityKey());
-    return request;
-  }
+    return request.execute();
+   }
 
   @Override
-  public OEntityRequest<Void> deleteEntity(String entitySetName, Object keyValue) {
-    DeleteEntityRequestAdapter<Void> request = new DeleteEntityRequestAdapter<Void>(
+  public OEntityDeleteRequest deleteEntity(String entitySetName, Object keyValue) {
+	  DeleteEntityRequestAdapter<OEntityDeleteRequest> request = new DeleteEntityRequestAdapter<OEntityDeleteRequest>(			   
             producer, entitySetName, OEntityKey.create(keyValue));
-    return request;
+	  return request.execute();
   }
 
   @Override
-  public OEntityRequest<Void> deleteEntity(String entitySetName, OEntityKey key) {
-    DeleteEntityRequestAdapter<Void> request = new DeleteEntityRequestAdapter<Void>(
+  public OEntityDeleteRequest deleteEntity(String entitySetName, OEntityKey key) {
+	  DeleteEntityRequestAdapter<OEntityDeleteRequest> request = new DeleteEntityRequestAdapter<OEntityDeleteRequest>(
             producer, entitySetName, key);
-    return request;
+	  return request.execute();
   }
 
   @Override
@@ -174,6 +175,12 @@ public class ODataConsumerAdapter extends AbstractODataConsumer implements
     CallFunctionRequestAdapter<OObject> request = new CallFunctionRequestAdapter<OObject>(
             producer, getServiceRootUri(), functionName);
     return request;
+  }
+
+  @Override
+  protected ODataClient getClient() {
+	// TODO : We need to implement this
+	  return null;
   }
 
 }

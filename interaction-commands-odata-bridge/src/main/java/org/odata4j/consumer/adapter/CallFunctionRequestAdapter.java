@@ -17,7 +17,7 @@ import org.odata4j.core.OSimpleObjects;
 import org.odata4j.core.UnsignedByte;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
-import org.odata4j.producer.exceptions.NotImplementedException;
+import org.odata4j.exceptions.NotImplementedException;
 
 public class CallFunctionRequestAdapter<T> extends
         AbstractOQueryRequestAdapter<T> implements OFunctionRequest<T> {

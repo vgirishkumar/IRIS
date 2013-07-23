@@ -6,6 +6,7 @@ import java.util.List;
 import org.core4j.Enumerable;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.exceptions.NotImplementedException;
 import org.odata4j.internal.EntitySegment;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.producer.BaseResponse;
@@ -13,7 +14,6 @@ import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
-import org.odata4j.producer.exceptions.NotImplementedException;
 
 public class GetEntitiesRequestAdapter<T> extends
         AbstractOQueryRequestAdapter<T> {

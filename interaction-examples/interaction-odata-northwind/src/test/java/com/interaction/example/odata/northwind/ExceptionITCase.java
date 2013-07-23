@@ -15,32 +15,19 @@ public class ExceptionITCase extends AbstractNorthwindRuntimeTest {
 
 	@Test
 	public void test404NoEntityType() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
-		OEntity customer = null;
-		try {
-			customer = consumer.getEntity("UnknownEntity", 1).execute();
-		} catch (Exception e) {
-			Assert.fail(e.getMessage());
-		}
+		OEntity customer = getEntity(getConsumer(), "UnknownEntity", 1);
 		Assert.assertNull(customer);
 	}
 
 	@Test
 	public void test404NoEntity() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
-		OEntity customer = null;
-		try {
-			customer = consumer.getEntity("Customers", "NOUSER").execute();
-		} catch (Exception e) {
-			Assert.fail(e.getMessage());
-		}
-
+		OEntity customer = getEntity(getConsumer(), "Customers", "NOUSER");
 		Assert.assertNull(customer);
 	}
 
 	@Test
 	public void test500InvalidKey() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		ODataConsumer consumer = getConsumer();
 		OEntity customer = null;
 		boolean exceptionThrown = true;
 		try {
@@ -48,8 +35,28 @@ public class ExceptionITCase extends AbstractNorthwindRuntimeTest {
 		} catch (Exception e) {
 			exceptionThrown = true;
 		}
-		
 		Assert.assertNull(customer);
 		Assert.assertTrue("We expect a 500 error here", exceptionThrown);
+	}
+	
+	// Helper method to get initialise OdataConsumer
+	private ODataConsumer getConsumer() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(endpointUri).build();
+		return consumer;
+	}
+	
+	private OEntity getEntity(ODataConsumer consumer, String entityType, Object keyValue) {
+		OEntity customer = null;
+		boolean exceptionThrown = false;
+		try {
+			customer = consumer.getEntity(entityType, keyValue).execute();
+		} catch (Exception e) {
+			// With Odata4j 0.7 Release client expects all GET commands to return Status.OK OR Status.NO_CONTENT 
+			// But with HTTP Specs for non-exiting URL the service should return 404 (NOT_FOUND)
+			// Because of the above clash we are sticking to HTTP Specs, Odata4j Client throws exception which we need to catch
+			exceptionThrown = true;
+		}
+		Assert.assertTrue(exceptionThrown);
+		return customer;
 	}
 }

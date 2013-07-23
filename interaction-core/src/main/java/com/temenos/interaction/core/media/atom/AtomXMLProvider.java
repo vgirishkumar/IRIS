@@ -37,12 +37,12 @@ import org.odata4j.core.OLinks;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
+import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParser;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.producer.Responses;
-import org.odata4j.producer.exceptions.ODataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -249,7 +249,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 			}
-		} catch (ODataException e) {
+		} catch (ODataProducerException e) {
 			logger.error("An error occurred while writing " + mediaType + " resource representation", e);
 		}
 	}

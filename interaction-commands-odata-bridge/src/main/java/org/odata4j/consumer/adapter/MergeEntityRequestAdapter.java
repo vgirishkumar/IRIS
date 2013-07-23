@@ -32,9 +32,8 @@ public class MergeEntityRequestAdapter<T> implements OModifyRequest<T> {
   }
 
   @Override
-  public boolean execute() {
+  public void execute() {
     // TODO Auto-generated method stub
-    return false;
   }
 
   @Override
@@ -42,5 +41,11 @@ public class MergeEntityRequestAdapter<T> implements OModifyRequest<T> {
     // TODO Auto-generated method stub
     return null;
   }
+
+@Override
+public OModifyRequest<T> ifMatch(String precondition) {
+	// TODO Auto-generated method stub
+	return null;
+}
 
 }
