@@ -23,6 +23,7 @@ import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.edm.EdmMultiplicity;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmProperty.CollectionKind;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
@@ -124,6 +125,7 @@ public class MetadataOData4j {
 						// This means group (complex type) belongs to an Entity, so simply build and add as a Entity prop
 						EdmProperty.Builder ep = EdmProperty.newBuilder(complexPropertyName).
 								setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
+								setCollectionKind(CollectionKind.List).								
 								setNullable(isNullable);
 						bProperties.add(ep);
 					}
@@ -395,6 +397,7 @@ public class MetadataOData4j {
 			List<EdmProperty.Builder> bl = new ArrayList<EdmProperty.Builder>();
 			EdmProperty.Builder ep = EdmProperty.newBuilder(nestedComplexType)
 					.setType(bComplexTypeMap.get(nestComplexTypeFullName))
+					.setCollectionKind(CollectionKind.List)
 					.setNullable(isNullable);
 			bl.add(ep);
 			bComplexTypeMap.get(complexTypeFullName).addProperties(bl);
