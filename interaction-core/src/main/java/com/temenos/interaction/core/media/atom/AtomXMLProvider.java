@@ -39,7 +39,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.format.Entry;
-import org.odata4j.format.xml.AtomEntryFormatParser;
+import org.odata4j.format.xml.AtomEntryFormatParserExt;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.producer.Responses;
@@ -374,7 +374,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			// parse the request content
 			Reader reader = new InputStreamReader(entityStream);
 			assert(currentState != null) : "Must have found a resource or thrown exception";
-			Entry e = new AtomEntryFormatParser(edmDataServices, currentState.getName(), entityKey, null).parse(reader);
+			Entry e = new AtomEntryFormatParserExt(edmDataServices, currentState.getName(), entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} else {

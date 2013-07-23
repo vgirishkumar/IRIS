@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<entry xmlns="http://www.w3.org/2005/Atom" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xml:base="http://localhost:9090/hothouse-iris/Hothouse.svc/">
+	<id>http://localhost:9090/hothouse-iris/Hothouse.svc/Teller_Cashinls('TT13081VLCS3')</id>
+	<title type="text"/>
+	<updated>2013-07-15T03:51:48Z</updated>
+	<author>
+		<name/>
+	</author>
+	<link rel="edit" type="application/atom+xml;type=entry" title="teller_cashinl_hold" href="Teller_CashinlsHeld('TT13081VLCS3')/hold"/>
+	<link rel="http://www.temenos.com/rels/input" type="application/atom+xml;type=entry" title="teller_cashinl_input" href="Teller_Cashinls('TT13081VLCS3')"/>
+	<link rel="http://www.temenos.com/rels/validation" type="application/atom+xml;type=entry" title="Validation" href="TellerValidations(TT13081VLCS3)"/>
+	<category term="hothouse-modelsModel.Teller_Cashinl" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme"/>
+	<content type="application/xml">
+		<m:properties>
+			<d:Authoriser/>
+			<d:DeptCode/>
+			<d:Teller_Cashinl_OverrideMvGroup m:type="Bag(hothouse-modelsModel.Teller_Cashinl_OverrideMvGroup)">
+				<d:element>
+					<d:Override/>
+				</d:element>
+			</d:Teller_Cashinl_OverrideMvGroup>
+			<d:Teller_Cashinl_Account1MvGroup m:type="Bag(hothouse-modelsModel.Teller_Cashinl_Account1MvGroup)">
+				<d:element>
+					<d:AmountLocal1/>
+					<d:Account1/>
+				</d:element>
+			</d:Teller_Cashinl_Account1MvGroup>
+			<d:AuditDateTime/>
+			<d:CurrNo/>
+			<d:Teller_Cashinl_NewCustBalMvGroup m:type="Bag(hothouse-modelsModel.Teller_Cashinl_NewCustBalMvGroup)">
+				<d:element>
+					<d:NewCustBal/>
+				</d:element>
+			</d:Teller_Cashinl_NewCustBalMvGroup>
+			<d:AuditorCode/>
+			<d:Teller_Cashinl_DrDenomMvGroup m:type="Bag(hothouse-modelsModel.Teller_Cashinl_DrDenomMvGroup)">
+				<d:element>
+					<d:DrDenom/>
+					<d:DrUnit/>
+				</d:element>
+			</d:Teller_Cashinl_DrDenomMvGroup>
+			<d:Account2/>
+			<d:DrCrMarker/>
+			<d:RecordStatus/>
+			<d:TransactionCode>10</d:TransactionCode>
+			<d:NetAmount/>
+			<d:Teller_Cashinl_Narrative2MvGroup m:type="Bag(hothouse-modelsModel.Teller_Cashinl_Narrative2MvGroup)">
+				<d:element>
+					<d:Narrative2/>
+				</d:element>
+			</d:Teller_Cashinl_Narrative2MvGroup>
+			<d:Customer2/>
+			<d:Currency1>USD</d:Currency1>
+			<d:CoCode/>
+			<d:ValueDate2>2012-01-26</d:ValueDate2>
+			<d:Teller_Cashinl_InputterMvGroup m:type="Bag(hothouse-modelsModel.Teller_Cashinl_InputterMvGroup)">
+				<d:element>
+					<d:Inputter/>
+				</d:element>
+			</d:Teller_Cashinl_InputterMvGroup>
+			<d:Teller_Cashinl_DateTimeMvGroup m:type="Bag(hothouse-modelsModel.Teller_Cashinl_DateTimeMvGroup)">
+				<d:element>
+					<d:DateTime/>
+				</d:element>
+			</d:Teller_Cashinl_DateTimeMvGroup>
+			<d:WaiveCharges>YES</d:WaiveCharges>
+			<d:TransactionNumber>TT13081VLCS3</d:TransactionNumber>
+		</m:properties>
+	</content>
+</entry>

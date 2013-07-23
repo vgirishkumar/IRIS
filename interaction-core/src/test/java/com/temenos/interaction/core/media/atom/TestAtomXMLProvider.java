@@ -58,7 +58,7 @@ import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.format.Entry;
-import org.odata4j.format.xml.AtomEntryFormatParser;
+import org.odata4j.format.xml.AtomEntryFormatParserExt;
 import org.odata4j.internal.FeedCustomizationMapping;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -70,11 +70,14 @@ import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.MetadataOData4j;
+import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.EntityTransformer;
 import com.temenos.interaction.core.hypermedia.Link;
@@ -369,26 +372,44 @@ public class TestAtomXMLProvider {
 	}
 	 */
 
+	private final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
+	private Metadata createAirlineMetadata() {
+		MetadataParser parserAirline = new MetadataParser();
+		InputStream isAirline = parserAirline.getClass().getClassLoader().getResourceAsStream(METADATA_AIRLINE_XML_FILE);
+		Metadata metadataAirline = parserAirline.parse(isAirline);
+		return metadataAirline;
+	}
+	private EdmDataServices createAirlineEdmMetadata() {
+		// Create mock state machine with entity sets
+		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		serviceRoot.addTransition(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule"));
+		serviceRoot.addTransition(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight"));
+		serviceRoot.addTransition(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline"));
+		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
+		
+		return (new MetadataOData4j(createAirlineMetadata(), hypermediaEngine)).getMetadata();
+	}
+	
 	@Test
 	public void testReadPath() throws Exception {
 		// enable mock of the static class (see also verifyStatic)
 		mockStatic(OEntityKey.class);
 		
-		EdmDataServices metadata = mock(EdmDataServices.class);
+		EdmDataServices metadata = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
 		Set<ResourceState> states = new HashSet<ResourceState>();
 		states.add(mock(CollectionResourceState.class));
 		when(rsm.getResourceStatesForPath(anyString())).thenReturn(states);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
-		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
+		AtomEntryFormatParserExt mockParser = mock(AtomEntryFormatParserExt.class);
 		Entry mockEntry = mock(Entry.class);
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParser.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, createAirlineMetadata(), rsm, new EntityTransformer());
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
 		ap.setUriInfo(uriInfo);
@@ -416,12 +437,12 @@ public class TestAtomXMLProvider {
 		when(rsm.getResourceStatesForPathRegex("^/test/someresource(|\\(\\))")).thenReturn(states);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
-		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
+		AtomEntryFormatParserExt mockParser = mock(AtomEntryFormatParserExt.class);
 		Entry mockEntry = mock(Entry.class);
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParser.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new EntityTransformer());
 		UriInfo uriInfo = mock(UriInfo.class);
@@ -444,12 +465,12 @@ public class TestAtomXMLProvider {
 		when(rsm.getResourceStatesForPath(anyString())).thenReturn(null);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
-		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
+		AtomEntryFormatParserExt mockParser = mock(AtomEntryFormatParserExt.class);
 		Entry mockEntry = mock(Entry.class);
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParser.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new EntityTransformer());
 		UriInfo uriInfo = mock(UriInfo.class);
@@ -474,12 +495,12 @@ public class TestAtomXMLProvider {
 		when(rsm.getResourceStatesForPath(anyString())).thenReturn(states);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
-		AtomEntryFormatParser mockParser = mock(AtomEntryFormatParser.class);
+		AtomEntryFormatParserExt mockParser = mock(AtomEntryFormatParserExt.class);
 		Entry mockEntry = mock(Entry.class);
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParser.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new EntityTransformer());
 		UriInfo uriInfo = mock(UriInfo.class);
