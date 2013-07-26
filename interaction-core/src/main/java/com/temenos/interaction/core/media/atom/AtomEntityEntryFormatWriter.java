@@ -164,10 +164,9 @@ public class AtomEntityEntryFormatWriter {
 	   		else
 	   		{
 	   			// Complex List
-	   			propertyName = entityMetadata.getEntityName() + "_" + propertyName;
-	   			writePropertyComplexList( writer, entityMetadata, propertyName, (List<EntityProperties>) propertyValue.getValue(), modelName );
+	   			writePropertyComplexList( writer, entityMetadata, propertyName, (List<EntityProperties>) propertyValue.getValue(), modelName);
 	   		}
-		}	
+	   	}
 	}
 	
 	private void writeProperty( StreamWriter writer, EntityMetadata entityMetadata, String name, EntityProperty property ) {
@@ -191,17 +190,40 @@ public class AtomEntityEntryFormatWriter {
 		writer.endElement();
 	}
 	
-	private void writePropertyComplexList( StreamWriter writer, EntityMetadata entityMetadata, String name, List<EntityProperties> propertiesList, String modelName ) {
-		
-		for ( EntityProperties properties : propertiesList )
-		{
-			writer.startElement(new QName(d, name, "d"));
+	/**
+	 * Method to prepare Complex type representation. 
+	 * @param writer
+	 * @param entityMetadata
+	 * @param propertyName
+	 * @param propertiesList
+	 * @param modelName
+	 */
+	private void writePropertyComplexList( StreamWriter writer, EntityMetadata entityMetadata, String propertyName, List<EntityProperties> propertiesList, String modelName) {
+		String name = entityMetadata.getEntityName() + "_" + propertyName;
+		int parseCount = 0;
+		for ( EntityProperties properties : propertiesList ) {
 			String fqTypeName = modelName + Metadata.MODEL_SUFFIX + "." + name;
-			writer.writeAttribute(new QName(m, "type", "m"), fqTypeName);
+			// We should be able to differentiate List<ComplexType> with regular ComplexType 
+			if (entityMetadata.isPropertyList(propertyName)) {
+				if (parseCount == 0) {
+					writer.startElement(new QName(d, name, "d"));
+					writer.writeAttribute(new QName(m, "type", "m"), "Bag(" + fqTypeName + ")");
+					writer.startElement(new QName(d, "element", "d"));
+					parseCount++;
+				} else {
+					writer.startElement(new QName(d, "element", "d"));
+				}
+			} else {
+				writer.startElement(new QName(d, name, "d"));
+				writer.writeAttribute(new QName(m, "type", "m"), fqTypeName);
+			}
 			writeProperties( writer, entityMetadata, properties, modelName );
-			writer.endElement(); 
+			writer.endElement();
 		}
-		
+		// For List<ComplexTypes> we should end the complex node here
+		if (entityMetadata.isPropertyList(propertyName)) {
+			writer.endElement();
+		}
 	}
 	
 	private OAtomEntity getAtomInfo(Entity e) {
