@@ -21,6 +21,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmType;
+import org.odata4j.edm.EdmProperty.CollectionKind;
 
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.TermFactory;
@@ -112,6 +113,7 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
 		Assert.assertEquals(false, entityType.findProperty("Customer_address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(CollectionKind.NONE, entityType.findProperty("Customer_address").getCollectionKind());//address should not be of CollectionKind
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
 		
 		
@@ -119,8 +121,37 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
 		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
 		Assert.assertEquals(false, addressType.findProperty("Customer_street").getType().isSimple());
+		Assert.assertEquals(CollectionKind.NONE, addressType.findProperty("Customer_street").getCollectionKind());//street should not be of CollectionKind
 		
 		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer_street");
+		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
+		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
+	}
+	
+	@Test
+	public void testCustomerWithListTypeTAGEntity()
+	{	
+		EdmDataServices edmDataServices = metadataOdata4j.getMetadata();
+		EdmType type = edmDataServices.findEdmEntityType("CustomerServiceTestModel.CustomerWithTermList");
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("CustomerServiceTestModel.CustomerWithTermList"));
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		Assert.assertEquals("CustomerWithTermList", entityType.getName());
+		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
+		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
+		Assert.assertEquals(false, entityType.findProperty("CustomerWithTermList_address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(CollectionKind.List, entityType.findProperty("CustomerWithTermList_address").getCollectionKind());//address should be List of Complex
+		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
+		
+		
+		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.CustomerWithTermList_address");
+		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
+		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
+		Assert.assertEquals(false, addressType.findProperty("CustomerWithTermList_street").getType().isSimple());
+		Assert.assertEquals(CollectionKind.NONE, addressType.findProperty("CustomerWithTermList_street").getCollectionKind());	// street should be complex but not list
+		
+		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.CustomerWithTermList_street");
 		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
 		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}
@@ -136,6 +167,7 @@ public class TestMetadataOData4j {
 		Assert.assertEquals("Customer", entityType.getName());
 		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
 		Assert.assertEquals(false, entityType.findProperty("Customer_address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(CollectionKind.NONE, entityType.findProperty("Customer_address").getCollectionKind());//address should be List of Complex
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
 		
@@ -143,8 +175,35 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
 		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
 		Assert.assertEquals(false, addressType.findProperty("Customer_street").getType().isSimple());
+		Assert.assertEquals(CollectionKind.NONE, addressType.findProperty("Customer_street").getCollectionKind());	// street should be complex only
 		
 		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer_street");
+		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
+		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
+	}
+	
+	@Test
+	public void testCustomerWithTermListWithNonExpandableMetadata() {
+		EdmDataServices edmDataServices = metadataCustomerNonExpandableModelOdata4j.getMetadata();
+		EdmType type = edmDataServices.findEdmEntityType("CustomerServiceTestModel.CustomerWithTermList");
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("CustomerServiceTestModel.CustomerWithTermList"));
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		Assert.assertEquals("CustomerWithTermList", entityType.getName());
+		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
+		Assert.assertEquals(false, entityType.findProperty("CustomerWithTermList_address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(CollectionKind.List, entityType.findProperty("CustomerWithTermList_address").getCollectionKind());
+		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
+		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
+		
+		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.CustomerWithTermList_address");
+		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
+		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
+		Assert.assertEquals(false, addressType.findProperty("CustomerWithTermList_street").getType().isSimple());
+		Assert.assertEquals(CollectionKind.NONE, addressType.findProperty("CustomerWithTermList_street").getCollectionKind());
+		
+		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.CustomerWithTermList_street");
 		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
 		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}

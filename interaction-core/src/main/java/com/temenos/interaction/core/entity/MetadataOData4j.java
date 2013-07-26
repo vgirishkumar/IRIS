@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
@@ -78,23 +79,24 @@ public class MetadataOData4j {
 		String serviceName = metadata.getModelName();
 		String namespace = serviceName + Metadata.MODEL_SUFFIX;
 		Builder mdBuilder = EdmDataServices.newBuilder();
-	    List<EdmSchema.Builder> bSchemas = new ArrayList<EdmSchema.Builder>();
-    	EdmSchema.Builder bSchema = new EdmSchema.Builder();
-    	List<EdmEntityContainer.Builder> bEntityContainers = new ArrayList<EdmEntityContainer.Builder>();
-    	Map<String, EdmEntityType.Builder> bEntityTypeMap = new HashMap<String, EdmEntityType.Builder>();
-    	Map<String, EdmComplexType.Builder> bComplexTypeMap = new HashMap<String, EdmComplexType.Builder>();
+		List<EdmSchema.Builder> bSchemas = new ArrayList<EdmSchema.Builder>();
+		EdmSchema.Builder bSchema = new EdmSchema.Builder();
+		List<EdmEntityContainer.Builder> bEntityContainers = new ArrayList<EdmEntityContainer.Builder>();
+		Map<String, EdmEntityType.Builder> bEntityTypeMap = new HashMap<String, EdmEntityType.Builder>();
+		Map<String, EdmComplexType.Builder> bComplexTypeMap = new HashMap<String, EdmComplexType.Builder>();
 		Map<String, EdmEntitySet.Builder> bEntitySetMap = new HashMap<String, EdmEntitySet.Builder>();
 		Map<String, EdmFunctionImport.Builder> bFunctionImportMap = new HashMap<String, EdmFunctionImport.Builder>();
 		List<EdmAssociation.Builder> bAssociations = new ArrayList<EdmAssociation.Builder>();
-		
+
 		for(EntityMetadata entityMetadata : metadata.getEntitiesMetadata().values()) {
 			List<EdmProperty.Builder> bProperties = new ArrayList<EdmProperty.Builder>();
 			List<String> keys = new ArrayList<String>();
 			String complexTypePrefix = new StringBuilder(entityMetadata.getEntityName()).append("_").toString();
 			for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
 				//Entity properties, lets gather some information about the property
-				String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);		// Is vocabulary a group (Complex Type)
-				String termComplexGroup = entityMetadata.getTermValue(propertyName, TermComplexGroup.TERM_NAME);// Is vocabulary belongs to a group (ComplexType) 
+				String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);							// Is vocabulary a group (Complex Type)
+				boolean termList = Boolean.parseBoolean(entityMetadata.getTermValue(propertyName, TermListType.TERM_NAME));	// Is vocabulary a List of (Complex Types)
+				String termComplexGroup = entityMetadata.getTermValue(propertyName, TermComplexGroup.TERM_NAME);					// Is vocabulary belongs to a group (ComplexType) 
 				boolean isNullable = !(entityMetadata.getTermValue(propertyName, TermMandatory.TERM_NAME).equals("true") || entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true"));
 				if (termComplex.equals("false")) {
 					// This means we are dealing with plain property, either belongs to Entity or ComplexType (decide later, lets build it first)
@@ -120,23 +122,30 @@ public class MetadataOData4j {
 						// This mean group (complex type) belongs to a group (complex type), so make sure add the parent group and add
 						// nested group as group property
 						addComplexType(namespace, complexTypePrefix + termComplexGroup, bComplexTypeMap);
-						addComplexTypeToComplexType(namespace, complexTypePrefix + termComplexGroup, complexPropertyName, isNullable, bComplexTypeMap);
+						addComplexTypeToComplexType(namespace, complexTypePrefix + termComplexGroup, complexPropertyName, isNullable, termList, bComplexTypeMap);
 					} else {
 						// This means group (complex type) belongs to an Entity, so simply build and add as a Entity prop
-						EdmProperty.Builder ep = EdmProperty.newBuilder(complexPropertyName).
-								setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
-								setCollectionKind(CollectionKind.List).								
-								setNullable(isNullable);
+						EdmProperty.Builder ep;
+						if (termList) {
+							ep = EdmProperty.newBuilder(complexPropertyName).
+									setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
+									setCollectionKind(CollectionKind.List).								
+									setNullable(isNullable);
+						} else {
+							ep = EdmProperty.newBuilder(complexPropertyName).
+									setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
+									setNullable(isNullable);
+						}
 						bProperties.add(ep);
 					}
 				}	
-				
+
 				//Entity keys
 				if(entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true")) {
 					keys.add(propertyName);					
 				}
-	    	}
-			
+			}
+
 			// Add entity type
 			if (keys.size() > 0) {
 				EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
@@ -145,13 +154,13 @@ public class MetadataOData4j {
 				logger.error("Unable to add EntityType for [" + entityMetadata.getEntityName() + "] - no ID column defined");
 			}
 		}
-		
+
 		// Add Navigation Properties
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
 			// build associations
 			Map<String, EdmAssociation.Builder> bAssociationMap = buildAssociations(namespace, bEntityType, bEntityTypeMap, hypermediaEngine);
 			bAssociations.addAll(bAssociationMap.values());
-			
+
 			//add navigation properties
 			String entityName = bEntityType.getName();
 			Collection<Transition> entityTransitions = hypermediaEngine.getTransitionsById().values();
@@ -173,7 +182,7 @@ public class MetadataOData4j {
 				}
 			}
 		}
-		
+
 		// Index EntitySets by Entity name
 		for (ResourceState state : hypermediaEngine.getInitial().getAllTargets()) {
 			if (state instanceof CollectionResourceState) {
@@ -182,13 +191,13 @@ public class MetadataOData4j {
 					throw new RuntimeException("Entity type not found for " + state.getEntityName());
 				Transition fromInitialState = hypermediaEngine.getInitial().getTransition(state);
 				if (fromInitialState != null) {
-			    	//Add entity set
+					//Add entity set
 					EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
 					bEntitySetMap.put(state.getEntityName(), bEntitySet);
 				}
 			}
 		}
-		
+
 		for (ResourceState state : hypermediaEngine.getStates()) {
 			if (state instanceof CollectionResourceState) {
 				Transition fromInitialState = hypermediaEngine.getInitial().getTransition(state);
@@ -215,20 +224,20 @@ public class MetadataOData4j {
 
 		List<EdmEntityType.Builder> bEntityTypes = new ArrayList<EdmEntityType.Builder>();
 		bEntityTypes.addAll(bEntityTypeMap.values());
-		
+
 		List<EdmComplexType.Builder> bComplexTypes = new ArrayList<EdmComplexType.Builder>();
 		bComplexTypes.addAll(bComplexTypeMap.values());
-		
-		bSchema
-			.setNamespace(namespace)
-			.setAlias(serviceName)
-			.addEntityTypes(bEntityTypes)
-			.addComplexTypes(bComplexTypes)
-			.addAssociations(bAssociations)
-			.addEntityContainers(bEntityContainers);
-    	bSchemas.add(bSchema);
 
-	    mdBuilder.addSchemas(bSchemas);
+		bSchema
+		.setNamespace(namespace)
+		.setAlias(serviceName)
+		.addEntityTypes(bEntityTypes)
+		.addComplexTypes(bComplexTypes)
+		.addAssociations(bAssociations)
+		.addEntityContainers(bEntityContainers);
+		bSchemas.add(bSchema);
+
+		mdBuilder.addSchemas(bSchemas);
 		mdBuilder.setVersion(ODataVersion.V1);
 
 		//Build the EDM metadata
@@ -245,7 +254,7 @@ public class MetadataOData4j {
 		Collection<Transition> entityTransitions = hypermediaEngine.getTransitionsById().values();
 		if (entityTransitions != null) {
 			//Find out which target entities have more than one transition from this state
-	        Set<String> targetStateNames = new HashSet<String>();
+			Set<String> targetStateNames = new HashSet<String>();
 			Map<String, String> multipleNavPropsToEntity = new HashMap<String, String>();		//Map<TargetEntityName, TargetStateName>
 			for(Transition entityTransition : entityTransitions) {
 				if (entityTransition.getSource().getEntityName().equals(entityName) 
@@ -264,7 +273,7 @@ public class MetadataOData4j {
 			}
 
 			//Create navigation properties from transitions
-	        Set<String> npNames = new HashSet<String>();
+			Set<String> npNames = new HashSet<String>();
 			for(Transition entityTransition : entityTransitions) {
 				ResourceState sourceState = entityTransition.getSource();
 				ResourceState targetState = entityTransition.getTarget();
@@ -291,7 +300,7 @@ public class MetadataOData4j {
 					//Multiplicity
 					EdmMultiplicity multiplicitySource = targetState instanceof CollectionResourceState ? EdmMultiplicity.ONE : EdmMultiplicity.MANY;
 					EdmMultiplicity multiplicityTarget = targetState instanceof CollectionResourceState ? EdmMultiplicity.MANY : EdmMultiplicity.ONE;
-					
+
 					// Association
 					EdmAssociationEnd.Builder sourceRole = EdmAssociationEnd.newBuilder()
 							.setRole(relationName + "_Source")
@@ -307,17 +316,17 @@ public class MetadataOData4j {
 							.setNamespace(namespace)
 							.setName(relationName)
 							.setEnds(sourceRole, targetRole);
-					
+
 					bAssociationMap.put(targetState.getName(), bAssociation);
 					if (!relations.containsKey(relationName)) {
-			            relations.put(relationName, bAssociation);
+						relations.put(relationName, bAssociation);
 					}
 				}
 			}
 		}
 		return bAssociationMap;
 	}
-	
+
 	/**
 	 * Convert a Metadata vocabulary TermValueType to EdmType 
 	 * @param type TermValueType
@@ -326,10 +335,10 @@ public class MetadataOData4j {
 	public static EdmType termValueToEdmType(String type) {
 		EdmType edmType;
 		if(type.equals(TermValueType.NUMBER)) {
-			 edmType = EdmSimpleType.DOUBLE;
+			edmType = EdmSimpleType.DOUBLE;
 		}
 		else if(type.equals(TermValueType.INTEGER_NUMBER)) {
-			 edmType = EdmSimpleType.INT64;
+			edmType = EdmSimpleType.INT64;
 		}
 		else if(type.equals(TermValueType.TIMESTAMP) ||
 				type.equals(TermValueType.DATE)) {
@@ -346,7 +355,7 @@ public class MetadataOData4j {
 		}
 		return edmType;
 	}
-	
+
 	/**
 	 * Build the complex type if and only if same name group is not found in the map
 	 * @param complexTypeName
@@ -355,8 +364,8 @@ public class MetadataOData4j {
 	private void addComplexType(String nameSpace, String complexTypeName, 
 			Map<String, EdmComplexType.Builder> bComplexTypeMap) {
 		String complexTypeFullName = new StringBuilder(nameSpace)
-										.append(".").append(complexTypeName)
-										.toString();
+		.append(".").append(complexTypeName)
+		.toString();
 		if (bComplexTypeMap.get(complexTypeFullName) == null ) {
 			EdmComplexType.Builder cb = 
 					EdmComplexType.newBuilder().setNamespace(nameSpace)
@@ -364,7 +373,7 @@ public class MetadataOData4j {
 			bComplexTypeMap.put(complexTypeFullName, cb);
 		}
 	}
-	
+
 	/**
 	 * Adding the property to complex type if and only if not already added as a property of the complex type
 	 * @param serviceNameSpace
@@ -374,15 +383,15 @@ public class MetadataOData4j {
 	 */
 	private void addPropertyToComplexType(String nameSpace, String complexTypeName, EdmProperty.Builder edmPropertyBuilder, Map<String, EdmComplexType.Builder> bComplexTypeMap) {
 		String complexTypeFullName = new StringBuilder(nameSpace)
-										.append(".").append(complexTypeName)
-										.toString();
+		.append(".").append(complexTypeName)
+		.toString();
 		if (bComplexTypeMap.get(complexTypeFullName).findProperty(edmPropertyBuilder.getName()) == null) {
 			List<EdmProperty.Builder> bl = new ArrayList<EdmProperty.Builder>();
 			bl.add(edmPropertyBuilder);
 			bComplexTypeMap.get(complexTypeFullName).addProperties(bl);
 		}
 	}
-	
+
 	/**
 	 * Adding the ComplexType to Complex Type if and only is not already added as a property of the complex type
 	 * @param serviceNameSpace
@@ -390,18 +399,25 @@ public class MetadataOData4j {
 	 * @param edmPropertyBuilder
 	 * @param bComplexTypeMap
 	 */
-	private void addComplexTypeToComplexType(String nameSpace, String complexTypeName, String nestedComplexType, boolean isNullable, Map<String, EdmComplexType.Builder> bComplexTypeMap) {
+	private void addComplexTypeToComplexType(String nameSpace, String complexTypeName, String nestedComplexType, boolean isNullable, boolean isList, Map<String, EdmComplexType.Builder> bComplexTypeMap) {
 		String complexTypeFullName = new StringBuilder(nameSpace).append(".").append(complexTypeName).toString();
 		String nestComplexTypeFullName = new StringBuilder(nameSpace).append(".").append(nestedComplexType).toString();
 		if (bComplexTypeMap.get(complexTypeFullName).findProperty(nestedComplexType) == null) {
 			List<EdmProperty.Builder> bl = new ArrayList<EdmProperty.Builder>();
-			EdmProperty.Builder ep = EdmProperty.newBuilder(nestedComplexType)
-					.setType(bComplexTypeMap.get(nestComplexTypeFullName))
-					.setCollectionKind(CollectionKind.List)
-					.setNullable(isNullable);
+			EdmProperty.Builder ep;
+			if (isList) {
+				ep = EdmProperty.newBuilder(nestedComplexType)
+						.setType(bComplexTypeMap.get(nestComplexTypeFullName))
+						.setCollectionKind(CollectionKind.List)
+						.setNullable(isNullable);
+			} else {
+				ep = EdmProperty.newBuilder(nestedComplexType)
+						.setType(bComplexTypeMap.get(nestComplexTypeFullName))
+						.setNullable(isNullable);
+			}
 			bl.add(ep);
 			bComplexTypeMap.get(complexTypeFullName).addProperties(bl);
 		}
 	}
-	
+
 }
