@@ -60,6 +60,7 @@ public class TestAtomXMLProviderWithBag {
 	public final static String TELLER_ENTITY_SETNAME = "Teller_Cashinl";
 	public final static String NEW_TELLER_ENTRY = "NewTellerEntry.xml";
 	public final static String POPULATED_TELLER_ENTRY = "PopulatedTellerEntry.xml";
+	public final static String TELLER_ENTRY_REP_AS_COLLECTION = "TellerEntryRepAsCollection.xml";
 	public final static String NEW_TELLER_ENTRY_KEY = "TT13081VLCS3";
 	
 	public final static String CUSTOMER_ENTITY_SETNAME = "Customer";
@@ -135,7 +136,7 @@ public class TestAtomXMLProviderWithBag {
 	
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void testEntryWithMultipleCollection() {
+	public void testEntryRepAsBag() {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new EntityTransformer());
@@ -147,6 +148,93 @@ public class TestAtomXMLProviderWithBag {
 		EntityResource<OEntity> result = null;
 		try {
 			result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, readInputStream(POPULATED_TELLER_ENTRY));
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+		assertNotNull(result);
+		
+		OEntity entity = result.getEntity();
+		assertNotNull (entity);
+		
+		// Now verify the properties populated from collection
+		OProperty<?> denomProp = entity.getProperty("Teller_Cashinl_DrDenomMvGroup");
+		EdmType denomPropType = denomProp.getType();
+		assertFalse(denomPropType.isSimple());
+		assertEquals("List(hothouse-modelsModel.Teller_Cashinl_DrDenomMvGroup)", denomPropType.getFullyQualifiedTypeName());
+		EdmCollectionType denomPropCollType = (EdmCollectionType) denomPropType;
+		assertEquals("hothouse-modelsModel.Teller_Cashinl_DrDenomMvGroup", denomPropCollType.getItemType().getFullyQualifiedTypeName());
+		assertEquals(CollectionKind.List, denomPropCollType.getCollectionKind());
+		OCollection<OComplexObject> denomOCollprops = (OCollection) denomProp.getValue();
+		assertEquals(2, denomOCollprops.size());
+		Iterator<OComplexObject> denomOCollIt = denomOCollprops.iterator();
+		
+			// Verify the internal properties
+			OComplexObject denomColl1Entry1 = denomOCollIt.next();
+			List<OProperty<?>> denomColl1Props = denomColl1Entry1.getProperties();
+			assertTrue(denomColl1Props.get(0).getType().isSimple());
+			assertEquals("DrDenom", denomColl1Props.get(0).getName());
+			assertEquals("USD100", denomColl1Props.get(0).getValue());
+			assertTrue(denomColl1Props.get(1).getType().isSimple());
+			assertEquals("DrUnit", denomColl1Props.get(1).getName());
+			assertEquals("9", denomColl1Props.get(1).getValue());
+			
+	
+			OComplexObject denomColl1Entry2 = denomOCollIt.next();
+			List<OProperty<?>> denomColl2Props = denomColl1Entry2.getProperties();
+			assertTrue(denomColl2Props.get(0).getType().isSimple());
+			assertEquals("DrDenom", denomColl2Props.get(0).getName());
+			assertEquals("USD10", denomColl2Props.get(0).getValue());
+			assertTrue(denomColl2Props.get(1).getType().isSimple());
+			assertEquals("DrUnit", denomColl2Props.get(1).getName());
+			assertEquals("10", denomColl2Props.get(1).getValue());
+	
+		OProperty<?> waiveCharge = entity.getProperty("WaiveCharges");
+		assertTrue(waiveCharge.getType().isSimple());
+		assertEquals("YES", waiveCharge.getValue());
+		
+		OProperty<?> narrative = entity.getProperty("Teller_Cashinl_Narrative2MvGroup");
+		EdmType narrtivePropType = narrative.getType();
+		assertFalse(narrtivePropType.isSimple());
+		assertEquals("List(hothouse-modelsModel.Teller_Cashinl_Narrative2MvGroup)", narrtivePropType.getFullyQualifiedTypeName());
+		EdmCollectionType narrativePropCollType = (EdmCollectionType) narrtivePropType;
+		assertEquals("hothouse-modelsModel.Teller_Cashinl_Narrative2MvGroup", narrativePropCollType.getItemType().getFullyQualifiedTypeName());
+		assertEquals(CollectionKind.List, narrativePropCollType.getCollectionKind());
+		OCollection<OComplexObject> narrativeOCollprops = (OCollection) narrative.getValue();
+		assertEquals(2, narrativeOCollprops.size());
+		Iterator<OComplexObject> narrativeOCollIt = narrativeOCollprops.iterator();
+		
+			// Verify the internal properties
+			OComplexObject narrativeColl1Entry1 = narrativeOCollIt.next();
+			List<OProperty<?>> narrativeColl1Props = narrativeColl1Entry1.getProperties();
+			assertTrue(narrativeColl1Props.get(0).getType().isSimple());
+			assertEquals("Narrative2", narrativeColl1Props.get(0).getName());
+			assertEquals("Narrative2 Value 1", narrativeColl1Props.get(0).getValue());
+			
+			OComplexObject narrativeColl1Entry2 = narrativeOCollIt.next();
+			List<OProperty<?>> narrativeColl2Props = narrativeColl1Entry2.getProperties();
+			assertTrue(narrativeColl2Props.get(0).getType().isSimple());
+			assertEquals("Narrative2", narrativeColl2Props.get(0).getName());
+			assertEquals("Narrative2 Value 2", narrativeColl2Props.get(0).getValue());
+		
+		OProperty<?> account2 = entity.getProperty("Account2");
+		assertTrue(account2.getType().isSimple());
+		assertEquals("60259", account2.getValue());
+	}
+	
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void testEntryRepAsCollection() {
+		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_SETNAME);
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new EntityTransformer());
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
+		ap.setUriInfo(uriInfo);
+		
+		EntityResource<OEntity> result = null;
+		try {
+			result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, readInputStream(TELLER_ENTRY_REP_AS_COLLECTION));
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}

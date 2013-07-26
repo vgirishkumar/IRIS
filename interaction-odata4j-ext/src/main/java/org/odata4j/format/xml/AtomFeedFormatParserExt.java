@@ -419,9 +419,12 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 				if (typeAttribute != null) {
 					String type = typeAttribute.getValue();
 					et = metadata.resolveType(type);
-					if( et == null && type.startsWith( "Bag" ) ) {
+					// Following is to make our parse compatible with Odata4j as well as Odata .NET clients
+					// Odata4j 		represent collection as Bag(...)
+					// Odata.NET 	represent collection as Collection(...) 
+					if( et == null && (type.startsWith( "Bag" ) ||  type.startsWith( "Collection" )) ) {
 						isCollection = true;
-						type = type.substring( 4, type.length() -1 );
+						type = type.substring( type.indexOf("(" ) + 1, type.length() -1 );
 						et = metadata.resolveType( type );
 					}
 					if (et == null) {
