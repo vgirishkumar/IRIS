@@ -18,6 +18,7 @@ import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
@@ -118,6 +119,22 @@ public class EntityMetadata  {
 		}
 		return complexType;
 	}
+	
+	/**
+	 * Check whether a property is a List type or not
+	 * @param propertyName The name of the property to check
+	 * @return Whether the property is a List type or not
+	 */
+	public boolean isPropertyList( String propertyName ) {
+		boolean isList = false;
+		Vocabulary voc = propertyVocabularies.get(propertyName);
+		if(voc != null) {
+			TermListType term = (TermListType) voc.getTerm(TermListType.TERM_NAME);
+			isList = term != null && term.isListType();
+		}
+		return isList;
+	}
+	
 	
 	/**
 	 * Returns the complex type group name of a property

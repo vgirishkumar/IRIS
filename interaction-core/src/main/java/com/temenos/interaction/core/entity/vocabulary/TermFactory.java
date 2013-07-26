@@ -3,6 +3,7 @@ package com.temenos.interaction.core.entity.vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermRange;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermResourceManager;
@@ -36,6 +37,9 @@ public class TermFactory {
 		}
 		else if(name.equalsIgnoreCase(TermComplexType.TERM_NAME)) {
 			term = new TermComplexType(value.equalsIgnoreCase("true"));
+		}
+		else if (name.equalsIgnoreCase(TermListType.TERM_NAME)) {
+			term = new TermListType(value.equalsIgnoreCase("true"));
 		}
 		else if(name.equalsIgnoreCase(TermComplexGroup.TERM_NAME)) {
 			term = new TermComplexGroup(value);
