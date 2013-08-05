@@ -67,6 +67,7 @@ import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.MetadataParser;
@@ -97,6 +98,7 @@ public class TestAtomXMLProvider {
 	public final static String FLIGHT_ENTRY_XML = "FlightEntry.xml";
 	public final static String FLIGHT_ENTRY_SIMPLE_XML = "FlightEntrySimple.xml";
 	public final static String FLIGHT_COLLECTION_XML = "FlightsFeed.xml";
+	public final static String ATOM_GENERIC_ERROR_ENTRY_XML = "AtomGenericErrorEntry.xml";
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
@@ -638,6 +640,51 @@ public class TestAtomXMLProvider {
 		assertEquals(1, olinks.size());
 		
 	}
+	
+	@Test
+	public void testWriteEntityResourceGenericError_AtomXML() throws Exception {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		EdmDataServices mockEDS = createMockFlightEdmDataServices();		
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+		
+		Metadata mockMetadata = createMockFlightMetadata();
+		EntityResource<GenericError> er = createMockEntityResourceGenericError();
+		
+        //Wrap entity resource into a JAX-RS GenericEntity instance
+		GenericEntity<EntityResource<GenericError>> ge = new GenericEntity<EntityResource<GenericError>>(er) {};
+		
+		
+		//Create provider
+		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		UriInfo uriInfo = mock(UriInfo.class);
+		URI uri = new URI("http://localhost:8080/responder/rest/");
+		when(uriInfo.getBaseUri()).thenReturn(uri);
+		when(uriInfo.getPath()).thenReturn("Flight(123)");
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(readTextFile(ATOM_GENERIC_ERROR_ENTRY_XML), responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+	
+	@SuppressWarnings("unchecked")
+	private EntityResource<GenericError> createMockEntityResourceGenericError() {
+		EntityResource<GenericError> er = mock(EntityResource.class);
+				
+		GenericError error = new GenericError("UPSTREAM_SERVER_UNAVAILABLE", "Failed to connect to resource manager.");
+		when(er.getEntity()).thenReturn(error);
+		when(er.getEntityName()).thenReturn("Flight");
+		return er;
+	}	
 	
 	/*
 	 * Read a text file
