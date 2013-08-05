@@ -63,4 +63,29 @@ public interface HttpStatusTypes {
 		
 	};
 
+	/**
+	 * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.5
+	 * 10.5.5 504 Gateway Timeout
+	 * 
+	 * The server, while acting as a gateway or proxy, did not receive a timely 
+	 * response from the upstream server specified by the URI (e.g. HTTP, FTP, LDAP) 
+	 * or some other auxiliary server (e.g. DNS) it needed to access in attempting to 
+	 * complete the request.
+	 */
+	public final static String GATEWAY_TIMEOUT_MSG = "Gateway Timeout";
+	public final static StatusType GATEWAY_TIMEOUT = new StatusType() {
+
+		public int getStatusCode() {
+			return 504;
+		}
+
+		public Family getFamily() {
+			return Response.Status.Family.SERVER_ERROR;
+		}
+
+		public String getReasonPhrase() {
+			return GATEWAY_TIMEOUT_MSG;
+		}
+		
+	};
 }

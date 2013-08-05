@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -36,6 +37,7 @@ import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
@@ -45,6 +47,7 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.web.RequestContext;
 
 @RunWith(PowerMockRunner.class)
@@ -548,4 +551,119 @@ public class TestResponseHTTPHypermediaRIM {
         assertTrue(allowsList.contains("HEAD"));
 	}
 
+	/*
+	 * This test checks that a 503 error returns a correct response
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testBuildResponseWith503ServiceUnavailable() {
+		Response response = getMockResponse(Result.UPSTREAM_SERVER_UNAVAILABLE, "Failed to connect to resource manager.");
+		assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
+			assertEquals("UPSTREAM_SERVER_UNAVAILABLE", error.getCode());
+			assertEquals("Failed to connect to resource manager.", error.getMessage());
+		}
+		else {
+			fail("Response body is not a generic error entity resource type.");
+		}
+	}
+
+	/*
+	 * This test checks returning a 503 error without a response body
+	 */
+	@Test
+	public void testBuildResponseWith503ServiceUnavailableWithoutResponseBody() {
+		Response response = getMockResponse(Result.UPSTREAM_SERVER_UNAVAILABLE, null);
+		assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+		
+		assertNull(response.getEntity());
+	}
+	
+	/*
+	 * This test checks that a 504 error returns a correct response
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testBuildResponseWith504GateTimeout() {
+		Response response = getMockResponse(Result.UPSTREAM_SERVER_TIMEOUT, "Request timeout.");
+		assertEquals(HttpStatusTypes.GATEWAY_TIMEOUT.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
+			assertEquals("UPSTREAM_SERVER_TIMEOUT", error.getCode());
+			assertEquals("Request timeout.", error.getMessage());
+		}
+		else {
+			fail("Response body is not a generic error entity resource type.");
+		}
+	}
+	
+	/*
+	 * This test checks that a 500 error returns a proper error message inside
+	 * the body of the response.
+	 */
+	@Test
+	public void testBuildResponseWith500InternalServerError() {
+	}
+
+	/*
+	 * This test checks that a 400 error returns a proper error message inside
+	 * the body of the response.
+	 */
+	@Test
+	public void testBuildResponseWith400BadRequest() {
+		//Similar to above but with 400 status
+	}
+
+	/*
+	 * This test checks that a 401 error returns a proper status code
+	 */
+	@Test
+	public void testBuildResponseWith401AuthenticationFailure() {
+	}
+
+	/*
+	 * This test checks that a 500 error is returned when a
+	 * command throws an exception.
+	 */
+	@Test
+	public void testGETCommandThrowsException() {
+	}
+	
+	private Response getMockResponse(InteractionCommand.Result result, String body) {
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		InteractionCommand mockCommand = getMockCommand(result, body);
+		mockCommandController.addCommand("GET", mockCommand);
+		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
+		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
+
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
+		return rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+	}
+	
+	private InteractionCommand getMockCommand(final InteractionCommand.Result result, final String body) {
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) {
+				if(body != null) {
+					ctx.setResource(createGenericErrorResource(new GenericError(result.toString(), body)));
+				}
+				return result;
+			}
+		};
+		return mockCommand;
+	}
+	
+	@SuppressWarnings("hiding")
+	public static<GenericError> EntityResource<GenericError> createGenericErrorResource(GenericError error) 
+	{
+		return new EntityResource<GenericError>(error) {};	
+	}	
 }

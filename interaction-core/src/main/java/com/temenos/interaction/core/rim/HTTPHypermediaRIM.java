@@ -331,7 +331,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		assert(event != null);
 		assert(ctx != null);
     	StatusType status = Status.NOT_FOUND;
-		if (event.getMethod().equals(HttpMethod.GET)) {
+    	if(result == InteractionCommand.Result.UPSTREAM_SERVER_UNAVAILABLE) {
+    		status = Status.SERVICE_UNAVAILABLE;
+    	}
+    	if(result == InteractionCommand.Result.UPSTREAM_SERVER_TIMEOUT) {
+    		status = HttpStatusTypes.GATEWAY_TIMEOUT;
+    	}
+    	else if (event.getMethod().equals(HttpMethod.GET)) {
 	    	switch(result) {
 	    	case SUCCESS:			status = Status.OK; break;
 	    	case FAILURE:			status = Status.NOT_FOUND; break;
@@ -485,6 +491,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		 */
     		responseBuilder.entity(resource.getGenericEntity());
     		responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
+		} else if (status.equals(Response.Status.SERVICE_UNAVAILABLE) ||
+				status.equals(HttpStatusTypes.GATEWAY_TIMEOUT)) {
+			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
+			if(response.getResource() != null) {
+				responseBuilder.entity(resource.getGenericEntity());
+			}
     	} else {
         	// TODO add support for other status codes
     	}

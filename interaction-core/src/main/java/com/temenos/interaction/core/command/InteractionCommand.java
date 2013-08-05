@@ -8,7 +8,11 @@ package com.temenos.interaction.core.command;
 public interface InteractionCommand {
 
 	enum Result {
-		SUCCESS, FAILURE, INVALID_REQUEST
+		SUCCESS, 
+		FAILURE, 
+		INVALID_REQUEST, 
+		UPSTREAM_SERVER_UNAVAILABLE,
+		UPSTREAM_SERVER_TIMEOUT
 	}
 	
 	/**
