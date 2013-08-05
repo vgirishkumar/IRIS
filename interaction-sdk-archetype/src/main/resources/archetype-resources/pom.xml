@@ -159,6 +159,12 @@
     	<version>${irisVersion}</version>
         <scope>runtime</scope>
     </dependency>
+    <dependency>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-media-odata-xml</artifactId>
+    	<version>${irisVersion}</version>
+        <scope>runtime</scope>
+    </dependency>
 
     <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
     <dependency>

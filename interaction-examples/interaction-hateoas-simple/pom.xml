@@ -310,5 +310,9 @@
         <artifactId>halbuilder</artifactId>
         <scope>compile</scope>
     </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-media-odata-xml</artifactId>
+    </dependency>
   </dependencies>
 </project>

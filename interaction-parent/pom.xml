@@ -19,6 +19,7 @@
 		<module>../interaction-commands-odata-bridge</module>
         <module>../interaction-media-hal</module>
         <module>../interaction-media-xhtml</module>
+        <module>../interaction-media-odata-xml</module>
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../useragent-examples/useragent-odata-html5</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
@@ -183,6 +184,11 @@
             <dependency>
                 <groupId>com.temenos.interaction</groupId>
                 <artifactId>interaction-media-xhtml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.temenos.interaction</groupId>
+            	<artifactId>interaction-media-odata-xml</artifactId>
                 <version>${project.version}</version>
             </dependency>
 			<dependency>
@@ -385,6 +391,11 @@
                 <groupId>org.apache.wink</groupId>
                 <artifactId>wink-component-test-support</artifactId>
                 <version>${wink.version}</version>
+            </dependency>
+            <dependency>
+            	<groupId>net.sf.ehcache</groupId>
+            	<artifactId>ehcache-core</artifactId>
+            	<version>2.5.2</version>
             </dependency>
 		</dependencies>
 	</dependencyManagement>

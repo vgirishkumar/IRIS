@@ -335,5 +335,9 @@
     	<version>2.5.2</version>
     </dependency>
 
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-media-odata-xml</artifactId>
+    </dependency>
   </dependencies>
 </project>

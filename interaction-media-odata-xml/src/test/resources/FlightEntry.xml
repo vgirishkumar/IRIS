@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<entry xmlns="http://www.w3.org/2005/Atom" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xml:base="http://localhost:8080/responder/rest/">
+  <id>http://localhost:8080/responder/rest/Flight(123)</id>
+  <title type="text"></title>
+  <updated>2013-03-19T17:24:34Z</updated>
+  <author>
+    <name></name>
+  </author>
+  <category term="FlightModelModel.Flight" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme">
+  </category>
+  <content type="application/xml">
+    <m:properties>
+      <d:id m:type="Edm.Int64">123</d:id>
+      <d:flight>EI218</d:flight>
+      <d:Flight_MvSvGroup m:type="FlightModelModel.Flight_MvSvGroup">
+        <d:Flight_MvSvStartGroup m:type="FlightModelModel.Flight_MvSvStartGroup">
+          <d:MvSvEnd>mv sv end 1:1</d:MvSvEnd>
+          <d:MvSvStart>mv sv start 1:1</d:MvSvStart>
+        </d:Flight_MvSvStartGroup>
+        <d:Flight_MvSvStartGroup m:type="FlightModelModel.Flight_MvSvStartGroup">
+          <d:MvSvEnd>mv sv end 1:2</d:MvSvEnd>
+          <d:MvSvStart>mv sv start 1:2</d:MvSvStart>
+        </d:Flight_MvSvStartGroup>
+        <d:MvSv>mv sv 1:1</d:MvSv>
+      </d:Flight_MvSvGroup>
+      <d:Flight_MvSvGroup m:type="FlightModelModel.Flight_MvSvGroup">
+        <d:Flight_MvSvStartGroup m:type="FlightModelModel.Flight_MvSvStartGroup">
+          <d:MvSvEnd>mv sv end 2:1</d:MvSvEnd>
+          <d:MvSvStart>mv sv start 2:1</d:MvSvStart>
+        </d:Flight_MvSvStartGroup>
+        <d:Flight_MvSvStartGroup m:type="FlightModelModel.Flight_MvSvStartGroup">
+          <d:MvSvEnd>mv sv end 2:2</d:MvSvEnd>
+          <d:MvSvStart>mv sv start 2:2</d:MvSvStart>
+        </d:Flight_MvSvStartGroup>
+        <d:MvSv>mv sv 2:1</d:MvSv>
+      </d:Flight_MvSvGroup>
+    </m:properties>
+  </content>
+</entry>

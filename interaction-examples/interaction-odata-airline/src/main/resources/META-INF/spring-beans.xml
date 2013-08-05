@@ -51,14 +51,14 @@
         </property>
 	</bean>
 
-	<bean id="atomProvider" class="com.temenos.interaction.core.media.atom.AtomXMLProvider">
+	<bean id="atomProvider" class="com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 		<constructor-arg name="metadata" ref="edmMetadata" />
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
     	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
 	</bean>
-    <bean id="edmxProvider" class="com.temenos.interaction.core.media.edmx.EdmxMetaDataProvider" />
-	<bean id="serviceDocumentProvider" class="com.temenos.interaction.core.media.atomsvc.ServiceDocumentProvider" />
+    <bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
+	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />
  	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
     	<constructor-arg ref="edmMetadata" />
 	</bean>
