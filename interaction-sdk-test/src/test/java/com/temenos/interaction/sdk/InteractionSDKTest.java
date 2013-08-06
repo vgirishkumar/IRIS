@@ -145,7 +145,7 @@ public class InteractionSDKTest {
     	        verifier.setSystemProperties(airlineProps);
     	        List<String> goals = new ArrayList<String>();
     	        goals.add("package");
-    	        goals.add("failsafe:integration-test");
+    	        goals.add("failsafe:integration-test -DexcludedTestDirectory=extended");		//Run interaction-odata-airline integration tests but exclude extended tests
     	        goals.add("failsafe:verify");
     	        verifier.executeGoals(goals);
     	        verifier.verifyErrorFreeLog();

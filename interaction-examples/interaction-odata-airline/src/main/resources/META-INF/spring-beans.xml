@@ -40,6 +40,7 @@
 				<ref local="atomProvider" />
 				<ref local="edmxProvider" />
 				<ref local="serviceDocumentProvider" />
+				<ref local="errorProvider" />
 				<ref local="xhtmlProvider" />
  			</set>
    		</property>
@@ -59,6 +60,7 @@
 	</bean>
     <bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />
+    <bean id="errorProvider" class="com.temenos.interaction.media.odata.xml.error.ErrorProvider" />
  	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
     	<constructor-arg ref="edmMetadata" />
 	</bean>
@@ -134,6 +136,8 @@
 	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
+	<bean id="GETGenericErrorCommand" class="com.interaction.example.odata.airline.commands.GETGenericErrorCommand" />
+	<bean id="NoopGETCommand" class="com.temenos.interaction.core.command.NoopGETCommand" />
 
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -147,6 +151,8 @@
 				<entry key="CreateEntity" value-ref="CreateEntity" />
 				<entry key="UpdateEntity" value-ref="UpdateEntity" />
 				<entry key="DeleteEntity" value-ref="DeleteEntity" />
+				<entry key="NoopGETCommand" value-ref="NoopGETCommand" />
+				<entry key="GETGenericErrorCommand" value-ref="GETGenericErrorCommand" />
  			</util:map> 
 		</constructor-arg>
 	</bean>

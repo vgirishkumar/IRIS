@@ -38,6 +38,7 @@
 				<ref local="atomProvider" />
 				<ref local="edmxProvider" />
 				<ref local="serviceDocumentProvider" />
+				<ref local="errorProvider" />
 				<ref local="xhtmlProvider" />
  			</list>
    		</property>
@@ -57,6 +58,7 @@
 	</bean>
     <bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />
+    <bean id="errorProvider" class="com.temenos.interaction.media.odata.xml.error.ErrorProvider" />
  	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
 		<constructor-arg ref="edmMetadata" />
 	</bean>
