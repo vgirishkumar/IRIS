@@ -280,6 +280,7 @@ resource Extended
 	GET title="throw 500 server runtime exception" -> error500RuntimeException id=flightID
 	GET title="throw 403 error" -> error403 id=flightID
 	GET title="throw 500 request failure" -> error500RequestFailure id=flightID
+	GET title="throw 400 error" -> error400 id=flightID
 end
 
 resource error503
@@ -310,4 +311,10 @@ resource error500RequestFailure
 	item Flight
 	view { GETGenericErrorCommand code="FAILURE", message="Error while processing request." }
 	path "/Extended({id})/error500RequestFailure"
+end
+
+resource error400
+	item Flight
+	view { GETGenericErrorCommand code="INVALID_REQUEST", message="Resource manager: 4 validation errors." }
+	path "/Extended({id})/error400"
 end

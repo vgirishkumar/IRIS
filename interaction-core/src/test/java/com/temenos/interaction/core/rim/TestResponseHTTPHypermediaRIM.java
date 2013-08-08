@@ -633,9 +633,23 @@ public class TestResponseHTTPHypermediaRIM {
 	 * This test checks that a 400 error returns a proper error message inside
 	 * the body of the response.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith400BadRequest() {
-		//Similar to above but with 400 status
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.INVALID_REQUEST, "Resource manager: 4 validation errors."));
+		assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Excepted a response body", ge);
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
+			assertEquals("INVALID_REQUEST", error.getCode());
+			assertEquals("Resource manager: 4 validation errors.", error.getMessage());
+		}
+		else {
+			fail("Response body is not a generic error entity resource type.");
+		}
 	}
 
 	/*

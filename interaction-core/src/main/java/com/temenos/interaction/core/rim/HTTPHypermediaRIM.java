@@ -340,11 +340,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	else if(result == InteractionCommand.Result.AUTHORISATION_FAILURE) {
     		status = Status.FORBIDDEN;
     	}
+    	else if(result == InteractionCommand.Result.INVALID_REQUEST) {
+    		status = Status.BAD_REQUEST;
+    	}
+    	else if(result == InteractionCommand.Result.FAILURE) {
+    		status = Status.INTERNAL_SERVER_ERROR;
+    	}
     	else if (event.getMethod().equals(HttpMethod.GET)) {
 	    	switch(result) {
 	    	case SUCCESS:			status = Status.OK; break;
-	    	case FAILURE:			status = Status.INTERNAL_SERVER_ERROR; break;
-	    	case INVALID_REQUEST:	status = Status.BAD_REQUEST; break;
 	    	}
 		} else if (event.getMethod().equals(HttpMethod.POST)) {
 	    	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
@@ -359,8 +363,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 					logger.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
 			   		status = Status.OK;
 				}
-			} else {
-		   		status = Status.INTERNAL_SERVER_ERROR;				
 			}
 
 		} else if (event.getMethod().equals(HttpMethod.PUT)) {
@@ -375,9 +377,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	   			status = Status.NO_CONTENT;
 	   		} else if (result == Result.SUCCESS) {
 	   			status = Status.OK;
-	   		} else {
-	   			logger.error("InteractionCommand result [" + result + "]");
-	   			status = Status.INTERNAL_SERVER_ERROR;
 	   		}
 		} else if (event.getMethod().equals(HttpMethod.DELETE)) {
 	    	if (result == Result.SUCCESS) {
@@ -430,10 +429,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	        		status = Response.Status.NO_CONTENT;
 	    		}
 	    		 */
-	    	} else if (result == Result.FAILURE) {
-	    		status = Status.INTERNAL_SERVER_ERROR;
-	    	} else if (result == Result.INVALID_REQUEST) {
-	    		status = Status.BAD_REQUEST;
 	    	} else {
 	    		assert(false) : "Unhandled result from Command";
 	    	}
@@ -501,7 +496,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			if(response.getResource() != null) {
 				responseBuilder.entity(resource.getGenericEntity());
 			}
-		} else if (status.equals(Response.Status.INTERNAL_SERVER_ERROR)) {
+		} else if (status.equals(Response.Status.INTERNAL_SERVER_ERROR) ||
+				status.equals(Response.Status.BAD_REQUEST)) {
 			//TODO: create link to exception resource
 			if(response.getResource() != null) {
 				responseBuilder.entity(resource.getGenericEntity());

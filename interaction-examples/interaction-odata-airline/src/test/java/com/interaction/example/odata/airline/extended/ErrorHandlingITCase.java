@@ -26,7 +26,7 @@ public class ErrorHandlingITCase {
 	
 	@Test
 	public void flightError503ServiceUnavailable() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 		try {
 			consumer.
 					getEntity(EXTENDED_ENTITYSET_NAME, 123).
@@ -43,7 +43,7 @@ public class ErrorHandlingITCase {
 
 	@Test
 	public void flightError504GatewayTimeout() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 		try {
 			consumer.
 					getEntity(EXTENDED_ENTITYSET_NAME, 123).
@@ -60,7 +60,7 @@ public class ErrorHandlingITCase {
 
 	@Test
 	public void flightError500CommandRuntimeException() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 		try {
 			consumer.
 					getEntity(EXTENDED_ENTITYSET_NAME, 123).
@@ -75,7 +75,7 @@ public class ErrorHandlingITCase {
 
 	@Test
 	public void flightError403Forbidden() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 		try {
 			consumer.
 					getEntity(EXTENDED_ENTITYSET_NAME, 123).
@@ -92,7 +92,7 @@ public class ErrorHandlingITCase {
 
 	@Test
 	public void flightError500RequestFailure() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 		try {
 			consumer.
 					getEntity(EXTENDED_ENTITYSET_NAME, 123).
@@ -104,6 +104,23 @@ public class ErrorHandlingITCase {
 			OError error = ope.getOError();
 			assertEquals("FAILURE", error.getCode());
 			assertEquals("Error while processing request.", error.getMessage());
+		}
+	}
+
+	@Test
+	public void flightError500InvalidRequest() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
+		try {
+			consumer.
+					getEntity(EXTENDED_ENTITYSET_NAME, 123).
+					nav("error400").
+					execute();
+			fail("error400 should have returned an odata error response.");
+		}
+		catch(ODataProducerException ope) {
+			OError error = ope.getOError();
+			assertEquals("INVALID_REQUEST", error.getCode());
+			assertEquals("Resource manager: 4 validation errors.", error.getMessage());
 		}
 	}
 }
