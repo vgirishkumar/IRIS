@@ -622,10 +622,25 @@ public class TestResponseHTTPHypermediaRIM {
 	}
 
 	/*
-	 * This test checks that a 401 error returns a proper status code
+	 * This test checks that a 403 error returns a proper status code
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
-	public void testBuildResponseWith401AuthenticationFailure() {
+	public void testBuildResponseWith403AuthorisationFailure() {
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.AUTHORISATION_FAILURE, "User is not allowed to access this resource."));
+		assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Excepted a response body", ge);
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
+			assertEquals("AUTHORISATION_FAILURE", error.getCode());
+			assertEquals("User is not allowed to access this resource.", error.getMessage());
+		}
+		else {
+			fail("Response body is not a generic error entity resource type.");
+		}
 	}
 
 	/*

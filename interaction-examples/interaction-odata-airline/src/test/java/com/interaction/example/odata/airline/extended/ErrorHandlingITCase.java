@@ -72,4 +72,21 @@ public class ErrorHandlingITCase {
 			assertTrue(re.getMessage().contains("Unknown fatal error"));
 		}
 	}
+
+	@Test
+	public void flightError403Forbidden() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		try {
+			consumer.
+					getEntity(EXTENDED_ENTITYSET_NAME, 123).
+					nav("error403").
+					execute();
+			fail("error403 should have returned an odata error response.");
+		}
+		catch(ODataProducerException ope) {
+			OError error = ope.getOError();
+			assertEquals("AUTHORISATION_FAILURE", error.getCode());
+			assertEquals("User is not allowed to access this resource.", error.getMessage());
+		}
+	}
 }

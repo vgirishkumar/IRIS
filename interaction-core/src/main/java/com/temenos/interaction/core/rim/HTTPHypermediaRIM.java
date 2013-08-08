@@ -334,8 +334,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	if(result == InteractionCommand.Result.UPSTREAM_SERVER_UNAVAILABLE) {
     		status = Status.SERVICE_UNAVAILABLE;
     	}
-    	if(result == InteractionCommand.Result.UPSTREAM_SERVER_TIMEOUT) {
+    	else if(result == InteractionCommand.Result.UPSTREAM_SERVER_TIMEOUT) {
     		status = HttpStatusTypes.GATEWAY_TIMEOUT;
+    	}
+    	else if(result == InteractionCommand.Result.AUTHORISATION_FAILURE) {
+    		status = Status.FORBIDDEN;
     	}
     	else if (event.getMethod().equals(HttpMethod.GET)) {
 	    	switch(result) {
@@ -492,7 +495,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		responseBuilder.entity(resource.getGenericEntity());
     		responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.equals(Response.Status.SERVICE_UNAVAILABLE) ||
-				status.equals(HttpStatusTypes.GATEWAY_TIMEOUT)) {
+				status.equals(HttpStatusTypes.GATEWAY_TIMEOUT) ||
+				status.equals(Response.Status.FORBIDDEN)) {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 			if(response.getResource() != null) {
 				responseBuilder.entity(resource.getGenericEntity());
