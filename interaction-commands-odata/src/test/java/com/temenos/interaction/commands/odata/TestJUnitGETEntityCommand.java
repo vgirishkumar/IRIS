@@ -11,6 +11,7 @@ import static org.mockito.Matchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmType;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
@@ -211,6 +213,26 @@ public class TestJUnitGETEntityCommand {
 		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new DateOEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
+	@Test
+	public void testGetEntityNotFound() {
+		ODataProducer mockProducer = createMockODataProducer("GetEntityNotFound", "Edm.String");
+		GETEntityCommand gec = new GETEntityCommand(mockProducer);
+		
+        InteractionContext ctx = createInteractionContext("GetEntityNotFound", "1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.RESOURCE_UNAVAILABLE, result);
+	}
+
+	@Test
+	public void testDeleteEntityNotFound() {
+		ODataProducer mockProducer = createMockODataProducer("DeleteEntityNotFound", "Edm.String");
+		DeleteEntityCommand gec = new DeleteEntityCommand(mockProducer);
+		
+        InteractionContext ctx = createInteractionContext("DeleteEntityNotFound", "1");
+		InteractionCommand.Result result = gec.execute(ctx);
+		assertEquals(InteractionCommand.Result.RESOURCE_UNAVAILABLE, result);
+	}
+	
 	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {
 		ODataProducer mockProducer = mock(ODataProducer.class);
 		List<String> keys = new ArrayList<String>();
@@ -242,11 +264,18 @@ public class TestJUnitGETEntityCommand {
 		when(oe.getEntityType()).thenReturn(eet.build());
 		when(oe.getEntitySetName()).thenReturn(ees.build().getName());
 		when(mockEntityResponse.getEntity()).thenReturn(oe);
-		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
-				        
+		if(entityName.equals("GetEntityNotFound")) {
+			when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenThrow(new NotFoundException("Entity does not exist."));
+		}
+		else if(entityName.equals("DeleteEntityNotFound")) {
+			doThrow(new NotFoundException("Entity does not exist.")).when(mockProducer).deleteEntity(anyString(), any(OEntityKey.class));
+		}
+		else {
+			when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
+		}
         return mockProducer;
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	private InteractionContext createInteractionContext(String entity, String id) {
 		ResourceState resourceState = mock(ResourceState.class);

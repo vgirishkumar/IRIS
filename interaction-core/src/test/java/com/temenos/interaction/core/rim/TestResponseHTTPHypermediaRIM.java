@@ -689,6 +689,40 @@ public class TestResponseHTTPHypermediaRIM {
 		}
 	}
 	
+	/*
+	 * Test to ensure command can cause 404 error if a specific entity is not available.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testBuildResponseWith404NotFound() {
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.RESOURCE_UNAVAILABLE, "Resource manager: entity Fred not found or currently unavailable."));
+		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Excepted a response body", ge);
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
+			assertEquals("RESOURCE_UNAVAILABLE", error.getCode());
+			assertEquals("Resource manager: entity Fred not found or currently unavailable.", error.getMessage());
+		}
+		else {
+			fail("Response body is not a generic error entity resource type.");
+		}
+	}
+	
+	/*
+	 * Test to ensure command can cause 404 error without a response body if a specific entity is not available.
+	 */
+	@Test
+	public void testBuildResponseWith404NotFoundWithoutResponseBody() {
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.RESOURCE_UNAVAILABLE, null));
+		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+		
+		assertNull(response.getEntity());
+	}
+
+	
 	protected Response getMockResponse(InteractionCommand mockCommand) {
 		NewCommandController mockCommandController = mock(NewCommandController.class);
 		mockCommandController.addCommand("GET", mockCommand);

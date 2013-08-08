@@ -3,6 +3,7 @@ package com.temenos.interaction.commands.odata;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.producer.ODataProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +53,11 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 		// delete the entity
 		try {
 			producer.deleteEntity(entity, key);
+		} catch (NotFoundException nfe) {
+			logger.debug("Entity not found [" + key.toKeyString() + "]: " + nfe.getMessage());
+			return Result.RESOURCE_UNAVAILABLE;
 		} catch (Exception e) {
-			// exception if the entity is not found, delete the entity if it exists;
+			logger.debug("Error while deleting entity [" + key.toKeyString() + "]: " + e.getMessage());
 			return Result.FAILURE;
 		}
 		return Result.SUCCESS;

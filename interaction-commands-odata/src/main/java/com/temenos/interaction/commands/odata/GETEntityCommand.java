@@ -6,6 +6,9 @@ import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.exceptions.BadRequestException;
+import org.odata4j.exceptions.NotAuthorizedException;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
@@ -56,8 +59,20 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 			EntityResource<OEntity> oer = CommandHelper.createEntityResource(er.getEntity());
 			ctx.setResource(oer);		
 		}
+		catch(NotAuthorizedException nae) {
+			logger.debug("Access to resource [" + entityName + ", " + ctx.getId() + "] not allowed: " + nae.getMessage());
+			return Result.AUTHORISATION_FAILURE;
+		}
+		catch(NotFoundException nfe) {
+			logger.debug("Entity not found [" + entityName + ", " + ctx.getId() + "]: " + nfe.getMessage());
+			return Result.RESOURCE_UNAVAILABLE;
+		}
+		catch(BadRequestException bre) {
+			logger.debug("Invalid request: " + bre.getMessage());
+			return Result.INVALID_REQUEST;
+		}
 		catch(Exception e) {
-			logger.error("Failed to GET entity [" + entityName + "]: " + e.getMessage());
+			logger.error("Failed to GET entity [" + entityName + ", " + ctx.getId() + "]: " + e.getMessage());
 			return Result.FAILURE;
 		}
 		return Result.SUCCESS;

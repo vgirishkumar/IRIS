@@ -108,7 +108,7 @@ public class ErrorHandlingITCase {
 	}
 
 	@Test
-	public void flightError500InvalidRequest() {
+	public void flightError400InvalidRequest() {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
 		try {
 			consumer.
@@ -121,6 +121,23 @@ public class ErrorHandlingITCase {
 			OError error = ope.getOError();
 			assertEquals("INVALID_REQUEST", error.getCode());
 			assertEquals("Resource manager: 4 validation errors.", error.getMessage());
+		}
+	}
+
+	@Test
+	public void flightError404NotFound() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
+		try {
+			consumer.
+					getEntity(EXTENDED_ENTITYSET_NAME, 123).
+					nav("error404").
+					execute();
+			fail("error404 should have returned an odata error response.");
+		}
+		catch(ODataProducerException ope) {
+			OError error = ope.getOError();
+			assertEquals("RESOURCE_UNAVAILABLE", error.getCode());
+			assertEquals("Resource manager: entity not found or currently unavailable.", error.getMessage());
 		}
 	}
 }

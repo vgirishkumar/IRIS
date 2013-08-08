@@ -281,6 +281,7 @@ resource Extended
 	GET title="throw 403 error" -> error403 id=flightID
 	GET title="throw 500 request failure" -> error500RequestFailure id=flightID
 	GET title="throw 400 error" -> error400 id=flightID
+	GET title="throw 404 error" -> error404 id=flightID
 end
 
 resource error503
@@ -317,4 +318,10 @@ resource error400
 	item Flight
 	view { GETGenericErrorCommand code="INVALID_REQUEST", message="Resource manager: 4 validation errors." }
 	path "/Extended({id})/error400"
+end
+
+resource error404
+	item Flight
+	view { GETGenericErrorCommand code="RESOURCE_UNAVAILABLE", message="Resource manager: entity not found or currently unavailable." }
+	path "/Extended({id})/error404"
 end

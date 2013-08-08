@@ -25,7 +25,7 @@ public class GETNoteCommand implements InteractionCommand {
 			ctx.setResource(new EntityResource<Note>(note));
 			return Result.SUCCESS;
 		} else {
-			return Result.FAILURE;
+			return Result.RESOURCE_UNAVAILABLE;
 		}
 	}
 

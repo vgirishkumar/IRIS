@@ -5,6 +5,9 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.odata4j.core.OEntity;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.exceptions.BadRequestException;
+import org.odata4j.exceptions.NotAuthorizedException;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
@@ -14,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InvalidRequestException;
 import com.temenos.interaction.core.resource.CollectionResource;
 
 public class GETEntitiesCommand extends AbstractODataCommand implements InteractionCommand {
@@ -48,8 +50,16 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 			ctx.setResource(cr);
 		}
-		catch(InvalidRequestException ire) {
-			logger.error("Failed to GET entities [" + entityName + "]: " + ire.getMessage());
+		catch(NotAuthorizedException nae) {
+			logger.debug("Access to resource [" + entityName + "] not allowed: " + nae.getMessage());
+			return Result.AUTHORISATION_FAILURE;
+		}
+		catch(NotFoundException nfe) {
+			logger.debug("Entity set not found [" + entityName + "]: " + nfe.getMessage());
+			return Result.RESOURCE_UNAVAILABLE;
+		}
+		catch(BadRequestException bre) {
+			logger.debug("Invalid request: " + bre.getMessage());
 			return Result.INVALID_REQUEST;
 		}
 		catch(Exception e) {
