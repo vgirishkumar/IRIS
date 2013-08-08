@@ -16,10 +16,10 @@ import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.xml.AtomFeedFormatParser;
 import org.odata4j.format.xml.XmlFormatParser;
-import org.odata4j.internal.InternalUtil;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 import org.odata4j.stax2.XMLEvent2;
 import org.odata4j.stax2.XMLEventReader2;
+import org.odata4j.stax2.util.StaxUtil;
 
 /**
  * Hello world!
@@ -85,12 +85,12 @@ public class App {
 					String dsXML = entry.getContent();
 					entry.getContentElement().getQName();
 					// odata4j only support utf-8, so assume it wants a utf-8 stream
-					XMLEventReader2 reader = InternalUtil.newXMLEventReader(new InputStreamReader(new ByteArrayInputStream(dsXML.getBytes("UTF-8"))));
+					XMLEventReader2 reader = StaxUtil.newXMLEventReader(new InputStreamReader(new ByteArrayInputStream(dsXML.getBytes("UTF-8"))));
 					Iterable<OProperty<?>> properties = null;
 					while (reader.hasNext()) {
 						XMLEvent2 event = reader.nextEvent();
 						if (event.isStartElement() && event.asStartElement().getName().equals(XmlFormatParser.M_PROPERTIES)) {
-							properties = AtomFeedFormatParser.parseProperties(reader, event.asStartElement(), metadata);
+							properties = AtomFeedFormatParser.parseProperties(reader, event.asStartElement(), metadata, null);
 						}
 						
 					}
