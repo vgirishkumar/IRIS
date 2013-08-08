@@ -561,6 +561,7 @@ public class TestResponseHTTPHypermediaRIM {
 		assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
 			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
 			GenericError error = er.getEntity();
@@ -593,6 +594,7 @@ public class TestResponseHTTPHypermediaRIM {
 		assertEquals(HttpStatusTypes.GATEWAY_TIMEOUT.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
 			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
 			GenericError error = er.getEntity();
@@ -608,8 +610,23 @@ public class TestResponseHTTPHypermediaRIM {
 	 * This test checks that a 500 error returns a proper error message inside
 	 * the body of the response.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith500InternalServerError() {
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.FAILURE, "Resource manager: 5 fatal error and 2 warnings."));
+		assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Excepted a response body", ge);
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
+			assertEquals("FAILURE", error.getCode());
+			assertEquals("Resource manager: 5 fatal error and 2 warnings.", error.getMessage());
+		}
+		else {
+			fail("Response body is not a generic error entity resource type.");
+		}
 	}
 
 	/*

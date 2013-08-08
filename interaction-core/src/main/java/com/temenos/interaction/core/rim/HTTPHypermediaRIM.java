@@ -343,7 +343,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	else if (event.getMethod().equals(HttpMethod.GET)) {
 	    	switch(result) {
 	    	case SUCCESS:			status = Status.OK; break;
-	    	case FAILURE:			status = Status.NOT_FOUND; break;
+	    	case FAILURE:			status = Status.INTERNAL_SERVER_ERROR; break;
 	    	case INVALID_REQUEST:	status = Status.BAD_REQUEST; break;
 	    	}
 		} else if (event.getMethod().equals(HttpMethod.POST)) {
@@ -431,7 +431,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	    		}
 	    		 */
 	    	} else if (result == Result.FAILURE) {
-	    		status = Status.NOT_FOUND;
+	    		status = Status.INTERNAL_SERVER_ERROR;
 	    	} else if (result == Result.INVALID_REQUEST) {
 	    		status = Status.BAD_REQUEST;
 	    	} else {
@@ -501,6 +501,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			if(response.getResource() != null) {
 				responseBuilder.entity(resource.getGenericEntity());
 			}
+		} else if (status.equals(Response.Status.INTERNAL_SERVER_ERROR)) {
+			//TODO: create link to exception resource
+			if(response.getResource() != null) {
+				responseBuilder.entity(resource.getGenericEntity());
+			}
+			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
     	} else {
         	// TODO add support for other status codes
     	}

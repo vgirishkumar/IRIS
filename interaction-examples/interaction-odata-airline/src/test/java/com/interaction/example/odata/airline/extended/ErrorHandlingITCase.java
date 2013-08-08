@@ -89,4 +89,21 @@ public class ErrorHandlingITCase {
 			assertEquals("User is not allowed to access this resource.", error.getMessage());
 		}
 	}
+
+	@Test
+	public void flightError500RequestFailure() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		try {
+			consumer.
+					getEntity(EXTENDED_ENTITYSET_NAME, 123).
+					nav("error500RequestFailure").
+					execute();
+			fail("error500RequestFailure should have returned an odata error response.");
+		}
+		catch(ODataProducerException ope) {
+			OError error = ope.getOError();
+			assertEquals("FAILURE", error.getCode());
+			assertEquals("Error while processing request.", error.getMessage());
+		}
+	}
 }

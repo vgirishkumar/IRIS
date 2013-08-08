@@ -279,6 +279,7 @@ resource Extended
 	GET title="throw 504 error" -> error504 id=flightID
 	GET title="throw 500 server runtime exception" -> error500RuntimeException id=flightID
 	GET title="throw 403 error" -> error403 id=flightID
+	GET title="throw 500 request failure" -> error500RequestFailure id=flightID
 end
 
 resource error503
@@ -303,4 +304,10 @@ resource error403
 	item Flight
 	view { GETGenericErrorCommand code="AUTHORISATION_FAILURE", message="User is not allowed to access this resource." }
 	path "/Extended({id})/error403"
+end
+
+resource error500RequestFailure
+	item Flight
+	view { GETGenericErrorCommand code="FAILURE", message="Error while processing request." }
+	path "/Extended({id})/error500RequestFailure"
 end
