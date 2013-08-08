@@ -137,6 +137,7 @@
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
 	<bean id="GETGenericErrorCommand" class="com.interaction.example.odata.airline.commands.GETGenericErrorCommand" />
+	<bean id="GETThrowRuntimeExceptionCommand" class="com.interaction.example.odata.airline.commands.GETThrowRuntimeExceptionCommand" />
 	<bean id="NoopGETCommand" class="com.temenos.interaction.core.command.NoopGETCommand" />
 
 	<!-- Command controller -->
@@ -153,6 +154,7 @@
 				<entry key="DeleteEntity" value-ref="DeleteEntity" />
 				<entry key="NoopGETCommand" value-ref="NoopGETCommand" />
 				<entry key="GETGenericErrorCommand" value-ref="GETGenericErrorCommand" />
+				<entry key="GETThrowRuntimeExceptionCommand" value-ref="GETThrowRuntimeExceptionCommand" />
  			</util:map> 
 		</constructor-arg>
 	</bean>

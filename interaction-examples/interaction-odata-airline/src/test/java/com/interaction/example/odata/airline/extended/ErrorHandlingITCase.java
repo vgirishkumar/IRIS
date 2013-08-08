@@ -1,6 +1,7 @@
 package com.interaction.example.odata.airline.extended;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -54,6 +55,21 @@ public class ErrorHandlingITCase {
 			OError error = ope.getOError();
 			assertEquals("UPSTREAM_SERVER_TIMEOUT", error.getCode());
 			assertEquals("Request has timed out.", error.getMessage());
+		}
+	}
+
+	@Test
+	public void flightError500CommandRuntimeException() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		try {
+			consumer.
+					getEntity(EXTENDED_ENTITYSET_NAME, 123).
+					nav("error500RuntimeException").
+					execute();
+			fail("error500RuntimeException should have thrown an exception.");
+		}
+		catch(RuntimeException re) {
+			assertTrue(re.getMessage().contains("Unknown fatal error"));
 		}
 	}
 }

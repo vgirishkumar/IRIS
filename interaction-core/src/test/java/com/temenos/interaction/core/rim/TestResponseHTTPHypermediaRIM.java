@@ -557,7 +557,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith503ServiceUnavailable() {
-		Response response = getMockResponse(Result.UPSTREAM_SERVER_UNAVAILABLE, "Failed to connect to resource manager.");
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.UPSTREAM_SERVER_UNAVAILABLE, "Failed to connect to resource manager."));
 		assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
@@ -577,7 +577,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 */
 	@Test
 	public void testBuildResponseWith503ServiceUnavailableWithoutResponseBody() {
-		Response response = getMockResponse(Result.UPSTREAM_SERVER_UNAVAILABLE, null);
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.UPSTREAM_SERVER_UNAVAILABLE, null));
 		assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
 		
 		assertNull(response.getEntity());
@@ -589,7 +589,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith504GateTimeout() {
-		Response response = getMockResponse(Result.UPSTREAM_SERVER_TIMEOUT, "Request timeout.");
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.UPSTREAM_SERVER_TIMEOUT, "Request timeout."));
 		assertEquals(HttpStatusTypes.GATEWAY_TIMEOUT.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
@@ -634,11 +634,17 @@ public class TestResponseHTTPHypermediaRIM {
 	 */
 	@Test
 	public void testGETCommandThrowsException() {
+		try {
+			getMockResponse(getRuntimeExceptionMockCommand("Unknown fatal error."));
+			fail("Test failed to throw a runtime exception");
+		}
+		catch(RuntimeException re) {
+			assertEquals("Unknown fatal error.", re.getMessage());
+		}
 	}
 	
-	private Response getMockResponse(InteractionCommand.Result result, String body) {
+	protected Response getMockResponse(InteractionCommand mockCommand) {
 		NewCommandController mockCommandController = mock(NewCommandController.class);
-		InteractionCommand mockCommand = getMockCommand(result, body);
 		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
@@ -648,7 +654,7 @@ public class TestResponseHTTPHypermediaRIM {
 		return rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 	}
 	
-	private InteractionCommand getMockCommand(final InteractionCommand.Result result, final String body) {
+	protected InteractionCommand getGenericErrorMockCommand(final InteractionCommand.Result result, final String body) {
 		InteractionCommand mockCommand = new InteractionCommand() {
 			@Override
 			public Result execute(InteractionContext ctx) {
@@ -656,6 +662,16 @@ public class TestResponseHTTPHypermediaRIM {
 					ctx.setResource(createGenericErrorResource(new GenericError(result.toString(), body)));
 				}
 				return result;
+			}
+		};
+		return mockCommand;
+	}
+
+	protected InteractionCommand getRuntimeExceptionMockCommand(final String errorMessage) {
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) {
+				throw new RuntimeException(errorMessage);
 			}
 		};
 		return mockCommand;

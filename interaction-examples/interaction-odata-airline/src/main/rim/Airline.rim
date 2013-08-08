@@ -15,6 +15,7 @@ commands
 	DeleteEntity
 	NoopGETCommand
 	GETGenericErrorCommand
+	GETThrowRuntimeExceptionCommand
 end
 
 initial resource ServiceDocument
@@ -276,6 +277,7 @@ resource Extended
 	path "/Extended({id})"
 	GET title="throw 503 error" -> error503 id=flightID
 	GET title="throw 504 error" -> error504 id=flightID
+	GET title="throw 500 server runtime exception" -> error500RuntimeException id=flightID
 end
 
 resource error503
@@ -290,3 +292,8 @@ resource error504
 	path "/Extended({id})/error504"
 end
 
+resource error500RuntimeException
+	item Flight
+	view { GETThrowRuntimeExceptionCommand }
+	path "/Extended({id})/error500RuntimeException"
+end
