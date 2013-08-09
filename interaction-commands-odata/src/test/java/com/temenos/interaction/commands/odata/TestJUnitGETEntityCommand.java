@@ -40,6 +40,7 @@ import org.odata4j.producer.ODataProducer;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -154,6 +155,7 @@ public class TestJUnitGETEntityCommand {
 		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new Int64OEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntityKeyInt64Error() {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Int64");
@@ -164,7 +166,11 @@ public class TestJUnitGETEntityCommand {
 		InteractionCommand.Result result = gec.execute(ctx);
 		// command should return FAILURE
 		assertEquals(InteractionCommand.Result.FAILURE, result);
-		assertTrue(ctx.getResource() == null);
+		assertTrue(ctx.getResource() != null);
+		EntityResource<GenericError> er = (EntityResource<GenericError>) ctx.getResource();
+		GenericError error = er.getEntity();
+		assertEquals("FAILURE", error.getCode());
+		assertEquals("Entity key type A1 is not supported.", error.getMessage());
 	}
 	
 	@Test
@@ -213,6 +219,7 @@ public class TestJUnitGETEntityCommand {
 		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new DateOEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetEntityNotFound() {
 		ODataProducer mockProducer = createMockODataProducer("GetEntityNotFound", "Edm.String");
@@ -221,6 +228,12 @@ public class TestJUnitGETEntityCommand {
         InteractionContext ctx = createInteractionContext("GetEntityNotFound", "1");
 		InteractionCommand.Result result = gec.execute(ctx);
 		assertEquals(InteractionCommand.Result.RESOURCE_UNAVAILABLE, result);
+
+		assertTrue(ctx.getResource() != null);
+		EntityResource<GenericError> er = (EntityResource<GenericError>) ctx.getResource();
+		GenericError error = er.getEntity();
+		assertEquals("RESOURCE_UNAVAILABLE", error.getCode());
+		assertEquals("Entity does not exist.", error.getMessage());
 	}
 
 	@Test

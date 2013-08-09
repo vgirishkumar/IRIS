@@ -46,6 +46,16 @@ public class CommandHelper {
 		}
 		return oer;
 	}
+
+	/**
+	 * Create an odata error resource
+	 * @param error error
+	 * @return odata error resource
+	 */
+	public static<GenericError> EntityResource<GenericError> createGenericErrorResource(GenericError error) 
+	{
+		return new EntityResource<GenericError>(error) {};	
+	}	
 	
 	/**
 	 * Create an OData collection resource (feed)

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.resource.CollectionResource;
 
 public class GETEntitiesCommand extends AbstractODataCommand implements InteractionCommand {
@@ -51,19 +52,23 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			ctx.setResource(cr);
 		}
 		catch(NotAuthorizedException nae) {
-			logger.debug("Access to resource [" + entityName + "] not allowed: " + nae.getMessage());
+			logger.debug("Access to resource [" + entityName + ", " + ctx.getId() + "] not allowed: " + nae.getMessage());
+			ctx.setResource(CommandHelper.createGenericErrorResource(new GenericError(Result.AUTHORISATION_FAILURE.toString(), nae.getMessage())));
 			return Result.AUTHORISATION_FAILURE;
 		}
 		catch(NotFoundException nfe) {
-			logger.debug("Entity set not found [" + entityName + "]: " + nfe.getMessage());
+			logger.debug("Entity not found [" + entityName + ", " + ctx.getId() + "]: " + nfe.getMessage());
+			ctx.setResource(CommandHelper.createGenericErrorResource(new GenericError(Result.RESOURCE_UNAVAILABLE.toString(), nfe.getMessage())));
 			return Result.RESOURCE_UNAVAILABLE;
 		}
 		catch(BadRequestException bre) {
 			logger.debug("Invalid request: " + bre.getMessage());
+			ctx.setResource(CommandHelper.createGenericErrorResource(new GenericError(Result.INVALID_REQUEST.toString(), bre.getMessage())));
 			return Result.INVALID_REQUEST;
 		}
 		catch(Exception e) {
 			logger.error("Failed to GET entities [" + entityName + "]: " + e.getMessage());
+			ctx.setResource(CommandHelper.createGenericErrorResource(new GenericError(Result.FAILURE.toString(), e.getMessage())));
 			return Result.FAILURE;
 		}
 		return Result.SUCCESS;

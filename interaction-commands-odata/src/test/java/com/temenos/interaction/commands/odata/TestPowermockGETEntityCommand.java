@@ -33,6 +33,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -43,6 +44,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 public class TestPowermockGETEntityCommand {
 
 	// test when exception from OEntityKey.parse then Response.Status.NOT_ACCEPTABLE
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testOEntityKeyParseException() {
 		// our test object
@@ -58,7 +60,12 @@ public class TestPowermockGETEntityCommand {
         InteractionCommand.Result result = gec.execute(ctx);
 		assertNotNull(result);
 		assertEquals(InteractionCommand.Result.FAILURE, result);
-		assertNull(ctx.getResource());
+
+		assertTrue(ctx.getResource() != null);
+		EntityResource<GenericError> er = (EntityResource<GenericError>) ctx.getResource();
+		GenericError error = er.getEntity();
+		assertEquals("FAILURE", error.getCode());
+		assertEquals("Entity key type test is not supported.", error.getMessage());
 		
 		// verify static calls
 		verifyStatic();
