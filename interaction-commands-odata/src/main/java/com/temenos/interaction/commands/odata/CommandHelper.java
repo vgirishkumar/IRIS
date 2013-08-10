@@ -54,7 +54,20 @@ public class CommandHelper {
 	 */
 	public static<GenericError> EntityResource<GenericError> createGenericErrorResource(GenericError error) 
 	{
-		return new EntityResource<GenericError>(error) {};	
+		return createGenericErrorResource(null, error);	
+	}	
+	
+	/**
+	 * Create an odata error resource
+	 * @param entityName entityName
+	 * @param error error
+	 * @return odata error resource
+	 */
+	public static<GenericError> EntityResource<GenericError> createGenericErrorResource(String entityName, GenericError error) 
+	{
+		EntityResource<GenericError> er = new EntityResource<GenericError>(error) {};
+		er.setEntityName(entityName);
+		return er;	
 	}	
 	
 	/**

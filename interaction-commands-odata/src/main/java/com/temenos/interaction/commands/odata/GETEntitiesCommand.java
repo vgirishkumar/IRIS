@@ -53,22 +53,22 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		}
 		catch(NotAuthorizedException nae) {
 			logger.debug("Access to resource [" + entityName + ", " + ctx.getId() + "] not allowed: " + nae.getMessage());
-			ctx.setResource(CommandHelper.createGenericErrorResource(new GenericError(Result.AUTHORISATION_FAILURE.toString(), nae.getMessage())));
+			ctx.setResource(CommandHelper.createGenericErrorResource(entityName, new GenericError(Result.AUTHORISATION_FAILURE.toString(), nae.getMessage())));
 			return Result.AUTHORISATION_FAILURE;
 		}
 		catch(NotFoundException nfe) {
 			logger.debug("Entity not found [" + entityName + ", " + ctx.getId() + "]: " + nfe.getMessage());
-			ctx.setResource(CommandHelper.createGenericErrorResource(new GenericError(Result.RESOURCE_UNAVAILABLE.toString(), nfe.getMessage())));
+			ctx.setResource(CommandHelper.createGenericErrorResource(entityName, new GenericError(Result.RESOURCE_UNAVAILABLE.toString(), nfe.getMessage())));
 			return Result.RESOURCE_UNAVAILABLE;
 		}
 		catch(BadRequestException bre) {
 			logger.debug("Invalid request: " + bre.getMessage());
-			ctx.setResource(CommandHelper.createGenericErrorResource(new GenericError(Result.INVALID_REQUEST.toString(), bre.getMessage())));
+			ctx.setResource(CommandHelper.createGenericErrorResource(entityName, new GenericError(Result.INVALID_REQUEST.toString(), bre.getMessage())));
 			return Result.INVALID_REQUEST;
 		}
 		catch(Exception e) {
 			logger.error("Failed to GET entities [" + entityName + "]: " + e.getMessage());
-			ctx.setResource(CommandHelper.createGenericErrorResource(new GenericError(Result.FAILURE.toString(), e.getMessage())));
+			ctx.setResource(CommandHelper.createGenericErrorResource(entityName, new GenericError(Result.FAILURE.toString(), e.getMessage())));
 			return Result.FAILURE;
 		}
 		return Result.SUCCESS;
