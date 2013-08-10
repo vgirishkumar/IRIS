@@ -33,7 +33,10 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
+import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.EntityProperties;
+import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action.TYPE;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
@@ -1455,6 +1458,56 @@ public class TestResourceStateMachine {
         assertEquals("notes", sm.determineState(new Event("GET", "GET"), "/entity/notes").getName());
         assertEquals("created", sm.determineState(new Event("GET", "GET"), "/entity/created").getName());
         assertEquals("created", sm.determineState(new Event("POST", "POST"), "/entity/created").getName());
+	}
+
+	@Test
+	public void testGetTransitionProperties() {
+		//Create RSM
+		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
+		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking");
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		uriLinkageProperties.put("linkParam", "def");
+		existsState.addTransition("GET", cookingState, null, uriLinkageProperties);
+		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
+
+		//Create entity 
+		EntityProperties customerFields = new EntityProperties();
+		customerFields.setProperty(new EntityProperty("name", "Fred"));
+		Entity entity = new Entity("Customer", customerFields);
+
+		//Create path params
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		pathParameters.putSingle("pathParam", "abc");
+		
+		//Evaluate test
+		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters);
+		assertEquals("abc", transProps.get("pathParam"));		//Check path parameter
+		assertEquals("def", transProps.get("linkParam"));		//Check link parameter
+		assertEquals("Fred", transProps.get("name"));			//Check entity property
+	}
+	
+	@Test
+	public void testGetPathParametersForTargetState() {
+		//Create RSM
+		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
+		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking({id})");
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "toasterId");
+		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
+		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
+
+		//Create entity 
+		EntityProperties customerFields = new EntityProperties();
+		customerFields.setProperty(new EntityProperty("toasterId", "SuperToaster"));
+		Entity entity = new Entity("Toaster", customerFields);
+
+		//Create path params
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		
+		//Evaluate test
+		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters);
+		MultivaluedMap<String, String> pathParams = stateMachine.getPathParametersForTargetState(existsState.getTransition(cookingState), transProps);
+		assertEquals("SuperToaster", pathParams.getFirst("id"));	
 	}
 	
 	@SuppressWarnings({ "unused" })

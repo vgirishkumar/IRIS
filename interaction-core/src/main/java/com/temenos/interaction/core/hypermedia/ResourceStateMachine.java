@@ -39,6 +39,9 @@ import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand
  */
 public class ResourceStateMachine {
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
+	
+	//Interaction context attribute used to hold transition properties
+	public final static String TRANSITION_PROPERTIES_CTX_ATTRIBUTE = "TRANSITION_PROPERTIES_CTX_ATTRIBUTE";
 
 	public final ResourceState initial;
 	public final ResourceState exception;
@@ -500,6 +503,11 @@ public class ResourceStateMachine {
 					}
 				} else {
 					boolean addLink = true;
+					
+					//Obtain transition properties (to reuse for expression evaluation and link creation)
+					Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, resourceProperties);
+					ctx.setAttribute(TRANSITION_PROPERTIES_CTX_ATTRIBUTE, transitionProperties);
+					
 					// evaluate the conditional expression
 					Expression conditionalExp = cs.getEvaluation();
 					if (conditionalExp != null) {
@@ -508,7 +516,7 @@ public class ResourceStateMachine {
 						
 					if (addLink) {
 						UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(cs.getPath());
-						links.add(createLink(linkTemplate, transition, entity, resourceProperties));
+						links.add(createLink(linkTemplate, transition, transitionProperties, entity));
 					}
 				}
 			}
@@ -598,7 +606,30 @@ public class ResourceStateMachine {
 		return createSelfLink(transition, entity, pathParameters);
 	}
 
+	/*
+	 * Create a Link using the supplied transition, entity and path parameters
+	 * @param linkTemplate uri template
+	 * @param transition transition
+	 * @param entity entity
+	 * @param map path parameters
+	 * @return link
+	 */
 	private Link createLink(UriBuilder linkTemplate, Transition transition, Object entity, MultivaluedMap<String, String> map) {
+		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, map);
+		return createLink(linkTemplate, transition, transitionProperties, entity);
+	}
+
+	/*
+	 * Create a link using the supplied transition, entity and transition properties.
+	 * This method is intended for re-using transition properties (path params, link params
+	 * and entity properties).
+	 * @param linkTemplate uri template
+	 * @param transition transition
+	 * @param transitionProperties transition properties
+	 * @param entity entity
+	 * @return link
+	 */
+	private Link createLink(UriBuilder linkTemplate, Transition transition, Map<String, Object> transitionProperties, Object entity) {
 		TransitionCommandSpec cs = transition.getCommand();
 		try {
 			String rel = transition.getTarget().getRel();
@@ -607,33 +638,9 @@ public class ResourceStateMachine {
 			}
 			String method = cs.getMethod();
 
-			//Obtain path parameters and linkage properties
-			Map<String, Object> properties = new HashMap<String, Object>();
-			if (map != null) {
-				for (String key : map.keySet()) {
-					properties.put(key, map.getFirst(key));
-				}
-			}
-			Map<String, String> linkParameters = transition.getCommand().getParameters();
-			if (linkParameters != null) {
-				for (String key : linkParameters.keySet()) {
-					if(!linkParameters.containsKey(key)) {		//Do not overwrite resource properties
-						properties.put(key, linkParameters.get(key));
-					}
-				}
-			}
-			
-			//Obtain entity properties
-			if (entity != null && transformer != null) {
-				logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
-				Map<String, Object> props = transformer.transform(entity);
-				if (props != null) {
-					properties.putAll(props);
-				}
-			}
-
 			//Add template elements in linkage properties e.g. filter=fld eq {code} as query parameters
-			setQueryParameters(linkTemplate, linkParameters, properties, transition.getTarget().getPath());
+			Map<String, String> linkParameters = transition.getCommand().getParameters();
+			setQueryParameters(linkTemplate, linkParameters, transitionProperties, transition.getTarget().getPath());
 			
 			//Build href from template
 			URI href;
@@ -642,7 +649,7 @@ public class ResourceStateMachine {
 				href = linkTemplate.build(entity);
 			}
 			else {
-				href = linkTemplate.buildFromMap(properties);
+				href = linkTemplate.buildFromMap(transitionProperties);
 			}
 			
 			//Create the link
@@ -657,7 +664,83 @@ public class ResourceStateMachine {
 			throw e;
 		}
 	}
+	
+	/**
+	 * Obtain transition properties.
+	 * Transition properties are a list of path parameters,
+	 * linkage properties and entity properties.
+	 * @param transition transition
+	 * @param entity usually an entity of the source state
+	 * @param pathParameters path parameters
+	 * @return map of transition properties
+	 */
+	public Map<String, Object> getTransitionProperties(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
+		Map<String, Object> properties = new HashMap<String, Object>();
+
+		//Obtain path parameters
+		if (pathParameters != null) {
+			for (String key : pathParameters.keySet()) {
+				properties.put(key, pathParameters.getFirst(key));
+			}
+		}
 		
+		//Obtain linkage properties
+		Map<String, String> linkParameters = transition.getCommand().getParameters();
+		if (linkParameters != null) {
+			for (String key : linkParameters.keySet()) {
+				if(!properties.containsKey(key)) {		//Do not overwrite resource properties
+					properties.put(key, linkParameters.get(key));
+				}
+			}
+		}
+		
+		//Obtain entity properties
+		if (entity != null && transformer != null) {
+			logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
+			Map<String, Object> props = transformer.transform(entity);
+			if (props != null) {
+				properties.putAll(props);
+			}
+		}
+		return properties;
+	}
+
+	/**
+	 * Provide path parameters for a transition's target state.
+	 * @param transition transition
+	 * @param transitionProperties transition properties 
+	 * @return path parameters
+	 */
+	public MultivaluedMap<String, String> getPathParametersForTargetState(Transition transition, Map<String, Object> transitionProperties) {
+		//Parse source and target parameters from the transition's 'path' and 'originalPath' attributes respectively
+    	MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		TransitionCommandSpec cs = transition.getCommand();
+		String[] sourceParameters = getPathTemplateParameters(cs.getPath());
+		String[] targetParameters = getPathTemplateParameters(cs.getOriginalPath());
+		
+		//Apply transition properties to parameters
+		for(int i=0; i < sourceParameters.length; i++) {
+			Object paramValue = transitionProperties.get(sourceParameters[i]);
+			if(paramValue != null) {
+				pathParameters.putSingle(targetParameters[i], paramValue.toString());
+			}
+		}
+		return pathParameters;
+	}
+	
+	/*
+	 * Returns the list of parameters contained inside
+	 * a URI template. 
+	 */
+	private String[] getPathTemplateParameters(String pathTemplate) {
+		List<String> params = new ArrayList<String>();
+		Matcher m = templatePattern.matcher(pathTemplate);
+		while(m.find()) {
+			params.add(m.group(1));
+		}
+		return params.toArray(new String[0]);
+	}
+	
 	/**
 	 * Set template elements in link properties as query parameters.
 	 * e.g. filter=fld eq {code} => ?code=123
@@ -704,4 +787,5 @@ public class ResourceStateMachine {
 	public InteractionCommand determinAction(String event, String path) {
 		return null;
 	}
+	
 }

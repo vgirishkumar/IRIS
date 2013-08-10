@@ -162,4 +162,12 @@ public class InteractionContext {
     public Object getAttribute(String name) {
     	return attributes.get(name);
     }
+    
+    /**
+     * Returns the metadata from this interaction context
+     * @return metadata
+     */
+    public Metadata getMetadata() {
+    	return metadata;
+    }
 }
