@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,7 +221,13 @@ public class EntityMetadata  {
 		else if(termValueType.equals(TermValueType.TIMESTAMP) ||
 				termValueType.equals(TermValueType.DATE) ||
 				termValueType.equals(TermValueType.TIME)) {
-			value = DateFormat.getDateTimeInstance().format((Date) propertyValue);
+			
+			if(propertyValue instanceof LocalDateTime) {
+				value = DateFormat.getDateTimeInstance().format(((LocalDateTime) propertyValue).toDateTime().toDate());
+			}
+			else {
+				value = DateFormat.getDateTimeInstance().format((Date) propertyValue);
+			}
 		}
 		else if(termValueType.equals(TermValueType.ENUMERATION)) {
 			if(propertyValue instanceof String[]) {
