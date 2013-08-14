@@ -113,7 +113,7 @@ public class EntityResourceWrapperXHTML extends EntityResourceWrapper {
 		for(Entry<String, Object> entry : getResource().getEntity().entrySet()) {
 			String name = entry.getKey();
 			Object value = entry.getValue();
-			if(value.getClass().equals(EntityProperties.class)) {
+			if(value != null && value.getClass().equals(EntityProperties.class)) {
 				entityProperties.put(name, value);
 			}
 			else {
