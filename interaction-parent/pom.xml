@@ -98,7 +98,7 @@
 		<odata4j.version>0.7.0</odata4j.version>
         <halbuilder.version>2.0.1-SNAPSHOT</halbuilder.version>
 		<powermock.version>1.4.11</powermock.version>
-		<wink.version>1.2.0-incubating</wink.version>
+		<wink.version>1.3.0</wink.version>
 		<slf4j.version>1.6.2</slf4j.version>
 		<spring.version>3.1.4.RELEASE</spring.version>
 	</properties>
