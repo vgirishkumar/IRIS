@@ -28,6 +28,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
+import javax.ws.rs.core.HttpHeaders;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -136,6 +137,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		assert (resource != null);
 		assert(uriInfo != null);
 		
+		//Set response headers
+		if(httpHeaders != null) {
+			httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_ATOM_XML);		//Workaround for https://issues.apache.org/jira/browse/WINK-374
+		}
+		  		
 		try {
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
