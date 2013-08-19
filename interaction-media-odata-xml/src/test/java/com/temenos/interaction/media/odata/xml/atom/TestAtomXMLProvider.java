@@ -31,6 +31,7 @@ import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
@@ -63,6 +64,8 @@ import org.odata4j.internal.FeedCustomizationMapping;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -676,6 +679,31 @@ public class TestAtomXMLProvider {
 	    }
 	}
 	
+	@Test
+	public void testWriteEntityResourceAcceptAtomSvc() throws Exception {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		EdmDataServices mockEDS = createMockFlightEdmDataServices();		
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+		Metadata mockMetadata = createMockFlightMetadata();
+		EntityResource<GenericError> er = createMockEntityResourceGenericError();
+		GenericEntity<EntityResource<GenericError>> ge = new GenericEntity<EntityResource<GenericError>>(er) {};
+		
+		//Create provider
+		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		UriInfo uriInfo = mock(UriInfo.class);
+		URI uri = new URI("http://localhost:8080/responder/rest/");
+		when(uriInfo.getBaseUri()).thenReturn(uri);
+		when(uriInfo.getPath()).thenReturn("Flight(123)");
+		p.setUriInfo(uriInfo);
+
+		//Set accept header to atomsvc+xml
+		MultivaluedMap<String, Object> httpHeaders = new MultivaluedMapImpl<Object>();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, httpHeaders, new ByteArrayOutputStream());
+
+		//Make sure the response is atom+xml
+		assertEquals(MediaType.APPLICATION_ATOM_XML, httpHeaders.getFirst(HttpHeaders.CONTENT_TYPE));
+	}
+		
 	@SuppressWarnings("unchecked")
 	private EntityResource<GenericError> createMockEntityResourceGenericError() {
 		EntityResource<GenericError> er = mock(EntityResource.class);
