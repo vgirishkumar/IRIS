@@ -36,6 +36,15 @@
           </execution>
         </executions>
       </plugin>
+
+		<!--  Skip the deployment -->
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-deploy-plugin</artifactId>
+			<configuration>
+				<skip>true</skip>
+			</configuration>
+		</plugin>  
     </plugins>
     <pluginManagement>
     	<plugins>
@@ -70,8 +79,8 @@
     				</lifecycleMappingMetadata>
     			</configuration>
     		</plugin>
-    	</plugins>
-    </pluginManagement>
+		</plugins>
+	</pluginManagement>
   </build>
   
 </project>

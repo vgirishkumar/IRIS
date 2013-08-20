@@ -9,6 +9,7 @@
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
+  <groupId>com.temenos.interaction.example</groupId>
   <artifactId>interaction-mashup-twitter</artifactId>
   <packaging>war</packaging>
 
