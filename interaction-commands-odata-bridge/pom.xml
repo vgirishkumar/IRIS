@@ -63,6 +63,10 @@
 	</build>
 
 	<dependencies>
+        <dependency>
+            <groupId>org.odata4j</groupId>
+            <artifactId>odata4j-core</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>com.temenos.interaction</groupId>
 			<artifactId>interaction-core</artifactId>
@@ -84,7 +88,6 @@
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
-			<version>1.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>

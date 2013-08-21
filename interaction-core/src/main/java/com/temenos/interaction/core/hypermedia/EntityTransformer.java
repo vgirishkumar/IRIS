@@ -3,9 +3,6 @@ package com.temenos.interaction.core.hypermedia;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.odata4j.core.OEntity;
-import org.odata4j.core.OProperty;
-import org.odata4j.edm.EdmDataServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,27 +22,12 @@ public class EntityTransformer implements Transformer {
 	 */
 	@Override
 	public Map<String, Object> transform(Object entity) {
-		if(entity instanceof OEntity) {
-			return transform((OEntity) entity);
-		}
-		else if(entity instanceof Entity) {
+		if(entity instanceof Entity) {
 			return transform((Entity) entity);
-		}
-		else if(!(entity instanceof EdmDataServices)) {		//Cater for ServiceDocument
+		} else {
 			logger.error("Unable to transform entity: " + entity.toString());
 		}
 		return null;
-	}
-	
-	private Map<String, Object> transform(OEntity entity) {
-		assert(entity != null);
-		Map<String, Object> map = new HashMap<String, Object>();
-		for(OProperty<?> prop : entity.getProperties()) {
-			String name = prop.getName();
-			Object value = prop.getValue();
-			map.put(name, value);				
-		}
-		return map;
 	}
 	
 	private Map<String, Object> transform(Entity entity) {
@@ -69,7 +51,7 @@ public class EntityTransformer implements Transformer {
 	@Override
 	public boolean canTransform(Object entity) {
 		if (entity != null 
-				&& (entity instanceof Entity || entity instanceof OEntity)) {
+				&& (entity instanceof Entity)) {
 			return true;
 		}
 		return false;

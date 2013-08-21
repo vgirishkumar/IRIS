@@ -28,9 +28,9 @@ import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 /**
  * Writes an IRIS Entity out to Atom XML format using the Apache Abdera library.

@@ -56,6 +56,24 @@
 
 	<dependencies>
         <dependency>
+            <groupId>org.apache.abdera</groupId>
+            <artifactId>abdera-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.odata4j</groupId>
+            <artifactId>odata4j-core</artifactId>
+        </dependency>
+        <!-- OData Extension (adds metadata and collecion support) -->
+        <dependency>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>interaction-odata4j-ext</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>interaction-commands-odata</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>jsr311-api</artifactId>
         </dependency>
@@ -88,12 +106,5 @@
 			<scope>test</scope>
 		</dependency>
  	</dependencies>
-
-    <repositories>
-		<repository>
-			<id>iris-snapshot-repository</id>
-			<url>https://repository-aphethean.forge.cloudbees.com/snapshot/</url>
-		</repository>
-    </repositories>
 	
 </project>

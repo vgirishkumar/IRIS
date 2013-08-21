@@ -19,12 +19,12 @@ import org.odata4j.edm.EdmType;
 
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 import com.temenos.interaction.sdk.adapter.InteractionAdapter;
 import com.temenos.interaction.sdk.adapter.edmx.EDMXAdapter;
 import com.temenos.interaction.sdk.command.Commands;

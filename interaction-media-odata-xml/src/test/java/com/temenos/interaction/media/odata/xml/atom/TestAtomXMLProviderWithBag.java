@@ -43,17 +43,17 @@ import org.odata4j.edm.EdmType;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
 
+import com.temenos.interaction.commands.odata.OEntityTransformer;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
-import com.temenos.interaction.core.hypermedia.EntityTransformer;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.UriSpecification;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class TestAtomXMLProviderWithBag {
 	public final static String SERVICE_METADATA = "metadata.xml";
@@ -89,7 +89,7 @@ public class TestAtomXMLProviderWithBag {
 	public void testReadPathWithCollection() {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
 		
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
@@ -139,7 +139,7 @@ public class TestAtomXMLProviderWithBag {
 	public void testEntryRepAsBag() {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
 		
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
@@ -226,7 +226,7 @@ public class TestAtomXMLProviderWithBag {
 	public void testEntryRepAsCollection() {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
 		
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
@@ -324,7 +324,7 @@ public class TestAtomXMLProviderWithBag {
         // Now verify the properties populated from OEntity
         ResourceStateMachine rsm = getResourceStateMachine(CUSTOMER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
 		
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/" + CUSTOMER_ENTITY_SETNAME);

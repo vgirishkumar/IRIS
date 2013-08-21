@@ -60,6 +60,11 @@
             <artifactId>halbuilder</artifactId>
             <scope>compile</scope>
         </dependency>
+        <!-- This provider can also accept and transform OEntity objects into HAL -->
+        <dependency>
+            <groupId>org.odata4j</groupId>
+            <artifactId>odata4j-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>jsr311-api</artifactId>
@@ -90,10 +95,14 @@
  	</dependencies>
 
     <repositories>
-		<repository>
-			<id>iris-snapshot-repository</id>
-			<url>https://repository-aphethean.forge.cloudbees.com/snapshot/</url>
-		</repository>
+        <!-- The cambridge-core dependency is not in maven central repo -->
+        <repository>
+            <id>temenos-snapshot-repository</id>
+			<url>http://repository-temenostech.forge.cloudbees.com/snapshot/</url>
+<!--
+			<url>https://repository.temenos.com/snapshot/</url>
+-->
+        </repository>
     </repositories>
 	
 </project>

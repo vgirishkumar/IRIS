@@ -56,6 +56,16 @@
 
 	<dependencies>
         <dependency>
+            <groupId>com.googlecode.cambridge</groupId>
+            <artifactId>cambridge-core</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <!-- This provider can also accept and transform OEntity objects into HAL -->
+        <dependency>
+            <groupId>org.odata4j</groupId>
+            <artifactId>odata4j-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>jsr311-api</artifactId>
         </dependency>
@@ -72,17 +82,16 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.googlecode.cambridge</groupId>
-            <artifactId>cambridge-core</artifactId>
-            <version>1.0</version>
-        </dependency>
  	</dependencies>
 
     <repositories>
+        <!-- The cambridge-core dependency is not in maven central repo -->
 		<repository>
-			<id>iris-snapshot-repository</id>
-			<url>https://repository-aphethean.forge.cloudbees.com/snapshot/</url>
+			<id>temenos-snapshot-repository</id>
+			<url>http://repository-temenostech.forge.cloudbees.com/snapshot/</url>
+<!--
+			<url>https://repository.temenos.com/snapshot/</url>
+-->
 		</repository>
     </repositories>
 	
