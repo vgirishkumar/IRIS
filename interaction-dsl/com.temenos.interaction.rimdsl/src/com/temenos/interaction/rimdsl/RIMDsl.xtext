@@ -26,6 +26,7 @@ State:
         transitionsAuto+=TransitionAuto*
         transitions+=Transition*
         transitionsForEach+=TransitionForEach*
+        ('onerror' '-->' errorState=[State])?
     'end'
 ;
 

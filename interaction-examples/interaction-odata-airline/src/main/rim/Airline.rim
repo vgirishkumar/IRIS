@@ -7,6 +7,7 @@ end
 
 commands
 	GETServiceDocument
+	GETException
 	GETEntity
 	GETEntities
 	CreateEntity
@@ -15,7 +16,7 @@ commands
 	DeleteEntity
 	NoopGETCommand
 	GETGenericErrorCommand
-	GETThrowRuntimeExceptionCommand
+	ThrowInteractionExceptionCommand
 end
 
 initial resource ServiceDocument
@@ -27,6 +28,11 @@ initial resource ServiceDocument
 	GET -> FlightSchedules
 	GET -> Passengers
 	GET -> Extended
+end
+
+exception resource AirlineException
+	item Exception
+	view { GETException }
 end
 
 resource Airports
@@ -286,25 +292,25 @@ end
 
 resource error503
 	item Flight
-	view { GETGenericErrorCommand code="UPSTREAM_SERVER_UNAVAILABLE", message="Failed to connect to resource manager." }
+	view { ThrowInteractionExceptionCommand status="503", message="Failed to connect to resource manager." }
 	path "/Extended({id})/error503"
 end
 
 resource error504
 	item Flight
-	view { GETGenericErrorCommand code="UPSTREAM_SERVER_TIMEOUT", message="Request has timed out." }
+	view { ThrowInteractionExceptionCommand status="504", message="Request has timed out." }
 	path "/Extended({id})/error504"
 end
 
 resource error500RuntimeException
 	item Flight
-	view { GETThrowRuntimeExceptionCommand }
+	view { ThrowInteractionExceptionCommand status="500", message="Unexpected error." }
 	path "/Extended({id})/error500RuntimeException"
 end
 
 resource error403
 	item Flight
-	view { GETGenericErrorCommand code="AUTHORISATION_FAILURE", message="User is not allowed to access this resource." }
+	view { ThrowInteractionExceptionCommand status="403", message="User is not allowed to access this resource." }
 	path "/Extended({id})/error403"
 end
 
@@ -322,6 +328,6 @@ end
 
 resource error404
 	item Flight
-	view { GETGenericErrorCommand code="RESOURCE_UNAVAILABLE", message="Resource manager: entity not found or currently unavailable." }
+	view { ThrowInteractionExceptionCommand status="404", message="Resource manager: entity not found or currently unavailable." }
 	path "/Extended({id})/error404"
 end

@@ -20,8 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.CommandFailureException;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.resource.CollectionResource;
@@ -58,9 +60,13 @@ public class ResourceStateMachine {
 	private Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
 	
 	public ResourceStateMachine(ResourceState initialState) {
-		this(initialState, null);
+		this(initialState, null, null);
 	}
 
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState) {
+		this(initialState, exceptionState, null);
+	}
+	
 	public NewCommandController getCommandController() {
 		return commandController;
 	}
@@ -127,12 +133,15 @@ public class ResourceStateMachine {
 	}
 	
 	
-	public ResourceStateMachine(ResourceState initialState, ResourceState exception, Transformer transformer) {
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
 		assert(initialState != null);
-		assert(exception == null || exception.isException());
+		assert(exceptionState == null || exceptionState.isException());
 		this.initial = initialState;
 		this.initial.setInitial(true);
-		this.exception = exception;
+		this.exception = exceptionState;
+		if(exception != null) {
+			this.exception.setException(true);
+		}
 		this.transformer = transformer;
 		build();
 	}
@@ -445,10 +454,9 @@ public class ResourceStateMachine {
 	 * @param pathParameters
 	 * @param resourceEntity
 	 * @param state
-	 * @param linkRelations
 	 * @return
 	 */
-	public Collection<Link> injectLinks(InteractionContext ctx, RESTResource resourceEntity, List<String> linkRelations) {
+	public Collection<Link> injectLinks(InteractionContext ctx, RESTResource resourceEntity) {
 		//Add path and query parameters to the list of resource properties
 		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
 		resourceProperties.putAll(ctx.getPathParameters());
@@ -787,5 +795,51 @@ public class ResourceStateMachine {
 	public InteractionCommand determinAction(String event, String path) {
 		return null;
 	}
-	
+
+	/**
+	 * Get a resource.
+	 * The resource will have links.
+	 * This method will invoke the view command on the specified resource state to obtain a resource.
+	 * This operation does not modify the existing interaction context.
+	 * @param state resource state
+	 * @param ctx interaction context
+	 * @param withLinks if true, inject links into resource
+	 * @throws InteractionException
+	 * @return resource
+	 */
+    public RESTResource getResource(ResourceState state, InteractionContext ctx) throws InteractionException, CommandFailureException {
+    	return this.getResource(state, ctx, true);
+    }
+    
+	/**
+	 * Get a resource.
+	 * This method will invoke the view command on the specified resource state to obtain a resource.
+	 * This operation does not modify the existing interaction context.
+	 * @param state resource state
+	 * @param ctx interaction context
+	 * @param withLinks if true, inject links into resource
+	 * @throws InteractionException
+	 * @return resource
+	 */
+    public RESTResource getResource(ResourceState state, InteractionContext ctx, boolean withLinks) throws InteractionException, CommandFailureException {
+    	//Execute the view command on the specified resource state
+		Action action = state.getViewAction();
+		assert(action != null) : "Resource state [" + state.getId() + "] does not have a view action.";
+		InteractionCommand command = getCommandController().fetchCommand(action.getName());
+		assert(command != null) : "Command not bound";
+    	InteractionContext newCtx = new InteractionContext(ctx, null, null, state);
+		InteractionCommand.Result result = command.execute(newCtx);
+		RESTResource resource = newCtx.getResource();
+		if(resource != null) {
+			resource.setEntityName(newCtx.getCurrentState().getEntityName());
+			if(withLinks) {
+				//Inject links to other resources
+				injectLinks(newCtx, resource);
+			}
+		}
+		if(result != InteractionCommand.Result.SUCCESS) {
+			throw new CommandFailureException(result, resource, "View command on resource state [" + newCtx.getCurrentState().getId() + "] has failed.");
+		}
+		return resource;
+    }	
 }

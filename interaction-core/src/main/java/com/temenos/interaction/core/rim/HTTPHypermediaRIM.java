@@ -32,10 +32,12 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.RESTResponse;
+import com.temenos.interaction.core.command.CommandFailureException;
 import com.temenos.interaction.core.command.HttpStatusTypes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -285,10 +287,18 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// determine current state, target state, and link used
     	initialiseInteractionContext(headers, event, ctx, resource);
     	// execute action
-    	InteractionCommand.Result result = action.execute(ctx);
-    	assert(result != null) : "InteractionCommand must result a result";
+    	InteractionCommand.Result result = null;
+    	try {
+    		result = action.execute(ctx);
+        	assert(result != null) : "InteractionCommand must return a result";
+        	status = determineStatus(event, ctx, result);
+    	}
+    	catch(InteractionException ie) {
+    		logger.debug("Interaction command on state [" + ctx.getCurrentState().getId() + "] failed with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
+    		status = ie.getHttpStatus();
+    		ctx.setException(ie);
+    	}
     	// determine status
-    	status = determineStatus(event, ctx, result);
     	if (ctx.getResource() != null && status.getFamily() == Status.Family.SUCCESSFUL) {
     		/*
     		 * Add entity information to this resource
@@ -297,7 +307,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		/*
     		 * Add hypermedia information to this resource
     		 */
-    		hypermediaEngine.injectLinks(ctx, ctx.getResource(), headers.getRequestHeader("Link"));
+    		hypermediaEngine.injectLinks(ctx, ctx.getResource());
     	}
     	// build response
     	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx);
@@ -333,12 +343,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		
     	StatusType status = null;
     	switch(result) {
-	    	case UPSTREAM_SERVER_UNAVAILABLE:		status = Status.SERVICE_UNAVAILABLE; break;
-	    	case UPSTREAM_SERVER_TIMEOUT:			status = HttpStatusTypes.GATEWAY_TIMEOUT; break;
-	    	case AUTHORISATION_FAILURE:				status = Status.FORBIDDEN; break;
 	    	case INVALID_REQUEST:					status = Status.BAD_REQUEST; break;
 	    	case FAILURE:							status = Status.INTERNAL_SERVER_ERROR; break;
-	    	case RESOURCE_UNAVAILABLE:				status = Status.NOT_FOUND; break;
     	}
     	if(status == null) {
     		status = Status.INTERNAL_SERVER_ERROR;
@@ -486,29 +492,49 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		 */
     		responseBuilder.entity(resource.getGenericEntity());
     		responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
-		} else if (status.equals(Response.Status.SERVICE_UNAVAILABLE) ||
-				status.equals(HttpStatusTypes.GATEWAY_TIMEOUT) ||
-				status.equals(Response.Status.FORBIDDEN) ||
-				status.equals(Response.Status.NOT_FOUND)) {
-			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
-			if(response.getResource() != null) {
+		} else if((status.getFamily() == Response.Status.Family.CLIENT_ERROR || status.getFamily() == Response.Status.Family.SERVER_ERROR) && ctx != null) {
+			if(ctx.getCurrentState().getErrorState() != null) {
+				//Resource has an onerror handler
+				RESTResource errorResource = getResource(ctx.getCurrentState().getErrorState(), ctx);
+				responseBuilder.entity(errorResource.getGenericEntity());
+			}
+			else if(hypermediaEngine.getException() != null) {
+				//Resource state machine has an exception handler
+				RESTResource exceptionResource = getResource(hypermediaEngine.getException(), ctx);
+				responseBuilder.entity(exceptionResource.getGenericEntity());
+			}
+			else if(resource != null) {
+				//Just return the resource entity
 				responseBuilder.entity(resource.getGenericEntity());
 			}
-		} else if (status.equals(Response.Status.INTERNAL_SERVER_ERROR) ||
-				status.equals(Response.Status.BAD_REQUEST)) {
-			//TODO: create link to exception resource
-			if(response.getResource() != null) {
-				responseBuilder.entity(resource.getGenericEntity());
-			}
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
-    	} else {
-        	// TODO add support for other status codes
     	}
 
 		logger.info("Building response " + status.getStatusCode() + " " + status.getReasonPhrase());
 		return responseBuilder.build();
     }
-	
+    
+    /*
+     * Returns the resource on the specified resource state. 
+     */
+    private RESTResource getResource(ResourceState state, InteractionContext ctx) {
+		try {
+			RESTResource resource = hypermediaEngine.getResource(state, ctx);
+			if(resource == null) {
+				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state [" + state.getId() + "] did not return a resource.");
+			}
+			return resource;
+		}
+		catch(CommandFailureException cfe) {
+			logger.debug("Command on resource state [" + state.getId() + "] failed with status [" + cfe.getResult() + "] " + cfe.getMessage());
+			return cfe.getResource();
+		}
+		catch(InteractionException ie) {
+			logger.error("Failed to access resource [" + state.getId() + "] with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
+			throw new RuntimeException(ie);
+		}
+    }
+    
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
     	try {

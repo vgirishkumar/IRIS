@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.internal.MultivaluedMapImpl;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
@@ -29,6 +30,7 @@ import org.mockito.ArgumentMatcher;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
@@ -57,12 +59,17 @@ public class TestHTTPHypermediaRIM {
 	
 	private NewCommandController mockCommandController() {
 		NewCommandController cc = mock(NewCommandController.class);
-		InteractionCommand mockCommand = mock(InteractionCommand.class);
-		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-		when(cc.fetchCommand("DO")).thenReturn(mockCommand);
-		InteractionCommand mockCommand1 = mock(InteractionCommand.class);
-		when(mockCommand1.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-		when(cc.fetchCommand("GET")).thenReturn(mockCommand1);
+		try {
+			InteractionCommand mockCommand = mock(InteractionCommand.class);
+			when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+			when(cc.fetchCommand("DO")).thenReturn(mockCommand);
+			InteractionCommand mockCommand1 = mock(InteractionCommand.class);
+			when(mockCommand1.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+			when(cc.fetchCommand("GET")).thenReturn(mockCommand1);
+		}
+		catch(InteractionException ie) {
+			Assert.fail(ie.getMessage());
+		}
 		return cc;
 	}
 
@@ -74,7 +81,7 @@ public class TestHTTPHypermediaRIM {
 	}
 
 	@Test
-	public void testResourcePath() {
+	public void testResourcePath() throws InteractionException {
 		String ENTITY_NAME = "NOTE";
 		ResourceState initial = new ResourceState(ENTITY_NAME, "initial", mockActions(), "/notes/{id}");
 		HTTPHypermediaRIM resource = new HTTPHypermediaRIM(mockCommandController(), new ResourceStateMachine(initial), createMockMetadata());
@@ -84,7 +91,7 @@ public class TestHTTPHypermediaRIM {
 	/* We decode the query parameters to workaround an issue in Wink */
 	@SuppressWarnings({ "unchecked" })
 	@Test
-	public void testDecodeQueryParameters() {
+	public void testDecodeQueryParameters() throws InteractionException {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
 		// this test simply mocks a command to test the context query parameters is initialised properly
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
@@ -282,7 +289,7 @@ public class TestHTTPHypermediaRIM {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testPutCommandReceivesResource() {
+	public void testPutCommandReceivesResource() throws InteractionException {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
 		initialState.addTransition("PUT", initialState);
 		// create a mock command to test the context is initialised correctly
@@ -317,7 +324,7 @@ public class TestHTTPHypermediaRIM {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testPOSTCommandReceivesResource() {
+	public void testPOSTCommandReceivesResource() throws InteractionException {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
 		initialState.addTransition("POST", initialState);
 		// create a mock command to test the context is initialised correctly

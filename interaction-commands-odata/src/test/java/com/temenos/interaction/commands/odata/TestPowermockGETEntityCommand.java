@@ -1,6 +1,9 @@
 package com.temenos.interaction.commands.odata;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -12,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +37,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.entity.GenericError;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -44,9 +48,8 @@ import com.temenos.interaction.core.resource.EntityResource;
 public class TestPowermockGETEntityCommand {
 
 	// test when exception from OEntityKey.parse then Response.Status.NOT_ACCEPTABLE
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testOEntityKeyParseException() {
+	public void testOEntityKeyParseException() throws InteractionException {
 		// our test object
 		GETEntityCommand gec = new GETEntityCommand(createMockODataProducer("MyEntity"));
 
@@ -57,20 +60,18 @@ public class TestPowermockGETEntityCommand {
 
 		// test our method
         InteractionContext ctx = createInteractionContext("MyEntity", "test");
-        InteractionCommand.Result result = gec.execute(ctx);
-		assertNotNull(result);
-		assertEquals(InteractionCommand.Result.FAILURE, result);
-
-		assertTrue(ctx.getResource() != null);
-		EntityResource<GenericError> er = (EntityResource<GenericError>) ctx.getResource();
-		GenericError error = er.getEntity();
-		assertEquals("FAILURE", error.getCode());
-		assertEquals("Entity key type test is not supported.", error.getMessage());
+        try {
+        	gec.execute(ctx);
+        	fail("Should have failed.");
+        }
+        catch(InteractionException ie) {
+    		assertEquals(Status.INTERNAL_SERVER_ERROR, ie.getHttpStatus());
+    		assertEquals("Entity key type test is not supported.", ie.getMessage());
+        }
 		
 		// verify static calls
 		verifyStatic();
 		OEntityKey.parse("test");
-
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -85,7 +86,7 @@ public class TestPowermockGETEntityCommand {
 	
 	// test when parse ok, then Response.Status.OK
 	@Test
-	public void testOEntityKeyParseSuccessful() {
+	public void testOEntityKeyParseSuccessful() throws InteractionException {
 		// our test object
 		GETEntityCommand gec = new GETEntityCommand(createMockODataProducer("MyEntity"));
 

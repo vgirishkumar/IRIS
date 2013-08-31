@@ -3,6 +3,8 @@ package com.temenos.interaction.commands.odata;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response.Status;
+
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -12,6 +14,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
+import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 import org.slf4j.Logger;
@@ -20,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
@@ -37,7 +41,7 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public Result execute(InteractionContext ctx) {
+	public Result execute(InteractionContext ctx) throws InteractionException {
 		assert(ctx != null);
 		assert(ctx.getCurrentState() != null);
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
@@ -51,16 +55,28 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 			entity = create(((EntityResource<Entity>) ctx.getResource()).getEntity());
 		}
 		String entityName = getEntityName(ctx);
+		
 		logger.debug("Creating entity for " + entityName);
-		EntityResponse er = producer.createEntity(entityName, entity);
-		OEntity oEntity = er.getEntity();
+		OEntity oEntity;
+		try {
+			EntityResponse er = producer.createEntity(entityName, entity);
+			oEntity = er.getEntity();
+		}
+		catch(ODataProducerException ope) {
+			logger.debug("Failed to create entity [" + entityName + "]: " + ope.getMessage());
+			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+		}
+		catch(Exception e) {
+			logger.debug("Error while creating entity [" + entityName + "]: " + e.getMessage());
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
 		
 		ctx.setResource(CommandHelper.createEntityResource(oEntity));
 		return Result.SUCCESS;
 	}
 
 	// TODO move this transformation up to where we have all the metadata, note the hacked hardcoded "Id"
-	private OEntity create(Entity entity) {
+	private OEntity create(Entity entity) throws InteractionException {
 		try {
 			assert(entity != null);
 			assert(entity.getName() != null);
@@ -92,7 +108,7 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 				return OEntities.createRequest(entitySet, eProps, null);
 			}
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
     }
 }

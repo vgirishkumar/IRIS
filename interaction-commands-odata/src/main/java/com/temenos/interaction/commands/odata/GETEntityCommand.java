@@ -1,14 +1,13 @@
 package com.temenos.interaction.commands.odata;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.exceptions.BadRequestException;
-import org.odata4j.exceptions.NotAuthorizedException;
-import org.odata4j.exceptions.NotFoundException;
+import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
@@ -18,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.entity.GenericError;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class GETEntityCommand extends AbstractODataCommand implements InteractionCommand {
@@ -39,7 +38,7 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 	/* Implement InteractionCommand interface */
 	
 	@Override
-	public Result execute(InteractionContext ctx) {
+	public Result execute(InteractionContext ctx) throws InteractionException {
 		assert(ctx != null);
 		assert(ctx.getCurrentState() != null);
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
@@ -60,25 +59,13 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 			EntityResource<OEntity> oer = CommandHelper.createEntityResource(er.getEntity());
 			ctx.setResource(oer);		
 		}
-		catch(NotAuthorizedException nae) {
-			logger.debug("Access to resource [" + entityName + ", " + ctx.getId() + "] not allowed: " + nae.getMessage());
-			ctx.setResource(CommandHelper.createGenericErrorResource(entityName, new GenericError(Result.AUTHORISATION_FAILURE.toString(), nae.getMessage())));
-			return Result.AUTHORISATION_FAILURE;
-		}
-		catch(NotFoundException nfe) {
-			logger.debug("Entity not found [" + entityName + ", " + ctx.getId() + "]: " + nfe.getMessage());
-			ctx.setResource(CommandHelper.createGenericErrorResource(entityName, new GenericError(Result.RESOURCE_UNAVAILABLE.toString(), nfe.getMessage())));
-			return Result.RESOURCE_UNAVAILABLE;
-		}
-		catch(BadRequestException bre) {
-			logger.debug("Invalid request: " + bre.getMessage());
-			ctx.setResource(CommandHelper.createGenericErrorResource(entityName, new GenericError(Result.INVALID_REQUEST.toString(), bre.getMessage())));
-			return Result.INVALID_REQUEST;
+		catch(ODataProducerException ope) {
+			logger.debug("GET entity on [" + entityName + ", " + ctx.getId() + "] failed: " + ope.getMessage());
+			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
 		}
 		catch(Exception e) {
 			logger.error("Failed to GET entity [" + entityName + ", " + ctx.getId() + "]: " + e.getMessage());
-			ctx.setResource(CommandHelper.createGenericErrorResource(entityName, new GenericError(Result.FAILURE.toString(), e.getMessage())));
-			return Result.FAILURE;
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 		return Result.SUCCESS;
 	}

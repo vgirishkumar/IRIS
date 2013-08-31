@@ -1,7 +1,10 @@
 package com.temenos.interaction.example.hateoas.simple;
 
+import javax.ws.rs.core.Response.Status;
+
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.example.hateoas.simple.model.Note;
 
@@ -16,7 +19,7 @@ public class GETNoteCommand implements InteractionCommand {
 	/* Implement InteractionCommand interface */
 	
 	@Override
-	public Result execute(InteractionContext ctx) {
+	public Result execute(InteractionContext ctx) throws InteractionException {
 		assert(ctx != null);
 		// retrieve from a database, etc.
 		String id = ctx.getId();
@@ -25,7 +28,7 @@ public class GETNoteCommand implements InteractionCommand {
 			ctx.setResource(new EntityResource<Note>(note));
 			return Result.SUCCESS;
 		} else {
-			return Result.RESOURCE_UNAVAILABLE;
+			throw new InteractionException(Status.NOT_FOUND);
 		}
 	}
 

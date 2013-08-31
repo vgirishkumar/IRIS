@@ -66,9 +66,9 @@ class RIMDslGenerator implements IGenerator {
 
             public «state.name»ResourceState(ResourceFactory factory) {
                 «IF state.entity.isCollection»
-                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), null);
+                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), null, «if (state.errorState != null) { state.errorState.name } else { "null" }»);
                 «ELSEIF state.entity.isItem»
-                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations()«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" } else { "null" }», «if (state.errorState != null) { state.errorState.name } else { "null" }»);
                 «ENDIF»
                 this.factory = factory;
             }
@@ -145,29 +145,40 @@ class RIMDslGenerator implements IGenerator {
 		public class «rim.eResource.className»Behaviour {
 		
 		    public static void main(String[] args) {
-		        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(new «rim.eResource.className»Behaviour().getRIM());
+		        «rim.eResource.className»Behaviour behaviour = new «rim.eResource.className»Behaviour();
+		        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(behaviour.getRIM(), behaviour.getExceptionResource());
 		        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, new ResourceMetadataManager(hypermediaEngine).getMetadata());
 		        System.out.println(validator.graph());
 		    }
 		
-			public ResourceState getRIM() {
-				Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
-				Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-				List<Expression> conditionalLinkExpressions = null;
-				Properties actionViewProperties;
-				
-				ResourceFactory factory = new ResourceFactory();
-				ResourceState initial = null;
-				// create states
-				«FOR c : rim.states»
-					«IF c.isInitial»
-					// identify the initial state
-					initial = factory.getResourceState("«rim.eResource.className»Model.«c.name»");
+		    public ResourceState getRIM() {
+		        Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
+		        Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		        List<Expression> conditionalLinkExpressions = null;
+		        Properties actionViewProperties;
+
+		        ResourceFactory factory = new ResourceFactory();
+		        ResourceState initial = null;
+		        // create states
+		        «FOR c : rim.states»
+		        	«IF c.isInitial»
+		        	// identify the initial state
+		        	initial = factory.getResourceState("«rim.eResource.className»Model.«c.name»");
 					«ENDIF»
 				«ENDFOR»
-			    return initial;
-			}
+		        return initial;
+		    }
 
+		    public ResourceState getExceptionResource() {
+		        ResourceFactory factory = new ResourceFactory();
+		        ResourceState exceptionState = null;
+		        «FOR c : rim.states»
+		        	«IF c.isException»
+		        	exceptionState = factory.getResourceState("«rim.eResource.className»Model.«c.name»");
+					«ENDIF»
+				«ENDFOR»
+		        return exceptionState;
+		    }
 		}
 	'''
 	
@@ -178,6 +189,9 @@ class RIMDslGenerator implements IGenerator {
             CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations, null);
             «ELSEIF state.entity.isItem»
             ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
+            «ENDIF»
+            «IF state.isException»
+            s«state.name».setException(true);
             «ENDIF»
 	'''
 

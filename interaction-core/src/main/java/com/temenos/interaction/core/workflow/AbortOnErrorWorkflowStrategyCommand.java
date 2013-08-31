@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 /**
  * <p>This command implements a workflow that will abort if there is an error.</p>
@@ -36,13 +37,14 @@ public class AbortOnErrorWorkflowStrategyCommand implements InteractionCommand {
 	}
 	
 	/**
+	 * @throws InteractionException 
 	 * @precondition at least one command has been added {@link addCommand}
 	 * @postcondition returned {@link Result) will be the result of a logical 
 	 * short-circuit evaluation of the supplied commands.  Short-circut will 
 	 * occur when the {@link Command} result is not {@link Result.SUCCESS}
 	 */
 	@Override
-	public Result execute(InteractionContext ctx) {
+	public Result execute(InteractionContext ctx) throws InteractionException {
 		assert(commands != null);
 		assert(commands.size() > 0) : "There must be at least one command in the workflow";
 		if (ctx == null)

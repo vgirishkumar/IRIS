@@ -23,18 +23,22 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.UriInfo;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.temenos.interaction.core.command.GETExceptionCommand;
 import com.temenos.interaction.core.command.HttpStatusTypes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.GenericError;
@@ -75,6 +79,12 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Action> actions = new ArrayList<Action>();
 		actions.add(new Action("GET", Action.TYPE.VIEW));
 		actions.add(new Action("DO", Action.TYPE.ENTRY));
+		return actions;
+	}
+
+	private List<Action> mockExceptionActions() {
+		List<Action> actions = new ArrayList<Action>();
+		actions.add(new Action("GETException", Action.TYPE.VIEW));
 		return actions;
 	}
 	
@@ -223,7 +233,7 @@ public class TestResponseHTTPHypermediaRIM {
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
-		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
@@ -255,7 +265,7 @@ public class TestResponseHTTPHypermediaRIM {
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
-		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
@@ -321,7 +331,7 @@ public class TestResponseHTTPHypermediaRIM {
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
-		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
@@ -456,7 +466,7 @@ public class TestResponseHTTPHypermediaRIM {
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(new EntityResource<Object>(null));
 		// mock 'new InteractionContext()' in call to get
-		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link("id", "self", "href", null, null));
@@ -480,7 +490,7 @@ public class TestResponseHTTPHypermediaRIM {
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(new EntityResource<Object>(null));
 		// mock 'new InteractionContext()' in call to get
-		whenNew(InteractionContext.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class).withArguments(any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
@@ -500,11 +510,16 @@ public class TestResponseHTTPHypermediaRIM {
 	
 	private NewCommandController mockNoopCommandController() {
 		// make sure command execution does nothing
-		InteractionCommand testCommand = mock(InteractionCommand.class);
-		when(testCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
 		NewCommandController commandController = mock(NewCommandController.class);
-		when(commandController.isValidCommand(anyString())).thenReturn(true);
-		when(commandController.fetchCommand(anyString())).thenReturn(testCommand);
+		try {
+			InteractionCommand testCommand = mock(InteractionCommand.class);
+			when(testCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+			when(commandController.isValidCommand(anyString())).thenReturn(true);
+			when(commandController.fetchCommand(anyString())).thenReturn(testCommand);
+		}
+		catch(InteractionException ie) {
+			Assert.fail(ie.getMessage());
+		}
 		return commandController;
 	}
 	
@@ -557,7 +572,10 @@ public class TestResponseHTTPHypermediaRIM {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith503ServiceUnavailable() {
-		Response response = getMockResponse(getGenericErrorMockCommand(Result.UPSTREAM_SERVER_UNAVAILABLE, "Failed to connect to resource manager."));
+		Response response = getMockResponse(
+				getInteractionExceptionMockCommand(Status.SERVICE_UNAVAILABLE, "Failed to connect to resource manager."),
+				new GETExceptionCommand()
+			);
 		assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
@@ -565,7 +583,7 @@ public class TestResponseHTTPHypermediaRIM {
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
 			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
 			GenericError error = er.getEntity();
-			assertEquals("UPSTREAM_SERVER_UNAVAILABLE", error.getCode());
+			assertEquals("503", error.getCode());
 			assertEquals("Failed to connect to resource manager.", error.getMessage());
 		}
 		else {
@@ -578,7 +596,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 */
 	@Test
 	public void testBuildResponseWith503ServiceUnavailableWithoutResponseBody() {
-		Response response = getMockResponse(getGenericErrorMockCommand(Result.UPSTREAM_SERVER_UNAVAILABLE, null));
+		Response response = getMockResponse(getInteractionExceptionMockCommand(Status.SERVICE_UNAVAILABLE, null));
 		assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
 		
 		assertNull(response.getEntity());
@@ -589,8 +607,11 @@ public class TestResponseHTTPHypermediaRIM {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testBuildResponseWith504GateTimeout() {
-		Response response = getMockResponse(getGenericErrorMockCommand(Result.UPSTREAM_SERVER_TIMEOUT, "Request timeout."));
+	public void testBuildResponseWith504GatewayTimeout() {
+		Response response = getMockResponse(
+				getInteractionExceptionMockCommand(HttpStatusTypes.GATEWAY_TIMEOUT, "Request timeout."),
+				new GETExceptionCommand()
+			);
 		assertEquals(HttpStatusTypes.GATEWAY_TIMEOUT.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
@@ -598,7 +619,7 @@ public class TestResponseHTTPHypermediaRIM {
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
 			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
 			GenericError error = er.getEntity();
-			assertEquals("UPSTREAM_SERVER_TIMEOUT", error.getCode());
+			assertEquals("504", error.getCode());
 			assertEquals("Request timeout.", error.getMessage());
 		}
 		else {
@@ -658,7 +679,10 @@ public class TestResponseHTTPHypermediaRIM {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith403AuthorisationFailure() {
-		Response response = getMockResponse(getGenericErrorMockCommand(Result.AUTHORISATION_FAILURE, "User is not allowed to access this resource."));
+		Response response = getMockResponse(
+				getInteractionExceptionMockCommand(Status.FORBIDDEN, "User is not allowed to access this resource."),
+				new GETExceptionCommand()
+			);
 		assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
@@ -666,7 +690,7 @@ public class TestResponseHTTPHypermediaRIM {
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
 			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
 			GenericError error = er.getEntity();
-			assertEquals("AUTHORISATION_FAILURE", error.getCode());
+			assertEquals("403", error.getCode());
 			assertEquals("User is not allowed to access this resource.", error.getMessage());
 		}
 		else {
@@ -695,7 +719,10 @@ public class TestResponseHTTPHypermediaRIM {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith404NotFound() {
-		Response response = getMockResponse(getGenericErrorMockCommand(Result.RESOURCE_UNAVAILABLE, "Resource manager: entity Fred not found or currently unavailable."));
+		Response response = getMockResponse(
+				getInteractionExceptionMockCommand(Status.NOT_FOUND, "Resource manager: entity Fred not found or currently unavailable."),
+				new GETExceptionCommand()
+			);
 		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
@@ -703,7 +730,7 @@ public class TestResponseHTTPHypermediaRIM {
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
 			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
 			GenericError error = er.getEntity();
-			assertEquals("RESOURCE_UNAVAILABLE", error.getCode());
+			assertEquals("404", error.getCode());
 			assertEquals("Resource manager: entity Fred not found or currently unavailable.", error.getMessage());
 		}
 		else {
@@ -716,24 +743,38 @@ public class TestResponseHTTPHypermediaRIM {
 	 */
 	@Test
 	public void testBuildResponseWith404NotFoundWithoutResponseBody() {
-		Response response = getMockResponse(getGenericErrorMockCommand(Result.RESOURCE_UNAVAILABLE, null));
+		Response response = getMockResponse(getInteractionExceptionMockCommand(Status.NOT_FOUND, null));
 		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
 		
 		assertNull(response.getEntity());
 	}
 
-	
+
 	protected Response getMockResponse(InteractionCommand mockCommand) {
+		return this.getMockResponse(mockCommand, null);
+	}
+	
+	protected Response getMockResponse(InteractionCommand mockCommand, InteractionCommand mockExceptionCommand) {
 		NewCommandController mockCommandController = mock(NewCommandController.class);
 		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
+		if(mockExceptionCommand != null) {
+			mockCommandController.addCommand("GETException", mockExceptionCommand);
+			when(mockCommandController.fetchCommand("GETException")).thenReturn(mockExceptionCommand);
+		}
 
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
+		initialState.setInitial(true);
+		ResourceState exceptionState = null;
+		if(mockExceptionCommand != null) {
+			exceptionState = new ResourceState("exception", "exceptionState", mockExceptionActions(), "/exception");
+			exceptionState.setException(true);
+		}
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState, exceptionState), createMockMetadata());
 		return rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 	}
-	
+
 	protected InteractionCommand getGenericErrorMockCommand(final InteractionCommand.Result result, final String body) {
 		InteractionCommand mockCommand = new InteractionCommand() {
 			@Override
@@ -747,6 +788,16 @@ public class TestResponseHTTPHypermediaRIM {
 		return mockCommand;
 	}
 
+	protected InteractionCommand getInteractionExceptionMockCommand(final StatusType status, final String message) {
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) throws InteractionException {
+				throw new InteractionException(status, message);
+			}
+		};
+		return mockCommand;
+	}
+	
 	protected InteractionCommand getRuntimeExceptionMockCommand(final String errorMessage) {
 		InteractionCommand mockCommand = new InteractionCommand() {
 			@Override

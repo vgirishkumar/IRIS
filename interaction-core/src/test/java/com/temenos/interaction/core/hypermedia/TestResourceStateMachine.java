@@ -25,12 +25,14 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.entity.Entity;
@@ -687,7 +689,7 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity, null);
+		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity);
 		assertNotNull(links);
 		assertTrue(links.isEmpty());
 	}
@@ -705,7 +707,7 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity, null);
+		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -737,7 +739,7 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity, null);
+		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -768,7 +770,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity, null);
+		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -801,7 +803,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(null), null);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(null));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -836,14 +838,17 @@ public class TestResourceStateMachine {
 	}
 
 	private NewCommandController mockCommandController() {
-		InteractionCommand notfound = mock(InteractionCommand.class);
-		when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-		InteractionCommand found = mock(InteractionCommand.class);
-		when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
-		
 		NewCommandController cc = new NewCommandController();
-		cc.addCommand("notfound", notfound);
-		cc.addCommand("found", found);
+		try {
+			InteractionCommand notfound = mock(InteractionCommand.class);
+			when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+			InteractionCommand found = mock(InteractionCommand.class);
+			when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+			cc.addCommand("notfound", notfound);
+			cc.addCommand("found", found);
+		} catch (InteractionException e) {
+			Assert.fail(e.getMessage());
+		}
 		return cc;
 	}
 
@@ -894,7 +899,7 @@ public class TestResourceStateMachine {
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
 		stateMachine.setCommandController(mockCommandController());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")), null);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -991,7 +996,7 @@ public class TestResourceStateMachine {
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
 		stateMachine.setCommandController(mockCommandController());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")), null);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -1060,7 +1065,7 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity, null);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity);
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -1153,7 +1158,7 @@ public class TestResourceStateMachine {
 				
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> baseLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity, null);
+		Collection<Link> baseLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity);
 		// just one link to self, not really testing that here
 		assertEquals(1, baseLinks.size());
 		
@@ -1226,7 +1231,7 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123")), null);
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1254,7 +1259,7 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")), null);
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1308,7 +1313,7 @@ public class TestResourceStateMachine {
 		//Generate links from airport to flights
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> airportLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")), null);
+		Collection<Link> airportLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")));
 		assertNotNull(airportLinks);
 		assertFalse(airportLinks.isEmpty());
 		assertEquals(3, airportLinks.size());
@@ -1330,7 +1335,7 @@ public class TestResourceStateMachine {
 			}
 			
 			//Create links
-			Collection<Link> flightsLinks = rsm.injectLinks(new InteractionContext(pathParameters, queryParameters, flights, mock(Metadata.class)), new EntityResource<Object>(null), null);
+			Collection<Link> flightsLinks = rsm.injectLinks(new InteractionContext(pathParameters, queryParameters, flights, mock(Metadata.class)), new EntityResource<Object>(null));
 
 			if(airportLink.getId().equals("Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights")) {
 				assertTrue(containsLink(flightsLinks, "Flight.Flights>GET({myfilter})>Passenger.Passengers", "/baseuri/Passengers()?myfilter=arrivalAirportCode+eq+'London+Luton'"));
@@ -1356,7 +1361,7 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")), null);
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
