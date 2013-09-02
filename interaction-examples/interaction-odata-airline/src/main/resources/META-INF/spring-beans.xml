@@ -152,7 +152,7 @@
 				<entry key="CreateEntity" value-ref="CreateEntity" />
 				<entry key="UpdateEntity" value-ref="UpdateEntity" />
 				<entry key="DeleteEntity" value-ref="DeleteEntity" />
-				<entry key="NoopGETCommand" value-ref="NoopGETCommand" />
+				<entry key="NoopGET" value-ref="NoopGETCommand" />
 				<entry key="GETGenericErrorCommand" value-ref="GETGenericErrorCommand" />
 				<entry key="ThrowInteractionExceptionCommand" value-ref="ThrowInteractionExceptionCommand" />
  			</util:map> 

@@ -182,6 +182,9 @@ public class GeneratorTest {
 		assertTrue(indexOfFirstNewProperties > 0);
 		assertTrue(output.contains("actionViewProperties.put(\"getkey\", \"getvalue\""));
 		assertTrue(output.contains("new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties)"));
+		
+		//No onerror handler so should not define an error state
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, null);"));
 	}
 
 	private final static String MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM = "" +
@@ -476,6 +479,6 @@ public class GeneratorTest {
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, AE);"));
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"__synthetic0Model.AE\"));"));
 	}
 }

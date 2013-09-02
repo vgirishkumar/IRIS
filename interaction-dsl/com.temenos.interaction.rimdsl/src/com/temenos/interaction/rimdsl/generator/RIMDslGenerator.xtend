@@ -66,9 +66,9 @@ class RIMDslGenerator implements IGenerator {
 
             public «state.name»ResourceState(ResourceFactory factory) {
                 «IF state.entity.isCollection»
-                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), null, «if (state.errorState != null) { state.errorState.name } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + rim.eResource.className + "Model." + state.errorState.name + "\")" } else { "null" }»);
                 «ELSEIF state.entity.isItem»
-                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" } else { "null" }», «if (state.errorState != null) { state.errorState.name } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.eResource.className + "Model." + state.errorState.name + "\")" } else { "null" }»);
                 «ENDIF»
                 this.factory = factory;
             }

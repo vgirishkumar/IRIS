@@ -14,7 +14,7 @@ commands
 	GETNavProperty
 	UpdateEntity
 	DeleteEntity
-	NoopGETCommand
+	NoopGET
 	GETGenericErrorCommand
 	ThrowInteractionExceptionCommand
 end
@@ -279,7 +279,7 @@ end
 
 resource Extended
 	item ServiceDocument
-	view { NoopGETCommand }
+	view { NoopGET }
 	path "/Extended({id})"
 	GET title="throw 503 error" -> error503 id=flightID
 	GET title="throw 504 error" -> error504 id=flightID
@@ -330,4 +330,10 @@ resource error404
 	item Flight
 	view { ThrowInteractionExceptionCommand status="404", message="Resource manager: entity not found or currently unavailable." }
 	path "/Extended({id})/error404"
+	onerror --> errorHandler
+end
+
+resource errorHandler
+	item Exception
+	view { GETException }
 end
