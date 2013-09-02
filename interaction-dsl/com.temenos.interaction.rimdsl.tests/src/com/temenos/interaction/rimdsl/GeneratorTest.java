@@ -448,4 +448,34 @@ public class GeneratorTest {
 		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sB, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
 	}
 	
+	private final static String RESOURCE_ON_ERROR = "" +
+			"commands" + LINE_SEP +
+			"	GetEntity" + LINE_SEP +
+			"	Noop" + LINE_SEP +
+			"end" + LINE_SEP +
+					
+			"initial resource A" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"	view { GetEntity }" + LINE_SEP +
+			"	onerror --> AE" + LINE_SEP +
+			"end" + LINE_SEP +
+
+			"resource AE" + LINE_SEP +
+			"	item ERROR" + LINE_SEP +
+			"	view { Noop }" + LINE_SEP +
+			"end" + LINE_SEP +
+			"";
+	
+	@Test
+	public void testGenerateOnErrorResource() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(RESOURCE_ON_ERROR);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		// collection
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, AE);"));
+	}
 }

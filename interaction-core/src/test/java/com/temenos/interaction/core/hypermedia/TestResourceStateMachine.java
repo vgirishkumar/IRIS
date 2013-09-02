@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -30,11 +31,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.CommandFailureException;
+import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
-import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -47,6 +50,7 @@ import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.web.RequestContext;
 
 public class TestResourceStateMachine {
@@ -844,6 +848,7 @@ public class TestResourceStateMachine {
 			when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
 			InteractionCommand found = mock(InteractionCommand.class);
 			when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+			
 			cc.addCommand("notfound", notfound);
 			cc.addCommand("found", found);
 		} catch (InteractionException e) {
@@ -1513,6 +1518,96 @@ public class TestResourceStateMachine {
 		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters);
 		MultivaluedMap<String, String> pathParams = stateMachine.getPathParametersForTargetState(existsState.getTransition(cookingState), transProps);
 		assertEquals("SuperToaster", pathParams.getFirst("id"));	
+	}
+
+	@Test(expected=AssertionError.class)
+	public void testGetResourceWithoutViewAction() {
+		//Create RSM
+		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
+		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking({id})");
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "toasterId");
+		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
+		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
+
+		//Test getResource with links
+		try {
+			stateMachine.getResource(cookingState, createMockInteractionContext(existsState));
+		}
+		catch(CommandFailureException cfe) {
+			fail(cfe.getMessage());
+		} 
+		catch (InteractionException ie) {
+			assertEquals("Resource state [toaster.cooking] does not have a view action.", ie.getMessage());
+		}
+	}
+
+	@Test(expected=CommandFailureException.class)
+	public void testGetResourceCommandFails() throws CommandFailureException {
+		//Create RSM
+		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
+		List<Action> mockActions = new ArrayList<Action>();
+		mockActions.add(new Action("notfound", TYPE.VIEW));
+		ResourceState cookingState = new ResourceState("toaster", "cooking", mockActions, "/machines/toaster/cooking({id})");
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "toasterId");
+		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
+		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
+		stateMachine.setCommandController(mockCommandController());
+		//Test getResource with links
+		try {
+			stateMachine.getResource(cookingState, createMockInteractionContext(existsState));
+		}
+		catch(CommandFailureException cfe) {
+			assertEquals("View command on resource state [toaster.cooking] has failed.", cfe.getMessage());
+			throw cfe;
+		} 
+		catch (InteractionException ie) {
+			fail(ie.getMessage());
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetResource() {
+		//Create RSM
+		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
+		List<Action> mockActions = new ArrayList<Action>();
+		mockActions.add(new Action("found", TYPE.VIEW));
+		ResourceState cookingState = new ResourceState("toaster", "cooking", mockActions, "/machines/toaster/cooking({id})");
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "toasterId");
+		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
+		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
+		stateMachine.setCommandController(mockCommandController());
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("id", "123");
+		InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), existsState, mock(Metadata.class));
+		ctx.setResource(CommandHelper.createEntityResource(new Entity("Customer", new EntityProperties())));
+		
+		try {
+			//Test getResource without links
+			RESTResource resource = stateMachine.getResource(cookingState, ctx, false);
+			EntityResource<Entity> er = (EntityResource<Entity>) resource.getGenericEntity().getEntity();
+			assertEquals("Customer", er.getEntity().getName());
+
+			//Test getResource with links
+			resource = stateMachine.getResource(cookingState, ctx);
+			er = (EntityResource<Entity>) resource.getGenericEntity().getEntity();
+			assertEquals("Customer", er.getEntity().getName());
+			assertNotNull(er.getLinks());
+			assertFalse(er.getLinks().isEmpty());
+			assertEquals(1, er.getLinks().size());
+			Link link = (Link) er.getLinks().toArray()[0];
+			assertEquals("self", link.getRel());
+		}
+		catch(CommandFailureException cfe) {
+			fail(cfe.getMessage());
+		} 
+		catch (InteractionException ie) {
+			fail(ie.getMessage());
+		}
 	}
 	
 	@SuppressWarnings({ "unused" })

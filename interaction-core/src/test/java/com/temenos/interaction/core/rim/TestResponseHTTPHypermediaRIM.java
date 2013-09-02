@@ -40,6 +40,7 @@ import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.command.NoopGETCommand;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.entity.Metadata;
@@ -85,6 +86,12 @@ public class TestResponseHTTPHypermediaRIM {
 	private List<Action> mockExceptionActions() {
 		List<Action> actions = new ArrayList<Action>();
 		actions.add(new Action("GETException", Action.TYPE.VIEW));
+		return actions;
+	}
+
+	private List<Action> mockErrorActions() {
+		List<Action> actions = new ArrayList<Action>();
+		actions.add(new Action("noop", Action.TYPE.VIEW));
 		return actions;
 	}
 	
@@ -749,6 +756,34 @@ public class TestResponseHTTPHypermediaRIM {
 		assertNull(response.getEntity());
 	}
 
+	/*
+	 * This test checks that a 400 error returns a proper error message inside
+	 * the body of the response.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testBuildResponseWith400BadRequestFromErrorResource() {
+		Response response = getMockResponseWithErrorResource(getGenericErrorMockCommand(Result.INVALID_REQUEST, "Resource manager: 4 validation errors."));
+		assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Excepted a response body", ge);
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			assertEquals("ErrorEntity", er.getEntityName());
+			GenericError error = er.getEntity();
+			assertEquals("INVALID_REQUEST", error.getCode());
+			assertEquals("Resource manager: 4 validation errors.", error.getMessage());
+			assertNotNull(er.getLinks());
+			assertFalse(er.getLinks().isEmpty());
+			assertEquals(1, er.getLinks().size());
+			Link link = (Link) er.getLinks().toArray()[0];
+			assertEquals("self", link.getRel());
+		}
+		else {
+			fail("Response body is not a generic error entity resource type.");
+		}
+	}
 
 	protected Response getMockResponse(InteractionCommand mockCommand) {
 		return this.getMockResponse(mockCommand, null);
@@ -775,6 +810,22 @@ public class TestResponseHTTPHypermediaRIM {
 		return rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 	}
 
+	protected Response getMockResponseWithErrorResource(InteractionCommand mockCommand) {
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		mockCommandController.addCommand("GET", mockCommand);
+		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
+		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
+		InteractionCommand noopCommand = new NoopGETCommand();
+		mockCommandController.addCommand("noop", noopCommand);
+		when(mockCommandController.fetchCommand("noop")).thenReturn(noopCommand);
+
+		ResourceState errorState = new ResourceState("ErrorEntity", "errorState", mockErrorActions(), "/error");
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path", null, null, errorState);
+		initialState.setInitial(true);
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
+		return rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+	}
+	
 	protected InteractionCommand getGenericErrorMockCommand(final InteractionCommand.Result result, final String body) {
 		InteractionCommand mockCommand = new InteractionCommand() {
 			@Override
