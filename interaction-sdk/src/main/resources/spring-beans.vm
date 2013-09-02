@@ -22,7 +22,7 @@
 	</bean>
 
 	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
+	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
         <constructor-arg ref="stateMachine" />
 	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
@@ -50,11 +50,20 @@
         </property>
 	</bean>
 
+	<bean id="entityTransformer" class="com.temenos.interaction.core.hypermedia.StrategyBasedTransformer">
+		<constructor-arg>
+			<list>
+				<bean class="com.temenos.interaction.commands.odata.OEntityTransformer" />
+				<bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" />
+			</list>
+		</constructor-arg>
+	</bean>
+
 	<bean id="atomProvider" class="com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider">
 		<constructor-arg name="edmDataServices" ref="edmDataServices" />
 		<constructor-arg name="metadata" ref="edmMetadata" />
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
-		<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.StrategyBasedTransformer" /></constructor-arg>
+		<constructor-arg ref="entityTransformer" />
 	</bean>
     <bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />
@@ -68,7 +77,7 @@
 	<bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
 	<bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
 		<constructor-arg ref="interaction" />
-		<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.StrategyBasedTransformer" /></constructor-arg>
+		<constructor-arg ref="entityTransformer" />
 	</bean>
 
 	<!-- Resources -->

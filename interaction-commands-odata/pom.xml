@@ -59,6 +59,10 @@
 			<groupId>com.temenos.interaction</groupId>
 			<artifactId>interaction-core</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.odata4j</groupId>
+            <artifactId>odata4j-core</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -76,7 +80,6 @@
 	    <dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
-			<version>1.6</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

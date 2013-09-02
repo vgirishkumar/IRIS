@@ -12,9 +12,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.junit.Test;
-import org.odata4j.core.OEntity;
 
 import com.temenos.interaction.core.NestedObject;
+import com.temenos.interaction.core.entity.Entity;
 
 public class TestResourceType {
 
@@ -36,24 +36,24 @@ public class TestResourceType {
 
 	@Test
 	public void testResourceTypeOEntity() {
-		//Create entity resource for a mock OEntity
-		OEntity oe = mock(OEntity.class);
-        EntityResource<OEntity> er = new EntityResource<OEntity>(oe);  
+		//Create entity resource for a mock Entity
+		Entity oe = mock(Entity.class);
+        EntityResource<Entity> er = new EntityResource<Entity>(oe);  
  
         //Wrap entity resource into a JAX-RS GenericEntity instance
-		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(er) {};
+		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(er) {};
 		
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
-		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, OEntity.class));
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class));
 	}
 
 	@Test
 	public void testResourceTypeWithoutGenericEntity() {
 		//Create entity resource for a mock OEntity
-        EntityResource<OEntity> er = new EntityResource<OEntity>(mock(OEntity.class));  
+        EntityResource<Entity> er = new EntityResource<Entity>(mock(Entity.class));  
  
 		assertTrue(ResourceTypeHelper.isType(er.getClass(), null, EntityResource.class));
-		assertTrue(ResourceTypeHelper.isType(er.getClass(), er.getEntity().getClass(), EntityResource.class, mock(OEntity.class).getClass()));
+		assertTrue(ResourceTypeHelper.isType(er.getClass(), er.getEntity().getClass(), EntityResource.class, mock(Entity.class).getClass()));
 	}
 	
 	@Test
@@ -66,7 +66,7 @@ public class TestResourceType {
 		GenericEntity<EntityResource<NestedObject>> ge = new GenericEntity<EntityResource<NestedObject>>(er) {};
 		
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
-		assertFalse(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, OEntity.class));
+		assertFalse(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class));
 	}
 
 	@Test
@@ -75,6 +75,6 @@ public class TestResourceType {
         EntityResource<NestedObject> er = new EntityResource<NestedObject>(mock(NestedObject.class));  
  
 		assertFalse(ResourceTypeHelper.isType(er.getClass(), null, CollectionResource.class));
-		assertFalse(ResourceTypeHelper.isType(er.getClass(), er.getEntity().getClass(), EntityResource.class, mock(OEntity.class).getClass()));
+		assertFalse(ResourceTypeHelper.isType(er.getClass(), er.getEntity().getClass(), EntityResource.class, mock(Entity.class).getClass()));
 	}
 }

@@ -126,6 +126,13 @@
     	<scope>runtime</scope>
     </dependency>
     <dependency>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-odata4j-ext</artifactId>
+        <version>${irisVersion}</version>
+        <type>jar</type>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-commands-odata</artifactId>
     	<version>${irisVersion}</version>

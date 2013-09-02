@@ -5,22 +5,21 @@ import java.util.Set;
 
 import javax.ws.rs.core.Response.StatusType;
 
-import org.odata4j.core.OLink;
-
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.resource.RESTResource;
 
 public class RESTResponse {
 
 	private final StatusType status;
 	private final RESTResource resource;
-	private final Set<OLink> transitions = new HashSet<OLink>();
+	private final Set<Link> transitions = new HashSet<Link>();
 	private final Set<String> validMethods = new HashSet<String>();
 	
 	public RESTResponse(StatusType status, RESTResource resource) {
 		this(status, resource, null, null);
 	}
 	
-	public RESTResponse(StatusType status, RESTResource resource, Set<OLink> transitions, Set<String> validMethods) {
+	public RESTResponse(StatusType status, RESTResource resource, Set<Link> transitions, Set<String> validMethods) {
 		this.status = status;
 		this.resource = resource;
 		if (transitions != null)
@@ -37,7 +36,7 @@ public class RESTResponse {
 		return resource;
 	}
 	
-	public Set<OLink> getTransitions() {
+	public Set<Link> getTransitions() {
 		return transitions;
 	}
 

@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.entity;
+package com.temenos.interaction.odataext.entity;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -23,6 +23,8 @@ import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmType;
 import org.odata4j.edm.EdmProperty.CollectionKind;
 
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.hypermedia.Action;
@@ -30,6 +32,7 @@ import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.UriSpecification;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class TestMetadataOData4j {
 	public final static String METADATA_XML_FILE = "TestMetadataParser.xml";

@@ -22,7 +22,7 @@
 	</bean>
 
 	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
+	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
         <constructor-arg ref="stateMachine" />
 	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
@@ -56,7 +56,7 @@
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 		<constructor-arg name="metadata" ref="edmMetadata" />
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
-    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
+    	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
 	</bean>
     <bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />
@@ -72,7 +72,7 @@
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg ref="interaction" />
     	<constructor-arg ref="exception" />
-    	<constructor-arg><bean class="com.temenos.interaction.core.hypermedia.EntityTransformer" /></constructor-arg>
+    	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
     </bean>
 
     <!-- Resources -->

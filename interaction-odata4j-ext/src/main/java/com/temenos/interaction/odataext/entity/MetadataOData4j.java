@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.entity;
+package com.temenos.interaction.odataext.entity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,6 +30,8 @@ import org.odata4j.edm.EdmType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;

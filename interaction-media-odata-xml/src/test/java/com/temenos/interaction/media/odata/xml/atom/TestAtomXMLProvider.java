@@ -64,6 +64,7 @@ import org.odata4j.internal.FeedCustomizationMapping;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.temenos.interaction.commands.odata.OEntityTransformer;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.entity.Entity;
@@ -72,7 +73,6 @@ import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataOData4j;
 import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
@@ -81,7 +81,6 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
-import com.temenos.interaction.core.hypermedia.EntityTransformer;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -92,6 +91,7 @@ import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.media.odata.xml.Flight;
 import com.temenos.interaction.media.odata.xml.IgnoreNamedElementsXMLDifferenceListener;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OEntityKey.class, AtomXMLProvider.class})
@@ -105,11 +105,11 @@ public class TestAtomXMLProvider {
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
-			super(edmDataServices, mock(Metadata.class), mock(ResourceStateMachine.class), new EntityTransformer());
+			super(edmDataServices, mock(Metadata.class), mock(ResourceStateMachine.class), new OEntityTransformer());
 		}
 		public MockAtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata) {
 			//super(null, metadata, new EntityTransformer());
-			super(edmDataServices, metadata, mock(ResourceStateMachine.class), new EntityTransformer());
+			super(edmDataServices, metadata, mock(ResourceStateMachine.class), new OEntityTransformer());
 		}
 		public void setUriInfo(UriInfo uriInfo) {
 			super.setUriInfo(uriInfo);
@@ -347,7 +347,7 @@ public class TestAtomXMLProvider {
 	public void testUnhandledRawType() throws IOException {
 		EdmDataServices metadata = mock(EdmDataServices.class);
 
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), mock(ResourceStateMachine.class), new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), mock(ResourceStateMachine.class), new OEntityTransformer());
         // Wrap an unsupported resource into a JAX-RS GenericEntity instance
 		GenericEntity<MetaDataResource<String>> ge = new GenericEntity<MetaDataResource<String>>(new MetaDataResource<String>("")) {};
 		// will throw exception if we check the class properly
@@ -414,7 +414,7 @@ public class TestAtomXMLProvider {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, createAirlineMetadata(), rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, createAirlineMetadata(), rsm, new OEntityTransformer());
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
 		ap.setUriInfo(uriInfo);
@@ -449,7 +449,7 @@ public class TestAtomXMLProvider {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new OEntityTransformer());
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/test/someresource");
 		ap.setUriInfo(uriInfo);
@@ -477,7 +477,7 @@ public class TestAtomXMLProvider {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new OEntityTransformer());
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/test/someresource");
 		ap.setUriInfo(uriInfo);
@@ -507,7 +507,7 @@ public class TestAtomXMLProvider {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new EntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new OEntityTransformer());
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
 		ap.setUriInfo(uriInfo);

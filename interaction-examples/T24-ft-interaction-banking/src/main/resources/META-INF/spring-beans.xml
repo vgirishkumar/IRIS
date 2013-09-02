@@ -4,7 +4,7 @@
            classpath:org/springframework/beans/factory/xml/spring-beans-2.5.xsd">
 
 	<!-- Metadata -->
-	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
+	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
         <constructor-arg ref="stateMachine" />
 	</bean>
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>

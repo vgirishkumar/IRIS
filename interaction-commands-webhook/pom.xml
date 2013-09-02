@@ -55,10 +55,23 @@
 	</build>
 
 	<dependencies>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+        </dependency>
+        <!-- Command can accept an OEntity -->
+        <dependency>
+            <groupId>org.odata4j</groupId>
+            <artifactId>odata4j-core</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>com.temenos.interaction</groupId>
 			<artifactId>interaction-core</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>interaction-core</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
