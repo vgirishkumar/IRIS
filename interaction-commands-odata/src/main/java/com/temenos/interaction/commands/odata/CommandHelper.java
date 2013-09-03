@@ -37,14 +37,8 @@ public class CommandHelper extends com.temenos.interaction.core.command.CommandH
 	 * @return entity resource
 	 */
 	public static EntityResource<OEntity> createEntityResource(OEntity e) {
-		EntityResource<OEntity> oer = null;
-		if(e != null && e.getEntityType() != null) {
-			oer = new EntityResource<OEntity>(e.getEntityType().getName(), e) {};
-		}
-		else {
-			oer = new EntityResource<OEntity>(null, e) {};			
-		}
-		return oer;
+		String entityName = e != null && e.getEntityType() != null ? e.getEntityType().getName() : null;
+		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, e);
 	}
 
 	/**

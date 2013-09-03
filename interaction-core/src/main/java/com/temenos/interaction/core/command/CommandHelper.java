@@ -19,34 +19,66 @@ public class CommandHelper {
 	 * @param entity entity
 	 * @return entity resource
 	 */
-	public static<E>  EntityResource<E> createEntityResource(E entity) {
+	public static<E> EntityResource<E> createEntityResource(E entity) {
 		return createEntityResource(null, entity);
 	}
 
 	/**
-	 * Create a new entity resource
+	 * Create a new entity resource.
+	 * This method will try to evaluate entity type E. If entity type E implements exactly one interface
+	 * it will use the interface type, otherwise it will use the class type of entity type E.
 	 * @param entityName entity name
 	 * @param entity entity
 	 * @return entity resource
 	 */
-	public static<E>  EntityResource<E> createEntityResource(String entityName, final E entity) {
+	public static<E> EntityResource<E> createEntityResource(String entityName, final E entity) {
+		return createEntityResource(entityName, entity, null);
+	}
+
+	/**
+	 * Create a new entity resource.
+	 * @param entityName entity name
+	 * @param entity entity
+	 * @param entityType entity type - this should match the type of the template parameter 'E'
+	 * @return entity resource
+	 */
+	public static<E> EntityResource<E> createEntityResource(String entityName, final E entity, final Class<?> entityType) {
 		return new EntityResource<E>(entityName, entity) {
 			@Override
 			public GenericEntity<EntityResource<E>> getGenericEntity() {
-				//Override the generic type to be the type of the entity rather than 'E' 
-				return new GenericEntity<EntityResource<E>>(this, getEffectiveGenericType(this.getClass().getGenericSuperclass(), entity));
+				//Override the generic type to be the type of the entity rather than 'E'
+				Type genericType = entityType != null ? getEffectiveGenericType(this.getClass().getGenericSuperclass(), entity, entityType) : getEffectiveGenericType(this.getClass().getGenericSuperclass(), entity);
+				return new GenericEntity<EntityResource<E>>(this, genericType);
 			}
 		};
 	}
 	
 	/*
 	 * Returns the type of the specified entity.
+	 * This method will try to evaluate entity type E. If entity type E implements exactly one interface
+	 * it will use the interface type, otherwise it will use the class type of entity type E.
 	 * @param genericType generic type
 	 * @param entity entity
 	 * @return type
 	 */
-	@SuppressWarnings("rawtypes")
 	private static<E> Type getEffectiveGenericType(final Type superClassType, final E entity) {
+		Class<?> entityType = entity.getClass();
+		Class<?> entityInterfaces[] = entityType.getInterfaces();
+		if(entityInterfaces != null && entityInterfaces.length == 1) {
+			entityType = entityInterfaces[0];
+		}
+		return getEffectiveGenericType(superClassType, entity, entityType);
+	}
+	
+	/*
+	 * Returns the type of the specified entity.
+	 * @param superClassType parent class of generic type
+	 * @param entity entity
+	 * @param entityType entity type - this should match the type of the template parameter 'E'
+	 * @return type
+	 */
+	@SuppressWarnings("rawtypes")
+	private static<E> Type getEffectiveGenericType(final Type superClassType, final E entity, final Class<?> entityType) {
 		Type newGenericType;
 		if(superClassType instanceof ParameterizedType) {
 			ParameterizedType parametrizedType = (ParameterizedType) superClassType;
@@ -69,7 +101,7 @@ public class CommandHelper {
 
 						@Override
 						public String getName() {
-							return entity.getClass().getSimpleName();
+							return entityType.getSimpleName();
 						}
 						
 					};
