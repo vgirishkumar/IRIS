@@ -1,0 +1,245 @@
+<?xml version='1.0' encoding='utf-8'?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+    <edmx:DataServices m:DataServiceVersion="1.0">
+        <Schema 
+            xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="ODataContribModel">
+            <ComplexType Name="FtCommissionType_NextDateMvGroup">
+                <Property Name="NextDate" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_ShortDescrMvGroup">
+                <Property Name="ShortDescr" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_OverrideMvGroup">
+                <Property Name="Override" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_ResidencyMvGroup">
+                <Property Name="Residency" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_DateTimeMvGroup">
+                <Property Name="DateTime" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_NonResidencyMvGroup">
+                <Property Name="NonResidency" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_LinkMvGroup">
+                <Property Name="Link" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_DescriptionMvGroup">
+                <Property Name="Description" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_InputterMvGroup">
+                <Property Name="Inputter" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_CurrencyMvGroup">
+                <Property Name="FtCommissionType_CalcTypeSvGroup" Type="ODataContribModel.FtCommissionType_CalcTypeSvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="OverallMinPct" Type="Edm.String" Nullable="true" />
+                <Property Name="Currency" Type="Edm.String" Nullable="true" />
+                <Property Name="AccrualMinAmt" Type="Edm.String" Nullable="true" />
+                <Property Name="OverallMaxAmt" Type="Edm.String" Nullable="true" />
+                <Property Name="RoundType" Type="Edm.String" Nullable="true" />
+                <Property Name="OverallMinAmt" Type="Edm.String" Nullable="true" />
+                <Property Name="FlatAmt" Type="Edm.String" Nullable="true" />
+                <Property Name="RoundUnit" Type="Edm.String" Nullable="true" />
+                <Property Name="OverallMaxPct" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <ComplexType Name="FtCommissionType_CalcTypeSvGroup">
+                <Property Name="MinimumAmt" Type="Edm.String" Nullable="true" />
+                <Property Name="UnitCharge" Type="Edm.String" Nullable="true" />
+                <Property Name="UptoAmt" Type="Edm.String" Nullable="true" />
+                <Property Name="CalcType" Type="Edm.String" Nullable="true" />
+                <Property Name="Percentage" Type="Edm.String" Nullable="true" />
+                <Property Name="MaximumAmt" Type="Edm.String" Nullable="true" />
+            </ComplexType>
+            <EntityType Name="FtCommissionType">
+                <Key>
+                    <PropertyRef Name="CommissionType" />
+                </Key>
+                <Property Name="DeptCode" Type="Edm.String" Nullable="true" />
+                <Property Name="FtCommissionType_CurrencyMvGroup" Type="ODataContribModel.FtCommissionType_CurrencyMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="AmortisnPeriod" Type="Edm.String" Nullable="true" />
+                <Property Name="TaxCode" Type="Edm.String" Nullable="true" />
+                <Property Name="FtCommissionType_OverrideMvGroup" Type="ODataContribModel.FtCommissionType_OverrideMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="MinimumPeriod" Type="Edm.String" Nullable="true" />
+                <Property Name="FtCommissionType_LinkMvGroup" Type="ODataContribModel.FtCommissionType_LinkMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="CurrNo" Type="Edm.String" Nullable="true" />
+                <Property Name="TxnCodeDr" Type="Edm.String" Nullable="true" />
+                <Property Name="CategoryAccount" Type="Edm.String" Nullable="true" />
+                <Property Name="ExcludeFromEir" Type="Edm.String" Nullable="true" />
+                <Property Name="RecordStatus" Type="Edm.String" Nullable="true" />
+                <Property Name="SwiftNarr" Type="Edm.String" Nullable="true" />
+                <Property Name="ChargePeriod" Type="Edm.String" Nullable="true" />
+                <Property Name="FtCommissionType_NextDateMvGroup" Type="ODataContribModel.FtCommissionType_NextDateMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="Reserved1" Type="Edm.String" Nullable="true" />
+                <Property Name="Reserved2" Type="Edm.String" Nullable="true" />
+                <Property Name="CoCode" Type="Edm.String" Nullable="true" />
+                <Property Name="DefaultCcy" Type="Edm.String" Nullable="true" />
+                <Property Name="AccrualFqu" Type="Edm.String" Nullable="true" />
+                <Property Name="Authoriser" Type="Edm.String" Nullable="true" />
+                <Property Name="AuditDateTime" Type="Edm.DateTime" Nullable="true" />
+                <Property Name="AccrueAmort" Type="Edm.String" Nullable="true" />
+                <Property Name="FtCommissionType_ResidencyMvGroup" Type="ODataContribModel.FtCommissionType_ResidencyMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="AuditorCode" Type="Edm.String" Nullable="true" />
+                <Property Name="CcyConvDependent" Type="Edm.String" Nullable="true" />
+                <Property Name="FtCommissionType_NonResidencyMvGroup" Type="ODataContribModel.FtCommissionType_NonResidencyMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="CalculationBasis" Type="Edm.String" Nullable="true" />
+                <Property Name="CommissionType" Type="Edm.String" Nullable="false" />
+                <Property Name="FtCommissionType_ShortDescrMvGroup" Type="ODataContribModel.FtCommissionType_ShortDescrMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="TxnCodeCr" Type="Edm.String" Nullable="true" />
+                <Property Name="FtCommissionType_InputterMvGroup" Type="ODataContribModel.FtCommissionType_InputterMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="MthlyAmortisation" Type="Edm.String" Nullable="true" />
+                <Property Name="FtCommissionType_DateTimeMvGroup" Type="ODataContribModel.FtCommissionType_DateTimeMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="FtCommissionType_DescriptionMvGroup" Type="ODataContribModel.FtCommissionType_DescriptionMvGroup" Nullable="true" CollectionKind="List" />
+                <Property Name="ChargeRoutine" Type="Edm.String" Nullable="true" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="ftcommissiontype_HAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_HAuth" FromRole="FtCommissionType_ftcommissiontype_HAuth_Source" ToRole="FtCommissionType_ftcommissiontype_HAuth_Target" />
+                <NavigationProperty Name="ftcommissiontype_Held" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held" FromRole="FtCommissionType_ftcommissiontype_Held_Source" ToRole="FtCommissionType_ftcommissiontype_Held_Target" />
+                <NavigationProperty Name="ftcommissiontype_Held" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held" FromRole="FtCommissionType_ftcommissiontype_Held_Source" ToRole="FtCommissionType_ftcommissiontype_Held_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="update" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_input" FromRole="FtCommissionType_ftcommissiontype_input_Source" ToRole="FtCommissionType_ftcommissiontype_input_Target" />
+                <NavigationProperty Name="ftcommissiontype_Held" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held" FromRole="FtCommissionType_ftcommissiontype_Held_Source" ToRole="FtCommissionType_ftcommissiontype_Held_Target" />
+                <NavigationProperty Name="ftcommissiontype_IAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth" FromRole="FtCommissionType_ftcommissiontype_IAuth_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_Target" />
+                <NavigationProperty Name="review" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_review" FromRole="FtCommissionType_ftcommissiontype_review_Source" ToRole="FtCommissionType_ftcommissiontype_review_Target" />
+                <NavigationProperty Name="ftcommissiontype_RAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_RAuth" FromRole="FtCommissionType_ftcommissiontype_RAuth_Source" ToRole="FtCommissionType_ftcommissiontype_RAuth_Target" />
+                <NavigationProperty Name="ftcommissiontype_Held" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held" FromRole="FtCommissionType_ftcommissiontype_Held_Source" ToRole="FtCommissionType_ftcommissiontype_Held_Target" />
+                <NavigationProperty Name="ftcommissiontype_IAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth" FromRole="FtCommissionType_ftcommissiontype_IAuth_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_Target" />
+                <NavigationProperty Name="ftcommissiontype_IAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth" FromRole="FtCommissionType_ftcommissiontype_IAuth_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_Target" />
+                <NavigationProperty Name="delete" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth_delete" FromRole="FtCommissionType_ftcommissiontype_IAuth_delete_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_delete_Target" />
+                <NavigationProperty Name="delete" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_HAuth_delete" FromRole="FtCommissionType_ftcommissiontype_HAuth_delete_Source" ToRole="FtCommissionType_ftcommissiontype_HAuth_delete_Target" />
+                <NavigationProperty Name="ftcommissiontype_Held" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held" FromRole="FtCommissionType_ftcommissiontype_Held_Source" ToRole="FtCommissionType_ftcommissiontype_Held_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="ftcommissiontype_Reversed" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Reversed" FromRole="FtCommissionType_ftcommissiontype_Reversed_Source" ToRole="FtCommissionType_ftcommissiontype_Reversed_Target" />
+                <NavigationProperty Name="ftcommissiontype_IAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth" FromRole="FtCommissionType_ftcommissiontype_IAuth_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_Target" />
+                <NavigationProperty Name="authorise" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_RAuth_authorise" FromRole="FtCommissionType_ftcommissiontype_RAuth_authorise_Source" ToRole="FtCommissionType_ftcommissiontype_RAuth_authorise_Target" />
+                <NavigationProperty Name="ftcommissiontype_Held" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held" FromRole="FtCommissionType_ftcommissiontype_Held_Source" ToRole="FtCommissionType_ftcommissiontype_Held_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="reverse" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_reverse" FromRole="FtCommissionType_ftcommissiontype_reverse_Source" ToRole="FtCommissionType_ftcommissiontype_reverse_Target" />
+                <NavigationProperty Name="hold" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held_hold" FromRole="FtCommissionType_ftcommissiontype_Held_hold_Source" ToRole="FtCommissionType_ftcommissiontype_Held_hold_Target" />
+                <NavigationProperty Name="delete" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held_delete" FromRole="FtCommissionType_ftcommissiontype_Held_delete_Source" ToRole="FtCommissionType_ftcommissiontype_Held_delete_Target" />
+                <NavigationProperty Name="update" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth_input" FromRole="FtCommissionType_ftcommissiontype_IAuth_input_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_input_Target" />
+                <NavigationProperty Name="ftcommissiontype_Reversed" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Reversed" FromRole="FtCommissionType_ftcommissiontype_Reversed_Source" ToRole="FtCommissionType_ftcommissiontype_Reversed_Target" />
+                <NavigationProperty Name="ftcommissiontype_Reversed" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Reversed" FromRole="FtCommissionType_ftcommissiontype_Reversed_Source" ToRole="FtCommissionType_ftcommissiontype_Reversed_Target" />
+                <NavigationProperty Name="ftcommissiontype_IAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth" FromRole="FtCommissionType_ftcommissiontype_IAuth_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_Target" />
+                <NavigationProperty Name="ftcommissiontype_RAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_RAuth" FromRole="FtCommissionType_ftcommissiontype_RAuth_Source" ToRole="FtCommissionType_ftcommissiontype_RAuth_Target" />
+                <NavigationProperty Name="ftcommissiontype_Reversed" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Reversed" FromRole="FtCommissionType_ftcommissiontype_Reversed_Source" ToRole="FtCommissionType_ftcommissiontype_Reversed_Target" />
+                <NavigationProperty Name="ftcommissiontype_IAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth" FromRole="FtCommissionType_ftcommissiontype_IAuth_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="authorise" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth_authorise" FromRole="FtCommissionType_ftcommissiontype_IAuth_authorise_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_authorise_Target" />
+                <NavigationProperty Name="hold" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_hold" FromRole="FtCommissionType_ftcommissiontype_hold_Source" ToRole="FtCommissionType_ftcommissiontype_hold_Target" />
+                <NavigationProperty Name="authorise" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_HAuth_authorise" FromRole="FtCommissionType_ftcommissiontype_HAuth_authorise_Source" ToRole="FtCommissionType_ftcommissiontype_HAuth_authorise_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="ftcommissiontype" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype" FromRole="FtCommissionType_ftcommissiontype_Source" ToRole="FtCommissionType_ftcommissiontype_Target" />
+                <NavigationProperty Name="hold" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_HAuth_hold" FromRole="FtCommissionType_ftcommissiontype_HAuth_hold_Source" ToRole="FtCommissionType_ftcommissiontype_HAuth_hold_Target" />
+                <NavigationProperty Name="ftcommissiontype_HAuth" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_HAuth" FromRole="FtCommissionType_ftcommissiontype_HAuth_Source" ToRole="FtCommissionType_ftcommissiontype_HAuth_Target" />
+                <NavigationProperty Name="hold" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_IAuth_hold" FromRole="FtCommissionType_ftcommissiontype_IAuth_hold_Source" ToRole="FtCommissionType_ftcommissiontype_IAuth_hold_Target" />
+                <NavigationProperty Name="restore" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Reversed_restore" FromRole="FtCommissionType_ftcommissiontype_Reversed_restore_Source" ToRole="FtCommissionType_ftcommissiontype_Reversed_restore_Target" />
+                <NavigationProperty Name="update" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_Held_input" FromRole="FtCommissionType_ftcommissiontype_Held_input_Source" ToRole="FtCommissionType_ftcommissiontype_Held_input_Target" />
+                <NavigationProperty Name="delete" Relationship="ODataContribModel.FtCommissionType_ftcommissiontype_RAuth_delete" FromRole="FtCommissionType_ftcommissiontype_RAuth_delete_Source" ToRole="FtCommissionType_ftcommissiontype_RAuth_delete_Target" />
+            </EntityType>
+            <Association Name="FtCommissionType_ftcommissiontype_Held_input">
+                <End Role="FtCommissionType_ftcommissiontype_Held_input_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_Held_input_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_Reversed">
+                <End Role="FtCommissionType_ftcommissiontype_Reversed_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_Reversed_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_reverse">
+                <End Role="FtCommissionType_ftcommissiontype_reverse_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_reverse_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_hold">
+                <End Role="FtCommissionType_ftcommissiontype_hold_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_hold_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_HAuth_delete">
+                <End Role="FtCommissionType_ftcommissiontype_HAuth_delete_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_HAuth_delete_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_Held_delete">
+                <End Role="FtCommissionType_ftcommissiontype_Held_delete_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_Held_delete_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype">
+                <End Role="FtCommissionType_ftcommissiontype_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_IAuth_authorise">
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_authorise_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_authorise_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_RAuth_delete">
+                <End Role="FtCommissionType_ftcommissiontype_RAuth_delete_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_RAuth_delete_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_input">
+                <End Role="FtCommissionType_ftcommissiontype_input_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_input_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_RAuth_authorise">
+                <End Role="FtCommissionType_ftcommissiontype_RAuth_authorise_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_RAuth_authorise_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_IAuth_delete">
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_delete_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_delete_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_Held_hold">
+                <End Role="FtCommissionType_ftcommissiontype_Held_hold_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_Held_hold_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_HAuth">
+                <End Role="FtCommissionType_ftcommissiontype_HAuth_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_HAuth_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_IAuth_hold">
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_hold_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_hold_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_Reversed_restore">
+                <End Role="FtCommissionType_ftcommissiontype_Reversed_restore_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_Reversed_restore_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_HAuth_authorise">
+                <End Role="FtCommissionType_ftcommissiontype_HAuth_authorise_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_HAuth_authorise_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_review">
+                <End Role="FtCommissionType_ftcommissiontype_review_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_review_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_IAuth_input">
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_input_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_input_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_HAuth_hold">
+                <End Role="FtCommissionType_ftcommissiontype_HAuth_hold_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_HAuth_hold_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_Held">
+                <End Role="FtCommissionType_ftcommissiontype_Held_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_Held_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_IAuth">
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_IAuth_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <Association Name="FtCommissionType_ftcommissiontype_RAuth">
+                <End Role="FtCommissionType_ftcommissiontype_RAuth_Source" Type="ODataContribModel.FtCommissionType" Multiplicity="*" />
+                <End Role="FtCommissionType_ftcommissiontype_RAuth_Target" Type="ODataContribModel.FtCommissionType" Multiplicity="1" />
+            </Association>
+            <EntityContainer Name="ODataContrib" m:IsDefaultEntityContainer="true">
+                <EntitySet Name="FtCommissionTypes" EntityType="ODataContribModel.FtCommissionType" />
+                <FunctionImport Name="FtCommissionTypes_Reversed" EntitySet="FtCommissionTypes" ReturnType="ODataContribModel.FtCommissionType" m:HttpMethod="GET" />
+                <FunctionImport Name="FtCommissionTypes_RAuth" EntitySet="FtCommissionTypes" ReturnType="ODataContribModel.FtCommissionType" m:HttpMethod="GET" />
+                <FunctionImport Name="FtCommissionTypes_IAuth" EntitySet="FtCommissionTypes" ReturnType="ODataContribModel.FtCommissionType" m:HttpMethod="GET" />
+                <FunctionImport Name="FtCommissionTypes_HAuth" EntitySet="FtCommissionTypes" ReturnType="ODataContribModel.FtCommissionType" m:HttpMethod="GET" />
+                <FunctionImport Name="FtCommissionTypes_Held" EntitySet="FtCommissionTypes" ReturnType="ODataContribModel.FtCommissionType" m:HttpMethod="GET" />
+            </EntityContainer>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>
