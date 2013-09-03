@@ -416,7 +416,7 @@ public class TestAtomXMLProvider {
 		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
 		ap.setUriInfo(uriInfo);
 		
-		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new byte[0]));
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new String("Antyhing").getBytes()));
 		assertNotNull(result);
 		assertEquals(mockOEntity, result.getEntity());
 		
@@ -451,7 +451,7 @@ public class TestAtomXMLProvider {
 		when(uriInfo.getPath()).thenReturn("/test/someresource");
 		ap.setUriInfo(uriInfo);
 		
-		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new byte[0]));
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new String("Antyhing").getBytes()));
 		assertNotNull(result);
 		assertEquals(mockOEntity, result.getEntity());
 		
@@ -512,13 +512,59 @@ public class TestAtomXMLProvider {
 		Annotation[] annotations = null;
 		MediaType mediaType = null;
 		MultivaluedMap<String, String> headers = null;
-		InputStream content = new ByteArrayInputStream(new byte[0]);
+		InputStream content = new ByteArrayInputStream(new String("Antyhing").getBytes());
 		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
 		assertNotNull(result);
 		assertEquals(mockOEntity, result.getEntity());
 
 		// verify parse was called
 		verify(mockParser).parse(any(Reader.class));
+	}
+	
+	@Test
+	public void testReadNullContent() throws Exception {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
+		Set<ResourceState> states = new HashSet<ResourceState>();
+		states.add(mock(CollectionResourceState.class));
+		when(rsm.getResourceStatesForPath(anyString())).thenReturn(states);
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new OEntityTransformer());
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
+		ap.setUriInfo(uriInfo);
+		
+		Annotation[] annotations = null;
+		MediaType mediaType = null;
+		MultivaluedMap<String, String> headers = null;
+		InputStream content = null;
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
+		assertNotNull(result);
+		assertEquals(null, result.getEntity());
+	}
+	
+	@Test
+	public void testReadEmptyContents() throws Exception {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
+		Set<ResourceState> states = new HashSet<ResourceState>();
+		states.add(mock(CollectionResourceState.class));
+		when(rsm.getResourceStatesForPath(anyString())).thenReturn(states);
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new OEntityTransformer());
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
+		ap.setUriInfo(uriInfo);
+		
+		Annotation[] annotations = null;
+		MediaType mediaType = null;
+		MultivaluedMap<String, String> headers = null;
+		InputStream content = new ByteArrayInputStream(new String("").getBytes());;
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
+		assertNotNull(result);
+		assertEquals(null, result.getEntity());
 	}
 	
 	@Test
