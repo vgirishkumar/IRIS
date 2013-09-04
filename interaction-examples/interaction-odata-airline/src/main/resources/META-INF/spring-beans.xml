@@ -68,12 +68,10 @@
     <!-- Behaviour -->
     <bean id="behaviour" class="AirlineModel.AirlineBehaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
-<!--
-    <bean id="behaviour" class="com.interaction.example.odata.airline.Behaviour" />
-    <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
--->
+    <bean id="exception" factory-bean="behaviour" factory-method="getExceptionResource" />
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg ref="interaction" />
+    	<constructor-arg ref="exception" />
     	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
     </bean>
 
@@ -137,8 +135,9 @@
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
 	<bean id="GETGenericErrorCommand" class="com.interaction.example.odata.airline.commands.GETGenericErrorCommand" />
-	<bean id="GETThrowRuntimeExceptionCommand" class="com.interaction.example.odata.airline.commands.GETThrowRuntimeExceptionCommand" />
+	<bean id="ThrowInteractionExceptionCommand" class="com.interaction.example.odata.airline.commands.ThrowInteractionExceptionCommand" />
 	<bean id="NoopGETCommand" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="GETExceptionCommand" class="com.temenos.interaction.core.command.GETExceptionCommand" />
 
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -146,15 +145,16 @@
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
 				<entry key="GETServiceDocument" value-ref="GETServiceDocument" />
 				<entry key="GETMetadata" value-ref="GETMetadata" />
+				<entry key="GETException" value-ref="GETExceptionCommand" />
 				<entry key="GETEntity" value-ref="GETEntity" />
 				<entry key="GETEntities" value-ref="GETEntities" />
 				<entry key="GETNavProperty" value-ref="GETNavProperty" />
 				<entry key="CreateEntity" value-ref="CreateEntity" />
 				<entry key="UpdateEntity" value-ref="UpdateEntity" />
 				<entry key="DeleteEntity" value-ref="DeleteEntity" />
-				<entry key="NoopGETCommand" value-ref="NoopGETCommand" />
+				<entry key="NoopGET" value-ref="NoopGETCommand" />
 				<entry key="GETGenericErrorCommand" value-ref="GETGenericErrorCommand" />
-				<entry key="GETThrowRuntimeExceptionCommand" value-ref="GETThrowRuntimeExceptionCommand" />
+				<entry key="ThrowInteractionExceptionCommand" value-ref="ThrowInteractionExceptionCommand" />
  			</util:map> 
 		</constructor-arg>
 	</bean>

@@ -3,6 +3,7 @@ package com.temenos.interaction.commands.odata;
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 public class GETNavPropertyCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETNavPropertyCommand.class);
@@ -35,7 +37,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 	/* Implement InteractionCommand interface */
 	
 	@Override
-	public Result execute(InteractionContext ctx) {
+	public Result execute(InteractionContext ctx) throws InteractionException {
 		assert(ctx != null);
 		assert(ctx.getCurrentState() != null);
 		assert(ctx.getCurrentState().getViewAction() != null);
@@ -43,18 +45,19 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		
 		String entity = CommandHelper.getViewActionProperty(ctx, "entity"); 
 		if(entity == null) {
-			throw new IllegalArgumentException("'entity' must be provided");
+			throw new InteractionException(Status.BAD_REQUEST, "'entity' must be provided");		
 		}
 		
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
-		if (entitySet == null)
-			throw new RuntimeException("Entity set not found [" + entity + "]");
+		if (entitySet == null) {
+			throw new InteractionException(Status.NOT_FOUND, "Entity set not found [" + entity + "]");	
+		}
 		assert(entity.equals(entitySet.getName()));
 
 		//Obtain the navigation property
 		String navProperty = CommandHelper.getViewActionProperty(ctx, "navproperty"); 
 		if(navProperty == null) {
-			throw new IllegalArgumentException("Command must be bound to an OData navigation property resource");
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Command must be bound to an OData navigation property resource");	
 		}
 		
 		//Create entity key (simple types only)
@@ -62,7 +65,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		try {
 			key = CommandHelper.createEntityKey(edmDataServices, entity, ctx.getId());
 		} catch(Exception e) {
-			return Result.FAILURE;
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());	
 		}
 
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();

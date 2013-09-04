@@ -11,11 +11,12 @@ import org.junit.Test;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 public class TestNaiveWorkflowStrategyCommand {
 
 	@Test
-	public void testAllCommandsExecutedConstructor() {
+	public void testAllCommandsExecutedConstructor() throws InteractionException {
 		InteractionCommand command1 = mock(InteractionCommand.class);
 		InteractionCommand command2 = mock(InteractionCommand.class);
 		InteractionContext ctx = mock(InteractionContext.class);
@@ -31,7 +32,7 @@ public class TestNaiveWorkflowStrategyCommand {
 	}
 
 	@Test
-	public void testAllCommandsExecuted() {
+	public void testAllCommandsExecuted() throws InteractionException {
 		InteractionCommand command1 = mock(InteractionCommand.class);
 		InteractionCommand command2 = mock(InteractionCommand.class);
 		InteractionContext ctx = mock(InteractionContext.class);
@@ -46,7 +47,7 @@ public class TestNaiveWorkflowStrategyCommand {
 	}
 
 	@Test
-	public void testAllCommandsExecutedWhereOneFails() {
+	public void testAllCommandsExecutedWhereOneFails() throws InteractionException {
 		InteractionCommand command1 = mock(InteractionCommand.class);
 		when(command1.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
 		InteractionCommand command2 = mock(InteractionCommand.class);
@@ -64,7 +65,7 @@ public class TestNaiveWorkflowStrategyCommand {
 	}
 
 	@Test
-	public void testResultOfLastCommand() {
+	public void testResultOfLastCommand() throws InteractionException {
 		InteractionCommand command1 = mock(InteractionCommand.class);
 		InteractionCommand command2 = mock(InteractionCommand.class);
 		when(command2.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
@@ -79,13 +80,13 @@ public class TestNaiveWorkflowStrategyCommand {
 	}
 
 	@Test(expected = AssertionError.class)
-	public void testNoCommands() {
+	public void testNoCommands() throws InteractionException {
 		NaiveWorkflowStrategyCommand w = new NaiveWorkflowStrategyCommand();
 		w.execute(mock(InteractionContext.class));
 	}
 
 	@Test(expected = AssertionError.class)
-	public void testNullContext() {
+	public void testNullContext() throws InteractionException {
 		NaiveWorkflowStrategyCommand w = new NaiveWorkflowStrategyCommand();
 		w.execute(null);
 	}

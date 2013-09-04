@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PushbackInputStream;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -28,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
+import javax.ws.rs.core.HttpHeaders;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -136,6 +138,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		assert (resource != null);
 		assert(uriInfo != null);
 		
+		//Set response headers
+		if(httpHeaders != null) {
+			httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_ATOM_XML);		//Workaround for https://issues.apache.org/jira/browse/WINK-374
+		}
+		  		
 		try {
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
@@ -370,9 +377,15 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					throw new WebApplicationException(Response.Status.NOT_FOUND);
 				}
 			}
-
-			// parse the request content
-			Reader reader = new InputStreamReader(entityStream);
+			
+			// Check contents of the stream, if empty or null then return empty resource
+			InputStream verifiedStream = verifyContentReceieved(entityStream);
+			if (verifiedStream == null) {
+				return new EntityResource<OEntity>(); 
+			}
+			
+			// Lets parse the request content
+			Reader reader = new InputStreamReader(verifiedStream);
 			assert(currentState != null) : "Must have found a resource or thrown exception";
 			Entry e = new AtomEntryFormatParserExt(edmDataServices, currentState.getName(), entityKey, null).parse(reader);
 			
@@ -395,5 +408,45 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	protected void setUriInfo(UriInfo uriInfo) {
 		this.uriInfo = uriInfo;
+	}
+
+	/**
+	 * Method to verify if receieved stream has content or its empty
+	 * @param stream Stream to check
+	 * @return verified stream
+	 * @throws IOException
+	 */
+	private InputStream verifyContentReceieved(InputStream stream) throws IOException {
+
+		if (stream == null) {					// Check if its null
+			logger.debug("Request stream received as null");
+			return null;
+		} else if (stream.markSupported()) {	// Check stream supports mark/reset
+			// mark() and read the first byte just to check
+			stream.mark(1);
+			final int bytesRead = stream.read(new byte[1]);
+			if (bytesRead != -1) {
+			    //stream not empty
+				stream.reset();					// reset the stream as if untouched
+				return stream;
+			} else {
+			    //stream empty
+				logger.debug("Request received with empty body");
+				return null;
+			}
+		} else {
+			// Panic! this stream does not support mark/reset, try with PushbackInputStream as a last resort
+			int bytesRead;
+			PushbackInputStream pbs = new PushbackInputStream(stream);
+			if ((bytesRead = pbs.read()) != -1) {
+				// Contents detected, unread and return
+				pbs.unread(bytesRead);
+				return pbs;
+			} else {
+				// Empty stream detected
+				logger.debug("Request received with empty body!");
+				return null;
+			}
+		}
 	}
 }

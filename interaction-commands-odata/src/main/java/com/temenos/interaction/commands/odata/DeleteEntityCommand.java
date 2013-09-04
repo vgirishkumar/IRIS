@@ -1,15 +1,18 @@
 package com.temenos.interaction.commands.odata;
 
+import javax.ws.rs.core.Response.Status;
+
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.exceptions.NotFoundException;
+import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.ODataProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 public class DeleteEntityCommand extends AbstractODataCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(DeleteEntityCommand.class);
@@ -29,7 +32,7 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 	/* Implement InteractionCommand interface */
 
 	@Override
-	public Result execute(InteractionContext ctx) {
+	public Result execute(InteractionContext ctx) throws InteractionException {
 		assert(ctx != null);
 		assert(ctx.getCurrentState() != null);
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
@@ -38,8 +41,9 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 		String entity = getEntityName(ctx);
 		logger.debug("Deleting entity for " + entity);
 		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
-		if (entitySet == null)
-			throw new RuntimeException("Entity set not found [" + entity + "]");
+		if (entitySet == null) {
+			throw new InteractionException(Status.NOT_FOUND, "Entity set not found [" + entity + "]");		
+		}
 		assert(entity.equals(entitySet.getName()));
 
 		// Create entity key (simple types only)
@@ -47,19 +51,22 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 		try {
 			key = CommandHelper.createEntityKey(edmDataServices, entity, ctx.getId());
 		} catch(Exception e) {
-			return Result.FAILURE;
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 		
 		// delete the entity
 		try {
 			producer.deleteEntity(entity, key);
-		} catch (NotFoundException nfe) {
-			logger.debug("Entity not found [" + key.toKeyString() + "]: " + nfe.getMessage());
-			return Result.RESOURCE_UNAVAILABLE;
-		} catch (Exception e) {
-			logger.debug("Error while deleting entity [" + key.toKeyString() + "]: " + e.getMessage());
-			return Result.FAILURE;
 		}
+		catch(ODataProducerException ope) {
+			logger.debug("Failed to delete entity [" + key.toKeyString() + "]: " + ope.getMessage());
+			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+		}
+		catch(Exception e) {
+			logger.debug("Error while deleting entity [" + key.toKeyString() + "]: " + e.getMessage());
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
+		
 		return Result.SUCCESS;
 	}
 }

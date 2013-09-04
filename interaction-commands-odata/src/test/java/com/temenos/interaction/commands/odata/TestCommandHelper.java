@@ -1,6 +1,8 @@
 package com.temenos.interaction.commands.odata;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -9,10 +11,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Test;
+import org.odata4j.core.OEntities;
+import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OLink;
+import org.odata4j.core.OProperties;
+import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
@@ -25,6 +33,8 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ActionPropertyReference;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 
 public class TestCommandHelper {
 
@@ -111,6 +121,27 @@ public class TestCommandHelper {
 		}
 	}
 	
+	@Test
+	public void testCreateOEntityResource() {
+		OEntity entity = createMockOEntity(createMockEdmDataServices("MyEntity", "Edm.String").getEdmEntitySet("MyEntity"));
+		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
+
+		GenericEntity<EntityResource<OEntity>> ge = er.getGenericEntity();
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, OEntity.class));
+	}
+
+	@Test
+	public void testCreateOEntityResourceWithExplicitType() {
+		OEntity entity = createMockOEntity(createMockEdmDataServices("MyEntity", "Edm.String").getEdmEntitySet("MyEntity"));
+		String entityName = entity != null && entity.getEntityType() != null ? entity.getEntityType().getName() : null;
+		EntityResource<OEntity> er = com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, entity, OEntity.class);
+
+		GenericEntity<EntityResource<OEntity>> ge = er.getGenericEntity();
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, OEntity.class));
+	}
+	
 	private EdmDataServices createMockEdmDataServices(String entityName, String keyTypeName) {
 		List<String> keys = new ArrayList<String>();
 		keys.add("MyId");
@@ -129,6 +160,13 @@ public class TestCommandHelper {
         return mockEDS;
 	}
 
+	private OEntity createMockOEntity(EdmEntitySet ees) {
+		OEntityKey entityKey = OEntityKey.create("123");
+		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+		properties.add(OProperties.string("MyId", "123"));
+		return OEntities.create(ees, entityKey, properties, new ArrayList<OLink>());
+	}	
+	
 	@SuppressWarnings("unchecked")
 	private InteractionContext createInteractionContext(String entity, String id) {
 		ResourceState resourceState = mock(ResourceState.class);

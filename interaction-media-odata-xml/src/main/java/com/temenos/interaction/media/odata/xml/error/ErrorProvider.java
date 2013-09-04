@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -60,6 +61,11 @@ public class ErrorProvider implements MessageBodyWriter<RESTResource> {
 			WebApplicationException {
 		assert (resource != null);
 
+		//Set response headers
+		if(httpHeaders != null) {
+			httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
+		}
+		
 		final String errorResponse;
 		if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, GenericError.class)) {
 			EntityResource<GenericError> errorResource = (EntityResource<GenericError>) resource;

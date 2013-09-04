@@ -28,6 +28,7 @@ public class GeneratorTest {
 	private final static String SIMPLE_STATES_RIM = "" +
 	"commands" + LINE_SEP +
 	"	GetEntity" + LINE_SEP +
+	"	GetException" + LINE_SEP +
 	"	UpdateEntity" + LINE_SEP +
 	"end" + LINE_SEP +
 			
@@ -36,6 +37,11 @@ public class GeneratorTest {
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 
+	"exception resource E" + LINE_SEP +
+	"	collection EXCEPTION" + LINE_SEP +
+	"	view { GetException }" + LINE_SEP +
+	"end" + LINE_SEP +
+	
 	"resource B" +
 	"	item ENTITY" + LINE_SEP +
 	"	actions { UpdateEntity }" + LINE_SEP +
@@ -65,25 +71,32 @@ public class GeneratorTest {
 	"public class __synthetic0Behaviour {" + LINE_SEP +
 	LINE_SEP +
 	"    public static void main(String[] args) {" + LINE_SEP +
-	"        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(new __synthetic0Behaviour().getRIM());" + LINE_SEP +
+	"        __synthetic0Behaviour behaviour = new __synthetic0Behaviour();" + LINE_SEP +
+	"        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(behaviour.getRIM(), behaviour.getExceptionResource());" + LINE_SEP +
 	"        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, new ResourceMetadataManager(hypermediaEngine).getMetadata());" + LINE_SEP +
 	"        System.out.println(validator.graph());" + LINE_SEP +
 	"    }" + LINE_SEP +
 	LINE_SEP +
-	"	public ResourceState getRIM() {" + LINE_SEP +
-	"		Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();" + LINE_SEP +
-	"		Map<String, String> uriLinkageProperties = new HashMap<String, String>();" + LINE_SEP +
-	"		List<Expression> conditionalLinkExpressions = null;" + LINE_SEP +
-	"		Properties actionViewProperties;" + LINE_SEP +
-	"		" + LINE_SEP +
-	"		ResourceFactory factory = new ResourceFactory();" + LINE_SEP +
-	"		ResourceState initial = null;" + LINE_SEP +
-	"		// create states" + LINE_SEP +
-	"		// identify the initial state" + LINE_SEP +
-	"		initial = factory.getResourceState(\"__synthetic0Model.A\");" + LINE_SEP +
-	"	    return initial;" + LINE_SEP +
-	"	}" + LINE_SEP +
+	"    public ResourceState getRIM() {" + LINE_SEP +
+	"        Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();" + LINE_SEP +
+	"        Map<String, String> uriLinkageProperties = new HashMap<String, String>();" + LINE_SEP +
+	"        List<Expression> conditionalLinkExpressions = null;" + LINE_SEP +
+	"        Properties actionViewProperties;" + LINE_SEP +
 	LINE_SEP +
+	"        ResourceFactory factory = new ResourceFactory();" + LINE_SEP +
+	"        ResourceState initial = null;" + LINE_SEP +
+	"        // create states" + LINE_SEP +
+	"        // identify the initial state" + LINE_SEP +
+	"        initial = factory.getResourceState(\"__synthetic0Model.A\");" + LINE_SEP +
+	"        return initial;" + LINE_SEP +
+	"    }" + LINE_SEP +
+	LINE_SEP +
+	"    public ResourceState getExceptionResource() {" + LINE_SEP +
+	"        ResourceFactory factory = new ResourceFactory();" + LINE_SEP +
+	"        ResourceState exceptionState = null;" + LINE_SEP +
+	"        exceptionState = factory.getResourceState(\"__synthetic0Model.E\");" + LINE_SEP +
+	"        return exceptionState;" + LINE_SEP +
+	"    }" + LINE_SEP +
 	"}" + LINE_SEP;
 	
 	@Test
@@ -92,7 +105,7 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		System.out.println(fsa.getFiles());
-		assertEquals(3, fsa.getFiles().size());
+		assertEquals(4, fsa.getFiles().size());
 		
 		// the behaviour class
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
@@ -169,6 +182,9 @@ public class GeneratorTest {
 		assertTrue(indexOfFirstNewProperties > 0);
 		assertTrue(output.contains("actionViewProperties.put(\"getkey\", \"getvalue\""));
 		assertTrue(output.contains("new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties)"));
+		
+		//No onerror handler so should not define an error state
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, null);"));
 	}
 
 	private final static String MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM = "" +
@@ -435,4 +451,34 @@ public class GeneratorTest {
 		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sB, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
 	}
 	
+	private final static String RESOURCE_ON_ERROR = "" +
+			"commands" + LINE_SEP +
+			"	GetEntity" + LINE_SEP +
+			"	Noop" + LINE_SEP +
+			"end" + LINE_SEP +
+					
+			"initial resource A" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"	view { GetEntity }" + LINE_SEP +
+			"	onerror --> AE" + LINE_SEP +
+			"end" + LINE_SEP +
+
+			"resource AE" + LINE_SEP +
+			"	item ERROR" + LINE_SEP +
+			"	view { Noop }" + LINE_SEP +
+			"end" + LINE_SEP +
+			"";
+	
+	@Test
+	public void testGenerateOnErrorResource() throws Exception {
+		ResourceInteractionModel model = parseHelper.parse(RESOURCE_ON_ERROR);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		// collection
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"__synthetic0Model.AE\"));"));
+	}
 }

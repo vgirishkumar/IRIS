@@ -15,12 +15,13 @@ import org.junit.Test;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
+import com.temenos.interaction.core.command.InteractionException;
 
 public class TestAbortOnErrorWorkflowStrategyCommand {
 
 
 	@Test
-	public void testAllCommandsExecutedConstructor() {
+	public void testAllCommandsExecutedConstructor() throws InteractionException {
 		InteractionCommand command1 = mock(InteractionCommand.class);
 		when(command1.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
 		InteractionCommand command2 = mock(InteractionCommand.class);
@@ -38,7 +39,7 @@ public class TestAbortOnErrorWorkflowStrategyCommand {
 	}
 
 	@Test
-	public void testAllCommandsExecuted() {
+	public void testAllCommandsExecuted() throws InteractionException {
 		InteractionCommand command1 = mock(InteractionCommand.class);
 		when(command1.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
 		InteractionCommand command2 = mock(InteractionCommand.class);
@@ -55,7 +56,7 @@ public class TestAbortOnErrorWorkflowStrategyCommand {
 	}
 
 	@Test
-	public void testShortCircuitWhereOneFails() {
+	public void testShortCircuitWhereOneFails() throws InteractionException {
 		InteractionCommand command1 = mock(InteractionCommand.class);
 		when(command1.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
 		InteractionCommand command2 = mock(InteractionCommand.class);
@@ -73,7 +74,7 @@ public class TestAbortOnErrorWorkflowStrategyCommand {
 	}
 
 	@Test
-	public void testResultOfLastCommand() {
+	public void testResultOfLastCommand() throws InteractionException {
 		InteractionCommand command1 = mock(InteractionCommand.class);
 		when(command1.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
 		InteractionCommand command2 = mock(InteractionCommand.class);
@@ -89,13 +90,13 @@ public class TestAbortOnErrorWorkflowStrategyCommand {
 	}
 
 	@Test(expected = AssertionError.class)
-	public void testNoCommands() {
+	public void testNoCommands() throws InteractionException {
 		AbortOnErrorWorkflowStrategyCommand w = new AbortOnErrorWorkflowStrategyCommand();
 		w.execute(mock(InteractionContext.class));
 	}
 
 	@Test(expected = AssertionError.class)
-	public void testNullContext() {
+	public void testNullContext() throws InteractionException {
 		AbortOnErrorWorkflowStrategyCommand w = new AbortOnErrorWorkflowStrategyCommand();
 		w.execute(null);
 	}

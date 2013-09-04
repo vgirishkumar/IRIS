@@ -31,6 +31,7 @@ import org.odata4j.producer.Responses;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -45,7 +46,7 @@ public class TestGETNavPropertyCommand {
 	}
 
 	@Test(expected = AssertionError.class)
-	public void testEntitySetNotFound() {
+	public void testEntitySetNotFound() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		GETNavPropertyCommand gec = new GETNavPropertyCommand(mockProducer);
 		
@@ -55,8 +56,8 @@ public class TestGETNavPropertyCommand {
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testActionConfigurationNotFound() {
+	@Test(expected = InteractionException.class)
+	public void testActionConfigurationNotFound() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		GETNavPropertyCommand gec = new GETNavPropertyCommand(mockProducer);
 		
@@ -69,7 +70,7 @@ public class TestGETNavPropertyCommand {
 	}
 
 	@Test
-	public void testInvalidKeyType() {
+	public void testInvalidKeyType() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "KeyType");
 		GETNavPropertyCommand command = new GETNavPropertyCommand(mockProducer);
 		InteractionCommand.Result result = command.execute(createInteractionContext("MyEntity", "1"));
@@ -77,14 +78,14 @@ public class TestGETNavPropertyCommand {
 	}
 
 	@Test
-	public void testNullQueryParams() {
+	public void testNullQueryParams() throws InteractionException {
 		GETNavPropertyCommand command = new GETNavPropertyCommand(createMockODataProducer("MyEntity", "Edm.String"));
 		InteractionCommand.Result result = command.execute(createInteractionContext("MyEntity", "1"));
 		assertEquals(InteractionCommand.Result.FAILURE, result);
 	}
 
 	@Test
-	public void testNullNavResponse() {
+	public void testNullNavResponse() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		// mock return of an unsupported BaseResponse
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
@@ -95,7 +96,7 @@ public class TestGETNavPropertyCommand {
 	}
 
 	@Test
-	public void testUnsupportedNavResponse() {
+	public void testUnsupportedNavResponse() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		// mock return of an unsupported BaseResponse
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))
@@ -106,7 +107,7 @@ public class TestGETNavPropertyCommand {
 	}
 
 	@Test
-	public void testPropertyNavResponse() {
+	public void testPropertyNavResponse() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		// mock return of an unsupported BaseResponse
 		when(mockProducer.getNavProperty(anyString(), any(OEntityKey.class), eq("navProperty"), any(QueryInfo.class)))

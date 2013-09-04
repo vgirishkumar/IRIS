@@ -36,6 +36,7 @@ public class InteractionContext {
 	private final Metadata metadata;
 	private ResourceState targetState;
 	private Link linkUsed;
+	private InteractionException exception;
 
 	/* Command context */
 	private RESTResource resource;
@@ -51,7 +52,7 @@ public class InteractionContext {
 	 * @param pathParameters
 	 * @param queryParameters
 	 */
-	public InteractionContext(MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters, ResourceState currentState, Metadata metadata) {
+	public InteractionContext(final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState, final Metadata metadata) {
 		this.pathParameters = pathParameters;
 		this.queryParameters = queryParameters;
 		this.currentState = currentState;
@@ -63,6 +64,26 @@ public class InteractionContext {
 		assert(metadata != null);
 	}
 
+	/**
+	 * Shallow copy constructor with extra parameters to override final attributes.
+	 * @param ctx interaction context
+	 * @param pathParameters new path parameters or null to not override
+	 * @param queryParameters new query parameters or null to not override
+	 * @param currentState new current state or null to not override
+	 */
+	public InteractionContext(InteractionContext ctx, final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState) {
+		this.pathParameters = pathParameters != null ? pathParameters : ctx.pathParameters;
+		this.queryParameters = queryParameters != null ? queryParameters : ctx.queryParameters;
+		this.currentState = currentState != null ? currentState : ctx.currentState;
+		this.metadata = ctx.metadata;
+		
+		this.resource = ctx.resource;
+		this.targetState = ctx.targetState;
+		this.linkUsed = ctx.linkUsed;
+		this.exception = ctx.exception;
+		this.attributes = ctx.attributes;
+	}
+	
 	/**
 	 * <p>The query part of the uri (after the '?')</p>
 	 * URI query parameters as a result of jax-rs {@link UriInfo#getQueryParameters(true)}
@@ -170,4 +191,20 @@ public class InteractionContext {
     public Metadata getMetadata() {
     	return metadata;
     }
+
+    /**
+     * Obtain the last exception
+     * @return exception
+     */
+	public InteractionException getException() {
+		return exception;
+	}
+
+	/**
+	 * Set an exception
+	 * @param exception exception
+	 */
+	public void setException(InteractionException exception) {
+		this.exception = exception;
+	}
 }

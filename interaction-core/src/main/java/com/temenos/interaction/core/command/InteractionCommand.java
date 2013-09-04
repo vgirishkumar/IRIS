@@ -11,10 +11,6 @@ public interface InteractionCommand {
 		SUCCESS, 
 		FAILURE, 
 		INVALID_REQUEST, 
-		UPSTREAM_SERVER_UNAVAILABLE,
-		UPSTREAM_SERVER_TIMEOUT,
-		AUTHORISATION_FAILURE,
-		RESOURCE_UNAVAILABLE
 	}
 	
 	/**
@@ -22,8 +18,9 @@ public interface InteractionCommand {
 	 * @precondition a valid, non null {@link InteractionContext}
 	 * @postcondition a non null InteractionCommand.Result indicating command outcome
 	 * @param ctx
-	 * @return
+	 * @throws interaction command exception
+	 * @return result
 	 */
-	public Result execute(InteractionContext ctx);
+	public Result execute(InteractionContext ctx) throws InteractionException;
 	
 }

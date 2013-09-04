@@ -1,7 +1,6 @@
 package com.interaction.example.odata.airline.extended;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -36,7 +35,7 @@ public class ErrorHandlingITCase {
 		}
 		catch(ODataProducerException ope) {
 			OError error = ope.getOError();
-			assertEquals("UPSTREAM_SERVER_UNAVAILABLE", error.getCode());
+			assertEquals("503", error.getCode());
 			assertEquals("Failed to connect to resource manager.", error.getMessage());
 		}
 	}
@@ -53,7 +52,7 @@ public class ErrorHandlingITCase {
 		}
 		catch(ODataProducerException ope) {
 			OError error = ope.getOError();
-			assertEquals("UPSTREAM_SERVER_TIMEOUT", error.getCode());
+			assertEquals("504", error.getCode());
 			assertEquals("Request has timed out.", error.getMessage());
 		}
 	}
@@ -68,8 +67,10 @@ public class ErrorHandlingITCase {
 					execute();
 			fail("error500RuntimeException should have thrown an exception.");
 		}
-		catch(RuntimeException re) {
-			assertTrue(re.getMessage().contains("Unknown fatal error"));
+		catch(ODataProducerException ope) {
+			OError error = ope.getOError();
+			assertEquals("500", error.getCode());
+			assertEquals("Unexpected error.", error.getMessage());
 		}
 	}
 
@@ -85,7 +86,7 @@ public class ErrorHandlingITCase {
 		}
 		catch(ODataProducerException ope) {
 			OError error = ope.getOError();
-			assertEquals("AUTHORISATION_FAILURE", error.getCode());
+			assertEquals("403", error.getCode());
 			assertEquals("User is not allowed to access this resource.", error.getMessage());
 		}
 	}
@@ -136,7 +137,7 @@ public class ErrorHandlingITCase {
 		}
 		catch(ODataProducerException ope) {
 			OError error = ope.getOError();
-			assertEquals("RESOURCE_UNAVAILABLE", error.getCode());
+			assertEquals("404", error.getCode());
 			assertEquals("Resource manager: entity not found or currently unavailable.", error.getMessage());
 		}
 	}

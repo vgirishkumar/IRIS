@@ -10,11 +10,13 @@ import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
@@ -26,14 +28,19 @@ import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.
 public class TestResourceGETExpression {
 
 	private NewCommandController mockCommandController() {
-		InteractionCommand notfound = mock(InteractionCommand.class);
-		when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-		InteractionCommand found = mock(InteractionCommand.class);
-		when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
-		
 		NewCommandController cc = new NewCommandController();
-		cc.addCommand("notfound", notfound);
-		cc.addCommand("found", found);
+		try {
+			InteractionCommand notfound = mock(InteractionCommand.class);
+			when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+			InteractionCommand found = mock(InteractionCommand.class);
+			when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+			
+			cc.addCommand("notfound", notfound);
+			cc.addCommand("found", found);
+		}
+		catch(InteractionException ie) {
+			Assert.fail(ie.getMessage());
+		}
 		return cc;
 	}
 	

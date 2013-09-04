@@ -5,10 +5,9 @@ import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.CommandFailureException;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
@@ -49,16 +48,26 @@ public class ResourceGETExpression implements Expression {
 		//Create a new interaction context for this state
     	Transition transition = ctx.getCurrentState().getTransition(target);
     	MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, transition);
-    	InteractionContext newCtx = new InteractionContext(pathParameters, new MultivaluedMapImpl<String>(), target, ctx.getMetadata());
-		
-		Action viewAction = target.getActions().get(0);
-		assert(viewAction != null) : "Indicates a problem with the RIM, can only use a 'regular' state, one with a view action";
-		InteractionCommand command = hypermediaEngine.getCommandController().fetchCommand(viewAction.getName());
-		assert(command != null) : "Command not bound";
-		InteractionCommand.Result result = command.execute(newCtx);
-		
-		return (getFunction().equals(Function.OK) && result == InteractionCommand.Result.SUCCESS) ||
-				(getFunction().equals(Function.NOT_FOUND) && result == InteractionCommand.Result.FAILURE);
+    	InteractionContext newCtx = new InteractionContext(ctx, pathParameters, null, target);
+
+    	//Get the target resource
+		try {
+			hypermediaEngine.getResource(target, newCtx, false);	//Ignore the resource and its links, just interested in the result status
+			if(getFunction().equals(Function.OK)) {
+				return true;
+			}
+		}
+		catch(CommandFailureException cfe) {
+			if(getFunction().equals(Function.NOT_FOUND)) {
+				return true;
+			}
+		}
+		catch(InteractionException ie) {
+			if(getFunction().equals(Function.NOT_FOUND)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public String toString() {

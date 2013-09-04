@@ -31,6 +31,7 @@ import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
@@ -64,6 +65,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.commands.odata.OEntityTransformer;
+import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -416,7 +419,7 @@ public class TestAtomXMLProvider {
 		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
 		ap.setUriInfo(uriInfo);
 		
-		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new byte[0]));
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new String("Antyhing").getBytes()));
 		assertNotNull(result);
 		assertEquals(mockOEntity, result.getEntity());
 		
@@ -451,7 +454,7 @@ public class TestAtomXMLProvider {
 		when(uriInfo.getPath()).thenReturn("/test/someresource");
 		ap.setUriInfo(uriInfo);
 		
-		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new byte[0]));
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(new String("Antyhing").getBytes()));
 		assertNotNull(result);
 		assertEquals(mockOEntity, result.getEntity());
 		
@@ -512,13 +515,59 @@ public class TestAtomXMLProvider {
 		Annotation[] annotations = null;
 		MediaType mediaType = null;
 		MultivaluedMap<String, String> headers = null;
-		InputStream content = new ByteArrayInputStream(new byte[0]);
+		InputStream content = new ByteArrayInputStream(new String("Antyhing").getBytes());
 		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
 		assertNotNull(result);
 		assertEquals(mockOEntity, result.getEntity());
 
 		// verify parse was called
 		verify(mockParser).parse(any(Reader.class));
+	}
+	
+	@Test
+	public void testReadNullContent() throws Exception {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
+		Set<ResourceState> states = new HashSet<ResourceState>();
+		states.add(mock(CollectionResourceState.class));
+		when(rsm.getResourceStatesForPath(anyString())).thenReturn(states);
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new OEntityTransformer());
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
+		ap.setUriInfo(uriInfo);
+		
+		Annotation[] annotations = null;
+		MediaType mediaType = null;
+		MultivaluedMap<String, String> headers = null;
+		InputStream content = null;
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
+		assertNotNull(result);
+		assertEquals(null, result.getEntity());
+	}
+	
+	@Test
+	public void testReadEmptyContents() throws Exception {
+		EdmDataServices metadata = mock(EdmDataServices.class);
+		ResourceStateMachine rsm = mock(ResourceStateMachine.class);
+		Set<ResourceState> states = new HashSet<ResourceState>();
+		states.add(mock(CollectionResourceState.class));
+		when(rsm.getResourceStatesForPath(anyString())).thenReturn(states);
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new OEntityTransformer());
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/test/someresource/2");
+		ap.setUriInfo(uriInfo);
+		
+		Annotation[] annotations = null;
+		MediaType mediaType = null;
+		MultivaluedMap<String, String> headers = null;
+		InputStream content = new ByteArrayInputStream(new String("").getBytes());;
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
+		assertNotNull(result);
+		assertEquals(null, result.getEntity());
 	}
 	
 	@Test
@@ -676,6 +725,31 @@ public class TestAtomXMLProvider {
 	    }
 	}
 	
+	@Test
+	public void testWriteEntityResourceAcceptAtomSvc() throws Exception {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		EdmDataServices mockEDS = createMockFlightEdmDataServices();		
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+		Metadata mockMetadata = createMockFlightMetadata();
+		EntityResource<GenericError> er = createMockEntityResourceGenericError();
+		GenericEntity<EntityResource<GenericError>> ge = new GenericEntity<EntityResource<GenericError>>(er) {};
+		
+		//Create provider
+		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		UriInfo uriInfo = mock(UriInfo.class);
+		URI uri = new URI("http://localhost:8080/responder/rest/");
+		when(uriInfo.getBaseUri()).thenReturn(uri);
+		when(uriInfo.getPath()).thenReturn("Flight(123)");
+		p.setUriInfo(uriInfo);
+
+		//Set accept header to atomsvc+xml
+		MultivaluedMap<String, Object> httpHeaders = new MultivaluedMapImpl<Object>();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, httpHeaders, new ByteArrayOutputStream());
+
+		//Make sure the response is atom+xml
+		assertEquals(MediaType.APPLICATION_ATOM_XML, httpHeaders.getFirst(HttpHeaders.CONTENT_TYPE));
+	}
+		
 	@SuppressWarnings("unchecked")
 	private EntityResource<GenericError> createMockEntityResourceGenericError() {
 		EntityResource<GenericError> er = mock(EntityResource.class);

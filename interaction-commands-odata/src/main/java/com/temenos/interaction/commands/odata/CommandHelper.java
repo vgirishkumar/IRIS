@@ -27,7 +27,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 
-public class CommandHelper {
+public class CommandHelper extends com.temenos.interaction.core.command.CommandHelper {
 	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
 	private static Pattern parameterPattern = Pattern.compile("\\{(.*?)\\}");
 
@@ -37,39 +37,10 @@ public class CommandHelper {
 	 * @return entity resource
 	 */
 	public static EntityResource<OEntity> createEntityResource(OEntity e) {
-		EntityResource<OEntity> oer = null;
-		if(e != null && e.getEntityType() != null) {
-			oer = new EntityResource<OEntity>(e.getEntityType().getName(), e) {};
-		}
-		else {
-			oer = new EntityResource<OEntity>(null, e) {};			
-		}
-		return oer;
+		String entityName = e != null && e.getEntityType() != null ? e.getEntityType().getName() : null;
+		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, e);
 	}
 
-	/**
-	 * Create an odata error resource
-	 * @param error error
-	 * @return odata error resource
-	 */
-	public static<GenericError> EntityResource<GenericError> createGenericErrorResource(GenericError error) 
-	{
-		return createGenericErrorResource(null, error);	
-	}	
-	
-	/**
-	 * Create an odata error resource
-	 * @param entityName entityName
-	 * @param error error
-	 * @return odata error resource
-	 */
-	public static<GenericError> EntityResource<GenericError> createGenericErrorResource(String entityName, GenericError error) 
-	{
-		EntityResource<GenericError> er = new EntityResource<GenericError>(error) {};
-		er.setEntityName(entityName);
-		return er;	
-	}	
-	
 	/**
 	 * Create an OData collection resource (feed)
 	 * @param entitySetName Entity set name

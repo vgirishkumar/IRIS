@@ -16,6 +16,9 @@ public class CollectionResourceState extends ResourceState {
 	public CollectionResourceState(String entityName, String name, List<Action> actions, String path, String[] rels, UriSpecification uriSpec) {
 		super(entityName, name, actions, path, rels != null ? rels : "collection".split(" "), uriSpec);
 	}
+	public CollectionResourceState(String entityName, String name, List<Action> actions, String path, String[] rels, UriSpecification uriSpec, ResourceState errorState) {
+		super(entityName, name, actions, path, rels != null ? rels : "collection".split(" "), uriSpec, errorState);
+	}
 
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
 		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), true, null);

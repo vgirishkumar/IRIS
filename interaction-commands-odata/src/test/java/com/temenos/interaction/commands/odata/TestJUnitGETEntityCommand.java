@@ -3,20 +3,22 @@ package com.temenos.interaction.commands.odata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNotNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
@@ -40,7 +42,7 @@ import org.odata4j.producer.ODataProducer;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.entity.GenericError;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -56,7 +58,7 @@ public class TestJUnitGETEntityCommand {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testEntitySetFound() {
+	public void testEntitySetFound() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
@@ -72,7 +74,7 @@ public class TestJUnitGETEntityCommand {
 	
 	@SuppressWarnings("unchecked")
 	@Test(expected = AssertionError.class)
-	public void testEntitySetNotFound() {
+	public void testEntitySetNotFound() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
@@ -87,7 +89,7 @@ public class TestJUnitGETEntityCommand {
 	}
 
 	@Test
-	public void testEntityKeyTypeString() {
+	public void testEntityKeyTypeString() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
@@ -110,7 +112,7 @@ public class TestJUnitGETEntityCommand {
 	}
 
 	@Test
-	public void testEntityKeyTypeStringQuoted() {
+	public void testEntityKeyTypeStringQuoted() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
@@ -133,7 +135,7 @@ public class TestJUnitGETEntityCommand {
 	}
 
 	@Test
-	public void testEntityKeyInt64() {
+	public void testEntityKeyInt64() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Int64");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
@@ -155,26 +157,25 @@ public class TestJUnitGETEntityCommand {
 		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new Int64OEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testEntityKeyInt64Error() {
+	public void testEntityKeyInt64Error() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Int64");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
 		// test our method
         InteractionContext ctx = createInteractionContext("MyEntity", "A1");
-		InteractionCommand.Result result = gec.execute(ctx);
-		// command should return FAILURE
-		assertEquals(InteractionCommand.Result.FAILURE, result);
-		assertTrue(ctx.getResource() != null);
-		EntityResource<GenericError> er = (EntityResource<GenericError>) ctx.getResource();
-		GenericError error = er.getEntity();
-		assertEquals("FAILURE", error.getCode());
-		assertEquals("Entity key type A1 is not supported.", error.getMessage());
+        try {
+        	gec.execute(ctx);
+        	fail("Should have failed.");
+        }
+        catch(InteractionException ie) {
+    		assertEquals(Status.INTERNAL_SERVER_ERROR, ie.getHttpStatus());
+    		assertEquals("Entity key type A1 is not supported.", ie.getMessage());
+        }
 	}
 	
 	@Test
-	public void testEntityKeyDateTime() {
+	public void testEntityKeyDateTime() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.DateTime");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
@@ -197,7 +198,7 @@ public class TestJUnitGETEntityCommand {
 	}
 
 	@Test
-	public void testEntityKeyTime() {
+	public void testEntityKeyTime() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.Time");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
@@ -219,21 +220,20 @@ public class TestJUnitGETEntityCommand {
 		verify(mockProducer).getEntity(eq("MyEntity"), argThat(new DateOEntityKey()), isNotNull(EntityQueryInfo.class));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetEntityNotFound() {
 		ODataProducer mockProducer = createMockODataProducer("GetEntityNotFound", "Edm.String");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
         InteractionContext ctx = createInteractionContext("GetEntityNotFound", "1");
-		InteractionCommand.Result result = gec.execute(ctx);
-		assertEquals(InteractionCommand.Result.RESOURCE_UNAVAILABLE, result);
-
-		assertTrue(ctx.getResource() != null);
-		EntityResource<GenericError> er = (EntityResource<GenericError>) ctx.getResource();
-		GenericError error = er.getEntity();
-		assertEquals("RESOURCE_UNAVAILABLE", error.getCode());
-		assertEquals("Entity does not exist.", error.getMessage());
+        try {
+        	gec.execute(ctx);
+        	fail("Should have failed.");
+        }
+        catch(InteractionException ie) {
+    		assertEquals(Status.NOT_FOUND, ie.getHttpStatus());
+    		assertEquals("Entity does not exist.", ie.getMessage());
+        }
 	}
 
 	@Test
@@ -242,8 +242,13 @@ public class TestJUnitGETEntityCommand {
 		DeleteEntityCommand gec = new DeleteEntityCommand(mockProducer);
 		
         InteractionContext ctx = createInteractionContext("DeleteEntityNotFound", "1");
-		InteractionCommand.Result result = gec.execute(ctx);
-		assertEquals(InteractionCommand.Result.RESOURCE_UNAVAILABLE, result);
+        try {
+        	gec.execute(ctx);
+        	fail("Should have thrown exception");
+        }
+        catch(InteractionException ie) {
+        	assertEquals(Status.NOT_FOUND, ie.getHttpStatus());
+        }
 	}
 	
 	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {

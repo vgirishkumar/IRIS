@@ -278,4 +278,37 @@ public class ParserTest {
 		assertEquals("edit", r2.getRelations().get(0).getName());
 	}
 
+	private final static String RESOURCE_ON_ERROR = "" +
+			"commands" + LINE_SEP +
+			"	GetEntity" + LINE_SEP +
+			"	NoopGET" + LINE_SEP +
+			"end" + LINE_SEP +
+					
+			"initial resource A" + LINE_SEP +
+			"	collection ENTITY" + LINE_SEP +
+			"	view { GetEntity }" + LINE_SEP +
+			"	onerror --> AE" + LINE_SEP +
+			"end" + LINE_SEP +
+
+			"resource AE" + LINE_SEP +
+			"	item ERROR" + LINE_SEP +
+			"	view { NoopGET }" + LINE_SEP +
+			"end" + LINE_SEP +
+			"";
+
+	@Test
+	public void testParseOnErrorResource() throws Exception {
+		ResourceInteractionModel model = parser.parse(RESOURCE_ON_ERROR);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be two states
+		assertEquals(2, model.getStates().size());
+		State r1 = model.getStates().get(0);
+	    assertEquals("A", r1.getName());
+		State r2 = model.getStates().get(1);
+	    assertEquals("AE", r2.getName());
+	    
+	    //AE is the error handler for A
+	    assertEquals(r2.getName(), r1.getErrorState().getName());
+	}
 }
