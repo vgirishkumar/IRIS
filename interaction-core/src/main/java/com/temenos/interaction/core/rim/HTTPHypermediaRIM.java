@@ -498,7 +498,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				RESTResource errorResource = getResource(ctx.getCurrentState().getErrorState(), ctx);
 				responseBuilder.entity(errorResource.getGenericEntity());
 			}
-			else if(hypermediaEngine.getException() != null) {
+			else if(hypermediaEngine.getException() != null && ctx.getException() != null) {
 				//Resource state machine has an exception handler
 				RESTResource exceptionResource = getResource(hypermediaEngine.getException(), ctx);
 				responseBuilder.entity(exceptionResource.getGenericEntity());
