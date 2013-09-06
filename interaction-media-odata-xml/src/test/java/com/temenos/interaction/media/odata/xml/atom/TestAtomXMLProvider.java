@@ -67,6 +67,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.temenos.interaction.commands.odata.OEntityTransformer;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -89,6 +90,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.media.odata.xml.CustomError;
 import com.temenos.interaction.media.odata.xml.Flight;
 import com.temenos.interaction.media.odata.xml.IgnoreNamedElementsXMLDifferenceListener;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
@@ -102,6 +104,7 @@ public class TestAtomXMLProvider {
 	public final static String FLIGHT_ENTRY_SIMPLE_XML = "FlightEntrySimple.xml";
 	public final static String FLIGHT_COLLECTION_XML = "FlightsFeed.xml";
 	public final static String ATOM_GENERIC_ERROR_ENTRY_XML = "AtomGenericErrorEntry.xml";
+	public final static String ATOM_CUSTOM_ERROR_ENTRY_XML = "AtomCustomErrorEntry.xml";
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
@@ -269,6 +272,13 @@ public class TestAtomXMLProvider {
 
 		mockMetadata.setEntityMetadata(entityMetadata);
 
+		//Define a custom error entity
+		EntityMetadata mdCustomError = new EntityMetadata("CustomError");
+		Vocabulary vocCustomError = new Vocabulary();
+		vocCustomError.setTerm(new TermValueType(TermValueType.TEXT));
+		mdCustomError.setPropertyVocabulary("mycustomerror", vocCustomError);
+		mockMetadata.setEntityMetadata(mdCustomError);
+		
 		return mockMetadata;
 	}
 
@@ -750,6 +760,41 @@ public class TestAtomXMLProvider {
 		assertEquals(MediaType.APPLICATION_ATOM_XML, httpHeaders.getFirst(HttpHeaders.CONTENT_TYPE));
 	}
 		
+	@Test
+	public void testWriteEntityResourceCustomError_AtomXML() throws Exception {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		EdmDataServices mockEDS = createMockFlightEdmDataServices();		
+		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
+		
+		Metadata mockMetadata = createMockFlightMetadata();
+		EntityResource<CustomError> er = CommandHelper.createEntityResource("CustomError", new CustomError("My custom error message."));
+		
+        //Wrap entity resource into a JAX-RS GenericEntity instance
+		GenericEntity<EntityResource<CustomError>> ge = new GenericEntity<EntityResource<CustomError>>(er) {};
+		
+		
+		//Create provider
+		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		UriInfo uriInfo = mock(UriInfo.class);
+		URI uri = new URI("http://localhost:8080/responder/rest/");
+		when(uriInfo.getBaseUri()).thenReturn(uri);
+		when(uriInfo.getPath()).thenReturn("Flight(123)");
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(readTextFile(ATOM_CUSTOM_ERROR_ENTRY_XML), responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+	
 	@SuppressWarnings("unchecked")
 	private EntityResource<GenericError> createMockEntityResourceGenericError() {
 		EntityResource<GenericError> er = mock(EntityResource.class);
@@ -757,6 +802,7 @@ public class TestAtomXMLProvider {
 		GenericError error = new GenericError("UPSTREAM_SERVER_UNAVAILABLE", "Failed to connect to resource manager.");
 		when(er.getEntity()).thenReturn(error);
 		when(er.getEntityName()).thenReturn("Flight");
+		when(er.getGenericEntity()).thenReturn(new GenericEntity<EntityResource<GenericError>>(er, er.getClass().getGenericSuperclass()));
 		return er;
 	}	
 	

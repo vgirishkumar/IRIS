@@ -1,11 +1,15 @@
 package com.temenos.interaction.media.xhtml;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
@@ -25,6 +29,7 @@ import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
@@ -127,6 +132,32 @@ public class TestXHTMLProvider {
 		Assert.assertTrue(responseString.contains("<li><dl><dt>id</dt><dd>123</dd><dt>address</dt><dl><dt>houseNumber</dt><dd>45</dd><dt>postcode</dt><dd>WD8 1LK</dd></dl><dt>name</dt><dd>Fred</dd><dt>hobbies</dt><dd>Tennis,Basketball,Swimming</dd></dl><ul><li><a href=\"/Customer(123)\" rel=\"self\">123</a></li></ul></li>"));
 	}
 	
+	@Test
+	public void testWriteGenericErrorResourceAcceptHTML() throws Exception {
+		EntityResource<GenericError> er = createMockEntityResourceGenericError();
+
+		//Serialize metadata resource
+		XHTMLProvider p = new XHTMLProvider(createMockFlightMetadata());
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(er, EntityResource.class, GenericError.class, null, MediaType.TEXT_HTML_TYPE, null, bos);
+
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		Assert.assertTrue(responseString.contains("<div class=\"error\">[UPSTREAM_SERVER_UNAVAILABLE] Failed to connect to resource manager.</div>"));
+	}
+
+	@Test
+	public void testWriteGenericErrorResourceAcceptXHTML() throws Exception {
+		EntityResource<GenericError> er = createMockEntityResourceGenericError();
+
+		//Serialize metadata resource
+		XHTMLProvider p = new XHTMLProvider(createMockFlightMetadata());
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(er, EntityResource.class, GenericError.class, null, MediaType.APPLICATION_XHTML_XML_TYPE, null, bos);
+
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		Assert.assertTrue(responseString.contains("<error>[UPSTREAM_SERVER_UNAVAILABLE] Failed to connect to resource manager.</error>"));
+	}
+	
 	private Metadata createMockFlightMetadata() {
 		//Define vocabulary for this entity
 		Metadata metadata = new Metadata("Customers");
@@ -224,4 +255,15 @@ public class TestXHTMLProvider {
 		EntityResource<OEntity> er = new EntityResource<OEntity>("Customer", entity) {};
 		return er;
 	}
+	
+	@SuppressWarnings("unchecked")
+	private EntityResource<GenericError> createMockEntityResourceGenericError() {
+		EntityResource<GenericError> er = mock(EntityResource.class);
+				
+		GenericError error = new GenericError("UPSTREAM_SERVER_UNAVAILABLE", "Failed to connect to resource manager.");
+		when(er.getGenericEntity()).thenReturn(new GenericEntity<EntityResource<GenericError>>(er, er.getClass().getGenericSuperclass()));
+		when(er.getEntity()).thenReturn(error);
+		when(er.getEntityName()).thenReturn("Flight");
+		return er;
+	}	
 }
