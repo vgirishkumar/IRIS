@@ -19,7 +19,9 @@ import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.sdk.JPAResponderGen;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.command.Parameter;
+import com.temenos.interaction.sdk.interaction.state.IMEntityState;
 import com.temenos.interaction.sdk.interaction.state.IMPseudoState;
+import com.temenos.interaction.sdk.interaction.state.IMState;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 
@@ -93,6 +95,10 @@ public class TestRimDslGenerator {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_BANKING_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
+		interactionModel.setExceptionState(new IMEntityState("InteractionException", "", Commands.GET_EXCEPTION));
+		IMState rsErrors = new IMEntityState("Errors", "", Commands.GET_NOOP);
+		interactionModel.addErrorHandlerState(rsErrors);
+		
 		Commands commands =  JPAResponderGen.getDefaultCommands();
 		commands.addCommand("AuthoriseEntity", "com.temenos.interaction.commands.odata.UpdateEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand("ReverseEntity", "com.temenos.interaction.commands.odata.UpdateEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
@@ -109,6 +115,8 @@ public class TestRimDslGenerator {
 		IMPseudoState pseudoState = rsm.addPseudoStateTransition("Sectors", "input", "Sectors", "POST", null, "CreateEntity", null, true);
 		pseudoState.addAutoTransition(rsm.getResourceState("sector_IAuth"), "GET");
 		pseudoState.addAutoTransition(rsm.getResourceState("sector"), "GET");
+		pseudoState.setErrorHandlerState(rsErrors);
+		
 
 		pseudoState = rsm.addPseudoStateTransition("sector_IAuth", "authorise", "PUT", "authorise", "AuthoriseEntity", "edit", false);
 		pseudoState.addAutoTransition(rsm.getResourceState("sector_IAuth"), "GET");
@@ -130,6 +138,9 @@ public class TestRimDslGenerator {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
+		interactionModel.setExceptionState(new IMEntityState("InteractionException", "", Commands.GET_EXCEPTION));
+		IMState rsResponseErrors = new IMEntityState("ErrorMessages", "", Commands.GET_NOOP);
+		interactionModel.addErrorHandlerState(rsResponseErrors);
 
 		//Add transitions
 		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
@@ -149,6 +160,10 @@ public class TestRimDslGenerator {
 		rsmFlight.addPseudoStateTransition("Flights", "created", "Flights", "POST", null, "CreateEntity", null, true);
 		rsmAirport.addPseudoStateTransition("Airports", "created", "Airports", "POST", null, "CreateEntity", null, true);
 		rsmPassenger.addPseudoStateTransition("Passengers", "created", "Passengers", "POST", null, "CreateEntity", null, true);
+		
+		//Add error handler
+		IMState rsflightCreated = rsmFlight.getPseudoState("Flights", "created");
+		rsflightCreated.setErrorHandlerState(rsResponseErrors);
 		
 		//Run the generator
 		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());

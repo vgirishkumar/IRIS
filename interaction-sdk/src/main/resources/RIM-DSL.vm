@@ -20,7 +20,28 @@ initial resource ServiceDocument
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 	GET -> ${rsm.getCollectionState().getName()}
 #end
+#foreach ( $state in $rim.getErrorHandlerStates() )
+	GET -> ${state.getName()}
+#end
 end
+
+#if($rim.hasExceptionState())
+exception resource ${rim.getExceptionState().getName()}
+	item InteractionException
+	view { ${rim.getExceptionState().getView()} }
+end
+#end
+
+## -----------------------------------------------------
+## Error handlers
+## -----------------------------------------------------
+#foreach ( $state in $rim.getErrorHandlerStates() )
+resource ${state.getName()}
+	collection ${state.getName()}
+	view { ${state.getView()} }
+end
+#end
+
 ## -----------------------------------------------------
 ## Resource state machines
 ## -----------------------------------------------------
@@ -76,6 +97,10 @@ $action##
 ## ----- Transitions from an RSM's collection state -----
 #if(${state.class.simpleName} == "IMCollectionState")
 #writeCollectionStateTransitions($rsm $state $state.getEntityState())
+#end
+## ----- Error handler -----
+#if($state.hasOnError())
+	onerror --> ${state.getErrorHandlerState().getName()}
 #end
 end
 #end

@@ -1,7 +1,10 @@
 package com.temenos.interaction.sdk.interaction;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
 
@@ -14,6 +17,7 @@ import org.odata4j.edm.EdmType;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
+import com.temenos.interaction.sdk.interaction.state.IMState;
 
 /**
  * This class holds information about the interaction model
@@ -21,6 +25,8 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 public class InteractionModel {
 
 	private List<IMResourceStateMachine> resourceStateMachines = new ArrayList<IMResourceStateMachine>();
+	private IMState exceptionState = null;
+	private Map<String, IMState> errorHandlerStates = new HashMap<String, IMState>();		//state name, state
 
 	/**
 	 * Construct an empty model
@@ -151,5 +157,29 @@ public class InteractionModel {
 			}
 		}
 		return null;
+	}
+	
+	public void setExceptionState(IMState exceptionState) {
+		this.exceptionState = exceptionState;
+	}
+	
+	public IMState getExceptionState() {
+		return exceptionState;
+	}
+	
+	public boolean hasExceptionState() {
+		return exceptionState != null;
+	}
+
+	public Collection<IMState> getErrorHandlerStates() {
+		return errorHandlerStates.values();
+	}
+
+	public void addErrorHandlerState(IMState errorHandlerState) {
+		errorHandlerStates.put(errorHandlerState.getName(), errorHandlerState);
+	}
+	
+	public IMState getErrorHandlerState(String stateName) {
+		return errorHandlerStates.get(stateName);
 	}
 }

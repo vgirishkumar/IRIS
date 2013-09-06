@@ -12,12 +12,14 @@ import java.util.TreeMap;
 public class Commands {
 	public final static String GET_SERVICE_DOCUMENT = "GETServiceDocument";
 	public final static String GET_METADATA = "GETMetadata";
+	public final static String GET_EXCEPTION = "GETException";
 	public final static String GET_ENTITY = "GETEntity";
 	public final static String GET_ENTITIES = "GETEntities";
 	public final static String GET_NAV_PROPERTY = "GETNavProperty";
 	public final static String CREATE_ENTITY = "CreateEntity";
 	public final static String UPDATE_ENTITY = "UpdateEntity";
 	public final static String DELETE_ENTITY = "DeleteEntity";
+	public final static String GET_NOOP = "NoopGET";
 	
 	public final static String HTTP_COMMAND_GET = "GET";
 	public final static String HTTP_COMMAND_POST = "POST";
@@ -34,6 +36,15 @@ public class Commands {
 	 */
 	public void addRimEvent(String rimEvent, String httpCommand) {
 		rimEvents.put(rimEvent, httpCommand);
+	}
+	
+	/**
+	 * Add a new command
+	 * @param id command id
+	 * @param className command class name
+	 */
+	public void addCommand(String id, String className) {
+		commands.add(new Command(id, className));
 	}
 	
 	/**

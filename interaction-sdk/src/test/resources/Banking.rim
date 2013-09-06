@@ -13,10 +13,12 @@ commands
 	DeleteEntity
 	GETEntities
 	GETEntity
+	GETException
 	GETNavProperty
 	GETReversedEntities
 	GETReversedEntity
 	GETServiceDocument
+	NoopGET
 	ReverseEntity
 	UpdateEntity
 end
@@ -26,7 +28,19 @@ initial resource ServiceDocument
 	view { GETServiceDocument }
 	path "/"
 	GET -> Sectors
+	GET -> Errors
 end
+
+exception resource InteractionException
+	item InteractionException
+	view { GETException }
+end
+
+resource Errors
+	collection Errors
+	view { NoopGET }
+end
+
 
 resource Sectors
 	collection Sector
@@ -100,6 +114,7 @@ resource Sectors_input
 	path "/Sectors()"
 	GET --> sector_IAuth (OK(sector_IAuth)) id=SectorCode
 	GET --> sector (OK(sector)) id=SectorCode
+	onerror --> Errors
 end
 
 resource Sectors_Reversed
