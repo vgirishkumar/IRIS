@@ -1,3 +1,5 @@
+rim Airline {
+
 events
 	GET GET
 	POST POST
@@ -337,3 +339,5 @@ resource errorHandler
 	item Exception
 	view { GETException }
 end
+
+}

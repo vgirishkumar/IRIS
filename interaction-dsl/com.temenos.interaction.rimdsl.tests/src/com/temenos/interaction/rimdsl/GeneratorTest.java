@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.inject.Inject;
+import com.temenos.interaction.rimdsl.rim.DomainModel;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 
 @InjectWith(RIMDslInjectorProvider.class)
@@ -21,11 +22,12 @@ public class GeneratorTest {
 	@Inject 
 	IGenerator underTest;
 	@Inject
-	ParseHelper<ResourceInteractionModel> parseHelper;
+	ParseHelper<DomainModel> parseHelper;
 	
 	private final static String LINE_SEP = System.getProperty("line.separator");
 	
 	private final static String SIMPLE_STATES_RIM = "" +
+	"rim Simple {" + LINE_SEP +
 	"commands" + LINE_SEP +
 	"	GetEntity" + LINE_SEP +
 	"	GetException" + LINE_SEP +
@@ -46,6 +48,7 @@ public class GeneratorTest {
 	"	item ENTITY" + LINE_SEP +
 	"	actions { UpdateEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"";
 
 	private final static String SIMPLE_STATES_BEHAVIOUR = "" +		
@@ -101,7 +104,8 @@ public class GeneratorTest {
 	
 	@Test
 	public void testGenerateSimpleStates() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(SIMPLE_STATES_RIM);
+		DomainModel domainModel = parseHelper.parse(SIMPLE_STATES_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		System.out.println(fsa.getFiles());
@@ -120,6 +124,7 @@ public class GeneratorTest {
 
 	
 	private final static String SINGLE_STATE_VIEW_COMMAND_ONLY_RIM = "" +
+	"rim Test {" + LINE_SEP +
 	"commands" + LINE_SEP +
 	"	GetEntity" + LINE_SEP +
 	"end" + LINE_SEP +
@@ -128,6 +133,7 @@ public class GeneratorTest {
 	"	collection ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"";
 
 	/*
@@ -135,7 +141,8 @@ public class GeneratorTest {
 	 */
 	@Test
 	public void testGenerateOneFile() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
+		DomainModel domainModel = parseHelper.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		System.out.println(fsa.getFiles());
@@ -148,9 +155,9 @@ public class GeneratorTest {
 
 	@Test
 	public void testGenerateSingleStateViewCommandOnly() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
+		DomainModel domainModel = parseHelper.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
-		underTest.doGenerate(model.eResource(), fsa);
+		underTest.doGenerate(domainModel.eResource(), fsa);
 		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
@@ -158,6 +165,7 @@ public class GeneratorTest {
 	}
 
 	private final static String SINGLE_STATE_ACTION_COMMANDS_RIM = "" +
+	"rim Test {" + LINE_SEP +
 	"commands" + LINE_SEP +
 	"	GetEntity getkey=getvalue" + LINE_SEP +
 	"end" + LINE_SEP +
@@ -166,11 +174,13 @@ public class GeneratorTest {
 	"	collection ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"";
 
 	@Test
 	public void testGenerateSingleStateActionCommands() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(SINGLE_STATE_ACTION_COMMANDS_RIM);
+		DomainModel domainModel = parseHelper.parse(SINGLE_STATE_ACTION_COMMANDS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
@@ -188,6 +198,7 @@ public class GeneratorTest {
 	}
 
 	private final static String MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM = "" +
+	"rim Test {" + LINE_SEP +
 	"commands" + LINE_SEP +
 	"	DoStuff key=value" + LINE_SEP +
 	"	DoSomeStuff keyB=valueB" + LINE_SEP +
@@ -203,11 +214,13 @@ public class GeneratorTest {
 	"	collection ENTITY" + LINE_SEP +
 	"	actions { DoSomeStuff; DoSomeMoreStuff }" + LINE_SEP +
 	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"";
 
 	@Test
 	public void testGenerateMultipleStateMultipleActionCommands() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM);
+		DomainModel domainModel = parseHelper.parse(MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
@@ -233,6 +246,7 @@ public class GeneratorTest {
 	}
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
+			"rim Test {" + LINE_SEP +
 			"events" + LINE_SEP +
 			"	GET GET" + LINE_SEP +
 			"end" + LINE_SEP +
@@ -263,11 +277,13 @@ public class GeneratorTest {
 			"	item ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 			"";
 
 	@Test
 	public void testGenerateTransitionsWithExpressions() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(TRANSITION_WITH_EXPRESSION_RIM);
+		DomainModel domainModel = parseHelper.parse(TRANSITION_WITH_EXPRESSION_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
@@ -299,6 +315,7 @@ public class GeneratorTest {
 	}
 
 	private final static String AUTO_TRANSITION_WITH_URI_LINKAGE_RIM = "" +
+			"rim Test {" + LINE_SEP +
 			"events" + LINE_SEP +
 			"	GET GET" + LINE_SEP +
 			"end" + LINE_SEP +
@@ -324,11 +341,13 @@ public class GeneratorTest {
 			"	item ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 			"";
 
 	@Test
 	public void testGenerateAutoTransitionsWithUriLinkage() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(AUTO_TRANSITION_WITH_URI_LINKAGE_RIM);
+		DomainModel domainModel = parseHelper.parse(AUTO_TRANSITION_WITH_URI_LINKAGE_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
@@ -341,6 +360,7 @@ public class GeneratorTest {
 	}
 
 	private final static String RESOURCE_RELATIONS_RIM = "" +
+			"rim Test {" + LINE_SEP +
 			"commands" + LINE_SEP +
 			"	Noop" + LINE_SEP +
 			"	Update" + LINE_SEP +
@@ -357,11 +377,13 @@ public class GeneratorTest {
 			"   actions { Update }" + LINE_SEP +
 			"   relations { \"edit\" }" + LINE_SEP +
 			"end\r\n" + LINE_SEP +
+			"}" + LINE_SEP +
 			"";
 	
 	@Test
 	public void testGenerateResourcesWithRelations() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(RESOURCE_RELATIONS_RIM);
+		DomainModel domainModel = parseHelper.parse(RESOURCE_RELATIONS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
@@ -396,6 +418,7 @@ public class GeneratorTest {
 	}
 
 	private final static String TRANSITION_WITH_UPDATE_EVENT = "" +
+			"rim Test {" + LINE_SEP +
 			"events" + LINE_SEP +
 			"	GET GET" + LINE_SEP +
 			"	UPDATE PUT" + LINE_SEP +
@@ -426,11 +449,13 @@ public class GeneratorTest {
 			"	GET --> B  (OK(B))" + LINE_SEP +
 			"end" + LINE_SEP +
 
+			"}" + LINE_SEP +
 			"";
 
 	@Test
 	public void testGenerateUpdateTransition() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(TRANSITION_WITH_UPDATE_EVENT);
+		DomainModel domainModel = parseHelper.parse(TRANSITION_WITH_UPDATE_EVENT);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
@@ -452,6 +477,7 @@ public class GeneratorTest {
 	}
 	
 	private final static String RESOURCE_ON_ERROR = "" +
+			"rim Test {" + LINE_SEP +
 			"commands" + LINE_SEP +
 			"	GetEntity" + LINE_SEP +
 			"	Noop" + LINE_SEP +
@@ -467,11 +493,13 @@ public class GeneratorTest {
 			"	item ERROR" + LINE_SEP +
 			"	view { Noop }" + LINE_SEP +
 			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 			"";
 	
 	@Test
 	public void testGenerateOnErrorResource() throws Exception {
-		ResourceInteractionModel model = parseHelper.parse(RESOURCE_ON_ERROR);
+		DomainModel domainModel = parseHelper.parse(RESOURCE_ON_ERROR);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		

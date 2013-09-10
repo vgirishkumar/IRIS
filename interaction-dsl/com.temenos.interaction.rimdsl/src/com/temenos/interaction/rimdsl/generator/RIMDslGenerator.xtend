@@ -19,11 +19,13 @@ import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction
 import com.temenos.interaction.rimdsl.rim.Function
 import com.temenos.interaction.rimdsl.rim.Expression
+import com.temenos.interaction.rimdsl.rim.DomainModel
 
 class RIMDslGenerator implements IGenerator {
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-        val rim = resource.contents.head as ResourceInteractionModel;
+        val domain = resource.contents.head as DomainModel;
+        val rim = domain.rims.get(0) as ResourceInteractionModel;
         // generate Behaviour class
 		fsa.generateFile(resource.className + "Model" + "/" + resource.className+"Behaviour.java", toJavaCode(rim))
         // generate resource classes

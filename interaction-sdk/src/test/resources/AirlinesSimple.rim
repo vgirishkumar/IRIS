@@ -1,3 +1,5 @@
+rim FlightResponder {
+
 events
 	DELETE DELETE
 	GET GET
@@ -120,3 +122,4 @@ resource Passengers_created
 	actions { CreateEntity }
 	path "/Passengers()"
 end
+}

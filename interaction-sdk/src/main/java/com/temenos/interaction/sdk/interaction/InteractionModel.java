@@ -20,6 +20,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
  */
 public class InteractionModel {
 
+	private String name;
 	private List<IMResourceStateMachine> resourceStateMachines = new ArrayList<IMResourceStateMachine>();
 
 	/**
@@ -33,6 +34,7 @@ public class InteractionModel {
 	 * @param edmDataServices odata4j metadata 
 	 */
 	public InteractionModel(EdmDataServices edmDataServices) {
+		name = edmDataServices.getSchemas().get(0).getEntityContainers().get(0).getName();
 		for (EdmEntitySet entitySet : edmDataServices.getEntitySets()) {
 			addResourceStateMachine(createInitialResourceStateMachine(entitySet));
 		}
@@ -43,6 +45,7 @@ public class InteractionModel {
 	 * @param metadata metadata 
 	 */
 	public InteractionModel(Metadata metadata) {
+		name = metadata.getModelName();
 		for (EntityMetadata entityMetadata : metadata.getEntitiesMetadata().values()) {
 			addResourceStateMachine(createInitialResourceStateMachine(entityMetadata));
 		}
@@ -152,4 +155,13 @@ public class InteractionModel {
 		}
 		return null;
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 }

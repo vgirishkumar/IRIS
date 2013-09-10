@@ -1,3 +1,5 @@
+rim test {
+
 events
     GET GET
     PUT PUT
@@ -25,3 +27,5 @@ resource B_update
     item ENTITY
     actions { UpdateEntity }
 end
+
+}

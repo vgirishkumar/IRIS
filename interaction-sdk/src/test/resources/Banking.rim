@@ -1,3 +1,5 @@
+rim Banking {
+
 events
 	AUTHORISE PUT
 	DELETE DELETE
@@ -108,3 +110,4 @@ resource Sectors_Reversed
 	path "/SectorsReversed()"
 	GET *-> sector_Reversed id=SectorCode
 end
+}

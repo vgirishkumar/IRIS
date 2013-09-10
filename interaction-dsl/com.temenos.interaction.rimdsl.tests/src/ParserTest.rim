@@ -1,3 +1,5 @@
+rim ParserTest {
+
 events
 	N POST // New
 	P PUT // Pay
@@ -35,3 +37,5 @@ resource demo_deleted
 	actions {t24Delete}
 	GET -> demo_tickets
 end
+
+}

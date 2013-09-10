@@ -1,6 +1,8 @@
 ##################################################################
 ## Resource Interaction Model (RIM) DSL velocity template
 ##################################################################
+rim ${rim.getName()} {
+
 events
 #foreach ( $rimEvent in ${commands.getRimEvents().entrySet()} )
 	$rimEvent.getKey() $rimEvent.getValue()
@@ -153,3 +155,4 @@ end
 #end
 #end
 #end
+}

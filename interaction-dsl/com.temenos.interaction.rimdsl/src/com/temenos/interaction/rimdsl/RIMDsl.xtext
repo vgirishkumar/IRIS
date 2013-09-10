@@ -2,14 +2,43 @@ grammar com.temenos.interaction.rimdsl.RIMDsl with org.eclipse.xtext.common.Term
 
 generate rim "http://www.temenos.com/interaction/rimdsl/RimDsl"
 
+
+DomainModel:
+    (rims += AbstractElement)*
+;
+
+DomainDeclaration:
+    'domain' name = QualifiedName '{'
+        (rims += AbstractElement)*
+    '}'
+;
+ 
+AbstractElement:
+  DomainDeclaration | ResourceInteractionModel | Import
+;
+
+QualifiedName:
+  ID ('.' ID)*
+;
+
+Import:
+  'import' importedNamespace = QualifiedNameWithWildcard
+;
+  
+QualifiedNameWithWildcard:
+  QualifiedName '.*'?
+;
+
 ResourceInteractionModel:
-    ('events' 
-        events+=Event+ 
-    'end')?
-    ('commands' 
-        commands+=Command+ 
-    'end')?
-    states+=State*
+    'rim' name = ID '{'
+        ('events'
+            events+=Event+ 
+        'end')?
+        ('commands'
+            commands+=Command+ 
+        'end')?
+        (states += State)*
+    '}'
 ;
 
 Event:

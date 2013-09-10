@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.net.URL;
 
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.junit4.InjectWith;
 import org.eclipse.xtext.junit4.XtextRunner;
 import org.eclipse.xtext.junit4.util.ParseHelper;
@@ -14,6 +16,7 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
+import com.temenos.interaction.rimdsl.rim.DomainModel;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction;
 import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
@@ -25,11 +28,12 @@ import com.temenos.interaction.rimdsl.rim.Transition;
 public class ParserTest {
 
 	@Inject
-	ParseHelper<ResourceInteractionModel> parser;
+	ParseHelper<DomainModel> parser;
 
 	@Test 
 	public void parseModel() throws Exception {
-		ResourceInteractionModel model = parser.parse(loadTestRIM());
+		DomainModel domainModel = parser.parse(loadTestRIM());
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		assertEquals(4, model.getStates().size());
 	    assertEquals("demo_initial", model.getStates().get(0).getName());
 	    assertEquals("demo_tickets", model.getStates().get(1).getName());
@@ -48,6 +52,7 @@ public class ParserTest {
 	private final static String LINE_SEP = System.getProperty("line.separator");
 	
 	private final static String SIMPLE_STATES_RIM = "" +
+	"rim Simple {" + LINE_SEP +	
 	"commands" + LINE_SEP +
 	"	GetEntity properties" + LINE_SEP +
 	"	UpdateEntity properties" + LINE_SEP +
@@ -62,12 +67,15 @@ public class ParserTest {
 	"	item ENTITY" + LINE_SEP +
 	"	actions { UpdateEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
+	"}" + LINE_SEP +  // end rim
 	"";
 
 	@Test
 	public void testParseSimpleStates() throws Exception {
-		ResourceInteractionModel model = parser.parse(SIMPLE_STATES_RIM);
-		assertEquals(0, model.eResource().getErrors().size());
+		DomainModel domainModel = parser.parse(SIMPLE_STATES_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
 		
 		// there should be exactly two states
 		assertEquals(2, model.getStates().size());
@@ -86,6 +94,7 @@ public class ParserTest {
 	}
 
 	private final static String SINGLE_STATE_VIEW_COMMAND_ONLY_RIM = "" +
+	"rim Test {" + LINE_SEP +	
 	"commands" + LINE_SEP +
 	"	GetEntity properties" + LINE_SEP +
 	"end" + LINE_SEP +
@@ -94,11 +103,13 @@ public class ParserTest {
 	"	collection ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end\r\n" + LINE_SEP +
+	"}" + LINE_SEP +  // end rim
 	"";
 
 	@Test
 	public void testParseSingleStateViewCommandOnly() throws Exception {
-		ResourceInteractionModel model = parser.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
+		DomainModel domainModel = parser.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		assertEquals(0, model.eResource().getErrors().size());
 		
 		// there should be exactly one states
@@ -110,24 +121,29 @@ public class ParserTest {
 	}
 	
 	private final static String SINGLE_STATE_NO_COMMANDS_RIM = "" +
+	"rim Test {" + LINE_SEP +	
 	"initial resource A" + LINE_SEP +
 	"	collection ENTITY" + LINE_SEP +
 	"end\r\n" + LINE_SEP +
+	"}" + LINE_SEP +  // end rim
 	"";
 
 	@Test
 	public void testParseSingleStateNoCommands() throws Exception {
-		ResourceInteractionModel model = parser.parse(SINGLE_STATE_NO_COMMANDS_RIM);
+		DomainModel domainModel = parser.parse(SINGLE_STATE_NO_COMMANDS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		
 		// there should be exactly one state
 		assertEquals(1, model.getStates().size());
 	    assertEquals("A", model.getStates().get(0).getName());
 
 	    // there should be an error indicating a problem with the missing actions
-		assertEquals(1, model.eResource().getErrors().size());
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(1, errors.size());
 	}
 
 	private final static String SIMPLE_TRANSITION_RIM = "" +
+			"rim Test {" + LINE_SEP +	
 			"commands" + LINE_SEP +
 			"	GetEntity properties" + LINE_SEP +
 			"	GetEntities properties" + LINE_SEP +
@@ -143,11 +159,13 @@ public class ParserTest {
 			"	item ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
 			"";
 
 	@Test
 	public void testParseStatesWithTransition() throws Exception {
-		ResourceInteractionModel model = parser.parse(SIMPLE_TRANSITION_RIM);
+		DomainModel domainModel = parser.parse(SIMPLE_TRANSITION_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		assertEquals(0, model.eResource().getErrors().size());
 		
 		// there should be exactly two states
@@ -161,6 +179,7 @@ public class ParserTest {
 	}
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
+			"rim Test {" + LINE_SEP +	
 			"commands" + LINE_SEP +
 			"	GetEntity properties" + LINE_SEP +
 			"	GetEntities properties" + LINE_SEP +
@@ -179,11 +198,13 @@ public class ParserTest {
 			"	item ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
 			"";
 
 	@Test
 	public void testParseStatesWithTransitionEvalExpression() throws Exception {
-		ResourceInteractionModel model = parser.parse(TRANSITION_WITH_EXPRESSION_RIM);
+		DomainModel domainModel = parser.parse(TRANSITION_WITH_EXPRESSION_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		assertEquals(0, model.eResource().getErrors().size());
 		
 		// there should be exactly two states
@@ -217,6 +238,7 @@ public class ParserTest {
 	}
 
 	private final static String EXCEPTION_RESOURCE_RIM = "" +
+			"rim Test {" + LINE_SEP +	
 			"commands" + LINE_SEP +
 			"	Noop properties" + LINE_SEP +
 			"end" + LINE_SEP +
@@ -225,11 +247,13 @@ public class ParserTest {
 			"	collection ENTITY" + LINE_SEP +
 			"   view { Noop }" + LINE_SEP +
 			"end\r\n" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
 			"";
 
 	@Test
 	public void testParseExceptionResource() throws Exception {
-		ResourceInteractionModel model = parser.parse(EXCEPTION_RESOURCE_RIM);
+		DomainModel domainModel = parser.parse(EXCEPTION_RESOURCE_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		assertEquals(0, model.eResource().getErrors().size());
 		
 		// there should be exactly one state
@@ -242,6 +266,7 @@ public class ParserTest {
 	}
 
 	private final static String RESOURCE_RELATIONS_RIM = "" +
+			"rim Test {" + LINE_SEP +	
 			"commands" + LINE_SEP +
 			"	Noop" + LINE_SEP +
 			"	Update" + LINE_SEP +
@@ -258,11 +283,13 @@ public class ParserTest {
 			"   actions { Update }" + LINE_SEP +
 			"   relations { \"edit\" }" + LINE_SEP +
 			"end\r\n" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
 			"";
 
 	@Test
 	public void testParseResourceRelations() throws Exception {
-		ResourceInteractionModel model = parser.parse(RESOURCE_RELATIONS_RIM);
+		DomainModel domainModel = parser.parse(RESOURCE_RELATIONS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		assertEquals(0, model.eResource().getErrors().size());
 		
 		// there should be two states
@@ -279,6 +306,7 @@ public class ParserTest {
 	}
 
 	private final static String RESOURCE_ON_ERROR = "" +
+			"rim Test {" + LINE_SEP +	
 			"commands" + LINE_SEP +
 			"	GetEntity" + LINE_SEP +
 			"	NoopGET" + LINE_SEP +
@@ -294,11 +322,13 @@ public class ParserTest {
 			"	item ERROR" + LINE_SEP +
 			"	view { NoopGET }" + LINE_SEP +
 			"end" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
 			"";
 
 	@Test
 	public void testParseOnErrorResource() throws Exception {
-		ResourceInteractionModel model = parser.parse(RESOURCE_ON_ERROR);
+		DomainModel domainModel = parser.parse(RESOURCE_ON_ERROR);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		assertEquals(0, model.eResource().getErrors().size());
 		
 		// there should be two states

@@ -1,5 +1,5 @@
 // test comment
-
+rim Simple {
 
 events
 	POST POST // New
@@ -67,3 +67,5 @@ resource newNote
     path "/notes/new"
     PUT --> note
 end
+
+}
