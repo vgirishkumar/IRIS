@@ -4,25 +4,25 @@ generate rim "http://www.temenos.com/interaction/rimdsl/RimDsl"
 
 
 DomainModel:
-    (rims += AbstractElement)*
+    (rims += Ref)*
 ;
 
 DomainDeclaration:
     'domain' name = QualifiedName '{'
-        (rims += AbstractElement)*
+        (rims += Ref)*
     '}'
 ;
  
-AbstractElement:
-  DomainDeclaration | ResourceInteractionModel | Import
+Ref:
+  DomainDeclaration | ResourceInteractionModel | Use
 ;
 
 QualifiedName:
   ID ('.' ID)*
 ;
 
-Import:
-  'import' importedNamespace = QualifiedNameWithWildcard
+Use:
+  'use' importedNamespace = QualifiedNameWithWildcard
 ;
   
 QualifiedNameWithWildcard:

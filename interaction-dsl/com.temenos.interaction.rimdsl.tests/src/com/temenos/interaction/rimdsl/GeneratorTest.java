@@ -112,13 +112,13 @@ public class GeneratorTest {
 		assertEquals(4, fsa.getFiles().size());
 		
 		// the behaviour class
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/SimpleBehaviour.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertEquals(SIMPLE_STATES_BEHAVIOUR, fsa.getFiles().get(expectedKey).toString());
 		
 		// one class per resource
-		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java"));
-		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/BResourceState.java"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Simple/AResourceState.java"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Simple/BResourceState.java"));
 		
 	}
 
@@ -148,8 +148,39 @@ public class GeneratorTest {
 		System.out.println(fsa.getFiles());
 		assertEquals(2, fsa.getFiles().size());
 
-		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/__synthetic0Behaviour.java"));
-		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/TestBehaviour.java"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/AResourceState.java"));
+
+	}
+
+	private final static String SINGLE_STATE_WITH_PACKAGE_RIM = "" +
+	"domain blah {" + LINE_SEP +
+	"rim Test {" + LINE_SEP +
+	"commands" + LINE_SEP +
+	"	GetEntity" + LINE_SEP +
+	"end" + LINE_SEP +
+			
+	"initial resource A" + LINE_SEP +
+	"	collection ENTITY" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"end" + LINE_SEP +
+	"}" + LINE_SEP +
+	"}" + LINE_SEP +
+	"";
+
+	/*
+	 * doGenerate should producer one file per resource
+	 */
+	@Test
+	public void testGenerateFileInPackage() throws Exception {
+		DomainModel domainModel = parseHelper.parse(SINGLE_STATE_WITH_PACKAGE_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(domainModel.eResource(), fsa);
+		System.out.println(fsa.getFiles());
+		assertEquals(2, fsa.getFiles().size());
+
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "blah/TestBehaviour.java"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "blah/Test/AResourceState.java"));
 
 	}
 
@@ -159,7 +190,7 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(domainModel.eResource(), fsa);
 		
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertTrue(fsa.getFiles().get(expectedKey).toString().contains("new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties())"));
 	}
@@ -184,7 +215,7 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 
 		String output = fsa.getFiles().get(expectedKey).toString();
@@ -224,7 +255,7 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
-		String resouceAKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
+		String resouceAKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resouceAKey));
 		String resourceA = fsa.getFiles().get(resouceAKey).toString();
 		int indexOfFirstNewProperties = resourceA.indexOf("actionViewProperties = new Properties()");
@@ -232,7 +263,7 @@ public class GeneratorTest {
 		assertTrue(resourceA.contains("actionViewProperties.put(\"key\", \"value\""));
 		assertTrue(resourceA.contains("new Action(\"DoStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
 
-		String resouceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/BResourceState.java";
+		String resouceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/BResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resouceBKey));
 		String resourceB = fsa.getFiles().get(resouceBKey).toString();
 		int indexOfSecondNewProperties = resourceB.indexOf("actionViewProperties = new Properties()", indexOfFirstNewProperties);
@@ -287,7 +318,7 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 		
@@ -351,7 +382,7 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/create_pseudo_stateResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/create_pseudo_stateResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 		
@@ -388,7 +419,7 @@ public class GeneratorTest {
 		underTest.doGenerate(model.eResource(), fsa);
 		
 		// collection
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/accTransactionsResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/accTransactionsResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String accTransactionsOutput = fsa.getFiles().get(expectedKey).toString();
 		// the constructor part
@@ -403,7 +434,7 @@ public class GeneratorTest {
 		assertTrue(accTransactionsOutput.contains(expectedAccTransactionsRelArray));
 		
 		// item
-		expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/accTransactionResourceState.java";
+		expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/accTransactionResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String accTransactionOutput = fsa.getFiles().get(expectedKey).toString();
 		// the constructor part
@@ -459,17 +490,17 @@ public class GeneratorTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 		
-		String resourceAKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
+		String resourceAKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceAKey));
 		String resourceA = fsa.getFiles().get(resourceAKey).toString();
 		assertTrue(resourceA.contains("sA.addTransitionForEachItem(\"GET\", sB, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions, \"B\");"));
 
-		String resourceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/BResourceState.java";
+		String resourceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/BResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceBKey));
 		String resourceB = fsa.getFiles().get(resourceBKey).toString();
 		assertTrue(resourceB.contains("sB.addTransition(\"PUT\", sB_pseudo, uriLinkageEntityProperties, uriLinkageProperties, 0, conditionalLinkExpressions, \"B_pseudo\");"));
 
-		String resourceB_pseudoKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/B_pseudoResourceState.java";
+		String resourceB_pseudoKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/B_pseudoResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceB_pseudoKey));
 		String resourceB_pseudo = fsa.getFiles().get(resourceB_pseudoKey).toString();
 		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sA, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
@@ -504,7 +535,7 @@ public class GeneratorTest {
 		underTest.doGenerate(model.eResource(), fsa);
 		
 		// collection
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/AResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "__synthetic0Model/Test/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"__synthetic0Model.AE\"));"));

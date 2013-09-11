@@ -19,21 +19,41 @@ import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction
 import com.temenos.interaction.rimdsl.rim.Function
 import com.temenos.interaction.rimdsl.rim.Expression
-import com.temenos.interaction.rimdsl.rim.DomainModel
+import javax.inject.Inject
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 class RIMDslGenerator implements IGenerator {
 	
+	@Inject extension IQualifiedNameProvider
+	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-        val domain = resource.contents.head as DomainModel;
-        val rim = domain.rims.get(0) as ResourceInteractionModel;
-        // generate Behaviour class
-		fsa.generateFile(resource.className + "Model" + "/" + resource.className+"Behaviour.java", toJavaCode(rim))
-        // generate resource classes
-        for (resourceState : rim.states) {
-            fsa.generateFile(resource.className + "Model" + "/" + resourceState.name+"ResourceState.java", toJavaCode(rim, resourceState))
+        for (rim : resource.allContents.toIterable.filter(typeof(ResourceInteractionModel))) {
+            generate(resource, rim, fsa);
         }
 	}
 		
+	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
+        // generate Behaviour class
+        var defaultModelRootPath = resource.className + "Model"
+        var domainFqPath = ""
+        // handle default domain (i.e. domain not specified)
+        if (rim.eContainer.fullyQualifiedName == null) {
+            domainFqPath = defaultModelRootPath + "/" + rim.fullyQualifiedName.toString("/")
+        } else {
+            domainFqPath = rim.fullyQualifiedName.toString("/")
+        }
+        fsa.generateFile(domainFqPath+"Behaviour.java", toJavaCode(rim))
+        // generate resource classes
+        for (resourceState : rim.states) {
+            val fqPath = resourceState.fullyQualifiedName.toString("/")
+            var statePath = fqPath;
+            if (rim.eContainer.fullyQualifiedName == null) {
+                statePath = defaultModelRootPath + "/" + fqPath
+            }
+            fsa.generateFile(statePath+"ResourceState.java", toJavaCode(rim, resourceState))
+        }
+	}
+	
 	def className(Resource res) {
 		var name = res.URI.lastSegment
 		return name.substring(0, name.indexOf('.'))
