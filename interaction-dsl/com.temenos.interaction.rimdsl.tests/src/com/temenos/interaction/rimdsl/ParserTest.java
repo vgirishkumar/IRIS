@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
+import com.temenos.interaction.rimdsl.rim.DomainDeclaration;
 import com.temenos.interaction.rimdsl.rim.DomainModel;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction;
 import com.temenos.interaction.rimdsl.rim.OKFunction;
@@ -341,4 +342,58 @@ public class ParserTest {
 	    //AE is the error handler for A
 	    assertEquals(r2.getName(), r1.getErrorState().getName());
 	}
+	
+	private final static String TRANSITION_WITH_USE_RIMS = "" +
+			"domain TestDomain {" + LINE_SEP +	
+			"    rim ONE {" + LINE_SEP +
+//			"        use TestDomain.TWO" + LINE_SEP +
+			"        commands" + LINE_SEP +
+			"	         NoopGET" + LINE_SEP +
+			"        end" + LINE_SEP +
+			"        initial resource A" + LINE_SEP +
+			"	         collection ENTITY" + LINE_SEP +
+			"	         view { NoopGET }" + LINE_SEP +
+			"	         GET -> TestDomain.TWO.B" + LINE_SEP +
+			"        end" + LINE_SEP +
+			"    }" + LINE_SEP +  // end rim
+			"    rim TWO {" + LINE_SEP +
+//			"        use TestDomain.ONE.*" + LINE_SEP +
+			"        commands" + LINE_SEP +
+			"	         NoopGET" + LINE_SEP +
+			"        end" + LINE_SEP +
+			"        initial resource B" + LINE_SEP +
+			"	         collection ENTITY" + LINE_SEP +
+			"	         view { NoopGET }" + LINE_SEP +
+			"	         GET -> ONE.A" + LINE_SEP +
+			"	         GET -> A" + LINE_SEP +
+			"        end" + LINE_SEP +
+			"    }" + LINE_SEP +  // end rim
+			"}" + LINE_SEP +  // end domain
+			"" + LINE_SEP;
+
+	@Test
+	public void testParseTransitionWithUse() throws Exception {
+		DomainModel rootModel = parser.parse(TRANSITION_WITH_USE_RIMS);
+
+		// there should be one domain
+		assertEquals(1, rootModel.getRims().size());
+		// there should be two rims
+		DomainDeclaration domainModel = (DomainDeclaration) rootModel.getRims().get(0);
+		assertEquals(2, domainModel.getRims().size());
+
+		// there should be one state in each rim and no errors
+		ResourceInteractionModel model1 = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors1 = model1.eResource().getErrors();
+		assertEquals(0, errors1.size());
+		assertEquals(1, model1.getStates().size());
+	    assertEquals("A", model1.getStates().get(0).getName());
+
+		ResourceInteractionModel model2 = (ResourceInteractionModel) domainModel.getRims().get(1);
+		EList<Resource.Diagnostic> errors2 = model2.eResource().getErrors();
+		assertEquals(0, errors2.size());
+		assertEquals(1, model2.getStates().size());
+	    assertEquals("B", model2.getStates().get(0).getName());
+
+	}
+	
 }

@@ -60,15 +60,15 @@ State:
 ;
 
 Transition:
-    (event=[Event] title=Title? '->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
+    (event=[Event] title=Title? '->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
 TransitionForEach:
-    (event=[Event] title=Title? '*->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
+    (event=[Event] title=Title? '*->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
 TransitionAuto:
-    (event=[Event] '-->' state=[State] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
+    (event=[Event] '-->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
 Expression:
