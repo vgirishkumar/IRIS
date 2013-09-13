@@ -1,3 +1,4 @@
+domain AirlineModel {
 rim Airline {
 
 events
@@ -340,4 +341,5 @@ resource errorHandler
 	view { GETException }
 end
 
+}
 }
