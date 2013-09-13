@@ -1,4 +1,5 @@
 // test comment
+domain SimpleModel {
 rim Simple {
 
 events
@@ -68,4 +69,5 @@ resource newNote
     PUT --> note
 end
 
+}
 }
