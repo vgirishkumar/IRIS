@@ -20,6 +20,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
  */
 public class InteractionModel {
 
+	private String domain;
 	private String name;
 	private List<IMResourceStateMachine> resourceStateMachines = new ArrayList<IMResourceStateMachine>();
 
@@ -162,6 +163,14 @@ public class InteractionModel {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getDomain() {
+		return domain;
+	}
+
+	public void setDomain(String domain) {
+		this.domain = domain;
 	}
 	
 }

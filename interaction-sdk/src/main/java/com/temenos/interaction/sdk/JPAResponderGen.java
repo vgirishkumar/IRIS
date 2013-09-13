@@ -186,6 +186,7 @@ public class JPAResponderGen {
 	private boolean writeArtefacts(String modelName, List<EntityInfo> entitiesInfo, Commands commands, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		boolean ok = true;
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
+		interactionModel.setDomain(namespace);
 		
 		//Create the source directory
 		new File(srcOutputPath + "/" + namespace.replace(".", "/")).mkdirs();

@@ -1,0 +1,26 @@
+domain TestDomain {
+    use Common.Global.*
+    use ONE.*
+    
+    rim ONE {
+        commands
+             NoopGET
+        end
+        initial resource A
+             collection ENTITY
+             view { NoopGET }
+             GET -> TestDomain.TWO.B
+        end
+    }
+    rim TWO {
+        commands
+             NoopGET
+        end
+        initial resource B
+             collection ENTITY
+             view { NoopGET }
+             GET -> ONE.A
+             GET -> A
+        end
+    }
+}

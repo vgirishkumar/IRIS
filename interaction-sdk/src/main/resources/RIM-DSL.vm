@@ -1,6 +1,9 @@
 ##################################################################
 ## Resource Interaction Model (RIM) DSL velocity template
 ##################################################################
+#if(${rim.getDomain()})
+domain ${rim.getDomain()} {
+#end
 rim ${rim.getName()} {
 
 events
@@ -156,3 +159,6 @@ end
 #end
 #end
 }
+#if(${rim.getDomain()})
+}
+#end

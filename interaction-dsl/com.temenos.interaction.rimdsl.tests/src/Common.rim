@@ -1,0 +1,18 @@
+domain Common {
+    
+    rim Global {
+        events
+            N POST // New
+            P PUT // Pay
+            U PUT // Used
+            C DELETE // Cancel
+            GET GET
+        end
+
+        commands
+            t24Get z
+            t24Delete z
+        end
+    }
+}
+

@@ -72,7 +72,7 @@ public class TestRimDslGenerator {
 	
 	@Test
 	public void testGenerateRimDslAirlines() {
-		String dsl = createAirlineModelDSL(true);
+		String dsl = createAirlineModelDSL(true, null);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -80,8 +80,17 @@ public class TestRimDslGenerator {
 	}
 
 	@Test
+	public void testGenerateRimDslDomain() {
+		String dsl = createAirlineModelDSL(true, "airline");
+		
+		//Check results
+		assertTrue(dsl != null && !dsl.equals(""));
+		assertTrue(dsl.contains("domain airline {"));
+	}
+
+	@Test
 	public void testGenerateRimDslAirlinesNonStrictOData() {
-		String dsl = createAirlineModelDSL(false);
+		String dsl = createAirlineModelDSL(false, null);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -126,11 +135,12 @@ public class TestRimDslGenerator {
 		assertEquals(readTextFile(RIM_DSL_BANKING_FILE), dsl);
 	}
 	
-	public String createAirlineModelDSL(boolean strictOData) {
+	public String createAirlineModelDSL(boolean strictOData, String domain) {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
-
+		interactionModel.setDomain(domain);
+		
 		//Add transitions
 		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
 		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");

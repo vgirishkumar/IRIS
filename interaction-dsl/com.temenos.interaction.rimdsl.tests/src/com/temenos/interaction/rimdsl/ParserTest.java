@@ -4,16 +4,23 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.junit4.InjectWith;
 import org.eclipse.xtext.junit4.XtextRunner;
 import org.eclipse.xtext.junit4.util.ParseHelper;
+import org.eclipse.xtext.resource.IEObjectDescription;
+import org.eclipse.xtext.scoping.IScope;
+import org.eclipse.xtext.scoping.IScopeProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.temenos.interaction.rimdsl.rim.DomainDeclaration;
@@ -30,7 +37,9 @@ public class ParserTest {
 
 	@Inject
 	ParseHelper<DomainModel> parser;
-
+	@Inject
+	private IScopeProvider scopeProvider;
+	
 	@Test 
 	public void parseModel() throws Exception {
 		DomainModel domainModel = parser.parse(loadTestRIM());
@@ -48,6 +57,18 @@ public class ParserTest {
 		return rim;
 	}
 
+	@Test 
+	public void parseDomainModel() throws Exception {
+		DomainModel domainModel = parser.parse(loadTestDomainRIM());
+		EList<Resource.Diagnostic> errors = domainModel.eResource().getErrors();
+		assertEquals(0, errors.size());
+	}
+	
+	private String loadTestDomainRIM() throws IOException {
+		URL url = Resources.getResource("TestDomain.rim");
+		String rim = Resources.toString(url, Charsets.UTF_8);
+		return rim;
+	}
 
 
 	private final static String LINE_SEP = System.getProperty("line.separator");
@@ -343,10 +364,9 @@ public class ParserTest {
 	    assertEquals(r2.getName(), r1.getErrorState().getName());
 	}
 	
-	private final static String TRANSITION_WITH_USE_RIMS = "" +
+	private final static String TRANSITION_WITHOUT_USE_RIMS = "" +
 			"domain TestDomain {" + LINE_SEP +	
 			"    rim ONE {" + LINE_SEP +
-//			"        use TestDomain.TWO" + LINE_SEP +
 			"        commands" + LINE_SEP +
 			"	         NoopGET" + LINE_SEP +
 			"        end" + LINE_SEP +
@@ -357,7 +377,69 @@ public class ParserTest {
 			"        end" + LINE_SEP +
 			"    }" + LINE_SEP +  // end rim
 			"    rim TWO {" + LINE_SEP +
-//			"        use TestDomain.ONE.*" + LINE_SEP +
+			"        commands" + LINE_SEP +
+			"	         NoopGET" + LINE_SEP +
+			"        end" + LINE_SEP +
+			"        initial resource B" + LINE_SEP +
+			"	         collection ENTITY" + LINE_SEP +
+			"	         view { NoopGET }" + LINE_SEP +
+			"	         GET -> ONE.A" + LINE_SEP +
+			"	         GET -> A" + LINE_SEP +
+			"        end" + LINE_SEP +
+			"    }" + LINE_SEP +  // end rim
+			"}" + LINE_SEP +  // end domain
+			"" + LINE_SEP;
+
+	@Test
+	public void testParseTransitionWithoutUse() throws Exception {
+		DomainModel rootModel = parser.parse(TRANSITION_WITHOUT_USE_RIMS);
+
+		// there should be one domain
+		assertEquals(1, rootModel.getRims().size());
+		// there should be two rims
+		DomainDeclaration domainModel = (DomainDeclaration) rootModel.getRims().get(0);
+		assertEquals(2, domainModel.getRims().size());
+
+		// there should be one state in each rim and no errors
+		ResourceInteractionModel model1 = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors1 = model1.eResource().getErrors();
+		assertEquals(0, errors1.size());
+		assertEquals(1, model1.getStates().size());
+	    assertEquals("A", model1.getStates().get(0).getName());
+
+		ResourceInteractionModel model2 = (ResourceInteractionModel) domainModel.getRims().get(1);
+		EList<Resource.Diagnostic> errors2 = model2.eResource().getErrors();
+		assertEquals(0, errors2.size());
+		assertEquals(1, model2.getStates().size());
+	    assertEquals("B", model2.getStates().get(0).getName());
+	    
+	    // test scope for resource A
+	    State A = model1.getStates().get(0);
+	    EReference refA = A.eContainmentFeature();
+	    IScope scopeA = scopeProvider.getScope(model1, refA);
+	    assertEquals("A, ONE.A, TWO.B, TestDomain.ONE.A, TestDomain.TWO.B", formStringObjectInScope(scopeA));
+
+	    // test scope for resource B
+	    State B = model2.getStates().get(0);
+	    EReference refB = B.eContainmentFeature();
+	    IScope scopeB = scopeProvider.getScope(model2, refB);
+	    assertEquals("B, ONE.A, TWO.B, TestDomain.ONE.A, TestDomain.TWO.B", formStringObjectInScope(scopeB));
+	}
+	
+	private final static String TRANSITION_WITH_USE_RIMS = "" +
+			"domain TestDomain {" + LINE_SEP +	
+			"    use TestDomain.ONE.*" + LINE_SEP +
+			"    rim ONE {" + LINE_SEP +
+			"        commands" + LINE_SEP +
+			"	         NoopGET" + LINE_SEP +
+			"        end" + LINE_SEP +
+			"        initial resource A" + LINE_SEP +
+			"	         collection ENTITY" + LINE_SEP +
+			"	         view { NoopGET }" + LINE_SEP +
+			"	         GET -> TestDomain.TWO.B" + LINE_SEP +
+			"        end" + LINE_SEP +
+			"    }" + LINE_SEP +  // end rim
+			"    rim TWO {" + LINE_SEP +
 			"        commands" + LINE_SEP +
 			"	         NoopGET" + LINE_SEP +
 			"        end" + LINE_SEP +
@@ -379,21 +461,41 @@ public class ParserTest {
 		assertEquals(1, rootModel.getRims().size());
 		// there should be two rims
 		DomainDeclaration domainModel = (DomainDeclaration) rootModel.getRims().get(0);
-		assertEquals(2, domainModel.getRims().size());
+		assertEquals(3, domainModel.getRims().size());
 
 		// there should be one state in each rim and no errors
-		ResourceInteractionModel model1 = (ResourceInteractionModel) domainModel.getRims().get(0);
+		ResourceInteractionModel model1 = (ResourceInteractionModel) domainModel.getRims().get(1);
 		EList<Resource.Diagnostic> errors1 = model1.eResource().getErrors();
 		assertEquals(0, errors1.size());
 		assertEquals(1, model1.getStates().size());
 	    assertEquals("A", model1.getStates().get(0).getName());
 
-		ResourceInteractionModel model2 = (ResourceInteractionModel) domainModel.getRims().get(1);
+		ResourceInteractionModel model2 = (ResourceInteractionModel) domainModel.getRims().get(2);
 		EList<Resource.Diagnostic> errors2 = model2.eResource().getErrors();
 		assertEquals(0, errors2.size());
 		assertEquals(1, model2.getStates().size());
 	    assertEquals("B", model2.getStates().get(0).getName());
+	    
+	    // test scope for resource A
+	    State A = model1.getStates().get(0);
+	    EReference refA = A.eContainmentFeature();
+	    IScope scopeA = scopeProvider.getScope(model1, refA);
+	    assertEquals("A, ONE.A, TWO.B, TestDomain.ONE.A, TestDomain.TWO.B", formStringObjectInScope(scopeA));
 
+	    // test scope for resource B
+	    State B = model2.getStates().get(0);
+	    EReference refB = B.eContainmentFeature();
+	    IScope scopeB = scopeProvider.getScope(model2, refB);
+	    assertEquals("B, ONE.A, TWO.B, A, TestDomain.ONE.A, TestDomain.TWO.B", formStringObjectInScope(scopeB));
+	}
+	
+	private String formStringObjectInScope(IScope scope) {
+	    List<String> actualList = Lists.newArrayList();
+	    for (IEObjectDescription desc : scope.getAllElements()) {
+	    	actualList.add(desc.getName().toString());
+	    }
+	    String actual = Joiner.on(", ").join(actualList);
+	    return actual;
 	}
 	
 }

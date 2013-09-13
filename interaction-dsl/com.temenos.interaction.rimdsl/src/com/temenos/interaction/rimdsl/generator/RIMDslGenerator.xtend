@@ -34,22 +34,11 @@ class RIMDslGenerator implements IGenerator {
 		
 	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
         // generate Behaviour class
-        var defaultModelRootPath = resource.className + "Model"
-        var domainFqPath = ""
-        // handle default domain (i.e. domain not specified)
-        if (rim.eContainer.fullyQualifiedName == null) {
-            domainFqPath = defaultModelRootPath + "/" + rim.fullyQualifiedName.toString("/")
-        } else {
-            domainFqPath = rim.fullyQualifiedName.toString("/")
-        }
-        fsa.generateFile(domainFqPath+"Behaviour.java", toJavaCode(rim))
+        var rimPath = rim.fullyQualifiedName.toString("/")
+        fsa.generateFile(rimPath+"Behaviour.java", toJavaCode(rim))
         // generate resource classes
         for (resourceState : rim.states) {
-            val fqPath = resourceState.fullyQualifiedName.toString("/")
-            var statePath = fqPath;
-            if (rim.eContainer.fullyQualifiedName == null) {
-                statePath = defaultModelRootPath + "/" + fqPath
-            }
+            val statePath = resourceState.fullyQualifiedName.toString("/")
             fsa.generateFile(statePath+"ResourceState.java", toJavaCode(rim, resourceState))
         }
 	}
@@ -60,7 +49,7 @@ class RIMDslGenerator implements IGenerator {
 	}
 	
 	def toJavaCode(ResourceInteractionModel rim, State state) '''
-        package «rim.eResource.className»Model;
+        package «rim.fullyQualifiedName»;
         import java.util.ArrayList;
         import java.util.HashMap;
         import java.util.List;
@@ -88,9 +77,9 @@ class RIMDslGenerator implements IGenerator {
 
             public «state.name»ResourceState(ResourceFactory factory) {
                 «IF state.entity.isCollection»
-                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + rim.eResource.className + "Model." + state.errorState.name + "\")" } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
                 «ELSEIF state.entity.isItem»
-                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.eResource.className + "Model." + state.errorState.name + "\")" } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
                 «ENDIF»
                 this.factory = factory;
             }
@@ -107,7 +96,7 @@ class RIMDslGenerator implements IGenerator {
                 // create regular transitions
                 «FOR t : state.transitions»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«rim.eResource.className»Model.«t.state.name»");
+                    ResourceState s«t.state.name» = factory.getResourceState("«rim.fullyQualifiedName».«t.state.name»");
                     «ENDIF»
                     «produceTransitions(state, t)»
                 «ENDFOR»
@@ -115,7 +104,7 @@ class RIMDslGenerator implements IGenerator {
                 // create foreach transitions
                 «FOR t : state.transitionsForEach»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«rim.eResource.className»Model.«t.state.name»");
+                    ResourceState s«t.state.name» = factory.getResourceState("«rim.fullyQualifiedName».«t.state.name»");
                     «ENDIF»
                     «produceTransitionsForEach(state, t)»
                 «ENDFOR»
@@ -123,7 +112,7 @@ class RIMDslGenerator implements IGenerator {
                 // create AUTO transitions
                 «FOR t : state.transitionsAuto»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«rim.eResource.className»Model.«t.state.name»");
+                    ResourceState s«t.state.name» = factory.getResourceState("«rim.fullyQualifiedName».«t.state.name»");
                     «ENDIF»
                     «produceTransitionsAuto(state, t)»
                 «ENDFOR»
@@ -145,7 +134,9 @@ class RIMDslGenerator implements IGenerator {
 	'''
 	
 	def toJavaCode(ResourceInteractionModel rim) '''
-		package «rim.eResource.className»Model;
+		«IF rim.eContainer.fullyQualifiedName != null»
+		package «rim.eContainer.fullyQualifiedName»;
+		«ENDIF»
 
 		import java.util.ArrayList;
 		import java.util.HashMap;
@@ -164,10 +155,10 @@ class RIMDslGenerator implements IGenerator {
 		import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 		import com.temenos.interaction.core.resource.ResourceMetadataManager;
 		
-		public class «rim.eResource.className»Behaviour {
+		public class «rim.name»Behaviour {
 		
 		    public static void main(String[] args) {
-		        «rim.eResource.className»Behaviour behaviour = new «rim.eResource.className»Behaviour();
+		        «rim.name»Behaviour behaviour = new «rim.name»Behaviour();
 		        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(behaviour.getRIM(), behaviour.getExceptionResource());
 		        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, new ResourceMetadataManager(hypermediaEngine).getMetadata());
 		        System.out.println(validator.graph());
@@ -185,7 +176,7 @@ class RIMDslGenerator implements IGenerator {
 		        «FOR c : rim.states»
 		        	«IF c.isInitial»
 		        	// identify the initial state
-		        	initial = factory.getResourceState("«rim.eResource.className»Model.«c.name»");
+		        	initial = factory.getResourceState("«rim.fullyQualifiedName».«c.name»");
 					«ENDIF»
 				«ENDFOR»
 		        return initial;
@@ -196,7 +187,7 @@ class RIMDslGenerator implements IGenerator {
 		        ResourceState exceptionState = null;
 		        «FOR c : rim.states»
 		        	«IF c.isException»
-		        	exceptionState = factory.getResourceState("«rim.eResource.className»Model.«c.name»");
+		        	exceptionState = factory.getResourceState("«rim.fullyQualifiedName».«c.name»");
 					«ENDIF»
 				«ENDFOR»
 		        return exceptionState;
