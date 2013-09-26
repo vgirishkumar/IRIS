@@ -37,7 +37,6 @@
 /interaction-sdk-test/target
 /interaction-dsl/com.temenos.interaction.rimdsl/bin
 /interaction-dsl/com.temenos.interaction.rimdsl/bin/com/temenos/interaction/rimdsl/RimDSL.xtext
-/interaction-dsl/com.temenos.interaction.rimdsl.ui/plugin.xml
 /interaction-dsl/com.temenos.interaction.rimdsl.ui/plugin.xml_gen
 /interaction-dsl/com.temenos.interaction.rimdsl.ui/src/com/temenos/interaction/rimdsl/ui/RIMDslUiModule.java
 /interaction-dsl/com.temenos.interaction.rimdsl.ui/src/com/temenos/interaction/rimdsl/ui/contentassist/RIMDslProposalProvider.java
@@ -46,7 +45,6 @@
 /interaction-dsl/com.temenos.interaction.rimdsl.ui/src/com/temenos/interaction/rimdsl/ui/outline/RIMDslOutlineTreeProvider.java
 /interaction-dsl/com.temenos.interaction.rimdsl.ui/src/com/temenos/interaction/rimdsl/ui/quickfix/RIMDslQuickfixProvider.java
 /interaction-dsl/com.temenos.interaction.rimdsl/.antlr-generator-3.2.0.jar
-/interaction-dsl/com.temenos.interaction.rimdsl/plugin.xml
 /interaction-dsl/com.temenos.interaction.rimdsl/plugin.xml_gen
 /interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/RIMDslRuntimeModule.java
 /interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/RIMDslStandaloneSetup.java

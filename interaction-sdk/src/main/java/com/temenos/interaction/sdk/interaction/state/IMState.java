@@ -17,7 +17,8 @@ public abstract class IMState {
 	private String name;										//Name
 	private String path;										//Path
 	private String view;										//View
-	private List<IMTransition> transitions = new ArrayList<IMTransition>(); 
+	private List<IMTransition> transitions = new ArrayList<IMTransition>();
+	private IMState errorHandlerState = null;
 	
 	/**
 	 * Construct a new resource state 
@@ -46,6 +47,18 @@ public abstract class IMState {
 		this.view = view;
 	}
 
+	public boolean hasOnError() {
+		return errorHandlerState != null;
+	}
+	
+	public IMState getErrorHandlerState() {
+		return errorHandlerState;
+	}
+
+	public void setErrorHandlerState(IMState errorHandlerState) {
+		this.errorHandlerState = errorHandlerState;
+	}
+	
 	/**
 	 * Add a transition to pseudo state
 	 * @param title				Transition label

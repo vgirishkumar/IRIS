@@ -12,8 +12,10 @@ commands
 	DeleteEntity
 	GETEntities
 	GETEntity
+	GETException
 	GETNavProperty
 	GETServiceDocument
+	NoopGET
 	UpdateEntity
 end
 
@@ -25,7 +27,19 @@ initial resource ServiceDocument
 	GET -> Airports
 	GET -> FlightSchedules
 	GET -> Passengers
+	GET -> ErrorMessages
 end
+
+exception resource InteractionException
+	item InteractionException
+	view { GETException }
+end
+
+resource ErrorMessages
+	collection ErrorMessages
+	view { NoopGET }
+end
+
 
 resource Flights
 	collection Flight
@@ -47,6 +61,7 @@ resource Flights_created
 	item Flight
 	actions { CreateEntity }
 	path "/Flights()"
+	onerror --> ErrorMessages
 end
 
 resource flight_flightschedule

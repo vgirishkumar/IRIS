@@ -21,7 +21,10 @@ import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
@@ -34,6 +37,7 @@ import com.temenos.interaction.sdk.entity.EMProperty;
 import com.temenos.interaction.sdk.entity.EMTerm;
 import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
+import com.temenos.interaction.sdk.interaction.state.IMState;
 import com.temenos.interaction.sdk.interaction.transition.IMCollectionStateTransition;
 import com.temenos.interaction.sdk.interaction.transition.IMEntityStateTransition;
 import com.temenos.interaction.sdk.interaction.transition.IMTransition;
@@ -131,6 +135,29 @@ public class JPAResponderGen {
 		//Create the entity model
 		String modelName = metadata.getModelName();
 		EntityModel entityModel = createEntityModelFromMetadata(modelName, metadata);
+		
+		//Add error entities
+		for(IMState state : interactionModel.getErrorHandlerStates()) {
+			EMEntity emEntity = new EMEntity(state.getName());
+			EMProperty empErrorMvGroup = new EMProperty("ErrorsMvGroup");
+			empErrorMvGroup.addVocabularyTerm(new EMTerm(TermIdField.TERM_NAME, "true"));
+			empErrorMvGroup.addVocabularyTerm(new EMTerm(TermListType.TERM_NAME, "true"));
+			empErrorMvGroup.addVocabularyTerm(new EMTerm(TermComplexType.TERM_NAME, "true"));
+			emEntity.addProperty(empErrorMvGroup);
+			EMProperty empCode = new EMProperty("Code");
+			empCode.addVocabularyTerm(new EMTerm(TermComplexGroup.TERM_NAME, "ErrorsMvGroup"));
+			emEntity.addProperty(empCode);
+			EMProperty empInfo = new EMProperty("Info");
+			empInfo.addVocabularyTerm(new EMTerm(TermComplexGroup.TERM_NAME, "ErrorsMvGroup"));
+			emEntity.addProperty(empInfo);
+			EMProperty empText = new EMProperty("Text");
+			empText.addVocabularyTerm(new EMTerm(TermComplexGroup.TERM_NAME, "ErrorsMvGroup"));
+			emEntity.addProperty(empText);
+			EMProperty empType = new EMProperty("Type");
+			empType.addVocabularyTerm(new EMTerm(TermComplexGroup.TERM_NAME, "ErrorsMvGroup"));
+			emEntity.addProperty(empType);
+			entityModel.addEntity(emEntity);
+		}		
 		
 		//Obtain resource information
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
@@ -712,6 +739,8 @@ public class JPAResponderGen {
 		//Add commands
 		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
 		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_EXCEPTION, "com.temenos.interaction.core.command.GETExceptionCommand");
+		commands.addCommand(Commands.GET_NOOP, "com.temenos.interaction.core.command.NoopGETCommand");
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.GET_ENTITIES, "com.temenos.interaction.commands.odata.GETEntitiesCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
 		commands.addCommand(Commands.CREATE_ENTITY, "com.temenos.interaction.commands.odata.CreateEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);

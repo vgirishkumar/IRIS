@@ -167,7 +167,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
 
 				Collection<Link> linksCollection = entityResource.getLinks();
-				List<Link> links = new ArrayList<Link>(linksCollection);
+				List<Link> links = linksCollection != null ? new ArrayList<Link>(linksCollection) : new ArrayList<Link>();
 				
 				//Write entry
 				Entity entity = entityResource.getEntity();

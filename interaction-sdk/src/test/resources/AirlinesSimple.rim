@@ -12,8 +12,10 @@ commands
 	DeleteEntity
 	GETEntities
 	GETEntity
+	GETException
 	GETNavProperty
 	GETServiceDocument
+	NoopGET
 	UpdateEntity
 end
 
@@ -26,6 +28,9 @@ initial resource ServiceDocument
 	GET -> FlightSchedules
 	GET -> Passengers
 end
+
+
+
 
 resource Flights
 	collection Flight
