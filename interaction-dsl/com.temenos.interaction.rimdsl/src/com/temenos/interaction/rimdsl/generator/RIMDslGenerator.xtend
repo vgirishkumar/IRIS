@@ -96,7 +96,7 @@ class RIMDslGenerator implements IGenerator {
                 // create regular transitions
                 «FOR t : state.transitions»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«rim.fullyQualifiedName».«t.state.name»");
+                    ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
                     «ENDIF»
                     «produceTransitions(state, t)»
                 «ENDFOR»
@@ -104,7 +104,7 @@ class RIMDslGenerator implements IGenerator {
                 // create foreach transitions
                 «FOR t : state.transitionsForEach»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«rim.fullyQualifiedName».«t.state.name»");
+                    ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
                     «ENDIF»
                     «produceTransitionsForEach(state, t)»
                 «ENDFOR»
@@ -112,7 +112,7 @@ class RIMDslGenerator implements IGenerator {
                 // create AUTO transitions
                 «FOR t : state.transitionsAuto»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«rim.fullyQualifiedName».«t.state.name»");
+                    ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
                     «ENDIF»
                     «produceTransitionsAuto(state, t)»
                 «ENDFOR»
