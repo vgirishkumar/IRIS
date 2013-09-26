@@ -18,10 +18,16 @@ import java.io.File;
  * @requiresDependencyResolution compile
  */
 public class RIMGeneratorMojo extends AbstractMojo {
+
+    /**
+     * Location of the RIM source directory.
+     * @parameter
+     */
+    private File rimSourceDir;
+
     /**
      * Location of the RIM file.
      * @parameter
-     * @required
      */
     private File rimSourceFile;
 
@@ -36,6 +42,10 @@ public class RIMGeneratorMojo extends AbstractMojo {
      * @parameter
      */
     private boolean skipRIMGeneration;
+
+    public void setRimSourceDir(File rimSourceDir) {
+		this.rimSourceDir = rimSourceDir;
+	}
 
     public void setRimSourceFile(File rimSourceFile) {
 		this.rimSourceFile = rimSourceFile;
@@ -54,8 +64,10 @@ public class RIMGeneratorMojo extends AbstractMojo {
     		getLog().info("[skipRIMGeneration] set, not generating any source");
     	} else {
     		// check our configuration
-    		if (rimSourceFile == null)
-    			throw new MojoExecutionException("[rimSourceFile] not specified in plugin configuration");
+    		if (rimSourceFile == null && rimSourceDir == null)
+    			throw new MojoExecutionException("Neither [rimSourceFile] nor [rimSourceDir] specified in plugin configuration");
+    		if (rimSourceFile != null && rimSourceDir != null)
+    			throw new MojoExecutionException("Cannot configure [rimSourceFile] and [rimSourceDir] in plugin configuration");
     		if (targetDirectory == null) {
     			throw new MojoExecutionException("[targetDirectory] is set to null plugin configuration");
     		}
@@ -67,7 +79,11 @@ public class RIMGeneratorMojo extends AbstractMojo {
     		}
     		Injector injector = new RIMDslStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
     		Generator generator = injector.getInstance(Generator.class);
-    		ok = generator.runGenerator(rimSourceFile.toString(), targetDirectory.toString());
+    		if (rimSourceDir != null) {
+        		ok = generator.runGeneratorDir(rimSourceDir.toString(), targetDirectory.toString());
+    		} else {
+        		ok = generator.runGenerator(rimSourceFile.toString(), targetDirectory.toString());
+    		}
 
     		if (!ok)
     			throw new MojoFailureException("An unexpected error occurred while generating source");

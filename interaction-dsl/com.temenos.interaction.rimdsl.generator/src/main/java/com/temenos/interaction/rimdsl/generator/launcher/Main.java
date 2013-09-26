@@ -1,5 +1,7 @@
 package com.temenos.interaction.rimdsl.generator.launcher;
 
+import java.io.File;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -17,13 +19,19 @@ public class Main {
 	public static void main(String[] args) {
 		// handle command line options
 		final Options options = new Options();
-		Option optSrc = OptionBuilder.withArgName("src")
-				.withDescription("Model source").hasArg()
-				.isRequired().withValueSeparator(' ').create("src");
-		 
-		Option optTargetDir = OptionBuilder.withArgName("targetdir")
-				.withDescription("Generator target directory").hasArg()
-				.isRequired().withValueSeparator(' ').create("targetdir");
+		OptionBuilder.withArgName("src");
+		OptionBuilder.withDescription("Model source");
+		OptionBuilder.hasArg();
+		OptionBuilder.isRequired();
+		OptionBuilder.withValueSeparator(' ');
+		Option optSrc = OptionBuilder.create("src");
+				
+		OptionBuilder.withArgName("targetdir");
+		OptionBuilder.withDescription("Generator target directory");
+		OptionBuilder.hasArg();
+		OptionBuilder.isRequired();
+		OptionBuilder.withValueSeparator(' ');
+		Option optTargetDir = OptionBuilder.create("targetdir");
 
 		options.addOption(optSrc); options.addOption(optTargetDir);
 		
@@ -40,9 +48,19 @@ public class Main {
 		// execute the generator
 		Injector injector = new RIMDslStandaloneSetup().createInjectorAndDoEMFRegistration();
 		Generator generator = injector.getInstance(Generator.class);
-		generator.runGenerator(line.getOptionValue(optSrc.getArgName()), line.getOptionValue(optTargetDir.getArgName()));
+		File srcFile = new File(line.getOptionValue(optSrc.getArgName()));
+		if (srcFile.exists()) {
+			boolean result = false;
+			if (srcFile.isDirectory()) {
+				result = generator.runGeneratorDir(srcFile.getPath(), line.getOptionValue(optTargetDir.getArgName()));
+			} else {
+				result = generator.runGenerator(srcFile.getPath(), line.getOptionValue(optTargetDir.getArgName()));
+			}
+			System.out.println("Code generation finished ["+result+"]");
+		} else {
+			System.out.println("Src dir not found.");
+		}
 
-		System.out.println("Code generation finished.");
 	}
 	
 	/**

@@ -127,6 +127,9 @@ public class Launcher {
             if (inStream != null) {
                 inStream.close();
             }
+            if (jarFile != null) {
+                jarFile.close();
+            }
         }
 
         return jarUrls;

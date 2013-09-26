@@ -53,7 +53,7 @@
         <constructor-arg ref="stateMachine" />
 	</bean>
 
-    <bean id="behaviour" class="SimpleModel.SimpleBehaviour" />
+    <bean id="behaviour" class="SimpleModel.HomeBehaviour" />
 <!--
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
 -->

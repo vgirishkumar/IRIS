@@ -1,0 +1,43 @@
+// the main starting point for our Simple interaction
+domain SimpleModel {
+
+use SimpleModel.Simple.*
+
+rim Home {
+
+events
+	POST POST // New
+	PUT PUT // Replace
+	PATCH POST // Merge
+	DELETE DELETE // Delete
+	GET GET
+end
+
+commands
+	NoopGET
+	NoopPOST
+	GETPreferences properties
+end
+
+initial resource home
+	item HOME
+	view { NoopGET }
+    path "/"
+	GET -> profile
+    GET -> preferences
+	GET -> notes
+end
+
+resource profile
+	item Profile
+	view { NoopGET }
+	path "/profile"
+end
+
+resource preferences
+    item Preferences
+    view { GETPreferences }
+end
+
+}
+}

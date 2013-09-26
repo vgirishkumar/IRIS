@@ -13,30 +13,9 @@ end
 commands
 	NoopGET
 	NoopPOST
-	GETPreferences properties
 	GETNotes
 	GETNote
 	DELETENote properties
-end
-
-initial resource home
-	item HOME
-	view { NoopGET }
-    path "/"
-	GET -> profile
-    GET -> preferences
-	GET -> notes
-end
-
-resource profile
-	item Profile
-	view { NoopGET }
-	path "/profile"
-end
-
-resource preferences
-    item Preferences
-    view { GETPreferences }
 end
 
 resource notes
