@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * This class holds information about a resource state
  */
-public class IMPseudoState extends IMState {
+public class IMPseudoState extends IMState implements IMAction {
 
 	private Set<String> actions = new HashSet<String>();		//Actions
 	private String pseudoStateId = null;						//Pseudo state Id or null if this is not a pseudo state
@@ -30,10 +30,12 @@ public class IMPseudoState extends IMState {
 		return pseudoStateId != null;
 	}
 	
+	@Override
 	public String getRelations() {
 		return relations;
 	}
 	
+	@Override
 	public boolean hasRelations() {
 		return relations != null;		
 	}
@@ -47,7 +49,13 @@ public class IMPseudoState extends IMState {
 		this.addTransition(null, targetState, method, true, false);
 	}
 	
+	@Override
 	public Set<String> getActions() {
 		return actions;
+	}
+
+	@Override
+	public boolean hasActions() {
+		return actions.size() > 0;
 	}
 }

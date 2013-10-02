@@ -75,13 +75,14 @@ resource ${state.getName()}
 #end
 #else
 	item ${rsm.getEntityName()}
-#if(${state.class.simpleName} == "IMPseudoState" && $state.getActions().size() > 0)
+#if(${state.class.simpleName} == "IMPseudoState" && $state.hasActions() || ${state.class.simpleName} == "IMEntityState" && $state.hasActions())
 	actions { ##
 #foreach ( $action in $state.getActions() )
 $action## 
 #end
  }
-#else
+#end
+#if(${state.class.simpleName} == "IMEntityState" && $state.hasView())
 	view { $state.getView() }
 #end
 #end
