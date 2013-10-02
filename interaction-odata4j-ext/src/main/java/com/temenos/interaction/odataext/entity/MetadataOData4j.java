@@ -144,7 +144,12 @@ public class MetadataOData4j {
 
 				//Entity keys
 				if(entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true")) {
-					keys.add(propertyName);					
+					if(termComplex.equals("true")) {
+						keys.add(complexTypePrefix + propertyName);
+					}
+					else {
+						keys.add(propertyName);
+					}
 				}
 			}
 
