@@ -119,12 +119,10 @@ public class RIMDSLVisualisationView extends ViewPart implements IZoomableWorkbe
 	/**
 	 * Passing the focus request to the viewer's control.
 	 */
-	@Override
 	public void setFocus() {
 		form.setFocus();
 	}
 
-	@Override
 	public void selectionChanged(IWorkbenchPart sourcepart, ISelection selection) {
 		// we ignore our own selections
 		if (sourcepart != this) {
@@ -159,12 +157,10 @@ public class RIMDSLVisualisationView extends ViewPart implements IZoomableWorkbe
 		}
 	}
 
-	@Override
 	public AbstractZoomableViewer getZoomableViewer() {
 		return viewer;
 	}
 
-	@Override
     public void dispose() {
 		super.dispose();
         // Unregister selection service listener

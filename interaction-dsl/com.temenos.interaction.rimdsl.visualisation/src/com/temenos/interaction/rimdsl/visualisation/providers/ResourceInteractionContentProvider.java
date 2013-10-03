@@ -85,7 +85,6 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 	/* (non-Javadoc)
 	 * @see org.eclipse.zest.core.viewers.IGraphEntityContentProvider#getConnectedTo(java.lang.Object)
 	 */
-	@Override
 	public Object[] getConnectedTo(Object o) {
 		if (o instanceof State) {
 			State state = (State)o;
@@ -103,7 +102,6 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 	/* (non-Javadoc)
 	 * @see org.eclipse.zest.core.viewers.IGraphEntityContentProvider#getElements(java.lang.Object)
 	 */
-	@Override
 	public Object[] getElements(Object inputElement) {
 		List<EObject> result = new ArrayList<EObject>();
 		result.addAll(states);
@@ -113,7 +111,6 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IContentProvider#dispose()
 	 */
-	@Override
 	public void dispose() {
 		input = null;
 		states.clear();
@@ -123,7 +120,6 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
-	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		if (newInput == null) {
 			input = null;

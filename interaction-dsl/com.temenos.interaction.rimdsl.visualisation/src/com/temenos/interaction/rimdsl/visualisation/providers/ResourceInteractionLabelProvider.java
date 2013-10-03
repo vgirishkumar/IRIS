@@ -55,7 +55,6 @@ public class ResourceInteractionLabelProvider implements ILabelProvider, IConnec
 		this.viewer = viewer;
 	}
 
-	@Override
 	public Image getImage(Object element) {
 		// Get the 
 		if (element instanceof State) {
@@ -65,7 +64,6 @@ public class ResourceInteractionLabelProvider implements ILabelProvider, IConnec
 		}
 	}
 
-	@Override
 	public String getText(Object element) {
 		
 		if (element instanceof EntityConnectionData) { // = Relations
@@ -101,62 +99,50 @@ public class ResourceInteractionLabelProvider implements ILabelProvider, IConnec
 		}
 	}
 
-	@Override
 	public void addListener(ILabelProviderListener listener) {
 		// Not required
 	}
 
-	@Override
 	public void removeListener(ILabelProviderListener listener) {
 		// Not required
 	}
 
-	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		return false;
 	}
 
-	@Override
 	public Color getHighlightColor(Object rel) {
 		return RELATION_SELECTED_COLOR;
 	}
 
-	@Override
 	public Color getColor(Object rel) {
 		return RELATION_DEFAULT_COLOR;
 	}
 
-	@Override
 	public int getConnectionStyle(Object rel) {
 		return ZestStyles.CONNECTIONS_DIRECTED;
 	}
 
-	@Override
 	public int getLineWidth(Object rel) {
 		return 1;
 	}
 	
-	@Override
 	public Color getNodeHighlightColor(Object entity) {
 		return null;
 	}
 
-	@Override
 	public Color getBorderColor(Object entity) {
 		return null;
 	}
 
-	@Override
 	public Color getBorderHighlightColor(Object entity) {
 		return null;
 	}
 
-	@Override
 	public int getBorderWidth(Object entity) {
 		return 1;
 	}
 
-	@Override
 	public Color getBackgroundColour(Object entity) {
 		if ( entity == viewer.getInput() ) {
 			return ROOT_NODE_BACKGROUND_COLOR;
@@ -166,7 +152,6 @@ public class ResourceInteractionLabelProvider implements ILabelProvider, IConnec
 		}
 	}
 
-	@Override
 	public Color getForegroundColour(Object entity) {
 		if ( entity == viewer.getInput() ) {
 			return ROOT_NODE_FOREGROUND_COLOR;
@@ -176,17 +161,14 @@ public class ResourceInteractionLabelProvider implements ILabelProvider, IConnec
 		}
 	}
 
-	@Override
 	public boolean fisheyeNode(Object entity) {
 		return false;
 	}
 	
-	@Override
 	public IFigure getTooltip(Object entity) {
 		return null;
 	}
 
-	@Override
 	public void dispose() {
 	}
 }
