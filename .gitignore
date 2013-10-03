@@ -96,3 +96,6 @@
 
 /interaction-commands-solr/target
 /interaction-odata4j-ext/target
+
+/interaction-dsl/com.temenos.interaction.rimdsl.visualisation/bin
+/interaction-dsl/com.temenos.interaction.rimdsl.visualisation/target
