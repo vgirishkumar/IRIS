@@ -10,7 +10,7 @@
 	<name>com.temenos.interaction.rimdsl.RimDsl - Parent</name>
 
 	<properties>
-		<tycho-version>0.16.0</tycho-version>
+		<tycho-version>0.18.1</tycho-version>
 		<junit-version>4.8.1</junit-version>
 		<xtext-version>2.4.3</xtext-version>
 	</properties>
@@ -25,6 +25,7 @@
 	<modules>
 		<module>../com.temenos.interaction.rimdsl</module>
 		<module>../com.temenos.interaction.rimdsl.ui</module>
+		<module>../com.temenos.interaction.rimdsl.visualisation</module>
 		<module>../com.temenos.interaction.rimdsl.sdk</module>
 		<module>../com.temenos.interaction.rimdsl.tests</module>
 		<module>../com.temenos.interaction.rimdsl.generator</module>
@@ -337,14 +338,19 @@
 				<version>${junit-version}</version>
 				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-all</artifactId>
+				<version>1.9.0</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	
 	<repositories>
         <!-- Repository to resolve the Eclipse Tycho dependencies --> 
 		<repository>
-			<id>p2.eclipse.juno</id>
-			<url>http://download.eclipse.org/releases/juno</url>
+			<id>p2.eclipse.kepler</id>
+			<url>http://download.eclipse.org/releases/kepler</url>
 			<layout>p2</layout>
 		</repository>
 		<!-- Repository to resolve the XText dependencies -->

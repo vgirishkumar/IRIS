@@ -10,13 +10,15 @@ Require-Bundle: com.temenos.interaction.rimdsl,
  org.eclipse.core.runtime,
  org.eclipse.xtext.junit4;bundle-version="[2.4.0,2.5)",
  org.eclipse.ui.workbench;resolution:=optional
-Import-Package: org.apache.log4j,
+Import-Package: com.temenos.interaction.rimdsl.visualisation.providers,
+ org.apache.log4j,
+ org.eclipse.jface.viewers,
+ org.hamcrest.core,
  org.junit;version="4.5.0",
  org.junit.runner;version="4.5.0",
  org.junit.runner.manipulation;version="4.5.0",
  org.junit.runner.notification;version="4.5.0",
  org.junit.runners;version="4.5.0",
- org.junit.runners.model;version="4.5.0",
- org.hamcrest.core
+ org.junit.runners.model;version="4.5.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.temenos.interaction.rimdsl
