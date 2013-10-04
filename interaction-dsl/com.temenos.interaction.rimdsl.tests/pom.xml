@@ -17,11 +17,6 @@
 	<dependencies>
 		<!-- TEST DEPENDENCIES -->
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
@@ -112,4 +107,5 @@
 			</plugin>  
 		</plugins>
 	</build>
+
 </project>

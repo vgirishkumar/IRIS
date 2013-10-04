@@ -1,11 +1,9 @@
 package com.temenos.interaction.rimdsl.visualisation.providers;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
 
 import java.util.Iterator;
 
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.xtext.generator.IGenerator;
 import org.eclipse.xtext.junit4.InjectWith;
 import org.eclipse.xtext.junit4.XtextRunner;
@@ -61,12 +59,13 @@ public class ResourceInteractionContentProviderTest {
 		assertEquals("A", A.getName());
 		
 		ResourceInteractionContentProvider cp = new ResourceInteractionContentProvider(true, true);
-		cp.inputChanged(mock(Viewer.class), null, A);
+		cp.inputChanged(null, null, A);
 		Object[] result = cp.getConnectedTo(A);
 		assertEquals(1, result.length);
 		assertEquals("B", ((State) result[0]).getName());
 	}
 
+	/*
 	private final static String MULTIPLE_RIMS = "" +
 	"domain blah {" + LINE_SEP +
 	"rim Test {" + LINE_SEP +
@@ -93,5 +92,5 @@ public class ResourceInteractionContentProviderTest {
 	
 	"}" + LINE_SEP +
 	"";
-
+*/
 }
