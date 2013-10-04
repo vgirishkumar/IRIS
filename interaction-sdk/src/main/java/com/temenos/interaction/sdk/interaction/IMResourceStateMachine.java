@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
 
+import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.interaction.state.IMCollectionState;
 import com.temenos.interaction.sdk.interaction.state.IMEntityState;
 import com.temenos.interaction.sdk.interaction.state.IMNavigationState;
@@ -38,9 +39,9 @@ public class IMResourceStateMachine {
 	
 	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String methodGetEntity, String mappedEntityProperty, String pathParametersTemplate) {
 		this.entityName = entityName;
-		this.entityState = new IMEntityState(entityStateName, "/" + collectionStateName + "(" + pathParametersTemplate + ")");
+		this.entityState = new IMEntityState(entityStateName, "/" + collectionStateName + "(" + pathParametersTemplate + ")", Commands.GET_ENTITY);
 		resourceStates.put(entityStateName, entityState);
-		this.collectionState = new IMCollectionState(collectionStateName, "/" + collectionStateName + "()", (IMEntityState) entityState);
+		this.collectionState = new IMCollectionState(collectionStateName, "/" + collectionStateName + "()", Commands.GET_ENTITIES, (IMEntityState) entityState);
 		resourceStates.put(collectionStateName, collectionState);
 		this.mappedEntityProperty = mappedEntityProperty;
 		this.pathParametersTemplate = pathParametersTemplate;
@@ -148,6 +149,13 @@ public class IMResourceStateMachine {
 	 * @param title Label representing this resource
 	 */
 	public void addCollectionAndEntityState(String stateId, String title, String collectionMethod, String collectionView, String entityMethod, String entityView) {
+		if(collectionView == null) {
+			collectionView = Commands.GET_ENTITIES;
+		}
+		if(entityView == null) {
+			entityView = Commands.GET_ENTITY;
+		}
+		
 		//Add collection state
 		addStateTransition(collectionState.getName(), collectionState.getName() + "_" + stateId, collectionMethod, stateId, title, collectionView, null, null);
 
@@ -212,6 +220,7 @@ public class IMResourceStateMachine {
 	 * @param targetStateName	Target state
 	 * @param pseudoStateId		Pseudo state identifier 
 	 * @param method			HTTP command
+	 * @param stateId			State Id or null if this is the same state as the initial collection/entity state
 	 * @param action			Action to execute
 	 * @param relations			Relations
 	 * @param boundToCollection	true if the target state should be bound to a collection state
@@ -242,7 +251,7 @@ public class IMResourceStateMachine {
 			//This is a resource state
 			path = sourceStateName.equals(collectionState.getName()) ? collectionState.getPath() : entityState.getPath();
 			if(!(targetStateName.equals(sourceStateName) && (targetStateName.equals(entityState.getName()) || targetStateName.equals(collectionState.getName())))) {
-				path = getPathWithStateId(path, stateId);
+				path = stateId != null ? getPathWithStateId(path, stateId) : path + "/" + method.toLowerCase();
 			}
 			//Create source state if necessary
 			if(!resourceStates.containsKey(sourceStateName)) {
@@ -261,13 +270,16 @@ public class IMResourceStateMachine {
 				view = sourceState.getView();
 				targetState = new IMPseudoState(targetStateName, path, view, pseudoStateId, relations, action);				
 			}
-			else if(boundToCollection) {
+			else if(isCollectionState(targetStateName)) {
 				//Create collection state (and entity state if required)
-				String entityStateName = entityState.getName() + "_" + stateId;
+				String entityStateName = entityState.getName() + (stateId != null ? "_" + stateId : "");
 				if(!resourceStates.containsKey(entityStateName)) {
-					resourceStates.put(entityStateName, new IMEntityState(entityStateName, getPathWithStateId(entityState.getPath(), stateId)));
+					resourceStates.put(entityStateName, new IMEntityState(entityStateName, stateId != null ? getPathWithStateId(entityState.getPath(), stateId) : entityState.getPath() + "/" + method.toLowerCase(), view));
 				}
 				targetState = new IMCollectionState(targetStateName, path, view, (IMEntityState) getResourceState(entityStateName));				
+			}
+			else if(action != null){
+				targetState = new IMEntityState(targetStateName, path, relations, action);				
 			}
 			else {
 				targetState = new IMEntityState(targetStateName, path, view);				
@@ -278,7 +290,7 @@ public class IMResourceStateMachine {
 		//Add transition
 		IMState sourceState = getResourceState(sourceStateName);
 		IMState targetState = getResourceState(targetStateName);
-		if(targetState.getView() != view) {
+		if(view != null && targetState.getView() != view) {
 			targetState.setView(view);		//Set the view if required
 		}
 		if(targetState instanceof IMPseudoState) {
@@ -304,6 +316,12 @@ public class IMResourceStateMachine {
 		return sbPath.toString();
 	}
 	
+	private boolean isCollectionState(String resourceStateName) {
+		IMState state = resourceStates.get(resourceStateName);
+		return state == null && resourceStateName.startsWith(collectionState.getName()) || 
+				state != null && state instanceof IMCollectionState;
+	}
+
 	/**
 	 * Return the outgoing transitions on the specified resource state
 	 * @param resourceStateName resource state name
