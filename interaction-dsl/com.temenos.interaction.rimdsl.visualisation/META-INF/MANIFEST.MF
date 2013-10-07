@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: RIM Visualisation
+Bundle-Name: com.temenos.interaction.rimdsl.visualisation
 Bundle-SymbolicName: com.temenos.interaction.rimdsl.visualisation;singleton:=true
 Bundle-Version: 0.4.0.qualifier
 Bundle-Activator: com.temenos.interaction.rimdsl.visualisation.Activator
-Bundle-Vendor: TEMENOS
+Bundle-Vendor: IRIS
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: com.temenos.interaction.rimdsl.rim,
  org.osgi.framework;version="1.3.0"

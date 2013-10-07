@@ -10,7 +10,7 @@
       <view
             category="com.temenos.interaction.rimdsl.visualisation"
             class="com.temenos.interaction.rimdsl.visualisation.views.RIMDSLVisualisationView"
-            icon="icons/sample.gif"
+            icon="icons/obj16/rim_visualization_view_icon.png"
             id="com.temenos.interaction.rimdsl.visualisation.views.RIMDSLVisualisationView"
             name="RIM Visualisation">
       </view>
