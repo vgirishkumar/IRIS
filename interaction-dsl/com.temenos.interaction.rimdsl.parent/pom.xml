@@ -349,8 +349,8 @@
 	<repositories>
         <!-- Repository to resolve the Eclipse Tycho dependencies --> 
 		<repository>
-			<id>p2.eclipse.kepler</id>
-			<url>http://download.eclipse.org/releases/kepler</url>
+			<id>p2.eclipse.juno</id>
+			<url>http://download.eclipse.org/releases/juno</url>
 			<layout>p2</layout>
 		</repository>
 		<!-- Repository to resolve the XText dependencies -->
