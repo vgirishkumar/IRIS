@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: com.temenos.interaction.rimdsl
-Bundle-Vendor: My Company
+Bundle-Vendor: IRIS
 Bundle-Version: 0.4.0.qualifier
 Bundle-SymbolicName: com.temenos.interaction.rimdsl; singleton:=true
 Bundle-ActivationPolicy: lazy
