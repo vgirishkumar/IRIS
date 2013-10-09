@@ -8,7 +8,25 @@
     <packaging>pom</packaging>
 
     <name>IRIS</name>
-    <url>http://www.temenos.com</url>
+    <url>http://temenostech.temenos.com/IRIS</url>
+
+	<!-- Project inception -->
+	<inceptionYear>2012</inceptionYear>
+    <organization>
+		<name>Temenos Holdings N.V.</name>
+		<url>http://www.temenos.com</url>
+    </organization>
+
+	<licenses>
+		<license>
+			<name>GNU Affero General Public License v3</name>
+			<url>http://www.gnu.org/licenses/agpl-3.0.html</url>
+		</license>
+	</licenses>
+
+	<properties>
+		<license.licenseName>agpl_v3</license.licenseName>
+	</properties>
 
     <modules>
         <module>interaction-parent</module>
@@ -71,5 +89,4 @@
         </plugins>
     </reporting>
 
-    <inceptionYear>2012</inceptionYear>
 </project>
