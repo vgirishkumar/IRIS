@@ -37,9 +37,8 @@ import com.temenos.interaction.rimdsl.visualisation.providers.ResourceInteractio
 
 /**
  * This class encapsulates the process of creating the form view in the PDE
- * visualization tool.
- * 
- * @author Simon Gerlach 
+ * visualisation tool.
+ * @author aphethean
  */
 public class TransitionForm {
 
@@ -109,6 +108,7 @@ public class TransitionForm {
 	 */
 	private void makeActions() {
 		showIncomingRelationsAction = new Action(null, IAction.AS_CHECK_BOX) {
+			@Override
 			public void run() {
 				setShowIncomingRelations(isChecked());
 			}			
@@ -121,6 +121,7 @@ public class TransitionForm {
 		
 		
 		showOutgoingRelationsAction = new Action(null, IAction.AS_CHECK_BOX) {
+			@Override
 			public void run() {
 				setShowOutgoingRelations(isChecked());
 			}			
@@ -251,6 +252,7 @@ public class TransitionForm {
 		public MyGraphViewer(Composite parent, int style) {
 			super(parent, style);
 			Graph graph = new Graph(parent, style) {
+				@Override
 				public Point computeSize(int hint, int hint2, boolean changed) {
 					return new Point(0, 0);
 				}
