@@ -8,6 +8,11 @@
  * Contributors: The Chisel Group, University of Victoria IBM CAS, IBM Toronto
  * Lab
  ******************************************************************************/
+/*******************************************************************************
+ * Modified work Copyright 2013 Temenos Holdings N.V.
+ * The example code for XText visualisation has been modified to visualise 
+ * the IRIS RIMDSL.
+ ******************************************************************************/
 package com.temenos.interaction.rimdsl.visualisation.providers;
 
 import java.util.List;
@@ -29,8 +34,8 @@ import com.temenos.interaction.rimdsl.rim.State;
 import com.temenos.interaction.rimdsl.visualisation.VisualisationImageManager;
 
 /**
- * Example of a label provider for a ZEST graph viewer
- * @author Simon Gerlach 
+ * Label provider for a ZEST graph viewer
+ * @author Aaron Phethean
  */
 public class ResourceInteractionLabelProvider implements ILabelProvider, IConnectionStyleProvider, IEntityStyleProvider {
 
@@ -56,7 +61,7 @@ public class ResourceInteractionLabelProvider implements ILabelProvider, IConnec
 	}
 
 	public Image getImage(Object element) {
-		// Get the 
+		// Get the image for the object type
 		if (element instanceof State) {
 			return VisualisationImageManager.get(VisualisationImageManager.IMG_RESOURCE);
 		} else {

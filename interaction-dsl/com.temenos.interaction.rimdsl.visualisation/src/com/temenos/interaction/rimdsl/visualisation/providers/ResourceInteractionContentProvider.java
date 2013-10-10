@@ -8,6 +8,11 @@
  * Contributors: The Chisel Group, University of Victoria IBM CAS, IBM Toronto
  * Lab
  ******************************************************************************/
+/*******************************************************************************
+ * Modified work Copyright 2013 Temenos Holdings N.V.
+ * The example code for XText visualisation has been modified to visualise 
+ * the IRIS RIMDSL.
+ ******************************************************************************/
 package com.temenos.interaction.rimdsl.visualisation.providers;
 
 import java.util.ArrayList;
@@ -30,8 +35,8 @@ import com.temenos.interaction.rimdsl.rim.Transition;
 
 
 /**
- * Example of a content provider for a ZEST graph viewer
- * @author Simon Gerlach 
+ * Content provider for a ZEST graph viewer
+ * @author aphethean 
  */
 public class ResourceInteractionContentProvider implements IGraphEntityContentProvider {
 

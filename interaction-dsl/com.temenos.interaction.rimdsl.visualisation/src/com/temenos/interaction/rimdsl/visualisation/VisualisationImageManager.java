@@ -8,6 +8,11 @@
  * Contributors:
  *     EclipseSource Corporation - initial API and implementation
  *******************************************************************************/
+/*******************************************************************************
+ * Modified work Copyright 2013 Temenos Holdings N.V.
+ * The example code for XText visualisation has been modified to visualise 
+ * the IRIS RIMDSL.
+ ******************************************************************************/
 package com.temenos.interaction.rimdsl.visualisation;
 
 import java.net.URL;

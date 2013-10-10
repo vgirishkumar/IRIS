@@ -8,6 +8,22 @@
 	<packaging>pom</packaging>
 	<name>interaction-parent</name>
 
+	<!-- Project inception -->
+	<inceptionYear>2012</inceptionYear>
+    <url>http://temenostech.temenos.com/IRIS</url>
+
+    <organization>
+		<name>Temenos Holdings N.V.</name>
+		<url>http://www.temenos.com</url>
+    </organization>
+
+	<licenses>
+		<license>
+			<name>GNU Affero General Public License v3</name>
+			<url>http://www.gnu.org/licenses/agpl-3.0.html</url>
+		</license>
+	</licenses>
+
 	<modules>
 		<module>../interaction-odata4j-ext</module>
 		<module>../interaction-core</module>
@@ -87,6 +103,7 @@
 	</distributionManagement>
 
 	<properties>
+		<license.licenseName>agpl_v3</license.licenseName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<javadoc.aggregate>true</javadoc.aggregate>
 		<javadoc.exclude.patterns>com.temenos.interaction.core.*</javadoc.exclude.patterns>
@@ -106,6 +123,28 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+<!--
+					<licenseResolver>file://${user.dir}</licenseResolver>
+-->
+					<excludes>
+						<exclude>*responder_insert.sql</exclude>
+						<exclude>*.apt</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>first</id>
+						<goals>
+							<goal>update-file-header</goal>
+						</goals>
+						<phase>process-sources</phase>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
@@ -139,6 +178,11 @@
 		<!-- Define the plugin versions used during the build -->
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>1.5</version>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>

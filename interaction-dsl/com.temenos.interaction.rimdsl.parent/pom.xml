@@ -9,7 +9,23 @@
 	<packaging>pom</packaging>
 	<name>com.temenos.interaction.rimdsl.RimDsl - Parent</name>
 
+	<!-- Project inception -->
+	<inceptionYear>2012</inceptionYear>
+
+    <organization>
+		<name>Temenos Holdings N.V.</name>
+		<url>http://www.temenos.com</url>
+    </organization>
+
+	<licenses>
+		<license>
+			<name>GNU Affero General Public License v3</name>
+			<url>http://www.gnu.org/licenses/agpl-3.0.html</url>
+		</license>
+	</licenses>
+
 	<properties>
+		<license.licenseName>agpl_v3</license.licenseName>
 		<tycho-version>0.18.1</tycho-version>
 		<junit-version>4.8.1</junit-version>
 		<xtext-version>2.4.3</xtext-version>
