@@ -131,8 +131,8 @@
 					<licenseResolver>file://${user.dir}</licenseResolver>
 -->
 					<excludes>
-						<exclude>*responder_insert.sql</exclude>
-						<exclude>*.apt</exclude>
+						<exclude>**/*.sql</exclude>
+						<exclude>**/*.apt</exclude>
 					</excludes>
 				</configuration>
 				<executions>
