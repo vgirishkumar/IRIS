@@ -571,8 +571,31 @@ public class GeneratorTest {
 		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"Test.AE\"));"));
 	}
 	
+	private final static String INCOMPLETE_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"commands" + LINE_SEP +
+			"	GetEntity" + LINE_SEP +
+			"	Noop" + LINE_SEP +
+			"end" + LINE_SEP +
+			"}" + LINE_SEP +
+			"";
+
+	
 	@Test
-	public void testGenerateFromInvalidRIM() throws Exception {
+	public void testGenerateFromIncompleteRIM() throws Exception {
+		DomainModel model = parseHelper.parse(INCOMPLETE_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		boolean exceptionThrown = false;
+		try {
+			underTest.doGenerate(model.eResource(), fsa);
+		} catch (RuntimeException e) {
+			exceptionThrown = true;
+		}
+		assertFalse(exceptionThrown);
+	}
+
+	@Test
+	public void testGenerateWithNull() throws Exception {
 		boolean exceptionThrown = false;
 		try {
 			InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
