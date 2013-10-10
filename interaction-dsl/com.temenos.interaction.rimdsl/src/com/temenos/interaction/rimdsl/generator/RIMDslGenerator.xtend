@@ -27,6 +27,9 @@ class RIMDslGenerator implements IGenerator {
 	@Inject extension IQualifiedNameProvider
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+	    if (resource == null) {
+            throw new RuntimeException("Generator called with null resource");	        
+	    }
         for (rim : resource.allContents.toIterable.filter(typeof(ResourceInteractionModel))) {
             generate(resource, rim, fsa);
         }

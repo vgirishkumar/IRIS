@@ -570,4 +570,17 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"Test.AE\"));"));
 	}
+	
+	@Test
+	public void testGenerateFromInvalidRIM() throws Exception {
+		boolean exceptionThrown = false;
+		try {
+			InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+			underTest.doGenerate(null, fsa);
+		} catch (RuntimeException e) {
+			exceptionThrown = true;
+		}
+		assertTrue(exceptionThrown);
+	}
+
 }
