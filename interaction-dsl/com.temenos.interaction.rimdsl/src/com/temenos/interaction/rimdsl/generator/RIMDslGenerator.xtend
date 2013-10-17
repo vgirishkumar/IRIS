@@ -70,7 +70,7 @@ class RIMDslGenerator implements IGenerator {
         import com.temenos.interaction.core.hypermedia.expression.Expression;
         import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
         
-        public class «state.name»ResourceState extends «IF state.entity.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
+        public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
             
             private ResourceFactory factory = null;
 
@@ -79,9 +79,9 @@ class RIMDslGenerator implements IGenerator {
             }
 
             public «state.name»ResourceState(ResourceFactory factory) {
-                «IF state.entity.isCollection»
+                «IF state.type.isCollection»
                 super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
-                «ELSEIF state.entity.isItem»
+                «ELSEIF state.type.isItem»
                 super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
                 «ENDIF»
                 this.factory = factory;
@@ -91,7 +91,7 @@ class RIMDslGenerator implements IGenerator {
                 Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
                 Map<String, String> uriLinkageProperties = new HashMap<String, String>();
                 List<Expression> conditionalLinkExpressions = null;
-                «IF state.entity.isCollection»Collection«ENDIF»ResourceState s«state.name» = this;
+                «IF state.type.isCollection»Collection«ENDIF»ResourceState s«state.name» = this;
                 «
                 val resources = newArrayList()
                 »
@@ -201,9 +201,9 @@ class RIMDslGenerator implements IGenerator {
 	def produceResourceStates(State state) '''
             «produceActionSet(state, state.view, state.actions)»
             «produceRelations(state)»
-            «IF state.entity.isCollection»
+            «IF state.type.isCollection»
             CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations, null);
-            «ELSEIF state.entity.isItem»
+            «ELSEIF state.type.isItem»
             ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
             «ENDIF»
             «IF state.isException»

@@ -14,26 +14,30 @@ commands
 end
 
 initial resource demo_initial {
-	item HOME
+	type: item
+	entity: HOME
 	view { t24Get }
 	GET -> demo_tickets
 }
 
 resource demo_tickets {
-	collection TICKET
+	type: collection
+	entity: TICKET
 	view { t24Get }
 	GET -> demo_aticket
 	C *-> demo_deleted
 }
 
 resource demo_aticket {
-	item TICKET
+	type: item
+	entity: TICKET
 	view { t24Get }
 	C -> demo_deleted
 }
 
 resource demo_deleted {
-	item TICKET
+	type: item
+	entity: TICKET
 	actions {t24Delete}
 	GET -> demo_tickets
 }

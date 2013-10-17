@@ -7,7 +7,8 @@ domain TestDomain {
              NoopGET
         end
         initial resource A {
-             collection ENTITY
+             type: collection
+             entity: ENTITY
              view { NoopGET }
              GET -> TestDomain.TWO.B
         }
@@ -17,7 +18,8 @@ domain TestDomain {
              NoopGET
         end
         initial resource B {
-             collection ENTITY
+             type: collection
+             entity: ENTITY
              view { NoopGET }
              GET -> ONE.A
              GET -> A

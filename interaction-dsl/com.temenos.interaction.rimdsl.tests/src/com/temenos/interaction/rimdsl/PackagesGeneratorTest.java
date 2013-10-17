@@ -55,7 +55,8 @@ public class PackagesGeneratorTest {
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"}" + LINE_SEP +
@@ -66,7 +67,8 @@ public class PackagesGeneratorTest {
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"}" + LINE_SEP +

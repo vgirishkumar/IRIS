@@ -59,13 +59,15 @@ public class ResourceInteractionContentProviderTest {
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection ENTITY" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"	GET -> B" + LINE_SEP +
 	"end" + LINE_SEP +
 
 	"resource B" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection ENTITY" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 

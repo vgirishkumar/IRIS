@@ -57,17 +57,20 @@ public class GeneratorTest {
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 
 	"exception resource E" + LINE_SEP +
-	"	collection EXCEPTION" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: EXCEPTION" + LINE_SEP +
 	"	view { GetException }" + LINE_SEP +
 	"end" + LINE_SEP +
 	
 	"resource B" +
-	"	item ENTITY" + LINE_SEP +
+	"	type: item" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	actions { UpdateEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"}" + LINE_SEP +
@@ -151,7 +154,8 @@ public class GeneratorTest {
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"}" + LINE_SEP +
@@ -182,7 +186,8 @@ public class GeneratorTest {
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"}" + LINE_SEP +
@@ -232,7 +237,8 @@ public class GeneratorTest {
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"}" + LINE_SEP +
@@ -267,12 +273,14 @@ public class GeneratorTest {
 	"end" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	actions { DoStuff }" + LINE_SEP +
 	"end" + LINE_SEP +
 
 	"initial resource B" + LINE_SEP +
-	"	collection ENTITY" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
 	"	actions { DoSomeStuff; DoSomeMoreStuff }" + LINE_SEP +
 	"end" + LINE_SEP +
 	"}" + LINE_SEP +
@@ -319,7 +327,8 @@ public class GeneratorTest {
 			"end" + LINE_SEP +
 					
 			"initial resource A" + LINE_SEP +
-			"	collection ENTITY" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntities }" + LINE_SEP +
 			"	GET -> B (OK(B))" + LINE_SEP +
 			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
@@ -327,15 +336,18 @@ public class GeneratorTest {
 			"end" + LINE_SEP +
 
 			"resource B" +
-			"	item ENTITY" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"resource C" +
-			"	item ENTITY" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"resource D" +
-			"	item ENTITY" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"}" + LINE_SEP +
@@ -388,18 +400,21 @@ public class GeneratorTest {
 			"end" + LINE_SEP +
 					
 			"initial resource A" + LINE_SEP +
-			"	collection ENTITY" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntities }" + LINE_SEP +
 			"	POST -> create_pseudo_state" + LINE_SEP +
 			"end" + LINE_SEP +
 
 			"resource create_pseudo_state" +
-			"	item ENTITY" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	actions { CreateEntity }" + LINE_SEP +
 			"   GET --> created id=MyId" + LINE_SEP +
 			"end" + LINE_SEP +
 			"resource created" +
-			"	item ENTITY" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"}" + LINE_SEP +
@@ -428,13 +443,15 @@ public class GeneratorTest {
 			"end" + LINE_SEP +
 			
 			"initial resource accTransactions" + LINE_SEP +
-			"	collection ENTITY" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"   view { Noop }" + LINE_SEP +
 			"   relations { \"archives\", \"http://www.temenos.com/statement-entries\" }" + LINE_SEP +
 			"   GET -> B" + LINE_SEP +
 			"end\r\n" + LINE_SEP +
 			"resource accTransaction" + LINE_SEP +
-			"	item ENTITY" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"   actions { Update }" + LINE_SEP +
 			"   relations { \"edit\" }" + LINE_SEP +
 			"end\r\n" + LINE_SEP +
@@ -492,19 +509,22 @@ public class GeneratorTest {
 			"end" + LINE_SEP +
 					
 			"initial resource A" + LINE_SEP +
-			"	collection ENTITY" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntities }" + LINE_SEP +
 			"	GET *-> B" + LINE_SEP +
 			"end" + LINE_SEP +
 
 			"resource B" +
-			"	item ENTITY" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"	UPDATE -> B_pseudo" + LINE_SEP +
 			"end" + LINE_SEP +
 
 			"resource B_pseudo" +
-			"	item ENTITY" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	actions { PutEntity }" + LINE_SEP +
 			"	GET --> A (NOT_FOUND(B))" + LINE_SEP +
 			"	GET --> B  (OK(B))" + LINE_SEP +
@@ -545,13 +565,15 @@ public class GeneratorTest {
 			"end" + LINE_SEP +
 					
 			"initial resource A" + LINE_SEP +
-			"	collection ENTITY" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"	onerror --> AE" + LINE_SEP +
 			"end" + LINE_SEP +
 
 			"resource AE" + LINE_SEP +
-			"	item ERROR" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ERROR" + LINE_SEP +
 			"	view { Noop }" + LINE_SEP +
 			"end" + LINE_SEP +
 			"}" + LINE_SEP +

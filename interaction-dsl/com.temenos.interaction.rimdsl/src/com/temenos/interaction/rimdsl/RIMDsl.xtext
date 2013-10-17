@@ -47,6 +47,7 @@ Event:
 
 State: 
     (isInitial?='initial' | isException?='exception')? 'resource' name=ID '{'
+    	type=ResourceType
         entity=Entity
         // it is only valid to have a view command or action commands.
         (('view' '{' view=ResourceCommand '}') | ('actions' '{' ((actions+=ResourceCommand) (';' actions+=ResourceCommand)* ) '}'))
@@ -96,8 +97,13 @@ Path:
     'path' name=STRING    
 ;
 
+
+ResourceType:
+    'type' ':' ((isCollection?='collection') | (isItem?='item'))
+;
+
 Entity:
-    ((isCollection?='collection') | (isItem?='item'))? name=ID
+    'entity' ':' name=ID
 ;
 
 Command:
