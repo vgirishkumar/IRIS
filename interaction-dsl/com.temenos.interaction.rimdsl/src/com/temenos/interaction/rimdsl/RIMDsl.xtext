@@ -46,7 +46,7 @@ Event:
 ;
 
 State: 
-    (isInitial?='initial' | isException?='exception')? 'resource' name=ID
+    (isInitial?='initial' | isException?='exception')? 'resource' name=ID '{'
         entity=Entity
         // it is only valid to have a view command or action commands.
         (('view' '{' view=ResourceCommand '}') | ('actions' '{' ((actions+=ResourceCommand) (';' actions+=ResourceCommand)* ) '}'))
@@ -56,7 +56,7 @@ State:
         transitions+=Transition*
         transitionsForEach+=TransitionForEach*
         ('onerror' '-->' errorState=[State])?
-    'end'
+    '}'
 ;
 
 Transition:
