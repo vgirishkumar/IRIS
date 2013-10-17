@@ -54,9 +54,7 @@ public class ResourceInteractionContentProviderTest {
 	private final static String MULTIPLE_STATES = "" +
 	"domain blah {" + LINE_SEP +
 	"rim Test {" + LINE_SEP +
-	"commands" + LINE_SEP +
-	"	GetEntity" + LINE_SEP +
-	"end" + LINE_SEP +
+	"command GetEntity" + LINE_SEP +
 			
 	"initial resource A" + LINE_SEP +
 	"	type: collection ENTITY" + LINE_SEP +

@@ -98,10 +98,8 @@ public class ParserTest {
 	
 	private final static String SIMPLE_STATES_RIM = "" +
 	"rim Simple {" + LINE_SEP +	
-	"commands" + LINE_SEP +
-	"	GetEntity properties" + LINE_SEP +
-	"	UpdateEntity properties" + LINE_SEP +
-	"end" + LINE_SEP +
+	"	command GetEntity" + LINE_SEP +
+	"	command UpdateEntity" + LINE_SEP +
 			
 	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
@@ -141,10 +139,8 @@ public class ParserTest {
 	}
 
 	private final static String SINGLE_STATE_VIEW_COMMAND_ONLY_RIM = "" +
-	"rim Test {" + LINE_SEP +	
-	"commands" + LINE_SEP +
-	"	GetEntity properties" + LINE_SEP +
-	"end" + LINE_SEP +
+	"rim Test {" + LINE_SEP +
+	"	command GetEntity" + LINE_SEP +
 			
 	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
@@ -193,11 +189,9 @@ public class ParserTest {
 	}
 
 	private final static String SIMPLE_TRANSITION_RIM = "" +
-			"rim Test {" + LINE_SEP +	
-			"commands" + LINE_SEP +
-			"	GetEntity properties" + LINE_SEP +
-			"	GetEntities properties" + LINE_SEP +
-			"end" + LINE_SEP +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
 					
 			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
@@ -231,12 +225,10 @@ public class ParserTest {
 	}
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
-			"rim Test {" + LINE_SEP +	
-			"commands" + LINE_SEP +
-			"	GetEntity properties" + LINE_SEP +
-			"	GetEntities properties" + LINE_SEP +
-			"	PutEntity properties" + LINE_SEP +
-			"end" + LINE_SEP +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+			"	command PutEntity" + LINE_SEP +
 					
 			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
@@ -292,10 +284,8 @@ public class ParserTest {
 	}
 
 	private final static String EXCEPTION_RESOURCE_RIM = "" +
-			"rim Test {" + LINE_SEP +	
-			"commands" + LINE_SEP +
-			"	Noop properties" + LINE_SEP +
-			"end" + LINE_SEP +
+			"rim Test {" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
 			
 			"exception resource EXCEPTION {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
@@ -321,11 +311,9 @@ public class ParserTest {
 	}
 
 	private final static String RESOURCE_RELATIONS_RIM = "" +
-			"rim Test {" + LINE_SEP +	
-			"commands" + LINE_SEP +
-			"	Noop" + LINE_SEP +
-			"	Update" + LINE_SEP +
-			"end" + LINE_SEP +
+			"rim Test {" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"	command Update" + LINE_SEP +
 			
 			"initial resource accTransactions {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
@@ -363,11 +351,9 @@ public class ParserTest {
 	}
 
 	private final static String RESOURCE_ON_ERROR = "" +
-			"rim Test {" + LINE_SEP +	
-			"commands" + LINE_SEP +
-			"	GetEntity" + LINE_SEP +
-			"	NoopGET" + LINE_SEP +
-			"end" + LINE_SEP +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command NoopGET" + LINE_SEP +
 					
 			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
@@ -404,9 +390,7 @@ public class ParserTest {
 	private final static String TRANSITION_WITHOUT_USE_RIMS = "" +
 			"domain TestDomain {" + LINE_SEP +	
 			"    rim ONE {" + LINE_SEP +
-			"        commands" + LINE_SEP +
-			"	         NoopGET" + LINE_SEP +
-			"        end" + LINE_SEP +
+			"	     command NoopGET" + LINE_SEP +
 			"        initial resource A {" + LINE_SEP +
 			"			type: collection" + LINE_SEP +
 			"			entity: ENTITY" + LINE_SEP +
@@ -415,9 +399,7 @@ public class ParserTest {
 			"        }" + LINE_SEP +
 			"    }" + LINE_SEP +  // end rim
 			"    rim TWO {" + LINE_SEP +
-			"        commands" + LINE_SEP +
-			"	         NoopGET" + LINE_SEP +
-			"        end" + LINE_SEP +
+			"        command NoopGET" + LINE_SEP +
 			"        initial resource B {" + LINE_SEP +
 			"			type: collection" + LINE_SEP +
 			"			entity: ENTITY" + LINE_SEP +
@@ -469,9 +451,7 @@ public class ParserTest {
 			"domain TestDomain {" + LINE_SEP +	
 			"    use TestDomain.ONE.*" + LINE_SEP +
 			"    rim ONE {" + LINE_SEP +
-			"        commands" + LINE_SEP +
-			"	         NoopGET" + LINE_SEP +
-			"        end" + LINE_SEP +
+			"        command NoopGET" + LINE_SEP +
 			"        initial resource A {" + LINE_SEP +
 			"	         type: collection" + LINE_SEP +
 			"	         entity: ENTITY" + LINE_SEP +
@@ -480,9 +460,7 @@ public class ParserTest {
 			"        }" + LINE_SEP +
 			"    }" + LINE_SEP +  // end rim
 			"    rim TWO {" + LINE_SEP +
-			"        commands" + LINE_SEP +
-			"	         NoopGET" + LINE_SEP +
-			"        end" + LINE_SEP +
+			"        command NoopGET" + LINE_SEP +
 			"        initial resource B {" + LINE_SEP +
 			"	         type: collection" + LINE_SEP +
 			"	         entity: ENTITY" + LINE_SEP +

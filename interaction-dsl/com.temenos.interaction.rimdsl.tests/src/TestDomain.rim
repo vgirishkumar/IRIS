@@ -3,9 +3,7 @@ domain TestDomain {
     use ONE.*
     
     rim ONE {
-        commands
-             NoopGET
-        end
+        command NoopGET
         initial resource A {
              type: collection
              entity: ENTITY
@@ -14,9 +12,7 @@ domain TestDomain {
         }
     }
     rim TWO {
-        commands
-             NoopGET
-        end
+        command NoopGET
         initial resource B {
              type: collection
              entity: ENTITY

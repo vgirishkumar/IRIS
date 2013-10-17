@@ -50,27 +50,23 @@ public class PackagesGeneratorTest {
 	private final static String MULTIPLE_RIMS = "" +
 	"domain blah {" + LINE_SEP +
 	"rim Test {" + LINE_SEP +
-	"commands" + LINE_SEP +
-	"	GetEntity" + LINE_SEP +
-	"end" + LINE_SEP +
+	"	command GetEntity" + LINE_SEP +
 			
-	"initial resource A" + LINE_SEP +
+	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 
 	"rim Test2 {" + LINE_SEP +
-	"commands" + LINE_SEP +
-	"	GetEntity" + LINE_SEP +
-	"end" + LINE_SEP +
+	"	command GetEntity" + LINE_SEP +
 			
-	"initial resource A" + LINE_SEP +
+	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 	
 	"}" + LINE_SEP +

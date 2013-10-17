@@ -31,18 +31,26 @@ QualifiedNameWithWildcard:
 
 ResourceInteractionModel:
     'rim' name = ID '{'
-        ('events'
-            events+=Event+ 
-        'end')?
-        ('commands'
-            commands+=Command+ 
-        'end')?
+        (events += Event)*
+        (commands += Command)*
         (states += State)*
     '}'
 ;
 
 Event:
-    name=ID httpMethod=ID
+	'event' name=ID '{' 
+     	'method' ':' httpMethod=ID
+    '}'
+;
+
+Command:
+	'command' name=ID ('{' 
+     	'properties' ':' ((properties+=CommandProperty)* (',' properties+=CommandProperty)* )
+    '}')?
+;
+
+CommandProperty:
+    name=ID '=' (value=ID | value=STRING)
 ;
 
 State: 
@@ -104,14 +112,6 @@ ResourceType:
 
 Entity:
     'entity' ':' name=ID
-;
-
-Command:
-    name=ID ((properties+=CommandProperty)* (',' properties+=CommandProperty)* )
-;
-
-CommandProperty:
-    name=ID '=' (value=ID | value=STRING)
 ;
 
 ResourceCommand:

@@ -1,18 +1,28 @@
 domain Common {
     
     rim Global {
-        events
-            N POST // New
-            P PUT // Pay
-            U PUT // Used
-            C DELETE // Cancel
-            GET GET
-        end
+    	// New
+        event N {
+            method: POST
+        }
+        // Pay
+        event P
+        	method: PUT
+       	}
+       	// Used
+       	event U {
+            method: PUT
+        }
+        // Cancel
+        event C {
+            method: DELETE
+        }
+        event GET {
+            method: GET
+        }
 
-        commands
-            t24Get z
-            t24Delete z
-        end
+        command t24Get
+        command t24Delete
     }
 }
 

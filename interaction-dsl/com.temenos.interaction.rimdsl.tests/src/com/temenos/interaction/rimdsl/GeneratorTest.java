@@ -50,29 +50,27 @@ public class GeneratorTest {
 	
 	private final static String SIMPLE_STATES_RIM = "" +
 	"rim Simple {" + LINE_SEP +
-	"commands" + LINE_SEP +
-	"	GetEntity" + LINE_SEP +
-	"	GetException" + LINE_SEP +
-	"	UpdateEntity" + LINE_SEP +
-	"end" + LINE_SEP +
+	"	command GetEntity" + LINE_SEP +
+	"	command GetException" + LINE_SEP +
+	"	command UpdateEntity" + LINE_SEP +
 			
-	"initial resource A" + LINE_SEP +
+	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 
-	"exception resource E" + LINE_SEP +
+	"exception resource E {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: EXCEPTION" + LINE_SEP +
 	"	view { GetException }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	
-	"resource B" +
+	"resource B {" +
 	"	type: item" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	actions { UpdateEntity }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 	"";
 
@@ -149,15 +147,13 @@ public class GeneratorTest {
 	
 	private final static String SINGLE_STATE_VIEW_COMMAND_ONLY_RIM = "" +
 	"rim Test {" + LINE_SEP +
-	"commands" + LINE_SEP +
-	"	GetEntity" + LINE_SEP +
-	"end" + LINE_SEP +
+	"	command GetEntity" + LINE_SEP +
 			
-	"initial resource A" + LINE_SEP +
+	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 	"";
 
@@ -181,15 +177,13 @@ public class GeneratorTest {
 	private final static String SINGLE_STATE_WITH_PACKAGE_RIM = "" +
 	"domain blah {" + LINE_SEP +
 	"rim Test {" + LINE_SEP +
-	"commands" + LINE_SEP +
-	"	GetEntity" + LINE_SEP +
-	"end" + LINE_SEP +
+	"	command GetEntity" + LINE_SEP +
 			
-	"initial resource A" + LINE_SEP +
+	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 	"";
@@ -232,15 +226,15 @@ public class GeneratorTest {
 
 	private final static String SINGLE_STATE_ACTION_COMMANDS_RIM = "" +
 	"rim Test {" + LINE_SEP +
-	"commands" + LINE_SEP +
-	"	GetEntity getkey=getvalue" + LINE_SEP +
-	"end" + LINE_SEP +
+	"	command GetEntity {" + LINE_SEP +
+	"		properties: getkey=getvalue" + LINE_SEP +
+	"	}" + LINE_SEP +
 			
-	"initial resource A" + LINE_SEP +
+	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 	"";
 
@@ -266,23 +260,27 @@ public class GeneratorTest {
 
 	private final static String MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM = "" +
 	"rim Test {" + LINE_SEP +
-	"commands" + LINE_SEP +
-	"	DoStuff key=value" + LINE_SEP +
-	"	DoSomeStuff keyB=valueB" + LINE_SEP +
-	"	DoSomeMoreStuff keyB0=valueB0, keyB1=valueB1" + LINE_SEP +
-	"end" + LINE_SEP +
+	"	command DoStuff {" + LINE_SEP +
+	"		properties: key=value" + LINE_SEP +
+	"	}" + LINE_SEP +
+	"	command DoSomeStuff {" + LINE_SEP +
+	"		properties: keyB=valueB" + LINE_SEP +
+	"	}" + LINE_SEP +
+	"	command DoSomeMoreStuff {" + LINE_SEP +
+	"		properties: keyB0=valueB0, keyB1=valueB1" + LINE_SEP +
+	"	}" + LINE_SEP +
 			
-	"initial resource A" + LINE_SEP +
+	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	actions { DoStuff }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 
-	"initial resource B" + LINE_SEP +
+	"initial resource B {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	actions { DoSomeStuff; DoSomeMoreStuff }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 	"";
 
@@ -316,40 +314,38 @@ public class GeneratorTest {
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
 			"rim Test {" + LINE_SEP +
-			"events" + LINE_SEP +
-			"	GET GET" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
 			
-			"commands" + LINE_SEP +
-			"	GetEntity properties" + LINE_SEP +
-			"	GetEntities properties" + LINE_SEP +
-			"	PutEntity properties" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+			"	command PutEntity" + LINE_SEP +
 					
-			"initial resource A" + LINE_SEP +
+			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntities }" + LINE_SEP +
 			"	GET -> B (OK(B))" + LINE_SEP +
 			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
 			"	GET -> B (OK(C) && NOT_FOUND(D))" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 
-			"resource B" +
+			"resource B {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
-			"end" + LINE_SEP +
-			"resource C" +
+			"}" + LINE_SEP +
+			"resource C {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
-			"end" + LINE_SEP +
-			"resource D" +
+			"}" + LINE_SEP +
+			"resource D {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 			"}" + LINE_SEP +
 			"";
 
@@ -389,34 +385,32 @@ public class GeneratorTest {
 
 	private final static String AUTO_TRANSITION_WITH_URI_LINKAGE_RIM = "" +
 			"rim Test {" + LINE_SEP +
-			"events" + LINE_SEP +
-			"	GET GET" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
 			
-			"commands" + LINE_SEP +
-			"	GetEntity properties" + LINE_SEP +
-			"	GetEntities properties" + LINE_SEP +
-			"	CreateEntity properties" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+			"	command CreateEntity" + LINE_SEP +
 					
-			"initial resource A" + LINE_SEP +
+			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntities }" + LINE_SEP +
 			"	POST -> create_pseudo_state" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 
-			"resource create_pseudo_state" +
+			"resource create_pseudo_state {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	actions { CreateEntity }" + LINE_SEP +
 			"   GET --> created id=MyId" + LINE_SEP +
-			"end" + LINE_SEP +
-			"resource created" +
+			"}" + LINE_SEP +
+			"resource created {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 			"}" + LINE_SEP +
 			"";
 
@@ -437,24 +431,22 @@ public class GeneratorTest {
 
 	private final static String RESOURCE_RELATIONS_RIM = "" +
 			"rim Test {" + LINE_SEP +
-			"commands" + LINE_SEP +
-			"	Noop" + LINE_SEP +
-			"	Update" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"	command Update" + LINE_SEP +
 			
-			"initial resource accTransactions" + LINE_SEP +
+			"initial resource accTransactions {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"   view { Noop }" + LINE_SEP +
 			"   relations { \"archives\", \"http://www.temenos.com/statement-entries\" }" + LINE_SEP +
 			"   GET -> B" + LINE_SEP +
-			"end\r\n" + LINE_SEP +
-			"resource accTransaction" + LINE_SEP +
+			"}\r\n" + LINE_SEP +
+			"resource accTransaction {" + LINE_SEP +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"   actions { Update }" + LINE_SEP +
 			"   relations { \"edit\" }" + LINE_SEP +
-			"end\r\n" + LINE_SEP +
+			"}\r\n" + LINE_SEP +
 			"}" + LINE_SEP +
 			"";
 	
@@ -497,38 +489,38 @@ public class GeneratorTest {
 
 	private final static String TRANSITION_WITH_UPDATE_EVENT = "" +
 			"rim Test {" + LINE_SEP +
-			"events" + LINE_SEP +
-			"	GET GET" + LINE_SEP +
-			"	UPDATE PUT" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
+			"	event UPDATE {" + LINE_SEP +
+			"		method: PUT" + LINE_SEP +
+			"	}" + LINE_SEP +
 			
-			"commands" + LINE_SEP +
-			"	GetEntities properties" + LINE_SEP +
-			"	GetEntity properties" + LINE_SEP +
-			"	PutEntity properties" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command PutEntity" + LINE_SEP +
 					
-			"initial resource A" + LINE_SEP +
+			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntities }" + LINE_SEP +
 			"	GET *-> B" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 
-			"resource B" +
+			"resource B {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"	UPDATE -> B_pseudo" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 
-			"resource B_pseudo" +
+			"resource B_pseudo {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	actions { PutEntity }" + LINE_SEP +
 			"	GET --> A (NOT_FOUND(B))" + LINE_SEP +
 			"	GET --> B  (OK(B))" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 
 			"}" + LINE_SEP +
 			"";
@@ -559,23 +551,21 @@ public class GeneratorTest {
 	
 	private final static String RESOURCE_ON_ERROR = "" +
 			"rim Test {" + LINE_SEP +
-			"commands" + LINE_SEP +
-			"	GetEntity" + LINE_SEP +
-			"	Noop" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
 					
-			"initial resource A" + LINE_SEP +
+			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view { GetEntity }" + LINE_SEP +
 			"	onerror --> AE" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 
-			"resource AE" + LINE_SEP +
+			"resource AE {" + LINE_SEP +
 			"	type: item" + LINE_SEP +
 			"	entity: ERROR" + LINE_SEP +
 			"	view { Noop }" + LINE_SEP +
-			"end" + LINE_SEP +
+			"}" + LINE_SEP +
 			"}" + LINE_SEP +
 			"";
 	
@@ -595,10 +585,8 @@ public class GeneratorTest {
 	
 	private final static String INCOMPLETE_RIM = "" +
 			"rim Test {" + LINE_SEP +
-			"commands" + LINE_SEP +
-			"	GetEntity" + LINE_SEP +
-			"	Noop" + LINE_SEP +
-			"end" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
 			"}" + LINE_SEP +
 			"";
 
