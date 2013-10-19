@@ -5,18 +5,18 @@ Bundle-Vendor: IRIS
 Bundle-Version: 0.4.0.qualifier
 Bundle-SymbolicName: com.temenos.interaction.rimdsl; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext;bundle-version="[2.4.0,2.5)";visibility:=reexport,
- org.eclipse.xtext.xbase;bundle-version="[2.4.0,2.5)";resolution:=optional;visibility:=reexport,
- org.eclipse.xtext.generator;bundle-version="[2.4.0,2.5)";resolution:=optional,
+Require-Bundle: org.eclipse.xtext;bundle-version="[2.3.0,2.4.0)";visibility:=reexport,
+ org.eclipse.xtext.xbase;bundle-version="[2.3.0,2.4.0)";resolution:=optional;visibility:=reexport,
+ org.eclipse.xtext.generator;bundle-version="[2.3.0,2.4.0)";resolution:=optional,
  org.apache.commons.logging;bundle-version="1.0.4";resolution:=optional,
  org.eclipse.emf.codegen.ecore;resolution:=optional,
  org.eclipse.emf.mwe.utils;resolution:=optional,
  org.eclipse.emf.mwe2.launch;resolution:=optional,
- org.eclipse.xtext.util;bundle-version="[2.4.0,2.5)",
+ org.eclipse.xtext.util;bundle-version="[2.3.0,2.4.0)",
  org.eclipse.emf.ecore,
  org.eclipse.emf.common,
  org.antlr.runtime,
- org.eclipse.xtext.common.types;bundle-version="[2.4.0,2.5)"
+ org.eclipse.xtext.common.types;bundle-version="[2.3.0,2.4.0)"
 Import-Package: org.apache.log4j,
  org.eclipse.xtext.xbase.lib,
  org.eclipse.xtend2.lib
