@@ -2,51 +2,58 @@
 domain SimpleModel {
 rim Simple {
 
-events
-	POST POST // New
-	PUT PUT // Replace
-	PATCH POST // Merge
-	DELETE DELETE // Delete
-	GET GET
-end
+	event GET {
+		method: GET
+	}
+	event PUT {
+		method: PUT
+	}
+	event POST {
+		method: POST
+	}
+	event DELETE {
+		method: DELETE
+	}
 
-commands
-	NoopGET
-	NoopPOST
-	GETNotes
-	GETNote
-	DELETENote properties
-end
+	command NoopGET
+	command NoopPOST
+	command GETNotes
+	command GETNote
+	command DELETENote
 
-resource notes
-	collection Note
+resource notes {
+	type: collection
+	entity: Note
 	view { GETNotes }
 	path "/notes"
     POST -> newNote
 	GET *-> note
 	DELETE *-> deletedNote
-end
+}
 
-resource note
-	item Note
+resource note {
+	type: item
+	entity: Note
 	view { GETNote }
 	path "/notes/{noteID}"
 	DELETE -> deletedNote
-end
+}
 
-resource deletedNote
-	item Note
+resource deletedNote {
+	type: item
+	entity: Note
 	actions { DELETENote }
 	path "/notes/{noteID}"
 	GET --> notes
-end
+}
 
-resource newNote
-    item ID
+resource newNote {
+    type: item
+	entity: ID
     actions { NoopPOST }
     path "/notes/new"
     PUT --> note
-end
+}
 
 }
 }

@@ -1,31 +1,34 @@
 rim test {
 
-events
-    GET GET
-    PUT PUT
-end
+event GET {
+	method: GET
+}
+event PUT {
+	method: PUT
+}
 
-commands
-	GetEntities properties
-	GetEntity properties
-	UpdateEntity properties
-end
+command GetEntities
+command GetEntity
+command UpdateEntity
 
-initial resource A
-	collection ENTITY
+initial resource A {
+	type: collection
+	entity: ENTITY
 	view { GetEntities }
 	GET -> B
-end
+}
 
-resource B
-	item ENTITY
+resource B {
+	type: item
+	entity: ENTITY
 	view { GetEntity }
 	PUT -> B_update
-end
+}
 
-resource B_update
-    item ENTITY
+resource B_update {
+	type: item
+	entity: ENTITY
     actions { UpdateEntity }
-end
+}
 
 }

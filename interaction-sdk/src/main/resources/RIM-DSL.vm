@@ -6,20 +6,19 @@ domain ${rim.getDomain()} {
 #end
 rim ${rim.getName()} {
 
-events
 #foreach ( $rimEvent in ${commands.getRimEvents().entrySet()} )
-	$rimEvent.getKey() $rimEvent.getValue()
+	event $rimEvent.getKey() {
+		method: $rimEvent.getValue()
+	}
 #end
-end
 
-commands
 #foreach ( $command in $commands.getRIMCommands() )
-	$command
+	command $command
 #end
-end
 
-initial resource ServiceDocument
-	item ServiceDocument
+initial resource ServiceDocument {
+	type: item
+	entity: ServiceDocument
 	view { GETServiceDocument }
 	path "/"
 #foreach ( $rsm in $rim.getResourceStateMachines() )
@@ -28,23 +27,25 @@ initial resource ServiceDocument
 #foreach ( $state in $rim.getErrorHandlerStates() )
 	GET -> ${state.getName()}
 #end
-end
+}
 
 #if($rim.hasExceptionState())
-exception resource ${rim.getExceptionState().getName()}
-	item InteractionException
+exception resource ${rim.getExceptionState().getName()} {
+	type: item
+	entity: InteractionException
 	view { ${rim.getExceptionState().getView()} }
-end
+}
 #end
 
 ## -----------------------------------------------------
 ## Error handlers
 ## -----------------------------------------------------
 #foreach ( $state in $rim.getErrorHandlerStates() )
-resource ${state.getName()}
-	collection ${state.getName()}
+resource ${state.getName()} {
+	type: collection
+	entity: ${state.getName()}
 	view { ${state.getView()} }
-end
+}
 #end
 
 ## -----------------------------------------------------
@@ -56,25 +57,29 @@ end
 #if(!(${state.class.simpleName} == "IMNavigationState" && !$strictOData))## Do not generate nav states if strictOdata=false
 
 #if(${state.class.simpleName} == "IMNavigationState")
-resource ${rsm.getEntityState().getName()}_${state.getName()}
+resource ${rsm.getEntityState().getName()}_${state.getName()} {
 #else
-resource ${state.getName()}
+resource ${state.getName()} {
 #end
 #if(${state.class.simpleName} == "IMNavigationState" && ${state.isNavigationToCollectionResource()})
-	collection ${state.getTargetResourceStateMachine().getEntityName()}
+	type: collection
+	entity: ${state.getTargetResourceStateMachine().getEntityName()}
 	view { GETEntities filter=filter }
 #elseif(${state.class.simpleName} == "IMNavigationState" && !${state.isNavigationToCollectionResource()})
-	item ${state.getTargetResourceStateMachine().getEntityName()}
+	type: item
+	entity: ${state.getTargetResourceStateMachine().getEntityName()}
 	view { GETNavProperty navproperty="${state.getName()}", entity=${rsm.getEntityName()} }
 #elseif(${state.class.simpleName} == "IMCollectionState")
-	collection ${rsm.getEntityName()}
+	type: collection
+	entity: ${rsm.getEntityName()}
 #if($strictOData)
 	view { $state.getView() }
 #else
 	view { $state.getView() filter=filter }
 #end
 #else
-	item ${rsm.getEntityName()}
+	type: item
+	entity: ${rsm.getEntityName()}
 #if(${state.class.simpleName} == "IMPseudoState" && $state.hasActions() || ${state.class.simpleName} == "IMEntityState" && $state.hasActions())
 	actions { ##
 #foreach ( $action in $state.getActions() )
@@ -108,7 +113,7 @@ $action##
 #if($state.hasOnError())
 	onerror --> ${state.getErrorHandlerState().getName()}
 #end
-end
+}
 #end
 #end
 #end

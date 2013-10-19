@@ -39,13 +39,13 @@ ResourceInteractionModel:
 
 Event:
 	'event' name=ID '{' 
-     	'method' ':' httpMethod=ID
+     	'method:' httpMethod=ID
     '}'
 ;
 
 Command:
 	'command' name=ID ('{' 
-     	'properties' ':' ((properties+=CommandProperty)* (',' properties+=CommandProperty)* )
+     	'properties:' ((properties+=CommandProperty)* (',' properties+=CommandProperty)* )
     '}')?
 ;
 
@@ -107,11 +107,11 @@ Path:
 
 
 ResourceType:
-    'type' ':' ((isCollection?='collection') | (isItem?='item'))
+    'type:' ((isCollection?='collection') | (isItem?='item'))
 ;
 
 Entity:
-    'entity' ':' name=ID
+    'entity:' name=ID
 ;
 
 ResourceCommand:

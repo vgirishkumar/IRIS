@@ -1,51 +1,63 @@
 rim Banking {
 
-events
-	AUTHORISE PUT
-	DELETE DELETE
-	GET GET
-	POST POST
-	PUT PUT
-	REVERSE PUT
-end
+	event AUTHORISE {
+		method: PUT
+	}
+	event DELETE {
+		method: DELETE
+	}
+	event GET {
+		method: GET
+	}
+	event POST {
+		method: POST
+	}
+	event PUT {
+		method: PUT
+	}
+	event REVERSE {
+		method: PUT
+	}
 
-commands
-	AuthoriseEntity
-	CreateEntity
-	DeleteEntity
-	GETEntities
-	GETEntity
-	GETException
-	GETNavProperty
-	GETReversedEntities
-	GETReversedEntity
-	GETServiceDocument
-	NoopGET
-	ReverseEntity
-	UpdateEntity
-end
+	command AuthoriseEntity
+	command CreateEntity
+	command DeleteEntity
+	command GETEntities
+	command GETEntity
+	command GETException
+	command GETNavProperty
+	command GETReversedEntities
+	command GETReversedEntity
+	command GETServiceDocument
+	command NoopGET
+	command ReverseEntity
+	command UpdateEntity
 
-initial resource ServiceDocument
-	item ServiceDocument
+initial resource ServiceDocument {
+	type: item
+	entity: ServiceDocument
 	view { GETServiceDocument }
 	path "/"
 	GET -> Sectors
 	GET -> Errors
-end
+}
 
-exception resource InteractionException
-	item InteractionException
+exception resource InteractionException {
+	type: item
+	entity: InteractionException
 	view { GETException }
-end
+}
 
-resource Errors
-	collection Errors
+resource Errors {
+	type: collection
+	entity: Errors
 	view { NoopGET }
-end
+}
 
 
-resource Sectors
-	collection Sector
+resource Sectors {
+	type: collection
+	entity: Sector
 	view { GETEntities filter=filter }
 	path "/Sectors()"
 	GET title="unauthorised input records" -> Sectors_IAuth
@@ -53,76 +65,85 @@ resource Sectors
 	POST -> Sectors_input
 	GET *-> sector id=SectorCode
 	REVERSE title="reverse" *-> sector_reverse id=SectorCode
-end
+}
 
-resource sector
-	item Sector
+resource sector {
+	type: item
+	entity: Sector
 	view { GETEntity }
 	path "/Sectors('{id}')"
 	REVERSE title="reverse" -> sector_reverse id=SectorCode
-end
+}
 
-resource sector_IAuth
-	item Sector
+resource sector_IAuth {
+	type: item
+	entity: Sector
 	view { GETEntity }
 	path "/SectorsIAuth('{id}')"
 	PUT title="authorise" -> sector_IAuth_authorise id=SectorCode
 	DELETE title="delete" -> sector_IAuth_delete id=SectorCode
-end
+}
 
-resource sector_IAuth_authorise
-	item Sector
+resource sector_IAuth_authorise {
+	type: item
+	entity: Sector
 	actions { AuthoriseEntity }
 	relations { "edit" }
 	path "/SectorsIAuth('{id}')/authorise"
 	GET --> sector_IAuth (OK(sector_IAuth)) id=SectorCode
 	GET --> sector (OK(sector)) id=SectorCode
-end
+}
 
-resource sector_IAuth_delete
-	item Sector
+resource sector_IAuth_delete {
+	type: item
+	entity: Sector
 	actions { DeleteEntity }
 	relations { "edit" }
 	path "/SectorsIAuth('{id}')/delete"
 	GET --> sector (OK(sector)) id=SectorCode
-end
+}
 
-resource sector_reverse
-	item Sector
+resource sector_reverse {
+	type: item
+	entity: Sector
 	actions { ReverseEntity }
 	relations { "edit" }
 	path "/SectorsReversed('{id}')"
 	GET --> sector_Reversed (OK(sector_Reversed)) id=SectorCode
-end
+}
 
-resource sector_Reversed
-	item Sector
+resource sector_Reversed {
+	type: item
+	entity: Sector
 	view { GETReversedEntity }
 	path "/SectorsReversed('{id}')"
-end
+}
 
-resource Sectors_IAuth
-	collection Sector
+resource Sectors_IAuth {
+	type: collection
+	entity: Sector
 	view { GETEntities filter=filter }
 	path "/SectorsIAuth()"
 	GET *-> sector_IAuth id=SectorCode
 	PUT title="authorise" *-> sector_IAuth_authorise id=SectorCode
 	DELETE title="delete" *-> sector_IAuth_delete id=SectorCode
-end
+}
 
-resource Sectors_input
-	item Sector
+resource Sectors_input {
+	type: item
+	entity: Sector
 	actions { CreateEntity }
 	path "/Sectors()"
 	GET --> sector_IAuth (OK(sector_IAuth)) id=SectorCode
 	GET --> sector (OK(sector)) id=SectorCode
 	onerror --> Errors
-end
+}
 
-resource Sectors_Reversed
-	collection Sector
+resource Sectors_Reversed {
+	type: collection
+	entity: Sector
 	view { GETReversedEntities filter=filter }
 	path "/SectorsReversed()"
 	GET *-> sector_Reversed id=SectorCode
-end
+}
 }

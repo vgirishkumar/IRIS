@@ -5,39 +5,48 @@ use SimpleModel.Simple.*
 
 rim Home {
 
-events
-	POST POST // New
-	PUT PUT // Replace
-	PATCH POST // Merge
-	DELETE DELETE // Delete
-	GET GET
-end
+event POST {
+	method: POST
+}
+event PUT {
+	method: PUT
+}
+event PATCH {
+	method: POST
+}
+event DELETE {
+	method: DELETE
+}
+event GET {
+	method: GET
+}
 
-commands
-	NoopGET
-	NoopPOST
-	GETPreferences properties
-end
+command NoopGET
+command NoopPOST
+command GETPreferences
 
-initial resource home
-	item HOME
+initial resource home {
+	type: item
+	entity: HOME
 	view { NoopGET }
     path "/"
 	GET -> profile
     GET -> preferences
 	GET -> notes
-end
+}
 
-resource profile
-	item Profile
+resource profile {
+	type: item
+	entity: Profile
 	view { NoopGET }
 	path "/profile"
-end
+}
 
-resource preferences
-    item Preferences
+resource preferences {
+	type: item
+	entity: Preferences
     view { GETPreferences }
-end
+}
 
 }
 }
