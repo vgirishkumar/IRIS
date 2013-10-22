@@ -5,7 +5,7 @@ rim ParserTest {
         method: POST
     }
     // Pay
-    event P
+    event P {
      	method: PUT
    	}
    	// Used
