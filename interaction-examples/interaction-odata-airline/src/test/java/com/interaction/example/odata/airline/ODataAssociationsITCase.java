@@ -116,10 +116,10 @@ public class ODataAssociationsITCase {
 			assertEquals(3, flightSchedule.getLinks().size());
 			// there should be one link to self
 			if(consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
-				assertTrue(containsLink(flightSchedule.getLinks(), "Flights()?filter=flightScheduleNum+eq+'" + id + "'", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/flights"));
+				assertTrue(containsLink(flightSchedule.getLinks(), "Flights()?filter=flightScheduleNum+eq+'" + id + "'", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Flights"));
 			}
 			else {
-				assertTrue(containsLink(flightSchedule.getLinks(), "FlightSchedules(" + id + ")/flights", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/flights"));
+				assertTrue(containsLink(flightSchedule.getLinks(), "FlightSchedules(" + id + ")/flights", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Flights"));
 			}
 			// there should be one link to one departureAirport for this flight schedule
 			assertTrue(containsLink(flightSchedule.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "(" + id + ")/departureAirport", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Airport") ||
@@ -212,8 +212,8 @@ public class ODataAssociationsITCase {
 
 		assertEquals(2, airport.getLinks().size());
 		if(consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
-			assertTrue(containsLink(airport.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "()?filter=arrivalAirportCode+eq+'" + code + "'"));
-			assertTrue(containsLink(airport.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "()?filter=departureAirportCode+eq+'" + code + "'"));
+			assertTrue(containsLink(airport.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "()?filter=arrivalAirportCode+eq+'" + code + "'", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/" + FLIGHT_SCHEDULE_ENTITYSET_NAME));
+			assertTrue(containsLink(airport.getLinks(), FLIGHT_SCHEDULE_ENTITYSET_NAME + "()?filter=departureAirportCode+eq+'" + code + "'", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/" + FLIGHT_SCHEDULE_ENTITYSET_NAME));
 		}
 		else {
 			assertTrue(containsLink(airport.getLinks(), AIRPORT_ENTITYSET_NAME + "('" + code + "')/departures"));

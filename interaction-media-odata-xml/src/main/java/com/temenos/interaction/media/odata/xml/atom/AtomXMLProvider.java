@@ -97,8 +97,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	@Context
 	private UriInfo uriInfo;
-	private AtomEntryFormatWriter entryWriter = new AtomEntryFormatWriter();
-	private AtomFeedFormatWriter feedWriter = new AtomFeedFormatWriter();
+	private AtomEntryFormatWriter entryWriter;
+	private AtomFeedFormatWriter feedWriter;
 	
 	private final EdmDataServices edmDataServices;
 	private final Metadata metadata;
@@ -120,11 +120,12 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		this.edmDataServices = edmDataServices;
 		this.metadata = metadata;
 		this.hypermediaEngine = hypermediaEngine;
-//		this.transformer = transformer;
 		assert(edmDataServices != null);
 		assert(metadata != null);
 		assert(hypermediaEngine != null);
-//		assert(transformer != null);
+
+		entryWriter = new AtomEntryFormatWriter();
+		feedWriter = new AtomFeedFormatWriter(edmDataServices);
 	}
 	
 	@Override
@@ -168,6 +169,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		try {
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+				OEntity tempEntity = entityResource.getEntity();
+				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + entityResource.getEntityName();
+				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
+				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
 
 				//Convert Links to list of OLink
 				List<OLink> olinks = new ArrayList<OLink>();
@@ -178,10 +183,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				}
 				
 				//Write entry
-				OEntity tempEntity = entityResource.getEntity();
-				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + entityResource.getEntityName();
-				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
 	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
             	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
@@ -262,7 +263,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource.getLinks(), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks);
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource.getLinks(), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks, metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
 				CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
 				
@@ -285,19 +286,13 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	public void addLinkToOLinks(List<OLink> olinks, Link link) {
 		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
-		String rel = link.getRel();
-		if(rel.contains("item")) {
-			if(link.getTransition().isGetFromCollectionToEntityResource()) {
-				//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
-				rel = "self";
-			}
-			else {
-				//entry type relations should use the entityType name
-				rel = XmlFormatWriter.related + link.getTransition().getTarget().getEntityName();
-			}
-		} else if (rel.contains("collection")) {
-			rel = XmlFormatWriter.related + link.getTitle();
+		String targetEntitySetName = null;
+		if(link.getTransition() != null) {
+			String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + link.getTransition().getTarget().getEntityName();
+			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
+			targetEntitySetName = edmDataServices.getEdmEntitySet(targetEntityType).getName();
 		}
+		String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
 		String href = link.getHref();
 		if(requestContext != null) {
 			//Extract the transition fragment from the URI path
@@ -470,5 +465,36 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				return null;
 			}
 		}
+	}
+	
+	/**
+	 * Return the OData link relation from the specified link.
+	 * @param link link
+	 * @return odata link rel
+	 */
+	public static String getODataLinkRelation(Link link, String entitySetName) {
+		String rel = link.getRel();
+		Transition transition = link.getTransition();
+		if(transition == null) {
+			return rel;
+		}
+		if(rel.contains("item")) {
+			if(transition.isGetFromCollectionToEntityResource()) {
+				//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
+				rel = "self";
+			}
+			else {
+				//entry type relations should use the entityType name
+				rel = XmlFormatWriter.related + transition.getTarget().getEntityName();
+			}
+		} else if (rel.contains("collection")) {
+			if(entitySetName != null) {
+				rel = XmlFormatWriter.related + entitySetName;
+			}
+			else {
+				rel = XmlFormatWriter.related + transition.getTarget().getName();
+			}
+		}
+		return rel;
 	}
 }

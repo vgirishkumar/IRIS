@@ -35,7 +35,9 @@ import org.joda.time.DateTimeZone;
 import org.odata4j.core.ODataConstants;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OLink;
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmEntityType;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
@@ -44,10 +46,17 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Link;
 
 public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWriter<EntitiesResponse> {
-	private AtomEntryFormatWriter entryWriter = new AtomEntryFormatWriter();
+	private AtomEntryFormatWriter entryWriter;
+	private EdmDataServices edmDataServices;
+	
+	public AtomFeedFormatWriter(EdmDataServices edmDataServices) {
+		this.edmDataServices = edmDataServices;
+		entryWriter = new AtomEntryFormatWriter();
+	}
 	
   @Override
   public String getContentType() {
@@ -60,10 +69,10 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 	  String entitySetName = ees.getName();
 	  List<Link> links = new ArrayList<Link>();
 	  links.add(new Link(entitySetName, "self", entitySetName, null, null));
-	  write(uriInfo, w, links, response, null);
+	  write(uriInfo, w, links, response, null, null);
   }
   
-  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, Map<String, List<OLink>> entityOlinks) {
+  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, Map<String, List<OLink>> entityOlinks, String modelName) {
     String baseUri = uriInfo.getBaseUri().toString();
 
     EdmEntitySet ees = response.getEntitySet();
@@ -88,7 +97,15 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     for (Link link : links) {
     	String href = link.getHref();
     	String title = link.getTitle();
-    	String rel = link.getRel();
+    	
+    	String targetEntitySetName = null;
+    	if(modelName != null) {
+			String fqTargetEntityName = modelName + Metadata.MODEL_SUFFIX + "." + link.getTransition().getTarget().getEntityName();
+			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
+			EdmEntitySet targetEntitySet = edmDataServices.getEdmEntitySet(targetEntityType);
+			targetEntitySetName = targetEntitySet.getName();
+    	}
+		String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
 
     	// TODO include href without base path in link
     	// chop the leading base path

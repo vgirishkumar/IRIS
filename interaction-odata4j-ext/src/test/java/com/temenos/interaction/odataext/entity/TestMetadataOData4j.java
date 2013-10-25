@@ -380,8 +380,45 @@ public class TestMetadataOData4j {
 		assertNotNull(edmMetadata.findEdmFunctionImport("AirportFlights"));
 	}
 
+	/*
+	 * Test to check the navigation property to a collection resource.
+	 * e.g. /Airports(JFK) --> /FlightSchedules
+	 * => nav property should be target EntitySet name:  FlightSchedules
+	 */
 	@Test
-	public void testMultipleManyToOneNavProperties() {
+	public void testSingleOneToManyNavProperty() {
+		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
+
+		initial.addTransition("GET", airports);
+		airports.addTransitionForEachItem("GET", airport, null, null);
+		airport.addTransition("GET", flightSchedules);
+
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
+		EdmDataServices edmMetadata = metadataOData4j.getMetadata();
+		
+		assertNotNull(edmMetadata);
+		EdmEntityType entityType = (EdmEntityType) edmMetadata.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
+
+		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("FlightSchedules");
+		assertNotNull(flightScheduleNavProperty);
+		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
+		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
+		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
+		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
+		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+	}
+	
+	/*
+	 * Test to check the navigation property to a filtered collection resource.
+	 * e.g. /Airports(JFK) title="departures" --> /FlightSchedules?$filter=departureAirportCode eq '{code}'
+	 * => nav property should be link title:  departures
+	 */
+	@Test
+	public void testSingleOneToManyFilteredNavProperty() {
 		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
@@ -390,8 +427,40 @@ public class TestMetadataOData4j {
 		initial.addTransition("GET", airports, null, null);
 		airports.addTransitionForEachItem("GET", airport, null, null);
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
+		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties, "departures");
+
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
+		EdmDataServices edmMetadata = metadataOData4j.getMetadata();
+		
+		assertNotNull(edmMetadata);
+		EdmEntityType entityType = (EdmEntityType) edmMetadata.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
+
+		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("departures");
+		assertNotNull(flightScheduleNavProperty);
+		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
+		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
+		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
+		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
+		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+	}
+	
+	/*
+	 * Test to check the navigation property to a filtered collection resource when the transition does not have a label.
+	 * e.g. /Airports(JFK) --> /FlightSchedules?$filter=departureAirportCode eq '{code}'
+	 * => nav property should be filter expression:  departureAirportCode eq '{code}'
+	 */
+	@Test
+	public void testSingleOneToManyFilteredNavPropertyWithoutLabel() {
+		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
+
+		initial.addTransition("GET", airports, null, null);
+		airports.addTransitionForEachItem("GET", airport, null, null);
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
 		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
 
@@ -409,18 +478,16 @@ public class TestMetadataOData4j {
 		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
 		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
 		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
-
-		flightScheduleNavProperty = entityType.findNavigationProperty("arrivalAirportCode eq '{code}'");
-		assertNotNull(flightScheduleNavProperty);
-		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
-		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
-		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
-		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
-		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
 	}
 	
+	/*
+	 * Test to check multiple navigation properties to a collection resource (must be filtered to avoid duplicate transition).
+	 * e.g. /Airports(JFK) title="departures" --> /FlightSchedules?$filter=departureAirportCode eq '{code}'
+	 *      /Airports(JFK) title="arrivals" --> /FlightSchedules?$filter=arrivalAirportCode eq '{code}'
+	 * => nav properties should be link titles:  departures / arrivals
+	 */
 	@Test
-	public void testMultipleManyToOneNavPropertiesWithLabel() {
+	public void testMultipleOneToManyNavProperties() {
 		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
@@ -441,6 +508,8 @@ public class TestMetadataOData4j {
 		assertNotNull(edmMetadata);
 		EdmEntityType entityType = (EdmEntityType) edmMetadata.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
 
+		//Navigation property to many entities is usually the EntitySet name (e.g. FlightSchedules). However, in this case it is NOT the EntitySet name
+		//but a transition ID identifying the link (the link title at the moment, e.g. departures). It does not fully comply with OData but this one does not cater for multiple links to the same target.  
 		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("departures");
 		assertNotNull(flightScheduleNavProperty);
 		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
@@ -456,5 +525,53 @@ public class TestMetadataOData4j {
 		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
 		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
 		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
-	}	
+	}
+	
+	/*
+	 * Test to check multiple navigation properties to a collection resource (must be filtered to avoid duplicate transition)
+	 * when the transitions do not have labels.
+	 * e.g. /Airports(JFK) --> /FlightSchedules?$filter=departureAirportCode eq '{code}'
+	 *      /Airports(JFK) --> /FlightSchedules?$filter=arrivalAirportCode eq '{code}'
+	 * => nav properties should be the filter expressions:  departureAirportCode eq '{code}' / arrivalAirportCode eq '{code}'
+	 */
+	@Test
+	public void testMultipleOneToManyNavPropertiesWithoutLabel() {
+		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
+
+		initial.addTransition("GET", airports, null, null);
+		airports.addTransitionForEachItem("GET", airport, null, null);
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
+		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
+		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
+
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
+		EdmDataServices edmMetadata = metadataOData4j.getMetadata();
+		
+		assertNotNull(edmMetadata);
+		EdmEntityType entityType = (EdmEntityType) edmMetadata.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
+
+		//Navigation property to many entities is usually the EntitySet name (e.g. FlightSchedules). However, in this case it is NOT the EntitySet name
+		//but a transition ID identifying the link (no link title defined so use the query params). It does not fully comply with OData but this one does not cater for multiple links to the same target.  
+		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("departureAirportCode eq '{code}'");
+		assertNotNull(flightScheduleNavProperty);
+		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
+		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
+		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
+		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
+		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+
+		flightScheduleNavProperty = entityType.findNavigationProperty("arrivalAirportCode eq '{code}'");
+		assertNotNull(flightScheduleNavProperty);
+		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
+		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
+		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
+		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
+		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+	}
 }
