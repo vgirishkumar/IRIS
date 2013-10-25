@@ -951,46 +951,63 @@ public class TestAtomXMLProvider {
 	@Test
 	public void testLinkRelationCollectionToItem() {
 		Transition t = createMockTransition(
-				createMockResourceState("FundsTransfers", "FundsTransfer", true, true), 
-				createMockResourceState("customer", "Customer", false, false));
+				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
+				createMockResourceState("customer", "Customer", false));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customer", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
 	}
 	
 	@Test
 	public void testLinkRelationCollectionToItemSameEntity() {
 		Transition t = createMockTransition(
-				createMockResourceState("FundsTransfers", "FundsTransfer", true, true), 
-				createMockResourceState("fundsTransfer", "FundsTransfer", false, false));
+				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
+				createMockResourceState("fundsTransfer", "FundsTransfer", false));
 		assertEquals("self", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
 	}
 
 	@Test
 	public void testLinkRelationItemToCollection() {
 		Transition t = createMockTransition(
-				createMockResourceState("account", "Account", false, false), 
-				createMockResourceState("FundsTransfers", "FundsTransfer", true, true));
+				createMockResourceState("account", "Account", false), 
+				createMockResourceState("FundsTransfers", "FundsTransfer", true));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
+	}
+
+	@Test
+	public void testLinkRelationItemToItem() {
+		Transition t = createMockTransition(
+				createMockResourceState("account", "Account", false), 
+				createMockResourceState("FundsTransfers_new", "FundsTransfer", false));
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
+	}
+
+	@Test
+	public void testLinkFixedRelation() {
+		ResourceState targetState = createMockResourceState("FundsTransfers_new", "FundsTransfer", true);
+		when(targetState.getRel()).thenReturn("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers http://www.temenos.com/rels/new");
+		Transition t = createMockTransition(
+				createMockResourceState("account", "Account", false), 
+				targetState);
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers http://www.temenos.com/rels/new", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
 	}
 	
 	@Test
 	public void testLinkRelationInitialCollectionToCollectionSameEntity() {
 		Transition t = createMockTransition(
-				createMockResourceState("FundsTransfers", "FundsTransfer", true, true), 
-				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", false, true));
+				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
+				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
 	}
 
 	@Test
 	public void testLinkRelationCollectionToCollectionSameEntity() {
 		Transition t = createMockTransition(
-				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", false, true), 
-				createMockResourceState("FundsTransfersIHold", "FundsTransfer", false, true));
+				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+				createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
 	}
 
-	private ResourceState createMockResourceState(String name, String entityName, boolean isInitial, boolean isCollection) {
+	private ResourceState createMockResourceState(String name, String entityName, boolean isCollection) {
 		ResourceState state = mock(isCollection ? CollectionResourceState.class : ResourceState.class);
-		when(state.isInitial()).thenReturn(isInitial);
 		when(state.getName()).thenReturn(name);
 		when(state.getEntityName()).thenReturn(entityName);
 		when(state.getRel()).thenReturn(isCollection ? "collection" : "item");
