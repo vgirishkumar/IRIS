@@ -27,7 +27,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import com.google.inject.Injector;
-import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupGenerated;
+import com.temenos.interaction.rimdsl.RIMDslStandaloneSetup;
+import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSwagger;
 import com.temenos.interaction.rimdsl.generator.launcher.Generator;
 
 import java.io.File;
@@ -54,7 +55,7 @@ public class RIMGeneratorMojo extends AbstractMojo {
     private File rimSourceFile;
 
 	/**
-     * Location of the RIM file.
+     * Output location for generated Java code.
      * @parameter expression="${project.build.directory}/src-gen"
      */
     private File targetDirectory;
@@ -65,6 +66,18 @@ public class RIMGeneratorMojo extends AbstractMojo {
      */
     private boolean skipRIMGeneration;
 
+	/**
+     * Output location for generated Swagger docs.
+     * @parameter expression="${project.build.directory}/swagger-gen"
+     */
+    private File swaggerTargetDirectory;
+    
+    /**
+     * Skip the Swagger generation.
+     * @parameter default-value="true"
+     */
+    private boolean skipSwaggerGeneration;
+    
     public void setRimSourceDir(File rimSourceDir) {
 		this.rimSourceDir = rimSourceDir;
 	}
@@ -81,34 +94,67 @@ public class RIMGeneratorMojo extends AbstractMojo {
 		this.skipRIMGeneration = (skipRIMGeneration != null && skipRIMGeneration.equalsIgnoreCase("true"));
 	}
 
-    public void execute() throws MojoExecutionException, MojoFailureException {
-    	if (skipRIMGeneration) {
-    		getLog().info("[skipRIMGeneration] set, not generating any source");
-    	} else {
+    public void setSwaggerTargetDirectory(File swaggerTargetDirectory) {
+		this.swaggerTargetDirectory = swaggerTargetDirectory;
+	}
+
+	public void setSkipSwaggerGeneration(String skipSwaggerGeneration) {
+		this.skipSwaggerGeneration = (skipSwaggerGeneration != null && skipSwaggerGeneration.equalsIgnoreCase("true"));
+	}
+
+	public void execute() throws MojoExecutionException, MojoFailureException {
+    	if (!skipRIMGeneration || !skipSwaggerGeneration) {
     		// check our configuration
     		if (rimSourceFile == null && rimSourceDir == null)
     			throw new MojoExecutionException("Neither [rimSourceFile] nor [rimSourceDir] specified in plugin configuration");
     		if (rimSourceFile != null && rimSourceDir != null)
     			throw new MojoExecutionException("Cannot configure [rimSourceFile] and [rimSourceDir] in plugin configuration");
+    	}
+    	
+    	boolean ok = false;
+    	if (skipRIMGeneration) {
+    		getLog().info("[skipRIMGeneration] set, not generating any source");
+    		ok = true;
+    	} else {
     		if (targetDirectory == null) {
     			throw new MojoExecutionException("[targetDirectory] is set to null plugin configuration");
     		}
 
-    		boolean ok = false;
     		if (!targetDirectory.exists()) {
     			getLog().info("Creating [targetDirectory] " + targetDirectory.toString());
     			targetDirectory.mkdirs();
     		}
-    		Injector injector = new RIMDslStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
+    		Injector injector = new RIMDslStandaloneSetup().createInjectorAndDoEMFRegistration();
     		Generator generator = injector.getInstance(Generator.class);
     		if (rimSourceDir != null) {
         		ok = generator.runGeneratorDir(rimSourceDir.toString(), targetDirectory.toString());
     		} else {
         		ok = generator.runGenerator(rimSourceFile.toString(), targetDirectory.toString());
     		}
-
-    		if (!ok)
-    			throw new MojoFailureException("An unexpected error occurred while generating source");
     	}
+
+    	if (!ok)
+			throw new MojoFailureException("An unexpected error occurred while generating source");
+
+    	if (skipSwaggerGeneration) {
+    		getLog().info("[skipSwaggerGeneration] set, not generating swagger documents");
+    		ok = true;
+    	} else {
+    		if (!swaggerTargetDirectory.exists()) {
+    			getLog().info("Creating [swaggerTargetDirectory] " + swaggerTargetDirectory.toString());
+    			swaggerTargetDirectory.mkdirs();
+    		}
+    		Injector injector = new RIMDslStandaloneSetupSwagger().createInjectorAndDoEMFRegistration();
+    		Generator generator = injector.getInstance(Generator.class);
+    		if (rimSourceDir != null) {
+        		ok = generator.runGeneratorDir(rimSourceDir.toString(), swaggerTargetDirectory.toString());
+    		} else {
+        		ok = generator.runGenerator(rimSourceFile.toString(), swaggerTargetDirectory.toString());
+    		}
+    	}
+
+    	if (!ok)
+			throw new MojoFailureException("An unexpected error occurred while generating source");
+
     }
 }

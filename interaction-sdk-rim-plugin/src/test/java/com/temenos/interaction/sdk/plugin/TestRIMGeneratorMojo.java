@@ -39,6 +39,7 @@ public class TestRIMGeneratorMojo {
 	public void testSkipRIMGeneration() throws MojoExecutionException, MojoFailureException {
 		RIMGeneratorMojo mojo = new RIMGeneratorMojo();
 		mojo.setSkipRIMGeneration("true");
+		mojo.setSkipSwaggerGeneration("true");
 		// will throw error if generation is not skipping properly
 		mojo.execute();
 	}

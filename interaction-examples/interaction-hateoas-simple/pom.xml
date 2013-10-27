@@ -39,6 +39,11 @@
         <version>2.1.1</version>
         <configuration>
           <packagingExcludes>WEB-INF/web.xml</packagingExcludes>
+          <webResources>
+            <resource>
+              <directory>target/swagger-gen</directory>
+            </resource>
+          </webResources>
         </configuration>
       </plugin>   
       <plugin>
@@ -58,6 +63,10 @@
           <targetDirectory>${basedir}/src-gen</targetDirectory> 
           -->
           <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
+          <!-- Override the default [swaggerTargetDirectory] of ${project.build.directory}/swagger-gen
+          <swaggerTargetDirectory>${basedir}/src/main/webapp/</swaggerTargetDirectory>
+          -->
+          <skipSwaggerGeneration>false</skipSwaggerGeneration>
         </configuration>
       </plugin>
 
@@ -76,15 +85,21 @@
       
       <!-- Configure the jetty plugin to run an instance of our responder 'mvn jetty:run' -->
       <plugin>
-        <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <version>6.1.26</version>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.0.5.v20130815</version>
 		<configuration>
-			<scanIntervalSeconds>10</scanIntervalSeconds>
-			<stopPort>8005</stopPort>
-			<stopKey>STOP</stopKey>
+          <scanIntervalSeconds>10</scanIntervalSeconds>
+          <stopPort>8005</stopPort>
+          <stopKey>STOP</stopKey>
+          <webApp>
 			<!-- Configure the webapp root -->
 			<contextPath>/example</contextPath>
+            <resourceBases>
+              <resourceBase>src/main/webapp</resourceBase>
+              <resourceBase>target/swagger-gen</resourceBase>
+            </resourceBases>
+          </webApp>
 		</configuration>
 		<executions>
 			<execution>
