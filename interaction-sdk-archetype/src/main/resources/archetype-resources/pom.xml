@@ -38,6 +38,22 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/src-gen</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-plugin</artifactId>
         <version>${irisVersion}</version>
@@ -62,8 +78,9 @@
           </execution>
         </executions>
         <configuration>
-          <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen -->
+          <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
           <targetDirectory>${basedir}/src/main/java</targetDirectory> 
+		  -->
           <rimSourceFile>${basedir}/src/main/resources/${artifactId}.rim</rimSourceFile>
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
         </configuration>
