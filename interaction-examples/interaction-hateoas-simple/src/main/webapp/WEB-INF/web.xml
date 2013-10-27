@@ -37,8 +37,8 @@
 	</listener>
 	
 	<filter>
-		<filter-name>request-context</filter-name>
 		<description>This filter sets the request context for the interaction framework.</description>
+		<filter-name>request-context</filter-name>
 		<filter-class>com.temenos.interaction.core.web.RequestContextFilter</filter-class>
 	</filter>
 	<filter-mapping>
