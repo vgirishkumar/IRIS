@@ -100,3 +100,5 @@
 /interaction-dsl/com.temenos.interaction.rimdsl.visualisation/bin
 /interaction-dsl/com.temenos.interaction.rimdsl.visualisation/target
 /useragent-examples/useragent-swagger-ui/target
+/interaction-examples/interaction-hateoas-restbucks/src-gen
+/interaction-examples/interaction-hateoas-restbucks/target

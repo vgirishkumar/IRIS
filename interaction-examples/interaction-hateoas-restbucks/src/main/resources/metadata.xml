@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Metadata ModelName="Restbucks" Version="1.0" 
+          xmlns="http://iris.temenos.com/metadata.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
+    <Entity Name="ServiceDocument"></Entity>
+    <Entity Name="Metadata"></Entity>
+	<Entity Name="Order">
+		<Property Name="Id">
+			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="location" />
+		<Property Name="name" />
+		<Property Name="milk" />
+		<Property Name="quantity">
+			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
+		</Property>
+		<Property Name="size" />
+	</Entity>
+	<Entity Name="Payment">
+		<Property Name="Id">
+			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="authorisationCode" />
+	</Entity>
+</Metadata>

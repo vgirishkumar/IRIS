@@ -1,0 +1,145 @@
+domain RestbucksModel {
+rim Restbucks {
+
+	event DELETE {
+		method: DELETE
+	}
+	event GET {
+		method: GET
+	}
+	event POST {
+		method: POST
+	}
+	event PUT {
+		method: PUT
+	}
+
+	command CreateEntity
+	command DeleteEntity
+	command GETEntities
+	command GETEntity
+	command GETException
+	command GETNavProperty
+	command GETServiceDocument
+	command NoopGET
+	command UpdateEntity
+
+initial resource ServiceDocument {
+	type: item
+	entity: ServiceDocument
+	view { GETServiceDocument }
+	path "/"
+	GET -> Orders
+	GET -> Payments
+}
+
+
+
+
+resource Orders {
+	type: collection
+	entity: Order
+	view { GETEntities }
+	path "/Orders()"
+	POST -> Orders_created
+	GET *-> order id=Id
+	GET title="Payment" *-> order_Payment id=Id
+	PUT *-> order_updated id=Id
+	DELETE *-> order_deleted id=Id
+}
+
+resource order {
+	type: item
+	entity: Order
+	view { GETEntity }
+	path "/Orders({id})"
+	GET title="Payment" -> order_Payment id=Id
+	PUT -> order_updated id=Id
+	DELETE -> order_deleted id=Id
+}
+
+resource order_deleted {
+	type: item
+	entity: Order
+	actions { DeleteEntity }
+	relations { "edit" }
+	path "/Orders({id})/deleted"
+}
+
+resource order_updated {
+	type: item
+	entity: Order
+	actions { UpdateEntity }
+	relations { "edit" }
+	path "/Orders({id})"
+}
+
+resource Orders_created {
+	type: item
+	entity: Order
+	actions { CreateEntity }
+	path "/Orders()"
+	GET --> order (OK(order)) id=Id
+}
+
+resource order_Payment {
+	type: item
+	entity: Payment
+	view { GETNavProperty navproperty="Payment", entity=Order }
+	path "/Orders({id})/Payment"
+}
+
+resource Payments {
+	type: collection
+	entity: Payment
+	view { GETEntities }
+	path "/Payments()"
+	POST -> Payments_created
+	GET *-> payment id=Id
+	GET title="Order" *-> payment_Order id=Id
+	PUT *-> payment_updated id=Id
+	DELETE *-> payment_deleted id=Id
+}
+
+resource payment {
+	type: item
+	entity: Payment
+	view { GETEntity }
+	path "/Payments({id})"
+	GET title="Order" -> payment_Order id=Id
+	PUT -> payment_updated id=Id
+	DELETE -> payment_deleted id=Id
+}
+
+resource payment_Order {
+	type: item
+	entity: Order
+	view { GETNavProperty navproperty="Order", entity=Payment }
+	path "/Payments({id})/Order"
+}
+
+resource payment_deleted {
+	type: item
+	entity: Payment
+	actions { DeleteEntity }
+	relations { "edit" }
+	path "/Payments({id})/deleted"
+}
+
+resource payment_updated {
+	type: item
+	entity: Payment
+	actions { UpdateEntity }
+	relations { "edit" }
+	path "/Payments({id})"
+}
+
+resource Payments_created {
+	type: item
+	entity: Payment
+	actions { CreateEntity }
+	path "/Payments()"
+	GET --> payment (OK(payment)) id=Id
+}
+}
+}
