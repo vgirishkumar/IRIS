@@ -18,11 +18,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-﻿//ODATA Root Service URI
+// Test
+// OData Root Service URI
 var ODATA_SVC = $("#where");
 var tips = $(".validateTips");
 
-//Page Load Actions
+// Page Load Actions
 
 function OnPageLoad() 
 {
