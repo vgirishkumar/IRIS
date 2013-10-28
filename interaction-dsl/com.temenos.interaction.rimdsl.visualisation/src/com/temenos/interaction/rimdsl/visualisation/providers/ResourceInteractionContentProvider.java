@@ -54,6 +54,8 @@ import com.temenos.interaction.rimdsl.rim.DomainModel;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 import com.temenos.interaction.rimdsl.rim.State;
 import com.temenos.interaction.rimdsl.rim.Transition;
+import com.temenos.interaction.rimdsl.rim.TransitionAuto;
+import com.temenos.interaction.rimdsl.rim.TransitionForEach;
 
 
 /**
@@ -65,7 +67,7 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 	private boolean showIncomingRelations;
 	private boolean showOutgoingRelations;
 	
-	private List<Transition> transitions;
+	private List<TransitionDescription> transitions;
 	private Set<State> states;
 	
 	private EObject input;
@@ -81,12 +83,11 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 	public List<String> getTransitionDescription(Object from, Object to) {
 		List<String> result = new ArrayList<String>();
 		
-		for (Transition transition : transitions) {
-			State fromState = (State) transition.eContainer();
-			assert(fromState instanceof State);
-			if (transition.getState() == from && fromState == to) {
+		for (TransitionDescription transition : transitions) {
+			State fromState = transition.getFromState();
+			if (transition.getToState() == from && fromState == to) {
 				if (transition.getTitle() != null) {
-					result.add(transition.getTitle().getName());
+					result.add(transition.getTitle());
 				}
 			}
 		}
@@ -103,7 +104,7 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 		this.showIncomingRelations = showIncomingRelations;
 		this.showOutgoingRelations = showOutgoingRelations;
 		
-		transitions = new ArrayList<Transition>();
+		transitions = new ArrayList<TransitionDescription>();
 		states = new HashSet<State>();
 		
 		input = null;
@@ -116,9 +117,9 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 		if (o instanceof State) {
 			State state = (State)o;
 			List<State> result = new ArrayList<State>();
-			for (Transition transition : transitions) {
-				if (transition.eContainer() == state) {
-					result.add(transition.getState());
+			for (TransitionDescription transition : transitions) {
+				if (transition.getFromState() == state) {
+					result.add(transition.getToState());
 				}
 			}
 			return result.toArray();
@@ -192,10 +193,10 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 		if (input != null) {
 			// Some temporary buffers
 			Set<State> allStates = new HashSet<State>();
-			Map<State, Set<Transition>> incomingTransitions = 
-				new HashMap<State, Set<Transition>>();
-			Map<State, Set<Transition>> outgoingTransitions = 
-				new HashMap<State, Set<Transition>>();
+			Map<State, Set<TransitionDescription>> incomingTransitions = 
+				new HashMap<State, Set<TransitionDescription>>();
+			Map<State, Set<TransitionDescription>> outgoingTransitions = 
+				new HashMap<State, Set<TransitionDescription>>();
 			
 			if (input instanceof State) {
 				State state = (State)input;
@@ -227,7 +228,7 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 		}
 	}
 
-	private void processRIM(ResourceInteractionModel model, Set<State> allStates, Map<State, Set<Transition>> incomingTransitions, Map<State, Set<Transition>> outgoingTransitions) {
+	private void processRIM(ResourceInteractionModel model, Set<State> allStates, Map<State, Set<TransitionDescription>> incomingTransitions, Map<State, Set<TransitionDescription>> outgoingTransitions) {
 		Iterator<State> states = Iterators.filter(model.eAllContents(), State.class);
 		while (states.hasNext()) {
 			State state = states.next();
@@ -236,47 +237,92 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 			Iterator<Transition> transitions = Iterators.filter(state.eAllContents(), Transition.class);
 			while (transitions.hasNext()) {
 				Transition transition = transitions.next();
-				System.out.println("Adding transition " + transition.getTitle());
-				
+				String title = (transition.getTitle() != null ? transition.getTitle().getName() : "");
+				assert(transition.eContainer() instanceof State);
+				State fromState = (State)transition.eContainer();
 				State toState = transition.getState();
-				Set<Transition> incomingTransitionsForState = incomingTransitions.get(toState);
-				if (incomingTransitionsForState == null) {
-					incomingTransitionsForState = new HashSet<Transition>();
-					incomingTransitions.put(toState, incomingTransitionsForState);
+				if (fromState != null && toState != null) {
+					TransitionDescription t = new TransitionDescription.Builder()
+						.title(title)
+						.fromState(fromState)
+						.toState(toState)
+						.build();
+					addInOut(t, incomingTransitions, outgoingTransitions);
 				}
-				incomingTransitionsForState.add(transition);
-				
-				State fromState = (State) transition.eContainer();
-				assert(fromState instanceof State);
-				Set<Transition> outgoingTransitionsForState = outgoingTransitions.get(fromState);
-				if (outgoingTransitionsForState == null) {
-					outgoingTransitionsForState = new HashSet<Transition>();
-					outgoingTransitions.put(fromState, outgoingTransitionsForState);
+			}
+			Iterator<TransitionForEach> transitionsForEach = Iterators.filter(state.eAllContents(), TransitionForEach.class);
+			while (transitionsForEach.hasNext()) {
+				TransitionForEach transition = transitionsForEach.next();
+				String title = (transition.getTitle() != null ? transition.getTitle().getName() : "");
+				assert(transition.eContainer() instanceof State);
+				State fromState = (State)transition.eContainer();
+				State toState = transition.getState();
+				if (fromState != null && toState != null) {
+					TransitionDescription t = new TransitionDescription.Builder()
+						.title(title)
+						.fromState(fromState)
+						.toState(toState)
+						.build();
+					addInOut(t, incomingTransitions, outgoingTransitions);
 				}
-				outgoingTransitionsForState.add(transition);
+			}
+			Iterator<TransitionAuto> transitionsAuto = Iterators.filter(state.eAllContents(), TransitionAuto.class);
+			while (transitionsAuto.hasNext()) {
+				TransitionAuto transition = transitionsAuto.next();
+				String title = "-->";
+				assert(transition.eContainer() instanceof State);
+				State fromState = (State)transition.eContainer();
+				State toState = transition.getState();
+				if (fromState != null && toState != null) {
+					TransitionDescription t = new TransitionDescription.Builder()
+						.title(title)
+						.fromState(fromState)
+						.toState(toState)
+						.build();
+					addInOut(t, incomingTransitions, outgoingTransitions);
+				}
 			}
 		}
 		
 	}
 	
-	private void retrieveStatesTransitions(State root, Map<State, Set<Transition>> allTransistions, boolean backwards) {
+	private void addInOut(TransitionDescription t, Map<State, Set<TransitionDescription>> incomingTransitions, Map<State, Set<TransitionDescription>> outgoingTransitions) {
+		State toState = t.getToState();
+		Set<TransitionDescription> incomingTransitionsForState = incomingTransitions.get(toState);
+		if (incomingTransitionsForState == null) {
+			incomingTransitionsForState = new HashSet<TransitionDescription>();
+			incomingTransitions.put(toState, incomingTransitionsForState);
+		}
+		incomingTransitionsForState.add(t);
+		
+		State fromState = t.getFromState();
+		assert(fromState instanceof State);
+		Set<TransitionDescription> outgoingTransitionsForState = outgoingTransitions.get(fromState);
+		if (outgoingTransitionsForState == null) {
+			outgoingTransitionsForState = new HashSet<TransitionDescription>();
+			outgoingTransitions.put(fromState, outgoingTransitionsForState);
+		}
+		outgoingTransitionsForState.add(t);
+	}
+	
+	private void retrieveStatesTransitions(State root, Map<State, Set<TransitionDescription>> allTransistions, boolean backwards) {
 		Set<State> visitedStates = new HashSet<State>();
 		visitedStates.clear();
 		internalRetrieveStatesTransitions(root, visitedStates, allTransistions, backwards);
 	}
 
-	private void internalRetrieveStatesTransitions(State root, Set<State> visitedStates, Map<State, Set<Transition>> allTransitions, boolean backwards) {
+	private void internalRetrieveStatesTransitions(State root, Set<State> visitedStates, Map<State, Set<TransitionDescription>> allTransitions, boolean backwards) {
 		states.add(root);
-		Set<Transition> transitionsForState = allTransitions.get(root);
+		Set<TransitionDescription> transitionsForState = allTransitions.get(root);
 		if (transitionsForState != null) {
-			for (Transition transitionForState : transitionsForState) {
-				transitions.add(transitionForState);
+			for (TransitionDescription t : transitionsForState) {
+				transitions.add(t);
 			
 				State next = null;
 				if (backwards) {
-					next = (State) transitionForState.eContainer();
+					next = t.getFromState();
 				} else {
-					next = transitionForState.getState();
+					next = t.getToState();
 				}
 				
 				// Recursive call if this element has not been in focus before
