@@ -51,6 +51,10 @@ import org.eclipse.zest.core.viewers.IGraphEntityContentProvider;
 
 import com.google.common.collect.Iterators;
 import com.temenos.interaction.rimdsl.rim.DomainModel;
+import com.temenos.interaction.rimdsl.rim.Expression;
+import com.temenos.interaction.rimdsl.rim.Function;
+import com.temenos.interaction.rimdsl.rim.NotFoundFunction;
+import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 import com.temenos.interaction.rimdsl.rim.State;
 import com.temenos.interaction.rimdsl.rim.Transition;
@@ -84,10 +88,10 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 		List<String> result = new ArrayList<String>();
 		
 		for (TransitionDescription transition : transitions) {
-			State fromState = transition.getFromState();
-			if (transition.getToState() == from && fromState == to) {
+			if (transition.getFromState() == from && transition.getToState() == to) {
 				if (transition.getTitle() != null) {
-					result.add(transition.getTitle());
+					result.add(transition.getEvent()+" "+transition.getTitle()
+							+(transition.getConditions().length() > 0 ? " IF "+transition.getConditions() : ""));
 				}
 			}
 		}
@@ -244,6 +248,8 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 				if (fromState != null && toState != null) {
 					TransitionDescription t = new TransitionDescription.Builder()
 						.title(title)
+						.event(transition.getEvent().getName())
+						.conditions(createConditionsStr(transition.getEval()))
 						.fromState(fromState)
 						.toState(toState)
 						.build();
@@ -260,6 +266,8 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 				if (fromState != null && toState != null) {
 					TransitionDescription t = new TransitionDescription.Builder()
 						.title(title)
+						.event(transition.getEvent().getName())
+						.conditions(createConditionsStr(transition.getEval()))
 						.fromState(fromState)
 						.toState(toState)
 						.build();
@@ -276,6 +284,8 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 				if (fromState != null && toState != null) {
 					TransitionDescription t = new TransitionDescription.Builder()
 						.title(title)
+						.event(transition.getEvent().getName())
+						.conditions(createConditionsStr(transition.getEval()))
 						.fromState(fromState)
 						.toState(toState)
 						.build();
@@ -284,6 +294,24 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 			}
 		}
 		
+	}
+	
+	private String createConditionsStr(Expression expression) {
+		String result = "";
+		if (expression != null) {
+			for (Function func : expression.getExpressions()) {
+				if (result.length() > 0) {
+					result += " ";
+				}
+				if (func instanceof NotFoundFunction) {
+					result += "NOT_FOUND(" + ((NotFoundFunction)func).getState().getName()+ ")";
+				}
+				if (func instanceof OKFunction) {
+					result += "OK(" + ((OKFunction)func).getState().getName()+ ")";
+				}
+			}
+		}
+		return result;
 	}
 	
 	private void addInOut(TransitionDescription t, Map<State, Set<TransitionDescription>> incomingTransitions, Map<State, Set<TransitionDescription>> outgoingTransitions) {
