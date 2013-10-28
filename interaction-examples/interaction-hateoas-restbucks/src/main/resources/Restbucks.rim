@@ -31,9 +31,16 @@ initial resource ServiceDocument {
 	path "/"
 	GET -> Orders
 	GET -> Payments
+	GET -> shop
 }
 
-
+resource shop {
+	type: item
+	entity: ServiceDocument
+	view { NoopGET }
+	path "/shop"
+	POST -> OrderCreated
+}
 
 
 resource Orders {
@@ -41,52 +48,47 @@ resource Orders {
 	entity: Order
 	view { GETEntities }
 	path "/Orders()"
-	POST -> Orders_created
+	POST -> OrderCreated
 	GET *-> order id=Id
-	GET title="Payment" *-> order_Payment id=Id
-	PUT *-> order_updated id=Id
-	DELETE *-> order_deleted id=Id
+	GET title="Payment" *-> payment
+	PUT *-> OrderUpdated
+	DELETE *-> OrderCancelled
 }
 
 resource order {
 	type: item
 	entity: Order
 	view { GETEntity }
-	path "/Orders({id})"
-	GET title="Payment" -> order_Payment id=Id
-	PUT -> order_updated id=Id
-	DELETE -> order_deleted id=Id
+	path "/Orders({Id})"
+	GET title="Payment" -> payment
+	// Can only update or delete if we haven't paid
+	PUT -> OrderUpdated (NOT_FOUND(payment))
+	DELETE -> OrderCancelled (NOT_FOUND(payment))
+	POST -> PaymentAccepted (NOT_FOUND(payment))
 }
 
-resource order_deleted {
+resource OrderCancelled {
 	type: item
 	entity: Order
 	actions { DeleteEntity }
-	relations { "edit" }
-	path "/Orders({id})/deleted"
+	relations { "http://relations.restbucks.com/cancel" }
+	path "/Orders({Id})"
 }
 
-resource order_updated {
+resource OrderUpdated {
 	type: item
 	entity: Order
 	actions { UpdateEntity }
-	relations { "edit" }
-	path "/Orders({id})"
+	relations { "http://relations.restbucks.com/update" }
+	path "/Orders({Id})"
 }
 
-resource Orders_created {
+resource OrderCreated {
 	type: item
 	entity: Order
 	actions { CreateEntity }
 	path "/Orders()"
-	GET --> order (OK(order)) id=Id
-}
-
-resource order_Payment {
-	type: item
-	entity: Payment
-	view { GETNavProperty navproperty="Payment", entity=Order }
-	path "/Orders({id})/Payment"
+	GET --> order (OK(order))
 }
 
 resource Payments {
@@ -94,52 +96,42 @@ resource Payments {
 	entity: Payment
 	view { GETEntities }
 	path "/Payments()"
-	POST -> Payments_created
-	GET *-> payment id=Id
-	GET title="Order" *-> payment_Order id=Id
-	PUT *-> payment_updated id=Id
-	DELETE *-> payment_deleted id=Id
+	GET *-> payment
+	GET title="Order" *-> order
 }
 
 resource payment {
 	type: item
 	entity: Payment
 	view { GETEntity }
-	path "/Payments({id})"
-	GET title="Order" -> payment_Order id=Id
-	PUT -> payment_updated id=Id
-	DELETE -> payment_deleted id=Id
+	path "/Payments({Id})"
+	GET title="Order" -> order
 }
 
-resource payment_Order {
-	type: item
-	entity: Order
-	view { GETNavProperty navproperty="Order", entity=Payment }
-	path "/Payments({id})/Order"
-}
-
-resource payment_deleted {
-	type: item
-	entity: Payment
-	actions { DeleteEntity }
-	relations { "edit" }
-	path "/Payments({id})/deleted"
-}
-
-resource payment_updated {
-	type: item
-	entity: Payment
-	actions { UpdateEntity }
-	relations { "edit" }
-	path "/Payments({id})"
-}
-
-resource Payments_created {
+resource PaymentAccepted {
 	type: item
 	entity: Payment
 	actions { CreateEntity }
+	relations { "http://relations.restbucks.com/payment" }
 	path "/Payments()"
-	GET --> payment (OK(payment)) id=Id
+	GET --> payment (OK(payment))
 }
+
+
+//resource order_Payment {
+//	type: item
+//	entity: Payment
+//	view { GETNavProperty navproperty="Payment", entity=Order }
+//	path "/Orders({id})/Payment"
+//}
+
+//resource payment_Order {
+//	type: item
+//	entity: Order
+//	view { GETNavProperty navproperty="Order", entity=Payment }
+//	path "/Payments({id})/Order"
+//}
+
+
 }
 }

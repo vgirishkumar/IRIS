@@ -1,25 +1,21 @@
 package RestbucksModel;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.CascadeType;
-import javax.persistence.OneToMany;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-
-import java.util.Collection;
+import javax.persistence.Table;
 
 @Entity
 @Table(name="rb_order")
 public class Order {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Basic(optional = false)
 	private Integer Id;
 
@@ -28,8 +24,7 @@ public class Order {
 	private String milk;
 	private Integer quantity;
 	private String size;
-	@JoinColumn(name = "Id", referencedColumnName = "Id", insertable = false, updatable = false)
-	@ManyToOne(optional = false)
+	@ManyToOne(cascade = CascadeType.ALL , fetch = FetchType.LAZY, optional = true)
 	private Payment Payment;
 
 

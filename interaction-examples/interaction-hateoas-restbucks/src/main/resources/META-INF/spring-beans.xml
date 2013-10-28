@@ -40,6 +40,7 @@
 				<ref local="serviceDocumentProvider" />
 				<ref local="errorProvider" />
 				<ref local="xhtmlProvider" />
+				<ref local="halProvider" />
  			</list>
    		</property>
         <property name="serviceRoots">
@@ -71,6 +72,10 @@
     <bean id="errorProvider" class="com.temenos.interaction.media.odata.xml.error.ErrorProvider" />
  	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
 		<constructor-arg ref="edmMetadata" />
+	</bean>
+	<bean id="halProvider" class="com.temenos.interaction.media.hal.HALProvider">
+    	<constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="stateMachine" />
 	</bean>
 
 	<!-- Behaviour -->
