@@ -90,8 +90,10 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 		for (TransitionDescription transition : transitions) {
 			if (transition.getFromState() == from && transition.getToState() == to) {
 				if (transition.getTitle() != null) {
-					result.add(transition.getEvent()+" "+transition.getTitle()
-							+(transition.getConditions().length() > 0 ? " IF "+transition.getConditions() : ""));
+					result.add(transition.getEvent()+" "+transition.getTitle());
+					if (transition.getConditions().length() > 0) {
+						result.add(transition.getConditions());
+					}
 				}
 			}
 		}
@@ -344,7 +346,8 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 		Set<TransitionDescription> transitionsForState = allTransitions.get(root);
 		if (transitionsForState != null) {
 			for (TransitionDescription t : transitionsForState) {
-				transitions.add(t);
+				if (!transitions.contains(t))
+					transitions.add(t);
 			
 				State next = null;
 				if (backwards) {
