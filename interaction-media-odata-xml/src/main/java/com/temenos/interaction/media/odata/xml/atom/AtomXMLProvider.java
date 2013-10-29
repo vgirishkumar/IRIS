@@ -61,6 +61,7 @@ import org.odata4j.core.OLinks;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParserExt;
@@ -290,7 +291,12 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		if(link.getTransition() != null) {
 			String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + link.getTransition().getTarget().getEntityName();
 			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
-			targetEntitySetName = edmDataServices.getEdmEntitySet(targetEntityType).getName();
+			try {
+				targetEntitySetName = edmDataServices.getEdmEntitySet(targetEntityType).getName();
+			}
+			catch(NotFoundException nfe) {
+				logger.debug("Entity [" + fqTargetEntityName + "] is not an entity set.");
+			}
 		}
 		String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
 		String href = link.getHref();

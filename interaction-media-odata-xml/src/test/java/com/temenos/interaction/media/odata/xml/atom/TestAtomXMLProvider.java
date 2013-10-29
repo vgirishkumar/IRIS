@@ -83,6 +83,7 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParserExt;
 import org.odata4j.internal.FeedCustomizationMapping;
@@ -249,6 +250,8 @@ public class TestAtomXMLProvider {
 		EdmEntitySet entitySet = mock(EdmEntitySet.class);
 		when(entitySet.getName()).thenReturn(entitySetName);
 		when(edmDataServices.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(entitySet);
+		EdmEntityType entityType = mock(EdmEntityType.class);
+		when(edmDataServices.findEdmEntityType(anyString())).thenReturn(entityType);
 		return edmDataServices;
 	}
 	
@@ -853,6 +856,79 @@ public class TestAtomXMLProvider {
 		assertEquals("/Currencys('USD')", olinks.get(0).getHref());
 	}
 
+	@Test
+	public void testSingleLinkToCollectionNotEntitySet() {
+		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		ResourceState fundsTransfer = new ResourceState("FundsTransfer", "fundsTransfer", new ArrayList<Action>(), "/FundsTransfers('{id}')");
+		ResourceState fundsTransfersIAuth = new CollectionResourceState("Dummy", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
+		serviceRoot.addTransition(fundsTransfer);
+		fundsTransfer.addTransition(HttpMethod.GET, fundsTransfersIAuth, new HashMap<String, String>(), new HashMap<String, String>(), "Unauthorised funds transfers");
+		
+		//FundsTransfersIAuth is not an entity set
+		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
+		when(edmDataServices.getEdmEntitySet(any(EdmEntityType.class))).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));
+		
+		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
+		List<OLink> olinks = new ArrayList<OLink>();
+		Transition t = fundsTransfer.getTransition(fundsTransfersIAuth);
+		provider.addLinkToOLinks(olinks, new Link(t, t.getTarget().getRel(), "/FundsTransfersIAuth()", HttpMethod.GET));
+		assertEquals(1, olinks.size());
+		
+		//Link relation should contain MS-DATA base uri + /related/ + navigation property. The nav. property in this case would be the EntitySet name, however, it is not
+		//an entity set so use the name of the target state.
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfersIAuth", olinks.get(0).getRelation());
+		
+		assertEquals("Unauthorised funds transfers", olinks.get(0).getTitle());
+		
+		assertEquals("/FundsTransfersIAuth()", olinks.get(0).getHref());
+	}
+	
+	@Test
+	public void testSingleLinkOEntityFeedToNonEntitySet() throws Exception {
+		// initialise the thread local request context with requestUri and baseUri
+        RequestContext ctx = new RequestContext("http://localhost:8080/responder/rest", "/FundsTransfers", null);
+        RequestContext.setRequestContext(ctx);
+
+        //Create rsm
+		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
+		ResourceState fundsTransfersIAuth = new CollectionResourceState("FundsTransfer", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
+		serviceRoot.addTransition(fundsTransfers);
+		fundsTransfers.addTransition(HttpMethod.GET, fundsTransfersIAuth, null, null, "Unauthorised input records");
+		ResourceStateMachine rsm = new ResourceStateMachine(fundsTransfers);
+
+		//Create collection resource
+		CollectionResource<OEntity> cr = new CollectionResource<OEntity>("FundsTransfers", new ArrayList<EntityResource<OEntity>>());
+		List<Link> links = new ArrayList<Link>();
+		links.add(rsm.createLinkToTarget(fundsTransfers.getTransition(fundsTransfersIAuth), null, null));
+		cr.setLinks(links);
+		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
+
+		//Create provider
+		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
+		Metadata metadata = mock(Metadata.class);
+		when(metadata.getModelName()).thenReturn("MyModel");
+		MockAtomXMLProvider p = new MockAtomXMLProvider(edmDataServices, metadata);
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
+		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		System.out.println(responseString);
+
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(readTextFile(EMPTY_FUNDS_TRANSFERS_FEED_XML), responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+	
 	@Test
 	public void testWriteEntityResourceGenericError_AtomXML() throws Exception {
 		EdmEntitySet ees = createMockEdmEntitySet();

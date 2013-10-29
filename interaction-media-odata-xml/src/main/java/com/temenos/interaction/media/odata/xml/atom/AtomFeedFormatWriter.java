@@ -38,6 +38,7 @@ import org.odata4j.core.OLink;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
@@ -45,11 +46,15 @@ import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Link;
 
 public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWriter<EntitiesResponse> {
+	private final Logger logger = LoggerFactory.getLogger(AtomFeedFormatWriter.class);
+	
 	private AtomEntryFormatWriter entryWriter;
 	private EdmDataServices edmDataServices;
 	
@@ -102,8 +107,12 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     	if(modelName != null) {
 			String fqTargetEntityName = modelName + Metadata.MODEL_SUFFIX + "." + link.getTransition().getTarget().getEntityName();
 			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
-			EdmEntitySet targetEntitySet = edmDataServices.getEdmEntitySet(targetEntityType);
-			targetEntitySetName = targetEntitySet.getName();
+			try {
+				targetEntitySetName = edmDataServices.getEdmEntitySet(targetEntityType).getName();
+			}
+			catch(NotFoundException nfe) {
+				logger.debug("Entity [" + fqTargetEntityName + "] is not an entity set.");
+			}
     	}
 		String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
 
