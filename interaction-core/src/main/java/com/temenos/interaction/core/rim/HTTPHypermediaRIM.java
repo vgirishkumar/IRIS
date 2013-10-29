@@ -40,6 +40,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -294,12 +295,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	}
 	
 	private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event, EntityResource<?> resource) {
-		assert(event != null);
-		StatusType status = Status.NOT_FOUND;
-    	// create the interaction context
-    	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
     	// determine action
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
+    	// create the interaction context
+    	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
+		return handleRequest(headers, ctx, event, action, resource);
+	}
+
+	private Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event, InteractionCommand action, EntityResource<?> resource) {
+		assert(event != null);
+		StatusType status = Status.NOT_FOUND;
     	if (action == null) {
     		if (event.isUnSafe()) {
     			status = HttpStatusTypes.METHOD_NOT_ALLOWED;
@@ -498,11 +503,18 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			ResourceState targetState = currentState.getAllTargets().iterator().next();
 			// TODO need to support conditional auto transitions
 			Transition autoTransition = ctx.getCurrentState().getTransition(targetState);
-			if (autoTransition != null) {
+			if (autoTransition != null && autoTransition.getCommand().isAutoTransition()) {
 				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
 	    		@SuppressWarnings("rawtypes")
 				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource)resource).getEntity(), pathParameters);
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
+				
+				Action targetAction = autoTransition.getTarget().getViewAction();
+				InteractionCommand action = getCommandController().fetchCommand(targetAction.getName());
+				InteractionContext autoCtx = new InteractionContext(pathParameters, ctx.getQueryParameters(), autoTransition.getTarget(), metadata);
+	        	Response autoResponse = handleRequest(headers, autoCtx, new Event("GET", HttpMethod.GET), action, (EntityResource<?>) resource);
+	        	resource = (EntityResource<?>)((GenericEntity<?>)autoResponse.getEntity()).getEntity();
+	        	resource.setEntityName(autoTransition.getTarget().getEntityName());
 			}
 			assert(response.getResource() != null);
     		responseBuilder.entity(resource.getGenericEntity());
