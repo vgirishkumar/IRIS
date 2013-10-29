@@ -96,8 +96,8 @@
 			<!-- Configure the webapp root -->
 			<contextPath>/example</contextPath>
             <resourceBases>
-              <resourceBase>src/main/webapp</resourceBase>
-              <resourceBase>target/swagger-gen</resourceBase>
+              <resourceBase>${basedir}/src/main/webapp</resourceBase>
+              <resourceBase>${basedir}/target/swagger-gen</resourceBase>
             </resourceBases>
           </webApp>
 		</configuration>
