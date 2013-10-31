@@ -161,9 +161,6 @@ public class ResourceStateMachine {
 		this.initial = initialState;
 		this.initial.setInitial(true);
 		this.exception = exceptionState;
-		if(exception != null) {
-			this.exception.setException(true);
-		}
 		this.transformer = transformer;
 		build();
 	}
