@@ -31,10 +31,21 @@ import javax.ws.rs.core.GenericEntity;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
+import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.resource.EntityResource;
 
 
 public class CommandHelper {
+	
+	/**
+	 * Create an Entity entity resource (entry)
+	 * @param e Entity
+	 * @return entity resource
+	 */
+	public static EntityResource<Entity> createEntityResource(Entity e) {
+		String entityName = e != null ? e.getName() : null;
+		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, e);
+	}
 	
 	/**
 	 * Create a new entity resource.
