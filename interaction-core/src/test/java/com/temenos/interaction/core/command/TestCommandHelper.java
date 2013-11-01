@@ -22,6 +22,7 @@ package com.temenos.interaction.core.command;
  */
 
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import javax.ws.rs.core.GenericEntity;
@@ -71,6 +72,17 @@ public class TestCommandHelper {
 		GenericEntity<EntityResource<Entity>> ge = er.getGenericEntity();
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class));
+	}
+	
+	@Test
+	public void testCreateEntityResourceWithoutExplicitEntityName() {
+		EntityResource<Entity> er = CommandHelper.createEntityResource(createMockEntity("Customer"));
+
+		GenericEntity<EntityResource<Entity>> ge = er.getGenericEntity();
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class));
+		assertEquals("Customer", ge.getEntity().getEntityName());
+		assertEquals("Customer", ge.getEntity().getEntity().getName());
 	}
 	
 	private Entity createMockEntity(String entityName) {
