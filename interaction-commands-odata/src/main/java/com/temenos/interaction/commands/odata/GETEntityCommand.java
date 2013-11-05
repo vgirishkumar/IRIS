@@ -77,8 +77,9 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 			
 			//Get the entity
 			EntityResponse er = getProducer().getEntity(entitySetName, key, getEntityQueryInfo(ctx));
-			
-			EntityResource<OEntity> oer = CommandHelper.createEntityResource(er.getEntity());
+			OEntity entity = er.getEntity();
+			EntityResource<OEntity> oer = CommandHelper.createEntityResource(entity);
+			oer.setEntityTag(entity.getEntityTag());		//Set the E-Tag
 			ctx.setResource(oer);		
 		}
 		catch(ODataProducerException ope) {

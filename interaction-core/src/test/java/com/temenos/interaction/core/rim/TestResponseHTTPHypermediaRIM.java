@@ -32,6 +32,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.util.ArrayList;
@@ -52,9 +53,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.GETExceptionCommand;
 import com.temenos.interaction.core.command.HttpStatusTypes;
 import com.temenos.interaction.core.command.InteractionCommand;
@@ -63,7 +67,9 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.command.NoopGETCommand;
+import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.GenericError;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
@@ -807,11 +813,163 @@ public class TestResponseHTTPHypermediaRIM {
 		}
 	}
 
+	@Test
+	public void testGETWithETagHeader() throws InteractionException {
+		//Create mock command
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) throws InteractionException {
+				RESTResource resource = new EntityResource<Object>(null);
+				resource.setEntityTag("ABCDEFG");
+				ctx.setResource(resource);
+				return Result.SUCCESS;
+			}
+		};
+
+		//Process mock command and check the response 
+		Response response = getMockResponse(mockCommand);
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+		List<Object> etagHeader = response.getMetadata().get(HttpHeaders.ETAG);
+		assertNotNull(etagHeader);
+        assertEquals(1, etagHeader.size());
+        assertEquals("ABCDEFG", etagHeader.get(0));
+	}
+
+	@Test
+	public void testGETWithoutETagHeader() throws InteractionException {
+		//Create mock command
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) throws InteractionException {
+				ctx.setResource(new EntityResource<Object>(null));
+				return Result.SUCCESS;
+			}
+		};
+
+		//Process mock command and check the response 
+		Response response = getMockResponse(mockCommand);
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+		List<Object> etagHeader = response.getMetadata().get(HttpHeaders.ETAG);
+		assertNull(etagHeader);
+	}
+
+	@Test
+	public void testGETWithEmptyETagHeader() throws InteractionException {
+		//Create mock command
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) throws InteractionException {
+				RESTResource resource = new EntityResource<Object>(null);
+				resource.setEntityTag("");
+				ctx.setResource(resource);
+				return Result.SUCCESS;
+			}
+		};
+
+		//Process mock command and check the response 
+		Response response = getMockResponse(mockCommand);
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+		List<Object> etagHeader = response.getMetadata().get(HttpHeaders.ETAG);
+		assertNull(etagHeader);
+	}
+	
+	/*
+	 * This test checks that a 412 error returns a proper error message inside
+	 * the body of the response.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testBuildResponseWith412PreconditionFailed() {
+		Response response = getMockResponse(getGenericErrorMockCommand(Result.CONFLICT, "Resource has been modified by somebody else."));
+		assertEquals(Response.Status.PRECONDITION_FAILED.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Excepted a response body", ge);
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
+			assertEquals("CONFLICT", error.getCode());
+			assertEquals("Resource has been modified by somebody else.", error.getMessage());
+		}
+		else {
+			fail("Response body is not a generic error entity resource type.");
+		}
+	}
+
+	/*
+	 * Test to ensure we return a 304 Not modified if the etag of the response is the same
+	 * as the etag on the request's If-None-Match header.
+	 */
+	@Test
+	public void testBuildResponseWith304NotModified() {
+		HttpHeaders httpHeaders = mock(HttpHeaders.class);
+		doAnswer(new Answer<List<String>>() {
+			@SuppressWarnings("serial")
+			@Override
+	        public List<String> answer(InvocationOnMock invocation) throws Throwable {
+	        	String headerName = (String) invocation.getArguments()[0];
+	        	if(headerName.equals(HttpHeaders.IF_NONE_MATCH)) {
+	        		return new ArrayList<String>() {{
+	        		    add("ABCDEFG");
+	        		}};
+	        	}
+	            return null;
+	        }
+	    }).when(httpHeaders).getRequestHeader(any(String.class));				
+		
+		Response response = getMockResponse(getEntityMockCommand("TestEntity", null, "ABCDEFG"), null, httpHeaders);
+		assertEquals(Response.Status.NOT_MODIFIED.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNull("Should not have a response body", ge);
+	}
+	
+	/*
+	 * Test to ensure we return a 200 Success if the etag of the response is not the same
+	 * as the etag on the request's If-None-Match header.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testBuildResponseGETModifiedResource() {
+		HttpHeaders httpHeaders = mock(HttpHeaders.class);
+		doAnswer(new Answer<List<String>>() {
+			@SuppressWarnings("serial")
+			@Override
+	        public List<String> answer(InvocationOnMock invocation) throws Throwable {
+	        	String headerName = (String) invocation.getArguments()[0];
+	        	if(headerName.equals(HttpHeaders.IF_NONE_MATCH)) {
+	        		return new ArrayList<String>() {{
+	        		    add("ABCDEFG");
+	        		}};
+	        	}
+	            return null;
+	        }
+	    }).when(httpHeaders).getRequestHeader(any(String.class));				
+		
+		Response response = getMockResponse(getEntityMockCommand("TestEntity", null, "IJKLMNO"), null, httpHeaders);
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+		
+		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
+		assertNotNull("Expected a response body", ge);
+		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class)) {
+			EntityResource<Entity> er = (EntityResource<Entity>) ge.getEntity();
+			assertEquals("TestEntity", er.getEntity().getName());
+			assertEquals("IJKLMNO", er.getEntityTag());		//Response should have new etag
+		}
+		else {
+			fail("Response body is not an entity resource type.");
+		}
+	}
+	
 	protected Response getMockResponse(InteractionCommand mockCommand) {
 		return this.getMockResponse(mockCommand, null);
 	}
-	
+
 	protected Response getMockResponse(InteractionCommand mockCommand, InteractionCommand mockExceptionCommand) {
+		return this.getMockResponse(mockCommand, mockExceptionCommand, mock(HttpHeaders.class));
+	}
+	
+	protected Response getMockResponse(InteractionCommand mockCommand, InteractionCommand mockExceptionCommand, HttpHeaders httpHeaders) {
 		NewCommandController mockCommandController = mock(NewCommandController.class);
 		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
@@ -829,7 +987,7 @@ public class TestResponseHTTPHypermediaRIM {
 			exceptionState.setException(true);
 		}
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState, exceptionState), createMockMetadata());
-		return rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		return rim.get(httpHeaders, "id", mockEmptyUriInfo());
 	}
 
 	protected Response getMockResponseWithErrorResource(InteractionCommand mockCommand) {
@@ -876,6 +1034,19 @@ public class TestResponseHTTPHypermediaRIM {
 			@Override
 			public Result execute(InteractionContext ctx) {
 				throw new RuntimeException(errorMessage);
+			}
+		};
+		return mockCommand;
+	}
+
+	protected InteractionCommand getEntityMockCommand(final String entityName, final EntityProperties entityProperties, final String etag) {
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) {
+				RESTResource resource = CommandHelper.createEntityResource(new Entity(entityName, entityProperties));
+				resource.setEntityTag(etag);
+				ctx.setResource(resource);
+				return Result.SUCCESS;
 			}
 		};
 		return mockCommand;

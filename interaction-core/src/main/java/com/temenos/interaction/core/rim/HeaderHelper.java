@@ -22,8 +22,10 @@ package com.temenos.interaction.core.rim;
  */
 
 
+import java.util.List;
 import java.util.Set;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 public class HeaderHelper {
@@ -44,9 +46,35 @@ public class HeaderHelper {
     public static ResponseBuilder locationHeader(ResponseBuilder rb, String target) {
     	// RequestContext.getRequestContext().getBasePath().path(nextState.getPath())
     	if (target != null) {
-        	return rb.header("Location", target);
+        	return rb.header(HttpHeaders.LOCATION, target);
     	}
     	return rb;
     }
 
+    /**
+     * Add an E-Tag header
+     * @param rb response builder
+     * @param entityTag etag
+     * @return response builder
+     */
+    public static ResponseBuilder etagHeader(ResponseBuilder rb, String entityTag) {
+    	if (entityTag != null && !entityTag.isEmpty()) {
+        	return rb.header(HttpHeaders.ETAG, entityTag);
+    	}
+    	return rb;
+    }
+    
+    /**
+     * Returns the first HTTP header entry for the specified header
+     * @param headers HTTP headers
+     * @param header header to return
+     * @return first header entry
+     */
+    public static String getFirstHeader(HttpHeaders headers, String header) {
+    	List<String> headerList = headers.getRequestHeader(header);
+    	if(headerList != null && headerList.size() > 0) {
+    		return headerList.get(0);
+    	}
+    	return null;
+    }
 }

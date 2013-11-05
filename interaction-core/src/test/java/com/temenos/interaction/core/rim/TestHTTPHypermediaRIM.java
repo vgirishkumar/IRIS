@@ -609,6 +609,27 @@ public class TestHTTPHypermediaRIM {
 		assertEquals(transformer, ((HTTPHypermediaRIM) resources.iterator().next()).getHypermediaEngine().getTransformer());
 	}
 
+	@Test
+	public void testPUTCommandConflict() throws Exception {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+
+		// this test incorrectly supplies a resource as a result of the command.
+		InteractionCommand mockCommand = new InteractionCommand() {
+			public Result execute(InteractionContext ctx) {
+				ctx.setResource(null);
+				return Result.CONFLICT;
+			}
+		};
+
+		// create mock command controller
+		NewCommandController mockCommandController = mockCommandController(mockCommand);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
+		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		assertEquals(Status.PRECONDITION_FAILED.getStatusCode(), response.getStatus());
+	}
+	
 	@SuppressWarnings({ "unchecked" })
 	private UriInfo mockEmptyUriInfo() {
 		UriInfo uriInfo = mock(UriInfo.class);
