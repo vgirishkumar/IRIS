@@ -84,6 +84,12 @@ class RIMDslGenerator implements IGenerator {
                 «ELSEIF state.entity.isItem»
                 super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
                 «ENDIF»
+                «IF state.isInitial»
+                setInitial(true);
+                «ENDIF»
+                «IF state.isException»
+                setException(true);
+                «ENDIF»
                 this.factory = factory;
             }
             
