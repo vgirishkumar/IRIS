@@ -12,10 +12,12 @@ commands
 	GETServiceDocument
 	GETException
 	GETEntity
+	GETEntityWithEtag
 	GETEntities
 	CreateEntity
 	GETNavProperty
 	UpdateEntity
+	UpdateEntityWithEtag
 	DeleteEntity
 	NoopGET
 	GETGenericErrorCommand
@@ -126,7 +128,7 @@ end
 
 resource flight
 	item Flight
-	view { GETEntity }
+	view { GETEntityWithEtag }
 	path "/Flights({id})"
 	PUT -> flight_pseudo_updated id=flightID
 	DELETE -> flight_pseudo_deleted id=flightID
@@ -148,7 +150,7 @@ end
 
 resource flight_pseudo_updated
 	item Flight
-	actions { UpdateEntity }
+	actions { UpdateEntityWithEtag }
 	relations { "edit" }
 	path "/Flights({id})"
 end
