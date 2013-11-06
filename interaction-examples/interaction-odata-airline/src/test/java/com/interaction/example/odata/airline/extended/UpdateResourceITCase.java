@@ -1,4 +1,4 @@
-package com.interaction.example.odata.airline;
+package com.interaction.example.odata.airline.extended;
 
 /*
  * #%L
@@ -39,6 +39,10 @@ import org.odata4j.core.OEntity;
 import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;
+
+import com.interaction.example.odata.airline.Configuration;
+import com.interaction.example.odata.airline.ConfigurationHelper;
+import com.interaction.example.odata.airline.ExtendedOClientBehaviour;
 
 
 public class UpdateResourceITCase {
