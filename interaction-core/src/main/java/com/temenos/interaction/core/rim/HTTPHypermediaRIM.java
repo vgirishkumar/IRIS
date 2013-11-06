@@ -337,6 +337,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	
 	private ResourceState initialiseInteractionContext(HttpHeaders headers, Event event, InteractionContext ctx, EntityResource<?> resource) {
     	if (resource != null) {
+    		//Apply the etag on the If-Match header if available
+    		if(resource.getEntityTag() == null) {
+    			String ifMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_MATCH);
+    			if(ifMatch != null) {
+    				resource.setEntityTag(ifMatch);
+    			}
+    		}
+    		
     		// set the resource for the commands to access
         	ctx.setResource(resource);
     	}

@@ -27,6 +27,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,6 +49,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -628,6 +631,99 @@ public class TestHTTPHypermediaRIM {
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
 		assertEquals(Status.PRECONDITION_FAILED.getStatusCode(), response.getStatus());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPutCommandWithIfMatchHeader() throws InteractionException {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+		initialState.addTransition("PUT", initialState);
+
+		// this test incorrectly supplies a resource as a result of the command.
+		InteractionCommand mockCommand = new InteractionCommand() {
+			public Result execute(InteractionContext ctx) {
+				assertNotNull(ctx.getResource());
+				assertNotNull(ctx.getResource().getEntityTag());
+				assertEquals("ABCDEFG", ctx.getResource().getEntityTag());
+				return Result.SUCCESS;
+			}
+		};
+
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), createMockMetadata());
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		
+		//EntityResource without Etag
+		EntityResource<Object> er = new EntityResource<Object>("test resource");
+		
+		//Apply If-Match header
+		HttpHeaders httpHeaders = mock(HttpHeaders.class);
+		doAnswer(new Answer<List<String>>() {
+			@SuppressWarnings("serial")
+			@Override
+	        public List<String> answer(InvocationOnMock invocation) throws Throwable {
+	        	String headerName = (String) invocation.getArguments()[0];
+	        	if(headerName.equals(HttpHeaders.IF_MATCH)) {
+	        		return new ArrayList<String>() {{
+	        		    add("ABCDEFG");
+	        		}};
+	        	}
+	            return null;
+	        }
+	    }).when(httpHeaders).getRequestHeader(any(String.class));				
+		
+		//execute
+		rim.put(httpHeaders, "id", uriInfo, er);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPutCommandWithEtag() throws InteractionException {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+		initialState.addTransition("PUT", initialState);
+
+		// this test incorrectly supplies a resource as a result of the command.
+		InteractionCommand mockCommand = new InteractionCommand() {
+			public Result execute(InteractionContext ctx) {
+				assertNotNull(ctx.getResource());
+				assertNotNull(ctx.getResource().getEntityTag());
+				assertEquals("IJKLMNO", ctx.getResource().getEntityTag());
+				return Result.SUCCESS;
+			}
+		};
+
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), createMockMetadata());
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		
+		//EntityResource with Etag
+		EntityResource<Object> er = new EntityResource<Object>("test resource");
+		er.setEntityTag("IJKLMNO");		//This should override the e-tag header
+		
+		//Apply If-Match header
+		HttpHeaders httpHeaders = mock(HttpHeaders.class);
+		doAnswer(new Answer<List<String>>() {
+			@SuppressWarnings("serial")
+			@Override
+	        public List<String> answer(InvocationOnMock invocation) throws Throwable {
+	        	String headerName = (String) invocation.getArguments()[0];
+	        	if(headerName.equals(HttpHeaders.IF_MATCH)) {
+	        		return new ArrayList<String>() {{
+	        		    add("ABCDEFG");
+	        		}};
+	        	}
+	            return null;
+	        }
+	    }).when(httpHeaders).getRequestHeader(any(String.class));				
+		
+		//execute
+		rim.put(httpHeaders, "id", uriInfo, er);
 	}
 	
 	@SuppressWarnings({ "unchecked" })
