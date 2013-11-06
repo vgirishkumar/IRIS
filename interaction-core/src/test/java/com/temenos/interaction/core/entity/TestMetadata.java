@@ -25,6 +25,7 @@ package com.temenos.interaction.core.entity;
 import java.util.Date;
 import java.util.Set;
 
+import org.joda.time.LocalTime;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -81,7 +82,12 @@ public class TestMetadata {
 		vocDob.setTerm(new TermComplexType(false));
 		vocDob.setTerm(new TermValueType(TermValueType.DATE));
 		vocs.setPropertyVocabulary("dateOfBirth", vocDob);
-		
+
+		Vocabulary vocTime = new Vocabulary();
+		vocTime.setTerm(new TermComplexType(false));
+		vocTime.setTerm(new TermValueType(TermValueType.TIME));
+		vocs.setPropertyVocabulary("time", vocTime);
+
 		Vocabulary vocSector = new Vocabulary();
 		vocSector.setTerm(new TermComplexType(false));
 		vocs.setPropertyVocabulary("sector", vocSector);
@@ -97,7 +103,7 @@ public class TestMetadata {
 	public void testPropertyVocabularyKeySet()
 	{	
 		Set<String> propertyKeys = vocs.getPropertyVocabularyKeySet();
-		Assert.assertEquals(9, propertyKeys.size());
+		Assert.assertEquals(10, propertyKeys.size());
 		Assert.assertTrue(propertyKeys.contains("name"));
 		Assert.assertTrue(propertyKeys.contains("address"));
 		Assert.assertTrue(propertyKeys.contains("number"));
@@ -176,5 +182,10 @@ public class TestMetadata {
 		Assert.assertEquals(0, ((Long) vocs.createEmptyEntityProperty("number").getValue()).longValue());
 		Assert.assertEquals("", vocs.createEmptyEntityProperty("name").getValue());
 		Assert.assertTrue(vocs.createEmptyEntityProperty("dateOfBirth").getValue() instanceof Date);
+	}
+	
+	@Test
+	public void testTimePropertyAsString() {
+		Assert.assertEquals("01:00:00.001", vocs.getPropertyValueAsString("time", new LocalTime(1)));
 	}
 }

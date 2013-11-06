@@ -32,6 +32,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -244,10 +247,11 @@ public class EntityMetadata  {
 				termValueType.equals(TermValueType.DATE) ||
 				termValueType.equals(TermValueType.TIME)) {
 			
-			if(propertyValue instanceof LocalDateTime) {
+			if (propertyValue instanceof LocalDateTime) {
 				value = DateFormat.getDateTimeInstance().format(((LocalDateTime) propertyValue).toDateTime().toDate());
-			}
-			else {
+			} else if (propertyValue instanceof LocalTime) {
+				value = ((LocalTime) propertyValue).toString();
+			} else {
 				value = DateFormat.getDateTimeInstance().format((Date) propertyValue);
 			}
 		}
