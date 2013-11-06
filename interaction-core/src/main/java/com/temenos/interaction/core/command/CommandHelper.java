@@ -94,7 +94,7 @@ public class CommandHelper {
 	 * @param entity entity
 	 * @return type
 	 */
-	private static<E> Type getEffectiveGenericType(final Type superClassType, final E entity) {
+	public static<E> Type getEffectiveGenericType(final Type superClassType, final E entity) {
 		Class<?> entityType = entity.getClass();
 		Class<?> entityInterfaces[] = entityType.getInterfaces();
 		if(entityInterfaces != null && entityInterfaces.length == 1) {
@@ -141,6 +141,26 @@ public class CommandHelper {
 				}
 			}
 			newGenericType = ParameterizedTypeImpl.make((Class<?>) parametrizedType.getRawType(), newActualTypeArguments, parametrizedType.getOwnerType());
+		} else if (superClassType instanceof TypeVariable) {
+			final TypeVariable<?> typeVar = (TypeVariable<?>) superClassType;
+			Type t = new TypeVariable() {
+				@Override
+				public Type[] getBounds() {
+					return typeVar.getBounds();
+				}
+
+				@Override
+				public GenericDeclaration getGenericDeclaration() {
+					return typeVar.getGenericDeclaration();
+				}
+
+				@Override
+				public String getName() {
+					return entityType.getSimpleName();
+				}
+				
+			};
+			newGenericType = t; 
 		}
 		else {
 			newGenericType = superClassType;

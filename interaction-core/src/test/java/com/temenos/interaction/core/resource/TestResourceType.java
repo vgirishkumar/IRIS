@@ -27,6 +27,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.GenericDeclaration;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.JAXBContext;
@@ -90,7 +93,19 @@ public class TestResourceType {
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
 		assertFalse(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class));
 	}
-
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public<E> void testResourceTypeEntityWithTypeVariableAsGenericType() {
+		Entity me = mock(Entity.class);
+		
+		//Wrap entity resource into a JAX-RS GenericEntity instance
+		GenericEntity<E> ge = new GenericEntity<E>((E)me) {};
+		Type t = getTestTypeVariable("Entity");
+		
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), t, Entity.class, Entity.class));
+	}
+	
 	@Test
 	public void testResourceTypeNotCollectionResourceNotOEntityWithoutGenericEntity() {
 		//Create entity resource for a mock NestedObject
@@ -98,5 +113,27 @@ public class TestResourceType {
  
 		assertFalse(ResourceTypeHelper.isType(er.getClass(), null, CollectionResource.class));
 		assertFalse(ResourceTypeHelper.isType(er.getClass(), er.getEntity().getClass(), EntityResource.class, mock(Entity.class).getClass()));
+	}
+	
+	private<E> Type getTestTypeVariable(String typeName) {
+		final String fTypeName = typeName;
+		Type t = new TypeVariable() {
+			@Override
+			public Type[] getBounds() {
+				return null;
+			}
+
+			@Override
+			public GenericDeclaration getGenericDeclaration() {
+				return null;
+			}
+
+			@Override
+			public String getName() {
+				return fTypeName;
+			}
+			
+		};
+		return t;
 	}
 }
