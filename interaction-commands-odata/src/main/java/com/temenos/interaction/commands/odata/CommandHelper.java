@@ -57,6 +57,12 @@ public class CommandHelper {
 	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
 	private static Pattern parameterPattern = Pattern.compile("\\{(.*?)\\}");
 
+	/**
+	 * To handle generic case where user do not know the type, here we will be looking for a type
+	 * and then generate EntityResource<E>
+	 * @param entity
+	 * @return EntityResource<E>
+	 */
 	public static<E> EntityResource<E> createEntityResource(E entity) {
 		GenericEntity<E> ge = new GenericEntity<E>(entity) {};
 		Type t = com.temenos.interaction.core.command.CommandHelper.getEffectiveGenericType(ge.getType(), entity);
@@ -74,10 +80,20 @@ public class CommandHelper {
 		}
 	}
 	
+	
+	/**
+	 * To help converting Entity object into EntityResource as we are no longer extending the core CommandHelper
+	 * @param entity
+	 * @return EntityResource<Entity> EntityResource of parameter type Entity
+	 */
+	public static EntityResource<Entity> createEntityResource(Entity entity) {
+		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entity);
+	}
+	
 	/**
 	 * Create an OData entity resource (entry)
 	 * @param e OEntity
-	 * @return entity resource
+	 * @return entity resource EntityResource of parameter type OEntity
 	 */
 	public static EntityResource<OEntity> createEntityResource(OEntity e) {
 		String entityName = e != null && e.getEntityType() != null ? e.getEntityType().getName() : null;
