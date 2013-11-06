@@ -51,6 +51,8 @@ import org.odata4j.edm.EdmType;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.Entity;
+import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ActionPropertyReference;
@@ -152,7 +154,29 @@ public class TestCommandHelper {
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, OEntity.class));
 	}
+	
+	@Test
+	public<E> void testCreateOEntityResourceFromGeneric() {
+		E e = createGenericMockOEntity(createMockEdmDataServices("MyEntity", "Edm.String").getEdmEntitySet("MyEntity"));
+		EntityResource<E> er = CommandHelper.createEntityResource(e);
 
+		GenericEntity<EntityResource<E>> ge = er.getGenericEntity();
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, OEntity.class));
+	}
+	
+	@Test
+	public<E> void testCreateEntityResourceFromGeneric() {
+		Entity entity = new Entity("MyEntity", new EntityProperties());
+		@SuppressWarnings("unchecked")
+		E e = (E) entity;		// To test
+		EntityResource<E> er = CommandHelper.createEntityResource(e);
+
+		GenericEntity<EntityResource<E>> ge = er.getGenericEntity();
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class));
+	}
+		
 	@Test
 	public void testCreateOEntityResourceWithExplicitType() {
 		OEntity entity = createMockOEntity(createMockEdmDataServices("MyEntity", "Edm.String").getEdmEntitySet("MyEntity"));
@@ -187,6 +211,15 @@ public class TestCommandHelper {
 		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
 		properties.add(OProperties.string("MyId", "123"));
 		return OEntities.create(ees, entityKey, properties, new ArrayList<OLink>());
+	}
+	
+	@SuppressWarnings("unchecked")
+	private<E> E createGenericMockOEntity(EdmEntitySet ees) {
+		OEntityKey entityKey = OEntityKey.create("123");
+		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+		properties.add(OProperties.string("MyId", "123"));
+		OEntity entity = OEntities.create(ees, entityKey, properties, new ArrayList<OLink>());
+		return (E) entity;
 	}	
 	
 	@SuppressWarnings("unchecked")

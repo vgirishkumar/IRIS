@@ -82,6 +82,10 @@ public class ResourceTypeHelper {
 					}
 				}
 			}
+			else if (genericType instanceof TypeVariable) {
+				TypeVariable<?> typeVariable = (TypeVariable<?>) genericType;
+				return typeVariable.getName().equals(expectedTypeParameter.getSimpleName());
+			}
 			else if(type.equals(expectedType) && genericType.equals(expectedTypeParameter)) {
 				return true;
 			}
