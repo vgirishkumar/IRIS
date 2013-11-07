@@ -374,97 +374,69 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	switch(result) {
 	    	case INVALID_REQUEST:					status = Status.BAD_REQUEST; break;
 	    	case FAILURE:							status = Status.INTERNAL_SERVER_ERROR; break;
-    	}
-    	if(status == null) {
-    		status = Status.INTERNAL_SERVER_ERROR;
-	    	if (event.getMethod().equals(HttpMethod.GET)) {
-		    	switch(result) {
-		    	case SUCCESS:			status = Status.OK; break;
-		    	}
-			} else if (event.getMethod().equals(HttpMethod.POST)) {
-		    	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
-				ResourceState currentState = ctx.getCurrentState();
-				if (result == Result.SUCCESS) {
-					if (currentState != null && currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0
-							&& ctx.getResource() != null) {
-				   		status = Status.CREATED;
-					} else if (ctx.getResource() == null) {
-			   			status = Status.NO_CONTENT;
-					} else {
-						logger.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
-				   		status = Status.OK;
+	    	case SUCCESS: {
+	    		status = Status.INTERNAL_SERVER_ERROR;
+		    	if (event.getMethod().equals(HttpMethod.GET)) {
+			    	if (result == Result.SUCCESS) {
+			    		status = Status.OK; break;
+			    	}
+				} else if (event.getMethod().equals(HttpMethod.POST)) {
+			    	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
+					ResourceState currentState = ctx.getCurrentState();
+					if (result == Result.SUCCESS) {
+						if (currentState != null && currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0
+								&& ctx.getResource() != null) {
+					   		status = Status.CREATED;
+						} else if (ctx.getResource() == null) {
+				   			status = Status.NO_CONTENT;
+						} else {
+							logger.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
+					   		status = Status.OK;
+						}
 					}
+		
+				} else if (event.getMethod().equals(HttpMethod.PUT)) {
+			    	/*
+			    	 * The resource manager must return an error result code or have stored this 
+			    	 * resource in a consistent state (conceptually a transaction)
+			    	 */
+			    	/*
+			    	 * TODO add support for PUTs that create (CREATED) and PUTs that replace (OK)
+			    	 */
+			   		if (result == Result.SUCCESS && ctx.getResource() == null) {
+			   			status = Status.NO_CONTENT;
+			   		} else if (result == Result.SUCCESS) {
+			   			status = Status.OK;
+			   		}
+				} else if (event.getMethod().equals(HttpMethod.DELETE)) {
+			    	if (result == Result.SUCCESS) {
+			        	// We do not support a delete command that returns a resource (HTTP does permit this)
+			        	assert(ctx.getResource() == null);
+			    		ResourceState targetState = ctx.getTargetState();
+			    		Link linkUsed = ctx.getLinkUsed();
+			        	if (targetState.isTransientState()) {
+							Transition autoTransition = targetState.getAutoTransition();
+							if (autoTransition.getTarget().getPath().equals(ctx.getCurrentState().getPath())
+									|| (linkUsed != null && autoTransition.getTarget().equals(linkUsed.getTransition().getSource()))) {
+			            		// this transition has been configured to reset content
+			               		status = HttpStatusTypes.RESET_CONTENT;
+			        		} else {
+			        			status = Status.SEE_OTHER;
+			        		}
+						} else if (targetState.isPseudoState() || targetState.getPath().equals(ctx.getCurrentState().getPath())) {
+			    			// did we delete ourselves or pseudo final state, both are transitions to No Content
+			        		status = Response.Status.NO_CONTENT;
+			    		} else {
+			    			throw new IllegalArgumentException("Resource interaction exception, should not be " +
+			    					"possible to use a link where target state is not our current state");
+			    		}
+			    	} else {
+			    		assert(false) : "Unhandled result from Command";
+			    	}
 				}
-	
-			} else if (event.getMethod().equals(HttpMethod.PUT)) {
-		    	/*
-		    	 * The resource manager must return an error result code or have stored this 
-		    	 * resource in a consistent state (conceptually a transaction)
-		    	 */
-		    	/*
-		    	 * TODO add support for PUTs that create (CREATED) and PUTs that replace (OK)
-		    	 */
-		   		if (result == Result.SUCCESS && ctx.getResource() == null) {
-		   			status = Status.NO_CONTENT;
-		   		} else if (result == Result.SUCCESS) {
-		   			status = Status.OK;
-		   		}
-			} else if (event.getMethod().equals(HttpMethod.DELETE)) {
-		    	if (result == Result.SUCCESS) {
-		        	// We do not support a delete command that returns a resource (HTTP does permit this)
-		        	assert(ctx.getResource() == null);
-		    		ResourceState targetState = ctx.getTargetState();
-		    		Link linkUsed = ctx.getLinkUsed();
-		        	if (targetState.isTransientState()) {
-						Transition autoTransition = targetState.getAutoTransition();
-						if (autoTransition.getTarget().getPath().equals(ctx.getCurrentState().getPath())
-								|| (linkUsed != null && autoTransition.getTarget().equals(linkUsed.getTransition().getSource()))) {
-		            		// this transition has been configured to reset content
-		               		status = HttpStatusTypes.RESET_CONTENT;
-		        		} else {
-		        			status = Status.SEE_OTHER;
-		        		}
-					} else if (targetState.isPseudoState() || targetState.getPath().equals(ctx.getCurrentState().getPath())) {
-		    			// did we delete ourselves or pseudo final state, both are transitions to No Content
-		        		status = Response.Status.NO_CONTENT;
-		    		} else {
-		    			throw new IllegalArgumentException("Resource interaction exception, should not be " +
-		    					"possible to use a link where target state is not our current state");
-		    		}
-	
-		    		/*
-		    		 * No target found using link relations, try to find a transition from ourself
-		    		if (linkUsed == null) {
-		    			linkUsed = hypermediaEngine.getLinkFromMethod(pathParameters, null, currentState, "DELETE");
-		    		}
-		    		if (linkUsed != null) {
-		    			ResourceState targetState = linkUsed.getTransition().getTarget();
-		    			if (targetState.isTransientState()) {
-		    				Transition autoTransition = targetState.getAutoTransition();
-		    				if (autoTransition.getTarget().equals(linkUsed.getTransition().getSource())) {
-		                		// this transition has been configured to reset content
-		                   		status = HttpStatusTypes.RESET_CONTENT;
-		            		} else {
-		            			status = Status.SEE_OTHER;
-		            			target = hypermediaEngine.createLinkToTarget(autoTransition, ctx.getResource(), pathParameters);
-		            		}
-		    			} else if (targetState.isPseudoState() || targetState.equals(currentState)) {
-		        			// did we delete ourselves or pseudo final state, both are transitions to No Content
-		            		status = Response.Status.NO_CONTENT;
-		        		} else {
-		        			throw new IllegalArgumentException("Resource interaction exception, should not be " +
-		        					"possible to use a link where target state is not our current state");
-		        		}
-		    		} else {
-		    			// null target (pseudo final state) is effectively a transition to No Content
-		        		status = Response.Status.NO_CONTENT;
-		    		}
-		    		 */
-		    	} else {
-		    		assert(false) : "Unhandled result from Command";
-		    	}
-			}
-    	}
+	    	}
+	    }
+
 		return status;
 	}
 	
