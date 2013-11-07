@@ -147,8 +147,8 @@ public class TestResourceState {
 		ResourceState begin = new ResourceState("SomeEntity", "initial", new ArrayList<Action>(), "/tests");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "/test/{id}");
 		begin.addTransition("PUT", exists, uriLinkageMap);
-		assertEquals("/test/{NoteId}", begin.getTransition(exists).getCommand().getPath());
-
+		assertEquals("/test/{id}", begin.getTransition(exists).getCommand().getPath());
+		assertTrue(begin.getTransition(exists).getCommand().getUriParameters().containsKey("id"));
 	}
 	
 	@Test

@@ -367,19 +367,6 @@ public class ResourceState implements Comparable<ResourceState> {
 			linkParameters = new HashMap<String, String>(uriLinkageProperties);
 			uriLinkageProperties.clear();		//Subsequent invocations to addTransition are expected to provide new link properties
 		}
-
-		//Replace uri elements with linkage properties
-		String mappedResourcePath = resourcePath;
-		if (uriLinkageMap != null) {
-			for (String templateElement : uriLinkageMap.keySet()) {
-				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
-			}
-		}
-		if (linkParameters != null) {
-			for (String templateElement : linkParameters.keySet()) {
-				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", linkParameters.get(templateElement));		//Replace template elements, e.g. {code} in filter=fld eq '{code}'
-			}
-		}
 		
 		//Replace templates in link properties with path parameters
 		replaceLinkPropertyTemplates(linkParameters, uriLinkageMap);
@@ -389,7 +376,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		
 		//Create the transition
 		Expression condition = conditionalExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalExpressions) : null;
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, mappedResourcePath, transitionFlags, condition, resourcePath, linkParameters);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, condition, resourcePath, uriLinkageMap, linkParameters);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.add(transition);

@@ -37,6 +37,7 @@ public class TransitionCommandSpec {
 	private final int flags;
 	// conditional link evaluation expression 
 	private final Expression evaluation;
+	private final Map<String, String> uriParameters;
 	private final Map<String, String> parameters;
 	
 	// the original unmapped resourcePath (required to form a correct interaction map by paths)
@@ -50,19 +51,20 @@ public class TransitionCommandSpec {
 	}
 	
 	protected TransitionCommandSpec(String method, String path, int flags, Expression evaluation, String originalPath) {
-		this(method, path, flags, evaluation, originalPath, null);
+		this(method, path, flags, evaluation, originalPath, null, null);
 	}
 
 	protected TransitionCommandSpec(String method, String path, int flags, Expression evaluation, Map<String, String> parameters) {
-		this(method, path, flags, evaluation, path, parameters);
+		this(method, path, flags, evaluation, path, null, parameters);
 	}
 	
-	protected TransitionCommandSpec(String method, String path, int flags, Expression evaluation, String originalPath, Map<String, String> parameters) {
+	protected TransitionCommandSpec(String method, String path, int flags, Expression evaluation, String originalPath, Map<String, String> uriParameters, Map<String, String> parameters) {
 		this.method = method;
 		this.path = path;
 		this.flags = flags;
 		this.evaluation = evaluation;
-		this.originalPath = originalPath;		
+		this.originalPath = originalPath;	
+		this.uriParameters = uriParameters;
 		this.parameters = parameters;
 	}
 	
@@ -86,6 +88,10 @@ public class TransitionCommandSpec {
 		return evaluation;
 	}
 
+	public Map<String, String> getUriParameters() {
+		return uriParameters;
+	}
+	
 	public Map<String, String> getParameters() {
 		return parameters;
 	}
@@ -127,13 +133,18 @@ public class TransitionCommandSpec {
 		StringBuffer sb = new StringBuffer();
 		if (isForEach())
 			sb.append("*");
-		sb.append(method + (path != null && path.length() > 0 ? " " + path : ""));
+		if (isAutoTransition()) {
+			sb.append("AUTO");
+		} else {
+			sb.append(method);
+		}
+		sb.append(path != null && path.length() > 0 ? " " + path : "");
 		if (evaluation != null) {
 			sb.append(" (");
 			sb.append(evaluation.toString());
 			sb.append(")");
 		}
-		if (parameters != null) {
+		if (parameters != null && parameters.size() > 0) {
 			sb.append(" ");
 			for(String key : parameters.keySet()) {
 				String value = parameters.get(key);

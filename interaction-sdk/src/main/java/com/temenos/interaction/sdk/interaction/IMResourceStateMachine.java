@@ -133,7 +133,7 @@ public class IMResourceStateMachine {
 			resourceStates.put(sourceStateName, new IMEntityState(sourceStateName, path));
 		}
 		if(!resourceStates.containsKey(targetStateName)) {
-			resourceStates.put(targetStateName, new IMNavigationState(targetStateName, path, targetResourceStateMachine, isToCollectionState));
+			resourceStates.put(targetStateName, new IMNavigationState(targetStateName, path, targetResourceStateMachine, linkProperty, isToCollectionState));
 		}
 		
 		//Add transition

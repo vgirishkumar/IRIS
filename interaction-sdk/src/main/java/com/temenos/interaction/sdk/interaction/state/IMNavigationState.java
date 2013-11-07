@@ -31,15 +31,21 @@ public class IMNavigationState extends IMState {
 
 	private boolean toCollectionResource;		//true collection state, false entity state
 	private IMResourceStateMachine resourceStateMachine;		//Target RSM
+	private String linkProperty;		// the name of the field that joins this entity to the source entity
 
-	public IMNavigationState(String name, String path, IMResourceStateMachine resourceStateMachine, boolean toCollectionResource) {
+	public IMNavigationState(String name, String path, IMResourceStateMachine resourceStateMachine, String linkProperty, boolean toCollectionResource) {
 		super(name, path, null);
 		this.resourceStateMachine = resourceStateMachine;
 		this.toCollectionResource = toCollectionResource;
+		this.linkProperty = linkProperty;
 	}
 	
 	public IMResourceStateMachine getTargetResourceStateMachine() {
 		 return resourceStateMachine;
+	}
+	
+	public String getLinkProperty() {
+		return linkProperty;
 	}
 	
 	/**

@@ -149,13 +149,13 @@ public class TestTransition {
 
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("paramA", "hello A");
-		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, "stuff", params), end);
+		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, "stuff", null, params), end);
 		Transition taPut = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
 		assertEquals("entity.begin>GET(hello A)>entity.end", ta.getId());
 		assertEquals("entity.begin>PUT>entity.end", taPut.getId());
 		params = new HashMap<String, String>();
 		params.put("paramB", "hello B");
-		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, "stuff", params), end);
+		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, "stuff", null, params), end);
 		assertEquals("entity.begin>GET(hello B)>entity.end", tb.getId());
 	}
 }

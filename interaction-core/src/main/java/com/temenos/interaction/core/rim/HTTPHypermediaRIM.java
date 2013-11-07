@@ -50,10 +50,12 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.wink.common.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.RESTResponse;
 import com.temenos.interaction.core.command.CommandFailureException;
 import com.temenos.interaction.core.command.HttpStatusTypes;
@@ -299,10 +301,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
     	// create the interaction context
     	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
-		return handleRequest(headers, ctx, event, action, resource);
+		return handleRequest(headers, ctx, event, action, resource, null);
 	}
 
-	private Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event, InteractionCommand action, EntityResource<?> resource) {
+	private Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event, InteractionCommand action, EntityResource<?> resource, Transition autoTransition) {
 		assert(event != null);
 		StatusType status = Status.NOT_FOUND;
     	if (action == null) {
@@ -334,7 +336,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		/*
     		 * Add hypermedia information to this resource
     		 */
-    		hypermediaEngine.injectLinks(ctx, ctx.getResource());
+    		hypermediaEngine.injectLinks(ctx, ctx.getResource(), autoTransition);
     	}
     	// build response
     	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx);
@@ -511,8 +513,17 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				
 				Action targetAction = autoTransition.getTarget().getViewAction();
 				InteractionCommand action = getCommandController().fetchCommand(targetAction.getName());
+				MultivaluedMap<String, String> autoPathParameters = new MultivaluedMapImpl<String>();
+				autoPathParameters.putAll(pathParameters);
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
+				for (String key : transitionProperties.keySet()) {
+					autoPathParameters.add(key, transitionProperties.get(key).toString());
+				}
 				InteractionContext autoCtx = new InteractionContext(pathParameters, ctx.getQueryParameters(), autoTransition.getTarget(), metadata);
-	        	Response autoResponse = handleRequest(headers, autoCtx, new Event("GET", HttpMethod.GET), action, (EntityResource<?>) resource);
+	        	Response autoResponse = handleRequest(headers, autoCtx, new Event("GET", HttpMethod.GET), action, (EntityResource<?>) resource, autoTransition);
+	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
+	        		logger.warn("Auto transition target did not return HttpStatus.OK status");
+	        	}
 	        	resource = (EntityResource<?>)((GenericEntity<?>)autoResponse.getEntity()).getEntity();
 	        	resource.setEntityName(autoTransition.getTarget().getEntityName());
 			}

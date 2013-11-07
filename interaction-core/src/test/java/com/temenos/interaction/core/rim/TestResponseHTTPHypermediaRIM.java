@@ -37,7 +37,9 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.GenericEntity;
@@ -449,8 +451,7 @@ public class TestResponseHTTPHypermediaRIM {
 	public void testBuildResponseWith201Created() throws Exception {
 		/*
 		 * construct an InteractionContext that simply mocks the result of 
-		 * deleting a resource, with no updated resource for the user agent
-		 * to re-display
+		 * creating a resource
 		 */
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
@@ -481,6 +482,88 @@ public class TestResponseHTTPHypermediaRIM {
 		assertNotNull(locationHeader);
         assertEquals(1, locationHeader.size());
         assertEquals("/baseuri/machines/123", locationHeader.get(0));
+	}
+
+	/*
+	 * This test is for a POST request that creates a new resource, and returns
+	 * the links for the resource we auto transition to.
+	 */
+	@Test
+	public void testPOSTwithAutoTransition() throws Exception {
+		/*
+		 * construct an InteractionContext that simply mocks the result of 
+		 * creating a resource
+		 */
+		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
+		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
+		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
+		individualMachine.addTransition("GET", initialState);
+		
+		// create new machine
+		initialState.addTransition("POST", createPsuedoState);
+		// an auto transition to the new resource
+		createPsuedoState.addTransition(individualMachine);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
+		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
+
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
+		/*
+		 *  Assert the links in the response match the target resource
+		 */
+		EntityResource<?> createdResource = (EntityResource<?>) ((GenericEntity<?>)response.getEntity()).getEntity();
+		List<Link> links = new ArrayList<Link>(createdResource.getLinks());
+		assertEquals(2, links.size());
+		assertEquals("machine", links.get(0).getTitle());
+		assertEquals("/baseuri/machines/123", links.get(0).getHref());
+		assertEquals("initial", links.get(1).getTitle());
+		assertEquals("/baseuri/machines", links.get(1).getHref());
+	}
+	
+	/*
+	 * This test is for a POST request that creates a new resource, and uses
+	 * linkage parameters to get the resource we transition too
+	 */
+	@Test
+	public void testPOSTwithAutoTransitionLinkageParameters() throws Exception {
+		/*
+		 * construct an InteractionContext that simply mocks the result of 
+		 * creating a resource
+		 */
+		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
+		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
+		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{test}");
+		
+		// create new machine
+		initialState.addTransition("POST", createPsuedoState);
+		// an auto transition with parameters to the new resource
+		Map<String, String> linkageMap = new HashMap<String, String>();
+		linkageMap.put("test", "id");
+		createPsuedoState.addTransition(individualMachine, linkageMap, null);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
+		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
+
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
+		/*
+		 *  Assert the links in the response match the target resource
+		 */
+		EntityResource<?> createdResource = (EntityResource<?>) ((GenericEntity<?>)response.getEntity()).getEntity();
+		List<Link> links = new ArrayList<Link>(createdResource.getLinks());
+		assertEquals(1, links.size());
+		assertEquals("/baseuri/machines/123", links.get(0).getHref());
 	}
 	
 	private EntityResource<Object> mockEntityResourceWithId(final String id) {

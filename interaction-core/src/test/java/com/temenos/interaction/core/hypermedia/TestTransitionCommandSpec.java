@@ -130,7 +130,7 @@ public class TestTransitionCommandSpec {
 	public void testToString() {
 		assertEquals("GET", new TransitionCommandSpec("GET", "", 0).toString());
 		assertEquals("*GET", new TransitionCommandSpec("GET", null, Transition.FOR_EACH).toString());
-		assertEquals("GET", new TransitionCommandSpec("GET", null, Transition.AUTO).toString());
+		assertEquals("AUTO", new TransitionCommandSpec("GET", null, Transition.AUTO).toString());
 	}
 
 }

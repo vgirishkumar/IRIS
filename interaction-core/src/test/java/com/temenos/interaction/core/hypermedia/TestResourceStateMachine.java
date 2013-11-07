@@ -1265,7 +1265,7 @@ public class TestResourceStateMachine {
 		assertEquals(2, links.size());
 
 		assertTrue(containsLink(links, "Airport.airport>GET>Airport.airport", "/baseuri/Airports('123')"));
-		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode eq '{id}')>Flight.Flights", "/baseuri/Airports('123')/Flights"));
+		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode eq '{id}')>Flight.Flights", "/baseuri/Airports('123')/Flights?filter=arrivalAirportCode+eq+'123'"));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

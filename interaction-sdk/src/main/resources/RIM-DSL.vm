@@ -64,7 +64,7 @@ resource ${state.getName()} {
 #if(${state.class.simpleName} == "IMNavigationState" && ${state.isNavigationToCollectionResource()})
 	type: collection
 	entity: ${state.getTargetResourceStateMachine().getEntityName()}
-	view { GETEntities filter=filter }
+	view { GETEntities filter="${state.getLinkProperty()} eq ${rsm.getPathParametersTemplate()}" }
 #elseif(${state.class.simpleName} == "IMNavigationState" && !${state.isNavigationToCollectionResource()})
 	type: item
 	entity: ${state.getTargetResourceStateMachine().getEntityName()}
@@ -139,7 +139,7 @@ $action##
 #elseif (${transition.class.simpleName} == "IMCollectionStateTransition") 
 ## Transition to a navigation state representing another RSM's collection state
 #if($strictOData)
-	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${entityState.getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}, filter="${transition.getFilter()}"
+	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${entityState.getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
 #else
 	${transition.getMethod()} ${transition.getTitleAssignment()}*-> ${transition.getTargetResourceStateMachine().getCollectionState().getName()} filter="${transition.getFilter()}"
 #end
@@ -172,7 +172,7 @@ $action##
 #elseif(${transition.class.simpleName} == "IMCollectionStateTransition")
 ## Transition to a navigation state representing another RSM's collection state
 #if($strictOData)
-	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}, filter="${transition.getFilter()}"
+	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} id=${rsm.getMappedEntityProperty()}
 #else
 	${transition.getMethod()} ${transition.getTitleAssignment()}-> ${transition.getTargetResourceStateMachine().getCollectionState().getName()} filter="${transition.getFilter()}"
 #end

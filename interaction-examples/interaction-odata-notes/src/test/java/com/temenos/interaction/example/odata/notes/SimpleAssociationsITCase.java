@@ -203,8 +203,12 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		Integer noteId = (Integer) note.getProperty("id").getValue();
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
-		assertEquals(1, note.getLinks().size());
+		assertEquals(2, note.getLinks().size());
+		assertTrue(containsLink(note.getLinks(), "Notes(" + noteId + ")", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Note"));
+		assertTrue(containsLink(note.getLinks(), "Notes(" + noteId + ")/NotePerson", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
+		assertEquals(2, person.getLinks().size());
 		assertTrue(containsLink(person.getLinks(), "Persons(" + id + ")", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
+		assertTrue(containsLink(person.getLinks(), "Persons(" + id + ")/PersonNotes", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes"));
 	}
 
 	/**

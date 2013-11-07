@@ -64,14 +64,14 @@ resource airport {
 	path "/Airports('{id}')"
 	PUT -> airport_pseudo_updated id=code
 	DELETE -> airport_pseudo_deleted id=code
-	GET title="departures" -> airport_departures id=code, filter="departureAirportCode eq '{code}'"
-	GET title="arrivals" -> airport_arrivals id=code, filter="arrivalAirportCode eq '{code}'"
+	GET title="departures" -> airport_departures id=code
+	GET title="arrivals" -> airport_arrivals id=code
 }
 
 resource airport_departures {
 	type: collection
 	entity: FlightSchedule
-	view { GETEntities filter=filter }
+	view { GETEntities filter="departureAirportCode eq '{id}'" }
 	path "/Airports('{id}')/departures"
 	POST -> flightschedule_pseudo_created
 	PUT *-> flightschedule_pseudo_updated id=flightScheduleID
@@ -88,7 +88,7 @@ resource airport_departures {
 resource airport_arrivals {
 	type: collection
 	entity: FlightSchedule
-	view { GETEntities filter=filter }
+	view { GETEntities filter="arrivalAirportCode eq '{id}'" }
 	path "/Airports('{id}')/arrivals"
 	POST -> flightschedule_pseudo_created
 	PUT *-> flightschedule_pseudo_updated id=flightScheduleID
@@ -107,7 +107,7 @@ resource airport_pseudo_created {
 	entity: Airport
 	actions { CreateEntity }
 	path "/Airports()"
-	GET --> airport
+	GET --> airport id=code
 }
 
 resource airport_pseudo_updated {
@@ -160,7 +160,7 @@ resource flight_pseudo_created {
 	entity: Flight
 	actions { CreateEntity }
 	path "/Flights()"
-    GET --> flight	
+    GET --> flight id=flightScheduleID
 }
 
 resource flight_pseudo_updated {
