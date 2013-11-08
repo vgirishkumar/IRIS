@@ -355,13 +355,13 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, conditionalExpressions, label);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, List<Expression> conditionalExpressions, String label) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, List<Expression> conditionalExpressions, String label) {
 		assert null != targetState;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
 		
 		//Copy linkage properties to ensure they are not overwritten
-		uriLinkageMap = uriLinkageMap != null ? new HashMap<String, String>(uriLinkageMap) : null;
+		Map<String, String> uriLinkageMap = uriLinkMap != null ? new HashMap<String, String>(uriLinkMap) : null;
 		Map<String, String> linkParameters = null;
 		if(uriLinkageProperties != null) {
 			linkParameters = new HashMap<String, String>(uriLinkageProperties);
@@ -376,18 +376,18 @@ public class ResourceState implements Comparable<ResourceState> {
 		
 		//Create the transition
 		Expression condition = conditionalExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalExpressions) : null;
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, condition, resourcePath, uriLinkageMap, linkParameters);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, condition, uriLinkageMap, linkParameters);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.add(transition);
 	}
 
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String resourcePath, boolean forEach) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, resourcePath, (forEach ? Transition.FOR_EACH : 0), null, null);
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, boolean forEach) {
+		addTransition(httpMethod, targetState, uriLinkageMap, null, (forEach ? Transition.FOR_EACH : 0), null, null);
 	}
 
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String resourcePath, boolean forEach, String label) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, (forEach ? Transition.FOR_EACH : 0), null, label);
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, boolean forEach, String label) {
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, (forEach ? Transition.FOR_EACH : 0), null, label);
 	}
 	
 	/**

@@ -239,7 +239,7 @@ public class ResourceStateMachine {
 			List<Transition> transitions = currentState.getTransitions(next);
 			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
-				String path = command.getOriginalPath();
+				String path = command.getPath();
 				
 				interactions = result.get(path);
 				if (interactions == null)
@@ -776,7 +776,7 @@ public class ResourceStateMachine {
 		TransitionCommandSpec cs = transition.getCommand();
 		String resourcePath = applyUriLinkage(cs.getPath(), cs.getUriParameters());
 		String[] sourceParameters = getPathTemplateParameters(resourcePath);
-		String[] targetParameters = getPathTemplateParameters(cs.getOriginalPath());
+		String[] targetParameters = getPathTemplateParameters(cs.getPath());
 		
 		//Apply transition properties to parameters
 		for(int i=0; i < sourceParameters.length; i++) {

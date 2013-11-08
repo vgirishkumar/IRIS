@@ -1258,7 +1258,7 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123")));
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123", "BA")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1286,11 +1286,10 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")));
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
-		assertEquals(3, links.size());
 
 		// sort the links so we have a predictable order for this test
 		List<Link> sortedLinks = new ArrayList<Link>();
@@ -1308,11 +1307,101 @@ public class TestResourceStateMachine {
 		assertEquals("/baseuri/Flights()?$filter=departureAirportCode+eq+'London+Luton'", sortedLinks.get(1).getHref());
 		assertEquals("Airport.airport>GET>Airport.airport", sortedLinks.get(2).getId());
 		assertEquals("/baseuri/Airports('123')", sortedLinks.get(2).getHref());
+		assertEquals(3, links.size());
+	}
 
-		// this method of asserting it's impossible to see what's wrong
-		assertTrue(containsLink(links, "Airport.airport>GET>Airport.airport", "/baseuri/Airports('123')"));
-		assertTrue(containsLink(links, "Airport.airport>GET(departureAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?$filter=departureAirportCode+eq+'London+Luton'"));
-		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights", "/baseuri/Flights()?$filter=arrivalAirportCode+eq+'London+Luton'"));
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testInjectLinksForEachToSameResourceState() {
+		CollectionResourceState airports = new CollectionResourceState("Airports", "airports", new ArrayList<Action>(), "/Airports()", null, null);
+		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
+
+		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
+		uriLinkageProperties.put("$filter", "arrivalAirportCode eq '{code}'");
+		airports.addTransition("GET", flights, new HashMap<String, String>(), uriLinkageProperties, true, "arrival");
+		uriLinkageProperties.put("$filter", "departureAirportCode eq '{code}'");
+		airports.addTransition("GET", flights, new HashMap<String, String>(), uriLinkageProperties, true, "departure");
+
+		// initialise and get the application state (links)
+		ResourceStateMachine rsm = new ResourceStateMachine(airports, new BeanTransformer());
+		
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
+		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
+		entities.add(new EntityResource<Object>(createAirport("London Luton", "LTN")));
+		CollectionResource<Object> collectionResource = new CollectionResource<Object>(entities);
+		Collection<Link> collectionLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
+
+		assertNotNull(collectionLinks);
+		assertFalse(collectionLinks.isEmpty());
+		assertEquals(1, collectionLinks.size());
+
+		Collection<Link> links = entities.get(0).getLinks();
+		assertNotNull(links);
+		assertFalse(links.isEmpty());
+		
+		// sort the links so we have a predictable order for this test
+		List<Link> sortedLinks = new ArrayList<Link>();
+		sortedLinks.addAll(links);
+		Collections.sort(sortedLinks, new Comparator<Link>() {
+			@Override
+			public int compare(Link o1, Link o2) {
+				return o1.getId().compareTo(o2.getId());
+			}
+			
+		});
+		assertEquals("Airports.airports>GET(arrival)>Flight.Flights", sortedLinks.get(0).getId());
+		assertEquals("/baseuri/Flights()?$filter=arrivalAirportCode+eq+'London+Luton'", sortedLinks.get(0).getHref());
+		assertEquals("Airports.airports>GET(departure)>Flight.Flights", sortedLinks.get(1).getId());
+		assertEquals("/baseuri/Flights()?$filter=departureAirportCode+eq+'London+Luton'", sortedLinks.get(1).getHref());
+		assertEquals(2, links.size());
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testInjectLinksForEachToSameResourceStateUriLinkage() {
+		CollectionResourceState airports = new CollectionResourceState("Airports", "airports", new ArrayList<Action>(), "/Airports()", null, null);
+		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
+
+		Map<String, String> uriLinkage = new HashMap<String, String>();
+		// just using code because its available on our mock object, real life this is arrivalAirportCode
+		uriLinkage.put("id", "code");
+		airports.addTransition("GET", airport, uriLinkage, new HashMap<String, String>(), true, "origin");
+		// just using code because its available on our mock object, real life this is departureAirportCode
+		uriLinkage.put("id", "iata");
+		airports.addTransition("GET", airport, uriLinkage, new HashMap<String, String>(), true, "destination");
+
+		// initialise and get the application state (links)
+		ResourceStateMachine rsm = new ResourceStateMachine(airports, new BeanTransformer());
+		
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
+		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
+		entities.add(new EntityResource<Object>(createAirport("London Luton", "LTN")));
+		CollectionResource<Object> collectionResource = new CollectionResource<Object>(entities);
+		Collection<Link> collectionLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
+
+		assertNotNull(collectionLinks);
+		assertFalse(collectionLinks.isEmpty());
+		assertEquals(1, collectionLinks.size());
+
+		Collection<Link> links = entities.get(0).getLinks();
+		assertNotNull(links);
+		assertFalse(links.isEmpty());
+		
+		// sort the links so we have a predictable order for this test
+		List<Link> sortedLinks = new ArrayList<Link>();
+		sortedLinks.addAll(links);
+		Collections.sort(sortedLinks, new Comparator<Link>() {
+			@Override
+			public int compare(Link o1, Link o2) {
+				return o1.getId().compareTo(o2.getId());
+			}
+			
+		});
+		assertEquals("Airports.airports>GET(destination)>Airport.airport", sortedLinks.get(0).getId());
+		assertEquals("/baseuri/Airports('LTN')", sortedLinks.get(0).getHref());
+		assertEquals("Airports.airports>GET(origin)>Airport.airport", sortedLinks.get(1).getId());
+		assertEquals("/baseuri/Airports('London%20Luton')", sortedLinks.get(1).getHref());
+		assertEquals(2, links.size());
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -1340,7 +1429,7 @@ public class TestResourceStateMachine {
 		//Generate links from airport to flights
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> airportLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")));
+		Collection<Link> airportLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 		assertNotNull(airportLinks);
 		assertFalse(airportLinks.isEmpty());
 		assertEquals(3, airportLinks.size());
@@ -1388,7 +1477,7 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton")));
+		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1642,12 +1731,17 @@ public class TestResourceStateMachine {
 		};
 	}
 
-	private Object createAirport(final String id) {
+	private Object createAirport(final String id, final String iataCode) {
 		return new Object() {
 			final String code = id;
 			@SuppressWarnings("unused")
 			public String getCode() {
 				return code;
+			}
+			final String iata = iataCode;
+			@SuppressWarnings("unused")
+			public String getIata() {
+				return iata;
 			}
 		};
 	}

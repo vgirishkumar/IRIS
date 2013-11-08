@@ -43,15 +43,15 @@ public class CollectionResourceState extends ResourceState {
 	}
 
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, targetState.getPath(), true, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, null, true, null);
 	}
 	
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), true, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, true, null);
 	}
 
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String label) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, targetState.getPath(), true, label);
+		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, true, label);
 	}
 	
 	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, List<Expression> linkConditions, String label) {

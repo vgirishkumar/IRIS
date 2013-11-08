@@ -71,6 +71,33 @@ public class TestTransition {
 		assertFalse(t3.hashCode() == t4.hashCode());
 
 	}
+
+	@Test 
+	public void testInequalityUriParameters() {
+		ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
+
+		Map<String, String> uriParameters = new HashMap<String, String>();
+		uriParameters.put("id", "abc");
+		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH, null, uriParameters, null), exists);
+		
+		uriParameters.clear();
+		uriParameters.put("id", "xyz");
+		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH, null, uriParameters, null), exists);
+		assertFalse(t.equals(t2));
+		assertFalse(t.hashCode() == t2.hashCode());
+	}
+
+	@Test 
+	public void testInequalityLabel() {
+		ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
+
+		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH, null, null, null), exists, "label1");
+		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH, null, null, null), exists, "differentlabel");
+		assertFalse(t.equals(t2));
+		assertFalse(t.hashCode() == t2.hashCode());
+	}
 	
 	@Test
 	public void testGetId() {
@@ -149,13 +176,13 @@ public class TestTransition {
 
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("paramA", "hello A");
-		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, "stuff", null, params), end);
+		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, null, params), end);
 		Transition taPut = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
 		assertEquals("entity.begin>GET(hello A)>entity.end", ta.getId());
 		assertEquals("entity.begin>PUT>entity.end", taPut.getId());
 		params = new HashMap<String, String>();
 		params.put("paramB", "hello B");
-		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, "stuff", null, params), end);
+		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, null, params), end);
 		assertEquals("entity.begin>GET(hello B)>entity.end", tb.getId());
 	}
 }
