@@ -27,7 +27,7 @@ initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
 	view { GETServiceDocument }
-	path "/"
+	path: "/"
 	GET -> Flights
 	GET -> Airports
 	GET -> FlightSchedules
@@ -41,7 +41,7 @@ resource Flights {
 	type: collection
 	entity: Flight
 	view { GETEntities }
-	path "/Flights()"
+	path: "/Flights()"
 	POST -> Flights_created
 	GET *-> flight id=flightID
 }
@@ -50,21 +50,21 @@ resource flight {
 	type: item
 	entity: Flight
 	view { GETEntity }
-	path "/Flights({id})"
+	path: "/Flights({id})"
 }
 
 resource Flights_created {
 	type: item
 	entity: Flight
 	actions { CreateEntity }
-	path "/Flights()"
+	path: "/Flights()"
 }
 
 resource Airports {
 	type: collection
 	entity: Airport
 	view { GETEntities }
-	path "/Airports()"
+	path: "/Airports()"
 	POST -> Airports_created
 	GET *-> airport id=code
 }
@@ -73,21 +73,21 @@ resource airport {
 	type: item
 	entity: Airport
 	view { GETEntity }
-	path "/Airports('{id}')"
+	path: "/Airports('{id}')"
 }
 
 resource Airports_created {
 	type: item
 	entity: Airport
 	actions { CreateEntity }
-	path "/Airports()"
+	path: "/Airports()"
 }
 
 resource FlightSchedules {
 	type: collection
 	entity: FlightSchedule
 	view { GETEntities }
-	path "/FlightSchedules()"
+	path: "/FlightSchedules()"
 	POST -> FlightSchedules_created
 	GET *-> flightschedule id=flightScheduleID
 	GET *-> flightschedule_departureAirport id=flightScheduleID
@@ -98,7 +98,7 @@ resource flightschedule {
 	type: item
 	entity: FlightSchedule
 	view { GETEntity }
-	path "/FlightSchedules({id})"
+	path: "/FlightSchedules({id})"
 	GET -> flightschedule_departureAirport id=flightScheduleID
 	GET -> flightschedule_arrivalAirport id=flightScheduleID
 }
@@ -107,28 +107,28 @@ resource flightschedule_arrivalAirport {
 	type: item
 	entity: Airport
 	view { GETNavProperty navproperty="arrivalAirport", entity=FlightSchedule }
-	path "/FlightSchedules({id})/arrivalAirport"
+	path: "/FlightSchedules({id})/arrivalAirport"
 }
 
 resource flightschedule_departureAirport {
 	type: item
 	entity: Airport
 	view { GETNavProperty navproperty="departureAirport", entity=FlightSchedule }
-	path "/FlightSchedules({id})/departureAirport"
+	path: "/FlightSchedules({id})/departureAirport"
 }
 
 resource FlightSchedules_created {
 	type: item
 	entity: FlightSchedule
 	actions { CreateEntity }
-	path "/FlightSchedules()"
+	path: "/FlightSchedules()"
 }
 
 resource Passengers {
 	type: collection
 	entity: Passenger
 	view { GETEntities }
-	path "/Passengers()"
+	path: "/Passengers()"
 	POST -> Passengers_created
 	GET *-> passenger id=passengerNo
 }
@@ -137,13 +137,13 @@ resource passenger {
 	type: item
 	entity: Passenger
 	view { GETEntity }
-	path "/Passengers({id})"
+	path: "/Passengers({id})"
 }
 
 resource Passengers_created {
 	type: item
 	entity: Passenger
 	actions { CreateEntity }
-	path "/Passengers()"
+	path: "/Passengers()"
 }
 }

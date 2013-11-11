@@ -29,7 +29,7 @@ initial resource home {
 	type: item
 	entity: HOME
 	view { NoopGET }
-    path "/"
+    path: "/"
 	GET -> profile
     GET -> preferences
 	GET -> notes
@@ -39,7 +39,7 @@ resource profile {
 	type: item
 	entity: Profile
 	view { NoopGET }
-	path "/profile"
+	path: "/profile"
 }
 
 resource preferences {

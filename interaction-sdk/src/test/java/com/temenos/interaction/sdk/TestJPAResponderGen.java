@@ -412,7 +412,7 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
-		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("path: \"/FlightSchedules({id})/departureAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET -> Passengers"));
 		assertTrue(generator.generatedRimDsl.contains("resource Passengers"));
 	}
@@ -456,7 +456,7 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("GET *-> flightschedule id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("GET title=\"departureAirport\" *-> flightschedule_departureAirport id=flightScheduleID"));
 		assertTrue(generator.generatedRimDsl.contains("resource flightschedule_departureAirport"));
-		assertTrue(generator.generatedRimDsl.contains("path \"/FlightSchedules({id})/departureAirport\""));
+		assertTrue(generator.generatedRimDsl.contains("path: \"/FlightSchedules({id})/departureAirport\""));
 		assertTrue(generator.generatedRimDsl.contains("GET title=\"arrivals\" -> airport_arrivals id=code"));
 		assertTrue(generator.generatedRimDsl.contains("GET title=\"departures\" -> airport_departures id=code"));
 		assertTrue(generator.generatedRimDsl.contains("GET -> Passengers"));
@@ -543,25 +543,25 @@ public class TestJPAResponderGen {
 				"\ttype: item" + RIM_LINE_SEP +
 				"\tentity: Airport" + RIM_LINE_SEP +
 				"\tactions { CreateEntity }" + RIM_LINE_SEP +
-				"\tpath \"/Airports()\""));
+				"\tpath: \"/Airports()\""));
 
 		assertTrue(generator.generatedRimDsl.contains("resource airport_updated {" + RIM_LINE_SEP +
 				"\ttype: item" + RIM_LINE_SEP +
 				"\tentity: Airport" + RIM_LINE_SEP +
 				"\tactions { UpdateEntity }" + RIM_LINE_SEP +
 				"\trelations { \"edit\" }" + RIM_LINE_SEP +
-				"\tpath \"/Airports('{id}')\""));
+				"\tpath: \"/Airports('{id}')\""));
 		assertTrue(generator.generatedRimDsl.contains("resource airport_deleted {" + RIM_LINE_SEP +
 				"\ttype: item" + RIM_LINE_SEP +
 				"\tentity: Airport" + RIM_LINE_SEP +
 				"\tactions { DeleteEntity }" + RIM_LINE_SEP +
 				"\trelations { \"edit\" }" + RIM_LINE_SEP +
-				"\tpath \"/Airports('{id}')/deleted\""));
+				"\tpath: \"/Airports('{id}')/deleted\""));
 		assertTrue(generator.generatedRimDsl.contains("resource airport {" + RIM_LINE_SEP +
 				"\ttype: item" + RIM_LINE_SEP +
 				"\tentity: Airport" + RIM_LINE_SEP +
 				"\tview { GETEntity }" + RIM_LINE_SEP +
-				"\tpath \"/Airports('{id}')\"" + RIM_LINE_SEP +
+				"\tpath: \"/Airports('{id}')\"" + RIM_LINE_SEP +
 				"\tPUT -> airport_updated id=code" + RIM_LINE_SEP +
 				"\tDELETE -> airport_deleted id=code"));
 
@@ -610,7 +610,7 @@ public class TestJPAResponderGen {
 		assertTrue(rimDSL.contains("GET *-> flightschedule id=flightScheduleID"));
 		assertTrue(rimDSL.contains("GET *-> flightschedule_departureAirport id=flightScheduleID"));
 		assertTrue(rimDSL.contains("resource flightschedule_departureAirport"));
-		assertTrue(rimDSL.contains("path \"/FlightSchedules({id})/departureAirport\""));
+		assertTrue(rimDSL.contains("path: \"/FlightSchedules({id})/departureAirport\""));
 		assertTrue(rimDSL.contains("GET -> Passengers"));
 		assertTrue(rimDSL.contains("resource Passengers"));
 	}

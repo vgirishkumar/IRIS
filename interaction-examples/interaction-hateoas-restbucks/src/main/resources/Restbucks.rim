@@ -28,7 +28,7 @@ initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
 	view { GETServiceDocument }
-	path "/"
+	path: "/"
 	GET -> Orders
 	GET -> Payments
 	GET -> shop
@@ -38,7 +38,7 @@ resource shop {
 	type: item
 	entity: ServiceDocument
 	view { NoopGET }
-	path "/shop"
+	path: "/shop"
 	POST -> OrderCreated
 }
 
@@ -47,7 +47,7 @@ resource Orders {
 	type: collection
 	entity: Order
 	view { GETEntities }
-	path "/Orders()"
+	path: "/Orders()"
 	POST -> OrderCreated
 	GET *-> order id=Id
 	GET title="Payment" *-> payment
@@ -59,7 +59,7 @@ resource order {
 	type: item
 	entity: Order
 	view { GETEntity }
-	path "/Orders({Id})"
+	path: "/Orders({Id})"
 	GET title="Payment" -> payment
 	// Can only update or delete if we haven't paid
 	PUT -> OrderUpdated (NOT_FOUND(payment))
@@ -72,7 +72,7 @@ resource OrderCancelled {
 	entity: Order
 	actions { DeleteEntity }
 	relations { "http://relations.restbucks.com/cancel" }
-	path "/Orders({Id})"
+	path: "/Orders({Id})"
 }
 
 resource OrderUpdated {
@@ -80,14 +80,14 @@ resource OrderUpdated {
 	entity: Order
 	actions { UpdateEntity }
 	relations { "http://relations.restbucks.com/update" }
-	path "/Orders({Id})"
+	path: "/Orders({Id})"
 }
 
 resource OrderCreated {
 	type: item
 	entity: Order
 	actions { CreateEntity }
-	path "/Orders()"
+	path: "/Orders()"
 	GET --> order (OK(order))
 }
 
@@ -95,7 +95,7 @@ resource Payments {
 	type: collection
 	entity: Payment
 	view { GETEntities }
-	path "/Payments()"
+	path: "/Payments()"
 	GET *-> payment
 	GET title="Order" *-> order
 }
@@ -104,7 +104,7 @@ resource payment {
 	type: item
 	entity: Payment
 	view { GETEntity }
-	path "/Payments({Id})"
+	path: "/Payments({Id})"
 	GET title="Order" -> order
 }
 
@@ -113,7 +113,7 @@ resource PaymentAccepted {
 	entity: Payment
 	actions { CreateEntity }
 	relations { "http://relations.restbucks.com/payment" }
-	path "/Payments()"
+	path: "/Payments()"
 	GET --> payment (OK(payment))
 }
 
@@ -122,14 +122,14 @@ resource PaymentAccepted {
 //	type: item
 //	entity: Payment
 //	view { GETNavProperty navproperty="Payment", entity=Order }
-//	path "/Orders({id})/Payment"
+//	path: "/Orders({id})/Payment"
 //}
 
 //resource payment_Order {
 //	type: item
 //	entity: Order
 //	view { GETNavProperty navproperty="Order", entity=Payment }
-//	path "/Payments({id})/Order"
+//	path: "/Payments({id})/Order"
 //}
 
 

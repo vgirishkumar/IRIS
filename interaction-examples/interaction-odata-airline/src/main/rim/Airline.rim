@@ -32,7 +32,7 @@ initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
 	view { GETServiceDocument }
-	path "/"
+	path: "/"
 	GET -> Airports
 	GET -> Flights
 	GET -> FlightSchedules
@@ -50,7 +50,7 @@ resource Airports {
 	type: collection
 	entity: Airport
 	view { GETEntities }
-	path "/Airports()"
+	path: "/Airports()"
 	POST -> airport_pseudo_created
 	PUT *-> airport_pseudo_updated id=code
 	DELETE *-> airport_pseudo_deleted id=code
@@ -63,7 +63,7 @@ resource airport {
 	type: item
 	entity: Airport
 	view { GETEntity }
-	path "/Airports('{id}')"
+	path: "/Airports('{id}')"
 	PUT -> airport_pseudo_updated id=code
 	DELETE -> airport_pseudo_deleted id=code
 	GET title="departures" -> airport_departures id=code
@@ -74,7 +74,7 @@ resource airport_departures {
 	type: collection
 	entity: FlightSchedule
 	view { GETEntities filter="departureAirportCode eq '{id}'" }
-	path "/Airports('{id}')/departures"
+	path: "/Airports('{id}')/departures"
 	POST -> flightschedule_pseudo_created
 	PUT *-> flightschedule_pseudo_updated id=flightScheduleID
 	DELETE *-> flightschedule_pseudo_deleted id=flightScheduleID
@@ -91,7 +91,7 @@ resource airport_arrivals {
 	type: collection
 	entity: FlightSchedule
 	view { GETEntities filter="arrivalAirportCode eq '{id}'" }
-	path "/Airports('{id}')/arrivals"
+	path: "/Airports('{id}')/arrivals"
 	POST -> flightschedule_pseudo_created
 	PUT *-> flightschedule_pseudo_updated id=flightScheduleID
 	DELETE *-> flightschedule_pseudo_deleted id=flightScheduleID
@@ -108,7 +108,7 @@ resource airport_pseudo_created {
 	type: item
 	entity: Airport
 	actions { CreateEntity }
-	path "/Airports()"
+	path: "/Airports()"
 	GET --> airport id=code
 }
 
@@ -117,7 +117,7 @@ resource airport_pseudo_updated {
 	entity: Airport
 	actions { UpdateEntity }
 	relations { "edit" }
-	path "/Airports('{id}')"
+	path: "/Airports('{id}')"
 }
 
 resource airport_pseudo_deleted {
@@ -125,14 +125,14 @@ resource airport_pseudo_deleted {
 	entity: Airport
 	actions { DeleteEntity }
 	relations { "edit" }
-	path "/Airports('{id}')"
+	path: "/Airports('{id}')"
 }
 
 resource Flights {
 	type: collection
 	entity: Flight
 	view { GETEntities }
-	path "/Flights()"
+	path: "/Flights()"
 	POST -> flight_pseudo_created
 	PUT *-> flight_pseudo_updated id=flightID
 	DELETE *-> flight_pseudo_deleted id=flightID
@@ -144,7 +144,7 @@ resource flight {
 	type: item
 	entity: Flight
 	view { GETEntityWithEtag }
-	path "/Flights({id})"
+	path: "/Flights({id})"
 	PUT -> flight_pseudo_updated id=flightID
 	DELETE -> flight_pseudo_deleted id=flightID
 	GET title="flightSchedule" -> flight_flightSchedule id=flightID
@@ -154,14 +154,14 @@ resource flight_flightSchedule {
 	type: item
 	entity: FlightSchedule
 	view { GETNavProperty navproperty="flightSchedule", entity=Flight }
-	path "/Flights({id})/flightSchedule"
+	path: "/Flights({id})/flightSchedule"
 }
 
 resource flight_pseudo_created {
 	type: item
 	entity: Flight
 	actions { CreateEntity }
-	path "/Flights()"
+	path: "/Flights()"
     GET --> flight id=flightScheduleID
 }
 
@@ -170,7 +170,7 @@ resource flight_pseudo_updated {
 	entity: Flight
 	actions { UpdateEntityWithEtag }
 	relations { "edit" }
-	path "/Flights({id})"
+	path: "/Flights({id})"
 }
 
 resource flight_pseudo_deleted {
@@ -178,14 +178,14 @@ resource flight_pseudo_deleted {
 	entity: Flight
 	actions { DeleteEntity }
 	relations { "edit" }
-	path "/Flights({id})"
+	path: "/Flights({id})"
 }
 
 resource FlightSchedules {
 	type: collection
 	entity: FlightSchedule
 	view { GETEntities }
-	path "/FlightSchedules()"
+	path: "/FlightSchedules()"
 	POST -> flightschedule_pseudo_created
 	PUT *-> flightschedule_pseudo_updated id=flightScheduleID
 	DELETE *-> flightschedule_pseudo_deleted id=flightScheduleID
@@ -199,7 +199,7 @@ resource flightschedule {
 	type: item
 	entity: FlightSchedule
 	view { GETEntity }
-	path "/FlightSchedules({id})"
+	path: "/FlightSchedules({id})"
 	PUT -> flightschedule_pseudo_updated id=flightScheduleID
 	DELETE -> flightschedule_pseudo_deleted id=flightScheduleID
 	GET title="departureAirport" -> flightschedule_departureAirport id=flightScheduleID
@@ -212,21 +212,21 @@ resource flightschedule_departureAirport {
 	type: item
 	entity: Airport
 	view { GETNavProperty navproperty="departureAirport", entity=FlightSchedule }
-	path "/FlightSchedules({id})/departureAirport"
+	path: "/FlightSchedules({id})/departureAirport"
 }
 
 resource flightschedule_arrivalAirport {
 	type: item
 	entity: Airport
 	view { GETNavProperty navproperty="arrivalAirport", entity=FlightSchedule }
-	path "/FlightSchedules({id})/arrivalAirport"
+	path: "/FlightSchedules({id})/arrivalAirport"
 }
 
 resource flightschedule_flights {
 	type: collection
 	entity: Flight
 	view { GETEntities filter=filter }
-	path "/FlightSchedules({id})/flights"
+	path: "/FlightSchedules({id})/flights"
 	POST -> flight_pseudo_created
 	PUT *-> flight_pseudo_updated id=flightID
 	DELETE *-> flight_pseudo_deleted id=flightID
@@ -241,7 +241,7 @@ resource flightschedule_pseudo_created {
 	type: item
 	entity: FlightSchedule
 	actions { CreateEntity }
-	path "/FlightSchedules()"
+	path: "/FlightSchedules()"
     GET --> flightschedule id=flightScheduleID
 }
 
@@ -250,7 +250,7 @@ resource flightschedule_pseudo_updated {
 	entity: FlightSchedule
 	actions { UpdateEntity }
 	relations { "edit" }
-	path "/FlightSchedules({id})"
+	path: "/FlightSchedules({id})"
 }
 
 resource flightschedule_pseudo_deleted {
@@ -258,14 +258,14 @@ resource flightschedule_pseudo_deleted {
 	entity: FlightSchedule
 	actions { DeleteEntity }
 	relations { "edit" }
-	path "/FlightSchedules({id})"
+	path: "/FlightSchedules({id})"
 }
 
 resource Passengers {
 	type: collection
 	entity: Passenger
 	view { GETEntities }
-	path "/Passengers()"
+	path: "/Passengers()"
 	POST -> passenger_pseudo_created
 	PUT *-> passenger_pseudo_updated id=passengerNo
 	DELETE *-> passenger_pseudo_deleted id=passengerNo
@@ -277,7 +277,7 @@ resource passenger {
 	type: item
 	entity: Passenger
 	view { GETEntity }
-	path "/Passengers({id})"
+	path: "/Passengers({id})"
 	PUT -> passenger_pseudo_updated id=passengerNo
 	DELETE -> passenger_pseudo_deleted id=passengerNo
 	GET title="flight" -> passenger_flight id=passengerNo
@@ -288,7 +288,7 @@ resource passenger_pseudo_created {
 	type: item
 	entity: Passenger
 	actions { CreateEntity }
-	path "/Passengers()"
+	path: "/Passengers()"
     GET --> passenger
 }
 
@@ -297,7 +297,7 @@ resource passenger_pseudo_updated {
 	entity: Passenger
 	actions { UpdateEntity }
 	relations { "edit" }
-	path "/Passengers({id})"
+	path: "/Passengers({id})"
 }
 
 resource passenger_pseudo_deleted {
@@ -305,21 +305,21 @@ resource passenger_pseudo_deleted {
 	entity: Passenger
 	actions { DeleteEntity }
 	relations { "edit" }
-	path "/Passengers({id})"
+	path: "/Passengers({id})"
 }
 
 resource passenger_flight {
 	type: item
 	entity: Flight
 	view { GETNavProperty navproperty="flight", entity=Passenger }
-	path "/Passenger({id})/flight"
+	path: "/Passenger({id})/flight"
 }
 
 resource Extended {
 	type: item
 	entity: ServiceDocument
 	view { NoopGET }
-	path "/Extended({id})"
+	path: "/Extended({id})"
 	GET title="throw 503 error" -> error503 id=flightID
 	GET title="throw 504 error" -> error504 id=flightID
 	GET title="throw 500 server runtime exception" -> error500RuntimeException id=flightID
@@ -333,49 +333,49 @@ resource error503 {
 	type: item
 	entity: Flight
 	view { ThrowInteractionExceptionCommand status="503", message="Failed to connect to resource manager." }
-	path "/Extended({id})/error503"
+	path: "/Extended({id})/error503"
 }
 
 resource error504 {
 	type: item
 	entity: Flight
 	view { ThrowInteractionExceptionCommand status="504", message="Request has timed out." }
-	path "/Extended({id})/error504"
+	path: "/Extended({id})/error504"
 }
 
 resource error500RuntimeException {
 	type: item
 	entity: Flight
 	view { ThrowInteractionExceptionCommand status="500", message="Unexpected error." }
-	path "/Extended({id})/error500RuntimeException"
+	path: "/Extended({id})/error500RuntimeException"
 }
 
 resource error403 {
 	type: item
 	entity: Flight
 	view { ThrowInteractionExceptionCommand status="403", message="User is not allowed to access this resource." }
-	path "/Extended({id})/error403"
+	path: "/Extended({id})/error403"
 }
 
 resource error500RequestFailure {
 	type: item
 	entity: Flight
 	view { GETGenericErrorCommand code="FAILURE", message="Error while processing request." }
-	path "/Extended({id})/error500RequestFailure"
+	path: "/Extended({id})/error500RequestFailure"
 }
 
 resource error400 {
 	type: item
 	entity: Flight
 	view { GETGenericErrorCommand code="INVALID_REQUEST", message="Resource manager: 4 validation errors." }
-	path "/Extended({id})/error400"
+	path: "/Extended({id})/error400"
 }
 
 resource error404 {
 	type: item
 	entity: Flight
 	view { ThrowInteractionExceptionCommand status="404", message="Resource manager: entity not found or currently unavailable." }
-	path "/Extended({id})/error404"
+	path: "/Extended({id})/error404"
 	onerror --> errorHandler
 }
 

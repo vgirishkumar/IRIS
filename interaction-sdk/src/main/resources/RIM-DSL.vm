@@ -20,7 +20,7 @@ initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
 	view { GETServiceDocument }
-	path "/"
+	path: "/"
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 	GET -> ${rsm.getCollectionState().getName()}
 #end
@@ -95,9 +95,9 @@ $action##
 	relations { "${state.getRelations()}" }
 #end
 #if(${state.class.simpleName} == "IMNavigationState")
-	path "${rsm.getEntityState().getPath()}/${state.getPath()}"
+	path: "${rsm.getEntityState().getPath()}/${state.getPath()}"
 #else
-	path "${state.getPath()}"
+	path: "${state.getPath()}"
 #end
 ## ----- Transitions from an entity-type state or a pseudo state -----
 #writeStateTransitions($rsm $state)

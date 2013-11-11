@@ -25,7 +25,7 @@ initial resource notes {
 	type: collection
 	entity: Note
 	view { GETNotes }
-	path "/notes"
+	path: "/notes"
     POST -> newNote
 	GET *-> note
 	DELETE *-> deletedNote
@@ -35,7 +35,7 @@ resource note {
 	type: item
 	entity: Note
 	view { GETNote }
-	path "/notes/{noteID}"
+	path: "/notes/{noteID}"
 	DELETE -> deletedNote
 }
 
@@ -43,7 +43,7 @@ resource deletedNote {
 	type: item
 	entity: Note
 	actions { DELETENote }
-	path "/notes/{noteID}"
+	path: "/notes/{noteID}"
 	GET --> notes
 }
 
@@ -51,7 +51,7 @@ resource newNote {
     type: item
 	entity: ID
     actions { NoopPOST }
-    path "/notes/new"
+    path: "/notes/new"
     PUT --> note
 }
 

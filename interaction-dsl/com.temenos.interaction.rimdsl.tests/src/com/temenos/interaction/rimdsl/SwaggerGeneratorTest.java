@@ -67,7 +67,7 @@ public class SwaggerGeneratorTest {
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"	path \"/A\"" + LINE_SEP +
+	"	path: \"/A\"" + LINE_SEP +
 	"	POST -> B" + LINE_SEP +
 	"}" + LINE_SEP +
 
@@ -81,7 +81,7 @@ public class SwaggerGeneratorTest {
 	"	type: item" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	actions { UpdateEntity }" + LINE_SEP +
-	"	path \"/B\"" + LINE_SEP +
+	"	path: \"/B\"" + LINE_SEP +
 	"}" + LINE_SEP +
 	"}" + LINE_SEP +
 	"";

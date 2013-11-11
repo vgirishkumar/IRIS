@@ -102,7 +102,7 @@ Relation:
 ;
 
 Path:
-    'path' name=STRING    
+    'path:' name=STRING    
 ;
 
 
