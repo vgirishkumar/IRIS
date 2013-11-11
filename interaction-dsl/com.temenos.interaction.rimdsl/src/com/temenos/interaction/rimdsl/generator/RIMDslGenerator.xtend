@@ -102,28 +102,31 @@ class RIMDslGenerator implements IGenerator {
                 val resources = newArrayList()
                 »
                 «IF !resources.contains(state.name) && resources.add(state.name)»«ENDIF»
-                // create regular transitions
+                // create transitions
                 «FOR t : state.transitions»
+                // create regular transition
+                «IF t instanceof Transition»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
                     ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
                     «ENDIF»
-                    «produceTransitions(state, t)»
-                «ENDFOR»
+                    «produceTransitions(state, t as Transition)»
+                «ENDIF»
 
-                // create foreach transitions
-                «FOR t : state.transitionsForEach»
+                // create foreach transition
+                «IF t instanceof TransitionForEach»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
                     ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
                     «ENDIF»
-                    «produceTransitionsForEach(state, t)»
-                «ENDFOR»
+                    «produceTransitionsForEach(state, t as TransitionForEach)»
+                «ENDIF»
 
-                // create AUTO transitions
-                «FOR t : state.transitionsAuto»
+                // create AUTO transition
+                «IF t instanceof TransitionAuto»
                     «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
                     ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
                     «ENDIF»
-                    «produceTransitionsAuto(state, t)»
+                    «produceTransitionsAuto(state, t as TransitionAuto)»
+                «ENDIF»
                 «ENDFOR»
                 return true;
             }

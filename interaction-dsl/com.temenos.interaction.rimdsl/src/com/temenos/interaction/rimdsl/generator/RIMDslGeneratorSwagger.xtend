@@ -29,6 +29,7 @@ import java.util.ArrayList
 import java.util.Collection
 import java.util.HashSet
 import java.util.HashMap
+import com.temenos.interaction.rimdsl.rim.TransitionRef
 
 class RIMDslGeneratorSwagger implements IGenerator {
 	
@@ -106,7 +107,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
 		interactions.add("GET");
 		result.put(sPath, interactions);
 		// add interactions by iterating through the transitions from this state
-		for (Transition t : currentState.transitions) {
+		for (TransitionRef t : currentState.transitions) {
 			var path = getPath(t.state)
 			interactions = result.get(path);
 			if (interactions == null)
@@ -142,7 +143,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
 		var sPath = getPath(currentState)
 		result.put(sPath + "GET", currentState);
 		// add interactions by iterating through the transitions from this state
-		for (Transition t : currentState.transitions) {
+		for (TransitionRef t : currentState.transitions) {
 			var path = getPath(t.state)
 			if (t.event.httpMethod != null)
 				result.put(path + t.event.httpMethod, t.state);

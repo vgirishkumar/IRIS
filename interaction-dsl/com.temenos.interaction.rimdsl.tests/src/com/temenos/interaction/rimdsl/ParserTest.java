@@ -130,12 +130,8 @@ public class ParserTest {
 	    // there should be no transitions between these states
 	    State Astate = model.getStates().get(0);
 	    assertEquals(0, Astate.getTransitions().size());
-	    assertEquals(0, Astate.getTransitionsAuto().size());
-	    assertEquals(0, Astate.getTransitionsForEach().size());
 	    State Bstate = model.getStates().get(1);
 	    assertEquals(0, Bstate.getTransitions().size());
-	    assertEquals(0, Bstate.getTransitionsAuto().size());
-	    assertEquals(0, Bstate.getTransitionsForEach().size());   
 	}
 
 	private final static String SINGLE_STATE_VIEW_COMMAND_ONLY_RIM = "" +
@@ -274,7 +270,7 @@ public class ParserTest {
 
 		// assert expressions with && on transition
 		assertEquals("B", aState.getTransitions().get(2).getState().getName());
-		Transition twe = aState.getTransitions().get(2);
+		Transition twe = (Transition) aState.getTransitions().get(2);
 		assertEquals(2, twe.getEval().getExpressions().size());
 		assertTrue(twe.getEval().getExpressions().get(0) instanceof OKFunction);
 		assertEquals("B", ((OKFunction) twe.getEval().getExpressions().get(0)).getState().getName());

@@ -14,19 +14,19 @@ DomainDeclaration:
 ;
  
 Ref:
-  DomainDeclaration | ResourceInteractionModel | Use
+    DomainDeclaration | ResourceInteractionModel | Use
 ;
 
 QualifiedName:
-  ID ('.' ID)*
+    ID ('.' ID)*
 ;
 
 Use:
-  'use' importedNamespace = QualifiedNameWithWildcard
+    'use' importedNamespace = QualifiedNameWithWildcard
 ;
   
 QualifiedNameWithWildcard:
-  QualifiedName '.*'?
+    QualifiedName '.*'?
 ;
 
 ResourceInteractionModel:
@@ -61,21 +61,27 @@ State:
         (('view' '{' view=ResourceCommand '}') | ('actions' '{' ((actions+=ResourceCommand) (';' actions+=ResourceCommand)* ) '}'))
         ('relations' '{' ((relations+=Relation) (',' relations+=Relation)* ) '}')?
         path=Path?
-        transitionsAuto+=TransitionAuto*
-        transitions+=Transition*
-        transitionsForEach+=TransitionForEach*
+        transitions+=TransitionRef*
         ('onerror' '-->' errorState=[State])?
     '}'
 ;
 
+// Order of transitions should be non deterministic
+TransitionRef:
+    Transition | TransitionForEach | TransitionAuto
+;
+
+// create regular transitions
 Transition:
     (event=[Event] title=Title? '->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
+// create foreach transitions
 TransitionForEach:
     (event=[Event] title=Title? '*->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
 
+// create AUTO transitions
 TransitionAuto:
     (event=[Event] '-->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
 ;
