@@ -320,7 +320,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	try {
     		result = action.execute(ctx);
         	assert(result != null) : "InteractionCommand must return a result";
-        	status = determineStatus(event, ctx, result);
+        	status = determineStatus(event, ctx, result, headers);
     	}
     	catch(InteractionException ie) {
     		logger.debug("Interaction command on state [" + ctx.getCurrentState().getId() + "] failed with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
@@ -344,6 +344,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	
 	private ResourceState initialiseInteractionContext(HttpHeaders headers, Event event, InteractionContext ctx, EntityResource<?> resource) {
     	if (resource != null) {
+    		//Apply the etag on the If-Match header if available
+    		if(resource.getEntityTag() == null) {
+    			String ifMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_MATCH);
+    			if(ifMatch != null) {
+    				resource.setEntityTag(ifMatch);
+    			}
+    		}
+    		
     		// set the resource for the commands to access
         	ctx.setResource(resource);
     	}
@@ -366,7 +374,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		return targetState;
 	}
 	
-	private StatusType determineStatus(Event event, InteractionContext ctx, InteractionCommand.Result result) {
+	private StatusType determineStatus(Event event, InteractionContext ctx, InteractionCommand.Result result, HttpHeaders headers) {
 		assert(event != null);
 		assert(ctx != null);
 		
@@ -374,12 +382,20 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	switch(result) {
 	    	case INVALID_REQUEST:					status = Status.BAD_REQUEST; break;
 	    	case FAILURE:							status = Status.INTERNAL_SERVER_ERROR; break;
+	    	case CONFLICT:							status = Status.PRECONDITION_FAILED; break;
 	    	case SUCCESS: {
+
 	    		status = Status.INTERNAL_SERVER_ERROR;
 		    	if (event.getMethod().equals(HttpMethod.GET)) {
-			    	if (result == Result.SUCCESS) {
-			    		status = Status.OK; break;
-			    	}
+		    		String ifNoneMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_NONE_MATCH);
+		    		String etag = ctx.getResource() != null ? ctx.getResource().getEntityTag() : null;
+		    		if (result == Result.SUCCESS && 
+		    				etag != null && etag.equals(ifNoneMatch)) {
+		    			//Response etag matches IfNoneMatch precondition
+		    			status = Status.NOT_MODIFIED;
+		    		} else if(result == Result.SUCCESS) {
+		    			status = Status.OK;
+		    		}
 				} else if (event.getMethod().equals(HttpMethod.POST)) {
 			    	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
 					ResourceState currentState = ctx.getCurrentState();
@@ -394,7 +410,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 					   		status = Status.OK;
 						}
 					}
-		
 				} else if (event.getMethod().equals(HttpMethod.PUT)) {
 			    	/*
 			    	 * The resource manager must return an error result code or have stored this 
@@ -501,6 +516,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			}
 			assert(response.getResource() != null);
     		responseBuilder.entity(resource.getGenericEntity());
+		} else if (status.equals(Response.Status.NOT_MODIFIED)) {
+			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(response.getResource() != null);
     		/*
@@ -509,6 +526,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		 */
     		responseBuilder.entity(resource.getGenericEntity());
     		responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
+   			responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
 		} else if((status.getFamily() == Response.Status.Family.CLIENT_ERROR || status.getFamily() == Response.Status.Family.SERVER_ERROR) && ctx != null) {
 			if(ctx.getCurrentState().getErrorState() != null) {
 				//Resource has an onerror handler

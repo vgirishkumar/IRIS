@@ -22,6 +22,7 @@ package com.temenos.interaction.commands.odata;
  */
 
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.odata4j.core.OEntity;
@@ -44,19 +46,54 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.hypermedia.ActionPropertyReference;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.core.resource.ResourceTypeHelper;
 
-public class CommandHelper extends com.temenos.interaction.core.command.CommandHelper {
+public class CommandHelper {
 	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
 	private static Pattern parameterPattern = Pattern.compile("\\{(.*?)\\}");
 
 	/**
+	 * To handle generic case where user do not know the type, here we will be looking for a type
+	 * and then generate EntityResource<E>
+	 * @param entity
+	 * @return EntityResource<E>
+	 */
+	public static<E> EntityResource<E> createEntityResource(E entity) {
+		GenericEntity<E> ge = new GenericEntity<E>(entity) {};
+		Type t = com.temenos.interaction.core.command.CommandHelper.getEffectiveGenericType(ge.getType(), entity);
+		if(ResourceTypeHelper.isType(ge.getRawType(), t, OEntity.class, OEntity.class)) {
+			OEntity te = (OEntity) entity;
+			String entityName = te != null && te.getEntityType() != null ? te.getEntityType().getName() : null;
+			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, entity);
+		} else if(ResourceTypeHelper.isType(ge.getRawType(), t, Entity.class, Entity.class)) {
+			Entity te = (Entity) entity;
+			String entityName = te != null ? te.getName() : null; 
+			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, entity);
+		} else {
+			// Call the generic and lets see what happens
+			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entity);
+		}
+	}
+	
+	
+	/**
+	 * To help converting Entity object into EntityResource as we are no longer extending the core CommandHelper
+	 * @param entity
+	 * @return EntityResource<Entity> EntityResource of parameter type Entity
+	 */
+	public static EntityResource<Entity> createEntityResource(Entity entity) {
+		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entity);
+	}
+	
+	/**
 	 * Create an OData entity resource (entry)
 	 * @param e OEntity
-	 * @return entity resource
+	 * @return entity resource EntityResource of parameter type OEntity
 	 */
 	public static EntityResource<OEntity> createEntityResource(OEntity e) {
 		String entityName = e != null && e.getEntityType() != null ? e.getEntityType().getName() : null;

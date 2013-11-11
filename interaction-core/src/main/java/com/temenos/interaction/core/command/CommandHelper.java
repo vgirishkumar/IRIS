@@ -31,10 +31,21 @@ import javax.ws.rs.core.GenericEntity;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
+import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.resource.EntityResource;
 
 
 public class CommandHelper {
+	
+	/**
+	 * Create an Entity entity resource (entry)
+	 * @param e Entity
+	 * @return entity resource
+	 */
+	public static EntityResource<Entity> createEntityResource(Entity e) {
+		String entityName = e != null ? e.getName() : null;
+		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, e);
+	}
 	
 	/**
 	 * Create a new entity resource.
@@ -83,7 +94,7 @@ public class CommandHelper {
 	 * @param entity entity
 	 * @return type
 	 */
-	private static<E> Type getEffectiveGenericType(final Type superClassType, final E entity) {
+	public static<E> Type getEffectiveGenericType(final Type superClassType, final E entity) {
 		Class<?> entityType = entity.getClass();
 		Class<?> entityInterfaces[] = entityType.getInterfaces();
 		if(entityInterfaces != null && entityInterfaces.length == 1) {
@@ -130,6 +141,26 @@ public class CommandHelper {
 				}
 			}
 			newGenericType = ParameterizedTypeImpl.make((Class<?>) parametrizedType.getRawType(), newActualTypeArguments, parametrizedType.getOwnerType());
+		} else if (superClassType instanceof TypeVariable) {
+			final TypeVariable<?> typeVar = (TypeVariable<?>) superClassType;
+			Type t = new TypeVariable() {
+				@Override
+				public Type[] getBounds() {
+					return typeVar.getBounds();
+				}
+
+				@Override
+				public GenericDeclaration getGenericDeclaration() {
+					return typeVar.getGenericDeclaration();
+				}
+
+				@Override
+				public String getName() {
+					return entityType.getSimpleName();
+				}
+				
+			};
+			newGenericType = t; 
 		}
 		else {
 			newGenericType = superClassType;

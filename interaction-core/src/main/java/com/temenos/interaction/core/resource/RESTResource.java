@@ -67,4 +67,15 @@ public interface RESTResource {
      */
     public void setEntityName(String entityName);
 
+	/**
+	 * Return the entity tag for this resource.
+	 * @return etag
+	 */
+    public String getEntityTag();
+
+    /**
+     * Set the entity tag for this resource.
+     * @param etag
+     */
+    public void setEntityTag(String entityTag);
 }  

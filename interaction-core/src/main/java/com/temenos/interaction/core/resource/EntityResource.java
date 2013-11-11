@@ -52,6 +52,8 @@ public class EntityResource<T> implements RESTResource {
     private String entityName;
 	@XmlTransient
     private Collection<Link> links;
+	@XmlTransient
+    private String entityTag = null;
 
 	public EntityResource() {
 	}
@@ -97,5 +99,15 @@ public class EntityResource<T> implements RESTResource {
 	@Override
 	public void setEntityName(String entityName) {
 		this.entityName = entityName;
+	}
+
+	@Override
+	public String getEntityTag() {
+		return entityTag;
+	}
+
+	@Override
+	public void setEntityTag(String entityTag) {
+		this.entityTag = entityTag;
 	}
 }

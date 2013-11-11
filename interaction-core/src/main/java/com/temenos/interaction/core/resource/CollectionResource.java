@@ -50,6 +50,8 @@ public class CollectionResource<T> implements RESTResource {
 	// links from a collection
 	@XmlTransient
     private Collection<Link> links;
+	@XmlTransient
+    private String entityTag = null;
 	
 	public CollectionResource() {}
 
@@ -110,4 +112,13 @@ public class CollectionResource<T> implements RESTResource {
 		this.entitySetName = entityName;
 	}
 
+	@Override
+	public String getEntityTag() {
+		return entityTag;
+	}
+
+	@Override
+	public void setEntityTag(String entityTag) {
+		this.entityTag = entityTag;
+	}
 }

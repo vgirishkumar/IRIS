@@ -36,7 +36,7 @@ import org.apache.abdera.protocol.client.AbderaClient;
 import org.apache.abdera.protocol.client.ClientResponse;
 import org.junit.Test;
 
-public class ODataValidation {
+public class ODataValidationITCase {
 
 	/**
 	 * An <atom:link> element with a rel="self" attribute MUST contain an href 
@@ -103,7 +103,7 @@ public class ODataValidation {
 			}
 		}		
 		assertNotNull("Found link rel for nav property", navPropertyRel);
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/PersonNotes", navPropertyRel);
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Notes", navPropertyRel);
 	}
 
 }

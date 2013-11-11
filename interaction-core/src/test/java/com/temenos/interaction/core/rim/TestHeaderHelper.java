@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import org.junit.Before;
@@ -86,4 +87,27 @@ public class TestHeaderHelper {
 		assertNull(r.getMetadata().getFirst("Location"));
 	}
 	
+	@Test
+	public void testEtag() {
+		Response r = HeaderHelper.etagHeader(Response.ok(), "ABCDEFG").build();
+		assertEquals("ABCDEFG", r.getMetadata().getFirst(HttpHeaders.ETAG));
+	}
+
+	@Test
+	public void testEtagNull() {
+		Response r = HeaderHelper.etagHeader(Response.ok(), null).build();
+		assertNull(r.getMetadata().getFirst(HttpHeaders.ETAG));
+	}
+
+	@Test
+	public void testEtagNotSpecified() {
+		Response r = Response.ok().build();
+		assertNull(r.getMetadata().getFirst(HttpHeaders.ETAG));
+	}
+
+	@Test
+	public void testEtagEmpty() {
+		Response r = HeaderHelper.etagHeader(Response.ok(), "").build();
+		assertNull(r.getMetadata().getFirst(HttpHeaders.ETAG));
+	}
 }

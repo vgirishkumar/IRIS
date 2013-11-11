@@ -22,7 +22,11 @@ package com.temenos.interaction.core.command;
  */
 
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
 import javax.ws.rs.core.GenericEntity;
 
@@ -71,6 +75,29 @@ public class TestCommandHelper {
 		GenericEntity<EntityResource<Entity>> ge = er.getGenericEntity();
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class));
+	}
+	
+	@Test
+	public void testCreateEntityResourceWithoutExplicitEntityName() {
+		EntityResource<Entity> er = CommandHelper.createEntityResource(createMockEntity("Customer"));
+
+		GenericEntity<EntityResource<Entity>> ge = er.getGenericEntity();
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
+		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class));
+		assertEquals("Customer", ge.getEntity().getEntityName());
+		assertEquals("Customer", ge.getEntity().getEntity().getName());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public<E> void testGetEffectiveGenericTypeVariable() {
+		Entity entity = createMockEntity("MyEntity");
+		GenericEntity<E> ge = new GenericEntity<E>((E)entity) {};
+		Type t = CommandHelper.getEffectiveGenericType(ge.getType(), entity);
+		
+		assertTrue(t instanceof TypeVariable);
+		TypeVariable<?> tv = (TypeVariable<?>) t;
+		assertEquals("Entity", tv.getName());
 	}
 	
 	private Entity createMockEntity(String entityName) {
