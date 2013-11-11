@@ -1055,6 +1055,6 @@ public class TestResponseHTTPHypermediaRIM {
 	@SuppressWarnings("hiding")
 	public static<GenericError> EntityResource<GenericError> createGenericErrorResource(GenericError error) 
 	{
-		return new EntityResource<GenericError>(error) {};	
+		return CommandHelper.createEntityResource(error);
 	}	
 }

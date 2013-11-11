@@ -30,6 +30,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -51,6 +52,8 @@ import javax.ws.rs.core.UriBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.CommandFailureException;
@@ -870,6 +873,14 @@ public class TestResourceStateMachine {
 			when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
 			InteractionCommand found = mock(InteractionCommand.class);
 			when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+			doAnswer(new Answer<Result>() {
+				@Override
+		        public Result answer(InvocationOnMock invocation) throws Throwable {
+					InteractionContext ctx = (InteractionContext) invocation.getArguments()[0];
+					ctx.setResource(CommandHelper.createEntityResource(new Entity("Customer", new EntityProperties())));
+		            return Result.SUCCESS;
+		        }
+		    }).when(found).execute(any(InteractionContext.class));				
 			
 			cc.addCommand("notfound", notfound);
 			cc.addCommand("found", found);
@@ -1606,7 +1617,7 @@ public class TestResourceStateMachine {
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("id", "123");
 		InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), existsState, mock(Metadata.class));
-		ctx.setResource(CommandHelper.createEntityResource(new Entity("Customer", new EntityProperties())));
+		
 		
 		try {
 			//Test getResource without links

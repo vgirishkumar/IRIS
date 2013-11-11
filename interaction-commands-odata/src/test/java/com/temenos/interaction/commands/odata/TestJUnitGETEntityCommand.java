@@ -62,9 +62,12 @@ import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.entity.Entity;
+import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -271,6 +274,23 @@ public class TestJUnitGETEntityCommand {
         catch(InteractionException ie) {
         	assertEquals(Status.NOT_FOUND, ie.getHttpStatus());
         }
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetEntityIgnoreInputResource() throws InteractionException {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETEntityCommand gec = new GETEntityCommand(mockProducer);
+		
+		//Set an entity resource before calling GETEntity - it should ignore the resource
+        InteractionContext ctx = createInteractionContext("MyEntity", "abc");
+        ctx.setResource(CommandHelper.createEntityResource(new Entity("IgnoreThisEntity", new EntityProperties())));
+		InteractionCommand.Result result = gec.execute(ctx);
+		
+		assertEquals(InteractionCommand.Result.SUCCESS, result);
+		assertTrue(ctx.getResource() instanceof EntityResource);
+		EntityResource<OEntity> er = (EntityResource<OEntity>) ctx.getResource();
+		assertEquals("MyEntity", er.getEntityName());
 	}
 	
 	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {

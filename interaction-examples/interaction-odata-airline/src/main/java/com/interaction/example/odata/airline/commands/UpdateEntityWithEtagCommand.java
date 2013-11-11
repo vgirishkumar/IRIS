@@ -43,9 +43,11 @@ public class UpdateEntityWithEtagCommand implements InteractionCommand {
 		assert(ctx != null);
 		
 		//Check if the resource has been modified if an etag has been provided
-		String etag = getEntityCommand.getEtag(new InteractionContext(ctx, null, null, null));
-		String etagRequest = ctx.getResource().getEntityTag();
-		if(etagRequest != null && !etagRequest.equals(etag)) {
+		InteractionContext getCtx = new InteractionContext(ctx, null, null, null);
+		getCtx.setResource(null);
+		String etag = getEntityCommand.getEtag(getCtx);
+		String ifMatch = ctx.getPreconditionIfMatch();
+		if(ifMatch != null && !ifMatch.equals(etag)) {
 			return Result.CONFLICT;
 		}
 		return updateEntityCommand.execute(ctx);

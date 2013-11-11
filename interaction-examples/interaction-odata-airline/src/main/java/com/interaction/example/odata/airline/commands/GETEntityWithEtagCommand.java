@@ -52,7 +52,7 @@ public class GETEntityWithEtagCommand implements InteractionCommand {
 		assert(ctx != null);
 		Result result = getEntityCommand.execute(ctx);
 		RESTResource resource = ctx.getResource();
-		if(resource != null && resource.getEntityTag() == null) {
+		if(resource != null) {
 			EntityResource<OEntity> er = (EntityResource<OEntity>) ctx.getResource();
 			resource.setEntityTag(getEtag(er.getEntity()));
 		}
@@ -61,9 +61,8 @@ public class GETEntityWithEtagCommand implements InteractionCommand {
 
 	@SuppressWarnings("unchecked")
 	public String getEtag(InteractionContext ctx) throws InteractionException {
-		getEntityCommand.execute(ctx);
-		RESTResource resource = ctx.getResource();
-		if(resource != null && resource.getEntityTag() == null) {
+		Result result = execute(ctx);
+		if(result == Result.SUCCESS) {
 			EntityResource<OEntity> er = (EntityResource<OEntity>) ctx.getResource();
 			return getEtag(er.getEntity());
 		}
