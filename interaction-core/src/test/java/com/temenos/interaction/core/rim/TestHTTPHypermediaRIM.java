@@ -725,6 +725,49 @@ public class TestHTTPHypermediaRIM {
 		//execute
 		rim.put(httpHeaders, "id", uriInfo, er);
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testDeleteCommandWithIfMatchHeader() throws InteractionException {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+		initialState.addTransition("DELETE", initialState);
+
+		// this test incorrectly supplies a resource as a result of the command.
+		InteractionCommand mockCommand = new InteractionCommand() {
+			public Result execute(InteractionContext ctx) {
+				assertNotNull(ctx.getResource());
+				assertNotNull(ctx.getResource().getEntityTag());
+				assertEquals("ABCDEFG", ctx.getResource().getEntityTag());
+				return Result.SUCCESS;
+			}
+		};
+
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), createMockMetadata());
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		
+		//Apply If-Match header
+		HttpHeaders httpHeaders = mock(HttpHeaders.class);
+		doAnswer(new Answer<List<String>>() {
+			@SuppressWarnings("serial")
+			@Override
+	        public List<String> answer(InvocationOnMock invocation) throws Throwable {
+	        	String headerName = (String) invocation.getArguments()[0];
+	        	if(headerName.equals(HttpHeaders.IF_MATCH)) {
+	        		return new ArrayList<String>() {{
+	        		    add("ABCDEFG");
+	        		}};
+	        	}
+	            return null;
+	        }
+	    }).when(httpHeaders).getRequestHeader(any(String.class));				
+		
+		//execute
+		rim.put(httpHeaders, "id", uriInfo, null);		//resource is null
+	}
 	
 	@SuppressWarnings({ "unchecked" })
 	private UriInfo mockEmptyUriInfo() {
