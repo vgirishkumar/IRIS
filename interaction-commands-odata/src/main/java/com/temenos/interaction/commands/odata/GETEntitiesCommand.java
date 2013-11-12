@@ -75,6 +75,8 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		catch(ODataProducerException ope) {
 			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: " + ope.getMessage());
 			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+		} catch (InteractionException e) {
+			throw e;
 		}
 		catch(Exception e) {
 			logger.error("Failed to GET entities [" + entityName + ", " + ctx.getId() + "]: " + e.getMessage());
@@ -88,7 +90,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 	 * @param ctx interaction context
 	 * @return query details
 	 */
-	private QueryInfo getQueryInfo(InteractionContext ctx) {
+	private QueryInfo getQueryInfo(InteractionContext ctx) throws InteractionException {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 		String inlineCount = queryParams.getFirst("$inlinecount");
 		String top = queryParams.getFirst("$top");
@@ -104,16 +106,21 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		String skipToken = queryParams.getFirst("$skiptoken");
 		String expand = queryParams.getFirst("$expand");
 		String select = queryParams.getFirst("$select");
-	      
-		return new QueryInfo(
-				OptionsQueryParser.parseInlineCount(inlineCount),
-				OptionsQueryParser.parseTop(top),
-				OptionsQueryParser.parseSkip(skip),
-				OptionsQueryParser.parseFilter(filter),
-				OptionsQueryParser.parseOrderBy(orderBy),
-				OptionsQueryParser.parseSkipToken(skipToken),
-				null,
-				OptionsQueryParser.parseExpand(expand),
-				OptionsQueryParser.parseSelect(select));		
+
+		try {
+			return new QueryInfo(
+					OptionsQueryParser.parseInlineCount(inlineCount),
+					OptionsQueryParser.parseTop(top),
+					OptionsQueryParser.parseSkip(skip),
+					OptionsQueryParser.parseFilter(filter),
+					OptionsQueryParser.parseOrderBy(orderBy),
+					OptionsQueryParser.parseSkipToken(skipToken),
+					null,
+					OptionsQueryParser.parseExpand(expand),
+					OptionsQueryParser.parseSelect(select));
+		} catch (RuntimeException e) {
+			// all runtime exceptions are due to failure in parsing the query options
+			throw new InteractionException(Status.BAD_REQUEST,"Invalid query option in '" + queryParams + "'. Error: " + e.getMessage());
+		}
 	}
 }
