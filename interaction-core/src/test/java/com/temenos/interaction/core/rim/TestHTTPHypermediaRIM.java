@@ -24,6 +24,7 @@ package com.temenos.interaction.core.rim;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.argThat;
@@ -643,8 +644,9 @@ public class TestHTTPHypermediaRIM {
 		InteractionCommand mockCommand = new InteractionCommand() {
 			public Result execute(InteractionContext ctx) {
 				assertNotNull(ctx.getResource());
-				assertNotNull(ctx.getResource().getEntityTag());
-				assertEquals("ABCDEFG", ctx.getResource().getEntityTag());
+				assertNull(ctx.getResource().getEntityTag());			//Etag is a response header and should be null
+				assertNotNull(ctx.getPreconditionIfMatch());
+				assertEquals("ABCDEFG", ctx.getPreconditionIfMatch());
 				return Result.SUCCESS;
 			}
 		};
@@ -689,8 +691,8 @@ public class TestHTTPHypermediaRIM {
 		InteractionCommand mockCommand = new InteractionCommand() {
 			public Result execute(InteractionContext ctx) {
 				assertNotNull(ctx.getResource());
-				assertNotNull(ctx.getResource().getEntityTag());
-				assertEquals("IJKLMNO", ctx.getResource().getEntityTag());
+				assertNotNull(ctx.getPreconditionIfMatch());
+				assertEquals("ABCDEFG", ctx.getPreconditionIfMatch());
 				return Result.SUCCESS;
 			}
 		};
@@ -702,9 +704,9 @@ public class TestHTTPHypermediaRIM {
 		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
 		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
 		
-		//EntityResource with Etag
+		//EntityResource with Etag - etag is a response header and should not be used on requests
 		EntityResource<Object> er = new EntityResource<Object>("test resource");
-		er.setEntityTag("IJKLMNO");		//This should override the e-tag header
+		er.setEntityTag("IJKLMNO");		//This should not override the If-Match header
 		
 		//Apply If-Match header
 		HttpHeaders httpHeaders = mock(HttpHeaders.class);
@@ -724,6 +726,50 @@ public class TestHTTPHypermediaRIM {
 		
 		//execute
 		rim.put(httpHeaders, "id", uriInfo, er);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testDeleteCommandWithIfMatchHeader() throws InteractionException {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+		initialState.addTransition("DELETE", initialState);
+
+		// this test incorrectly supplies a resource as a result of the command.
+		InteractionCommand mockCommand = new InteractionCommand() {
+			public Result execute(InteractionContext ctx) {
+				assertNotNull(ctx.getResource());
+				assertNotNull(ctx.getPreconditionIfMatch());
+				assertNull(ctx.getResource().getEntityTag());
+				assertEquals("ABCDEFG", ctx.getPreconditionIfMatch());
+				return Result.SUCCESS;
+			}
+		};
+
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), createMockMetadata());
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		
+		//Apply If-Match header
+		HttpHeaders httpHeaders = mock(HttpHeaders.class);
+		doAnswer(new Answer<List<String>>() {
+			@SuppressWarnings("serial")
+			@Override
+	        public List<String> answer(InvocationOnMock invocation) throws Throwable {
+	        	String headerName = (String) invocation.getArguments()[0];
+	        	if(headerName.equals(HttpHeaders.IF_MATCH)) {
+	        		return new ArrayList<String>() {{
+	        		    add("ABCDEFG");
+	        		}};
+	        	}
+	            return null;
+	        }
+	    }).when(httpHeaders).getRequestHeader(any(String.class));				
+		
+		//execute
+		rim.put(httpHeaders, "id", uriInfo, null);		//resource is null
 	}
 	
 	@SuppressWarnings({ "unchecked" })
