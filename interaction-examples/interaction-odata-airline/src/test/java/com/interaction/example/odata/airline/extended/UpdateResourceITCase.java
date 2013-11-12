@@ -31,7 +31,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.consumer.behaviors.OClientBehavior;
@@ -94,7 +93,6 @@ public class UpdateResourceITCase {
 		}
 	}
 
-	@Ignore
 	@Test
 	public void updateFlight() {
 		ExtendedOClientBehaviour behaviour = new ExtendedOClientBehaviour();
@@ -130,7 +128,6 @@ public class UpdateResourceITCase {
 		consumer.updateEntity(entity).execute();
 	}
 
-	@Ignore
 	@Test
 	public void updateCachedFlightSuccess() {
 		ExtendedOClientBehaviour behaviour = new ExtendedOClientBehaviour();
@@ -169,7 +166,6 @@ public class UpdateResourceITCase {
 		consumer.updateEntity(entity).execute();
 	}
 
-	@Ignore
 	@Test
 	public void updateCachedFlightConflict() {
 		ExtendedOClientBehaviour behaviour = new ExtendedOClientBehaviour();
