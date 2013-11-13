@@ -43,7 +43,9 @@ resource Flights {
 	view: GETEntities
 	path: "/Flights()"
 	POST -> Flights_created
-	GET *-> flight id=flightID
+	GET *-> flight {
+		parameters [ id=flightID ]
+	}
 }
 
 resource flight {
@@ -66,7 +68,9 @@ resource Airports {
 	view: GETEntities
 	path: "/Airports()"
 	POST -> Airports_created
-	GET *-> airport id=code
+	GET *-> airport {
+		parameters [ id=code ]
+	}
 }
 
 resource airport {
@@ -89,9 +93,15 @@ resource FlightSchedules {
 	view: GETEntities
 	path: "/FlightSchedules()"
 	POST -> FlightSchedules_created
-	GET *-> flightschedule id=flightScheduleID
-	GET *-> flightschedule_departureAirport id=flightScheduleID
-	GET *-> flightschedule_arrivalAirport id=flightScheduleID
+	GET *-> flightschedule {
+		parameters [ id=flightScheduleID ]
+	}
+	GET *-> flightschedule_departureAirport {
+		parameters [ id=flightScheduleID ]
+	}
+	GET *-> flightschedule_arrivalAirport {
+		parameters [ id=flightScheduleID ]
+	}
 }
 
 resource flightschedule {
@@ -99,8 +109,12 @@ resource flightschedule {
 	entity: FlightSchedule
 	view: GETEntity
 	path: "/FlightSchedules({id})"
-	GET -> flightschedule_departureAirport id=flightScheduleID
-	GET -> flightschedule_arrivalAirport id=flightScheduleID
+	GET -> flightschedule_departureAirport {
+		parameters [ id=flightScheduleID ]
+	}
+	GET -> flightschedule_arrivalAirport {
+		parameters [ id=flightScheduleID ]
+	}
 }
 
 resource flightschedule_arrivalAirport {
@@ -130,7 +144,9 @@ resource Passengers {
 	view: GETEntities
 	path: "/Passengers()"
 	POST -> Passengers_created
-	GET *-> passenger id=passengerNo
+	GET *-> passenger {
+		parameters [ id=passengerNo ]
+	}
 }
 
 resource passenger {

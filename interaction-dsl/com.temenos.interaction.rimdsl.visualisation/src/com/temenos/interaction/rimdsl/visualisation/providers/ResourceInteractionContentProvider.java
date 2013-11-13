@@ -60,6 +60,7 @@ import com.temenos.interaction.rimdsl.rim.State;
 import com.temenos.interaction.rimdsl.rim.Transition;
 import com.temenos.interaction.rimdsl.rim.TransitionAuto;
 import com.temenos.interaction.rimdsl.rim.TransitionForEach;
+import com.temenos.interaction.rimdsl.rim.TransitionSpec;
 
 
 /**
@@ -243,7 +244,7 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 			Iterator<Transition> transitions = Iterators.filter(state.eAllContents(), Transition.class);
 			while (transitions.hasNext()) {
 				Transition transition = transitions.next();
-				String title = (transition.getTitle() != null ? transition.getTitle().getName() : "");
+				String title = (transition.getSpec() != null && transition.getSpec().getTitle() != null ? transition.getSpec().getTitle().getName() : "");
 				assert(transition.eContainer() instanceof State);
 				State fromState = (State)transition.eContainer();
 				State toState = transition.getState();
@@ -251,7 +252,7 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 					TransitionDescription t = new TransitionDescription.Builder()
 						.title(title)
 						.event(transition.getEvent().getName())
-						.conditions(createConditionsStr(transition.getEval()))
+						.conditions(createConditionsStr(transition.getSpec()))
 						.fromState(fromState)
 						.toState(toState)
 						.build();
@@ -261,7 +262,7 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 			Iterator<TransitionForEach> transitionsForEach = Iterators.filter(state.eAllContents(), TransitionForEach.class);
 			while (transitionsForEach.hasNext()) {
 				TransitionForEach transition = transitionsForEach.next();
-				String title = (transition.getTitle() != null ? transition.getTitle().getName() : "");
+				String title = (transition.getSpec() != null && transition.getSpec().getTitle() != null ? transition.getSpec().getTitle().getName() : "");
 				assert(transition.eContainer() instanceof State);
 				State fromState = (State)transition.eContainer();
 				State toState = transition.getState();
@@ -269,7 +270,7 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 					TransitionDescription t = new TransitionDescription.Builder()
 						.title(title)
 						.event(transition.getEvent().getName())
-						.conditions(createConditionsStr(transition.getEval()))
+						.conditions(createConditionsStr(transition.getSpec()))
 						.fromState(fromState)
 						.toState(toState)
 						.build();
@@ -287,7 +288,7 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 					TransitionDescription t = new TransitionDescription.Builder()
 						.title(title)
 						.event(transition.getEvent().getName())
-						.conditions(createConditionsStr(transition.getEval()))
+						.conditions(createConditionsStr(transition.getSpec()))
 						.fromState(fromState)
 						.toState(toState)
 						.build();
@@ -298,18 +299,21 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 		
 	}
 	
-	private String createConditionsStr(Expression expression) {
+	private String createConditionsStr(TransitionSpec spec) {
 		String result = "";
-		if (expression != null) {
-			for (Function func : expression.getExpressions()) {
-				if (result.length() > 0) {
-					result += " ";
-				}
-				if (func instanceof NotFoundFunction) {
-					result += "NOT_FOUND(" + ((NotFoundFunction)func).getState().getName()+ ")";
-				}
-				if (func instanceof OKFunction) {
-					result += "OK(" + ((OKFunction)func).getState().getName()+ ")";
+		if (spec != null) {
+			Expression expression = spec.getEval();
+			if (expression != null) {
+				for (Function func : expression.getExpressions()) {
+					if (result.length() > 0) {
+						result += " ";
+					}
+					if (func instanceof NotFoundFunction) {
+						result += "NOT_FOUND(" + ((NotFoundFunction)func).getState().getName()+ ")";
+					}
+					if (func instanceof OKFunction) {
+						result += "OK(" + ((OKFunction)func).getState().getName()+ ")";
+					}
 				}
 			}
 		}

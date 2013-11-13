@@ -92,24 +92,38 @@ TransitionRef:
 
 // create regular transitions
 Transition:
-    (event=[Event] title=Title? '->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
+    event=[Event] '->' state=[State|QualifiedName] (spec=TransitionSpec)?
 ;
 
 // create foreach transitions
 TransitionForEach:
-    (event=[Event] title=Title? '*->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
+    event=[Event] '*->' state=[State|QualifiedName] (spec=TransitionSpec)?
 ;
 
 // create AUTO transitions
 TransitionAuto:
-    (event=[Event] '-->' state=[State|QualifiedName] (eval=Expression)?) ((uriLinks+=UriLink)* (',' uriLinks+=UriLink)* )
+    event=[Event] '-->' state=[State|QualifiedName] (spec=TransitionSpec)?
+;
+
+TransitionSpec:
+	(
+	'{'
+		// force create of the container object i.e. TransitionSpec
+        {TransitionSpec}
+        (
+            // MAY define a 'condition:' for this transition
+            ('condition:' eval=Expression)?
+                // MAY define parameters for this transition
+                & ('parameters' '[' ((uriLinks+=UriLink) (',' uriLinks+=UriLink)* ) ']')?
+                // MAY define a 'title:'
+                & title=Title?
+        )
+    '}'
+    )
 ;
 
 Expression:
-    '(' 
-        (expressions+=Function) 
-        ('&&' (expressions+=Function))* 
-    ')'
+    (expressions+=Function) ('&&' (expressions+=Function))* 
 ;
 
 Function: Function_OK|Function_NOT_FOUND;
@@ -158,5 +172,5 @@ UriLinkageProperty:
 ;
 
 Title:
-    'title' '=' name=STRING    
+    'title:' name=STRING    
 ;

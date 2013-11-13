@@ -269,20 +269,21 @@ class RIMDslGenerator implements IGenerator {
         «ENDIF»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
-            «produceUriLinkage(transition.uriLinks)»
-            «IF transition.eval != null»
-            «produceExpressions(transition.eval)»
-            «ELSE»
             conditionalLinkExpressions = null;
-            «ENDIF»
-            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, 0, conditionalLinkExpressions, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+        «IF transition.spec != null»
+            «produceUriLinkage(transition.spec.uriLinks)»
+            «produceExpressions(transition.spec.eval)»
+        «ENDIF»
+            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, 0, conditionalLinkExpressions, «if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
 	'''
 
     def produceExpressions(Expression conditionExpression) '''
+        «IF conditionExpression != null»
         conditionalLinkExpressions = new ArrayList<Expression>();
         «FOR function : conditionExpression.expressions»
             conditionalLinkExpressions.add(«produceExpression(function)»);
         «ENDFOR»
+        «ENDIF»
     '''
 
     def produceExpression(Function expression) '''
@@ -293,23 +294,21 @@ class RIMDslGenerator implements IGenerator {
         ENDIF»'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
-            «produceUriLinkage(transition.uriLinks)»
-            «IF transition.eval != null»
-            «produceExpressions(transition.eval)»
-            «ELSE»
             conditionalLinkExpressions = null;
-            «ENDIF»
-            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions, «if (transition.title != null) { "\"" + transition.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+        «IF transition.spec != null»
+            «produceUriLinkage(transition.spec.uriLinks)»
+            «produceExpressions(transition.spec.eval)»
+        «ENDIF»
+            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions, «if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
-            «produceUriLinkage(transition.uriLinks)»
-            «IF transition.eval != null»
-            «produceExpressions(transition.eval)»
+            conditionalLinkExpressions = null;
+        «IF transition.spec != null»
+            «produceUriLinkage(transition.spec.uriLinks)»
+            «produceExpressions(transition.spec.eval)»
+        «ENDIF»
             s«fromState.name».addTransition(s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);
-            «ELSE»
-            s«fromState.name».addTransition(s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties);
-            «ENDIF»
     '''
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''

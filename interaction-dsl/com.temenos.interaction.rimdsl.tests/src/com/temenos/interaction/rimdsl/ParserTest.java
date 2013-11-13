@@ -270,9 +270,9 @@ public class ParserTest {
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view: GetEntities" + LINE_SEP +
-			"	GET -> B (OK(B))" + LINE_SEP +
-			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
-			"	GET -> B (OK(B) && NOT_FOUND(B))" + LINE_SEP +
+			"	GET -> B { condition: OK(B) }" + LINE_SEP +
+			"	GET -> B { condition: NOT_FOUND(B) }" + LINE_SEP +
+			"	GET -> B { condition: OK(B) && NOT_FOUND(B) }" + LINE_SEP +
 			"}" + LINE_SEP +
 
 			"resource B {" +
@@ -287,7 +287,8 @@ public class ParserTest {
 	public void testParseStatesWithTransitionEvalExpression() throws Exception {
 		DomainModel domainModel = parser.parse(TRANSITION_WITH_EXPRESSION_RIM);
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
-		assertEquals(0, model.eResource().getErrors().size());
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
 		
 		// there should be exactly two states
 		assertEquals(2, model.getStates().size());
@@ -298,24 +299,24 @@ public class ParserTest {
 		assertEquals(3, aState.getTransitions().size());
 		// assert expressions on OK transition
 		assertEquals("B", aState.getTransitions().get(0).getState().getName());
-		assertEquals(1, aState.getTransitions().get(0).getEval().getExpressions().size());
-		assertTrue(aState.getTransitions().get(0).getEval().getExpressions().get(0) instanceof OKFunction);
-		assertEquals("B", ((OKFunction) aState.getTransitions().get(0).getEval().getExpressions().get(0)).getState().getName());
+		assertEquals(1, aState.getTransitions().get(0).getSpec().getEval().getExpressions().size());
+		assertTrue(aState.getTransitions().get(0).getSpec().getEval().getExpressions().get(0) instanceof OKFunction);
+		assertEquals("B", ((OKFunction) aState.getTransitions().get(0).getSpec().getEval().getExpressions().get(0)).getState().getName());
 
 		// assert expressions on NOT_FOUND transition
 		assertEquals("B", aState.getTransitions().get(1).getState().getName());
-		assertEquals(1, aState.getTransitions().get(1).getEval().getExpressions().size());
-		assertTrue(aState.getTransitions().get(1).getEval().getExpressions().get(0) instanceof NotFoundFunction);
-		assertEquals("B", ((NotFoundFunction) aState.getTransitions().get(1).getEval().getExpressions().get(0)).getState().getName());
+		assertEquals(1, aState.getTransitions().get(1).getSpec().getEval().getExpressions().size());
+		assertTrue(aState.getTransitions().get(1).getSpec().getEval().getExpressions().get(0) instanceof NotFoundFunction);
+		assertEquals("B", ((NotFoundFunction) aState.getTransitions().get(1).getSpec().getEval().getExpressions().get(0)).getState().getName());
 
 		// assert expressions with && on transition
 		assertEquals("B", aState.getTransitions().get(2).getState().getName());
 		Transition twe = (Transition) aState.getTransitions().get(2);
-		assertEquals(2, twe.getEval().getExpressions().size());
-		assertTrue(twe.getEval().getExpressions().get(0) instanceof OKFunction);
-		assertEquals("B", ((OKFunction) twe.getEval().getExpressions().get(0)).getState().getName());
-		assertTrue(twe.getEval().getExpressions().get(1) instanceof NotFoundFunction);
-		assertEquals("B", ((NotFoundFunction) twe.getEval().getExpressions().get(1)).getState().getName());
+		assertEquals(2, twe.getSpec().getEval().getExpressions().size());
+		assertTrue(twe.getSpec().getEval().getExpressions().get(0) instanceof OKFunction);
+		assertEquals("B", ((OKFunction) twe.getSpec().getEval().getExpressions().get(0)).getState().getName());
+		assertTrue(twe.getSpec().getEval().getExpressions().get(1) instanceof NotFoundFunction);
+		assertEquals("B", ((NotFoundFunction) twe.getSpec().getEval().getExpressions().get(1)).getState().getName());
 
 	}
 

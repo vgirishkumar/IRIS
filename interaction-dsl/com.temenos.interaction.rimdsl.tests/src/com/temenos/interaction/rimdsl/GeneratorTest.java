@@ -326,9 +326,9 @@ public class GeneratorTest {
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	view: GetEntities" + LINE_SEP +
-			"	GET -> B (OK(B))" + LINE_SEP +
-			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
-			"	GET -> B (OK(C) && NOT_FOUND(D))" + LINE_SEP +
+			"	GET -> B { condition: OK(B) }" + LINE_SEP +
+			"	GET -> B { condition: NOT_FOUND(B) }" + LINE_SEP +
+			"	GET -> B { condition: OK(C) && NOT_FOUND(D) }" + LINE_SEP +
 			"}" + LINE_SEP +
 
 			"resource B {" +
@@ -404,7 +404,7 @@ public class GeneratorTest {
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	actions [ CreateEntity ]" + LINE_SEP +
-			"   GET --> created id=MyId" + LINE_SEP +
+			"   GET --> created { parameters [ id=MyId ] }" + LINE_SEP +
 			"}" + LINE_SEP +
 			"resource created {" +
 			"	type: item" + LINE_SEP +
@@ -426,7 +426,7 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		
 		assertTrue(output.contains("uriLinkageEntityProperties.put(\"id\", \"MyId\");"));
-		assertTrue(output.contains("screate_pseudo_state.addTransition(screated, uriLinkageEntityProperties, uriLinkageProperties);"));
+		assertTrue(output.contains("screate_pseudo_state.addTransition(screated, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
 	}
 
 	private final static String RESOURCE_RELATIONS_RIM = "" +
@@ -518,8 +518,8 @@ public class GeneratorTest {
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	actions [ PutEntity ]" + LINE_SEP +
-			"	GET --> A (NOT_FOUND(B))" + LINE_SEP +
-			"	GET --> B  (OK(B))" + LINE_SEP +
+			"	GET --> A { condition: NOT_FOUND(B) }" + LINE_SEP +
+			"	GET --> B { condition: OK(B) }" + LINE_SEP +
 			"}" + LINE_SEP +
 
 			"}" + LINE_SEP +

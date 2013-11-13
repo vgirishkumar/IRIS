@@ -49,7 +49,7 @@ public class IMTransition {
 	public String getTitleAssignment() {
 		String title = "";
 		if(getTitle() != null) {
-			title = "title=\"" + getTitle() + "\" ";
+			title = "title: \"" + getTitle() + "\"";
 		}
 		return title;
 	}
