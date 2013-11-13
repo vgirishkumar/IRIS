@@ -63,7 +63,8 @@ public class InteractionContext {
 	/* Command context */
 	private RESTResource resource;
 	private Map<String, Object> attributes = new HashMap<String, Object>();
-	
+	private String preconditionIfMatch = null;
+
 	/**
 	 * Construct the context for execution of an interaction.
 	 * @see HTTPHypermediaRIM for pre and post conditions of this InteractionContext
@@ -228,5 +229,21 @@ public class InteractionContext {
 	 */
 	public void setException(InteractionException exception) {
 		this.exception = exception;
+	}
+
+	/**
+	 * Get If-Match precondition
+	 * @return If-Match precondition
+	 */
+	public String getPreconditionIfMatch() {
+		return preconditionIfMatch;
+	}
+
+	/**
+	 * Set the If-Match precondition
+	 * @param preconditionIfMatch If-Match precondition
+	 */
+	public void setPreconditionIfMatch(String preconditionIfMatch) {
+		this.preconditionIfMatch = preconditionIfMatch;
 	}
 }

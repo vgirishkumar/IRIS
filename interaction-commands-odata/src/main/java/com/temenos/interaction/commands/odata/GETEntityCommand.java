@@ -64,7 +64,6 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 		assert(ctx != null);
 		assert(ctx.getCurrentState() != null);
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
-		assert(ctx.getResource() == null);
 		
 		String entityName = getEntityName(ctx);
 		logger.debug("Getting entity for " + entityName);
