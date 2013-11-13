@@ -26,6 +26,8 @@ import static org.junit.Assert.*;
 
 import java.util.Iterator;
 
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.generator.IGenerator;
 import org.eclipse.xtext.junit4.InjectWith;
 import org.eclipse.xtext.junit4.XtextRunner;
@@ -56,18 +58,18 @@ public class ResourceInteractionContentProviderTest {
 	"rim Test {" + LINE_SEP +
 	"command GetEntity" + LINE_SEP +
 			
-	"initial resource A" + LINE_SEP +
-	"	type: collection ENTITY" + LINE_SEP +
+	"initial resource A {" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
 	"	GET -> B" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 
-	"resource B" + LINE_SEP +
-	"	type: collection ENTITY" + LINE_SEP +
+	"resource B {" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
 	"	view { GetEntity }" + LINE_SEP +
-	"end" + LINE_SEP +
+	"}" + LINE_SEP +
 
 	"}" + LINE_SEP +  // end rim
 	"}" + LINE_SEP +  // end domain
@@ -76,6 +78,9 @@ public class ResourceInteractionContentProviderTest {
 	@Test
 	public void testTransitionsSimpleTransition() throws Exception {
 		DomainModel domainModel = parseHelper.parse(MULTIPLE_STATES);
+		EList<Resource.Diagnostic> errors = domainModel.eResource().getErrors();
+		assertEquals(0, errors.size());
+
 		Iterator<State> states = Iterators.filter(domainModel.eAllContents(), State.class);
 		State A = states.next();
 		assertEquals("A", A.getName());

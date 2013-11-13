@@ -134,6 +134,46 @@ public class ParserTest {
 	    assertEquals(0, Bstate.getTransitions().size());
 	}
 
+	private final static String SIMPLE_STATES_REORDERED_RIM = "" +
+	"rim Simple {" + LINE_SEP +	
+	"	command GetEntity" + LINE_SEP +
+	"	command UpdateEntity" + LINE_SEP +
+			
+	"initial resource A {" + LINE_SEP +
+	"	GET -> B" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	view { GetEntity }" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"}" + LINE_SEP +
+
+	"resource B {" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	actions { UpdateEntity }" + LINE_SEP +
+	"	type: item" + LINE_SEP +
+	"}" + LINE_SEP +
+	"}" + LINE_SEP +  // end rim
+	"";
+
+	@Test
+	public void testParseSimpleStatesReordered() throws Exception {
+		DomainModel domainModel = parser.parse(SIMPLE_STATES_REORDERED_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+	    assertEquals("A", model.getStates().get(0).getName());
+	    assertEquals("B", model.getStates().get(1).getName());
+
+	    // there should be no transitions between these states
+	    State Astate = model.getStates().get(0);
+	    assertEquals(1, Astate.getTransitions().size());
+	    assertEquals("B", Astate.getTransitions().get(0).getState().getName());
+	    State Bstate = model.getStates().get(1);
+	    assertEquals(0, Bstate.getTransitions().size());
+	}
+
 	private final static String SINGLE_STATE_VIEW_COMMAND_ONLY_RIM = "" +
 	"rim Test {" + LINE_SEP +
 	"	command GetEntity" + LINE_SEP +
@@ -157,7 +197,7 @@ public class ParserTest {
 	    assertEquals("A", model.getStates().get(0).getName());
 
 	    // there should be a view for this state
-	    assertNotNull(model.getStates().get(0).getView());
+	    assertNotNull(model.getStates().get(0).getImpl().getView());
 	}
 	
 	private final static String SINGLE_STATE_NO_COMMANDS_RIM = "" +
@@ -331,7 +371,8 @@ public class ParserTest {
 	public void testParseResourceRelations() throws Exception {
 		DomainModel domainModel = parser.parse(RESOURCE_RELATIONS_RIM);
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
-		assertEquals(0, model.eResource().getErrors().size());
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
 		
 		// there should be two states
 		assertEquals(2, model.getStates().size());

@@ -21,6 +21,7 @@ import com.temenos.interaction.rimdsl.rim.Function
 import com.temenos.interaction.rimdsl.rim.Expression
 import javax.inject.Inject
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import com.temenos.interaction.rimdsl.rim.ImplRef
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -133,7 +134,7 @@ class RIMDslGenerator implements IGenerator {
             
             private static List<Action> createActions() {
                 Properties actionViewProperties = null;
-                «produceActionSet(state, state.view, state.actions)»
+                «produceActionSet(state, state.impl)»
                 return «state.name»Actions;
             }
 
@@ -208,7 +209,7 @@ class RIMDslGenerator implements IGenerator {
 	'''
 	
 	def produceResourceStates(State state) '''
-            «produceActionSet(state, state.view, state.actions)»
+            «produceActionSet(state, state.impl)»
             «produceRelations(state)»
             «IF state.type.isCollection»
             CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations, null);
@@ -231,6 +232,12 @@ class RIMDslGenerator implements IGenerator {
         String[] «state.name»Relations = null;
         «ENDIF»
     '''
+
+    def produceActionSet(State state, ImplRef impl) {
+    	if (impl != null) {
+   			produceActionSet(state, impl.view, impl.actions);
+    	}
+    }
 
     def produceActionSet(State state, ResourceCommand view, EList<ResourceCommand> actions) '''
         List<Action> «state.name»Actions = new ArrayList<Action>();
