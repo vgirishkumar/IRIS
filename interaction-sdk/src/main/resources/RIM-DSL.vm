@@ -19,7 +19,7 @@ rim ${rim.getName()} {
 initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
-	view { GETServiceDocument }
+	view: GETServiceDocument
 	path: "/"
 #foreach ( $rsm in $rim.getResourceStateMachines() )
 	GET -> ${rsm.getCollectionState().getName()}
@@ -33,7 +33,7 @@ initial resource ServiceDocument {
 exception resource ${rim.getExceptionState().getName()} {
 	type: item
 	entity: InteractionException
-	view { ${rim.getExceptionState().getView()} }
+	view: ${rim.getExceptionState().getView()}
 }
 #end
 
@@ -44,7 +44,7 @@ exception resource ${rim.getExceptionState().getName()} {
 resource ${state.getName()} {
 	type: collection
 	entity: ${state.getName()}
-	view { ${state.getView()} }
+	view: ${state.getView()}
 }
 #end
 
@@ -64,35 +64,35 @@ resource ${state.getName()} {
 #if(${state.class.simpleName} == "IMNavigationState" && ${state.isNavigationToCollectionResource()})
 	type: collection
 	entity: ${state.getTargetResourceStateMachine().getEntityName()}
-	view { GETEntities filter="${state.getLinkProperty()} eq ${rsm.getPathParametersTemplate()}" }
+	view: GETEntities filter="${state.getLinkProperty()} eq ${rsm.getPathParametersTemplate()}"
 #elseif(${state.class.simpleName} == "IMNavigationState" && !${state.isNavigationToCollectionResource()})
 	type: item
 	entity: ${state.getTargetResourceStateMachine().getEntityName()}
-	view { GETNavProperty navproperty="${state.getName()}", entity=${rsm.getEntityName()} }
+	view: GETNavProperty navproperty="${state.getName()}", entity=${rsm.getEntityName()}
 #elseif(${state.class.simpleName} == "IMCollectionState")
 	type: collection
 	entity: ${rsm.getEntityName()}
 #if($strictOData)
-	view { $state.getView() }
+	view: $state.getView()
 #else
-	view { $state.getView() filter=filter }
+	view: $state.getView() filter=filter
 #end
 #else
 	type: item
 	entity: ${rsm.getEntityName()}
 #if(${state.class.simpleName} == "IMPseudoState" && $state.hasActions() || ${state.class.simpleName} == "IMEntityState" && $state.hasActions())
-	actions { ##
+	actions [ ##
 #foreach ( $action in $state.getActions() )
 $action## 
 #end
- }
+ ]
 #end
 #if(${state.class.simpleName} == "IMEntityState" && $state.hasView())
-	view { $state.getView() }
+	view: $state.getView()
 #end
 #end
 #if ($state.hasRelations())
-	relations { "${state.getRelations()}" }
+	relations [ "${state.getRelations()}" ]
 #end
 #if(${state.class.simpleName} == "IMNavigationState")
 	path: "${rsm.getEntityState().getPath()}/${state.getPath()}"

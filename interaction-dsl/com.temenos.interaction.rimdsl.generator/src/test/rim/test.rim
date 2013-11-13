@@ -14,21 +14,21 @@ command UpdateEntity
 initial resource A {
 	type: collection
 	entity: ENTITY
-	view { GetEntities }
+	view: GetEntities
 	GET -> B
 }
 
 resource B {
 	type: item
 	entity: ENTITY
-	view { GetEntity }
+	view: GetEntity
 	PUT -> B_update
 }
 
 resource B_update {
 	type: item
 	entity: ENTITY
-    actions { UpdateEntity }
+    actions [ UpdateEntity ]
 }
 
 }

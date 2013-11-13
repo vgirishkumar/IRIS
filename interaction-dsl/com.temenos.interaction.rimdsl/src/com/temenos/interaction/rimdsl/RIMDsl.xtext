@@ -45,7 +45,7 @@ Event:
 
 Command:
 	'command' name=ID ('{' 
-     	'properties:' ((properties+=CommandProperty)* (',' properties+=CommandProperty)* )
+        'properties' '[' ((properties+=CommandProperty) (',' properties+=CommandProperty)* ) ']'
     '}')?
 ;
 
@@ -64,7 +64,7 @@ State:
                	// MUST define a 'view:' command or 'actions []' commands
                 & impl=ImplRef
                 // MAY define relations [ { fqn: "http://www.temenos.com/rels/input" }, GlobalRelation ]
-                & ('relations' '{' ((relations+=Relation) (',' relations+=Relation)* ) '}')?
+                & ('relations' '[' ((relations+=Relation) (',' relations+=Relation)* ) ']')?
                 // MAY define a 'path:'
                 & path=Path?
                 // MAY define one or more transitions
@@ -79,9 +79,9 @@ State:
 ImplRef:
 	(
 		// view: SomeCommand
-		('view' '{' view=ResourceCommand '}') 
+		('view:' view=ResourceCommand ) 
 			// actions [ SomeCommand, AnotherCommand ]
-			| ('actions' '{' ((actions+=ResourceCommand) (';' actions+=ResourceCommand)* ) '}')
+			| ('actions' '[' ((actions+=ResourceCommand) (',' actions+=ResourceCommand)* ) ']')
 	)
 ;
 

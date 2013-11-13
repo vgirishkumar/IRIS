@@ -24,7 +24,7 @@ rim Simple {
 resource notes {
 	type: collection
 	entity: Note
-	view { GETNotes }
+	view: GETNotes
 	path: "/notes"
     POST -> newNote
 	GET *-> note
@@ -34,7 +34,7 @@ resource notes {
 resource note {
 	type: item
 	entity: Note
-	view { GETNote }
+	view: GETNote
 	path: "/notes/{noteID}"
 	DELETE -> deletedNote
 }
@@ -42,7 +42,7 @@ resource note {
 resource deletedNote {
 	type: item
 	entity: Note
-	actions { DELETENote }
+	actions [ DELETENote ]
 	path: "/notes/{noteID}"
 	GET --> notes
 }
@@ -50,7 +50,7 @@ resource deletedNote {
 resource newNote {
     type: item
 	entity: ID
-    actions { NoopPOST }
+    actions [ NoopPOST ]
     path: "/notes/new"
     PUT --> note
 }

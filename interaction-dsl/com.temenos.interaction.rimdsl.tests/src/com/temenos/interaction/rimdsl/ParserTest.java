@@ -104,13 +104,13 @@ public class ParserTest {
 	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
-	"	view { GetEntity }" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
 	"}" + LINE_SEP +
 
 	"resource B {" + LINE_SEP +
 	"	type: item" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
-	"	actions { UpdateEntity }" + LINE_SEP +
+	"	actions [ UpdateEntity ]" + LINE_SEP +
 	"}" + LINE_SEP +
 	"}" + LINE_SEP +  // end rim
 	"";
@@ -142,13 +142,13 @@ public class ParserTest {
 	"initial resource A {" + LINE_SEP +
 	"	GET -> B" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
-	"	view { GetEntity }" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"}" + LINE_SEP +
 
 	"resource B {" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
-	"	actions { UpdateEntity }" + LINE_SEP +
+	"	actions [ UpdateEntity ]" + LINE_SEP +
 	"	type: item" + LINE_SEP +
 	"}" + LINE_SEP +
 	"}" + LINE_SEP +  // end rim
@@ -181,7 +181,7 @@ public class ParserTest {
 	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
-	"	view { GetEntity }" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
 	"}\r\n" + LINE_SEP +
 	"}" + LINE_SEP +  // end rim
 	"";
@@ -232,14 +232,14 @@ public class ParserTest {
 			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
-			"	view { GetEntities }" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
 			"	GET -> B" + LINE_SEP +
 			"}" + LINE_SEP +
 
 			"resource B {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
-			"	view { GetEntity }" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
 			"}" + LINE_SEP +
 			"}" + LINE_SEP +  // end rim
 			"";
@@ -269,7 +269,7 @@ public class ParserTest {
 			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
-			"	view { GetEntities }" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
 			"	GET -> B (OK(B))" + LINE_SEP +
 			"	GET -> B (NOT_FOUND(B))" + LINE_SEP +
 			"	GET -> B (OK(B) && NOT_FOUND(B))" + LINE_SEP +
@@ -278,7 +278,7 @@ public class ParserTest {
 			"resource B {" +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
-			"	view { GetEntity }" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
 			"}" + LINE_SEP +
 			"}" + LINE_SEP +  // end rim
 			"";
@@ -326,7 +326,7 @@ public class ParserTest {
 			"exception resource EXCEPTION {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
-			"   view { Noop }" + LINE_SEP +
+			"   view: Noop" + LINE_SEP +
 			"}\r\n" + LINE_SEP +
 			"}" + LINE_SEP +  // end rim
 			"";
@@ -354,15 +354,15 @@ public class ParserTest {
 			"initial resource accTransactions {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
-			"   view { Noop }" + LINE_SEP +
-			"   relations { \"archives\", \"http://www.temenos.com/statement-entries\" }" + LINE_SEP +
+			"   view: Noop" + LINE_SEP +
+			"   relations [ \"archives\", \"http://www.temenos.com/statement-entries\" ]" + LINE_SEP +
 			"   PUT -> accTransaction" + LINE_SEP +
 			"}\r\n" + LINE_SEP +
 			"resource accTransaction {" + LINE_SEP +
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
-			"   actions { Update }" + LINE_SEP +
-			"   relations { \"edit\" }" + LINE_SEP +
+			"   actions [ Update ]" + LINE_SEP +
+			"   relations [ \"edit\" ]" + LINE_SEP +
 			"}\r\n" + LINE_SEP +
 			"}" + LINE_SEP +  // end rim
 			"";
@@ -395,14 +395,14 @@ public class ParserTest {
 			"initial resource A {" + LINE_SEP +
 			"	type: collection" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
-			"	view { GetEntity }" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
 			"	onerror --> AE" + LINE_SEP +
 			"}" + LINE_SEP +
 
 			"resource AE {" + LINE_SEP +
 			"	type: item" + LINE_SEP +
 			"	entity: ERROR" + LINE_SEP +
-			"	view { NoopGET }" + LINE_SEP +
+			"	view: NoopGET" + LINE_SEP +
 			"}" + LINE_SEP +
 			"}" + LINE_SEP +  // end rim
 			"";
@@ -431,7 +431,7 @@ public class ParserTest {
 			"        initial resource A {" + LINE_SEP +
 			"			type: collection" + LINE_SEP +
 			"			entity: ENTITY" + LINE_SEP +
-			"			view { NoopGET }" + LINE_SEP +
+			"			view: NoopGET" + LINE_SEP +
 			"			GET -> TestDomain.TWO.B" + LINE_SEP +
 			"        }" + LINE_SEP +
 			"    }" + LINE_SEP +  // end rim
@@ -440,7 +440,7 @@ public class ParserTest {
 			"        initial resource B {" + LINE_SEP +
 			"			type: collection" + LINE_SEP +
 			"			entity: ENTITY" + LINE_SEP +
-			"			view { NoopGET }" + LINE_SEP +
+			"			view: NoopGET" + LINE_SEP +
 			"			GET -> ONE.A" + LINE_SEP +
 			"			GET -> A" + LINE_SEP +
 			"        }" + LINE_SEP +
@@ -492,7 +492,7 @@ public class ParserTest {
 			"        initial resource A {" + LINE_SEP +
 			"	         type: collection" + LINE_SEP +
 			"	         entity: ENTITY" + LINE_SEP +
-			"	         view { NoopGET }" + LINE_SEP +
+			"	         view: NoopGET" + LINE_SEP +
 			"	         GET -> TestDomain.TWO.B" + LINE_SEP +
 			"        }" + LINE_SEP +
 			"    }" + LINE_SEP +  // end rim
@@ -501,7 +501,7 @@ public class ParserTest {
 			"        initial resource B {" + LINE_SEP +
 			"	         type: collection" + LINE_SEP +
 			"	         entity: ENTITY" + LINE_SEP +
-			"	         view { NoopGET }" + LINE_SEP +
+			"	         view: NoopGET" + LINE_SEP +
 			"	         GET -> ONE.A" + LINE_SEP +
 			"	         GET -> A" + LINE_SEP +
 			"        }" + LINE_SEP +

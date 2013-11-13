@@ -66,7 +66,7 @@ public class SwaggerGeneratorTest {
 	"initial resource A {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
-	"	view { GetEntity }" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
 	"	path: \"/A\"" + LINE_SEP +
 	"	POST -> B" + LINE_SEP +
 	"}" + LINE_SEP +
@@ -74,13 +74,13 @@ public class SwaggerGeneratorTest {
 	"exception resource E {" + LINE_SEP +
 	"	type: collection" + LINE_SEP +
 	"	entity: EXCEPTION" + LINE_SEP +
-	"	view { GetException }" + LINE_SEP +
+	"	view: GetException" + LINE_SEP +
 	"}" + LINE_SEP +
 	
 	"resource B {" +
 	"	type: item" + LINE_SEP +
 	"	entity: ENTITY" + LINE_SEP +
-	"	actions { UpdateEntity }" + LINE_SEP +
+	"	actions [ UpdateEntity ]" + LINE_SEP +
 	"	path: \"/B\"" + LINE_SEP +
 	"}" + LINE_SEP +
 	"}" + LINE_SEP +

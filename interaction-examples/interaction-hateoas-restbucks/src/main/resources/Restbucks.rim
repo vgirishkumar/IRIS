@@ -27,7 +27,7 @@ rim Restbucks {
 initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
-	view { GETServiceDocument }
+	view: GETServiceDocument 
 	path: "/"
 	GET -> Orders
 	GET -> Payments
@@ -37,7 +37,7 @@ initial resource ServiceDocument {
 resource shop {
 	type: item
 	entity: ServiceDocument
-	view { NoopGET }
+	view: NoopGET 
 	path: "/shop"
 	POST -> OrderCreated
 }
@@ -46,7 +46,7 @@ resource shop {
 resource Orders {
 	type: collection
 	entity: Order
-	view { GETEntities }
+	view: GETEntities
 	path: "/Orders()"
 	POST -> OrderCreated
 	GET *-> order id=Id
@@ -58,7 +58,7 @@ resource Orders {
 resource order {
 	type: item
 	entity: Order
-	view { GETEntity }
+	view: GETEntity
 	path: "/Orders({Id})"
 	GET title="Payment" -> payment
 	// Can only update or delete if we haven't paid
@@ -70,23 +70,23 @@ resource order {
 resource OrderCancelled {
 	type: item
 	entity: Order
-	actions { DeleteEntity }
-	relations { "http://relations.restbucks.com/cancel" }
+	actions [ DeleteEntity ]
+	relations [ "http://relations.restbucks.com/cancel" ]
 	path: "/Orders({Id})"
 }
 
 resource OrderUpdated {
 	type: item
 	entity: Order
-	actions { UpdateEntity }
-	relations { "http://relations.restbucks.com/update" }
+	actions [ UpdateEntity ]
+	relations [ "http://relations.restbucks.com/update" ]
 	path: "/Orders({Id})"
 }
 
 resource OrderCreated {
 	type: item
 	entity: Order
-	actions { CreateEntity }
+	actions [ CreateEntity ]
 	path: "/Orders()"
 	GET --> order (OK(order))
 }
@@ -94,7 +94,7 @@ resource OrderCreated {
 resource Payments {
 	type: collection
 	entity: Payment
-	view { GETEntities }
+	view: GETEntities
 	path: "/Payments()"
 	GET *-> payment
 	GET title="Order" *-> order
@@ -103,7 +103,7 @@ resource Payments {
 resource payment {
 	type: item
 	entity: Payment
-	view { GETEntity }
+	view: GETEntity
 	path: "/Payments({Id})"
 	GET title="Order" -> order
 }
@@ -111,8 +111,8 @@ resource payment {
 resource PaymentAccepted {
 	type: item
 	entity: Payment
-	actions { CreateEntity }
-	relations { "http://relations.restbucks.com/payment" }
+	actions [ CreateEntity ]
+	relations [ "http://relations.restbucks.com/payment" ]
 	path: "/Payments()"
 	GET --> payment (OK(payment))
 }
@@ -121,14 +121,14 @@ resource PaymentAccepted {
 //resource order_Payment {
 //	type: item
 //	entity: Payment
-//	view { GETNavProperty navproperty="Payment", entity=Order }
+//	view: GETNavProperty navproperty="Payment", entity=Order
 //	path: "/Orders({id})/Payment"
 //}
 
 //resource payment_Order {
 //	type: item
 //	entity: Order
-//	view { GETNavProperty navproperty="Order", entity=Payment }
+//	view: GETNavProperty navproperty="Order", entity=Payment
 //	path: "/Payments({id})/Order"
 //}
 

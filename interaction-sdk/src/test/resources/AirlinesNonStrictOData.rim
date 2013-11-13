@@ -26,7 +26,7 @@ rim FlightResponder {
 initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
-	view { GETServiceDocument }
+	view: GETServiceDocument
 	path: "/"
 	GET -> Flights
 	GET -> Airports
@@ -38,20 +38,20 @@ initial resource ServiceDocument {
 exception resource InteractionException {
 	type: item
 	entity: InteractionException
-	view { GETException }
+	view: GETException
 }
 
 resource ErrorMessages {
 	type: collection
 	entity: ErrorMessages
-	view { NoopGET }
+	view: NoopGET
 }
 
 
 resource Flights {
 	type: collection
 	entity: Flight
-	view { GETEntities filter=filter }
+	view: GETEntities filter=filter
 	path: "/Flights()"
 	POST -> Flights_created
 	GET *-> flight id=flightID
@@ -61,7 +61,7 @@ resource Flights {
 resource flight {
 	type: item
 	entity: Flight
-	view { GETEntity }
+	view: GETEntity
 	path: "/Flights({id})"
 	GET title="flightschedule" -> flightschedule id=flightScheduleNum
 }
@@ -69,7 +69,7 @@ resource flight {
 resource Flights_created {
 	type: item
 	entity: Flight
-	actions { CreateEntity }
+	actions [ CreateEntity ]
 	path: "/Flights()"
 	onerror --> ErrorMessages
 }
@@ -77,7 +77,7 @@ resource Flights_created {
 resource Airports {
 	type: collection
 	entity: Airport
-	view { GETEntities filter=filter }
+	view: GETEntities filter=filter
 	path: "/Airports()"
 	POST -> Airports_created
 	GET *-> airport id=code
@@ -88,7 +88,7 @@ resource Airports {
 resource airport {
 	type: item
 	entity: Airport
-	view { GETEntity }
+	view: GETEntity
 	path: "/Airports('{id}')"
 	GET title="departures" -> FlightSchedules filter="departureAirportCode eq '{code}'"
 	GET title="arrivals" -> FlightSchedules filter="arrivalAirportCode eq '{code}'"
@@ -97,14 +97,14 @@ resource airport {
 resource Airports_created {
 	type: item
 	entity: Airport
-	actions { CreateEntity }
+	actions [ CreateEntity ]
 	path: "/Airports()"
 }
 
 resource FlightSchedules {
 	type: collection
 	entity: FlightSchedule
-	view { GETEntities filter=filter }
+	view: GETEntities filter=filter
 	path: "/FlightSchedules()"
 	POST -> FlightSchedules_created
 	GET *-> flightschedule id=flightScheduleID
@@ -115,7 +115,7 @@ resource FlightSchedules {
 resource flightschedule {
 	type: item
 	entity: FlightSchedule
-	view { GETEntity }
+	view: GETEntity
 	path: "/FlightSchedules({id})"
 	GET title="departureAirport" -> airport id=departureAirportCode
 	GET title="arrivalAirport" -> airport id=arrivalAirportCode
@@ -124,14 +124,14 @@ resource flightschedule {
 resource FlightSchedules_created {
 	type: item
 	entity: FlightSchedule
-	actions { CreateEntity }
+	actions [ CreateEntity ]
 	path: "/FlightSchedules()"
 }
 
 resource Passengers {
 	type: collection
 	entity: Passenger
-	view { GETEntities filter=filter }
+	view: GETEntities filter=filter
 	path: "/Passengers()"
 	POST -> Passengers_created
 	GET *-> passenger id=passengerNo
@@ -141,7 +141,7 @@ resource Passengers {
 resource passenger {
 	type: item
 	entity: Passenger
-	view { GETEntity }
+	view: GETEntity
 	path: "/Passengers({id})"
 	GET title="flight" -> flight id=flightID
 }
@@ -149,7 +149,7 @@ resource passenger {
 resource Passengers_created {
 	type: item
 	entity: Passenger
-	actions { CreateEntity }
+	actions [ CreateEntity ]
 	path: "/Passengers()"
 }
 }

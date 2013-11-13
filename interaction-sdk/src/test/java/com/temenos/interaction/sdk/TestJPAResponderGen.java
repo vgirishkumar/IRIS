@@ -542,25 +542,25 @@ public class TestJPAResponderGen {
 		assertTrue(generator.generatedRimDsl.contains("resource Airports_created {" + RIM_LINE_SEP +
 				"\ttype: item" + RIM_LINE_SEP +
 				"\tentity: Airport" + RIM_LINE_SEP +
-				"\tactions { CreateEntity }" + RIM_LINE_SEP +
+				"\tactions [ CreateEntity ]" + RIM_LINE_SEP +
 				"\tpath: \"/Airports()\""));
 
 		assertTrue(generator.generatedRimDsl.contains("resource airport_updated {" + RIM_LINE_SEP +
 				"\ttype: item" + RIM_LINE_SEP +
 				"\tentity: Airport" + RIM_LINE_SEP +
-				"\tactions { UpdateEntity }" + RIM_LINE_SEP +
-				"\trelations { \"edit\" }" + RIM_LINE_SEP +
+				"\tactions [ UpdateEntity ]" + RIM_LINE_SEP +
+				"\trelations [ \"edit\" ]" + RIM_LINE_SEP +
 				"\tpath: \"/Airports('{id}')\""));
 		assertTrue(generator.generatedRimDsl.contains("resource airport_deleted {" + RIM_LINE_SEP +
 				"\ttype: item" + RIM_LINE_SEP +
 				"\tentity: Airport" + RIM_LINE_SEP +
-				"\tactions { DeleteEntity }" + RIM_LINE_SEP +
-				"\trelations { \"edit\" }" + RIM_LINE_SEP +
+				"\tactions [ DeleteEntity ]" + RIM_LINE_SEP +
+				"\trelations [ \"edit\" ]" + RIM_LINE_SEP +
 				"\tpath: \"/Airports('{id}')/deleted\""));
 		assertTrue(generator.generatedRimDsl.contains("resource airport {" + RIM_LINE_SEP +
 				"\ttype: item" + RIM_LINE_SEP +
 				"\tentity: Airport" + RIM_LINE_SEP +
-				"\tview { GETEntity }" + RIM_LINE_SEP +
+				"\tview: GETEntity" + RIM_LINE_SEP +
 				"\tpath: \"/Airports('{id}')\"" + RIM_LINE_SEP +
 				"\tPUT -> airport_updated id=code" + RIM_LINE_SEP +
 				"\tDELETE -> airport_deleted id=code"));

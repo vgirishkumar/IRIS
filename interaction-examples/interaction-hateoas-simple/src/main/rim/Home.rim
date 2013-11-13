@@ -28,7 +28,7 @@ command GETPreferences
 initial resource home {
 	type: item
 	entity: HOME
-	view { NoopGET }
+	view: NoopGET
     path: "/"
 	GET -> profile
     GET -> preferences
@@ -38,14 +38,14 @@ initial resource home {
 resource profile {
 	type: item
 	entity: Profile
-	view { NoopGET }
+	view: NoopGET
 	path: "/profile"
 }
 
 resource preferences {
 	type: item
 	entity: Preferences
-    view { GETPreferences }
+    view: GETPreferences
 }
 
 }
