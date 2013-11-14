@@ -154,7 +154,9 @@ Entity:
 ;
 
 ResourceCommand:
-    (command=[Command] ((parameters+=CommandProperty)* (',' parameters+=CommandProperty)* ))
+    command=[Command]  ('{' 
+        'properties' '[' ((parameters+=CommandProperty) (',' parameters+=CommandProperty)* ) ']'
+    '}')?
 ;
 
 UriLink:
