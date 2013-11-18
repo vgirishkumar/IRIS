@@ -98,7 +98,6 @@ public class TestResourceGETExpression {
 		ResourceState paymentDetails = new ResourceState(paid, "psuedo_setcarddetails", new ArrayList<Action>());
 		
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		int transitionFlags = 0;  // regular transition
 		// create the transitions (links)
 		initial.addTransition("POST", cancel);
@@ -107,7 +106,7 @@ public class TestResourceGETExpression {
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, expressions, "Make a payment");
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, transitionFlags, expressions, "Make a payment");
 
 		return new ResourceStateMachine(initial);
 	}

@@ -103,7 +103,6 @@ public class GeneratorTest {
 	"    }" + LINE_SEP +
 	LINE_SEP +
 	"    public ResourceState getRIM() {" + LINE_SEP +
-	"        Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();" + LINE_SEP +
 	"        Map<String, String> uriLinkageProperties = new HashMap<String, String>();" + LINE_SEP +
 	"        List<Expression> conditionalLinkExpressions = null;" + LINE_SEP +
 	"        Properties actionViewProperties;" + LINE_SEP +
@@ -361,7 +360,7 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		
 		final String NEW_STATEMENT = "conditionalLinkExpressions = new ArrayList<Expression>();";
-		final String ADD_TRANSITION = "sA.addTransition(\"GET\", sB, uriLinkageEntityProperties, uriLinkageProperties, 0, conditionalLinkExpressions, \"B\")";
+		final String ADD_TRANSITION = "sA.addTransition(\"GET\", sB, uriLinkageProperties, 0, conditionalLinkExpressions, \"B\")";
 		
 		int indexOfNewStatement = output.indexOf(NEW_STATEMENT);
 		assertTrue(indexOfNewStatement > 0);
@@ -404,7 +403,7 @@ public class GeneratorTest {
 			"	type: item" + LINE_SEP +
 			"	entity: ENTITY" + LINE_SEP +
 			"	actions [ CreateEntity ]" + LINE_SEP +
-			"   GET --> created { parameters [ id=MyId ] }" + LINE_SEP +
+			"   GET --> created { parameters [ id=\"{MyId}\" ] }" + LINE_SEP +
 			"}" + LINE_SEP +
 			"resource created {" +
 			"	type: item" + LINE_SEP +
@@ -425,8 +424,8 @@ public class GeneratorTest {
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 		
-		assertTrue(output.contains("uriLinkageEntityProperties.put(\"id\", \"MyId\");"));
-		assertTrue(output.contains("screate_pseudo_state.addTransition(screated, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
+		assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
+		assertTrue(output.contains("screate_pseudo_state.addTransition(screated, uriLinkageProperties, conditionalLinkExpressions);"));
 	}
 
 	private final static String RESOURCE_RELATIONS_RIM = "" +
@@ -535,18 +534,18 @@ public class GeneratorTest {
 		String resourceAKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceAKey));
 		String resourceA = fsa.getFiles().get(resourceAKey).toString();
-		assertTrue(resourceA.contains("sA.addTransitionForEachItem(\"GET\", sB, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions, \"B\");"));
+		assertTrue(resourceA.contains("sA.addTransitionForEachItem(\"GET\", sB, uriLinkageProperties, conditionalLinkExpressions, \"B\");"));
 
 		String resourceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/BResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceBKey));
 		String resourceB = fsa.getFiles().get(resourceBKey).toString();
-		assertTrue(resourceB.contains("sB.addTransition(\"PUT\", sB_pseudo, uriLinkageEntityProperties, uriLinkageProperties, 0, conditionalLinkExpressions, \"B_pseudo\");"));
+		assertTrue(resourceB.contains("sB.addTransition(\"PUT\", sB_pseudo, uriLinkageProperties, 0, conditionalLinkExpressions, \"B_pseudo\");"));
 
 		String resourceB_pseudoKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/B_pseudoResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceB_pseudoKey));
 		String resourceB_pseudo = fsa.getFiles().get(resourceB_pseudoKey).toString();
-		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sA, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
-		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sB, uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);"));
+		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sA, uriLinkageProperties, conditionalLinkExpressions);"));
+		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sB, uriLinkageProperties, conditionalLinkExpressions);"));
 	}
 	
 	private final static String RESOURCE_ON_ERROR = "" +

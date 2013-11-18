@@ -923,7 +923,6 @@ public class TestResourceStateMachine {
 		ResourceState paymentDetails = new ResourceState(paid, "psuedo_setcarddetails", new ArrayList<Action>(), null, "pay".split(" "));
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		int transitionFlags = 0;  // regular transition
 		// create the transitions (links)
 		initial.addTransition("POST", cancel);
@@ -932,7 +931,7 @@ public class TestResourceStateMachine {
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, expressions, "Make a payment");
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, transitionFlags, expressions, "Make a payment");
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
@@ -1016,7 +1015,6 @@ public class TestResourceStateMachine {
 		ResourceState paymentDetails = new ResourceState(paid, "psuedo_setcarddetails", new ArrayList<Action>(), null, "pay".split(" "));
 		
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		int transitionFlags = 0;  // regular transition
 		// create the transitions (links)
 		initial.addTransition("POST", cancel);
@@ -1029,7 +1027,7 @@ public class TestResourceStateMachine {
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, uriLinkageProperties, transitionFlags, expressions, "Make a payment");
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, transitionFlags, expressions, "Make a payment");
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
@@ -1258,11 +1256,10 @@ public class TestResourceStateMachine {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Airports('{id}')/Flights", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		uriLinkageMap.put("id", "code");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
+		uriLinkageMap.put("id", "{code}");
+		airport.addTransition("GET", flights, uriLinkageMap);
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
@@ -1276,7 +1273,7 @@ public class TestResourceStateMachine {
 		assertEquals(2, links.size());
 
 		assertTrue(containsLink(links, "Airport.airport>GET>Airport.airport", "/baseuri/Airports('123')"));
-		assertTrue(containsLink(links, "Airport.airport>GET(arrivalAirportCode eq '{id}')>Flight.Flights", "/baseuri/Airports('123')/Flights?filter=arrivalAirportCode+eq+'123'"));
+		assertTrue(containsLink(links, "Airport.airport>GET>Flight.Flights", "/baseuri/Airports('123')/Flights?filter=arrivalAirportCode+eq+'123'"));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -1285,12 +1282,11 @@ public class TestResourceStateMachine {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("$filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
-		uriLinkageProperties.put("$filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageMap.put("$filter", "arrivalAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
+		uriLinkageMap.put("$filter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
@@ -1312,12 +1308,12 @@ public class TestResourceStateMachine {
 			}
 			
 		});
-		assertEquals("Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights", sortedLinks.get(0).getId());
-		assertEquals("/baseuri/Flights()?$filter=arrivalAirportCode+eq+'London+Luton'", sortedLinks.get(0).getHref());
-		assertEquals("Airport.airport>GET(departureAirportCode eq '{code}')>Flight.Flights", sortedLinks.get(1).getId());
-		assertEquals("/baseuri/Flights()?$filter=departureAirportCode+eq+'London+Luton'", sortedLinks.get(1).getHref());
-		assertEquals("Airport.airport>GET>Airport.airport", sortedLinks.get(2).getId());
-		assertEquals("/baseuri/Airports('123')", sortedLinks.get(2).getHref());
+		assertEquals("Airport.airport>GET>Airport.airport", sortedLinks.get(0).getId());
+		assertEquals("/baseuri/Airports('123')", sortedLinks.get(0).getHref());
+		assertEquals("Airport.airport>GET>Flight.Flights", sortedLinks.get(1).getId());
+		assertEquals("/baseuri/Flights()?$filter=arrivalAirportCode+eq+'London+Luton'", sortedLinks.get(1).getHref());
+		assertEquals("Airport.airport>GET>Flight.Flights", sortedLinks.get(2).getId());
+		assertEquals("/baseuri/Flights()?$filter=departureAirportCode+eq+'London+Luton'", sortedLinks.get(2).getHref());
 		assertEquals(3, links.size());
 	}
 
@@ -1327,11 +1323,11 @@ public class TestResourceStateMachine {
 		CollectionResourceState airports = new CollectionResourceState("Airports", "airports", new ArrayList<Action>(), "/Airports()", null, null);
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		uriLinkageProperties.put("$filter", "arrivalAirportCode eq '{code}'");
-		airports.addTransition("GET", flights, new HashMap<String, String>(), uriLinkageProperties, true, "arrival");
-		uriLinkageProperties.put("$filter", "departureAirportCode eq '{code}'");
-		airports.addTransition("GET", flights, new HashMap<String, String>(), uriLinkageProperties, true, "departure");
+		Map<String, String> uriLinkage = new HashMap<String, String>();
+		uriLinkage.put("$filter", "arrivalAirportCode eq '{code}'");
+		airports.addTransition("GET", flights, uriLinkage, true, "arrival");
+		uriLinkage.put("$filter", "departureAirportCode eq '{code}'");
+		airports.addTransition("GET", flights, uriLinkage, true, "departure");
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airports, new BeanTransformer());
@@ -1375,11 +1371,11 @@ public class TestResourceStateMachine {
 
 		Map<String, String> uriLinkage = new HashMap<String, String>();
 		// just using code because its available on our mock object, real life this is arrivalAirportCode
-		uriLinkage.put("id", "code");
-		airports.addTransition("GET", airport, uriLinkage, new HashMap<String, String>(), true, "origin");
+		uriLinkage.put("id", "{code}");
+		airports.addTransition("GET", airport, uriLinkage, true, "origin");
 		// just using code because its available on our mock object, real life this is departureAirportCode
-		uriLinkage.put("id", "iata");
-		airports.addTransition("GET", airport, uriLinkage, new HashMap<String, String>(), true, "destination");
+		uriLinkage.put("id", "{iata}");
+		airports.addTransition("GET", airport, uriLinkage, true, "destination");
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airports, new BeanTransformer());
@@ -1423,16 +1419,16 @@ public class TestResourceStateMachine {
 		CollectionResourceState passengers = new CollectionResourceState("Passenger", "Passengers", new ArrayList<Action>(), "/Passengers()", null, null);
 
 		//Add link to list flights
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("myfilter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
-		uriLinkageProperties.put("myfilter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageMap.put("myfilter", "arrivalAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
+		uriLinkageMap.put("myfilter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
 
 		//Add link to list passengers for all those flights
-		uriLinkageProperties.put("myfilter", "{myfilter}");
-		flights.addTransition("GET", passengers, uriLinkageMap, uriLinkageProperties);
+		uriLinkageMap.clear();
+		uriLinkageMap.put("myfilter", "{myfilter}");
+		flights.addTransition("GET", passengers, uriLinkageMap);
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
@@ -1479,9 +1475,9 @@ public class TestResourceStateMachine {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')");
 		ResourceState flights = new ResourceState("Operational", "operational", new ArrayList<Action>(), "/FlightStats");
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		uriLinkageProperties.put("apikey", "Some literal value");
-		airport.addTransition("GET", flights, new HashMap<String, String>(), uriLinkageProperties);
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("apikey", "Some literal value");
+		airport.addTransition("GET", flights, uriLinkageMap);
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
@@ -1504,10 +1500,10 @@ public class TestResourceStateMachine {
 			}
 			
 		});
-		assertEquals("Airport.airport>GET(Some literal value)>Operational.operational", sortedLinks.get(0).getId());
-		assertEquals("/baseuri/FlightStats?apikey=Some+literal+value", sortedLinks.get(0).getHref());
-		assertEquals("Airport.airport>GET>Airport.airport", sortedLinks.get(1).getId());
-		assertEquals("/baseuri/Airports('123')", sortedLinks.get(1).getHref());
+		assertEquals("Airport.airport>GET>Airport.airport", sortedLinks.get(0).getId());
+		assertEquals("/baseuri/Airports('123')", sortedLinks.get(0).getHref());
+		assertEquals("Airport.airport>GET>Operational.operational", sortedLinks.get(1).getId());
+		assertEquals("/baseuri/FlightStats?apikey=Some+literal+value", sortedLinks.get(1).getHref());
 	}
 
 	@Test
@@ -1597,9 +1593,9 @@ public class TestResourceStateMachine {
 		//Create RSM
 		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
 		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking");
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		uriLinkageProperties.put("linkParam", "def");
-		existsState.addTransition("GET", cookingState, null, uriLinkageProperties);
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("linkParam", "def");
+		existsState.addTransition("GET", cookingState, uriLinkageMap);
 		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
 
 		//Create entity 
@@ -1617,14 +1613,35 @@ public class TestResourceStateMachine {
 		assertEquals("def", transProps.get("linkParam"));		//Check link parameter
 		assertEquals("Fred", transProps.get("name"));			//Check entity property
 	}
-	
+
+	@Test
+	public void testGetTransitionPropertiesWithSameEntityProperty() {
+		//Create RSM
+		ResourceState customerState = new ResourceState("Customer", "child", new ArrayList<Action>(), "/customers/{id}");
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "{parent}");
+		customerState.addTransition("GET", customerState, uriLinkageMap);
+		ResourceStateMachine stateMachine = new ResourceStateMachine(customerState, new EntityTransformer());
+
+		//Create entity 
+		EntityProperties customerFields = new EntityProperties();
+		customerFields.setProperty(new EntityProperty("id", "100"));
+		customerFields.setProperty(new EntityProperty("name", "Fred"));
+		customerFields.setProperty(new EntityProperty("parent", "123"));
+		Entity entity = new Entity("Customer", customerFields);
+
+		// link parameters must take priority
+		Map<String, Object> transProps = stateMachine.getTransitionProperties(customerState.getTransition(customerState), entity, new MultivaluedMapImpl<String>());
+		assertEquals("123", transProps.get("id"));
+	}
+
 	@Test
 	public void testGetPathParametersForTargetState() {
 		//Create RSM
 		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
 		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking({id})");
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "toasterId");
+		uriLinkageMap.put("id", "{toasterId}");
 		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
 		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
 

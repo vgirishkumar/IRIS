@@ -58,7 +58,9 @@ resource Errors {
 resource Sectors {
 	type: collection
 	entity: Sector
-	view: GETEntities filter=filter
+	view: GETEntities {
+		properties [ filter=filter ]
+	}
 	path: "/Sectors()"
 	GET -> Sectors_IAuth {
 		title: "unauthorised input records"
@@ -68,11 +70,11 @@ resource Sectors {
 	}
 	POST -> Sectors_input
 	GET *-> sector {
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 	REVERSE *-> sector_reverse {
 		title: "reverse"
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 }
 
@@ -83,7 +85,7 @@ resource sector {
 	path: "/Sectors('{id}')"
 	REVERSE -> sector_reverse {
 		title: "reverse"
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 }
 
@@ -94,11 +96,11 @@ resource sector_IAuth {
 	path: "/SectorsIAuth('{id}')"
 	PUT -> sector_IAuth_authorise {
 		title: "authorise"
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 	DELETE -> sector_IAuth_delete {
 		title: "delete"
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 }
 
@@ -110,11 +112,11 @@ resource sector_IAuth_authorise {
 	path: "/SectorsIAuth('{id}')/authorise"
 	GET --> sector_IAuth {
 		condition: OK(sector_IAuth)
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 	GET --> sector {
 		condition: OK(sector)
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 }
 
@@ -126,7 +128,7 @@ resource sector_IAuth_delete {
 	path: "/SectorsIAuth('{id}')/delete"
 	GET --> sector {
 		condition: OK(sector)
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 }
 
@@ -138,7 +140,7 @@ resource sector_reverse {
 	path: "/SectorsReversed('{id}')"
 	GET --> sector_Reversed {
 		condition: OK(sector_Reversed)
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 }
 
@@ -152,18 +154,20 @@ resource sector_Reversed {
 resource Sectors_IAuth {
 	type: collection
 	entity: Sector
-	view: GETEntities filter=filter
+	view: GETEntities {
+		properties [ filter=filter ]
+	}
 	path: "/SectorsIAuth()"
 	GET *-> sector_IAuth {
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 	PUT *-> sector_IAuth_authorise {
 		title: "authorise"
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 	DELETE *-> sector_IAuth_delete {
 		title: "delete"
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 }
 
@@ -174,11 +178,11 @@ resource Sectors_input {
 	path: "/Sectors()"
 	GET --> sector_IAuth {
 		condition: OK(sector_IAuth)
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 	GET --> sector {
 		condition: OK(sector)
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 	onerror --> Errors
 }
@@ -186,10 +190,12 @@ resource Sectors_input {
 resource Sectors_Reversed {
 	type: collection
 	entity: Sector
-	view: GETReversedEntities filter=filter
+	view: GETReversedEntities {
+		properties [ filter=filter ]
+	}
 	path: "/SectorsReversed()"
 	GET *-> sector_Reversed {
-		parameters [ id=SectorCode ]
+		parameters [ id="{SectorCode}" ]
 	}
 }
 }

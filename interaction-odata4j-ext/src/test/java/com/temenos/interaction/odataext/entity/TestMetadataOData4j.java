@@ -428,7 +428,7 @@ public class TestMetadataOData4j {
 		airports.addTransitionForEachItem("GET", airport, null, null);
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties, "departures");
+		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "departures");
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -462,7 +462,7 @@ public class TestMetadataOData4j {
 		airports.addTransitionForEachItem("GET", airport, null, null);
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
+		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -471,7 +471,7 @@ public class TestMetadataOData4j {
 		assertNotNull(edmMetadata);
 		EdmEntityType entityType = (EdmEntityType) edmMetadata.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
 
-		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("departureAirportCode eq '{code}'");
+		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("FlightSchedules");
 		assertNotNull(flightScheduleNavProperty);
 		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
 		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
@@ -497,9 +497,9 @@ public class TestMetadataOData4j {
 		airports.addTransitionForEachItem("GET", airport, null, null);
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties, "arrivals");
+		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "arrivals");
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties, "departures");
+		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "departures");
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -545,9 +545,9 @@ public class TestMetadataOData4j {
 		airports.addTransitionForEachItem("GET", airport, null, null);
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
+		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, null, uriLinkageProperties);
+		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -556,9 +556,8 @@ public class TestMetadataOData4j {
 		assertNotNull(edmMetadata);
 		EdmEntityType entityType = (EdmEntityType) edmMetadata.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
 
-		//Navigation property to many entities is usually the EntitySet name (e.g. FlightSchedules). However, in this case it is NOT the EntitySet name
-		//but a transition ID identifying the link (no link title defined so use the query params). It does not fully comply with OData but this one does not cater for multiple links to the same target.  
-		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("departureAirportCode eq '{code}'");
+		//Navigation property to many entities is usually the EntitySet name (e.g. FlightSchedules)
+		EdmNavigationProperty flightScheduleNavProperty = entityType.findNavigationProperty("FlightSchedules");
 		assertNotNull(flightScheduleNavProperty);
 		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
 		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());
@@ -566,7 +565,7 @@ public class TestMetadataOData4j {
 		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
 		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
 
-		flightScheduleNavProperty = entityType.findNavigationProperty("arrivalAirportCode eq '{code}'");
+		flightScheduleNavProperty = entityType.findNavigationProperty("FlightSchedules_0");
 		assertNotNull(flightScheduleNavProperty);
 		assertEquals("Airport_FlightSchedule", flightScheduleNavProperty.getRelationship().getName());
 		assertEquals("Airport_FlightSchedule_Source", flightScheduleNavProperty.getFromRole().getRole());

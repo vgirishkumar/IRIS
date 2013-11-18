@@ -79,7 +79,7 @@ public class Behaviour {
 
 		// Links from a note to a person
 		uriLinkageMap.clear();
-		uriLinkageMap.put("id", "personId");
+		uriLinkageMap.put("id", "{personId}");
 		// link from each person's notes back to person
 		((CollectionResourceState) root.getResourceStateByName("PersonNotes")).addTransitionForEachItem("GET", root.getResourceStateByName("person"), uriLinkageMap);
 		// link from each note to their person
@@ -128,7 +128,7 @@ public class Behaviour {
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "id");
+		uriLinkageMap.put("id", "{id}");
 		// edit
 		notes.addTransitionForEachItem("PUT", noteUpdated, uriLinkageMap);
 		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
@@ -170,7 +170,7 @@ public class Behaviour {
 		
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "id");
+		uriLinkageMap.put("id", "{id}");
 		persons.addTransitionForEachItem("GET", person, uriLinkageMap);
 		persons.addTransitionForEachItem("GET", personNotes, uriLinkageMap);
 		persons.addTransition("POST", pseudo);

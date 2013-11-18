@@ -191,22 +191,36 @@ public class MetadataOData4j {
 			bAssociations.addAll(bAssociationMap.values());
 
 			//add navigation properties
+			Map<String,String> multiAssociation = new HashMap<String,String>();
+			int multipleAssoc = 0;
 			String entityName = bEntityType.getName();
-			Collection<Transition> entityTransitions = hypermediaEngine.getTransitionsById().values();
-			if (entityTransitions != null) {
-				for(Transition entityTransition : entityTransitions) {
-					ResourceState sourceState = entityTransition.getSource();
-					ResourceState targetState = entityTransition.getTarget();
-					if (sourceState.getEntityName().equals(entityName) 
-							&& !entityTransition.getTarget().isPseudoState()
-							&& !(entityTransition.getSource() instanceof CollectionResourceState)) {		//We can have transitions to a resource state from multiple source states
-						//We can have more than one navigation property for the same association
-						String navPropertyName = entityTransition.getLabel() != null ? entityTransition.getLabel() : targetState.getName();
-						EdmAssociation.Builder relationship = bAssociationMap.get(targetState.getName());
-						bEntityType.addNavigationProperties(EdmNavigationProperty
-								.newBuilder(navPropertyName)
-								.setRelationship(relationship)
-								.setFromTo(relationship.getEnd1(), relationship.getEnd2()));
+			for (ResourceState s : hypermediaEngine.getStates()) {
+				for (ResourceState ts : s.getAllTargets()) {
+					Collection<Transition> entityTransitions = s.getTransitions(ts);
+					if (entityTransitions != null) {
+						for(Transition entityTransition : entityTransitions) {
+							ResourceState sourceState = entityTransition.getSource();
+							ResourceState targetState = entityTransition.getTarget();
+							if (sourceState.getEntityName().equals(entityName) 
+									&& !entityTransition.getTarget().isPseudoState()
+									&& !(entityTransition.getSource() instanceof CollectionResourceState)) {
+								//We can have more than one navigation property for the same association
+								String navPropertyName = targetState.getName();
+								//We can have transitions to a resource state from multiple source states
+								if (entityTransition.getLabel() != null) {
+									navPropertyName = entityTransition.getLabel();
+								} else if (multiAssociation.get(navPropertyName) != null) {
+									navPropertyName = navPropertyName + "_" + multipleAssoc++;
+								}
+								multiAssociation.put(navPropertyName, targetState.getName());
+								
+								EdmAssociation.Builder relationship = bAssociationMap.get(targetState.getName());
+								bEntityType.addNavigationProperties(EdmNavigationProperty
+										.newBuilder(navPropertyName)
+										.setRelationship(relationship)
+										.setFromTo(relationship.getEnd1(), relationship.getEnd2()));
+							}
+						}
 					}
 				}
 			}

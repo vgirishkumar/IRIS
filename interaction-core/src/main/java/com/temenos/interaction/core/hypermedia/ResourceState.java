@@ -42,8 +42,6 @@ import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressio
 public class ResourceState implements Comparable<ResourceState> {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
 	
-	private Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
-
 	/* the parent state (same entity, pseudo state is same path) */
 	private final ResourceState parent;
 	/* the name of the entity which this is a state of */
@@ -279,7 +277,14 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @return
 	 */	
 	public Transition getSelfTransition() {
-		return new Transition(this, new TransitionCommandSpec("GET", getPath()), this);
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		String[] pathParameters = ResourceStateMachine.getPathTemplateParameters(getPath());
+		if (pathParameters != null) {
+			for (String param : pathParameters) {
+				uriLinkageMap.put(param, "{"+param+"}");
+			}
+		}
+		return new Transition(this, new TransitionCommandSpec("GET", getPath(), 0, null, uriLinkageMap), this);
 	}
 	
 	/**
@@ -287,16 +292,16 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param targetState
 	 */
 	public void addTransition(ResourceState targetState) {
-		addTransition(targetState, null, null, null);
+		addTransition(targetState, null, null);
 	}
 	public void addTransition(ResourceState targetState, List<Expression> conditionalExpressions) {
-		addTransition(targetState, null, null, conditionalExpressions);
+		addTransition(targetState, null, conditionalExpressions);
 	}
-	public void addTransition(ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
-		addTransition(targetState, uriLinkageMap, uriLinkageProperties, null);
+	public void addTransition(ResourceState targetState, Map<String, String> uriLinkageMap) {
+		addTransition(targetState, uriLinkageMap, null);
 	}
-	public void addTransition(ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, List<Expression> conditionalExpressions) {
-		addTransition(null, targetState, uriLinkageMap, uriLinkageProperties, Transition.AUTO, conditionalExpressions, null);
+	public void addTransition(ResourceState targetState, Map<String, String> uriLinkageMap, List<Expression> conditionalExpressions) {
+		addTransition(null, targetState, uriLinkageMap, Transition.AUTO, conditionalExpressions, null);
 	}
 
 	/**
@@ -308,13 +313,13 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, 0);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, List<Expression> conditionalExpressions) {
-		addTransition(httpMethod, targetState, null, null, 0, conditionalExpressions, null);
+		addTransition(httpMethod, targetState, null, 0, conditionalExpressions, null);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
-		addTransition(httpMethod, targetState, null, null, transitionFlags, null, null);
+		addTransition(httpMethod, targetState, null, transitionFlags, null, null);
 	}
 	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags, List<Expression> conditionalExpressions) {
-		addTransition(httpMethod, targetState, null, null, transitionFlags, conditionalExpressions, null);
+		addTransition(httpMethod, targetState, null, transitionFlags, conditionalExpressions, null);
 	}
 	
 	/**
@@ -324,18 +329,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageMap
 	 */
 	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, 0, null, null);
-	}
-
-	/**
-	 * Add a transition with a target state and linkage map.
-	 * @param httpMethod
-	 * @param targetState
-	 * @param uriLinkageMap
-	 * @param uriLinkageProperties
-	 */
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null, null);
+		addTransition(httpMethod, targetState, uriLinkageMap, 0, null, null);
 	}
 
 	/**
@@ -346,37 +340,29 @@ public class ResourceState implements Comparable<ResourceState> {
 	 * @param uriLinkageProperties map holding additional property values for resource path template parameters
 	 * @param label transition label
 	 */
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, String label) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, 0, null, label);
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String label) {
+		addTransition(httpMethod, targetState, uriLinkageMap, 0, null, label);
 	}
 	
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, int transitionFlags, List<Expression> conditionalExpressions, String label) {
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags, List<Expression> conditionalExpressions, String label) {
 		String resourcePath = targetState.getPath();
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, resourcePath, transitionFlags, conditionalExpressions, label);
+		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, transitionFlags, conditionalExpressions, label);
 	}
 	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkMap, Map<String, String> uriLinkageProperties, String resourcePath, int transitionFlags, List<Expression> conditionalExpressions, String label) {
+	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkMap, String resourcePath, int transitionFlags, List<Expression> conditionalExpressions, String label) {
 		assert null != targetState;
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
 		
 		//Copy linkage properties to ensure they are not overwritten
 		Map<String, String> uriLinkageMap = uriLinkMap != null ? new HashMap<String, String>(uriLinkMap) : null;
-		Map<String, String> linkParameters = null;
-		if(uriLinkageProperties != null) {
-			linkParameters = new HashMap<String, String>(uriLinkageProperties);
-			uriLinkageProperties.clear();		//Subsequent invocations to addTransition are expected to provide new link properties
-		}
-		
-		//Replace templates in link properties with path parameters
-		replaceLinkPropertyTemplates(linkParameters, uriLinkageMap);
 		
 		//Apply link properties to action parameters
-		applyLinkPropertiesToActionParameters(linkParameters, targetState);
+		applyLinkPropertiesToActionParameters(uriLinkageMap, targetState);
 		
 		//Create the transition
 		Expression condition = conditionalExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalExpressions) : null;
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, condition, uriLinkageMap, linkParameters);
+		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, condition, uriLinkageMap);
 		Transition transition = new Transition(this, commandSpec, targetState, label);
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.add(transition);
@@ -386,8 +372,8 @@ public class ResourceState implements Comparable<ResourceState> {
 		addTransition(httpMethod, targetState, uriLinkageMap, null, (forEach ? Transition.FOR_EACH : 0), null, null);
 	}
 
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, Map<String, String> uriLinkageProperties, boolean forEach, String label) {
-		addTransition(httpMethod, targetState, uriLinkageMap, uriLinkageProperties, (forEach ? Transition.FOR_EACH : 0), null, label);
+	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, boolean forEach, String label) {
+		addTransition(httpMethod, targetState, uriLinkageMap, (forEach ? Transition.FOR_EACH : 0), null, label);
 	}
 	
 	/**
@@ -402,36 +388,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 	
 	/**
-	 * Replace templates in link properties with path parameters.
-	 * e.g. [id=code, filter=fld eq '{code}'] => [filter=fld eq '{id}']
-	 * @param linkParameters link properties
-	 * @param uriLinkageMap map of properties to path parameters
-	 */
-	protected void replaceLinkPropertyTemplates(Map<String, String> linkParameters, Map<String, String> uriLinkageMap) {
-		//Replace templates in link properties with path parameters, e.g. {code} in filter=fld eq '{code}'
-		if (linkParameters != null) {
-			for (String propKey : linkParameters.keySet()) {
-				String propValue = linkParameters.get(propKey);
-				if(propValue != null && uriLinkageMap != null
-						&& propValue.contains("{") && propValue.contains("}")) {
-					Matcher m = templatePattern.matcher(propValue);
-					while(m.find()) {
-						String templateElement = m.group(1);	//e.g. code
-						for (String key : uriLinkageMap.keySet()) {		//e.g. id=code -> replace templateElement {code} with {id}
-							if(!linkParameters.containsKey(templateElement) &&
-									templateElement.equals(uriLinkageMap.get(key))) {
-								propValue = propValue.replaceAll("\\{" + templateElement + "\\}", "\\{" + key + "\\}");
-								linkParameters.put(propKey, propValue);
-							}
-						}
-					}				
-				}						
-			}
-		}		
-	}
-	
-	/**
-	 * Apply link properties to action parameters.
+	 * Apply link parameters to action properties.
 	 * e.g. [GETEntities filter=myfilter] where [myfilter=fld eq '{code}', code="mycode"] => [filter=fld eq '{mycode}']
 	 * @param linkParameters link properties
 	 * @param targetState target resource state
@@ -439,31 +396,32 @@ public class ResourceState implements Comparable<ResourceState> {
 	protected void applyLinkPropertiesToActionParameters(Map<String, String> linkParameters, ResourceState targetState) {
 		if (linkParameters != null) {
 			for(Action action  : targetState.getActions()) {
-				for(Entry<Object, Object> actionParameter : action.getProperties().entrySet()) {
-					Object paramValue = actionParameter.getValue();				//reference to link property (e.g. myfilter) or the actual link property  
-					if(paramValue != null) {
-						//Reference to a linkage property, e.g. filter=myfilter where myfilter references myfilter=fld eq '{code}'
-						if(paramValue instanceof String && linkParameters.containsKey(paramValue)) {
-							actionParameter.setValue(new ActionPropertyReference((String) paramValue));	
-						}
-						if(actionParameter.getValue() instanceof ActionPropertyReference) {
-							ActionPropertyReference actionRefProperty = (ActionPropertyReference) actionParameter.getValue();
-							String paramRefValue = linkParameters.get(actionRefProperty.getKey());
-							if (paramRefValue != null) {
-								String paramRefKey = "_";		
-								Matcher m = templatePattern.matcher(paramRefValue);
-								while(m.find()) {
-									String param = m.group(1);								//e.g. code
-									String linkParameter = linkParameters.get(param);		//e.g. mycode
-									if(linkParameter != null) {
-										//replace template parameter with uri linkage properties (e.g. code => mycode if code="mycode")
-										paramRefValue = m.replaceAll("{" + linkParameter + "}");		//e.g. a eq {code1} && b eq {code2}
-										paramRefKey += "_" + linkParameter;								//e.g. _code1_code2
+				if (action.getProperties() != null) {
+					for(Entry<Object, Object> actionParameter : action.getProperties().entrySet()) {
+						Object paramValue = actionParameter.getValue();				//reference to link property (e.g. myfilter) or the actual link property  
+						if(paramValue != null) {
+							//Reference to a linkage property, e.g. filter=myfilter where myfilter references myfilter=fld eq '{code}'
+							if(paramValue instanceof String && linkParameters.containsKey(paramValue)) {
+								actionParameter.setValue(new ActionPropertyReference((String) paramValue));	
+							}
+							if(actionParameter.getValue() instanceof ActionPropertyReference) {
+								ActionPropertyReference actionRefProperty = (ActionPropertyReference) actionParameter.getValue();
+								String paramRefValue = linkParameters.get(actionRefProperty.getKey());
+								if (paramRefValue != null) {
+									String paramRefKey = "_";		
+									Matcher m = ResourceStateMachine.TEMPLATE_PATTERN.matcher(paramRefValue);
+									while(m.find()) {
+										String param = m.group(1);								//e.g. code
+										if(param != null) {
+											//replace template parameter with uri linkage properties (e.g. code => mycode if code="mycode")
+											//paramRefValue = m.replaceAll("{" + linkParameter + "}");		//e.g. a eq {code1} && b eq {code2}
+											paramRefKey += "_" + param;								//e.g. _code1_code2
+										}
 									}
+									actionRefProperty.addProperty(paramRefKey, paramRefValue);
+								} else {
+									logger.error("You appear to have specified a transition to a resource that requires command parameters, but you have not specified any parameters in your trasition");
 								}
-								actionRefProperty.addProperty(paramRefKey, paramRefValue);
-							} else {
-								logger.error("You appear to have specified a transition to a resource that requires command parameters, but you have not specified any parameters in your trasition");
 							}
 						}
 					}

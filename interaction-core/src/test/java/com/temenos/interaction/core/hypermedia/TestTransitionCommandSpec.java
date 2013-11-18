@@ -92,25 +92,13 @@ public class TestTransitionCommandSpec {
 	}
 
 	@Test
-	public void testInequalityWithParameters() {
+	public void testInequalityWithUriLinkageParameters() {
 		Map<String, String> params1 = new HashMap<String, String>();
 		params1.put("param", "hello");
 		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", "/test", 0, null, params1);
 		Map<String, String> params2 = new HashMap<String, String>();
 		params2.put("param", "HELLO");
 		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", "/test", 0, null, params2);
-		assertFalse(tcs.equals(tcs2));
-		assertFalse(tcs.hashCode() == tcs2.hashCode());
-	}
-
-	@Test
-	public void testInequalityWithUriLinkage() {
-		Map<String, String> params1 = new HashMap<String, String>();
-		params1.put("param", "hello");
-		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", "/test", 0, null, params1, null);
-		Map<String, String> params2 = new HashMap<String, String>();
-		params2.put("param", "HELLO");
-		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", "/test", 0, null, params2, null);
 		assertFalse(tcs.equals(tcs2));
 		assertFalse(tcs.hashCode() == tcs2.hashCode());
 	}

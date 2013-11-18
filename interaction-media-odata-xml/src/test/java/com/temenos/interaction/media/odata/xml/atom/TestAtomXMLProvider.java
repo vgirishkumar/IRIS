@@ -752,9 +752,9 @@ public class TestAtomXMLProvider {
 	public void testSingleLinkEntryToCollection() {
 		ResourceState account = new ResourceState("Account", "customerAccount", new ArrayList<Action>(), "/CustomerAccounts('{id}')");
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		uriLinkageProperties.put("DebitAcctNo", "{Acc}");
-		account.addTransition(HttpMethod.GET, fundsTransfers, new HashMap<String, String>(), uriLinkageProperties, "Debit funds transfers");
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("DebitAcctNo", "{Acc}");
+		account.addTransition(HttpMethod.GET, fundsTransfers, uriLinkageMap, "Debit funds transfers");
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
 		List<OLink> olinks = new ArrayList<OLink>();
@@ -774,12 +774,12 @@ public class TestAtomXMLProvider {
 	public void testMultipleLinksEntryToCollection() {
 		ResourceState account = new ResourceState("Account", "customerAccount", new ArrayList<Action>(), "/CustomerAccounts('{id}')");
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		uriLinkageProperties.put("DebitAcctNo", "{Acc}");
-		account.addTransition(HttpMethod.GET, fundsTransfers, new HashMap<String, String>(), uriLinkageProperties, "Debit funds transfers");
-		uriLinkageProperties.clear();
-		uriLinkageProperties.put("CreditAcctNo", "{Acc}");
-		account.addTransition(HttpMethod.GET, fundsTransfers, new HashMap<String, String>(), uriLinkageProperties, "Credit funds transfers");
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("DebitAcctNo", "{Acc}");
+		account.addTransition(HttpMethod.GET, fundsTransfers, uriLinkageMap, "Debit funds transfers");
+		uriLinkageMap.clear();
+		uriLinkageMap.put("CreditAcctNo", "{Acc}");
+		account.addTransition(HttpMethod.GET, fundsTransfers, uriLinkageMap, "Credit funds transfers");
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
 		List<OLink> olinks = new ArrayList<OLink>();
@@ -804,7 +804,7 @@ public class TestAtomXMLProvider {
         //Create rsm
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
 		ResourceState fundsTransfersIAuth = new CollectionResourceState("FundsTransfer", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
-		fundsTransfers.addTransition(HttpMethod.GET, fundsTransfersIAuth, null, null, "Unauthorised input records");
+		fundsTransfers.addTransition(HttpMethod.GET, fundsTransfersIAuth, null, "Unauthorised input records");
 		ResourceStateMachine rsm = new ResourceStateMachine(fundsTransfers);
 
 		//Create collection resource
@@ -840,7 +840,7 @@ public class TestAtomXMLProvider {
 	public void testLinkEntryToEntity() {
 		ResourceState account = new ResourceState("Account", "customerAccount", new ArrayList<Action>(), "/CustomerAccounts('{id}')");
 		ResourceState currency = new ResourceState("Currency", "currency", new ArrayList<Action>(), "/Currencys('{id}')");
-		account.addTransition(HttpMethod.GET, currency, new HashMap<String, String>(), new HashMap<String, String>(), "currency");
+		account.addTransition(HttpMethod.GET, currency, new HashMap<String, String>(), "currency");
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("Currencys"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
 		List<OLink> olinks = new ArrayList<OLink>();
@@ -862,7 +862,7 @@ public class TestAtomXMLProvider {
 		ResourceState fundsTransfer = new ResourceState("FundsTransfer", "fundsTransfer", new ArrayList<Action>(), "/FundsTransfers('{id}')");
 		ResourceState fundsTransfersIAuth = new CollectionResourceState("Dummy", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
 		serviceRoot.addTransition(fundsTransfer);
-		fundsTransfer.addTransition(HttpMethod.GET, fundsTransfersIAuth, new HashMap<String, String>(), new HashMap<String, String>(), "Unauthorised funds transfers");
+		fundsTransfer.addTransition(HttpMethod.GET, fundsTransfersIAuth, new HashMap<String, String>(), "Unauthorised funds transfers");
 		
 		//FundsTransfersIAuth is not an entity set
 		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
@@ -894,7 +894,7 @@ public class TestAtomXMLProvider {
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
 		ResourceState fundsTransfersIAuth = new CollectionResourceState("FundsTransfer", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
 		serviceRoot.addTransition(fundsTransfers);
-		fundsTransfers.addTransition(HttpMethod.GET, fundsTransfersIAuth, null, null, "Unauthorised input records");
+		fundsTransfers.addTransition(HttpMethod.GET, fundsTransfersIAuth, null, "Unauthorised input records");
 		ResourceStateMachine rsm = new ResourceStateMachine(fundsTransfers);
 
 		//Create collection resource

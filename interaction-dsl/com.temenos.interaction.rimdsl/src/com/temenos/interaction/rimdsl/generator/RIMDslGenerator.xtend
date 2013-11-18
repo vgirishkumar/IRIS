@@ -14,7 +14,6 @@ import com.temenos.interaction.rimdsl.rim.TransitionAuto
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel
 import org.eclipse.emf.common.util.EList
 import com.temenos.interaction.rimdsl.rim.UriLink
-import com.temenos.interaction.rimdsl.rim.UriLinkageEntityKeyReplace
 import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction
 import com.temenos.interaction.rimdsl.rim.Function
@@ -95,7 +94,6 @@ class RIMDslGenerator implements IGenerator {
             }
             
             public boolean initialise() {
-                Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
                 Map<String, String> uriLinkageProperties = new HashMap<String, String>();
                 List<Expression> conditionalLinkExpressions = null;
                 «IF state.type.isCollection»Collection«ENDIF»ResourceState s«state.name» = this;
@@ -178,7 +176,6 @@ class RIMDslGenerator implements IGenerator {
 		    }
 		
 		    public ResourceState getRIM() {
-		        Map<String, String> uriLinkageEntityProperties = new HashMap<String, String>();
 		        Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		        List<Expression> conditionalLinkExpressions = null;
 		        Properties actionViewProperties;
@@ -241,26 +238,26 @@ class RIMDslGenerator implements IGenerator {
 
     def produceActionSet(State state, ResourceCommand view, EList<ResourceCommand> actions) '''
         List<Action> «state.name»Actions = new ArrayList<Action>();
-        «IF view != null && (view.command.properties.size > 0 || view.parameters.size > 0)»
+        «IF view != null && (view.command.properties.size > 0 || view.properties.size > 0)»
             actionViewProperties = new Properties();
             «FOR commandProperty :view.command.properties»
             actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
             «ENDFOR»
-            «FOR commandProperty :view.parameters»
+            «FOR commandProperty :view.properties»
             actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
             «ENDFOR»
         «ENDIF»
         «IF view != null»
-        «state.name»Actions.add(new Action("«view.command.name»", Action.TYPE.VIEW, «if (view != null && (view.command.properties.size > 0 || view.parameters.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
+        «state.name»Actions.add(new Action("«view.command.name»", Action.TYPE.VIEW, «if (view != null && (view.command.properties.size > 0 || view.properties.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
         «ENDIF»
         «IF actions != null»
             «FOR action : actions»
             actionViewProperties = new Properties();
-            «IF action != null && (action.command.properties.size > 0 || action.parameters.size > 0)»
+            «IF action != null && (action.command.properties.size > 0 || action.properties.size > 0)»
                 «FOR commandProperty :action.command.properties»
                 actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
                 «ENDFOR»
-                «FOR commandProperty :action.parameters»
+                «FOR commandProperty :action.properties»
                 actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
                 «ENDFOR»
             «ENDIF»
@@ -274,7 +271,7 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, 0, conditionalLinkExpressions, «if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageProperties, 0, conditionalLinkExpressions, «if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
 	'''
 
     def produceExpressions(Expression conditionExpression) '''
@@ -299,7 +296,7 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions, «if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageProperties, conditionalLinkExpressions, «if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
@@ -308,19 +305,14 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition(s«transition.state.name», uriLinkageEntityProperties, uriLinkageProperties, conditionalLinkExpressions);
+            s«fromState.name».addTransition(s«transition.state.name», uriLinkageProperties, conditionalLinkExpressions);
     '''
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''
         «IF uriLinks != null»
-            uriLinkageEntityProperties.clear();
             uriLinkageProperties.clear();
             «FOR prop : uriLinks»
-            «IF prop.entityProperty instanceof UriLinkageEntityKeyReplace»
-            uriLinkageEntityProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
-            «ELSE»
             uriLinkageProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
-            «ENDIF»
             «ENDFOR»«
         ENDIF»
     '''

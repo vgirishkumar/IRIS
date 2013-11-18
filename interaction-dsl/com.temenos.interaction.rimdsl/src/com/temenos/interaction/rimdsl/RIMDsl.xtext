@@ -155,7 +155,7 @@ Entity:
 
 ResourceCommand:
     command=[Command]  ('{' 
-        'properties' '[' ((parameters+=CommandProperty) (',' parameters+=CommandProperty)* ) ']'
+        'properties' '[' ((properties+=CommandProperty) (',' properties+=CommandProperty)* ) ']'
     '}')?
 ;
 
@@ -163,14 +163,8 @@ UriLink:
     (templateProperty=ID '=' entityProperty=UriLinkage)
 ;
 
-UriLinkage:	UriLinkageEntityKeyReplace | UriLinkageProperty;
-
-UriLinkageEntityKeyReplace:
-	{UriLinkageEntityKeyReplace} name=ID
-;
-
-UriLinkageProperty:
-	{UriLinkageProperty} name=STRING 
+UriLinkage:
+	{UriLinkage} name=STRING 
 ;
 
 Title:

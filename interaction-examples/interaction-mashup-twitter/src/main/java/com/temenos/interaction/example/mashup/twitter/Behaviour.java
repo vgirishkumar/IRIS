@@ -63,7 +63,7 @@ public class Behaviour {
 		/*
 		 * a link on each user to their Twitter activity
 		 */
-		uriLinkageMap.put("username", "twitterHandle");
+		uriLinkageMap.put("username", "{twitterHandle}");
 		allUsers.addTransitionForEachItem("GET", tweets, uriLinkageMap);
 
 		/*

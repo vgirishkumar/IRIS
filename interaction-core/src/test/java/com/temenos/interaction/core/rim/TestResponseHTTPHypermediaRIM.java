@@ -80,6 +80,7 @@ import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
@@ -466,7 +467,9 @@ public class TestResponseHTTPHypermediaRIM {
 		// create new machine
 		initialState.addTransition("POST", createPsuedoState);
 		// an auto transition to the new resource
-		createPsuedoState.addTransition(individualMachine);
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "{id}");
+		createPsuedoState.addTransition(individualMachine, uriLinkageMap);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
@@ -508,7 +511,9 @@ public class TestResponseHTTPHypermediaRIM {
 		// create new machine
 		initialState.addTransition("POST", createPsuedoState);
 		// an auto transition to the new resource
-		createPsuedoState.addTransition(individualMachine);
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "{id}");
+		createPsuedoState.addTransition(individualMachine, uriLinkageMap);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
@@ -550,7 +555,7 @@ public class TestResponseHTTPHypermediaRIM {
 		initialState.addTransition("POST", createPsuedoState);
 		// an auto transition with parameters to the new resource
 		Map<String, String> linkageMap = new HashMap<String, String>();
-		linkageMap.put("test", "id");
+		linkageMap.put("test", "{id}");
 		createPsuedoState.addTransition(individualMachine, linkageMap, null);
 		
 		// RIM with command controller that issues commands that always return SUCCESS

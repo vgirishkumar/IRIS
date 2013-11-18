@@ -280,17 +280,17 @@ public class TestResourceState {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, null, uriLinkageProperties);
-		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, null, uriLinkageProperties);
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
+		uriLinkageMap.put("filter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
 		airport.addTransition("PUT", flights, null, null);
 		
 		assertEquals(3, airport.getTransitions(flights).size());
 		List<Transition> transitions = airport.getTransitions(flights);
-		assertTrue(containsTransition(transitions, "Airport.airport>GET(departureAirportCode eq '{code}')>Flight.Flights", "departureAirportCode eq '{code}'"));
-		assertTrue(containsTransition(transitions, "Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights", "arrivalAirportCode eq '{code}'"));
+		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET>Flight.Flights", "filter", "departureAirportCode eq '{code}'"));
+		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET>Flight.Flights", "filter", "arrivalAirportCode eq '{code}'"));
 		assertTrue(containsTransition(transitions, "Airport.airport>PUT>Flight.Flights", null));
 	}
 
@@ -299,16 +299,16 @@ public class TestResourceState {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, null, uriLinkageProperties);
-		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, null, uriLinkageProperties);
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
+		uriLinkageMap.put("filter", "departureAirportCode eq '{code}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		assertEquals(2, airport.getTransitions(flights).size());
 		List<Transition> transitions = airport.getTransitions(flights);
-		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET(departureAirportCode eq '{code}')>Flight.Flights", "filter", "departureAirportCode eq '{code}'"));
-		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights", "filter", "arrivalAirportCode eq '{code}'"));
+		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET>Flight.Flights", "filter", "departureAirportCode eq '{code}'"));
+		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET>Flight.Flights", "filter", "arrivalAirportCode eq '{code}'"));
 	}
 
 	@Test
@@ -316,15 +316,14 @@ public class TestResourceState {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Airports('{id}')/Flights", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		uriLinkageMap.put("id", "code");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
+		uriLinkageMap.put("id", "{code}");
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		assertEquals(1, airport.getTransitions(flights).size());
 		List<Transition> transitions = airport.getTransitions(flights);
-		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET(arrivalAirportCode eq '{id}')>Flight.Flights", "filter", "arrivalAirportCode eq '{id}'"));
+		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET>Flight.Flights", "filter", "arrivalAirportCode eq '{code}'"));
 	}
 
 	@Test
@@ -332,21 +331,18 @@ public class TestResourceState {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights()", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		uriLinkageProperties.put("code", "arrivalAirportCode");		//applies query parameter ?arrivalAirportCode=xxx
-		uriLinkageMap.put("id", "code");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
-		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		uriLinkageProperties.put("code", "departureAirportCode");		//applies query parameter ?departureAirportCode=xxx
-		uriLinkageMap.put("id", "code");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
+		uriLinkageMap.put("id", "{code}");
+		airport.addTransition("GET", flights, uriLinkageMap);
+		uriLinkageMap.put("filter", "departureAirportCode eq '{code}'");
+		uriLinkageMap.put("id", "{code}");
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		assertEquals(2, airport.getTransitions(flights).size());
 		List<Transition> transitions = airport.getTransitions(flights);
-		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET(departureAirportCode, departureAirportCode eq '{code}')>Flight.Flights", "filter", "departureAirportCode eq '{code}'"));
-		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET(arrivalAirportCode, arrivalAirportCode eq '{code}')>Flight.Flights", "filter", "arrivalAirportCode eq '{code}'"));
+		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET>Flight.Flights", "filter", "departureAirportCode eq '{code}'"));
+		assertTrue(containsTransitionWithLinkParameter(transitions, "Airport.airport>GET>Flight.Flights", "filter", "arrivalAirportCode eq '{code}'"));
 	}
 	
 	@Test
@@ -359,11 +355,10 @@ public class TestResourceState {
 		flightsActions.add(new Action("GetMyEntities", Action.TYPE.VIEW, actionViewProperties));
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", flightsActions, "/Flights()", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("myfilter", "arrivalAirportCode eq '{code}'");
-		uriLinkageMap.put("id", "code");
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageMap.put("myfilter", "arrivalAirportCode eq '{code}'");
+		uriLinkageMap.put("id", "{code}");
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		List<Action> actions = flights.getActions();
 		assertEquals(1, actions.size());
@@ -373,11 +368,11 @@ public class TestResourceState {
 		assertEquals("Customer", props.get("entity"));
 		assertTrue(props.get("filter") instanceof ActionPropertyReference);
 		assertEquals("myfilter", ((ActionPropertyReference) props.get("filter")).getKey());
-		assertEquals("arrivalAirportCode eq '{id}'", ((ActionPropertyReference) props.get("filter")).getProperty("_"));
+		assertEquals("arrivalAirportCode eq '{code}'", ((ActionPropertyReference) props.get("filter")).getProperty("__code"));
 	}
 
 	@Test
-	public void testActionParametersReferecingMultipleParameters() {
+	public void testActionPropertiesReferecingMultipleParameters() {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		List<Action> flightsActions = new ArrayList<Action>();
 		Properties actionViewProperties = new Properties();
@@ -386,14 +381,11 @@ public class TestResourceState {
 		flightsActions.add(new Action("GetMyEntities", Action.TYPE.VIEW, actionViewProperties));
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", flightsActions, "/Flights()", null, null);
 
-		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageProperties.put("myfilter", "arrivalAirportCode eq '{code}'");
-		uriLinkageProperties.put("code", "arrivalAirportCode");		//applies query parameter ?arrivalAirportCode=xxx
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
-		uriLinkageProperties.put("myfilter", "departureAirportCode eq '{code}'");
-		uriLinkageProperties.put("code", "departureAirportCode");		//applies query parameter ?departureAirportCode=xxx
-		airport.addTransition("GET", flights, uriLinkageMap, uriLinkageProperties);
+		uriLinkageMap.put("myfilter", "arrivalAirportCode eq '{arrivalAirportCode}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
+		uriLinkageMap.put("myfilter", "departureAirportCode eq '{departureAirportCode}'");
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		List<Action> actions = flights.getActions();
 		assertEquals(1, actions.size());
@@ -413,15 +405,24 @@ public class TestResourceState {
 				return true;
 			}
 		}
+		System.out.println("NOT FOUND id: ["+id+"], label: ["+label+"]");
+		for(Transition t : transitions) {
+			System.out.println("id: ["+t.getId()+"], label: ["+t.getLabel()+"]");
+		}
 		return false;
 	}
 
 	private boolean containsTransitionWithLinkParameter(List<Transition> transitions, String id, String linkParam, String expectedLinkParamValue) {
 		for(Transition t : transitions) {
-			Map<String, String> linkParameters = t.getCommand().getParameters();
+			Map<String, String> linkParameters = t.getCommand().getUriParameters();
 			if(t.getId().equals(id) && linkParameters.get(linkParam).equals(expectedLinkParamValue)) {
 				return true;
 			}
+		}
+		System.out.println("NOT FOUND id: ["+id+"], linkParam: ["+linkParam+"], expectedLinkParamValue: ["+expectedLinkParamValue+"]");
+		for(Transition t : transitions) {
+			Map<String, String> linkParameters = t.getCommand().getUriParameters();
+			System.out.println("id: ["+t.getId()+"], linkParam: ["+linkParam+"], expectedLinkParamValue: ["+linkParameters.get(linkParam)+"]");
 		}
 		return false;
 	}

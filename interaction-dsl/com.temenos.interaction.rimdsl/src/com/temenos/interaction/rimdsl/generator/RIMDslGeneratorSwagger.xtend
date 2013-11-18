@@ -14,7 +14,6 @@ import com.temenos.interaction.rimdsl.rim.TransitionAuto
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel
 import org.eclipse.emf.common.util.EList
 import com.temenos.interaction.rimdsl.rim.UriLink
-import com.temenos.interaction.rimdsl.rim.UriLinkageEntityKeyReplace
 import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction
 import com.temenos.interaction.rimdsl.rim.Function

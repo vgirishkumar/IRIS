@@ -51,15 +51,17 @@ resource ErrorMessages {
 resource Flights {
 	type: collection
 	entity: Flight
-	view: GETEntities filter=filter
+	view: GETEntities {
+		properties [ filter=filter ]
+	}
 	path: "/Flights()"
 	POST -> Flights_created
 	GET *-> flight {
-		parameters [ id=flightID ]
+		parameters [ id="{flightID}" ]
 	}
 	GET *-> flightschedule {
 		title: "flightschedule"
-		parameters [ id=flightScheduleNum ]
+		parameters [ id="{flightScheduleNum}" ]
 	}
 }
 
@@ -70,7 +72,7 @@ resource flight {
 	path: "/Flights({id})"
 	GET -> flightschedule {
 		title: "flightschedule"
-		parameters [ id=flightScheduleNum ]
+		parameters [ id="{flightScheduleNum}" ]
 	}
 }
 
@@ -85,11 +87,13 @@ resource Flights_created {
 resource Airports {
 	type: collection
 	entity: Airport
-	view: GETEntities filter=filter
+	view: GETEntities {
+		properties [ filter=filter ]
+	}
 	path: "/Airports()"
 	POST -> Airports_created
 	GET *-> airport {
-		parameters [ id=code ]
+		parameters [ id="{code}" ]
 	}
 	GET *-> FlightSchedules {
 		title: "departures"
@@ -126,19 +130,21 @@ resource Airports_created {
 resource FlightSchedules {
 	type: collection
 	entity: FlightSchedule
-	view: GETEntities filter=filter
+	view: GETEntities {
+		properties [ filter=filter ]
+	}
 	path: "/FlightSchedules()"
 	POST -> FlightSchedules_created
 	GET *-> flightschedule {
-		parameters [ id=flightScheduleID ]
+		parameters [ id="{flightScheduleID}" ]
 	}
 	GET *-> airport {
 		title: "departureAirport"
-		parameters [ id=departureAirportCode ]
+		parameters [ id="{departureAirportCode}" ]
 	}
 	GET *-> airport {
 		title: "arrivalAirport"
-		parameters [ id=arrivalAirportCode ]
+		parameters [ id="{arrivalAirportCode}" ]
 	}
 }
 
@@ -149,11 +155,11 @@ resource flightschedule {
 	path: "/FlightSchedules({id})"
 	GET -> airport {
 		title: "departureAirport"
-		parameters [ id=departureAirportCode ]
+		parameters [ id="{departureAirportCode}" ]
 	}
 	GET -> airport {
 		title: "arrivalAirport"
-		parameters [ id=arrivalAirportCode ]
+		parameters [ id="{arrivalAirportCode}" ]
 	}
 }
 
@@ -167,15 +173,17 @@ resource FlightSchedules_created {
 resource Passengers {
 	type: collection
 	entity: Passenger
-	view: GETEntities filter=filter
+	view: GETEntities {
+		properties [ filter=filter ]
+	}
 	path: "/Passengers()"
 	POST -> Passengers_created
 	GET *-> passenger {
-		parameters [ id=passengerNo ]
+		parameters [ id="{passengerNo}" ]
 	}
 	GET *-> flight {
 		title: "flight"
-		parameters [ id=flightID ]
+		parameters [ id="{flightID}" ]
 	}
 }
 
@@ -186,7 +194,7 @@ resource passenger {
 	path: "/Passengers({id})"
 	GET -> flight {
 		title: "flight"
-		parameters [ id=flightID ]
+		parameters [ id="{flightID}" ]
 	}
 }
 

@@ -66,6 +66,7 @@ public class ResourceStateMachine {
 	
 	//Interaction context attribute used to hold transition properties
 	public final static String TRANSITION_PROPERTIES_CTX_ATTRIBUTE = "TRANSITION_PROPERTIES_CTX_ATTRIBUTE";
+	public static Pattern TEMPLATE_PATTERN = Pattern.compile("\\{(.*?)\\}");
 
 	public final ResourceState initial;
 	public final ResourceState exception;
@@ -79,7 +80,6 @@ public class ResourceStateMachine {
 	private Map<ResourceState, Set<String>> interactionsByState = new HashMap<ResourceState, Set<String>>();
 	private Map<String, Set<ResourceState>> resourceStatesByPath = new HashMap<String, Set<ResourceState>>();
 	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
-	private Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
 	
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null, null);
@@ -557,24 +557,6 @@ public class ResourceStateMachine {
 		return links;
 	}
 
-	private String applyUriLinkage(String resourcePath, Map<String, String> uriLinkageMap) {
-		//Replace uri elements with linkage properties
-		String mappedResourcePath = resourcePath;
-		if (uriLinkageMap != null) {
-			for (String templateElement : uriLinkageMap.keySet()) {
-				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", "\\{" + uriLinkageMap.get(templateElement) + "\\}");
-			}
-		}
-		/*
-		if (linkParameters != null) {
-			for (String templateElement : linkParameters.keySet()) {
-				mappedResourcePath = mappedResourcePath.replaceAll("\\{" + templateElement + "\\}", linkParameters.get(templateElement));		//Replace template elements, e.g. {code} in filter=fld eq '{code}'
-			}
-		}
-*/
-		return mappedResourcePath;
-	}
-	
 	/**
 	 * Find the transition that was used by evaluating the LinkHeader and 
 	 * create a a Link for that transition.
@@ -640,21 +622,8 @@ public class ResourceStateMachine {
 		if (autoTransition != null)
 			transition = autoTransition;
 		TransitionCommandSpec cs = transition.getCommand();
-		String resourcePath = applyUriLinkage(cs.getPath(), cs.getUriParameters());
-		return createLink(resourcePath, transition, entity, pathParameters);
+		return createLink(cs.getPath(), transition, entity, pathParameters);
 	}
-
-	/**
-	 * Create a Link using the supplied transition and entity.
-	 * @param transition
-	 * @param entity
-	 * @param pathParameters
-	 * @return
-	 * @precondition {@link RequestContext} must have been initialised
-	 */
-//	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
-//		return createLink(transition, entity, pathParameters);
-//	}
 
 	/*
 	 * Create a Link using the supplied transition, entity and path parameters
@@ -666,8 +635,7 @@ public class ResourceStateMachine {
 	 */
 	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> map) {
 		TransitionCommandSpec cs = transition.getCommand();
-		String resourcePath = applyUriLinkage(cs.getPath(), cs.getUriParameters());
-		return createLink(resourcePath, transition, entity, map);
+		return createLink(cs.getPath(), transition, entity, map);
 	}
 	private Link createLink(String resourcePath, Transition transition, Object entity, MultivaluedMap<String, String> map) {
 		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, map);
@@ -698,7 +666,7 @@ public class ResourceStateMachine {
 			String method = cs.getMethod();
 
 			//Add template elements in linkage properties e.g. filter=fld eq {code} as query parameters
-			Map<String, String> linkParameters = transition.getCommand().getParameters();
+			Map<String, String> linkParameters = transition.getCommand().getUriParameters();
 			setQueryParameters(linkTemplate, linkParameters, transitionProperties, resourcePath);
 			
 			//Build href from template
@@ -734,34 +702,36 @@ public class ResourceStateMachine {
 	 * @return map of transition properties
 	 */
 	public Map<String, Object> getTransitionProperties(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
-		Map<String, Object> properties = new HashMap<String, Object>();
+		Map<String, Object> transitionProps = new HashMap<String, Object>();
 
 		//Obtain path parameters
 		if (pathParameters != null) {
 			for (String key : pathParameters.keySet()) {
-				properties.put(key, pathParameters.getFirst(key));
+				transitionProps.put(key, pathParameters.getFirst(key));
 			}
 		}
-		
-		//Obtain linkage properties
-		Map<String, String> linkParameters = transition.getCommand().getParameters();
-		if (linkParameters != null) {
-			for (String key : linkParameters.keySet()) {
-				if(!properties.containsKey(key)) {		//Do not overwrite resource properties
-					properties.put(key, linkParameters.get(key));
-				}
-			}
-		}
-		
+
 		//Obtain entity properties
+		Map<String, Object> entityProperties = null;
 		if (entity != null && transformer != null) {
 			logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
-			Map<String, Object> props = transformer.transform(entity);
-			if (props != null) {
-				properties.putAll(props);
+			entityProperties = transformer.transform(entity);
+			if (entityProperties != null) {
+				transitionProps.putAll(entityProperties);
 			}
 		}
-		return properties;
+
+		//Obtain linkage properties
+		Map<String, String> linkParameters = transition.getCommand().getUriParameters();
+		if (linkParameters != null) {
+			for (String key : linkParameters.keySet()) {
+				String value = linkParameters.get(key);
+				value = templateReplace(value, transitionProps);
+				transitionProps.put(key, value);
+			}
+		}
+		
+		return transitionProps;
 	}
 
 	/**
@@ -774,7 +744,7 @@ public class ResourceStateMachine {
 		//Parse source and target parameters from the transition's 'path' and 'originalPath' attributes respectively
     	MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		TransitionCommandSpec cs = transition.getCommand();
-		String resourcePath = applyUriLinkage(cs.getPath(), cs.getUriParameters());
+		String resourcePath = cs.getPath();
 		String[] sourceParameters = getPathTemplateParameters(resourcePath);
 		String[] targetParameters = getPathTemplateParameters(cs.getPath());
 		
@@ -792,9 +762,9 @@ public class ResourceStateMachine {
 	 * Returns the list of parameters contained inside
 	 * a URI template. 
 	 */
-	private String[] getPathTemplateParameters(String pathTemplate) {
+	public static String[] getPathTemplateParameters(String pathTemplate) {
 		List<String> params = new ArrayList<String>();
-		Matcher m = templatePattern.matcher(pathTemplate);
+		Matcher m = TEMPLATE_PATTERN.matcher(pathTemplate);
 		while(m.find()) {
 			params.add(m.group(1));
 		}
@@ -812,38 +782,32 @@ public class ResourceStateMachine {
 	 */
 	protected void setQueryParameters(UriBuilder linkTemplate, Map<String, String> linkParameters, Map<String, Object> properties, String targetStatePath) {
 		if (linkParameters != null) {
-			for(String linkPropertyKey : linkParameters.keySet()) {
-				String linkProperty = linkParameters.get(linkPropertyKey);
-				if(linkProperty.contains("{") && linkProperty.contains("}")) {
-					Matcher m = templatePattern.matcher(linkProperty);
-					while(m.find()) {
-						String param = m.group(1);		//e.g. code
-						if(properties.containsKey(param) &&
-								(targetStatePath == null || !targetStatePath.contains("{" + param + "}"))) {		
-							//Add query parameter
-							if(properties.containsKey(param)) {
-								String newValue;
-								String paramValue = properties.get(param).toString();
-								if(linkProperty.equals("{" + param + "}")) {
-									//link property is a reference to an existing resource property
-									newValue = paramValue;
-								}
-								else {
-									//replace template tokens in link property
-									newValue = linkProperty.replaceAll("\\{" + param + "\\}", paramValue);
-								}
-								linkTemplate.queryParam(linkPropertyKey, newValue);
-							}
-						}
-					}
+			for(String key : linkParameters.keySet()) {
+				String value = linkParameters.get(key);
+				if (targetStatePath.contains("{"+key+"}")) {
+					value = templateReplace(value, properties);
 				} else {
-					// add query parameter with literal value
-					linkTemplate.queryParam(linkPropertyKey, linkProperty);
+					linkTemplate.queryParam(key, value);
 				}
 			}
 		}
 	}
 
+	private String templateReplace(String template, Map<String, Object> properties) {
+		String result = template;
+		if (template != null && template.contains("{") && template.contains("}")) {
+			Matcher m = TEMPLATE_PATTERN.matcher(template);
+			while(m.find()) {
+				String param = m.group(1);
+				if (properties.containsKey(param)) {
+					// replace template tokens
+					result = template.replaceAll("\\{" + param + "\\}", properties.get(param).toString());
+				}
+			}
+		}
+		return result;
+	}
+	
 	public InteractionCommand determinAction(String event, String path) {
 		return null;
 	}
