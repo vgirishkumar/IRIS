@@ -105,22 +105,13 @@ public class ResourceGETExpression implements Expression {
 	 * Obtain path parameters to use when accessing
 	 * a resource state on an expression.  
 	 */
-	@SuppressWarnings("unchecked")
 	private MultivaluedMap<String, String> getPathParametersForTargetState(ResourceStateMachine hypermediaEngine, InteractionContext ctx, Transition transition) {
-		//If available (for performance), read transition properties from the context
     	Map<String, Object> transitionProperties = new HashMap<String, Object>();
-    	Object transPropsAttr = ctx.getAttribute(ResourceStateMachine.TRANSITION_PROPERTIES_CTX_ATTRIBUTE);
-    	if(transPropsAttr != null) {
-    		transitionProperties = (Map<String, Object>) transPropsAttr;
-    	}
-    	else {
-    		//Otherwise, re-evaluate transition properties 
-    		RESTResource resource = ctx.getResource();
-    		if(resource != null && resource instanceof EntityResource) {
-    			Object entity = ((EntityResource<?>) resource).getEntity();
-    	    	transitionProperties = hypermediaEngine.getTransitionProperties(transition, entity, null); 
-    		}    		
-    	}
+   		RESTResource resource = ctx.getResource();
+   		if(resource != null && resource instanceof EntityResource) {
+   			Object entity = ((EntityResource<?>) resource).getEntity();
+   	    	transitionProperties = hypermediaEngine.getTransitionProperties(transition, entity, null); 
+   		}    		
     	
     	//apply transition properties to path parameters 
     	return hypermediaEngine.getPathParametersForTargetState(transition, transitionProperties);

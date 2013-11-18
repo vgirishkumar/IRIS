@@ -64,8 +64,6 @@ import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand
 public class ResourceStateMachine {
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
 	
-	//Interaction context attribute used to hold transition properties
-	public final static String TRANSITION_PROPERTIES_CTX_ATTRIBUTE = "TRANSITION_PROPERTIES_CTX_ATTRIBUTE";
 	public static Pattern TEMPLATE_PATTERN = Pattern.compile("\\{(.*?)\\}");
 
 	public final ResourceState initial;
