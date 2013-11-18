@@ -50,7 +50,9 @@ resource Orders {
 	path: "/Orders()"
 	POST -> OrderCreated
 	GET *-> order {
-		parameters [ id=Id ]
+		// not required because 'Id' is a property of the Entity 'Order' so you get this link parameter automatically
+		// You specify path parameters or query parameters
+		parameters [ Id="{Id}" ]
 	}
 	GET *-> payment {
 		title: "Payment"
