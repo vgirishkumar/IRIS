@@ -22,7 +22,8 @@ package com.temenos.interaction.rimdsl;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URL;
@@ -123,12 +124,12 @@ public class SwaggerGeneratorTest {
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
-		assertEquals(1, fsa.getAllFiles().size());
+		assertEquals(1, fsa.getFiles().size());
 		
 		// the behaviour class
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "api-docs.json";
-		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
-		assertEquals(SIMPLE_STATES_SWAGGER, fsa.getAllFiles().get(expectedKey).toString());
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		assertEquals(SIMPLE_STATES_SWAGGER, fsa.getFiles().get(expectedKey).toString());
 				
 	}
 
@@ -137,12 +138,12 @@ public class SwaggerGeneratorTest {
 		DomainModel domainModel = parseHelper.parse(loadTestRIM());
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(domainModel.eResource(), fsa);
-		assertEquals(1, fsa.getAllFiles().size());
+		assertEquals(1, fsa.getFiles().size());
 		
 		// the behaviour class
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "api-docs.json";
-		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
-		String output = fsa.getAllFiles().get(expectedKey).toString();
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output.contains("/notes"));
 				
 	}
