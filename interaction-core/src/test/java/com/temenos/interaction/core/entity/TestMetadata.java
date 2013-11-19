@@ -25,6 +25,7 @@ package com.temenos.interaction.core.entity;
 import java.util.Date;
 import java.util.Set;
 
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalTime;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -186,6 +187,6 @@ public class TestMetadata {
 	
 	@Test
 	public void testTimePropertyAsString() {
-		Assert.assertEquals("01:00:00.001", vocs.getPropertyValueAsString("time", new LocalTime(1)));
+		Assert.assertEquals("00:00:00.001", vocs.getPropertyValueAsString("time", new LocalTime(1, DateTimeZone.UTC)));
 	}
 }
