@@ -32,7 +32,7 @@ import com.temenos.interaction.core.command.InteractionException;
 /**
  * This command implements a naive workflow where all commands are executed.
  * Commands are added to this workflow and then executed in the same order regardless
- * of their return code {@link Result.SUCCESS} or otherwise.
+ * of their return code {@link InteractionCommand.Result.SUCCESS} or otherwise.
  * @author aphethean
  */
 public class NaiveWorkflowStrategyCommand implements InteractionCommand {
