@@ -61,9 +61,12 @@ public class Generator {
 		for (String modelPath : files) {
 			resourceSet.getResources().add(resourceSet.getResource(URI.createFileURI(modelPath), true));
 		}
-		boolean result = false;
+		boolean result = true;
 		for (String modelPath : files) {
-			result = runGenerator(modelPath, outputPath);
+			boolean fileResult = runGenerator(modelPath, outputPath);
+			if (!fileResult) {
+				result = fileResult;
+			}
 		}
 		return result;
 	}
