@@ -520,6 +520,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			}
 			assert(response.getResource() != null);
     		responseBuilder.entity(resource.getGenericEntity());
+   			responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
 		} else if (status.equals(Response.Status.NOT_MODIFIED)) {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
