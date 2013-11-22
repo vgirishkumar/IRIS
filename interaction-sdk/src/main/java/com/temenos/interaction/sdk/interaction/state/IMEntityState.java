@@ -31,7 +31,6 @@ import java.util.Set;
 public class IMEntityState extends IMState implements IMAction {
 
 	private Set<String> actions = new HashSet<String>();		//Actions
-	private String relations = null;							//Link relations to this state
 	
 	/**
 	 * Construct a new resource state 
@@ -60,23 +59,12 @@ public class IMEntityState extends IMState implements IMAction {
 	 * @param action action to execute
 	 */
 	public IMEntityState(String name, String path, String relations, String action) {
-		super(name, path, null);
-		this.relations = relations;
+		super(name, path, null, relations);
 		this.actions.add(action);
 	}
 	
 	public boolean hasView() {
 		return super.getView() != null;
-	}
-
-	@Override
-	public String getRelations() {
-		return relations;
-	}
-	
-	@Override
-	public boolean hasRelations() {
-		return relations != null;		
 	}
 
 	@Override

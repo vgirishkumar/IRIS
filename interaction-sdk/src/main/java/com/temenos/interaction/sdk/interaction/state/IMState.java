@@ -41,16 +41,33 @@ public abstract class IMState {
 	private String view;										//View
 	private List<IMTransition> transitions = new ArrayList<IMTransition>();
 	private IMState errorHandlerState = null;
+	private String relations = null;							//Link relations to this state
 	
 	/**
 	 * Construct a new resource state 
 	 * @param name resource state name
 	 * @param path URI path associated to this resource state
+	 * @param view View command
 	 */
 	public IMState(String name, String path, String view) {
 		this.name = name;
 		this.path = path;
 		this.view = view;
+		this.relations = null;
+	}
+
+	/**
+	 * Construct a new resource state 
+	 * @param name resource state name
+	 * @param path URI path associated to this resource state
+	 * @param view View command
+	 * @param relations Link relations
+	 */
+	public IMState(String name, String path, String view, String relations) {
+		this.name = name;
+		this.path = path;
+		this.view = view;
+		this.relations = relations;
 	}
 	
 	public String getName() {
@@ -80,6 +97,15 @@ public abstract class IMState {
 	public void setErrorHandlerState(IMState errorHandlerState) {
 		this.errorHandlerState = errorHandlerState;
 	}
+	
+	public String getRelations() {
+		return relations;
+	}
+	
+	public boolean hasRelations() {
+		return relations != null;		
+	}
+
 	
 	/**
 	 * Add a transition to pseudo state

@@ -32,12 +32,10 @@ public class IMPseudoState extends IMState implements IMAction {
 
 	private Set<String> actions = new HashSet<String>();		//Actions
 	private String pseudoStateId = null;						//Pseudo state Id or null if this is not a pseudo state
-	private String relations = null;							//Link relations to this state
 
 	public IMPseudoState(String name, String path, String view, String pseudoStateId, String relations, String action) {
-		super(name, path, view);
+		super(name, path, view, relations);
 		this.pseudoStateId = pseudoStateId;
-		this.relations = relations;
 		if(action != null) {
 			this.actions.add(action);
 		}
@@ -50,16 +48,6 @@ public class IMPseudoState extends IMState implements IMAction {
 	 */
 	public boolean isPseudoState() {
 		return pseudoStateId != null;
-	}
-	
-	@Override
-	public String getRelations() {
-		return relations;
-	}
-	
-	@Override
-	public boolean hasRelations() {
-		return relations != null;		
 	}
 	
 	/**

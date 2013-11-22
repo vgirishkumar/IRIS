@@ -51,6 +51,18 @@ public class IMCollectionState extends IMState {
 		super(name, path, view);
 		this.entityState = entityState;
 	}
+
+	/**
+	 * Construct a new resource state 
+	 * @param name resource state name
+	 * @param path URI path associated to this resource state
+	 * @param view View to execute
+	 * @param relations link relations
+	 */
+	public IMCollectionState(String name, String path, String view, String relations, IMEntityState entityState) {
+		super(name, path, view, relations);
+		this.entityState = entityState;
+	}
 	
 	/**
 	 * Returns the entity state associated to this collection state

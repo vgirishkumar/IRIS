@@ -103,7 +103,7 @@ public class InteractionModel {
 	public IMResourceStateMachine createInitialResourceStateMachine(EntityMetadata entityMetadata) {
 		return createInitialResourceStateMachine(entityMetadata, HttpMethod.GET);
 	}
-	
+
 	/**
 	 * Create an initial RSM with a collection and entity state
 	 * @param entityMetadata Entity metadata
@@ -111,13 +111,23 @@ public class InteractionModel {
 	 * @return resource state machine
 	 */
 	public IMResourceStateMachine createInitialResourceStateMachine(EntityMetadata entityMetadata, String methodGetEntity) {
+		return createInitialResourceStateMachine(entityMetadata, methodGetEntity, null);
+	}
+	
+	/**
+	 * Create an initial RSM with a collection and entity state
+	 * @param entityMetadata Entity metadata
+	 * @param methodGetEntity Method for GET entity 
+	 * @return resource state machine
+	 */
+	public IMResourceStateMachine createInitialResourceStateMachine(EntityMetadata entityMetadata, String methodGetEntity, String collectionRels) {
 		String entityName = entityMetadata.getEntityName();
 		String collectionStateName = entityName + "s";
 		String entityStateName = entityName.toLowerCase();
 		List<String> idFields = entityMetadata.getIdFields();
 		String mappedEntityProperty = idFields.size() > 0 ? idFields.get(0) : "id";
 		String pathParametersTemplate = getUriTemplateParameters(entityMetadata);
-		return new IMResourceStateMachine(entityName, collectionStateName, entityStateName, methodGetEntity, mappedEntityProperty, pathParametersTemplate);
+		return new IMResourceStateMachine(entityName, collectionStateName, entityStateName, methodGetEntity, mappedEntityProperty, pathParametersTemplate, collectionRels);
 	}
 	
 	public String getUriTemplateParameters(EntityMetadata entityMetadata) {
