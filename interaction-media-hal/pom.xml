@@ -95,7 +95,7 @@
  	</dependencies>
 
     <repositories>
-        <!-- The cambridge-core dependency is not in maven central repo -->
+        <!-- The halbuilder-core dependency is not in maven central repo -->
         <repository>
             <id>temenos-snapshot-repository</id>
 			<url>http://repository-temenostech.forge.cloudbees.com/snapshot/</url>
