@@ -30,9 +30,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.util.ArrayList;
@@ -80,7 +80,8 @@ import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
@@ -1047,6 +1048,71 @@ public class TestResponseHTTPHypermediaRIM {
 		else {
 			fail("Response body is not an entity resource type.");
 		}
+	}
+	
+	/*
+	 * This test is for a POST request that creates a new resource, and returns
+	 * the links for the resource we auto transition to.
+	 */
+	@Test
+	public void testPOSTwithConditionalAutoTransitions() throws Exception {
+		/*
+		 * construct an InteractionContext that simply mocks the result of 
+		 * creating a resource
+		 */
+		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
+		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
+		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/individualMachine1/{id}");
+		individualMachine.addTransition("GET", initialState);
+		ResourceState individualMachine2 = new ResourceState(initialState, "machine2", mockActions(), "/individualMachine2/{id}");
+		individualMachine.addTransition("GET", initialState);
+		
+		// create new machine
+		initialState.addTransition("POST", createPsuedoState);
+		// an auto transition to the new resource
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "{id}");
+
+		//Add the first auto-transition
+		List<Expression> conditionalExpressions1 = new ArrayList<Expression>();
+		conditionalExpressions1.add(new SimpleLogicalExpressionEvaluator(new ArrayList<Expression>()) {
+			@Override
+			public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
+				return false;
+			}
+			
+		});
+		createPsuedoState.addTransition(individualMachine, uriLinkageMap, conditionalExpressions1);
+
+		//Add a second auto-transition
+		List<Expression> conditionalExpressions2 = new ArrayList<Expression>();
+		conditionalExpressions2.add(new SimpleLogicalExpressionEvaluator(new ArrayList<Expression>()) {
+			@Override
+			public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
+				return true;
+			}
+			
+		});
+		createPsuedoState.addTransition(individualMachine2, uriLinkageMap, conditionalExpressions2);
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
+		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
+
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
+		/*
+		 *  Assert the links in the response match the target resource
+		 */
+		EntityResource<?> createdResource = (EntityResource<?>) ((GenericEntity<?>)response.getEntity()).getEntity();
+		List<Link> links = new ArrayList<Link>(createdResource.getLinks());
+		assertEquals(1, links.size());
+		assertEquals("machine2", links.get(0).getTitle());
+		assertEquals("/baseuri/machines/individualMachine2/123", links.get(0).getHref());
 	}
 	
 	protected Response getMockResponse(InteractionCommand mockCommand) {

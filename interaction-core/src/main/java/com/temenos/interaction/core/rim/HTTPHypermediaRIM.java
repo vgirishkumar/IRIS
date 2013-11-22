@@ -485,9 +485,17 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.equals(Response.Status.CREATED)) {
 			ResourceState currentState = ctx.getCurrentState();
 			assert(currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
-			ResourceState targetState = currentState.getAllTargets().iterator().next();
-			// TODO need to support conditional auto transitions
-			Transition autoTransition = ctx.getCurrentState().getTransition(targetState);
+			Transition autoTransition = null;
+			for(Link link : resource.getLinks()) {
+				if(link.getRel() != null && !link.getRel().equals("self")) {		//Ignore self link
+					if(autoTransition != null) {
+						logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transition. Using [" + link.getId() + "].");
+					}
+					else {
+						autoTransition = link.getTransition();
+					}
+				}
+			}
 			if (autoTransition != null && autoTransition.getCommand().isAutoTransition()) {
 				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
 	    		@SuppressWarnings("rawtypes")
