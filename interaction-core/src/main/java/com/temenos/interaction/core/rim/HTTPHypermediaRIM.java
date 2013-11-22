@@ -510,7 +510,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				for (String key : transitionProperties.keySet()) {
 					autoPathParameters.add(key, transitionProperties.get(key).toString());
 				}
-				InteractionContext autoCtx = new InteractionContext(pathParameters, ctx.getQueryParameters(), autoTransition.getTarget(), metadata);
+				InteractionContext autoCtx = new InteractionContext(autoPathParameters, ctx.getQueryParameters(), autoTransition.getTarget(), metadata);
 	        	Response autoResponse = handleRequest(headers, autoCtx, new Event("GET", HttpMethod.GET), action, (EntityResource<?>) resource, autoTransition);
 	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
 	        		logger.warn("Auto transition target did not return HttpStatus.OK status");
