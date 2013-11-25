@@ -22,7 +22,7 @@ package com.temenos.interaction.core.resource;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 import java.io.InputStream;
