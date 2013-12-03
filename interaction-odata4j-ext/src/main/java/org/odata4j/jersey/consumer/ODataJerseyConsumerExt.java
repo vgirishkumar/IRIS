@@ -112,8 +112,7 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 		return new ConsumerQueryEntitiesRequest<T>(getClient(), null, getServiceRootUri(), getMetadata(), entitySetName, null) {
 			  @Override
 			  public Enumerable<T> execute() throws ODataProducerException {
-			    String path = Enumerable.create(getSegments()).join("/");
-			    final ODataClientRequest request = ODataClientRequest.get(getServiceRootUri() + path);
+			    final ODataClientRequest request = buildRequest(null);
 			    ODataClientResponse response = getClient().getEntities(request);
 			    if (response == null)
 			      return null;
