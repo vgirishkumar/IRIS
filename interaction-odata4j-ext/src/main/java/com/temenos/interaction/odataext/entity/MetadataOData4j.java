@@ -55,9 +55,9 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
@@ -227,7 +227,8 @@ public class MetadataOData4j {
 		}
 
 		// Index EntitySets by Entity name
-		for (ResourceState state : hypermediaEngine.getInitial().getAllTargets()) {
+		Collection<ResourceState> allTargets = hypermediaEngine.getStates();
+		for (ResourceState state : allTargets) {
 			if (state instanceof CollectionResourceState) {
 				EdmEntityType.Builder entityType = bEntityTypeMap.get(state.getEntityName());
 				if (entityType == null) 
@@ -237,6 +238,8 @@ public class MetadataOData4j {
 					//Add entity set
 					EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
 					bEntitySetMap.put(state.getEntityName(), bEntitySet);
+				} else {
+					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+hypermediaEngine.getInitial().getName()+"]");
 				}
 			}
 		}
