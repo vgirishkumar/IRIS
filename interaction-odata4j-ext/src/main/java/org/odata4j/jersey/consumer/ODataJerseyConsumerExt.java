@@ -20,24 +20,36 @@ package org.odata4j.jersey.consumer;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+import java.net.URLDecoder;
+import java.util.Iterator;
+
 import javax.ws.rs.ext.RuntimeDelegate;
 
 import org.core4j.Enumerable;
+import org.core4j.Func;
+import org.core4j.Func1;
+import org.core4j.ReadOnlyIterator;
 import org.odata4j.consumer.AbstractODataConsumer;
 import org.odata4j.consumer.ConsumerGetEntityRequest;
+import org.odata4j.consumer.ConsumerQueryEntitiesRequest;
 import org.odata4j.consumer.ODataClient;
 import org.odata4j.consumer.ODataClientRequest;
 import org.odata4j.consumer.ODataClientResponse;
 import org.odata4j.consumer.behaviors.OClientBehavior;
+import org.odata4j.core.ODataConstants.Charsets;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityGetRequest;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OQueryRequest;
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.format.Entry;
+import org.odata4j.format.Feed;
 import org.odata4j.format.FormatType;
 import org.odata4j.format.xml.AtomEntryFormatParserExt;
+import org.odata4j.format.xml.AtomFeedFormatParserExt;
 import org.odata4j.internal.EntitySegment;
 import org.odata4j.internal.InternalUtil;
 
@@ -95,5 +107,106 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 			  }
 		};
 	}
-	
+
+	@Override
+	public <T> OQueryRequest<T> getEntities(final Class<T> entityType, String entitySetName) {
+		return new ConsumerQueryEntitiesRequest<T>(getClient(), null, getServiceRootUri(), getMetadata(), entitySetName, null) {
+			  @Override
+			  public Enumerable<T> execute() throws ODataProducerException {
+			    String path = Enumerable.create(getSegments()).join("/");
+			    final ODataClientRequest request = ODataClientRequest.get(getServiceRootUri() + path);
+			    ODataClientResponse response = getClient().getEntities(request);
+			    if (response == null)
+			      return null;
+
+			    //  the first segment contains the entitySetName we start from
+			    EdmEntitySet entitySet = getEntitySet();
+			    OEntityKey key = null;
+			    
+			    //Use the extended atom entry parser
+				final Feed feed = new AtomFeedFormatParserExt(getMetadata(), entitySet.getName(), key, null).parse(getClient().getFeedReader(response));
+
+			    response.close();
+			    
+			    Enumerable<Entry> entries = Enumerable.createFromIterator(new Func<Iterator<Entry>>() {
+			        public Iterator<Entry> apply() {
+			          return new EntryIterator(request, feed);
+			        }
+			      });
+
+			    return entries.select(new Func1<Entry, T>() {
+			      public T apply(Entry input) {
+			        return InternalUtil.toEntity(entityType, input.getEntity());
+			      }
+			    }).cast(entityType);
+			  }
+		};
+
+	}
+
+
+	  private class EntryIterator extends ReadOnlyIterator<Entry> {
+
+	    private ODataClientRequest request;
+	    private Feed feed;
+	    private Iterator<Entry> feedEntries;
+	    private int feedEntryCount;
+
+	    public EntryIterator(ODataClientRequest request, Feed feed) {
+	      this.request = request;
+	      this.feed = feed;
+	      feedEntries = feed.getEntries().iterator();
+	      feedEntryCount = 0;
+	    }
+
+	    @Override
+	    protected IterationResult<Entry> advance() throws Exception {
+
+//	      if (feed == null) {
+//	        feed = doRequest(request);
+//	        feedEntries = feed.getEntries().iterator();
+//	        feedEntryCount = 0;
+//	      }
+
+	      if (feedEntries.hasNext()) {
+	        feedEntryCount++;
+	        return IterationResult.next(feedEntries.next());
+	      }
+
+	      // old-style paging: $page and $itemsPerPage
+	      if (request.getQueryParams().containsKey("$page") && request.getQueryParams().containsKey("$itemsPerPage")) {
+	        if (feedEntryCount == 0)
+	          return IterationResult.done();
+
+	        int page = Integer.parseInt(request.getQueryParams().get("$page"));
+	        // int itemsPerPage = Integer.parseInt(request.getQueryParams().get("$itemsPerPage"));
+
+	        request = request.queryParam("$page", Integer.toString(page + 1));
+	      }
+
+	      // new-style paging: $skiptoken
+	      else {
+	        if (feed.getNext() == null)
+	          return IterationResult.done();
+
+	        int skipTokenIndex = feed.getNext().indexOf("$skiptoken=");
+	        if (skipTokenIndex > -1) {
+	          String skiptoken = feed.getNext().substring(skipTokenIndex + "$skiptoken=".length());
+	          // decode the skiptoken first since it gets encoded as a query param
+	          skiptoken = URLDecoder.decode(skiptoken, Charsets.Upper.UTF_8);
+	          request = request.queryParam("$skiptoken", skiptoken);
+	        } else if (feed.getNext().toLowerCase().startsWith("http")) {
+	          request = ODataClientRequest.get(feed.getNext());
+	        } else {
+	          throw new UnsupportedOperationException();
+	        }
+
+	      }
+
+	      feed = null;
+
+	      return advance(); // TODO stackoverflow possible here
+	    }
+
+	  }
 }

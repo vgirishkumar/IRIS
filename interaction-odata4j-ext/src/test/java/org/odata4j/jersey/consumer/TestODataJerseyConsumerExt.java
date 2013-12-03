@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.core4j.Enumerable;
 import org.junit.Test;
 import org.odata4j.consumer.ODataClient;
 import org.odata4j.consumer.ODataClientRequest;
@@ -85,4 +86,38 @@ public class TestODataJerseyConsumerExt {
 		OCollection<OComplexObject> shortDescriptionCollection = (OCollection) shortDescriptions.getValue();
 		assertEquals("Sec Default", shortDescriptionCollection.iterator().next().getProperty("ShortDescr").getValue());
 	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testGetEntitiesWithBag() {
+		ODataConsumer consumer = new ODataJerseyConsumerExt("http://localhost/MyTest.svc", FormatType.ATOM, DefaultJerseyClientFactory.INSTANCE) {
+			@Override
+			protected ODataClient getClient() {
+				ODataClient client = mock(ODataClient.class);
+				InputStream xml = getClass().getClassLoader().getResourceAsStream("issue65_feed_with_Bag.xml");
+				when(client.getFeedReader(any(ODataClientResponse.class))).thenReturn(new InputStreamReader(xml));
+				ClientResponse clientResponse = mock(ClientResponse.class);
+				when(client.getEntities(any(ODataClientRequest.class))).thenReturn(new JerseyClientResponse(clientResponse));
+				return client;
+			}
+
+			@Override
+			public EdmDataServices getMetadata() {
+				InputStream metadataStream = AtomFeedFormatParserExtTest.class.getClassLoader().getResourceAsStream("issue193_metadata.xml");
+				XMLEventReader2 reader = XMLFactoryProvider2.getInstance().newXMLInputFactory2().createXMLEventReader(new InputStreamReader(metadataStream));
+				return new EdmxFormatParser().parseMetadata(reader);
+			}
+			
+		};
+		Enumerable<OEntity> entities = consumer.getEntities("FtCommissionTypes").execute();
+		assertNotNull(entities);
+		assertEquals(2, entities.count());
+		
+		OEntity entity = entities.first();
+		assertEquals("FtCommissionTypes", entity.getEntitySetName());
+		OProperty<?> shortDescriptions = entity.getProperty("FtCommissionType_ShortDescrMvGroup");
+		OCollection<OComplexObject> shortDescriptionCollection = (OCollection) shortDescriptions.getValue();
+		assertEquals("Sec Default", shortDescriptionCollection.iterator().next().getProperty("ShortDescr").getValue());
+	}
+	
 }
