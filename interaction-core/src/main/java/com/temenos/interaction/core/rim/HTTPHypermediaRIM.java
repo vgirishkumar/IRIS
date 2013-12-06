@@ -377,7 +377,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	StatusType status = null;
     	switch(result) {
 	    	case INVALID_REQUEST:					status = Status.BAD_REQUEST; break;
-	    	case FAILURE:							status = Status.INTERNAL_SERVER_ERROR; break;
+	    	case FAILURE: {
+	    		if (event.getMethod().equals(HttpMethod.GET) || event.getMethod().equals(HttpMethod.DELETE)) {
+	    			status = Status.NOT_FOUND; break;
+	    		} else {
+	    			status = Status.INTERNAL_SERVER_ERROR; break;
+	    		}
+	    	}
 	    	case CONFLICT:							status = Status.PRECONDITION_FAILED; break;
 	    	case SUCCESS: {
 
@@ -514,6 +520,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	        	Response autoResponse = handleRequest(headers, autoCtx, new Event("GET", HttpMethod.GET), action, (EntityResource<?>) resource, autoTransition);
 	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
 	        		logger.warn("Auto transition target did not return HttpStatus.OK status");
+	        		responseBuilder.status(autoResponse.getStatus());
 	        	}
 	        	resource = (EntityResource<?>)((GenericEntity<?>)autoResponse.getEntity()).getEntity();
 	        	resource.setEntityName(autoTransition.getTarget().getEntityName());
