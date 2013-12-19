@@ -96,7 +96,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		
-		String strEntityStream = "<resource href=\"~/children\"><name>noah</name><age>2</age></resource>";
+		String strEntityStream = "<resource href=\"/children\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
@@ -120,7 +120,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		
-		String strEntityStream = "<resource href=\"~/children\"><name>noah</name><age>2</age></resource>";
+		String strEntityStream = "<resource href=\"/children\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
@@ -156,7 +156,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		
-		String strEntityStream = "<resource href=\"~/children/123\"><name>noah</name><age>2</age></resource>";
+		String strEntityStream = "<resource href=\"/children/123\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
@@ -174,7 +174,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		
-		String strEntityStream = "<resource href=\"~/children(123)/updated\"><name>noah</name><age>2</age></resource>";
+		String strEntityStream = "<resource href=\"/children(123)/updated\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
@@ -370,7 +370,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, null, null, javax.ws.rs.core.MediaType.valueOf("application/hal+json; charset=utf-8"), null, bos);
 
-		String expectedXML = "{  \"_links\" : {    \"self\" : {      \"href\" : \"http://www.temenos.com/rest.svc/\"    }  }}";
+		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"http://www.temenos.com/rest.svc/\"}}}";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		responseString = responseString.replaceAll(System.getProperty("line.separator"), "");
 		assertEquals(expectedXML, responseString);
@@ -418,7 +418,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"http://www.temenos.com/rest.svc/humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"/rest.svc/humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);

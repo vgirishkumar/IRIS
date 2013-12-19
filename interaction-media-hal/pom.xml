@@ -57,7 +57,7 @@
 	<dependencies>
         <dependency>
             <groupId>com.theoryinpractise</groupId>
-            <artifactId>halbuilder</artifactId>
+            <artifactId>halbuilder-standard</artifactId>
             <scope>compile</scope>
         </dependency>
         <!-- This provider can also accept and transform OEntity objects into HAL -->
@@ -94,15 +94,5 @@
         </dependency>
  	</dependencies>
 
-    <repositories>
-        <!-- The cambridge-core dependency is not in maven central repo -->
-        <repository>
-            <id>temenos-snapshot-repository</id>
-			<url>http://repository-temenostech.forge.cloudbees.com/snapshot/</url>
-<!--
-			<url>https://repository.temenos.com/snapshot/</url>
--->
-        </repository>
-    </repositories>
 	
 </project>
