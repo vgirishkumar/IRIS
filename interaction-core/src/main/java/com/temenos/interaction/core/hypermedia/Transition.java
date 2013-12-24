@@ -36,9 +36,9 @@ public class Transition {
 	 */
 	public static final int AUTO = 2;
 
-	private final ResourceState source, target;
-	private final TransitionCommandSpec command;
-	private final String label;
+	private ResourceState source, target;
+	private TransitionCommandSpec command;
+	private String label;
 
 	public Transition(ResourceState source, TransitionCommandSpec command,
 			ResourceState target) {
@@ -89,11 +89,12 @@ public class Transition {
 	 * @return true/false
 	 */
 	public boolean isGetFromCollectionToEntityResource() {
-		return source != null && command.getMethod() != null
+		return source != null
+				&& command.getMethod() != null
 				&& command.getMethod().equals("GET")
 				&& source.getEntityName().equals(target.getEntityName())
 				&& source instanceof CollectionResourceState
-				&& target instanceof ResourceState;
+				&& (target instanceof ResourceState && !(target instanceof CollectionResourceState));
 	}
 
 	public boolean equals(Object other) {
@@ -122,4 +123,46 @@ public class Transition {
 		return getId();
 	}
 
+	
+	/*
+	 * Builder pattern generated with fastcode eclipse plugin, you can just regenerate this part
+	 */
+	
+	public static class Builder {
+		private ResourceState source;
+		private ResourceState target;
+		private TransitionCommandSpec command;
+		private String label;
+
+		public Builder source(ResourceState source) {
+			this.source = source;
+			return this;
+		}
+
+		public Builder target(ResourceState target) {
+			this.target = target;
+			return this;
+		}
+
+		public Builder command(TransitionCommandSpec command) {
+			this.command = command;
+			return this;
+		}
+
+		public Builder label(String label) {
+			this.label = label;
+			return this;
+		}
+
+		public Transition build() {
+			return new Transition(this);
+		}
+	}
+
+	private Transition(Builder builder) {
+		this.source = builder.source;
+		this.target = builder.target;
+		this.command = builder.command;
+		this.label = builder.label;
+	}
 }
