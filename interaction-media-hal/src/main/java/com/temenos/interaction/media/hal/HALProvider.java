@@ -200,8 +200,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				List<EntityResource<OEntity>> entities = (List<EntityResource<OEntity>>) cr.getEntities();
 				for (EntityResource<OEntity> er : entities) {
 					OEntity entity = er.getEntity();
-					// the subresource is a collection
-					String rel = "collection." + cr.getEntityName();
+					// the subresource is an item of the collection
+					String rel = "collectionItem/" + cr.getEntityName();
 					// the properties
 					Map<String, Object> propertyMap = new HashMap<String, Object>();
 					buildFromOEntity(propertyMap, entity);
@@ -209,12 +209,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					Representation subResource = representationFactory.newRepresentation();
 					
 					for (Link el : er.getLinks()) {
-						String itemHref = el.getHref();
-						// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
-						if (el.getMethod() != null && !el.getMethod().equals("GET")) {
-							itemHref = el.getMethod() + " " + itemHref;
-						}
-						subResource.withLink(el.getRel(), itemHref);
+						subResource.withLink(el.getRel(), el.getHref());
 					}
 					// add properties to HAL sub resource
 					for (String key : propertyMap.keySet()) {
@@ -239,14 +234,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
 						for (Link el : er.getLinks()) {
 							String itemHref = el.getHref();
-							// TODO add support for 'method' to HAL link.  this little hack passes the method in the href '[method] [href]'
-							if (el.getMethod() != null && !el.getMethod().equals("GET")) {
-								itemHref = el.getMethod() + " " + itemHref;
-							}
 							// don't add links twice, this break the client assertion of one rel per link (which seems wrong)
-							List<com.theoryinpractise.halbuilder.api.Link> selfLinks = subResource.getLinksByRel("self");
-							assert(selfLinks != null && selfLinks.size() == 1);
-							if (!selfLinks.get(0).getHref().equals(itemHref)) {
+//							List<com.theoryinpractise.halbuilder.api.Link> selfLinks = subResource.getLinksByRel("self");
+//							assert(selfLinks != null && selfLinks.size() == 1);
+							if (!itemSelfLink.equals(el)) {
 								subResource.withLink(el.getRel(), itemHref, el.getId(), el.getTitle(), null, null);
 							}
 						}

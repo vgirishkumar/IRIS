@@ -255,7 +255,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, CollectionResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/children/1\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/2\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/3\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/children/1\" rel=\"collectionItem/Children\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/2\" rel=\"collectionItem/Children\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/3\" rel=\"collectionItem/Children\"><age>2</age><name>noah</name></resource></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
