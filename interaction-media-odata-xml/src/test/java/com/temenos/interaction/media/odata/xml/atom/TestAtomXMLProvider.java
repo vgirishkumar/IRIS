@@ -113,6 +113,7 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.hypermedia.TransitionCommandSpec;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -734,16 +735,30 @@ public class TestAtomXMLProvider {
 		 *  then ODataExplorer barfs
 		 */
 		
-		Metadata metadata = mock(Metadata.class);
-		when(metadata.getModelName()).thenReturn("MyModel");
+		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
+		Metadata metadata = createMockMetadata("MyModel");
+		Transition transition = createMockTransition(
+				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
+				createMockResourceState("fundstransfer", "FundsTransfer", false));
+
 		
-		AtomXMLProvider provider = new AtomXMLProvider(mock(EdmDataServices.class), metadata, mock(ResourceStateMachine.class), mock(Transformer.class));
+		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, metadata, mock(ResourceStateMachine.class), mock(Transformer.class));
 		List<OLink> olinks = new ArrayList<OLink>();
-		provider.addLinkToOLinks(olinks, new Link("title", "self", "href", "type", null));
+		provider.addLinkToOLinks(olinks, new Link.Builder()
+												.transition(transition)
+												.title("title")
+												.rel("self")
+												.href("href")
+												.build());
 		assertEquals(1, olinks.size());
 		
 		// now add the 'edit' link, it should replace the 'self' link
-		provider.addLinkToOLinks(olinks, new Link("title", "edit", "href", "type", null));
+		provider.addLinkToOLinks(olinks, new Link.Builder()
+												.transition(transition)
+												.title("title")
+												.rel("edit")
+												.href("href")
+												.build());
 		assertEquals(1, olinks.size());
 		
 	}
@@ -1059,7 +1074,7 @@ public class TestAtomXMLProvider {
 	@Test
 	public void testLinkFixedRelation() {
 		ResourceState targetState = createMockResourceState("FundsTransfers_new", "FundsTransfer", true);
-		when(targetState.getRel()).thenReturn("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers http://www.temenos.com/rels/new");
+		when(targetState.getRel()).thenReturn("http://www.temenos.com/rels/new");
 		Transition t = createMockTransition(
 				createMockResourceState("account", "Account", false), 
 				targetState);
@@ -1079,7 +1094,8 @@ public class TestAtomXMLProvider {
 		Transition t = createMockTransition(
 				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
 				createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", 
+				AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
 	}
 
 	private ResourceState createMockResourceState(String name, String entityName, boolean isCollection) {
@@ -1091,16 +1107,13 @@ public class TestAtomXMLProvider {
 	}
 
 	private Transition createMockTransition(ResourceState source, ResourceState target) {
-		String sourceEntityName = source.getEntityName();
-		String targetEntityName = target.getEntityName();
-		Transition t = mock(Transition.class);
-		when(t.isGetFromCollectionToEntityResource()).thenReturn(
-				source != null && sourceEntityName.equals(targetEntityName) &&
-				source instanceof CollectionResourceState &&
-				target instanceof ResourceState);
-		when(t.getSource()).thenReturn(source);
-		when(t.getTarget()).thenReturn(target);
-		return t;
+		Transition.Builder builder = new Transition.Builder();
+		builder.source(source);
+		builder.target(target);
+		TransitionCommandSpec command = mock(TransitionCommandSpec.class);
+		when(command.getMethod()).thenReturn("GET");
+		builder.command(command);
+		return builder.build();
 	}
 
 	@SuppressWarnings("unchecked")

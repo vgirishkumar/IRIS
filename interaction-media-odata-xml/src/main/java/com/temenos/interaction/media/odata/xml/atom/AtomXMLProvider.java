@@ -286,16 +286,18 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	}
 	
 	public void addLinkToOLinks(List<OLink> olinks, Link link) {
-		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
+		RequestContext requestContext = RequestContext.getRequestContext();
+		assert(link != null);
+		assert(link.getTransition() != null);
 		String targetEntitySetName = null;
 		if(link.getTransition() != null) {
 			String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + link.getTransition().getTarget().getEntityName();
 			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
 			try {
 				targetEntitySetName = edmDataServices.getEdmEntitySet(targetEntityType).getName();
-			}
-			catch(NotFoundException nfe) {
+			} catch(NotFoundException nfe) {
 				logger.debug("Entity [" + fqTargetEntityName + "] is not an entity set.");
+				targetEntitySetName = link.getTransition().getTarget().getName();
 			}
 		}
 		String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
@@ -479,28 +481,28 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * @return odata link rel
 	 */
 	public static String getODataLinkRelation(Link link, String entitySetName) {
+		assert(entitySetName != null);
 		String rel = link.getRel();
 		Transition transition = link.getTransition();
 		if(transition == null) {
 			return rel;
 		}
-		if(rel.contains("item")) {
-			if(transition.isGetFromCollectionToEntityResource()) {
+		// hack, just until we fix this up
+		rel = rel.replace("item", "");
+		rel = rel.replace("collection", "");
+
+		if (transition.isGetFromCollectionToEntityResource() || rel.equals("self")) {
+			if (rel.length() == 0) {
 				//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
 				rel = "self";
 			}
-			else {
-				//entry type relations should use the entityType name
-				rel = XmlFormatWriter.related + transition.getTarget().getEntityName();
-			}
-		} else if (rel.contains("collection")) {
-			if(entitySetName != null) {
-				rel = XmlFormatWriter.related + entitySetName;
-			}
-			else {
-				rel = XmlFormatWriter.related + transition.getTarget().getName();
-			}
+		} else if (transition.getTarget() instanceof CollectionResourceState) {
+			rel = XmlFormatWriter.related + entitySetName + (rel != null && rel.length() > 0 ? " " : "") + rel;
+		} else if (transition.getTarget() instanceof ResourceState) {
+			//entry type relations should use the entityType name
+			rel = XmlFormatWriter.related + transition.getTarget().getEntityName() + (rel != null && rel.length() > 0 ? " " : "") + rel;
 		}
+
 		return rel;
 	}
 }
