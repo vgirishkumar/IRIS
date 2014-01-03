@@ -133,6 +133,7 @@
 						<exclude>**/*.sql</exclude>
 						<exclude>**/*.apt</exclude>
 						<exclude>**/*.json</exclude>
+						<exclude>**/*.js</exclude>
 					</excludes>
 				</configuration>
 				<executions>
