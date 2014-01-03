@@ -19,7 +19,7 @@
  * #L%
  */
 // Load test target and describe tests.
-define(['cs!actions'], function(actions){
+define(['cs!actions', 'cs!views'], function(actions, views){
 	describe('the ActionFactory object TestCase',function(){
 		
 		// Run before our tests
@@ -33,52 +33,52 @@ define(['cs!actions'], function(actions){
 		// Constructor Specs
 		describe('instantiation',function() {
 			it('throws an exception if you forget "new"',function(){
-				var thrown = null;
-				var oops = null;
-				try {
-					oops = actions.ActionFactory();
-				} catch(e) {
-					thrown = e;
-				}
-				expect(oops).toBe(null);
-				expect(thrown).toBe('Remember to use new on constructors!');
+				expect(actions.ActionFactory).toThrow('Remember to use new on constructors!');
 			});
 		});
 	
 		//Specs
-		describe('createLink',function() {
-			it('throws an exception if the createLink is called with no model',function(){
+		describe('createActions',function() {
+			it('throws an exception if called with no model',function(){
 				var thrown = null;
 				try {
 					var factory = new actions.ActionFactory();
-					factory.createLink(null, null);
+					factory.createActions(null, null);
 				} catch(e) {
 					thrown = e;
 				}
 				expect(thrown.constructor).toBe(String);
 				expect(thrown).toBe('Precondition failed:  No model');
 			});
-			it('throws an exception if the createLink is called with no rel',function(){
+			it('throws an exception if called with no rel',function(){
 				var thrown = null;
 				try {
 					var factory = new actions.ActionFactory();
 					var mockModel = {};
 					mockModel.rel = null;
-					factory.createLink(null, mockModel);
+					factory.createActions(null, mockModel);
 				} catch(e) {
 					thrown = e;
 				}
 				expect(thrown.constructor).toBe(String);
 				expect(thrown).toBe('Precondition failed:  No model.rel');
 			});
-			it('Default GETLink should be creted if createLink is called with empty rel',function(){
+			it('creates a ViewAction if called with empty rel',function(){
 				var factory = new actions.ActionFactory();
 				var mockModel = {};
 				mockModel.href = 'root';
 				mockModel.rel = '';
-				var link = factory.createLink(null, mockModel);
-				expect(link).not.toBe(null);
-				expect(link.constructor).toBe(actions.ViewAction);
+				var action = factory.createActions(null, mockModel);
+				expect(action).not.toBe(null);
+				expect(action.constructor).toBe(actions.ViewAction);
+			});
+			it('creates a RefreshAction if called with an Action object instead of a link model',function(){
+				var factory = new actions.ActionFactory();
+				var mockView = new views.View();
+				var mockAction = new actions.ViewAction(mockView, {rel: 'self', href: 'linkToSomewhere'});
+				var action = factory.createActions(null, mockAction);
+				expect(action).not.toBe(null);
+				expect(action.constructor).toBe(actions.RefreshAction);
 			});
 		});
 	

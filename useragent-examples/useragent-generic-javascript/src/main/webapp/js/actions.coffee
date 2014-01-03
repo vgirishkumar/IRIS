@@ -10,7 +10,9 @@ define 'cs!actions', ['exports', 'cs!views'], (exports, views) ->
       if this not instanceof ActionFactory
         throw 'Remember to use new on constructors!'
       
-    createLink: (currentView, linkModel) ->
+    createActions: (currentView, linkModel) ->
+      if linkModel instanceof Action
+      	return new RefreshAction(currentView, linkModel.model)
       if linkModel == null
         throw "Precondition failed:  No model"
       if linkModel.rel == null
@@ -80,33 +82,6 @@ define 'cs!actions', ['exports', 'cs!views'], (exports, views) ->
         error: @errorHandler
       }
 
-    triggerXML: =>
-      $.ajax {
-        headers: { 
-            Accept : "application/hal+xml; charset=utf-8"
-            "Content-Type" : "application/hal+xml; charset=utf-8"
-        }
-        url: @model.href,
-        data: @model.body,
-        type: @model.method,
-        contentType: @model.consumes,
-        success: @successHandler,
-        error: @errorHandler
-      }
-
-    triggerJSON: =>
-      $.ajax {
-        headers: { 
-            Accept : "application/hal+json; charset=utf-8"
-            "Content-Type" : "application/hal+json; charset=utf-8"
-        }
-        url: @model.href,
-        data: @model.body,
-        type: @model.method,
-        contentType: @model.consumes,
-        success: @successHandler,
-        error: @errorHandler
-      }
 
 
 #
@@ -118,7 +93,23 @@ define 'cs!actions', ['exports', 'cs!views'], (exports, views) ->
       super(currentView, linkModel, 'GET')
       if this not instanceof ViewAction
         throw 'Remember to use new on constructors!'
-      @successHandler = (model, textStatus, jqXHR) => new views.ResourceView(this)
+      @successHandler = (model, textStatus, jqXHR) => new views.ResourceView(this).render(model, textStatus, jqXHR)
+
+    # overrides the default implementation of Link#clicked()
+    clicked: () ->
+      return true
+
+
+#
+# A RefreshAction is constructed with a link to a 'self' resource to view; successHandler is the current view.
+#
+  class RefreshAction extends Action
+  
+    constructor: (currentView,  linkModel) ->
+      super(currentView, linkModel, 'GET')
+      if this not instanceof RefreshAction
+        throw 'Remember to use new on constructors!'
+      @successHandler = (model, textStatus, jqXHR) => currentView.render(model, textStatus, jqXHR)
 
     # overrides the default implementation of Link#clicked()
     clicked: () ->
@@ -129,4 +120,5 @@ define 'cs!actions', ['exports', 'cs!views'], (exports, views) ->
   exports.ActionFactory = ActionFactory
   exports.Action = Action
   exports.ViewAction = ViewAction
+  exports.RefreshAction = RefreshAction
   return

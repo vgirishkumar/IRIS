@@ -18,19 +18,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-var require = {
-//	CoffeeScript: {bare: true, runtime:'inline'},
-//    baseUrl: "js",
-    paths: {
-        "cs": "vendor/cs",
-        "coffee-script": "vendor/coffee-script",
-        "underscore": "vendor/underscore-1.2.2.min",
-        "jquery": "vendor/jquery-1.8.3"
-    },
-    shim: {
-        underscore: {
-          exports: '_'
-        }
-    },
-    waitSeconds: 15
-};
+define(['jquery', 'cs!actions'], function($, actions){
+
+	describe('the RefreshAction object TestCase',function(){
+		
+		// initialise environment for tests
+		beforeEach(function() {
+	
+		});
+		
+		// Clean it up after each spec
+		afterEach(function() {
+	
+		});
+			
+		//Specs
+		describe('instantiation',function() {
+			it('throws an exception if you forget "new"',function(){
+				var thrown = null;
+				var oops = null;
+				try {
+					oops = actions.RefreshAction();
+				} catch(e) {
+					thrown = e;
+				}
+				expect(oops).toBe(null);
+				expect(thrown).toBe('Remember to use new on constructors!');
+			});
+		});
+	
+		//Specs
+	
+		
+	});  // end describe
+});  // end define

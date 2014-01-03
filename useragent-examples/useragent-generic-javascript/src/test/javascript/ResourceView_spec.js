@@ -19,7 +19,7 @@
  * #L%
  */
 // Load and describe tests.
-define(['cs!views'], function(views){
+define(['jquery', 'cs!views', 'cs!actions'], function($, views, actions){
 	describe('the ResourceView object TestCase',function(){
 		
 		var rootId = 'testContainer';
@@ -53,14 +53,27 @@ define(['cs!views'], function(views){
 		});
 	
 		//Specs
-	
+		describe('Rendering',function() {
+			it('is able to render the view with null model',function(){
+				var entryPoint = document.createElement('div');
+				entryPoint.setAttribute("id", "entry-point-wrapper");
+				appendToContainer(entryPoint);
+
+			    factory = new actions.ActionFactory();
+			    action = factory.createActions(null, {rel: 'self', href: 'api/', method: 'GET'});
+			    view = new views.ResourceView(action, '#entry-point-wrapper');
+			    view.render();
+
+				expect(entryPoint).toContainHtml('<span class="title">Entry point</span>');
+			});
+		});
 		
 		
 		// private convenience methods
-//		var appendToContainer = function(element) {
-//			var container = document.getElementById(rootId);
-//			container.appendChild(element);		
-//		}
+		var appendToContainer = function(element) {
+			var container = document.getElementById(rootId);
+			container.appendChild(element);		
+		};
 	
 	});  // end describe
 });  // end define

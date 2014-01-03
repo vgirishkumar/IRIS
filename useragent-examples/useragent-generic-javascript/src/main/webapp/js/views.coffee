@@ -7,6 +7,7 @@ define 'cs!views', ['exports', 'jquery', 'underscore', 'cs!actions'], (exports, 
     constructor: (@target) ->
       if this not instanceof View
         throw 'Remember to use new on constructors!'
+      @factory = new actions.ActionFactory()
 
     clear: (selector = @target) => $(selector).empty()
 
@@ -25,8 +26,7 @@ define 'cs!views', ['exports', 'jquery', 'underscore', 'cs!actions'], (exports, 
       if model instanceof actions.Action
       	result = model
       else
-        factory = new actions.ActionFactory()
-        result = factory.createLink(resource, model)
+        result = @factory.createActions(resource, model)
       return result
 
     #
@@ -78,17 +78,6 @@ define 'cs!views', ['exports', 'jquery', 'underscore', 'cs!actions'], (exports, 
         p.append @createValue value
       p
 
-    getLink: (resource, linkModel, data) =>
-      if (!linkModel.method?)
-        if (linkModel.href.substring(0,4) == "http")
-          linkModel.method = "GET"
-        else
-          elements = linkModel.href.split(" ")
-          linkModel.method = elements[0]
-          linkModel.href = elements[1]
-      linkModel.body = data
-      @commitLink = @createLink(resource, linkModel)
-
 
 
 #
@@ -101,13 +90,14 @@ define 'cs!views', ['exports', 'jquery', 'underscore', 'cs!actions'], (exports, 
       super target
       if this not instanceof ResourceView
         throw 'Remember to use new on constructors!'
-      @selfLink = @createLink(this, selfLink)
-      @selfLink.successHandler = @render
+      @selfLink = selfLink
+#      @selfLink.successHandler = @render
       # fetch and display this resource view
-      @selfLink.trigger()
+ #     @selfLink.trigger()
 
     refresh: =>
-      @selfLink.trigger()
+      # creates a RefreshAction
+      @factory.createActions(this, @selfLink).trigger();
   
     render: (@model, textStatus, jqXHR) =>
       @clear()
@@ -153,12 +143,13 @@ define 'cs!views', ['exports', 'jquery', 'underscore', 'cs!actions'], (exports, 
       div = @createDiv clazz
       ol = @createOl('nav-bar').appendTo div
   
-      for rel, relModel of model._links
-        if (relModel.length)
-          _.each relModel, (linkModel) =>
-            @renderLink(model, ol, isListItem, isNav, linkModel)
-        else
-          @renderLink(model, ol, isListItem, isNav, relModel)
+      if model? and model._links? and model._links
+        for rel, relModel of model._links
+          if (relModel.length)
+            _.each relModel, (linkModel) =>
+              @renderLink(model, ol, isListItem, isNav, linkModel)
+          else
+            @renderLink(model, ol, isListItem, isNav, relModel)
   
       # render the Json link
       if isNav && not @isEntryPoint()
@@ -168,14 +159,6 @@ define 'cs!views', ['exports', 'jquery', 'underscore', 'cs!actions'], (exports, 
       div
       
     renderLink : (model, ol, isListItem, isNav, linkModel) =>
-      if (!linkModel.method?)
-        if (linkModel.href.substring(0,4) == "http")
-          linkModel.method = "GET"
-        else
-          elements = linkModel.href.split(" ")
-          linkModel.method = elements[0]
-          linkModel.href = elements[1]
-  
       console.log("rel: " + linkModel.name + ", href: " + linkModel.href + ", method: " + linkModel.method)
       if @isEntryPoint()
         ol.append @createLi('nav-bar-item').append @createLink(this, linkModel).hyperLink
