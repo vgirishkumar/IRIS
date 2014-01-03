@@ -19,8 +19,8 @@
  * #L%
  */
 // Load test target and describe tests.
-define(['cs!CRUDLinkFactory', 'cs!GETLink'], function(CRUDLinkFactory, GETLink){
-	describe('the CRUDLinkFactory object TestCase',function(){
+define(['cs!actions'], function(actions){
+	describe('the ActionFactory object TestCase',function(){
 		
 		// Run before our tests
 		beforeEach(function() {
@@ -36,7 +36,7 @@ define(['cs!CRUDLinkFactory', 'cs!GETLink'], function(CRUDLinkFactory, GETLink){
 				var thrown = null;
 				var oops = null;
 				try {
-					oops = CRUDLinkFactory.CRUDLinkFactory();
+					oops = actions.ActionFactory();
 				} catch(e) {
 					thrown = e;
 				}
@@ -50,8 +50,8 @@ define(['cs!CRUDLinkFactory', 'cs!GETLink'], function(CRUDLinkFactory, GETLink){
 			it('throws an exception if the createLink is called with no model',function(){
 				var thrown = null;
 				try {
-					var linkFactory = new CRUDLinkFactory.CRUDLinkFactory();
-					linkFactory.createLink(null, null);
+					var factory = new actions.ActionFactory();
+					factory.createLink(null, null);
 				} catch(e) {
 					thrown = e;
 				}
@@ -61,10 +61,10 @@ define(['cs!CRUDLinkFactory', 'cs!GETLink'], function(CRUDLinkFactory, GETLink){
 			it('throws an exception if the createLink is called with no rel',function(){
 				var thrown = null;
 				try {
-					var linkFactory = new CRUDLinkFactory.CRUDLinkFactory();
+					var factory = new actions.ActionFactory();
 					var mockModel = {};
 					mockModel.rel = null;
-					linkFactory.createLink(null, mockModel);
+					factory.createLink(null, mockModel);
 				} catch(e) {
 					thrown = e;
 				}
@@ -72,13 +72,13 @@ define(['cs!CRUDLinkFactory', 'cs!GETLink'], function(CRUDLinkFactory, GETLink){
 				expect(thrown).toBe('Precondition failed:  No model.rel');
 			});
 			it('Default GETLink should be creted if createLink is called with empty rel',function(){
-				var linkFactory = new CRUDLinkFactory.CRUDLinkFactory();
+				var factory = new actions.ActionFactory();
 				var mockModel = {};
 				mockModel.href = 'root';
 				mockModel.rel = '';
-				var link = linkFactory.createLink(null, mockModel);
+				var link = factory.createLink(null, mockModel);
 				expect(link).not.toBe(null);
-				expect(link.constructor).toBe(GETLink.GETLink);
+				expect(link.constructor).toBe(actions.ViewAction);
 			});
 		});
 	

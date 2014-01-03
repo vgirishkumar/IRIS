@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-define([ 'jquery', 'cs!View', 'cs!GETLink' ], function( $, View, GETLink ){
+define([ 'jquery', 'cs!views', 'cs!actions' ], function( $, views, actions ){
 
 	describe('the View object TestCase',function(){
 		
@@ -43,7 +43,7 @@ define([ 'jquery', 'cs!View', 'cs!GETLink' ], function( $, View, GETLink ){
 				var thrown = null;
 				var oops = null;
 				try {
-					oops = View.View(rootId);
+					oops = views.View(rootId);
 				} catch(e) {
 					thrown = e;
 				}
@@ -55,14 +55,14 @@ define([ 'jquery', 'cs!View', 'cs!GETLink' ], function( $, View, GETLink ){
 		//Specs
 		describe('Test createLink',function() {
 			it('Create a new link with a model',function(){
-				view = new View.View(rootId);
+				view = new views.View(rootId);
 				mockModel = {rel: 'self', href: 'linkToSomewhere'};
 				link = view.createLink(null, mockModel);
 				expect(link).not.toBe(mockModel);
 			});
 			it('Create a new link with a Link object',function(){
-				view = new View.View(rootId);
-				mockLink = new GETLink.GETLink(null, {rel: 'self', href: 'linkToSomewhere'});
+				view = new views.View(rootId);
+				mockLink = new actions.ViewAction(null, {rel: 'self', href: 'linkToSomewhere'});
 				link = view.createLink(null, mockLink);
 				expect(link).toBe(mockLink);
 			});

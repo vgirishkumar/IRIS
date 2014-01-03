@@ -18,9 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-define([ 'cs!Link' ], function( Link ){
+define([ 'cs!actions' ], function( actions ){
 
-	describe('the Link object TestCase',function(){
+	describe('the Action object TestCase',function(){
 		
 		// initialise environment for tests
 		beforeEach(function() {
@@ -38,18 +38,18 @@ define([ 'cs!Link' ], function( Link ){
 				var thrown = null;
 				var oops = null;
 				try {
-					oops = Link.Link();
+					oops = actions.Action();
 				} catch(e) {
 					thrown = e;
 				}
 				expect(oops).toBe(null);
 				expect(thrown).toBe('Remember to use new on constructors!');
 			});
-			it('throws an exception if the link is constructed with no model',function(){
+			it('throws an exception if the action is constructed with no model',function(){
 				var thrown = null;
 				var link = null;
 				try {
-					link = new Link.Link(null, null);
+					link = new actions.Action(null, null);
 				} catch(e) {
 					thrown = e;
 				}
@@ -57,13 +57,13 @@ define([ 'cs!Link' ], function( Link ){
 				expect(thrown.constructor).toBe(String);
 				expect(thrown).toBe('Precondition failed:  No model');
 			});
-			it('throws an exception if the link is constructed with no href',function(){
+			it('throws an exception if the action is constructed with no href',function(){
 				var thrown = null;
 				var link = null;
 				try {
 					var mockModel = {};
 					mockModel.href = null;
-					link = new Link.Link(null, mockModel);
+					link = new actions.Action(null, mockModel);
 				} catch(e) {
 					thrown = e;
 				}
@@ -71,12 +71,12 @@ define([ 'cs!Link' ], function( Link ){
 				expect(thrown.constructor).toBe(String);
 				expect(thrown).toBe('Precondition failed:  No model.href');
 			});
-			it('throws an exception if the link is constructed with href undefined',function(){
+			it('throws an exception if the action is constructed with href undefined',function(){
 				var thrown = null;
 				var link = null;
 				try {
 					var mockModel = {};
-					link = new Link.Link(null, mockModel);
+					link = new actions.Action(null, mockModel);
 				} catch(e) {
 					thrown = e;
 				}
@@ -84,14 +84,14 @@ define([ 'cs!Link' ], function( Link ){
 				expect(thrown.constructor).toBe(String);
 				expect(thrown).toBe('Precondition failed:  No model.href');
 			});
-			it('throws an exception if the link is constructed with no method',function(){
+			it('throws an exception if the action is constructed with no method',function(){
 				var thrown = null;
 				var link = null;
 				try {
 					var mockModel = {};
 					mockModel.href = 'root';
 					mockModel.method = null;
-					link = new Link.Link(null, mockModel);
+					link = new actions.Action(null, mockModel);
 				} catch(e) {
 					thrown = e;
 				}
@@ -99,13 +99,13 @@ define([ 'cs!Link' ], function( Link ){
 				expect(thrown.constructor).toBe(String);
 				expect(thrown).toBe('Precondition failed:  No model.method');
 			});
-			it('throws an exception if the link is constructed with method undefined',function(){
+			it('throws an exception if the action is constructed with method undefined',function(){
 				var thrown = null;
 				var link = null;
 				try {
 					var mockModel = {};
 					mockModel.href = 'root';
-					link = new Link.Link(null, mockModel);
+					link = new actions.Action(null, mockModel);
 				} catch(e) {
 					thrown = e;
 				}
@@ -121,7 +121,7 @@ define([ 'cs!Link' ], function( Link ){
 				var mockModel = {};
 				mockModel.href = 'root';
 				mockModel.name = 'Fish';
-				var link = new Link.Link(null, mockModel, 'GET');
+				var link = new actions.Action(null, mockModel, 'GET');
 				expect(link).not.toBe(null);
 				expect(link.hyperLink.text()).toBe('GET-Fish');
 			});
@@ -129,14 +129,14 @@ define([ 'cs!Link' ], function( Link ){
 				var mockModel = {};
 				mockModel.href = 'root';
 				mockModel.name = null;
-				var link = new Link.Link(null, mockModel, 'GET');
+				var link = new actions.Action(null, mockModel, 'GET');
 				expect(link).not.toBe(null);
 				expect(link.hyperLink.text()).toBe('GET-root');
 			});
 			it('Use href in anchor text if model.name is undefined',function(){
 				var mockModel = {};
 				mockModel.href = 'root';
-				var link = new Link.Link(null, mockModel, 'GET');
+				var link = new actions.Action(null, mockModel, 'GET');
 				expect(link).not.toBe(null);
 				expect(link.hyperLink.text()).toBe('GET-root');
 			});
@@ -145,7 +145,7 @@ define([ 'cs!Link' ], function( Link ){
 			it('Must override clicked',function(){
 				var mockModel = {};
 				mockModel.href = 'root';
-				var link = new Link.Link(null, mockModel, 'GET');
+				var link = new actions.Action(null, mockModel, 'GET');
 				var thrown = null;
 				try {
 					link.hyperLink.click();
@@ -160,7 +160,7 @@ define([ 'cs!Link' ], function( Link ){
 			it('Must provide successHandler',function(){
 				var mockModel = {};
 				mockModel.href = 'root';
-				var link = new Link.Link(null, mockModel, 'GET');
+				var link = new actions.Action(null, mockModel, 'GET');
 				var thrown = null;
 				try {
 					link.trigger();
@@ -173,7 +173,7 @@ define([ 'cs!Link' ], function( Link ){
 			it('No call to trigger if clicked returns false',function(){
 				var mockModel = {};
 				mockModel.href = 'root';
-				var link = new Link.Link(null, mockModel, 'GET');
+				var link = new actions.Action(null, mockModel, 'GET');
 				spyOn(link, "clicked").andCallFake(function() {
 			        return false;
 			    });

@@ -19,7 +19,7 @@
  * #L%
  */
 // Load and describe tests.
-define(['cs!ResourceView'], function(ResourceView){
+define(['cs!views'], function(views){
 	describe('the ResourceView object TestCase',function(){
 		
 		var rootId = 'testContainer';
@@ -43,7 +43,7 @@ define(['cs!ResourceView'], function(ResourceView){
 				var thrown = null;
 				var oops = null;
 				try {
-					oops = ResourceView.ResourceView({rel: 'self', href: 'api/', method: 'GET'}, rootId);
+					oops = views.ResourceView({rel: 'self', href: 'api/', method: 'GET'}, rootId);
 				} catch(e) {
 					thrown = e;
 				}

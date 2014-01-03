@@ -18,9 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-define(['jquery', 'cs!GETLink'], function($, GETLink){
+define(['jquery', 'cs!actions'], function($, actions){
 
-	describe('the GETLink object TestCase',function(){
+	describe('the ViewAction object TestCase',function(){
 		
 		// initialise environment for tests
 		beforeEach(function() {
@@ -38,7 +38,7 @@ define(['jquery', 'cs!GETLink'], function($, GETLink){
 				var thrown = null;
 				var oops = null;
 				try {
-					oops = GETLink.GETLink();
+					oops = actions.ViewAction();
 				} catch(e) {
 					thrown = e;
 				}
@@ -52,7 +52,7 @@ define(['jquery', 'cs!GETLink'], function($, GETLink){
 			it('Must override clicked',function(){
 				var mockLinkModel = {};
 				mockLinkModel.href = 'root';
-				var link = new GETLink.GETLink(null, mockLinkModel);
+				var link = new actions.ViewAction(null, mockLinkModel);
 				spyOn($, "ajax").andCallFake(function(options) {
 					var mockResourceModel = {};
 					var jqXHR = {};

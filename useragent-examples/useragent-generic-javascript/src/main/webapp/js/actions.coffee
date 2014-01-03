@@ -1,15 +1,38 @@
-#
-# A Link object constructs the appropriate HTML to handle different types of
-# links supplied by the server.  It uses the 'href' from the model as the target 
-# and the 'rel' to work out what to do.  A call to getHyperLink builds the HTML
-# anchor.
-#
-define 'cs!Link', ['exports', 'jquery'], (exports, $) ->
+define 'cs!actions', ['exports', 'cs!views'], (exports, views) ->
 
-  class Link
+#
+# This ActionFactory understands a few link relations related to CRUD operations
+# and will create the appropriate actions for the supplied link model, using 'rel'
+# to work out what to do
+#
+  class ActionFactory
+    constructor: () ->
+      if this not instanceof ActionFactory
+        throw 'Remember to use new on constructors!'
+      
+    createLink: (currentView, linkModel) ->
+      if linkModel == null
+        throw "Precondition failed:  No model"
+      if linkModel.rel == null
+        throw "Precondition failed:  No model.rel"
+  	  
+      switch linkModel.rel
+        when 'edit'
+        else
+          return new ViewAction(currentView, linkModel)
+
+
+
+#
+# A Action object is an abstract class to help construct the appropriate HTML to 
+# handle different types of links supplied by the server.  It uses the 'href' from 
+# the model as the target; a call to getHyperLink builds the HTML anchor for use
+# in a View.
+#
+  class Action
 
     constructor: (@currentView,  @model, method) ->
-      if this not instanceof Link
+      if this not instanceof Action
         throw 'Remember to use new on constructors!'
       if @model == null
         throw "Precondition failed:  No model"
@@ -85,5 +108,25 @@ define 'cs!Link', ['exports', 'jquery'], (exports, $) ->
         error: @errorHandler
       }
 
-  exports.Link = Link
+
+#
+# A ViewAction is constructed with a link to a resource to view.
+#
+  class ViewAction extends Action
+  
+    constructor: (currentView,  linkModel) ->
+      super(currentView, linkModel, 'GET')
+      if this not instanceof ViewAction
+        throw 'Remember to use new on constructors!'
+      @successHandler = (model, textStatus, jqXHR) => new views.ResourceView(this)
+
+    # overrides the default implementation of Link#clicked()
+    clicked: () ->
+      return true
+
+
+
+  exports.ActionFactory = ActionFactory
+  exports.Action = Action
+  exports.ViewAction = ViewAction
   return
