@@ -24,6 +24,7 @@
 		<dependency>
 			<groupId>org.odata4j</groupId>
 			<artifactId>odata4j-jersey</artifactId>
+			<scope>provided</scope>
 		</dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
