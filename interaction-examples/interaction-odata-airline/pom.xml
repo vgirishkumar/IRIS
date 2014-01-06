@@ -206,7 +206,9 @@
   <profiles>
 	<!-- Skip integration-test phase - activate with '-Ddebug' -->
   	<profile>
+        <id>debug</id>
   		<activation>
+    		<activeByDefault>false</activeByDefault>
   			<property>
   				<name>debug</name>
   			</property>
