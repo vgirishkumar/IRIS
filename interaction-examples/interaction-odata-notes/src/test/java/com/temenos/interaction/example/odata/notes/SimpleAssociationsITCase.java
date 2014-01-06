@@ -96,9 +96,10 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		assertEquals(1, (int) id);
 		assertEquals("example", note.getProperty("body").getValue());
 
-		// there should be one link to one Person for this Note
-		assertEquals(1, note.getLinks().size());
+		// there should be one link to one Person for this Note, plus update/delete links
+		assertEquals(3, note.getLinks().size());
 		assertTrue(containsLink(note.getLinks(), "Notes(1)/NotePerson", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
+		assertTrue(containsLink(note.getLinks(), "Notes(1)", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Note edit"));
 	}
 
 	/**
@@ -203,8 +204,9 @@ public class SimpleAssociationsITCase extends JerseyTest {
 		Integer noteId = (Integer) note.getProperty("id").getValue();
 		assertTrue(noteId > 0);
 		assertEquals("test", note.getProperty("body").getValue());
-		assertEquals(2, note.getLinks().size());
+		assertEquals(4, note.getLinks().size());
 		assertTrue(containsLink(note.getLinks(), "Notes(" + noteId + ")", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Note"));
+		assertTrue(containsLink(note.getLinks(), "Notes(" + noteId + ")", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Note edit"));
 		assertTrue(containsLink(note.getLinks(), "Notes(" + noteId + ")/NotePerson", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
 		assertEquals(2, person.getLinks().size());
 		assertTrue(containsLink(person.getLinks(), "Persons(" + id + ")", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Person"));
