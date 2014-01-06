@@ -140,9 +140,6 @@
 	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="GETEntityWithEtag" class="com.interaction.example.odata.airline.commands.GETEntityWithEtagCommand">
-		<constructor-arg name="getEntityCommand" ref="GETEntity" />
-	</bean>
 	
 	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
@@ -156,15 +153,9 @@
 	<bean id="UpdateEntity" class="com.temenos.interaction.commands.odata.UpdateEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="UpdateEntityWithEtag" class="com.interaction.example.odata.airline.commands.UpdateEntityWithEtagCommand">
-		<constructor-arg name="updateEntityCommand" ref="UpdateEntity" />
-		<constructor-arg name="getEntityCommand" ref="GETEntityWithEtag" />
-	</bean>
 	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="GETGenericErrorCommand" class="com.interaction.example.odata.airline.commands.GETGenericErrorCommand" />
-	<bean id="ThrowInteractionExceptionCommand" class="com.interaction.example.odata.airline.commands.ThrowInteractionExceptionCommand" />
 	<bean id="NoopGETCommand" class="com.temenos.interaction.core.command.NoopGETCommand" />
 	<bean id="GETExceptionCommand" class="com.temenos.interaction.core.command.GETExceptionCommand" />
 
@@ -176,16 +167,12 @@
 				<entry key="GETMetadata" value-ref="GETMetadata" />
 				<entry key="GETException" value-ref="GETExceptionCommand" />
 				<entry key="GETEntity" value-ref="GETEntity" />
-				<entry key="GETEntityWithEtag" value-ref="GETEntityWithEtag" />
 				<entry key="GETEntities" value-ref="GETEntities" />
 				<entry key="GETNavProperty" value-ref="GETNavProperty" />
 				<entry key="CreateEntity" value-ref="CreateEntity" />
 				<entry key="UpdateEntity" value-ref="UpdateEntity" />
-				<entry key="UpdateEntityWithEtag" value-ref="UpdateEntityWithEtag" />
 				<entry key="DeleteEntity" value-ref="DeleteEntity" />
 				<entry key="NoopGET" value-ref="NoopGETCommand" />
-				<entry key="GETGenericErrorCommand" value-ref="GETGenericErrorCommand" />
-				<entry key="ThrowInteractionExceptionCommand" value-ref="ThrowInteractionExceptionCommand" />
  			</util:map> 
 		</constructor-arg>
 	</bean>

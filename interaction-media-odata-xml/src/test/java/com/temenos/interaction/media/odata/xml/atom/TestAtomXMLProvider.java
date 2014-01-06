@@ -138,11 +138,11 @@ public class TestAtomXMLProvider {
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
-			super(edmDataServices, mock(Metadata.class), mock(ResourceStateMachine.class), new OEntityTransformer());
+			super(edmDataServices, mock(Metadata.class), mock(ResourceStateMachine.class), null);
 		}
 		public MockAtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata) {
 			//super(null, metadata, new EntityTransformer());
-			super(edmDataServices, metadata, mock(ResourceStateMachine.class), new OEntityTransformer());
+			super(edmDataServices, metadata, mock(ResourceStateMachine.class), null);
 		}
 		public void setUriInfo(UriInfo uriInfo) {
 			super.setUriInfo(uriInfo);

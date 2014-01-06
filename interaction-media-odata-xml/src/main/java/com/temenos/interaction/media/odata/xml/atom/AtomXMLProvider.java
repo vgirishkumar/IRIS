@@ -104,7 +104,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private final EdmDataServices edmDataServices;
 	private final Metadata metadata;
 	private final ResourceStateMachine hypermediaEngine;
-//	private final Transformer transformer;
+	private final Transformer transformer;
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
@@ -124,7 +124,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		assert(edmDataServices != null);
 		assert(metadata != null);
 		assert(hypermediaEngine != null);
-
+		this.transformer = transformer;
 		entryWriter = new AtomEntryFormatWriter();
 		feedWriter = new AtomFeedFormatWriter(edmDataServices);
 	}
@@ -210,7 +210,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				String entityName = entityResource.getEntityName();
 				EntityProperties props = new EntityProperties();
 				if(entity != null) {
-					Map<String, Object> objProps = new BeanTransformer().transform(entity);
+					Map<String, Object> objProps = (transformer != null ? transformer : new BeanTransformer()).transform(entity);
 					for(String propName : objProps.keySet()) {
 						props.setProperty(new EntityProperty(propName, objProps.get(propName)));
 					}
