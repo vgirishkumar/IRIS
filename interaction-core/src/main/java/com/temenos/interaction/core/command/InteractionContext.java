@@ -22,6 +22,7 @@ package com.temenos.interaction.core.command;
  */
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.rim.AcceptLanguageHeaderParser;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 
 /**
@@ -64,6 +66,7 @@ public class InteractionContext {
 	private RESTResource resource;
 	private Map<String, Object> attributes = new HashMap<String, Object>();
 	private String preconditionIfMatch = null;
+	private List<String> preferredLanguages = new ArrayList<String>();
 
 	/**
 	 * Construct the context for execution of an interaction.
@@ -245,5 +248,21 @@ public class InteractionContext {
 	 */
 	public void setPreconditionIfMatch(String preconditionIfMatch) {
 		this.preconditionIfMatch = preconditionIfMatch;
+	}
+	
+	/**
+	 * Sets the http header AcceptLanguage value to the context.
+	 * @param acceptLanguageValue
+	 */
+	public void setAcceptLanguage(String acceptLanguageValue) {
+		preferredLanguages = new AcceptLanguageHeaderParser(acceptLanguageValue).getLanguageCodes();
+	}
+	
+	/**
+	 * Returns the list of language codes in the order of their preference.
+	 * @return language codes
+	 */
+	public List<String> getLanguagePreference(){
+		return preferredLanguages;
 	}
 }
