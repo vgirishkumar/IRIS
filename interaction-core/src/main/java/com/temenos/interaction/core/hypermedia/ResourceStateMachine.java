@@ -130,11 +130,13 @@ public class ResourceStateMachine {
 	public ResourceState determineState(Event event, String resourcePath) {
 		ResourceState state = null;
 		Set<ResourceState> resourceStates = getResourceStatesByPath().get(resourcePath);
-		for (ResourceState s : resourceStates) {
-			Set<String> interactions = getInteractionByState().get(s);
-			if (interactions.contains(event.getMethod())) {
-				if(state == null || interactions.size() == 1 || !event.getMethod().equals("GET")) {		//Avoid overriding existing view actions
-					state = s;
+		if (resourceStates != null) {
+			for (ResourceState s : resourceStates) {
+				Set<String> interactions = getInteractionByState().get(s);
+				if (interactions.contains(event.getMethod())) {
+					if(state == null || interactions.size() == 1 || !event.getMethod().equals("GET")) {		//Avoid overriding existing view actions
+						state = s;
+					}
 				}
 			}
 		}

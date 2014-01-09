@@ -1,10 +1,10 @@
-package RestbucksModel;
+package com.interaction.example.hateoas.restbucks;
 
 /*
  * #%L
- * interaction-example-hateoas-restbucks
+ * interaction-example-odata-airline
  * %%
- * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,26 +22,8 @@ package RestbucksModel;
  */
 
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+public interface Configuration {
 
-@Entity
-@SuppressWarnings("unused")
-public class Payment {
+	public static final String TEST_ENDPOINT_URI = "http://localhost:8080/example/interaction-hateoas-restbucks.svc/";
 
-	@Id
-	@Basic(optional = false)
-	private Integer Id;
-
-	private String authorisationCode;
-	@JoinColumn(name = "Id", referencedColumnName = "Id", insertable = false, updatable = false)
-	@ManyToOne(optional = false)
-	private Order Order;
-
-
-	public Payment() {
-	}
 }

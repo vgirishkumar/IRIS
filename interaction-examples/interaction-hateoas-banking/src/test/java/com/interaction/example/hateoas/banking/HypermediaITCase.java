@@ -189,7 +189,7 @@ public class HypermediaITCase extends JerseyTest {
 	@Test
 	public void putMethodNotAllowed() throws Exception {
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation r = representationFactory.newRepresentation("/fundtransfers/123");
+		ReadableRepresentation r = representationFactory.newRepresentation("/fundtransfers");
 		String halRequest = r.toString(RepresentationFactory.HAL_XML);
 		
 		// attempt to put to the notes collection, rather than an individual

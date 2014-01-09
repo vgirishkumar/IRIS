@@ -101,6 +101,7 @@ resource OrderCreated {
 	type: item
 	entity: Order
 	actions [ CreateEntity ]
+	relations [ "http://relations.restbucks.com/order" ]
 	path: "/Orders()"
 	GET --> order {
 		condition: OK(order)

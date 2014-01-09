@@ -61,9 +61,8 @@ public class HypermediaITCase extends JerseyTest {
 	
 	@Before
 	public void initTest() {
-		// TODO make this configurable
-		// test with external server 
-    	webResource = Client.create().resource(Configuration.TEST_ENDPOINT_URI); 
+		// -DTEST_ENDPOINT_URI={someurl} to test with external server 
+    	webResource = Client.create().resource(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)); 
 	}
 
 	@After
@@ -310,13 +309,24 @@ public class HypermediaITCase extends JerseyTest {
 	}
 
 	/**
-	 * Attempt a PUT an invalid notes resource (a collection resource)
+	 * Attempt a PUT to the notes collection resource (method not allowed)
 	 */
 	@Test
-	public void putPersonBadRequest() throws Exception {
+	public void putNoteToCollection() throws Exception {
 		String halRequest = "{}";
 		// attempt to put to the notes collection, rather than an individual
 		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
+        assertEquals(405, response.getStatus());
+	}
+
+	/**
+	 * Attempt a PUT an invalid notes resource (a collection resource)
+	 */
+	@Test
+	public void putNoteBadRequest() throws Exception {
+		String halRequest = "{{";
+		// attempt to put to the notes collection, rather than an individual
+		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON).post(ClientResponse.class, halRequest);
         assertEquals(400, response.getStatus());
 	}
 
