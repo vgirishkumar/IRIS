@@ -47,6 +47,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
@@ -65,6 +66,7 @@ import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -75,6 +77,7 @@ import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.Representation;
+import com.theoryinpractise.halbuilder.api.RepresentationException;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
 import com.theoryinpractise.halbuilder.standard.StandardRepresentationFactory;
 
@@ -86,6 +89,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 
 	@Context
 	private UriInfo uriInfo;
+	@Context
+	private Request requestContext;
 	private Metadata metadata = null;
 	private ResourceStateMachine hypermediaEngine;
 	
@@ -234,9 +239,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
 						for (Link el : er.getLinks()) {
 							String itemHref = el.getHref();
-							// don't add links twice, this break the client assertion of one rel per link (which seems wrong)
-//							List<com.theoryinpractise.halbuilder.api.Link> selfLinks = subResource.getLinksByRel("self");
-//							assert(selfLinks != null && selfLinks.size() == 1);
+							/*
+							don't add links twice, this break the client assertion of one rel per link (which seems wrong)
+							List<com.theoryinpractise.halbuilder.api.Link> selfLinks = subResource.getLinksByRel("self");
+							assert(selfLinks != null && selfLinks.size() == 1);
+							*/
 							if (!itemSelfLink.equals(el)) {
 								subResource.withLink(el.getRel(), itemHref, el.getId(), el.getTitle(), null, null);
 							}
@@ -279,7 +286,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				// TODO this bit is a bit hacky.  The latest version of the HAL spec should not require us to find a 'self' link for the subresource
 				if (l.getRel().contains("self") ||
 						(l.getTransition() != null 
-						&& t.getCommand().getMethod().equals("GET")
+						&& (t.getCommand().getMethod() == null || t.getCommand().getMethod().equals("GET"))
 						&& t.getTarget().getEntityName().equals(t.getSource().getEntityName()))) {
 					selfLink = l;
 					break;
@@ -382,12 +389,27 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			String baseUri = uriInfo.getBaseUri().toASCIIString();
 			RepresentationFactory representationFactory = new StandardRepresentationFactory();
 			ReadableRepresentation halResource = representationFactory.readRepresentation(new InputStreamReader(entityStream));
-			if (halResource.getResourceLink() == null)
+			// assume the client providing the representation knows something we don't
+			String resourcePath = halResource.getResourceLink() != null ? halResource.getResourceLink().getHref() : null;
+			if (resourcePath == null) {
+				// work out the resource path from UriInfo
+				String path = uriInfo.getPath();
+				resourcePath = path;
+			}
+			logger.info("Reading HAL content for [" + resourcePath + "]");
+			if (resourcePath == null)
 				throw new IllegalStateException("No resource found");
-			// get the entity name
-			String resourcePath = halResource.getResourceLink().getHref();
-			if (resourcePath.length() > baseUri.length())
+			// trim the baseuri
+			if (resourcePath.length() > baseUri.length() && resourcePath.startsWith(baseUri))
 				resourcePath = resourcePath.substring(baseUri.length() - 1);
+			/*
+			 * add a leading '/' if it needs it (when defining resources we must use a 
+			 * full path, but requests can be relative, i.e. without a '/'
+			 */
+			if (!resourcePath.startsWith("/")) {
+				resourcePath = "/" + resourcePath;
+			}
+			// get the entity name
 			String entityName = getEntityName(resourcePath);
 			EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
 			if (entityMetadata == null)
@@ -402,6 +424,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				}
 			}
 			return new Entity(entityName, entityFields);
+		} catch (RepresentationException e) {
+			logger.warn("Malformed request from client", e);
+			throw new WebApplicationException(Status.BAD_REQUEST);
 		} catch (IllegalStateException e) {
 			logger.warn("Malformed request from client", e);
 			throw new WebApplicationException(Status.BAD_REQUEST);
@@ -411,23 +436,40 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	private String getEntityName(String resourcePath) {
 		String entityName = null;
 		if (resourcePath != null) {
-			Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
-			for (String path : pathToResourceStates.keySet()) {
-				for (ResourceState s : pathToResourceStates.get(path)) {
-					String pathIdParameter = InteractionContext.DEFAULT_ID_PATH_ELEMENT;
-					if (s.getPathIdParameter() != null) {
-						pathIdParameter = s.getPathIdParameter();
+			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
+			if (pathParameters != null) {
+				for (String key : pathParameters.keySet()) {
+					List<String> values = pathParameters.get(key);
+					for (String value : values) {
+						resourcePath = resourcePath.replace(value, "{" + key + "}");
 					}
-					Matcher matcher = Pattern.compile("(.*)\\{" + pathIdParameter + "\\}(.*)").matcher(path);
-					if (matcher.find()) {
-						int groupCount = matcher.groupCount();
-						if ((groupCount == 1 && resourcePath.startsWith(matcher.group(1))) ||
-							(groupCount == 2 && resourcePath.startsWith(matcher.group(1)) && resourcePath.endsWith(matcher.group(2)))) {
+				}
+			}
+			String httpMethod = requestContext.getMethod();
+			Event event = new Event(httpMethod, httpMethod);
+			ResourceState state = hypermediaEngine.determineState(event, resourcePath);
+			if (state != null) {
+				entityName = state.getEntityName();
+			} else {
+				logger.error("No state found, dropping back to path matching");
+				Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
+				for (String path : pathToResourceStates.keySet()) {
+					for (ResourceState s : pathToResourceStates.get(path)) {
+						String pathIdParameter = InteractionContext.DEFAULT_ID_PATH_ELEMENT;
+						if (s.getPathIdParameter() != null) {
+							pathIdParameter = s.getPathIdParameter();
+						}
+						Matcher matcher = Pattern.compile("(.*)\\{" + pathIdParameter + "\\}(.*)").matcher(path);
+						if (matcher.find()) {
+							int groupCount = matcher.groupCount();
+							if ((groupCount == 1 && resourcePath.startsWith(matcher.group(1))) ||
+								(groupCount == 2 && resourcePath.startsWith(matcher.group(1)) && resourcePath.endsWith(matcher.group(2)))) {
+								entityName = s.getEntityName();
+							}
+						}
+						if (entityName == null && path.startsWith(resourcePath)) {
 							entityName = s.getEntityName();
 						}
-					}
-					if (entityName == null && path.startsWith(resourcePath)) {
-						entityName = s.getEntityName();
 					}
 				}
 			}
@@ -438,6 +480,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	/* Ugly testing support :-( */
 	protected void setUriInfo(UriInfo uriInfo) {
 		this.uriInfo = uriInfo;
+	}
+	protected void setRequestContext(Request request) {
+		this.requestContext = request;
 	}
 
 	private Object getHalPropertyValue( EntityMetadata entityMetadata, String propertyName, Object halPropertyValue )
