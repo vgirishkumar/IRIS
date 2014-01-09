@@ -22,7 +22,9 @@ package com.temenos.interaction.rimdsl;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URL;
@@ -50,6 +52,9 @@ import com.temenos.interaction.rimdsl.rim.DomainDeclaration;
 import com.temenos.interaction.rimdsl.rim.DomainModel;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction;
 import com.temenos.interaction.rimdsl.rim.OKFunction;
+import com.temenos.interaction.rimdsl.rim.Relation;
+import com.temenos.interaction.rimdsl.rim.RelationConstant;
+import com.temenos.interaction.rimdsl.rim.RelationRef;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 import com.temenos.interaction.rimdsl.rim.State;
 import com.temenos.interaction.rimdsl.rim.Transition;
@@ -380,12 +385,62 @@ public class ParserTest {
 		State r1 = model.getStates().get(0);
 	    assertEquals("accTransactions", r1.getName());
 		assertEquals(2, r1.getRelations().size());
-		assertEquals("archives", r1.getRelations().get(0).getName());
-		assertEquals("http://www.temenos.com/statement-entries", r1.getRelations().get(1).getName());
+		assertEquals("archives", ((RelationConstant)r1.getRelations().get(0)).getName());
+		assertEquals("http://www.temenos.com/statement-entries", ((RelationConstant)r1.getRelations().get(1)).getName());
 		State r2 = model.getStates().get(1);
 	    assertEquals("accTransaction", r2.getName());
 		assertEquals(1, r2.getRelations().size());
-		assertEquals("edit", r2.getRelations().get(0).getName());
+		assertEquals("edit", ((RelationConstant)r2.getRelations().get(0)).getName());
+	}
+
+	private final static String GLOBAL_RESOURCE_RELATIONS_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"	command Update" + LINE_SEP +
+			
+			"	relation archiveRel {" + LINE_SEP +
+			"		fqn: \"archive\"" + LINE_SEP +
+			"	}" + LINE_SEP +
+
+			"	relation editRel {" + LINE_SEP +
+			"		fqn: \"edit\"" + LINE_SEP +
+			"		description: \"See 'edit' in http://www.iana.org/assignments/link-relations/link-relations.xhtml\"" + LINE_SEP +
+			"	}" + LINE_SEP +
+
+			"initial resource accTransactions {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"   view: Noop" + LINE_SEP +
+			"   relations [ archiveRel, \"http://www.temenos.com/statement-entries\" ]" + LINE_SEP +
+			"   PUT -> accTransaction" + LINE_SEP +
+			"}\r\n" + LINE_SEP +
+			"resource accTransaction {" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"   actions [ Update ]" + LINE_SEP +
+			"   relations [ editRel ]" + LINE_SEP +
+			"}\r\n" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
+			"";
+
+	@Test
+	public void testParseGlobalResourceRelations() throws Exception {
+		DomainModel domainModel = parser.parse(GLOBAL_RESOURCE_RELATIONS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be two states
+		assertEquals(2, model.getStates().size());
+		State r1 = model.getStates().get(0);
+	    assertEquals("accTransactions", r1.getName());
+		assertEquals(2, r1.getRelations().size());
+		assertEquals("archive", ((Relation) ((RelationRef)r1.getRelations().get(0)).getRelation()).getFqn());
+		assertEquals("http://www.temenos.com/statement-entries", ((RelationConstant)r1.getRelations().get(1)).getName());
+		State r2 = model.getStates().get(1);
+	    assertEquals("accTransaction", r2.getName());
+		assertEquals(1, r2.getRelations().size());
+		assertEquals("edit", ((Relation) ((RelationRef)r2.getRelations().get(0)).getRelation()).getFqn());
 	}
 
 	private final static String RESOURCE_ON_ERROR = "" +

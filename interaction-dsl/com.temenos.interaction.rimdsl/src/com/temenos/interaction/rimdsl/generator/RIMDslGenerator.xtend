@@ -21,6 +21,8 @@ import com.temenos.interaction.rimdsl.rim.Expression
 import javax.inject.Inject
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import com.temenos.interaction.rimdsl.rim.ImplRef
+import com.temenos.interaction.rimdsl.rim.RelationConstant
+import com.temenos.interaction.rimdsl.rim.Relation
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -222,7 +224,11 @@ class RIMDslGenerator implements IGenerator {
         «IF state.relations != null && state.relations.size > 0»
         String «state.name»RelationsStr = "";
         «FOR relation : state.relations»
-        «state.name»RelationsStr += "«relation.name» ";
+        «IF relation instanceof RelationConstant»
+        «state.name»RelationsStr += "«(relation as RelationConstant).name» ";
+        «ELSE»
+        «state.name»RelationsStr += "«(relation.relation as Relation).fqn» ";
+        «ENDIF»
         «ENDFOR»
         String[] «state.name»Relations = «state.name»RelationsStr.trim().split(" ");
         «ELSE»
