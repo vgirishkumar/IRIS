@@ -211,8 +211,10 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityProperties props = new EntityProperties();
 				if(entity != null) {
 					Map<String, Object> objProps = (transformer != null ? transformer : new BeanTransformer()).transform(entity);
-					for(String propName : objProps.keySet()) {
-						props.setProperty(new EntityProperty(propName, objProps.get(propName)));
+					if (objProps != null) {
+						for(String propName : objProps.keySet()) {
+							props.setProperty(new EntityProperty(propName, objProps.get(propName)));
+						}
 					}
 				}
 				EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);

@@ -190,10 +190,10 @@
     	<artifactId>jersey-test-framework</artifactId>
     	<scope>test</scope>
     </dependency>
+    <!-- used in tests and also used in 'interaction-media-odata-xml' -->
     <dependency>
         <groupId>org.apache.abdera</groupId>
         <artifactId>abdera-client</artifactId>
-        <scope>test</scope>
     </dependency>
 
     <dependency>

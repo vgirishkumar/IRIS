@@ -514,7 +514,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				autoPathParameters.putAll(pathParameters);
 				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
 				for (String key : transitionProperties.keySet()) {
-					autoPathParameters.add(key, transitionProperties.get(key).toString());
+					if (transitionProperties.get(key) != null)
+						autoPathParameters.add(key, transitionProperties.get(key).toString());
 				}
 				InteractionContext autoCtx = new InteractionContext(autoPathParameters, ctx.getQueryParameters(), autoTransition.getTarget(), metadata);
 	        	Response autoResponse = handleRequest(headers, autoCtx, new Event("GET", HttpMethod.GET), action, (EntityResource<?>) resource, autoTransition);
@@ -616,7 +617,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// handle request
     	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
     	initialiseInteractionContext(headers, event, ctx, null);
-    	String entityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + ctx.getCurrentState().getEntityName();
+    	String entityName = ctx.getCurrentState().getEntityName();
 		EntityResource<Entity> resource = new EntityResource<Entity>(entityName, createEntity(entityName, formParams));
     	return handleRequest(headers, uriInfo, event, resource);
     }

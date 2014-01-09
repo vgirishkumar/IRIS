@@ -169,6 +169,7 @@ public class AtomEntityEntryFormatWriter {
 	
 	@SuppressWarnings("unchecked")
 	private void writeProperties(StreamWriter writer, EntityMetadata entityMetadata, EntityProperties entityProperties, String modelName) {
+		assert(entityMetadata != null);
 		// Loop round all properties writing out fields and MV and SV sets
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 		
