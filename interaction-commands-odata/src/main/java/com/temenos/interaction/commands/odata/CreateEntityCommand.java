@@ -102,8 +102,8 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 		try {
 			assert(entity != null);
 			assert(entity.getName() != null);
-			EdmEntityType entityType = (EdmEntityType) producer.getMetadata().findEdmEntityType(entity.getName());
-			EdmEntitySet entitySet = producer.getMetadata().getEdmEntitySet(entityType);
+			EdmEntitySet entitySet = producer.getMetadata().findEdmEntitySet(entity.getName());
+			EdmEntityType entityType = entitySet.getType();
 					
 			String id = null;
 			EntityProperties entityProps = entity.getProperties();
