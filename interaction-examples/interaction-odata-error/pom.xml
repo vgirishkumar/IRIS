@@ -29,7 +29,7 @@
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
-  <groupId>com.interaction.example.error</groupId>
+  <groupId>com.temenos.interaction.example.error</groupId>
   <artifactId>interaction-odata-error</artifactId>
   <packaging>war</packaging>
 
