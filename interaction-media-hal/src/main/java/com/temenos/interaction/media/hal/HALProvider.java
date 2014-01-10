@@ -369,18 +369,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 
-		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class))
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-		
-		if (mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE) 
-				|| mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
-			//Parse hal+json into an OEntity object
-			Entity entity = buildEntityFromHal(entityStream);
-			return new EntityResource<Entity>(entity);
-		} 
-		else {
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-		}
+		// check media type can be handled, isReadable must have been called
+		assert(ResourceTypeHelper.isType(type, genericType, EntityResource.class) 
+				&& (mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE) 
+						|| mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)));
+
+		//Parse hal+json into an OEntity object
+		Entity entity = buildEntityFromHal(entityStream);
+		return new EntityResource<Entity>(entity);
 	}
 	
 	private Entity buildEntityFromHal(InputStream entityStream) {

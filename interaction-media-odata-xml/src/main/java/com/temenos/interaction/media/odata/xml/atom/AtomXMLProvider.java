@@ -46,12 +46,14 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -71,6 +73,7 @@ import org.odata4j.producer.Responses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -78,6 +81,7 @@ import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -94,10 +98,11 @@ import com.temenos.interaction.core.web.RequestContext;
 @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
-	private final static Pattern RESOURCE_PATTERN = Pattern.compile("(.*)/(.+)");
 	
 	@Context
 	private UriInfo uriInfo;
+	@Context
+	private Request requestContext;
 	private AtomEntryFormatWriter entryWriter;
 	private AtomFeedFormatWriter feedWriter;
 	
@@ -338,9 +343,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		// TODO this class can only deserialise EntityResource with OEntity, but at the moment we are accepting any EntityResource or CollectionResource
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
-				|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
+		// this class can only deserialise EntityResource with OEntity
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class);
 	}
 
 	/**
@@ -356,54 +360,46 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 		
-		// TODO check media type can be handled
+		// check media type can be handled, isReadable must have been called
+		assert(ResourceTypeHelper.isType(type, genericType, EntityResource.class));
+		assert(mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE));
 		
-		if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
-			ResourceState currentState = null;
+		try {
 			OEntityKey entityKey = null;
-			/* 
-			 * TODO add uritemplate helper class (something like the wink JaxRsUriTemplateProcessor) to 
-			 * our project, or use wink directly, will also need it for handling link transitions
+
+			// work out the entity name using resource path from UriInfo
+			String baseUri = uriInfo.getBaseUri().toASCIIString();
+			String resourcePath = uriInfo.getPath();
+			logger.info("Reading atom xml content for [" + resourcePath + "]");
+			if (resourcePath == null)
+				throw new IllegalStateException("No resource found");
+			// trim the baseuri
+			if (resourcePath.length() > baseUri.length() && resourcePath.startsWith(baseUri))
+				resourcePath = resourcePath.substring(baseUri.length() - 1);
+			/*
+			 * add a leading '/' if it needs it (when defining resources we must use a 
+			 * full path, but requests can be relative, i.e. without a '/'
 			 */
-//			JaxRsUriTemplateProcessor processor = new JaxRsUriTemplateProcessor("/{therest}/");
-//			UriTemplateMatcher matcher = processor.matcher();
-//			matcher.matches(uriInfo.getPath());
-//			String entityKey = matcher.getVariableValue("id");
-			String path = uriInfo.getPath();
-			logger.info("Reading atom xml content for [" + path + "]");
-			Matcher matcher = RESOURCE_PATTERN.matcher(path);
-			if (matcher.find()) {
-				// the resource path
-				String resourcePath = matcher.group(1);
-				Set<ResourceState> states = hypermediaEngine.getResourceStatesForPath(resourcePath);
-				if (states != null && states.size() > 0) {
-					currentState = findCollectionResourceState(states);
-					// at the moment things are pretty simply, the bit after the last slash is the key
-					entityKey = OEntityKey.parse(matcher.group(2));
-				}
+			if (!resourcePath.startsWith("/")) {
+				resourcePath = "/" + resourcePath;
 			}
-			if (currentState == null) {
-				// might be a request without an entity key e.g. a POST
-				if (!path.startsWith("/")) {
-					// TODO remove this hack :-(
-					path = "/" + path;
-				}
-				// TODO, improve this ridiculously basic support for Update
-				if (path.contains("(")) {
-					path = path.substring(0, path.indexOf("("));
-					path = "^" + path + "(|\\(.*\\))";
-				} else {
-					path = "^" + path + "(|\\(\\))";
-				}
-				Set<ResourceState> states = hypermediaEngine.getResourceStatesForPathRegex(path);
-				if (states != null && states.size() > 0) {
-					currentState = findCollectionResourceState(states);
-				} else {
-					// give up, we can't handle this request 404
-					logger.error("resource not found in registry");
-					throw new WebApplicationException(Response.Status.NOT_FOUND);
-				}
+			ResourceState currentState = getCurrentState(resourcePath);
+			if (currentState == null)
+				throw new IllegalStateException("No state found");
+			String pathIdParameter = getPathIdParameter(currentState);
+			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
+			if (pathParameters != null && pathParameters.getFirst(pathIdParameter) != null) {
+				entityKey = OEntityKey.parse(pathParameters.getFirst(pathIdParameter));				
 			}
+			
+			if (currentState.getEntityName() == null) {
+				throw new IllegalStateException("Entity name could not be determined");
+			}
+			
+			/*
+			 *  get the entity set name using the metadata
+			 */
+			String entitySetName = getEntitySet(currentState);
 			
 			// Check contents of the stream, if empty or null then return empty resource
 			InputStream verifiedStream = verifyContentReceieved(entityStream);
@@ -413,28 +409,83 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			
 			// Lets parse the request content
 			Reader reader = new InputStreamReader(verifiedStream);
-			assert(currentState != null) : "Must have found a resource or thrown exception";
-			Entry e = new AtomEntryFormatParserExt(edmDataServices, currentState.getName(), entityKey, null).parse(reader);
+			assert(entitySetName != null) : "Must have found a resource or thrown exception";
+			Entry e = new AtomEntryFormatParserExt(edmDataServices, entitySetName, entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
-		} else {
-			logger.error("Unhandled type");
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		} catch (IllegalStateException e) {
+			logger.warn("Malformed request from client", e);
+			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
 	}
 
-	private CollectionResourceState findCollectionResourceState(Set<ResourceState> states) {
-		for (ResourceState state : states) {
-			if (state instanceof CollectionResourceState) {
-				return (CollectionResourceState) state;
-			}
-		}
-		return null;
+	/*
+	 * Find the entity set name for this resource
+	 */
+	private String getEntitySet(ResourceState currentState) {
+		String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + currentState.getEntityName();
+		EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
+		EdmEntitySet targetEntitySet = edmDataServices.getEdmEntitySet(targetEntityType);
+		String entitySetName = targetEntitySet.getName();
+		return entitySetName;
 	}
 	
+	private ResourceState getCurrentState(String resourcePath) {
+		ResourceState state = null;
+		if (resourcePath != null) {
+			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
+			if (pathParameters != null) {
+				for (String key : pathParameters.keySet()) {
+					List<String> values = pathParameters.get(key);
+					for (String value : values) {
+						resourcePath = resourcePath.replace(value, "{" + key + "}");
+					}
+				}
+			}
+			String httpMethod = requestContext.getMethod();
+			Event event = new Event(httpMethod, httpMethod);
+			state = hypermediaEngine.determineState(event, resourcePath);
+			if (state == null) {
+				logger.error("No state found, dropping back to path matching");
+				Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
+				for (String path : pathToResourceStates.keySet()) {
+					for (ResourceState s : pathToResourceStates.get(path)) {
+						String pattern = null;
+						if (s instanceof CollectionResourceState) {
+							pattern = resourcePath + "(|\\(\\))";
+							Matcher matcher = Pattern.compile(pattern).matcher(path);
+							if (matcher.matches()) {
+								state = s;
+							}
+						}
+					}
+				}
+			}
+		}
+		return state;
+	}
+
+	/*
+	 * For a given resource state, get the path parameter used for the id.
+	 * @param state
+	 * @return
+	 */
+	private String getPathIdParameter(ResourceState state) {
+		String pathIdParameter = InteractionContext.DEFAULT_ID_PATH_ELEMENT;
+		if (state.getPathIdParameter() != null) {
+			pathIdParameter = state.getPathIdParameter();
+		}
+		return pathIdParameter;
+	}
+
+	
+	/* Ugly testing support :-( */
 	protected void setUriInfo(UriInfo uriInfo) {
 		this.uriInfo = uriInfo;
+	}
+	protected void setRequestContext(Request request) {
+		this.requestContext = request;
 	}
 
 	/**
