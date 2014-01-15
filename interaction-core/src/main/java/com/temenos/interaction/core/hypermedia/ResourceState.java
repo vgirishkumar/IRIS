@@ -283,7 +283,11 @@ public class ResourceState implements Comparable<ResourceState> {
 				uriLinkageMap.put(param, "{"+param+"}");
 			}
 		}
-		return new Transition(this, new TransitionCommandSpec("GET", getPath(), 0, null, uriLinkageMap), this);
+		return new Transition.Builder()
+				.source(this)
+				.command(new TransitionCommandSpec("GET", getPath(), 0, null, uriLinkageMap))
+				.target(this)
+				.build();
 	}
 	
 	/**
@@ -362,7 +366,12 @@ public class ResourceState implements Comparable<ResourceState> {
 		//Create the transition
 		Expression condition = conditionalExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalExpressions) : null;
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, condition, uriLinkageMap);
-		Transition transition = new Transition(this, commandSpec, targetState, label);
+		Transition.Builder transitionBuilder = new Transition.Builder();
+		transitionBuilder.source(this)
+			.target(targetState)
+			.command(commandSpec)
+			.label(label);
+		Transition transition = transitionBuilder.build();
 		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
 		transitions.add(transition);
 	}
@@ -383,7 +392,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void addTransition(String httpMethod, ResourceStateMachine resourceStateModel) {
 		assert resourceStateModel != null;
 		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourceStateModel.getInitial().getPath());
-		transitions.add(new Transition(this, commandSpec, resourceStateModel.getInitial()));
+		transitions.add(new Transition.Builder()
+				.source(this)
+				.command(commandSpec)
+				.target(resourceStateModel.getInitial())
+				.build());
 	}
 	
 	/**

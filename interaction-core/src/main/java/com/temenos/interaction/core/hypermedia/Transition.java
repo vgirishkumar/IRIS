@@ -40,19 +40,6 @@ public class Transition {
 	private TransitionCommandSpec command;
 	private String label;
 
-	public Transition(ResourceState source, TransitionCommandSpec command,
-			ResourceState target) {
-		this(source, command, target, null);
-	}
-
-	public Transition(ResourceState source, TransitionCommandSpec command,
-			ResourceState target, String label) {
-		this.source = source;
-		this.target = target;
-		this.command = command;
-		this.label = label;
-	}
-
 	public ResourceState getSource() {
 		return source;
 	}
