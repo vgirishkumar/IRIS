@@ -1,5 +1,9 @@
 package com.temenos.interaction.core.hypermedia;
 
+import java.util.Map;
+
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+
 /*
  * #%L
  * interaction-core
@@ -37,8 +41,16 @@ public class Transition {
 	public static final int AUTO = 2;
 
 	private ResourceState source, target;
-	private TransitionCommandSpec command;
+	private final TransitionCommandSpec command;
 	private String label;
+
+	// TransitionCommand parameters
+	private String method;
+	private String path;
+	private int flags;
+	// conditional link evaluation expression 
+	private Expression evaluation;
+	private Map<String, String> uriParameters;
 
 	public ResourceState getSource() {
 		return source;
@@ -110,16 +122,19 @@ public class Transition {
 		return getId();
 	}
 
-	
 	/*
 	 * Builder pattern generated with fastcode eclipse plugin, you can just regenerate this part
 	 */
-	
+
 	public static class Builder {
 		private ResourceState source;
 		private ResourceState target;
-		private TransitionCommandSpec command;
 		private String label;
+		private String method;
+		private String path;
+		private int flags;
+		private Expression evaluation;
+		private Map<String, String> uriParameters;
 
 		public Builder source(ResourceState source) {
 			this.source = source;
@@ -131,13 +146,33 @@ public class Transition {
 			return this;
 		}
 
-		public Builder command(TransitionCommandSpec command) {
-			this.command = command;
+		public Builder label(String label) {
+			this.label = label;
 			return this;
 		}
 
-		public Builder label(String label) {
-			this.label = label;
+		public Builder method(String method) {
+			this.method = method;
+			return this;
+		}
+
+		public Builder path(String path) {
+			this.path = path;
+			return this;
+		}
+
+		public Builder flags(int flags) {
+			this.flags = flags;
+			return this;
+		}
+
+		public Builder evaluation(Expression evaluation) {
+			this.evaluation = evaluation;
+			return this;
+		}
+
+		public Builder uriParameters(Map<String, String> uriParameters) {
+			this.uriParameters = uriParameters;
 			return this;
 		}
 
@@ -149,7 +184,14 @@ public class Transition {
 	private Transition(Builder builder) {
 		this.source = builder.source;
 		this.target = builder.target;
-		this.command = builder.command;
 		this.label = builder.label;
+		this.method = builder.method;
+		this.path = builder.path;
+		this.flags = builder.flags;
+		this.evaluation = builder.evaluation;
+		this.uriParameters = builder.uriParameters;
+
+		// this one's a bit special
+		this.command = new TransitionCommandSpec(method, path, flags, evaluation, uriParameters);
 	}
 }
