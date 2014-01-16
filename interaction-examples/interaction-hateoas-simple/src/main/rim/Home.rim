@@ -31,7 +31,8 @@ initial resource home {
 	view: NoopGET
     path: "/"
 	GET -> profile
-    GET -> preferences
+	// embed the resource if the media type supports embedding
+    GET +-> preferences
 	GET -> notes
 }
 

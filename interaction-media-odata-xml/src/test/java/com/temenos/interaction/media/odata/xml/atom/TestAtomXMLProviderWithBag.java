@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -76,6 +77,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.UriSpecification;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -420,7 +422,7 @@ public class TestAtomXMLProviderWithBag {
 		ResourceState initial = new ResourceState("Initial", "initial_state", new ArrayList<Action>(), "/", null, new UriSpecification("Initial", "/"));
 		for (String resourceName : collOfResource) {
 			CollectionResourceState resourceType = new CollectionResourceState(resourceName, resourceName, new ArrayList<Action>(), "/" + resourceName +"s", null, null);
-			initial.addTransition("GET", resourceType, null, null);
+			initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(resourceType).build());
 		}
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(initial);
 		return hypermediaEngine;

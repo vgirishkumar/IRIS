@@ -97,7 +97,6 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.hypermedia.TransitionCommandSpec;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -557,7 +556,7 @@ public class TestAtomXMLProvider {
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("DebitAcctNo", "{Acc}");
-		account.addTransition(HttpMethod.GET, fundsTransfers, uriLinkageMap, "Debit funds transfers");
+		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Debit funds transfers").build());
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
 		List<OLink> olinks = new ArrayList<OLink>();
@@ -579,10 +578,10 @@ public class TestAtomXMLProvider {
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("DebitAcctNo", "{Acc}");
-		account.addTransition(HttpMethod.GET, fundsTransfers, uriLinkageMap, "Debit funds transfers");
+		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Debit funds transfers").build());
 		uriLinkageMap.clear();
 		uriLinkageMap.put("CreditAcctNo", "{Acc}");
-		account.addTransition(HttpMethod.GET, fundsTransfers, uriLinkageMap, "Credit funds transfers");
+		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Credit funds transfers").build());
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
 		List<OLink> olinks = new ArrayList<OLink>();
@@ -607,7 +606,7 @@ public class TestAtomXMLProvider {
         //Create rsm
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
 		ResourceState fundsTransfersIAuth = new CollectionResourceState("FundsTransfer", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
-		fundsTransfers.addTransition(HttpMethod.GET, fundsTransfersIAuth, null, "Unauthorised input records");
+		fundsTransfers.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfersIAuth).label("Unauthorised input records").build());
 		ResourceStateMachine rsm = new ResourceStateMachine(fundsTransfers);
 
 		//Create collection resource
@@ -643,7 +642,7 @@ public class TestAtomXMLProvider {
 	public void testLinkEntryToEntity() {
 		ResourceState account = new ResourceState("Account", "customerAccount", new ArrayList<Action>(), "/CustomerAccounts('{id}')");
 		ResourceState currency = new ResourceState("Currency", "currency", new ArrayList<Action>(), "/Currencys('{id}')");
-		account.addTransition(HttpMethod.GET, currency, new HashMap<String, String>(), "currency");
+		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(currency).label("currency").build());
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("Currencys"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
 		List<OLink> olinks = new ArrayList<OLink>();
@@ -664,8 +663,8 @@ public class TestAtomXMLProvider {
 		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
 		ResourceState fundsTransfer = new ResourceState("FundsTransfer", "fundsTransfer", new ArrayList<Action>(), "/FundsTransfers('{id}')");
 		ResourceState fundsTransfersIAuth = new CollectionResourceState("Dummy", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
-		serviceRoot.addTransition(fundsTransfer);
-		fundsTransfer.addTransition(HttpMethod.GET, fundsTransfersIAuth, new HashMap<String, String>(), "Unauthorised funds transfers");
+		serviceRoot.addTransition(new Transition.Builder().flags(Transition.AUTO).target(fundsTransfer).build());
+		fundsTransfer.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfersIAuth).label("Unauthorised funds transfers").build());
 		
 		//FundsTransfersIAuth is not an entity set
 		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
@@ -696,8 +695,8 @@ public class TestAtomXMLProvider {
 		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
 		ResourceState fundsTransfersIAuth = new CollectionResourceState("FundsTransfer", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
-		serviceRoot.addTransition(fundsTransfers);
-		fundsTransfers.addTransition(HttpMethod.GET, fundsTransfersIAuth, null, "Unauthorised input records");
+		serviceRoot.addTransition(new Transition.Builder().flags(Transition.AUTO).target(fundsTransfers).build());
+		fundsTransfers.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfersIAuth).label("Unauthorised input records").build());
 		ResourceStateMachine rsm = new ResourceStateMachine(fundsTransfers);
 
 		//Create collection resource
@@ -898,9 +897,7 @@ public class TestAtomXMLProvider {
 		Transition.Builder builder = new Transition.Builder();
 		builder.source(source);
 		builder.target(target);
-		TransitionCommandSpec command = mock(TransitionCommandSpec.class);
-		when(command.getMethod()).thenReturn("GET");
-		builder.command(command);
+		builder.method("GET");
 		return builder.build();
 	}
 

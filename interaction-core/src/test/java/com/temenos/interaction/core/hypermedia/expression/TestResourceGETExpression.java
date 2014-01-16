@@ -48,6 +48,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Action.TYPE;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function;
 
 public class TestResourceGETExpression {
@@ -88,12 +89,12 @@ public class TestResourceGETExpression {
 		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockFound, "/pconfirmed", "confirmed".split(" "));
 
 		// create transitions that indicate state
-		initial.addTransition(room);
-		initial.addTransition(cancelled);
-		initial.addTransition(paid);
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(cancelled).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(paid).build());
 		// TODO, expressions should also be followed in determining resource state graph
-		initial.addTransition(pwaiting);
-		initial.addTransition(pconfirmed);
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pwaiting).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pconfirmed).build());
 		
 		// pseudo states that do the processing
 		ResourceState cancel = new ResourceState(cancelled, "psuedo_cancel", new ArrayList<Action>());
@@ -103,13 +104,13 @@ public class TestResourceGETExpression {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		int transitionFlags = 0;  // regular transition
 		// create the transitions (links)
-		initial.addTransition("POST", cancel);
-		initial.addTransition("PUT", assignRoom);
+		initial.addTransition(new Transition.Builder().method("POST").target(cancel).build());
+		initial.addTransition(new Transition.Builder().method("PUT").target(assignRoom).build());
 		
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, transitionFlags, expressions, "Make a payment");
+		initial.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
 
 		return new ResourceStateMachine(initial);
 	}

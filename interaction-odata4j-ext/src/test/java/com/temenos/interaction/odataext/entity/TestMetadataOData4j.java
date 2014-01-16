@@ -53,6 +53,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.UriSpecification;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
@@ -94,9 +95,9 @@ public class TestMetadataOData4j {
 
 		// Create mock state machine with entity sets
 		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
-		serviceRoot.addTransition(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule"));
-		serviceRoot.addTransition(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight"));
-		serviceRoot.addTransition(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline"));
+		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule")).build());
+		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight")).build());
+		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline")).build());
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
 
 		//Read the airline metadata file
@@ -278,12 +279,12 @@ public class TestMetadataOData4j {
 		ResourceState flightDepartureAirport = new ResourceState("Airport", "departureAirport", new ArrayList<Action>(), "/Flights({id})/departureAirport");
 		
 		
-		initial.addTransition(flights);
-		flights.addTransitionForEachItem("GET", flight, new HashMap<String, String>());
-		initial.addTransition(airports);
-		airports.addTransitionForEachItem("GET", airport, new HashMap<String, String>());
-		flight.addTransition(flightDepartureAirport);
-		flights.addTransitionForEachItem("GET", flightDepartureAirport, new HashMap<String, String>());
+		initial.addTransition(new Transition.Builder().target(flights).build());
+		flights.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(flight).build());
+		initial.addTransition(new Transition.Builder().target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
+		flight.addTransition(new Transition.Builder().target(flightDepartureAirport).build());
+		flights.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(flightDepartureAirport).build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -336,11 +337,11 @@ public class TestMetadataOData4j {
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules");
 		ResourceState flight = new ResourceState("Flight", "flight", new ArrayList<Action>(), "/Flights({id})");
 		CollectionResourceState airportFlights = new CollectionResourceState("Airport", "AirportFlights", new ArrayList<Action>(), "/Airports({id})/Flights");
-		initial.addTransition(flights);
-		initial.addTransition(airports);
-		initial.addTransition(flightSchedules);
-		flight.addTransition("GET", airportFlights, new HashMap<String, String>());
-		flights.addTransitionForEachItem("GET", airportFlights, new HashMap<String, String>());
+		initial.addTransition(new Transition.Builder().target(flights).build());
+		initial.addTransition(new Transition.Builder().target(airports).build());
+		initial.addTransition(new Transition.Builder().target(flightSchedules).build());
+		flight.addTransition(new Transition.Builder().method("GET").target(airportFlights).build());
+		flights.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airportFlights).build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -392,9 +393,9 @@ public class TestMetadataOData4j {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports);
-		airports.addTransitionForEachItem("GET", airport, null, null);
-		airport.addTransition("GET", flightSchedules);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -424,11 +425,11 @@ public class TestMetadataOData4j {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports, null, null);
-		airports.addTransitionForEachItem("GET", airport, null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "departures");
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).label("departures").build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -458,11 +459,11 @@ public class TestMetadataOData4j {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports, null, null);
-		airports.addTransitionForEachItem("GET", airport, null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -493,13 +494,13 @@ public class TestMetadataOData4j {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports, null, null);
-		airports.addTransitionForEachItem("GET", airport, null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "arrivals");
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).label("arrivals").build());
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "departures");
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).label("departures").build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -541,13 +542,13 @@ public class TestMetadataOData4j {
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports, null, null);
-		airports.addTransitionForEachItem("GET", airport, null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).build());
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);

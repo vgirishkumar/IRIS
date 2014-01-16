@@ -64,6 +64,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.web.RequestContext;
 
@@ -222,7 +223,7 @@ public class TestHTTPHypermediaRIM {
 		List<Action> actions = new ArrayList<Action>();
 		actions.add(new Action("DELETE", Action.TYPE.ENTRY));
 		ResourceState initialState = new ResourceState("entity", "state", actions, "/path");
-		initialState.addTransition("DELETE", initialState);
+		initialState.addTransition(new Transition.Builder().method("DELETE").target(initialState).build());
 
 		// this test mocks a command that incorrectly returns no result
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
@@ -291,7 +292,7 @@ public class TestHTTPHypermediaRIM {
 	@Test(expected = AssertionError.class)
 	public void testDeleteCommandReturnsResourceShouldFail() throws Exception {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		initialState.addTransition("DELETE", initialState);
+		initialState.addTransition(new Transition.Builder().method("DELETE").target(initialState).build());
 
 		// this test incorrectly supplies a resource as a result of the command.
 		InteractionCommand mockCommand = new InteractionCommand() {
@@ -317,7 +318,7 @@ public class TestHTTPHypermediaRIM {
 	@Test
 	public void testPutCommandReceivesResource() throws InteractionException {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
-		initialState.addTransition("PUT", initialState);
+		initialState.addTransition(new Transition.Builder().method("PUT").target(initialState).build());
 		// create a mock command to test the context is initialised correctly
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
 		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
@@ -352,7 +353,7 @@ public class TestHTTPHypermediaRIM {
 	@Test
 	public void testPOSTCommandReceivesResource() throws InteractionException {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
-		initialState.addTransition("POST", initialState);
+		initialState.addTransition(new Transition.Builder().method("POST").target(initialState).build());
 		// create a mock command to test the context is initialised correctly
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
 		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
@@ -372,7 +373,7 @@ public class TestHTTPHypermediaRIM {
 	public void testBootstrapInvalidCommandControllerConfigurationPUT() {
 		String resourcePath = "/notes/{id}";
 		ResourceState exists = new ResourceState("entity", "exists", mockActions(), resourcePath);
-		exists.addTransition("PUT", exists);
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 		
 		NewCommandController cc = mock(NewCommandController.class);
 		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists), mock(Metadata.class));
@@ -382,7 +383,7 @@ public class TestHTTPHypermediaRIM {
 	public void testBootstrapInvalidCommandControllerConfigurationPOST() {
 		String resourcePath = "/notes/{id}";
 		ResourceState exists = new ResourceState("entity", "exists", mockActions(), resourcePath);
-		exists.addTransition("POST", exists);
+		exists.addTransition(new Transition.Builder().method("POST").target(exists).build());
 		
 		NewCommandController cc = mock(NewCommandController.class);
 		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists), mock(Metadata.class));
@@ -392,7 +393,7 @@ public class TestHTTPHypermediaRIM {
 	public void testBootstrapInvalidCommandControllerConfigurationDELETE() {
 		String resourcePath = "/notes/{id}";
 		ResourceState exists = new ResourceState("entity", "exists", mockActions(), resourcePath);
-		exists.addTransition("DELETE", exists);
+		exists.addTransition(new Transition.Builder().method("DELETE").target(exists).build());
 		
 		NewCommandController cc = mock(NewCommandController.class);
 		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists), mock(Metadata.class));
@@ -402,7 +403,7 @@ public class TestHTTPHypermediaRIM {
 	public void testBootstrapInvalidCommandControllerConfigurationGET() {
 		String resourcePath = "/notes/{id}";
 		ResourceState exists = new ResourceState("entity", "exists", mockActions(), resourcePath);
-		exists.addTransition("GET", exists);
+		exists.addTransition(new Transition.Builder().method("GET").target(exists).build());
 		
 		NewCommandController cc = mock(NewCommandController.class);
 		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists), mock(Metadata.class));
@@ -418,9 +419,9 @@ public class TestHTTPHypermediaRIM {
 		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted", mockActions(), resourcePath);
 
 		// create
-		initial.addTransition("PUT", exists);
+		initial.addTransition(new Transition.Builder().method("PUT").target(exists);
 		// update
-		exists.addTransition("PUT", exists);
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists);
 		// delete
 		exists.addTransition("DELETE", deleted);
 		
@@ -448,13 +449,13 @@ public class TestHTTPHypermediaRIM {
 		ResourceState deletedDraft = new ResourceState(draft, "deleted");
 	
 		// create
-		initial.addTransition("PUT", exists);
+		initial.addTransition(new Transition.Builder().method("PUT").target(exists);
 		// create draft
-		initial.addTransition("PUT", draft);
+		initial.addTransition(new Transition.Builder().method("PUT").target(draft);
 		// updated draft
-		draft.addTransition("PUT", draft);
+		draft.addTransition(new Transition.Builder().method("PUT").target(draft);
 		// publish
-		draft.addTransition("PUT", exists);
+		draft.addTransition(new Transition.Builder().method("PUT").target(exists);
 		// delete draft
 		draft.addTransition("DELETE", deletedDraft);
 		// delete published
@@ -489,11 +490,11 @@ public class TestHTTPHypermediaRIM {
 		ResourceState deletedDraft = new ResourceState(draft, "draftDeleted");
 	
 		// create draft
-		initial.addTransition("PUT", draft);
+		initial.addTransition(new Transition.Builder().method("PUT").target(draft);
 		// updated draft
-		draft.addTransition("PUT", draft);
+		draft.addTransition(new Transition.Builder().method("PUT").target(draft);
 		// publish
-		draft.addTransition("PUT", published);
+		draft.addTransition(new Transition.Builder().method("PUT").target(published);
 		// delete draft
 		draft.addTransition("DELETE", deletedDraft);
 		// delete published
@@ -528,8 +529,8 @@ public class TestHTTPHypermediaRIM {
   		ResourceState bookingCancellation = new ResourceState(bookingCreated, "cancellation", "/cancellation");
   		ResourceState deleted = new ResourceState(bookingCancellation, "deleted", null);
 
-		begin.addTransition("PUT", bookingCreated);
-		bookingCreated.addTransition("PUT", bookingCancellation);
+		begin.addTransition(new Transition.Builder().method("PUT").target(bookingCreated);
+		bookingCreated.addTransition(new Transition.Builder().method("PUT").target(bookingCancellation);
 		bookingCancellation.addTransition("DELETE", deleted);
 
 		// the payment
@@ -537,13 +538,13 @@ public class TestHTTPHypermediaRIM {
 		ResourceState confirmation = new ResourceState(payment, "pconfirmation", "/pconfirmation");
 		ResourceState waitingForConfirmation = new ResourceState(payment, "pwaiting", "/pwaiting");
 
-		payment.addTransition("PUT", waitingForConfirmation);
-		payment.addTransition("PUT", confirmation);
-		waitingForConfirmation.addTransition("PUT", confirmation);
+		payment.addTransition(new Transition.Builder().method("PUT").target(waitingForConfirmation);
+		payment.addTransition(new Transition.Builder().method("PUT").target(confirmation);
+		waitingForConfirmation.addTransition(new Transition.Builder().method("PUT").target(confirmation);
 		
 		// linking the two state machines together
-		bookingCreated.addTransition("PUT", payment);  // TODO needs to be conditional
-		confirmation.addTransition("PUT", bookingCancellation);
+		bookingCreated.addTransition(new Transition.Builder().method("PUT").target(payment);  // TODO needs to be conditional
+		confirmation.addTransition(new Transition.Builder().method("PUT").target(bookingCancellation);
 		
 		// mock command controller to do nothing
 		NewCommandController cc = mock(NewCommandController.class);
@@ -574,9 +575,9 @@ public class TestHTTPHypermediaRIM {
 		ResourceState draft = new ResourceState(ENTITY_NAME, "draft", mockActions(), "/draft");
 	
 		// create draft
-		initial.addTransition("PUT", draft);
+		initial.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// updated draft
-		draft.addTransition("PUT", draft);
+		draft.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		
 		// supply a transformer to check that this is copied into child resource
 		BeanTransformer transformer = new BeanTransformer();
@@ -598,9 +599,9 @@ public class TestHTTPHypermediaRIM {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("noteid", "id");
 		// create comment for note
-		initial.addTransition("PUT", comment, uriLinkageMap);
+		initial.addTransition(new Transition.Builder().method("PUT").target(comment).uriParameters(uriLinkageMap).build());
 		// update comment
-		comment.addTransition("PUT", comment);
+		comment.addTransition(new Transition.Builder().method("PUT").target(comment).build());
 		
 		// supply a transformer to check that this is copied into child resource
 		BeanTransformer transformer = new BeanTransformer();
@@ -638,7 +639,7 @@ public class TestHTTPHypermediaRIM {
 	@Test
 	public void testPutCommandWithIfMatchHeader() throws InteractionException {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
-		initialState.addTransition("PUT", initialState);
+		initialState.addTransition(new Transition.Builder().method("PUT").target(initialState).build());
 
 		// this test incorrectly supplies a resource as a result of the command.
 		InteractionCommand mockCommand = new InteractionCommand() {
@@ -685,7 +686,7 @@ public class TestHTTPHypermediaRIM {
 	@Test
 	public void testPutCommandWithEtag() throws InteractionException {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
-		initialState.addTransition("PUT", initialState);
+		initialState.addTransition(new Transition.Builder().method("PUT").target(initialState).build());
 
 		// this test incorrectly supplies a resource as a result of the command.
 		InteractionCommand mockCommand = new InteractionCommand() {
@@ -732,7 +733,7 @@ public class TestHTTPHypermediaRIM {
 	@Test
 	public void testDeleteCommandWithIfMatchHeader() throws InteractionException {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
-		initialState.addTransition("DELETE", initialState);
+		initialState.addTransition(new Transition.Builder().method("DELETE").target(initialState).build());
 
 		// this test incorrectly supplies a resource as a result of the command.
 		InteractionCommand mockCommand = new InteractionCommand() {

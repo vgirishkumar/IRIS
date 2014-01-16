@@ -31,6 +31,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 
 public class Behaviour {
 
@@ -48,7 +49,7 @@ public class Behaviour {
 		ResourceStateMachine suppliers = getSuppliersSM();
 
 		//Add transitions between RSMs
-		initialState.addTransition("GET", metadata);
+		initialState.addTransition(new Transition.Builder().method("GET").target(metadata).build());
 		initialState.addTransition("GET", categories);
 		initialState.addTransition("GET", customers);
 		initialState.addTransition("GET", employees);
@@ -68,8 +69,8 @@ public class Behaviour {
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "CategoryID");
-		categories.addTransitionForEachItem("GET", category, uriLinkageMap);
-		categories.addTransition("POST", pseudo);
+		categories.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(category).uriParameters(uriLinkageMap).build());
+		categories.addTransition(new Transition.Builder().method("POST").target(pseudo).build());
 
 		return new ResourceStateMachine(categories);
 	}
@@ -82,8 +83,8 @@ public class Behaviour {
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "CustomerID");
-		customers.addTransitionForEachItem("GET", category, uriLinkageMap);
-		customers.addTransition("POST", pseudo);
+		customers.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(category).uriParameters(uriLinkageMap).build());
+		customers.addTransition(new Transition.Builder().method("POST").target(pseudo).build());
 
 		return new ResourceStateMachine(customers);
 	}
@@ -96,8 +97,8 @@ public class Behaviour {
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "EmployeeID");
-		employees.addTransitionForEachItem("GET", employee, uriLinkageMap);
-		employees.addTransition("POST", pseudo);
+		employees.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(employee).uriParameters(uriLinkageMap).build());
+		employees.addTransition(new Transition.Builder().method("POST").target(pseudo).build());
 
 		return new ResourceStateMachine(employees);
 	}
@@ -110,8 +111,8 @@ public class Behaviour {
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "OrderID");
-		orders.addTransitionForEachItem("GET", order, uriLinkageMap);
-		orders.addTransition("POST", pseudo);
+		orders.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(order).uriParameters(uriLinkageMap).build());
+		orders.addTransition(new Transition.Builder().method("POST").target(pseudo).build());
 
 		return new ResourceStateMachine(orders);
 	}
@@ -124,8 +125,8 @@ public class Behaviour {
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "OrderID");
-		orderDetails.addTransitionForEachItem("GET", orderDetail, uriLinkageMap);
-		orderDetails.addTransition("POST", pseudo);
+		orderDetails.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(orderDetail).uriParameters(uriLinkageMap).build());
+		orderDetails.addTransition(new Transition.Builder().method("POST").target(pseudo).build());
 
 		return new ResourceStateMachine(orderDetails);
 	}
@@ -138,8 +139,8 @@ public class Behaviour {
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "ProductID");
-		products.addTransitionForEachItem("GET", product, uriLinkageMap);
-		products.addTransition("POST", pseudo);
+		products.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(product).uriParameters(uriLinkageMap).build());
+		products.addTransition(new Transition.Builder().method("POST").target(pseudo).build());
 
 		return new ResourceStateMachine(products);
 	}
@@ -152,8 +153,8 @@ public class Behaviour {
 		//Add state transitions
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "SupplierID");
-		suppliers.addTransitionForEachItem("GET", supplier, uriLinkageMap);
-		suppliers.addTransition("POST", pseudo);
+		suppliers.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(supplier).uriParameters(uriLinkageMap).build());
+		suppliers.addTransition(new Transition.Builder().method("POST").target(pseudo).build());
 
 		return new ResourceStateMachine(suppliers);
 	}

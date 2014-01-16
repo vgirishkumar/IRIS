@@ -43,6 +43,7 @@ import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.ArrayList;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
@@ -69,6 +70,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
@@ -273,12 +275,12 @@ public class TestAtomXMLProviderPowerMock {
 		
 		EdmDataServices metadata = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		ResourceState initial = new CollectionResourceState("Flight", "SomeResources", new ArrayList<Action>(), "/test()");
-		initial.addTransition("GET", new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/1"));
-		initial.addTransition("GET", new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/2"));
-		initial.addTransition("GET", new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/3"));
-		initial.addTransition("GET", new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/4"));
-		initial.addTransition("GET", new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/5"));
-		initial.addTransition("GET", new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/navproperty"));
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/1")).build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/2")).build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/3")).build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/4")).build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/5")).build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/navproperty")).build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
@@ -370,9 +372,9 @@ public class TestAtomXMLProviderPowerMock {
 	private EdmDataServices createAirlineEdmMetadata() {
 		// Create mock state machine with entity sets
 		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
-		serviceRoot.addTransition(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule"));
-		serviceRoot.addTransition(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight"));
-		serviceRoot.addTransition(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline"));
+		serviceRoot.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule")).build());
+		serviceRoot.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight")).build());
+		serviceRoot.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline")).build());
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
 		
 		return (new MetadataOData4j(createAirlineMetadata(), hypermediaEngine)).getMetadata();

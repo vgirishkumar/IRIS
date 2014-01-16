@@ -39,6 +39,10 @@ public class Transition {
 	 * in a 303 Redirect HTTP status at runtime.
 	 */
 	public static final int AUTO = 2;
+	/**
+	 * Add a subresource
+	 */
+	public static final int EMBEDDED = 4;
 
 	private ResourceState source, target;
 	private final TransitionCommandSpec command;
@@ -56,6 +60,10 @@ public class Transition {
 		return source;
 	}
 
+	public void setSource(ResourceState source) {
+		this.source = source;
+	}
+	
 	public ResourceState getTarget() {
 		return target;
 	}
@@ -192,6 +200,8 @@ public class Transition {
 		this.uriParameters = builder.uriParameters;
 
 		// this one's a bit special
-		this.command = new TransitionCommandSpec(method, path, flags, evaluation, uriParameters);
+		this.command = new TransitionCommandSpec(method, 
+				(path == null ? target.getPath() : path), 
+				flags, evaluation, uriParameters);
 	}
 }
