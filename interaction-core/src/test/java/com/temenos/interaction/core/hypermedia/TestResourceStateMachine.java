@@ -27,7 +27,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -56,7 +55,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandFailureException;
 import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -76,7 +74,7 @@ import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressio
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.web.RequestContext;
 
 public class TestResourceStateMachine {
@@ -88,6 +86,14 @@ public class TestResourceStateMachine {
         RequestContext.setRequestContext(ctx);
 	}
 
+	private HTTPHypermediaRIM mockRIMHandler(ResourceStateMachine rsm) {
+		NewCommandController mockCommandController = mockCommandController();
+		Metadata mockMetadata = mock(Metadata.class);
+		when(mockMetadata.getEntityMetadata(anyString())).thenReturn(mock(EntityMetadata.class));
+		HTTPHypermediaRIM rimHandler = new HTTPHypermediaRIM(mockCommandController, rsm, mockMetadata);
+		return rimHandler;
+	}
+	
 	/*
 	 * Evaluate custom link relation, via the Link header.  See (see rfc5988)
 	 * We return a Link if the header is set and the @{link Transition} can be found.
@@ -719,7 +725,8 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> links = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), testResponseEntity);
 		assertNotNull(links);
 		assertTrue(links.isEmpty());
 	}
@@ -737,7 +744,8 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> links = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -769,7 +777,8 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> links = stateMachine.injectLinks(rimHandler, new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -800,7 +809,8 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> links = stateMachine.injectLinks(rimHandler, new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -833,7 +843,8 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(null));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), new EntityResource<Object>(null));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -936,8 +947,8 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
-		stateMachine.setCommandController(mockCommandController());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -1032,8 +1043,8 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
-		stateMachine.setCommandController(mockCommandController());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -1103,7 +1114,8 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(notesResource), testResponseEntity);
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -1196,7 +1208,8 @@ public class TestResourceStateMachine {
 				
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> baseLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> baseLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(notesResource), testResponseEntity);
 		// just one link to self, not really testing that here
 		assertEquals(1, baseLinks.size());
 		
@@ -1268,7 +1281,8 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123", "BA")));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+		Collection<Link> links = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123", "BA")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1295,7 +1309,8 @@ public class TestResourceStateMachine {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+		Collection<Link> links = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1338,7 +1353,8 @@ public class TestResourceStateMachine {
 		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
 		entities.add(new EntityResource<Object>(createAirport("London Luton", "LTN")));
 		CollectionResource<Object> collectionResource = new CollectionResource<Object>(entities);
-		Collection<Link> collectionLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+		Collection<Link> collectionLinks = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
 
 		assertNotNull(collectionLinks);
 		assertFalse(collectionLinks.isEmpty());
@@ -1386,7 +1402,8 @@ public class TestResourceStateMachine {
 		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
 		entities.add(new EntityResource<Object>(createAirport("London Luton", "LTN")));
 		CollectionResource<Object> collectionResource = new CollectionResource<Object>(entities);
-		Collection<Link> collectionLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+		Collection<Link> collectionLinks = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
 
 		assertNotNull(collectionLinks);
 		assertFalse(collectionLinks.isEmpty());
@@ -1434,11 +1451,12 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
 
 		//Generate links from airport to flights
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> airportLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
+		Collection<Link> airportLinks = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 		assertNotNull(airportLinks);
 		assertFalse(airportLinks.isEmpty());
 		assertEquals(3, airportLinks.size());
@@ -1460,7 +1478,7 @@ public class TestResourceStateMachine {
 			}
 			
 			//Create links
-			Collection<Link> flightsLinks = rsm.injectLinks(new InteractionContext(pathParameters, queryParameters, flights, mock(Metadata.class)), new EntityResource<Object>(null));
+			Collection<Link> flightsLinks = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, queryParameters, flights, mock(Metadata.class)), new EntityResource<Object>(null));
 
 			if(airportLink.getId().equals("Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights")) {
 				assertTrue(containsLink(flightsLinks, "Flight.Flights>GET({myfilter})>Passenger.Passengers", "/baseuri/Passengers()?myfilter=arrivalAirportCode+eq+'London+Luton'"));
@@ -1483,10 +1501,11 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
-		
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
+		Collection<Link> links = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1661,96 +1680,6 @@ public class TestResourceStateMachine {
 		assertEquals("SuperToaster", pathParams.getFirst("id"));	
 	}
 
-	@Test(expected=AssertionError.class)
-	public void testGetResourceWithoutViewAction() {
-		//Create RSM
-		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
-		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking({id})");
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "toasterId");
-		existsState.addTransition(new Transition.Builder().method("GET").target(cookingState).uriParameters(uriLinkageMap).build());
-		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
-
-		//Test getResource with links
-		try {
-			stateMachine.getResource(cookingState, createMockInteractionContext(existsState));
-		}
-		catch(CommandFailureException cfe) {
-			fail(cfe.getMessage());
-		} 
-		catch (InteractionException ie) {
-			assertEquals("Resource state [toaster.cooking] does not have a view action.", ie.getMessage());
-		}
-	}
-
-	@Test(expected=CommandFailureException.class)
-	public void testGetResourceCommandFails() throws CommandFailureException {
-		//Create RSM
-		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
-		List<Action> mockActions = new ArrayList<Action>();
-		mockActions.add(new Action("notfound", TYPE.VIEW));
-		ResourceState cookingState = new ResourceState("toaster", "cooking", mockActions, "/machines/toaster/cooking({id})");
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "toasterId");
-		existsState.addTransition(new Transition.Builder().method("GET").target(cookingState).uriParameters(uriLinkageMap).build());
-		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
-		stateMachine.setCommandController(mockCommandController());
-		//Test getResource with links
-		try {
-			stateMachine.getResource(cookingState, createMockInteractionContext(existsState));
-		}
-		catch(CommandFailureException cfe) {
-			assertEquals("View command on resource state [toaster.cooking] has failed.", cfe.getMessage());
-			throw cfe;
-		} 
-		catch (InteractionException ie) {
-			fail(ie.getMessage());
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testGetResource() {
-		//Create RSM
-		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
-		List<Action> mockActions = new ArrayList<Action>();
-		mockActions.add(new Action("found", TYPE.VIEW));
-		ResourceState cookingState = new ResourceState("toaster", "cooking", mockActions, "/machines/toaster/cooking({id})");
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "toasterId");
-		existsState.addTransition(new Transition.Builder().method("GET").target(cookingState).uriParameters(uriLinkageMap).build());
-		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
-		stateMachine.setCommandController(mockCommandController());
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		pathParams.add("id", "123");
-		InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), existsState, mock(Metadata.class));
-		
-		
-		try {
-			//Test getResource without links
-			RESTResource resource = stateMachine.getResource(cookingState, ctx, false);
-			EntityResource<Entity> er = (EntityResource<Entity>) resource.getGenericEntity().getEntity();
-			assertEquals("Customer", er.getEntity().getName());
-
-			//Test getResource with links
-			resource = stateMachine.getResource(cookingState, ctx);
-			er = (EntityResource<Entity>) resource.getGenericEntity().getEntity();
-			assertEquals("Customer", er.getEntity().getName());
-			assertNotNull(er.getLinks());
-			assertFalse(er.getLinks().isEmpty());
-			assertEquals(1, er.getLinks().size());
-			Link link = (Link) er.getLinks().toArray()[0];
-			assertEquals("self", link.getRel());
-		}
-		catch(CommandFailureException cfe) {
-			fail(cfe.getMessage());
-		} 
-		catch (InteractionException ie) {
-			fail(ie.getMessage());
-		}
-	}
-	
 	@SuppressWarnings({ "unused" })
 	private Object createTestNote(final String id) {
 		return new Object() {

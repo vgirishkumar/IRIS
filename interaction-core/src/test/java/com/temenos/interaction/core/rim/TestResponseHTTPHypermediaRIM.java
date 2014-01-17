@@ -1184,7 +1184,7 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Expression> conditionalExpressions1 = new ArrayList<Expression>();
 		conditionalExpressions1.add(new SimpleLogicalExpressionEvaluator(new ArrayList<Expression>()) {
 			@Override
-			public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
+			public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
 				return false;
 			}
 			
@@ -1195,7 +1195,7 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Expression> conditionalExpressions2 = new ArrayList<Expression>();
 		conditionalExpressions2.add(new SimpleLogicalExpressionEvaluator(new ArrayList<Expression>()) {
 			@Override
-			public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
+			public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
 				return true;
 			}
 			

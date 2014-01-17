@@ -42,16 +42,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandFailureException;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.web.RequestContext;
 import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand;
 
@@ -100,22 +99,31 @@ public class ResourceStateMachine {
 		List<Action> actions = new ArrayList<Action>();
 		Set<ResourceState> resourceStates = getResourceStatesByPath().get(resourcePath);
 		for (ResourceState s : resourceStates) {
-			Set<String> interactions = getInteractionByState().get(s);
-			// TODO turn interactions into Events
-			if (interactions.contains(event.getMethod())) {
-				for (Action a : s.getActions()) {
-					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
-						// catch problem if overriding existing view actions 
-//						assert(actions.size() == 0) : "Multiple view actions detected";
-						if (actions.size() == 0)
-							actions.add(a);
-					} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
+			actions.addAll(determineActions(event, s));
+		}
+		return buildWorkflow(actions);
+	}
+	
+	public List<Action> determineActions(Event event, ResourceState state) {
+		List<Action> actions = new ArrayList<Action>();
+		Set<String> interactions = getInteractionByState().get(state);
+		// TODO turn interactions into Events
+		if (interactions.contains(event.getMethod())) {
+			for (Action a : state.getActions()) {
+				if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
+					// catch problem if overriding existing view actions 
+//					assert(actions.size() == 0) : "Multiple view actions detected";
+					if (actions.size() == 0)
 						actions.add(a);
-					}
+				} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
+					actions.add(a);
 				}
 			}
 		}
-		
+		return actions;
+	}
+	
+	public InteractionCommand buildWorkflow(List<Action> actions) {
 		if (actions.size() > 0) {
 			AbortOnErrorWorkflowStrategyCommand workflow = new AbortOnErrorWorkflowStrategyCommand();
 			for (Action action : actions) {
@@ -473,16 +481,18 @@ public class ResourceStateMachine {
 	 * @param pathParameters
 	 * @param resourceEntity
 	 * @param state
-	 * @param autoTransition if we using an auto transition from another resource
-	 * 						 we need to use the transition parameters as there are no
-	 * 						 path parameters available - we've not made a request for
-	 * 						 this resource through the whole jax-rs stack
+	 * @param selfTransition if we are injecting links into a resource that has resulted
+	 *                       from a transition from another resource (e.g an auto transition
+	 *                       or an embedded transition) then we need to use the transition 
+	 *                       parameters as there are no path parameters available.
+	 *                       i.e. because we've not made a request for this resource 
+	 *                       through the whole jax-rs stack
 	 * @return
 	 */
-	public Collection<Link> injectLinks(InteractionContext ctx, RESTResource resourceEntity) {
-		return injectLinks(ctx, resourceEntity, null);
+	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHandler, InteractionContext ctx, RESTResource resourceEntity) {
+		return injectLinks(rimHandler, ctx, resourceEntity, null);
 	}
-	public Collection<Link> injectLinks(InteractionContext ctx, RESTResource resourceEntity, Transition autoTransition) {
+	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHander, InteractionContext ctx, RESTResource resourceEntity, Transition selfTransition) {
 		//Add path and query parameters to the list of resource properties
 		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
 		resourceProperties.putAll(ctx.getPathParameters());
@@ -510,7 +520,9 @@ public class ResourceStateMachine {
 		}
 		
 		// add link to GET 'self'
-		links.add(createSelfLink(state.getSelfTransition(), entity, resourceProperties, autoTransition));
+		if (selfTransition == null)
+			selfTransition = state.getSelfTransition();
+		links.add(createSelfLink(selfTransition, entity, resourceProperties));
 
 		/*
 		 * Add links to other application states (resources)
@@ -536,15 +548,10 @@ public class ResourceStateMachine {
 					}
 				} else {
 					boolean addLink = true;
-					
-					//Obtain transition properties (to reuse for expression evaluation and link creation)
-//					Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, resourceProperties);
-//					ctx.setAttribute(TRANSITION_PROPERTIES_CTX_ATTRIBUTE, transitionProperties);
-					
 					// evaluate the conditional expression
 					Expression conditionalExp = cs.getEvaluation();
 					if (conditionalExp != null) {
-						addLink = conditionalExp.evaluate(this, ctx);
+						addLink = conditionalExp.evaluate(rimHander, ctx);
 					}
 						
 					if (addLink) {
@@ -618,9 +625,7 @@ public class ResourceStateMachine {
 	/*
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
-	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters, Transition autoTransition) {
-		if (autoTransition != null)
-			transition = autoTransition;
+	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		TransitionCommandSpec cs = transition.getCommand();
 		return createLink(cs.getPath(), transition, entity, pathParameters);
 	}
@@ -812,50 +817,4 @@ public class ResourceStateMachine {
 		return null;
 	}
 
-	/**
-	 * Get a resource.
-	 * The resource will have links.
-	 * This method will invoke the view command on the specified resource state to obtain a resource.
-	 * This operation does not modify the existing interaction context.
-	 * @param state resource state
-	 * @param ctx interaction context
-	 * @param withLinks if true, inject links into resource
-	 * @throws InteractionException
-	 * @return resource
-	 */
-    public RESTResource getResource(ResourceState state, InteractionContext ctx) throws InteractionException, CommandFailureException {
-    	return this.getResource(state, ctx, true);
-    }
-    
-	/**
-	 * Get a resource.
-	 * This method will invoke the view command on the specified resource state to obtain a resource.
-	 * This operation does not modify the existing interaction context.
-	 * @param state resource state
-	 * @param ctx interaction context
-	 * @param withLinks if true, inject links into resource
-	 * @throws InteractionException
-	 * @return resource
-	 */
-    public RESTResource getResource(ResourceState state, InteractionContext ctx, boolean withLinks) throws InteractionException, CommandFailureException {
-    	//Execute the view command on the specified resource state
-		Action action = state.getViewAction();
-		assert(action != null) : "Resource state [" + state.getId() + "] does not have a view action.";
-		InteractionCommand command = getCommandController().fetchCommand(action.getName());
-		assert(command != null) : "Command not bound";
-    	InteractionContext newCtx = new InteractionContext(ctx, null, null, state);
-		InteractionCommand.Result result = command.execute(newCtx);
-		RESTResource resource = newCtx.getResource();
-		if(resource != null) {
-			resource.setEntityName(newCtx.getCurrentState().getEntityName());
-			if(withLinks) {
-				//Inject links to other resources
-				injectLinks(newCtx, resource, null);
-			}
-		}
-		if(result != InteractionCommand.Result.SUCCESS) {
-			throw new CommandFailureException(result, resource, "View command on resource state [" + newCtx.getCurrentState().getId() + "] has failed.");
-		}
-		return resource;
-    }	
 }

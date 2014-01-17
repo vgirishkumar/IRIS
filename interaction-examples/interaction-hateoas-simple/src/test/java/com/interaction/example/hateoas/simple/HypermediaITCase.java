@@ -94,6 +94,29 @@ public class HypermediaITCase extends JerseyTest {
 		}
 	}
 	
+//	@Test
+	public void testGetEntryPointEmbeddedPreferences() {
+		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+
+		RepresentationFactory representationFactory = new StandardRepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+
+		// the embedded resources
+		Map<String, Collection<ReadableRepresentation>> subresources = resource.getResourceMap();
+		assertNotNull(subresources);
+		assertTrue(subresources.size() == 1);
+
+		Collection<ReadableRepresentation> preferences = subresources.get("http://relations.rimdsl.org/preferences");
+		assertNotNull(preferences);
+		assertTrue(preferences.size() == 1);
+		
+		ReadableRepresentation preference = preferences.iterator().next();
+		assertEquals("user", preference.getValue("userID"));
+		assertEquals("GBP", preference.getValue("currency"));
+		assertEquals("en", preference.getValue("language"));
+	}
+	
 	@Test
 	public void testCollectionLinks() {
 		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);

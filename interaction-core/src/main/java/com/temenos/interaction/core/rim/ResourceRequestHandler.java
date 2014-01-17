@@ -1,10 +1,10 @@
-package com.temenos.interaction.example.hateoas.simple;
+package com.temenos.interaction.core.rim;
 
 /*
  * #%L
- * interaction-example-hateoas-simple
+ * interaction-core
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,22 +22,24 @@ package com.temenos.interaction.example.hateoas.simple;
  */
 
 
-import com.temenos.interaction.core.command.InteractionCommand;
+import java.util.Map;
+
+import javax.ws.rs.core.HttpHeaders;
+
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
-import com.temenos.interaction.example.hateoas.simple.model.Preferences;
 
-public class GETPreferencesCommand implements InteractionCommand {
-
-	/* Implement InteractionCommand interface */
+public interface ResourceRequestHandler {
 	
-	@Override
-	public Result execute(InteractionContext ctx) {
-		assert(ctx != null);
-		// retrieve from a database, etc.
-		EntityResource<Preferences> resource = new EntityResource<Preferences>(new Preferences("user", "GBP", "en"));
-		ctx.setResource(resource);
-		return Result.SUCCESS;
-	}
-
+	/**
+	 * 
+	 * @param rimHandler the main handler for our resource requests
+	 * @param headers HttpHeaders
+	 * @param ctx our InteractionContext
+	 * @param resource the request body (POST, PUT)
+	 * @param config the resources we want, and how shall we process them
+	 * @return
+	 */
+	public Map<Transition, ResourceRequestResult> getResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, InteractionContext ctx, EntityResource<?> resource, ResourceRequestConfig config);
 }

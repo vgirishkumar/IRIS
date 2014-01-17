@@ -1,10 +1,10 @@
-package com.temenos.interaction.core;
+package com.temenos.interaction.core.rim;
 
 /*
  * #%L
  * interaction-core
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,48 +22,24 @@ package com.temenos.interaction.core;
  */
 
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.ws.rs.core.Response.StatusType;
-
-import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.resource.RESTResource;
 
-public class RESTResponse {
+public class ResourceRequestResult {
 
-	private final StatusType status;
+	private final int status;
 	private final RESTResource resource;
-	private final Set<Link> transitions = new HashSet<Link>();
-	private final Set<String> validMethods = new HashSet<String>();
 	
-	public RESTResponse(StatusType status, RESTResource resource) {
-		this(status, resource, null, null);
-	}
-	
-	public RESTResponse(StatusType status, RESTResource resource, Set<Link> transitions, Set<String> validMethods) {
+	public ResourceRequestResult(int status, RESTResource resource) {
+		super();
 		this.status = status;
 		this.resource = resource;
-		if (transitions != null)
-			this.transitions.addAll(transitions);
-		if (validMethods != null)
-			this.validMethods.addAll(validMethods);
-	}
-	
-	public StatusType getStatus() {
-		return status;
-	}
-	
-	public RESTResource getResource() {
-		return resource;
-	}
-	
-	public Set<Link> getTransitions() {
-		return transitions;
 	}
 
-	public Set<String> getValidMethods() {
-		return validMethods;
+	public int getStatus() {
+		return status;
+	}
+	public RESTResource getResource() {
+		return resource;
 	}
 	
 }

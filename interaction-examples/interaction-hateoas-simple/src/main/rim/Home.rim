@@ -45,6 +45,7 @@ resource profile {
 
 resource preferences {
 	type: item
+	relations [ "http://relations.rimdsl.org/preferences" ]
 	entity: Preferences
     view: GETPreferences
 }
