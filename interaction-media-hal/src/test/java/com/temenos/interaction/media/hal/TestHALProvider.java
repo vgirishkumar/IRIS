@@ -62,6 +62,7 @@ import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
@@ -71,6 +72,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -332,8 +334,8 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
-		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
-		
+		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
+
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -379,6 +381,55 @@ public class TestHALProvider {
 		Diff diff = new Diff(expectedXML, responseString);
 		// don't worry about the order of the elements in the xml
 		assertTrue(diff.similar());
+	}
+
+	@Test
+	public void testSerialiseEmbeddedResources() throws Exception {
+		OEntityKey parentEntityKey = OEntityKey.create("333");
+		List<OProperty<?>> parentProperties = new ArrayList<OProperty<?>>();
+		parentProperties.add(OProperties.string("name", "aaron"));
+		parentProperties.add(OProperties.string("age", "30"));
+
+		OEntityKey childEntityKey = OEntityKey.create("123");
+		List<OProperty<?>> childProperties = new ArrayList<OProperty<?>>();
+		childProperties.add(OProperties.string("name", "noah"));
+		childProperties.add(OProperties.string("age", "2"));
+
+		OEntity childEntity = OEntities.create(createMockChildrenEntitySet(), childEntityKey, childProperties, new ArrayList<OLink>());
+		EntityResource<OEntity> childEntityResource = CommandHelper.createEntityResource(childEntity);
+
+		OEntity parentEntity = OEntities.create(createMockChildrenEntitySet(), parentEntityKey, parentProperties, new ArrayList<OLink>());
+		EntityResource<OEntity> parentEntityResource = CommandHelper.createEntityResource(parentEntity);
+
+		
+		// build the embedded map
+		Map<Transition, RESTResource> embedded = new HashMap<Transition, RESTResource>();
+		Transition childToParent = new Transition.Builder()
+				.source(new ResourceState("PERSON", "child", new ArrayList<Action>(), "/child/{id}"))
+				.target(new ResourceState("PERSON", "parent", new ArrayList<Action>(), "/parent/{id}"))
+				.path("/path")
+				.build();
+		embedded.put(childToParent, parentEntityResource);
+		// child has a parent
+		childEntityResource.setEmbedded(embedded);
+		
+		// mock the test links
+		List<Link> links = new ArrayList<Link>();
+		links.add(mockLink("child", "self", "/child/123", null));
+		links.add(mockLink("parent", "person", "/parent/333", childToParent));
+		childEntityResource.setLinks(links);
+		
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		hp.writeTo(childEntityResource, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
+
+		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"/child/123\"},\"person\":{\"href\":\"/parent/333\",\"name\":\"parent\",\"title\":\"parent\"}},\"age\":\"2\",\"name\":\"noah\",\"_embedded\":{\"person\":{\"_links\":{\"self\":{\"href\":\"/parent/333\"}},\"age\":\"30\",\"name\":\"aaron\"}}}";
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		responseString = responseString.replaceAll(System.getProperty("line.separator"), "");
+		assertEquals(expectedXML, responseString);
 	}
 
 	private EntityResource<OEntity> createEntityResourceWithSelfLink(OEntityKey entityKey, List<OProperty<?>> properties, String selfLink) {
@@ -431,12 +482,13 @@ public class TestHALProvider {
 		return responseString;
 	}
 	
-	private Link mockLink(String id, String rel, String href) {
+	private Link mockLink(String id, String rel, String href, Transition transition) {
 		Link link = mock(Link.class);
 		when(link.getId()).thenReturn(id);
 		when(link.getTitle()).thenReturn(id);
 		when(link.getRel()).thenReturn(rel);
 		when(link.getHref()).thenReturn(href);
+		when(link.getTransition()).thenReturn(transition);
         return link;
 	}
 	
@@ -522,11 +574,12 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 		// the test links
 		List<Link> links = new ArrayList<Link>();
-		links.add(mockLink("father", "_person", "humans/31"));
-		links.add(mockLink("mother", "_person", "/rest.svc/humans/32"));
+		links.add(mockLink("father", "_person", "humans/31", null));
+		links.add(mockLink("mother", "_person", "/rest.svc/humans/32", null));
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
-		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
+		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
+		
 		er.setLinks(links);
 		
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
@@ -559,9 +612,9 @@ public class TestHALProvider {
 		 * TODO add tests for 'inline' links
 		 */
 		List<Link> links = new ArrayList<Link>();
-		links.add(mockLink("father", "_person", "humans/31"));
-		links.add(mockLink("mother", "_person", "humans/32"));
-		links.add(mockLink("siblings", "_family", "humans/phetheans"));
+		links.add(mockLink("father", "_person", "humans/31", null));
+		links.add(mockLink("mother", "_person", "humans/32", null));
+		links.add(mockLink("siblings", "_family", "humans/phetheans", null));
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);

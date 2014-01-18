@@ -94,7 +94,7 @@ public class HypermediaITCase extends JerseyTest {
 		}
 	}
 	
-//	@Test
+	@Test
 	public void testGetEntryPointEmbeddedPreferences() {
 		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());

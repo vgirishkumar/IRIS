@@ -93,7 +93,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	private Request requestContext;
 	private Metadata metadata = null;
 	private ResourceStateMachine hypermediaEngine;
-	
+    private RepresentationFactory representationFactory = new StandardRepresentationFactory();
+
 	public HALProvider(Metadata metadata, ResourceStateMachine hypermediaEngine) {
 		this(metadata);
 		this.hypermediaEngine = hypermediaEngine;
@@ -141,13 +142,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
 		// create the hal resource
-        RepresentationFactory representationFactory = new StandardRepresentationFactory();
         Representation halResource = representationFactory.newRepresentation(uriInfo.getBaseUri());
 		if (resource.getGenericEntity() != null) {
-			RESTResource rResource = (RESTResource) resource.getGenericEntity().getEntity();
-
 			// get the links
-			Collection<Link> links = rResource.getLinks();
+			Collection<Link> links = resource.getLinks();
 			Link selfLink = findSelfLink(links);
 			
 			// build the HAL representation with self link
@@ -165,102 +163,23 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				}
 			}
 			
-			// add contents of supplied entity to the property map
-			if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
-				@SuppressWarnings("unchecked")
-				EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) resource;
-				Map<String, Object> propertyMap = new HashMap<String, Object>();
-				buildFromOEntity(propertyMap, oentityResource.getEntity());
-				// add properties to HAL resource
-				for (String key : propertyMap.keySet()) {
-					halResource.withProperty(key, propertyMap.get(key));
+			// add the embedded resources
+			Map<Transition, RESTResource> embedded = resource.getEmbedded();
+			if (embedded != null) {
+				for (Transition t : embedded.keySet()) {
+					RESTResource embeddedResource = embedded.get(t);
+					// TODO work our rel for embedded resource, just as we need to work out the rel for the other links
+					Link link = findLinkByTransition(links, t);
+					assert(link != null);
+					String rel = (link.getRel() != null ? link.getRel() : "embedded/" + embeddedResource.getEntityName());
+					logger.debug("Embedded: rel=[" + rel + "] href=[" + link.getHref() + "]");
+					ReadableRepresentation embeddedRepresentation = buildRepresentation(representationFactory.newRepresentation(link.getHref()), embeddedResource, null, null);
+					halResource.withRepresentation(rel, embeddedRepresentation);
 				}
-			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
-					@SuppressWarnings("unchecked")
-					EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
-					Map<String, Object> propertyMap = new HashMap<String, Object>();
-					buildFromEntity(propertyMap, entityResource.getEntity());
-					// add properties to HAL resource
-					for (String key : propertyMap.keySet()) {
-						halResource.withProperty(key, propertyMap.get(key));
-					}
-			} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
-				EntityResource<?> entityResource = (EntityResource<?>) resource;
-				Object entity = entityResource.getEntity();
-				if (entity != null) {
-					/*
-					 * // regular java bean
-					 * halResource.withBean(entity);
-					 */
-					// java bean, now limited to just the properties specified in the metadata entity model
-					Map<String, Object> propertyMap = new HashMap<String, Object>();
-					buildFromBean(propertyMap, entity, entityResource.getEntityName());
-					for (String key : propertyMap.keySet()) {
-						halResource.withProperty(key, propertyMap.get(key));
-					}
-				}
-			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
-				@SuppressWarnings("unchecked")
-				CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource;
-				List<EntityResource<OEntity>> entities = (List<EntityResource<OEntity>>) cr.getEntities();
-				for (EntityResource<OEntity> er : entities) {
-					OEntity entity = er.getEntity();
-					// the subresource is an item of the collection
-					String rel = "collectionItem/" + cr.getEntityName();
-					// the properties
-					Map<String, Object> propertyMap = new HashMap<String, Object>();
-					buildFromOEntity(propertyMap, entity);
-					// create hal resource and add link for self - if there is one
-					Representation subResource = representationFactory.newRepresentation();
-					
-					for (Link el : er.getLinks()) {
-						subResource.withLink(el.getRel(), el.getHref());
-					}
-					// add properties to HAL sub resource
-					for (String key : propertyMap.keySet()) {
-						subResource.withProperty(key, propertyMap.get(key));
-					}
-					halResource.withRepresentation(rel, subResource);
-				}
-			} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
-				@SuppressWarnings("unchecked")
-				CollectionResource<Object> cr = (CollectionResource<Object>) resource;
-				List<EntityResource<Object>> entities = (List<EntityResource<Object>>) cr.getEntities();
-				for (EntityResource<Object> er : entities) {
-					Object entity = er.getEntity();
-					// the subresource is part of a collection (maybe this link rel should be an 'item')
-					String rel = "collection." + cr.getEntityName();
-					// the properties
-					Map<String, Object> propertyMap = new HashMap<String, Object>();
-					buildFromBean(propertyMap, entity, cr.getEntityName());
-					// create hal resource and add link for self
-					Link itemSelfLink = findSelfLink(er.getLinks());
-					if (itemSelfLink != null) {
-						Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
-						for (Link el : er.getLinks()) {
-							String itemHref = el.getHref();
-							/*
-							don't add links twice, this break the client assertion of one rel per link (which seems wrong)
-							List<com.theoryinpractise.halbuilder.api.Link> selfLinks = subResource.getLinksByRel("self");
-							assert(selfLinks != null && selfLinks.size() == 1);
-							*/
-							if (!itemSelfLink.equals(el)) {
-								subResource.withLink(el.getRel(), itemHref, el.getId(), el.getTitle(), null, null);
-							}
-						}
-						// add properties to HAL sub resource
-						for (String key : propertyMap.keySet()) {
-							subResource.withProperty(key, propertyMap.get(key));
-						}
-						halResource.withRepresentation(rel, subResource);
-					}
-					
-				}
-				
-			} else {
-				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 			}
+
+			// add contents of supplied entity to the representation
+			buildRepresentation(halResource, resource, type, genericType);
 
 		}
 				
@@ -278,6 +197,19 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		entityStream.write(representation.getBytes("UTF-8"));
 	}
 
+	private Link findLinkByTransition(Collection<Link> links, Transition transition) {
+		Link link = null;
+		if (links != null) {
+			for (Link l : links) {
+				if (l.getTransition() != null && l.getTransition().equals(transition)) {
+					link = l;
+					break;
+				}
+			}
+		}
+		return link;
+	}
+	
 	protected Link findSelfLink(Collection<Link> links) {
 		Link selfLink = null;
 		if (links != null) {
@@ -348,6 +280,109 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 
+	private Representation buildRepresentation(Representation halResource, RESTResource resource, Class<?> type, Type genericType) {
+		if (genericType == null)
+			genericType = resource.getGenericEntity().getType();
+		if (type == null)
+			type = resource.getGenericEntity().getRawType();
+		if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
+			@SuppressWarnings("unchecked")
+			EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) resource;
+			Map<String, Object> propertyMap = new HashMap<String, Object>();
+			buildFromOEntity(propertyMap, oentityResource.getEntity());
+			// add properties to HAL resource
+			for (String key : propertyMap.keySet()) {
+				halResource.withProperty(key, propertyMap.get(key));
+			}
+		} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
+				@SuppressWarnings("unchecked")
+				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
+				Map<String, Object> propertyMap = new HashMap<String, Object>();
+				buildFromEntity(propertyMap, entityResource.getEntity());
+				// add properties to HAL resource
+				for (String key : propertyMap.keySet()) {
+					halResource.withProperty(key, propertyMap.get(key));
+				}
+		} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
+			EntityResource<?> entityResource = (EntityResource<?>) resource;
+			Object entity = entityResource.getEntity();
+			if (entity != null) {
+				/*
+				 * // regular java bean
+				 * halResource.withBean(entity);
+				 */
+				// java bean, now limited to just the properties specified in the metadata entity model
+				Map<String, Object> propertyMap = new HashMap<String, Object>();
+				buildFromBean(propertyMap, entity, entityResource.getEntityName());
+				for (String key : propertyMap.keySet()) {
+					halResource.withProperty(key, propertyMap.get(key));
+				}
+			}
+		} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
+			@SuppressWarnings("unchecked")
+			CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource;
+			List<EntityResource<OEntity>> entities = (List<EntityResource<OEntity>>) cr.getEntities();
+			for (EntityResource<OEntity> er : entities) {
+				OEntity entity = er.getEntity();
+				// the subresource is an item of the collection
+				String rel = "collectionItem/" + cr.getEntityName();
+				// the properties
+				Map<String, Object> propertyMap = new HashMap<String, Object>();
+				buildFromOEntity(propertyMap, entity);
+				// create hal resource and add link for self - if there is one
+				Representation subResource = representationFactory.newRepresentation();
+				
+				for (Link el : er.getLinks()) {
+					subResource.withLink(el.getRel(), el.getHref());
+				}
+				// add properties to HAL sub resource
+				for (String key : propertyMap.keySet()) {
+					subResource.withProperty(key, propertyMap.get(key));
+				}
+				halResource.withRepresentation(rel, subResource);
+			}
+		} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
+			@SuppressWarnings("unchecked")
+			CollectionResource<Object> cr = (CollectionResource<Object>) resource;
+			List<EntityResource<Object>> entities = (List<EntityResource<Object>>) cr.getEntities();
+			for (EntityResource<Object> er : entities) {
+				Object entity = er.getEntity();
+				// the subresource is part of a collection (maybe this link rel should be an 'item')
+				String rel = "collection." + cr.getEntityName();
+				// the properties
+				Map<String, Object> propertyMap = new HashMap<String, Object>();
+				buildFromBean(propertyMap, entity, cr.getEntityName());
+				// create hal resource and add link for self
+				Link itemSelfLink = findSelfLink(er.getLinks());
+				if (itemSelfLink != null) {
+					Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
+					for (Link el : er.getLinks()) {
+						String itemHref = el.getHref();
+						/*
+						don't add links twice, this break the client assertion of one rel per link (which seems wrong)
+						List<com.theoryinpractise.halbuilder.api.Link> selfLinks = subResource.getLinksByRel("self");
+						assert(selfLinks != null && selfLinks.size() == 1);
+						*/
+						if (!itemSelfLink.equals(el)) {
+							subResource.withLink(el.getRel(), itemHref, el.getId(), el.getTitle(), null, null);
+						}
+					}
+					// add properties to HAL sub resource
+					for (String key : propertyMap.keySet()) {
+						subResource.withProperty(key, propertyMap.get(key));
+					}
+					halResource.withRepresentation(rel, subResource);
+				}
+				
+			}
+			
+		} else {
+			logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
+			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		}
+		return halResource;
+	}
+	
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {

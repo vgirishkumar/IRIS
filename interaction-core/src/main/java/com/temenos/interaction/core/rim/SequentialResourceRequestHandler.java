@@ -27,8 +27,10 @@ import java.util.Map;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.hypermedia.Event;
@@ -58,13 +60,23 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 	    	Event event = new Event("", method);
 			// determine action
 	    	InteractionCommand action = hypermediaEngine.buildWorkflow(t.getTarget().getActions());
-	    	InteractionContext newCtx = new InteractionContext(ctx, null, null, t.getTarget());
+			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
+			newPathParameters.putAll(ctx.getPathParameters());
+			RESTResource currentResource = ctx.getResource();
+			if (currentResource != null) {
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(t, ((EntityResource<?>)currentResource).getEntity(), ctx.getPathParameters());
+				for (String key : transitionProperties.keySet()) {
+					if (transitionProperties.get(key) != null)
+						newPathParameters.add(key, transitionProperties.get(key).toString());
+				}
+			}
+	    	InteractionContext newCtx = new InteractionContext(ctx, newPathParameters, null, t.getTarget());
 			Response response = rimHandler.handleRequest(headers, 
 					newCtx, 
 					event, 
 					action, 
 					resource, 
-					config.getSelfTransition());
+					config);
 			RESTResource targetResource = null;
 			if (response.getEntity() != null) {
 				targetResource = (RESTResource) ((GenericEntity<?>) response.getEntity()).getEntity();

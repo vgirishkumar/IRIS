@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -55,7 +55,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
-import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.HttpStatusTypes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -304,7 +303,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		return handleRequest(headers, ctx, event, action, resource, null);
 	}
 
-	protected Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event, InteractionCommand action, EntityResource<?> resource, Transition selfTransition) {
+	protected Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event, InteractionCommand action, EntityResource<?> resource, ResourceRequestConfig config) {
 		assert(event != null);
 		StatusType status = Status.NOT_FOUND;
     	if (action == null) {
@@ -330,13 +329,36 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// determine status
     	if (ctx.getResource() != null && status.getFamily() == Status.Family.SUCCESSFUL) {
     		/*
+    		 * How should we handle the representation of this resource
+    		 */
+    		Transition selfTransition = null;
+    		boolean injectLinks = true;
+    		boolean embedResources = true;
+    		if (config != null) {
+    			selfTransition = config.getSelfTransition();
+    			injectLinks = config.isInjectLinks();
+    			embedResources = config.isEmbedResources();
+    		}
+    		
+    		/*
     		 * Add entity information to this resource
     		 */
     		ctx.getResource().setEntityName(ctx.getCurrentState().getEntityName());
-    		/*
-    		 * Add hypermedia information to this resource
-    		 */
-    		hypermediaEngine.injectLinks(this, ctx, ctx.getResource(), selfTransition);
+    		
+    		if (injectLinks) {
+        		/*
+        		 * Add hypermedia information to this resource
+        		 */
+        		hypermediaEngine.injectLinks(this, ctx, ctx.getResource(), selfTransition);
+    		}
+    		
+    		if (embedResources) {
+        		/*
+        		 * Add embedded resources this resource
+        		 */
+        		embedResources(headers, ctx, ctx.getResource(), selfTransition);
+    		}
+
     	}
     	// build response
     	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx);
@@ -506,22 +528,19 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource)resource).getEntity(), pathParameters);
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 				
-				Action targetAction = autoTransition.getTarget().getViewAction();
-				InteractionCommand action = getCommandController().fetchCommand(targetAction.getName());
-				MultivaluedMap<String, String> autoPathParameters = new MultivaluedMapImpl<String>();
-				autoPathParameters.putAll(pathParameters);
-				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
-				for (String key : transitionProperties.keySet()) {
-					if (transitionProperties.get(key) != null)
-						autoPathParameters.add(key, transitionProperties.get(key).toString());
-				}
-				InteractionContext autoCtx = new InteractionContext(autoPathParameters, ctx.getQueryParameters(), autoTransition.getTarget(), metadata);
-	        	Response autoResponse = handleRequest(headers, autoCtx, new Event("GET", HttpMethod.GET), action, (EntityResource<?>) resource, autoTransition);
+	        	ResourceRequestConfig config = new ResourceRequestConfig.Builder()
+	        			.selfTransition(autoTransition)
+	        			.transition(autoTransition)
+	        			.build();
+	        	Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(this, headers, ctx, (EntityResource<?>) resource, config);
+	        	assert(results.keySet().size() == 1);
+	        	ResourceRequestResult autoResponse = results.values().iterator().next();
 	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
-	        		logger.warn("Auto transition target did not return HttpStatus.OK status");
+	        		logger.warn("Auto transition target did not return HttpStatus.OK status ["+autoResponse.getStatus()+"]");
 	        		responseBuilder.status(autoResponse.getStatus());
 	        	}
-	        	resource = (EntityResource<?>)((GenericEntity<?>)autoResponse.getEntity()).getEntity();
+//	        	resource = (EntityResource<?>)((GenericEntity<?>)autoResponse.getResource()).getEntity();
+	        	resource = autoResponse.getResource();
 	        	resource.setEntityName(autoTransition.getTarget().getEntityName());
 			}
 			assert(resource != null);
@@ -579,6 +598,45 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			return resource;
 		} catch(InteractionException ie) {
 			logger.error("Failed to access resource [" + state.getId() + "] with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
+			throw new RuntimeException(ie);
+		}
+    }
+    
+    private Map<Transition, RESTResource> embedResources(HttpHeaders headers, InteractionContext ctx, RESTResource resourceEntity, Transition selfTransition) {
+		try {
+			ResourceRequestConfig.Builder configBuilder = new ResourceRequestConfig.Builder();
+			Collection<Link> links = ctx.getResource().getLinks();
+			if (links != null) {
+				for (Link link : links) {
+					Transition t = link.getTransition();
+					if (!t.equals(selfTransition) &&
+							(t.getCommand().getFlags() & Transition.EMBEDDED) == Transition.EMBEDDED) {
+						configBuilder.transition(t);
+						// TODO won't work with multiple embedded resources?
+						configBuilder.selfTransition(t);
+					}
+				}
+			}
+
+			ResourceRequestConfig config = configBuilder.build();
+			Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(this, headers, ctx, null, config);
+			if(config.getTransitions() != null && config.getTransitions().size() > 0
+					&& config.getTransitions().size() != results.keySet().size()) {
+				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state [" + ctx.getCurrentState().getId() + "] did not return correct number of embedded resources.");
+			}
+			Map<Transition, RESTResource> resourceResults = new HashMap<Transition, RESTResource>();
+			for (Transition transition : results.keySet()) {
+				ResourceRequestResult result = results.get(transition);
+				if (result.getStatus() != HttpStatus.OK.getCode()) {
+					logger.error("Failed to embed resource for transition [" + transition.getId() + "]");
+				} else {
+					resourceResults.put(transition, result.getResource());
+				}
+			}
+			ctx.getResource().setEmbedded(resourceResults);
+			return resourceResults;
+		} catch(InteractionException ie) {
+			logger.error("Failed to embed resources [" + ctx.getCurrentState().getId() + "] with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
 			throw new RuntimeException(ie);
 		}
     }
