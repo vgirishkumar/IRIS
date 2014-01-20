@@ -34,16 +34,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
+import javax.ws.rs.core.Response.Status;
 
+import org.apache.wink.common.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.resource.CollectionResource;
@@ -51,6 +55,9 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
+import com.temenos.interaction.core.rim.ResourceRequestConfig;
+import com.temenos.interaction.core.rim.ResourceRequestHandler;
+import com.temenos.interaction.core.rim.ResourceRequestResult;
 import com.temenos.interaction.core.web.RequestContext;
 import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand;
 
@@ -478,9 +485,20 @@ public class ResourceStateMachine {
 
 	/**
 	 * Evaluate and return all the valid links (target states) from this resource state.
-	 * @param pathParameters
+	 * @param rimHandler
+	 * @param ctx
 	 * @param resourceEntity
-	 * @param state
+	 * @return
+	 */
+	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHandler, InteractionContext ctx, RESTResource resourceEntity) {
+		return injectLinks(rimHandler, ctx, resourceEntity, null);
+	}
+	/**
+	 * Evaluate and return all the valid links (target states) from the current
+	 * resource state (@see {@link InteractionContext#getCurrentState()}).
+	 * @param rimHandler
+	 * @param ctx
+	 * @param resourceEntity
 	 * @param selfTransition if we are injecting links into a resource that has resulted
 	 *                       from a transition from another resource (e.g an auto transition
 	 *                       or an embedded transition) then we need to use the transition 
@@ -489,9 +507,6 @@ public class ResourceStateMachine {
 	 *                       through the whole jax-rs stack
 	 * @return
 	 */
-	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHandler, InteractionContext ctx, RESTResource resourceEntity) {
-		return injectLinks(rimHandler, ctx, resourceEntity, null);
-	}
 	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHander, InteractionContext ctx, RESTResource resourceEntity, Transition selfTransition) {
 		//Add path and query parameters to the list of resource properties
 		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
@@ -563,6 +578,58 @@ public class ResourceStateMachine {
 		resourceEntity.setLinks(links);
 		return links;
 	}
+
+	/**
+	 * Execute and return all the valid embedded links (target states) from the supplied
+	 * resource.  Should be identical to {@link InteractionContext#getResource()}.
+	 * @param rimHandler
+	 * @param headers
+	 * @param ctx
+	 * @param resource
+	 * @return
+	 */
+    public Map<Transition, RESTResource> embedResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, InteractionContext ctx, RESTResource resource) {
+		ResourceRequestHandler resourceRequestHandler = rimHandler.getResourceRequestHandler();
+		assert(resourceRequestHandler != null);
+    	try {
+			ResourceRequestConfig.Builder configBuilder = new ResourceRequestConfig.Builder();
+			Collection<Link> links = resource.getLinks();
+			if (links != null) {
+				for (Link link : links) {
+					Transition t = link.getTransition();
+					/*
+					 * when embedding resources we don't want to embed ourselves
+					 * we only want to embed the 'EMBEDDED' transitions
+					 */
+					if (!t.getSource().equals(t.getTarget()) &&
+							(t.getCommand().getFlags() & Transition.EMBEDDED) == Transition.EMBEDDED) {
+						configBuilder.transition(t);
+					}
+				}
+			}
+
+			ResourceRequestConfig config = configBuilder.build();
+			Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(rimHandler, headers, ctx, null, config);
+			if(config.getTransitions() != null && config.getTransitions().size() > 0
+					&& config.getTransitions().size() != results.keySet().size()) {
+				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state [" + ctx.getCurrentState().getId() + "] did not return correct number of embedded resources.");
+			}
+			Map<Transition, RESTResource> resourceResults = new HashMap<Transition, RESTResource>();
+			for (Transition transition : results.keySet()) {
+				ResourceRequestResult result = results.get(transition);
+				if (result.getStatus() != HttpStatus.OK.getCode()) {
+					logger.error("Failed to embed resource for transition [" + transition.getId() + "]");
+				} else {
+					resourceResults.put(transition, result.getResource());
+				}
+			}
+			resource.setEmbedded(resourceResults);
+			return resourceResults;
+		} catch(InteractionException ie) {
+			logger.error("Failed to embed resources [" + ctx.getCurrentState().getId() + "] with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
+			throw new RuntimeException(ie);
+		}
+    }
 
 	/**
 	 * Find the transition that was used by evaluating the LinkHeader and 

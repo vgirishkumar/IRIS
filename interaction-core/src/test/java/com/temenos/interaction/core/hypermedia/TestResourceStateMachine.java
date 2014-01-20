@@ -43,8 +43,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
@@ -74,6 +76,7 @@ import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressio
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.web.RequestContext;
 
@@ -1527,6 +1530,54 @@ public class TestResourceStateMachine {
 		assertEquals("/baseuri/FlightStats?apikey=Some+literal+value", sortedLinks.get(1).getHref());
 	}
 
+	/*
+	 * We use links (hypermedia) for controlling / describing application 
+	 * state.  Test we return the links for the collection itself.
+	 */
+	@Test
+	public void testEmbedMultipleResourcesEntityResource() {
+		String ENTITY = "ENTITY";
+        List<Action> mockActions = new ArrayList<Action>();
+        mockActions.add(new Action("found", Action.TYPE.VIEW, null));
+		ResourceState parentResource = new ResourceState(ENTITY, "parentResource", new ArrayList<Action>(), "/path");
+		ResourceState childResource1 = new ResourceState("PROFILE", "childResource1", mockActions, "/root/profile", "profile".split(" "));
+		ResourceState childResource2 = new ResourceState("PREFERENCE", "childResource2", mockActions, "/root/preferences", "preferences".split(" "));
+		/* create the transitions (links) */
+		parentResource.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(childResource1).build());
+		parentResource.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(childResource2).build());
+		
+		// the mock resources
+		EntityResource<Object> testResponseEntity = new EntityResource<Object>(ENTITY, createTestNote("rootobject"));
+
+		// initialise and get the application state (links)
+		ResourceStateMachine stateMachine = new ResourceStateMachine(parentResource, new BeanTransformer());
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		InteractionContext mockCtx = createMockInteractionContext(parentResource);
+		stateMachine.injectLinks(rimHandler, mockCtx, testResponseEntity);
+		Map<Transition,RESTResource> embeddedResources = stateMachine.embedResources(rimHandler, mock(HttpHeaders.class), mockCtx, testResponseEntity);
+
+		assertNotNull(embeddedResources);
+		assertFalse(embeddedResources.isEmpty());
+		assertEquals(2, embeddedResources.size());
+		/*
+		 * expect 2 resources - profile and preferences
+		 */
+		List<RESTResource> resources = new ArrayList<RESTResource>(embeddedResources.values());
+		// sort the resources so we have a predictable order for this test
+		Collections.sort(resources, new Comparator<RESTResource>() {
+			@Override
+			public int compare(RESTResource o1, RESTResource o2) {
+				return o1.getEntityName().compareTo(o2.getEntityName());
+			}
+		});
+		// preferences resources
+		assertEquals("PREFERENCE", resources.get(0).getEntityName());
+		// profile resource
+		assertEquals("PROFILE", resources.get(1).getEntityName());
+				
+	}
+
+	
 	@Test
 	public void testDetermineAction() {
 		String ENTITY_NAME = "";

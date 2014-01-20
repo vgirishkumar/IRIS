@@ -26,7 +26,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -193,6 +192,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		return hypermediaEngine;
 	}
 	
+	public ResourceRequestHandler getResourceRequestHandler() {
+		return resourceRequestHandler;
+	}
+	
 	/*
 	 * Bootstrap the resource by attempting to fetch a command for all the required
 	 * interactions with the resource state.
@@ -356,7 +359,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         		/*
         		 * Add embedded resources this resource
         		 */
-        		embedResources(headers, ctx, ctx.getResource(), selfTransition);
+    			hypermediaEngine.embedResources(this, headers, ctx, ctx.getResource());
     		}
 
     	}
@@ -602,44 +605,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
     }
     
-    private Map<Transition, RESTResource> embedResources(HttpHeaders headers, InteractionContext ctx, RESTResource resourceEntity, Transition selfTransition) {
-		try {
-			ResourceRequestConfig.Builder configBuilder = new ResourceRequestConfig.Builder();
-			Collection<Link> links = ctx.getResource().getLinks();
-			if (links != null) {
-				for (Link link : links) {
-					Transition t = link.getTransition();
-					if (!t.equals(selfTransition) &&
-							(t.getCommand().getFlags() & Transition.EMBEDDED) == Transition.EMBEDDED) {
-						configBuilder.transition(t);
-						// TODO won't work with multiple embedded resources?
-						configBuilder.selfTransition(t);
-					}
-				}
-			}
-
-			ResourceRequestConfig config = configBuilder.build();
-			Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(this, headers, ctx, null, config);
-			if(config.getTransitions() != null && config.getTransitions().size() > 0
-					&& config.getTransitions().size() != results.keySet().size()) {
-				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state [" + ctx.getCurrentState().getId() + "] did not return correct number of embedded resources.");
-			}
-			Map<Transition, RESTResource> resourceResults = new HashMap<Transition, RESTResource>();
-			for (Transition transition : results.keySet()) {
-				ResourceRequestResult result = results.get(transition);
-				if (result.getStatus() != HttpStatus.OK.getCode()) {
-					logger.error("Failed to embed resource for transition [" + transition.getId() + "]");
-				} else {
-					resourceResults.put(transition, result.getResource());
-				}
-			}
-			ctx.getResource().setEmbedded(resourceResults);
-			return resourceResults;
-		} catch(InteractionException ie) {
-			logger.error("Failed to embed resources [" + ctx.getCurrentState().getId() + "] with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
-			throw new RuntimeException(ie);
-		}
-    }
     
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
