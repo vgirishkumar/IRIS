@@ -303,7 +303,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
     	// create the interaction context
     	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
-		return handleRequest(headers, ctx, event, action, resource, null);
+    	long begin = System.currentTimeMillis();
+    	Response response = handleRequest(headers, ctx, event, action, resource, null);
+    	long end = System.currentTimeMillis();
+		logger.info("iris_request EntityName=" +  getFQResourcePath() + 
+				" MethodType=" + event.getMethod() + 
+				" URI=" + uriInfo.getRequestUri() + 
+				" RequestTime=" + String.valueOf(end-begin));
+		return response;
 	}
 
 	protected Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event, InteractionCommand action, EntityResource<?> resource, ResourceRequestConfig config) {
