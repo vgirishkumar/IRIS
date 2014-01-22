@@ -169,7 +169,7 @@
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-commands-odata</artifactId>
     	<type>jar</type>
-    	<scope>runtime</scope>
+    	<scope>compile</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>

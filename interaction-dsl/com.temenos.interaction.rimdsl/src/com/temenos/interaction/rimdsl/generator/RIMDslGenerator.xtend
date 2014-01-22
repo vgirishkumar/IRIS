@@ -342,6 +342,7 @@ class RIMDslGenerator implements IGenerator {
             		.target(s«transition.state.name»)
             		.uriParameters(uriLinkageProperties)
             		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+            		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
             		.build());
     '''
 

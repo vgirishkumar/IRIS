@@ -67,7 +67,6 @@ import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParserExt;
-import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.producer.Responses;
 import org.slf4j.Logger;
@@ -110,6 +109,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private final Metadata metadata;
 	private final ResourceStateMachine hypermediaEngine;
 	private final Transformer transformer;
+	private final LinkInterceptor linkInterceptor = new ODataLinkInterceptor(this);
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
@@ -131,7 +131,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		assert(hypermediaEngine != null);
 		this.transformer = transformer;
 		entryWriter = new AtomEntryFormatWriter();
-		feedWriter = new AtomFeedFormatWriter(edmDataServices);
+		feedWriter = new AtomFeedFormatWriter();
 	}
 	
 	@Override
@@ -179,15 +179,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + entityResource.getEntityName();
 				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
+				List<OLink> olinks = formOLinks(entityResource);
 
-				//Convert Links to list of OLink
-				List<OLink> olinks = new ArrayList<OLink>();
-				if (entityResource.getLinks() != null) {
-					for(Link link : entityResource.getLinks()) {
-						addLinkToOLinks(olinks, link);
-					}
-				}
-				
 				//Write entry
 	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
             	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
@@ -232,53 +225,40 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
-				Map<String, List<OLink>> entityOlinks = new HashMap<String, List<OLink>>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
 		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
 					OEntity tempEntity = collectionEntity.getEntity();
-	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
-					
-					//Add entity links
-					List<OLink> olinks = new ArrayList<OLink>();
-					if (collectionEntity.getLinks() != null) {
-						for(Link link : collectionEntity.getLinks()) {
-							addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
-							
-							/*
-							 * TODO we can remove this way of adding links to other resources once we support multiple transitions 
-							 * to a resource state.  https://github.com/aphethean/IRIS/issues/17
-							//Links to other resources
-					        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
-					        if(entityTransitions != null) {
-						        for(Transition transition : entityTransitions) {
-						        	//Create Link from transition
-									String rel = transition.getTarget().getName();
-									UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
-									Map<String, Object> properties = new HashMap<String, Object>();
-									properties.putAll(transformer.transform(entity));
-									URI href = linkTemplate.buildFromMap(properties);
-									Link entityLink = new Link(transition, rel, href.toASCIIString(), "GET");
-									
-									addLinkToOLinks(olinks, entityLink);
-								}
-					        }
-							 */
-						}		
-					}
-					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
+					List<OLink> olinks = formOLinks(collectionEntity);
+	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), olinks);
 					entities.add(entity);
 				}
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource.getLinks(), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks, metadata.getModelName());
+				List<Link> links = new ArrayList<Link>();
+				for (Link l : collectionResource.getLinks()) {
+					Link linkToAdd = linkInterceptor.addingLink(collectionResource, l);
+					if (linkToAdd != null) {
+						links.add(linkToAdd);
+					}
+				}
+				
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), links, Responses.entities(entities, entitySet, inlineCount, skipToken), metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
 				CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
 				
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				
+				List<Link> links = new ArrayList<Link>();
+				for (Link l : collectionResource.getLinks()) {
+					Link linkToAdd = linkInterceptor.addingLink(collectionResource, l);
+					if (linkToAdd != null) {
+						links.add(linkToAdd);
+					}
+				}
+				collectionResource.setLinks(links);
+
 				//Write feed
 				EntityMetadata entityMetadata = metadata.getEntityMetadata(collectionResource.getEntityName());
 				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter();
@@ -292,22 +272,85 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 	}
 	
-	public void addLinkToOLinks(List<OLink> olinks, Link link) {
+	public List<OLink> formOLinks(EntityResource<OEntity> entityResource) {
+		Collection<Link> links = entityResource.getLinks();
+		List<Link> processedLinks = new ArrayList<Link>();
+		if (links != null) {
+			for (Link linkToAdd : links) {
+				Link link = linkInterceptor.addingLink(entityResource, linkToAdd);
+				if (link != null) {
+					processedLinks.add(link);
+				}
+			}
+		}
+		entityResource.setLinks(processedLinks);
+
+		// Create embedded resources from $expand
+		addExpandedLinks(entityResource);
+		
+		//Add entity links
+		List<OLink> olinks = new ArrayList<OLink>();
+		if (entityResource.getLinks().size() > 0) {
+			for(Link link : entityResource.getLinks()) {
+				addLinkToOLinks(olinks, link, entityResource);
+			}		
+		}
+		
+		return olinks;
+	}
+	
+	/*
+	 * Using the supplied EntityResource, add the embedded resources
+	 * from the OEntity embedded resources.  NB - only an OEntity can
+	 * carry OLinks.
+	 */
+	public void addExpandedLinks(EntityResource<OEntity> entityResource) {
+		RequestContext requestContext = RequestContext.getRequestContext();
+		Collection<Link> links = entityResource.getLinks();
+		if (links != null) {
+			OEntity oentity = entityResource.getEntity();
+			List<OLink> olinks = oentity.getLinks();
+			for (OLink olink : olinks) {
+				if (olink.isInline()) {
+					String relid = InternalUtil.getEntityRelId(oentity);
+					String href = relid + "/" + olink.getTitle();
+					for (Link link : links) {
+						String linkHref = link.getHref();
+						if(requestContext != null) {
+							//Extract the transition fragment from the URI path
+							linkHref = link.getHrefTransition(requestContext.getBasePath());
+						}
+						if (href.equals(linkHref)) {
+							if (entityResource.getEmbedded() == null) {
+								entityResource.setEmbedded(new HashMap<Transition, RESTResource>());
+							}
+							if (olink.isCollection()) {
+								List<OEntity> oentities = olink.getRelatedEntities();
+								Collection<EntityResource<OEntity>> entityResources = new ArrayList<EntityResource<OEntity>>();
+								for (OEntity oe : oentities) {
+									entityResources.add(new EntityResource<OEntity>(oe));
+								}
+								entityResource.getEmbedded().put(link.getTransition(), new CollectionResource<OEntity>(entityResources));
+							} else {
+								// replace the OLink's on the current entity
+								OEntity inlineOentity = olink.getRelatedEntity();
+								List<OLink> inlineResourceOlinks = formOLinks(new EntityResource<OEntity>(inlineOentity));
+				            	OEntity newInlineOentity = OEntities.create(inlineOentity.getEntitySet(), inlineOentity.getEntityKey(), inlineOentity.getProperties(), inlineResourceOlinks);
+								entityResource.getEmbedded().put(link.getTransition(), new EntityResource<OEntity>(newInlineOentity));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void addLinkToOLinks(List<OLink> olinks, Link link, RESTResource resource) {
 		RequestContext requestContext = RequestContext.getRequestContext();
 		assert(link != null);
 		assert(link.getTransition() != null);
-		String targetEntitySetName = null;
-		if(link.getTransition() != null) {
-			String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + link.getTransition().getTarget().getEntityName();
-			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
-			try {
-				targetEntitySetName = edmDataServices.getEdmEntitySet(targetEntityType).getName();
-			} catch(NotFoundException nfe) {
-				logger.debug("Entity [" + fqTargetEntityName + "] is not an entity set.");
-				targetEntitySetName = link.getTransition().getTarget().getName();
-			}
-		}
-		String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
+		Map<Transition,RESTResource> embeddedResources = resource.getEmbedded();
+		String rel = link.getRel();
 		String href = link.getHref();
 		if(requestContext != null) {
 			//Extract the transition fragment from the URI path
@@ -316,28 +359,21 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		String title = link.getTitle();
 		OLink olink;
 		Transition linkTransition = link.getTransition();
-		if(linkTransition != null && linkTransition.getTarget().getClass() == CollectionResourceState.class) {
+		if(linkTransition != null && linkTransition.getTarget() instanceof CollectionResourceState) {
 			olink = OLinks.relatedEntities(rel, title, href);
+		} else if (embeddedResources != null && embeddedResources.get(linkTransition) != null
+				&& embeddedResources.get(linkTransition) instanceof EntityResource) {
+			@SuppressWarnings("unchecked")
+			EntityResource<OEntity> embeddedResource = (EntityResource<OEntity>) embeddedResources.get(linkTransition);
+			List<OLink> embeddedLinks = formOLinks(embeddedResource);
+			OEntity embeddedEntity = embeddedResource.getEntity();
+			// replace the OLink's on the embedded entity
+			OEntity newEmbeddedEntity = OEntities.create(embeddedEntity.getEntitySet(), embeddedEntity.getEntityKey(), embeddedEntity.getProperties(), embeddedLinks);
+			olink = OLinks.relatedEntityInline(rel, title, href, newEmbeddedEntity);
 		} else {
 			olink = OLinks.relatedEntity(rel, title, href);
 		}
 		olinks.add(olink);
-		if (rel.contains("edit")) {
-			dropLinkByRel(olinks, "self");
-		}
-	}
-
-	private boolean dropLinkByRel(List<OLink> links, String rel) {
-		boolean found = false;
-		for (int i = 0; i < links.size(); i++) {
-			OLink link = links.get(i);
-			if (link.getRelation().equals(rel)) {
-				links.remove(i);
-				found = true;
-				break;
-			}
-		}
-		return found;
 	}
 
 	@Override
@@ -423,11 +459,20 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	/*
 	 * Find the entity set name for this resource
 	 */
-	private String getEntitySet(ResourceState currentState) {
-		String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + currentState.getEntityName();
-		EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
-		EdmEntitySet targetEntitySet = edmDataServices.getEdmEntitySet(targetEntityType);
-		String entitySetName = targetEntitySet.getName();
+	public String getEntitySet(ResourceState state) {
+		String entitySetName = null;
+		String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + state.getEntityName();
+		try {
+			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
+			EdmEntitySet targetEntitySet = edmDataServices.getEdmEntitySet(targetEntityType);
+			if (targetEntitySet != null)
+				entitySetName = targetEntitySet.getName();
+		} catch (NotFoundException nfe) {
+			logger.debug("Entity [" + fqTargetEntityName + "] is not an entity set.");
+		}
+		if (entitySetName == null) {
+			entitySetName = state.getName();		
+		}
 		return entitySetName;
 	}
 	
@@ -528,34 +573,4 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 	}
 	
-	/**
-	 * Return the OData link relation from the specified link.
-	 * @param link link
-	 * @return odata link rel
-	 */
-	public static String getODataLinkRelation(Link link, String entitySetName) {
-		assert(entitySetName != null);
-		String rel = link.getRel();
-		Transition transition = link.getTransition();
-		if(transition == null) {
-			return rel;
-		}
-		// hack, just until we fix this up
-		rel = rel.replace("item", "");
-		rel = rel.replace("collection", "");
-
-		if (transition.isGetFromCollectionToEntityResource() || rel.equals("self")) {
-			if (rel.length() == 0) {
-				//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
-				rel = "self";
-			}
-		} else if (transition.getTarget() instanceof CollectionResourceState) {
-			rel = XmlFormatWriter.related + entitySetName + (rel != null && rel.length() > 0 ? " " : "") + rel;
-		} else if (transition.getTarget() instanceof ResourceState) {
-			//entry type relations should use the entityType name
-			rel = XmlFormatWriter.related + transition.getTarget().getEntityName() + (rel != null && rel.length() > 0 ? " " : "") + rel;
-		}
-
-		return rel;
-	}
 }

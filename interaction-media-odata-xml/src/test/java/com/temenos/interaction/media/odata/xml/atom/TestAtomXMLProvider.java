@@ -24,6 +24,7 @@ package com.temenos.interaction.media.odata.xml.atom;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -64,6 +65,7 @@ import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
+import org.odata4j.core.OLinks;
 import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmDataServices;
@@ -222,7 +224,8 @@ public class TestAtomXMLProvider {
 		List<EdmSchema> mockSchemas = new ArrayList<EdmSchema>();
 		mockSchemas.add(es.build());
 		when(mockEDS.getSchemas()).thenReturn(ImmutableList.copyOf(mockSchemas));
-
+		when(mockEDS.findEdmEntitySet(anyString())).thenReturn(ees.build());
+		
 		return mockEDS;
 	}
 	
@@ -530,22 +533,28 @@ public class TestAtomXMLProvider {
 
 		
 		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, metadata, mock(ResourceStateMachine.class), mock(Transformer.class));
-		List<OLink> olinks = new ArrayList<OLink>();
-		provider.addLinkToOLinks(olinks, new Link.Builder()
-												.transition(transition)
-												.title("title")
-												.rel("self")
-												.href("href")
-												.build());
+		List<OLink> olinks = null;
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link.Builder()
+					.transition(transition)
+					.title("title")
+					.rel("self")
+					.href("href")
+					.build());
+		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
+		entityResource.setLinks(links);
+		olinks = provider.formOLinks(entityResource);
 		assertEquals(1, olinks.size());
 		
 		// now add the 'edit' link, it should replace the 'self' link
-		provider.addLinkToOLinks(olinks, new Link.Builder()
-												.transition(transition)
-												.title("title")
-												.rel("edit")
-												.href("href")
-												.build());
+		links.add(new Link.Builder()
+					.transition(transition)
+					.title("title")
+					.rel("edit")
+					.href("href")
+					.build());
+		entityResource.setLinks(links);
+		olinks = provider.formOLinks(entityResource);
 		assertEquals(1, olinks.size());
 		
 	}
@@ -559,9 +568,12 @@ public class TestAtomXMLProvider {
 		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Debit funds transfers").build());
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
-		List<OLink> olinks = new ArrayList<OLink>();
 		Transition t = account.getTransition(fundsTransfers);
-		provider.addLinkToOLinks(olinks, new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
+		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
+		entityResource.setLinks(links);
+		List<OLink> olinks = provider.formOLinks(entityResource);
 		assertEquals(1, olinks.size());
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. The nav. property in this case is the EntitySet name
@@ -584,11 +596,15 @@ public class TestAtomXMLProvider {
 		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Credit funds transfers").build());
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
-		List<OLink> olinks = new ArrayList<OLink>();
 		List<Transition> transitions = account.getTransitions(fundsTransfers);
 		assertEquals(2, transitions.size());
-		provider.addLinkToOLinks(olinks, new Link(transitions.get(0), transitions.get(0).getTarget().getRel(), transitions.get(0).getLabel().contains("Debit") ? "/FundsTransfers()?$filter=DebitAcctNo eq '123'" : "/FundsTransfers()?$filter=CreditAcctNo eq '123'", HttpMethod.GET));
-		provider.addLinkToOLinks(olinks, new Link(transitions.get(1), transitions.get(1).getTarget().getRel(), transitions.get(1).getLabel().contains("Debit") ? "/FundsTransfers()?$filter=DebitAcctNo eq '123'" : "/FundsTransfers()?$filter=CreditAcctNo eq '123'", HttpMethod.GET));
+
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link(transitions.get(0), transitions.get(0).getTarget().getRel(), transitions.get(0).getLabel().contains("Debit") ? "/FundsTransfers()?$filter=DebitAcctNo eq '123'" : "/FundsTransfers()?$filter=CreditAcctNo eq '123'", HttpMethod.GET));
+		links.add(new Link(transitions.get(1), transitions.get(1).getTarget().getRel(), transitions.get(1).getLabel().contains("Debit") ? "/FundsTransfers()?$filter=DebitAcctNo eq '123'" : "/FundsTransfers()?$filter=CreditAcctNo eq '123'", HttpMethod.GET));
+		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
+		entityResource.setLinks(links);
+		List<OLink> olinks = provider.formOLinks(entityResource);
 		assertEquals(2, olinks.size());
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. However, the nav. property in this case is NOT the EntitySet name
@@ -617,7 +633,7 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class));
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockEdmDataServices("FundsTransfers"), mock(Metadata.class));
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -645,9 +661,12 @@ public class TestAtomXMLProvider {
 		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(currency).label("currency").build());
 		
 		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("Currencys"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
-		List<OLink> olinks = new ArrayList<OLink>();
 		Transition t = account.getTransition(currency);
-		provider.addLinkToOLinks(olinks, new Link(t, t.getTarget().getRel(), "/Currencys('USD')", HttpMethod.GET));
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link(t, t.getTarget().getRel(), "/Currencys('USD')", HttpMethod.GET));
+		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
+		entityResource.setLinks(links);
+		List<OLink> olinks = provider.formOLinks(entityResource);
 		assertEquals(1, olinks.size());
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. The nav. property in this case is the entity (type) name
@@ -658,6 +677,37 @@ public class TestAtomXMLProvider {
 		assertEquals("/Currencys('USD')", olinks.get(0).getHref());
 	}
 
+	@Test
+	public void testEmbeddedEntry() {
+		// Create the RIM
+		ResourceState parent = new ResourceState("Flight", "parent", new ArrayList<Action>(), "/Flight('{id}')");
+		ResourceState child = new ResourceState("Flight", "child", new ArrayList<Action>(), "/Flight('id')/child')");
+		parent.addTransition(new Transition.Builder().method(HttpMethod.GET).target(child).label("My Child Link").build());
+		ResourceStateMachine mockRsm = new ResourceStateMachine(parent);
+		
+		EdmDataServices edmDataServices = createMockFlightEdmDataServices();
+		EdmEntitySet persons = edmDataServices.findEdmEntitySet("Flight");
+		EntityResource<OEntity> childResource = createMockEntityResourceOEntity(persons);
+		
+		List<OLink> olinks = new ArrayList<OLink>();
+		olinks.add(OLinks.relatedEntityInline("relation", "child", null, childResource.getEntity()));
+		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+		properties.add(OProperties.string("name", "blah"));
+		OEntity accountOEntity = OEntities.create(persons, OEntityKey.create("USD"), properties, olinks);
+		EntityResource<OEntity> accountEntityResource = new EntityResource<OEntity>(accountOEntity);
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link("title", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/title", "Flight('USD')/child", "type", null));
+		accountEntityResource.setLinks(links);
+		
+		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), mockRsm, mock(Transformer.class));
+		provider.addExpandedLinks(accountEntityResource);
+		
+		Map<Transition,RESTResource> embeddedResources = accountEntityResource.getEmbedded();
+		assertNotNull(embeddedResources);
+		assertEquals(1, embeddedResources.size());
+		
+	}
+	
 	@Test
 	public void testSingleLinkToCollectionNotEntitySet() {
 		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
@@ -671,9 +721,12 @@ public class TestAtomXMLProvider {
 		when(edmDataServices.getEdmEntitySet(any(EdmEntityType.class))).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));
 		
 		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
-		List<OLink> olinks = new ArrayList<OLink>();
 		Transition t = fundsTransfer.getTransition(fundsTransfersIAuth);
-		provider.addLinkToOLinks(olinks, new Link(t, t.getTarget().getRel(), "/FundsTransfersIAuth()", HttpMethod.GET));
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfersIAuth()", HttpMethod.GET));
+		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
+		entityResource.setLinks(links);
+		List<OLink> olinks = provider.formOLinks(entityResource);
 		assertEquals(1, olinks.size());
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. The nav. property in this case would be the EntitySet name, however, it is not
@@ -824,65 +877,6 @@ public class TestAtomXMLProvider {
 	    if(!myDiff.similar()) {
 	    	fail(myDiff.toString());
 	    }
-	}
-	
-	@Test
-	public void testLinkRelationCollectionToItem() {
-		Transition t = createMockTransition(
-				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
-				createMockResourceState("customer", "Customer", false));
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customer", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
-	}
-	
-	@Test
-	public void testLinkRelationCollectionToItemSameEntity() {
-		Transition t = createMockTransition(
-				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
-				createMockResourceState("fundsTransfer", "FundsTransfer", false));
-		assertEquals("self", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
-	}
-
-	@Test
-	public void testLinkRelationItemToCollection() {
-		Transition t = createMockTransition(
-				createMockResourceState("account", "Account", false), 
-				createMockResourceState("FundsTransfers", "FundsTransfer", true));
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
-	}
-
-	@Test
-	public void testLinkRelationItemToItem() {
-		Transition t = createMockTransition(
-				createMockResourceState("account", "Account", false), 
-				createMockResourceState("FundsTransfers_new", "FundsTransfer", false));
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
-	}
-
-	@Test
-	public void testLinkFixedRelation() {
-		ResourceState targetState = createMockResourceState("FundsTransfers_new", "FundsTransfer", true);
-		when(targetState.getRel()).thenReturn("http://www.temenos.com/rels/new");
-		Transition t = createMockTransition(
-				createMockResourceState("account", "Account", false), 
-				targetState);
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers http://www.temenos.com/rels/new", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
-	}
-	
-	@Test
-	public void testLinkRelationInitialCollectionToCollectionSameEntity() {
-		Transition t = createMockTransition(
-				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
-				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true));
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
-	}
-
-	@Test
-	public void testLinkRelationCollectionToCollectionSameEntity() {
-		Transition t = createMockTransition(
-				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
-				createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", 
-				AtomXMLProvider.getODataLinkRelation(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET), "FundsTransfers"));		
 	}
 
 	private ResourceState createMockResourceState(String name, String entityName, boolean isCollection) {

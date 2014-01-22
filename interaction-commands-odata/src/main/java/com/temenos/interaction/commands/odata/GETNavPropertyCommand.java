@@ -63,7 +63,6 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		assert(ctx != null);
 		assert(ctx.getCurrentState() != null);
 		assert(ctx.getCurrentState().getViewAction() != null);
-		assert(ctx.getResource() == null);
 		
 		String entity = CommandHelper.getViewActionProperty(ctx, "entity"); 
 		if(entity == null) {

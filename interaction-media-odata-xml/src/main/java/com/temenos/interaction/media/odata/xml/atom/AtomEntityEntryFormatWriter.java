@@ -133,7 +133,7 @@ public class AtomEntityEntryFormatWriter {
 			for (Link link : entityLinks) {
 				String type = atom_entry_content_type;
 				String href = link.getHrefTransition(baseUri);
-				String rel = AtomXMLProvider.getODataLinkRelation(link, "");
+				String rel = link.getRel();
 				writer.writeLink(href, rel, type, link.getTitle(), href_lang, 0);
 			}
 		}
