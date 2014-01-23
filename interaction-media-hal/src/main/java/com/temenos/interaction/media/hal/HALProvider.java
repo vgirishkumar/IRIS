@@ -159,8 +159,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						continue;
 					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
 					// Representation withLink(String rel, String href, String name, String title, String hreflang, String profile);
-					String name = formLinkName(l);
-					halResource.withLink(l.getRel(), l.getHref(), name, l.getTitle(), null, null); 
+					halResource.withLink(l.getRel(), l.getHref(), l.getId(), l.getTitle(), null, null); 
 				}
 			}
 			
@@ -198,23 +197,6 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		entityStream.write(representation.getBytes("UTF-8"));
 	}
 
-	/*
-	 * Identify the link
-	 * http://tools.ietf.org/html/draft-kelly-json-hal-06#section-5.5
-	 * <p>
-	 * The "name" property is OPTIONAL.<br><br>
-	 * Its value MAY be used as a secondary key for selecting Link Objects
-	 * which share the same relation type.
-	 * </p>
-	 */
-	private String formLinkName(Link link) {
-		String name = "";
-		if (link != null) {
-			name = String.valueOf((link.getId() + link.getTitle()).hashCode());
-		}
-		return name;
-	}
-	
 	private Link findLinkByTransition(Collection<Link> links, Transition transition) {
 		Link link = null;
 		if (links != null) {
@@ -382,8 +364,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						assert(selfLinks != null && selfLinks.size() == 1);
 						*/
 						if (!itemSelfLink.equals(el)) {
-							String name = formLinkName(el);
-							subResource.withLink(el.getRel(), itemHref, name, el.getTitle(), null, null);
+							subResource.withLink(el.getRel(), itemHref, el.getId(), el.getTitle(), null, null);
 						}
 					}
 					// add properties to HAL sub resource
