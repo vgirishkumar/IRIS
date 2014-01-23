@@ -79,6 +79,7 @@ public class ResourceStateMachine {
 	
 	// optimised access
 	private Map<String,Transition> transitionsById = new HashMap<String,Transition>();
+	private Map<String,Transition> transitionsByRel = new HashMap<String,Transition>();
 	private List<ResourceState> allStates = new ArrayList<ResourceState>();
 	private Map<String, Set<String>> interactionsByPath = new HashMap<String, Set<String>>();
 	private Map<ResourceState, Set<String>> interactionsByState = new HashMap<ResourceState, Set<String>>();
@@ -183,6 +184,7 @@ public class ResourceStateMachine {
 	private void build() {
 		collectStates(allStates, initial);
 		collectTransitionsById(transitionsById);
+		collectTransitionsByRel(transitionsByRel);
 		collectInteractionsByPath(interactionsByPath);
 		collectInteractionsByState(interactionsByState);
 		collectResourceStatesByPath(resourceStatesByPath);
@@ -225,7 +227,17 @@ public class ResourceStateMachine {
 			}
 		}
 	}
-	
+
+	private void collectTransitionsByRel(Map<String,Transition> transitions) {
+		for (ResourceState s : getStates()) {
+			for (ResourceState target : s.getAllTargets()) {
+				for(Transition transition : s.getTransitions(target)) {
+					transitions.put(transition.getTarget().getRel(), transition);
+				}
+			}
+		}
+	}
+
 	/**
 	 * Return a map of all the paths, and interactions with those states
 	 * mapped to that path
@@ -657,7 +669,11 @@ public class ResourceStateMachine {
 	public Map<String,Transition> getTransitionsById() {
 		return transitionsById;
 	}
-	
+
+	public Map<String,Transition> getTransitionsByRel() {
+		return transitionsByRel;
+	}
+
 	/**
 	 * Find the transition that was used by assuming the HTTP method was
 	 * applied to this state; create a a Link for that transition.
