@@ -429,7 +429,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(childEntityResource, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
 
-		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"/child/123\"},\"person\":{\"href\":\"/parent/333\",\"name\":\"parent\",\"title\":\"parent\"}},\"age\":\"2\",\"name\":\"noah\",\"_embedded\":{\"person\":{\"_links\":{\"self\":{\"href\":\"/parent/333\"}},\"age\":\"30\",\"name\":\"aaron\"}}}";
+		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"/child/123\"},\"person\":{\"href\":\"/parent/333\",\"name\":\"1876126164\",\"title\":\"parent\"}},\"age\":\"2\",\"name\":\"noah\",\"_embedded\":{\"person\":{\"_links\":{\"self\":{\"href\":\"/parent/333\"}},\"age\":\"30\",\"name\":\"aaron\"}}}";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		responseString = responseString.replaceAll(System.getProperty("line.separator"), "");
 		assertEquals(expectedXML, responseString);
@@ -592,7 +592,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"/rest.svc/humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"-1501784648\" title=\"father\"/><link href=\"/rest.svc/humans/32\" rel=\"_person\" name=\"227612486\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
@@ -631,7 +631,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\" title=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"1444078306\" title=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"-1501784648\" title=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"227612486\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
