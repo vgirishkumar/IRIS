@@ -335,6 +335,7 @@ public class TestHALProvider {
 
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
+		er.setEntityName("Children");
 
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
@@ -397,9 +398,11 @@ public class TestHALProvider {
 
 		OEntity childEntity = OEntities.create(createMockChildrenEntitySet(), childEntityKey, childProperties, new ArrayList<OLink>());
 		EntityResource<OEntity> childEntityResource = CommandHelper.createEntityResource(childEntity);
+		childEntityResource.setEntityName("Children");
 
 		OEntity parentEntity = OEntities.create(createMockChildrenEntitySet(), parentEntityKey, parentProperties, new ArrayList<OLink>());
 		EntityResource<OEntity> parentEntityResource = CommandHelper.createEntityResource(parentEntity);
+		parentEntityResource.setEntityName("Children");
 
 		
 		// build the embedded map
@@ -579,7 +582,7 @@ public class TestHALProvider {
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
-		
+		er.setEntityName("Children");
 		er.setLinks(links);
 		
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
@@ -618,6 +621,7 @@ public class TestHALProvider {
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
+		er.setEntityName("Children");
 		er.setLinks(links);
 		
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
@@ -653,7 +657,7 @@ public class TestHALProvider {
 		
 		// map of property name to value object
 		Map<String, Object> map = new HashMap<String, Object>();
-		hp.buildFromOEntity(map, entity);
+		hp.buildFromOEntity(map, entity, "Children");
 		
 		assertEquals(2, map.keySet().size());
 		assertTrue(map.keySet().contains("name"));

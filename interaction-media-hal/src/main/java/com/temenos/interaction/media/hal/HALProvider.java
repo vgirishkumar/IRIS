@@ -228,10 +228,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		return selfLink;
 	}
 
-	protected void buildFromOEntity(Map<String, Object> map, OEntity entity) {
-		EntityMetadata entityMetadata = metadata.getEntityMetadata(entity.getEntitySetName());
+	protected void buildFromOEntity(Map<String, Object> map, OEntity entity, String entityName) {
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
 		if (entityMetadata == null)
-			throw new IllegalStateException("Entity metadata could not be found [" + entity.getEntitySetName() + "]");
+			throw new IllegalStateException("Entity metadata could not be found [" + entityName + "]");
 
 		for (OProperty<?> property : entity.getProperties()) {
 			// add properties if they are present on the resolved entity
@@ -289,7 +289,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			@SuppressWarnings("unchecked")
 			EntityResource<OEntity> oentityResource = (EntityResource<OEntity>) resource;
 			Map<String, Object> propertyMap = new HashMap<String, Object>();
-			buildFromOEntity(propertyMap, oentityResource.getEntity());
+			buildFromOEntity(propertyMap, oentityResource.getEntity(), oentityResource.getEntityName());
 			// add properties to HAL resource
 			for (String key : propertyMap.keySet()) {
 				halResource.withProperty(key, propertyMap.get(key));
@@ -328,7 +328,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				String rel = "item";
 				// the properties
 				Map<String, Object> propertyMap = new HashMap<String, Object>();
-				buildFromOEntity(propertyMap, entity);
+				buildFromOEntity(propertyMap, entity, cr.getEntityName());
 				// create hal resource and add link for self - if there is one
 				Representation subResource = representationFactory.newRepresentation();
 				
