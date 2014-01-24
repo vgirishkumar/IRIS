@@ -44,16 +44,16 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -97,7 +97,8 @@ import com.temenos.interaction.core.web.RequestContext;
 @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
-	
+	private final static Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
+
 	@Context
 	private UriInfo uriInfo;
 	@Context
@@ -189,7 +190,16 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
 
 				Collection<Link> linksCollection = entityResource.getLinks();
-				List<Link> links = linksCollection != null ? new ArrayList<Link>(linksCollection) : new ArrayList<Link>();
+				List<Link> processedLinks = new ArrayList<Link>();
+				if (linksCollection != null) {
+					for (Link linkToAdd : linksCollection) {
+						Link link = linkInterceptor.addingLink(entityResource, linkToAdd);
+						if (link != null) {
+							processedLinks.add(link);
+						}
+					}
+				}
+				entityResource.setLinks(processedLinks);
 				
 				//Write entry
 				Entity entity = entityResource.getEntity();
@@ -197,7 +207,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
 				// Write Entity object with Abdera implementation
 				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links, metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, processedLinks, metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
 
@@ -425,7 +435,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			String pathIdParameter = getPathIdParameter(currentState);
 			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
 			if (pathParameters != null && pathParameters.getFirst(pathIdParameter) != null) {
-				entityKey = OEntityKey.parse(pathParameters.getFirst(pathIdParameter));				
+				if (STRING_KEY_RESOURCE_PATTERN.matcher(resourcePath).find()) {
+					entityKey = OEntityKey.create(pathParameters.getFirst(pathIdParameter));				
+				} else {
+					entityKey = OEntityKey.parse(pathParameters.getFirst(pathIdParameter));				
+				}
 			}
 			
 			if (currentState.getEntityName() == null) {
