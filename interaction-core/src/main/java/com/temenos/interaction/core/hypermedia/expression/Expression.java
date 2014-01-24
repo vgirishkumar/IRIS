@@ -23,7 +23,7 @@ package com.temenos.interaction.core.hypermedia.expression;
 
 
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 
 public interface Expression {
 
@@ -32,5 +32,5 @@ public interface Expression {
 	 * @param pathParams
 	 * @return
 	 */
-	public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx);
+	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx);
 }

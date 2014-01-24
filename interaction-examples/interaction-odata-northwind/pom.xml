@@ -122,21 +122,6 @@
     </plugins>
   </build>
   
-  <profiles>
-	<!-- Skip integration-test phase - activate with '-Ddebug' -->
-  	<profile>
-  		<activation>
-  			<property>
-  				<name>debug</name>
-  			</property>
-  		</activation>
-  		<properties>
-  			<jetty.skip>true</jetty.skip>
-  			<skipITs>true</skipITs>
-  		</properties>
-  	</profile>
-  </profiles>
-
 <reporting>
     <plugins>
       <plugin>
@@ -184,7 +169,7 @@
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-commands-odata</artifactId>
     	<type>jar</type>
-    	<scope>runtime</scope>
+    	<scope>compile</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>

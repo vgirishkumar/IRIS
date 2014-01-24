@@ -2,7 +2,7 @@
  * #%L
  * useragent-hal-inspector
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,12 +25,39 @@
   padding: 4px; margin: 0;
 }
 
+#browser #headers-bar {
+ border: 1px solid #888;
+ padding: 5px
+}
 
-#inspector { height: 100%; }
+#request-headers {
+  border: 0;
+  outline: none;
+  padding: 0;
+  resize: vertical;
+  width: 100%;
+  height: 40px;
+  margin-bottom: 0px;
 
-#inspector .panel iframe { width: 100%; height: 100%; }
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
 
-body .btn {
+.inspector { height: 100%; }
+
+.documentation { height: 100%; }
+.documentation iframe { width: 100%; height: 100%; }
+
+.modal input, .modal textarea {
+  width: 90%;
+}
+
+.modal textarea {
+  height: 100px;
+}
+
+.links .btn {
   padding: 2px 5px 2px;
   font-size: 12px;
   line-height: 14px;
@@ -38,4 +65,23 @@ body .btn {
 
 body table.table {
   font-size: 11px;
+}
+
+.location-bar-container {
+  line-height: 30px;
+}
+
+.ajax-loader {
+  vertical-align: middle;
+  background-image: url("./vendor/img/ajax-loader.gif");
+  background-repeat: no-repeat;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  opacity: 0;
+  display: inline-block;
+  transition: opacity 1s;
+}
+.ajax-loader.visible {
+  opacity: 1;
 }

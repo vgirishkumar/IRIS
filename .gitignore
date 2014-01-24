@@ -103,3 +103,5 @@
 /interaction-examples/interaction-hateoas-restbucks/src-gen
 /interaction-examples/interaction-hateoas-restbucks/target
 /interaction-examples/interaction-hateoas-restbucks/.settings
+/interaction-examples/interaction-odata-error/src-gen
+/interaction-examples/interaction-odata-etag/src-gen

@@ -1,5 +1,9 @@
 package com.temenos.interaction.core.hypermedia;
 
+import java.util.Map;
+
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+
 /*
  * #%L
  * interaction-core
@@ -35,28 +39,31 @@ public class Transition {
 	 * in a 303 Redirect HTTP status at runtime.
 	 */
 	public static final int AUTO = 2;
+	/**
+	 * Add a subresource
+	 */
+	public static final int EMBEDDED = 4;
 
-	private final ResourceState source, target;
+	private ResourceState source, target;
 	private final TransitionCommandSpec command;
-	private final String label;
+	private String label;
 
-	public Transition(ResourceState source, TransitionCommandSpec command,
-			ResourceState target) {
-		this(source, command, target, null);
-	}
-
-	public Transition(ResourceState source, TransitionCommandSpec command,
-			ResourceState target, String label) {
-		this.source = source;
-		this.target = target;
-		this.command = command;
-		this.label = label;
-	}
+	// TransitionCommand parameters
+	private String method;
+	private String path;
+	private int flags;
+	// conditional link evaluation expression 
+	private Expression evaluation;
+	private Map<String, String> uriParameters;
 
 	public ResourceState getSource() {
 		return source;
 	}
 
+	public void setSource(ResourceState source) {
+		this.source = source;
+	}
+	
 	public ResourceState getTarget() {
 		return target;
 	}
@@ -89,11 +96,12 @@ public class Transition {
 	 * @return true/false
 	 */
 	public boolean isGetFromCollectionToEntityResource() {
-		return source != null && command.getMethod() != null
+		return source != null
+				&& command.getMethod() != null
 				&& command.getMethod().equals("GET")
 				&& source.getEntityName().equals(target.getEntityName())
 				&& source instanceof CollectionResourceState
-				&& target instanceof ResourceState;
+				&& (target instanceof ResourceState && !(target instanceof CollectionResourceState));
 	}
 
 	public boolean equals(Object other) {
@@ -122,4 +130,78 @@ public class Transition {
 		return getId();
 	}
 
+	/*
+	 * Builder pattern generated with fastcode eclipse plugin, you can just regenerate this part
+	 */
+
+	public static class Builder {
+		private ResourceState source;
+		private ResourceState target;
+		private String label;
+		private String method;
+		private String path;
+		private int flags;
+		private Expression evaluation;
+		private Map<String, String> uriParameters;
+
+		public Builder source(ResourceState source) {
+			this.source = source;
+			return this;
+		}
+
+		public Builder target(ResourceState target) {
+			this.target = target;
+			return this;
+		}
+
+		public Builder label(String label) {
+			this.label = label;
+			return this;
+		}
+
+		public Builder method(String method) {
+			this.method = method;
+			return this;
+		}
+
+		public Builder path(String path) {
+			this.path = path;
+			return this;
+		}
+
+		public Builder flags(int flags) {
+			this.flags = flags;
+			return this;
+		}
+
+		public Builder evaluation(Expression evaluation) {
+			this.evaluation = evaluation;
+			return this;
+		}
+
+		public Builder uriParameters(Map<String, String> uriParameters) {
+			this.uriParameters = uriParameters;
+			return this;
+		}
+
+		public Transition build() {
+			return new Transition(this);
+		}
+	}
+
+	private Transition(Builder builder) {
+		this.source = builder.source;
+		this.target = builder.target;
+		this.label = builder.label;
+		this.method = builder.method;
+		this.path = builder.path;
+		this.flags = builder.flags;
+		this.evaluation = builder.evaluation;
+		this.uriParameters = builder.uriParameters;
+
+		// this one's a bit special
+		this.command = new TransitionCommandSpec(method, 
+				(path == null ? target.getPath() : path), 
+				flags, evaluation, uriParameters);
+	}
 }

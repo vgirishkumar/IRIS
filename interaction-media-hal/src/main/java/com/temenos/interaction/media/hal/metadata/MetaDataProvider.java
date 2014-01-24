@@ -58,7 +58,6 @@ import com.temenos.interaction.core.resource.ResourceTypeHelper;
 public class MetaDataProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(MetaDataProvider.class);
 
-	@SuppressWarnings("unused")
 	@Context
 	private UriInfo uriInfo;
 	

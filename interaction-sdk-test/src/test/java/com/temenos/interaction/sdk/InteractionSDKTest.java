@@ -164,7 +164,6 @@ public class InteractionSDKTest {
     	        verifier.displayStreamBuffers();
     	        Properties airlineProps = new Properties();
     	        airlineProps.put("TEST_ENDPOINT_URI", "http://localhost:8080/responder/" + artifactId + ".svc/");
-    	        airlineProps.put("excludedTestDirectory", "extended");			//Run interaction-odata-airline integration tests but exclude extended tests
     	        verifier.setSystemProperties(airlineProps);
     	        List<String> goals = new ArrayList<String>();
     	        goals.add("package");

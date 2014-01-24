@@ -35,9 +35,6 @@ import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.hypermedia.expression.Expression;
-import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
-
 public class ResourceState implements Comparable<ResourceState> {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
 	
@@ -283,73 +280,31 @@ public class ResourceState implements Comparable<ResourceState> {
 				uriLinkageMap.put(param, "{"+param+"}");
 			}
 		}
-		return new Transition(this, new TransitionCommandSpec("GET", getPath(), 0, null, uriLinkageMap), this);
+		return new Transition.Builder()
+				.source(this)
+				.method("GET")
+				.path(getPath())
+				.uriParameters(uriLinkageMap)
+				.target(this)
+				.build();
 	}
 	
 	/**
-	 * Auto transitions, transition from this resource state to target resource state via HTTP status codes 205 or 303.
-	 * @param targetState
+	 * A Transition from this resource state to target resource state by user agent following link.
+	 * @param transition
 	 */
-	public void addTransition(ResourceState targetState) {
-		addTransition(targetState, null, null);
-	}
-	public void addTransition(ResourceState targetState, List<Expression> conditionalExpressions) {
-		addTransition(targetState, null, conditionalExpressions);
-	}
-	public void addTransition(ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(targetState, uriLinkageMap, null);
-	}
-	public void addTransition(ResourceState targetState, Map<String, String> uriLinkageMap, List<Expression> conditionalExpressions) {
-		addTransition(null, targetState, uriLinkageMap, Transition.AUTO, conditionalExpressions, null);
-	}
+	public void addTransition(Transition transition) {
+		assert(transition != null);
+		assert(transition.getSource() == null);
+		transition.setSource(this);
+		ResourceState targetState = transition.getTarget();
+		assert(targetState != null);
 
-	/**
-	 * Normal transitions, transition from this resource state to target resource state by user agent following link.
-	 * @param httpMethod
-	 * @param targetState
-	 */
-	public void addTransition(String httpMethod, ResourceState targetState) {
-		addTransition(httpMethod, targetState, 0);
-	}
-	public void addTransition(String httpMethod, ResourceState targetState, List<Expression> conditionalExpressions) {
-		addTransition(httpMethod, targetState, null, 0, conditionalExpressions, null);
-	}
-	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags) {
-		addTransition(httpMethod, targetState, null, transitionFlags, null, null);
-	}
-	public void addTransition(String httpMethod, ResourceState targetState, int transitionFlags, List<Expression> conditionalExpressions) {
-		addTransition(httpMethod, targetState, null, transitionFlags, conditionalExpressions, null);
-	}
-	
-	/**
-	 * Add a transition with a target state and linkage map.
-	 * @param httpMethod
-	 * @param targetState
-	 * @param uriLinkageMap
-	 */
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, 0, null, null);
-	}
-
-	/**
-	 * Add a transition with a target state and linkage map.
-	 * @param httpMethod HTTP method
-	 * @param targetState Target state
-	 * @param uriLinkageMap map holding entity property values for resource path template parameters 
-	 * @param uriLinkageProperties map holding additional property values for resource path template parameters
-	 * @param label transition label
-	 */
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String label) {
-		addTransition(httpMethod, targetState, uriLinkageMap, 0, null, label);
-	}
-	
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags, List<Expression> conditionalExpressions, String label) {
-		String resourcePath = targetState.getPath();
-		addTransition(httpMethod, targetState, uriLinkageMap, resourcePath, transitionFlags, conditionalExpressions, label);
-	}
-	
-	protected void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkMap, String resourcePath, int transitionFlags, List<Expression> conditionalExpressions, String label) {
-		assert null != targetState;
+		TransitionCommandSpec command = transition.getCommand();
+		assert(command != null);
+		String httpMethod = command.getMethod();
+		Map<String, String> uriLinkMap = command.getUriParameters();
+		int transitionFlags = command.getFlags();
 		if (httpMethod != null && (transitionFlags & Transition.AUTO) == Transition.AUTO)
 			throw new IllegalArgumentException("An auto transition cannot have an HttpMethod supplied");
 		
@@ -359,20 +314,9 @@ public class ResourceState implements Comparable<ResourceState> {
 		//Apply link properties to action parameters
 		applyLinkPropertiesToActionParameters(uriLinkageMap, targetState);
 		
-		//Create the transition
-		Expression condition = conditionalExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalExpressions) : null;
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourcePath, transitionFlags, condition, uriLinkageMap);
-		Transition transition = new Transition(this, commandSpec, targetState, label);
-		logger.debug("Putting transition: " + commandSpec + " [" + transition + "]");
+		//Add the transition
+		logger.debug("Putting transition: " + transition.getCommand() + " [" + transition + "]");
 		transitions.add(transition);
-	}
-
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, boolean forEach) {
-		addTransition(httpMethod, targetState, uriLinkageMap, null, (forEach ? Transition.FOR_EACH : 0), null, null);
-	}
-
-	public void addTransition(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, boolean forEach, String label) {
-		addTransition(httpMethod, targetState, uriLinkageMap, (forEach ? Transition.FOR_EACH : 0), null, label);
 	}
 	
 	/**
@@ -382,8 +326,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	 */
 	public void addTransition(String httpMethod, ResourceStateMachine resourceStateModel) {
 		assert resourceStateModel != null;
-		TransitionCommandSpec commandSpec = new TransitionCommandSpec(httpMethod, resourceStateModel.getInitial().getPath());
-		transitions.add(new Transition(this, commandSpec, resourceStateModel.getInitial()));
+		addTransition(new Transition.Builder()
+				.method(httpMethod)
+				.path(resourceStateModel.getInitial().getPath())
+				.target(resourceStateModel.getInitial())
+				.build());
 	}
 	
 	/**

@@ -43,6 +43,7 @@ resource deletedNote {
 	type: item
 	entity: Note
 	actions [ DELETENote ]
+	relations [ "http://relations.rimdsl.org/delete" ]
 	path: "/notes/{noteID}"
 	GET --> notes
 }
@@ -51,6 +52,7 @@ resource newNote {
     type: item
 	entity: ID
     actions [ NoopPOST ]
+	relations [ "http://relations.rimdsl.org/new" ]
     path: "/notes/new"
     PUT --> note
 }

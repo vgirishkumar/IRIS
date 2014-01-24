@@ -39,8 +39,20 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("entity", "", new ArrayList<Action>(), "/");
 		ResourceState begin2 = new ResourceState("entity", "", new ArrayList<Action>(), "/");
 
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), begin2);
-		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), begin2);
+		Transition.Builder tb = new Transition.Builder();
+		tb.source(begin)
+			.target(begin2)
+			.method("PUT")
+			.path("stuff")
+			.flags(Transition.FOR_EACH);
+		Transition t = tb.build();
+		Transition.Builder tb2 = new Transition.Builder();
+		tb2.source(begin)
+			.target(begin2)
+			.method("PUT")
+			.path("stuff")
+			.flags(Transition.FOR_EACH);
+		Transition t2 = tb2.build();
 		assertEquals(t, t2);
 		assertEquals(t.hashCode(), t2.hashCode());
 	}
@@ -48,8 +60,20 @@ public class TestTransition {
 	@Test
 	public void testEqualityNullSource() {
 		ResourceState begin2 = new ResourceState("entity", "", new ArrayList<Action>(), "/");
-		Transition t = new Transition(null, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), begin2);
-		Transition t2 = new Transition(null, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), begin2);
+		Transition.Builder tb = new Transition.Builder();
+		tb.source(null)
+			.target(begin2)
+			.method("PUT")
+			.path("stuff")
+			.flags(Transition.FOR_EACH);
+		Transition t = tb.build();
+		Transition.Builder tb2 = new Transition.Builder();
+		tb2.source(null)
+			.target(begin2)
+			.method("PUT")
+			.path("stuff")
+			.flags(Transition.FOR_EACH);
+		Transition t2 = tb2.build();
 		assertEquals(t, t2);
 		assertEquals(t.hashCode(), t2.hashCode());
 	}
@@ -60,13 +84,36 @@ public class TestTransition {
 		ResourceState exists = new ResourceState("entity", "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "/");
 
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), end);
-		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), exists);
+		Transition.Builder tb = new Transition.Builder();
+		tb.source(begin)
+			.target(end)
+			.method("PUT")
+			.path("stuff")
+			.flags(Transition.FOR_EACH);
+		Transition t = tb.build();
+		Transition.Builder tb2 = new Transition.Builder();
+		tb2.source(begin)
+			.target(exists)
+			.method("PUT")
+			.path("stuff")
+			.flags(Transition.FOR_EACH);
+		Transition t2 = tb2.build();
 		assertFalse(t.equals(t2));
 		assertFalse(t.hashCode() == t2.hashCode());
 		
-		Transition t3 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH), end);
-		Transition t4 = new Transition(begin, new TransitionCommandSpec(null, "stuffed", Transition.AUTO), end);
+		Transition.Builder tb3 = new Transition.Builder();
+		tb3.source(begin)
+			.target(end)
+			.method("PUT")
+			.path("stuff")
+			.flags(Transition.FOR_EACH);
+		Transition t3 = tb3.build();
+		Transition.Builder tb4 = new Transition.Builder();
+		tb4.source(begin)
+			.target(end)
+			.path("stuffed")
+			.flags(Transition.AUTO);
+		Transition t4 = tb2.build();
 		assertFalse(t3.equals(t4));
 		assertFalse(t3.hashCode() == t4.hashCode());
 
@@ -79,11 +126,25 @@ public class TestTransition {
 
 		Map<String, String> uriParameters = new HashMap<String, String>();
 		uriParameters.put("id", "abc");
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH, null, uriParameters), exists);
+		Transition t = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.path("stuff")
+				.flags(Transition.FOR_EACH)
+				.uriParameters(uriParameters)
+				.target(exists)
+				.build();
 		
 		uriParameters.clear();
 		uriParameters.put("id", "xyz");
-		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH, null, uriParameters), exists);
+		Transition t2 = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.path("stuff")
+				.flags(Transition.FOR_EACH)
+				.uriParameters(uriParameters)
+				.target(exists)
+				.build();
 		assertFalse(t.equals(t2));
 		assertFalse(t.hashCode() == t2.hashCode());
 	}
@@ -93,8 +154,22 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
 		ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
 
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH, null, null), exists, "label1");
-		Transition t2 = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", Transition.FOR_EACH, null, null), exists, "differentlabel");
+		Transition t = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.path("stuff")
+				.flags(Transition.FOR_EACH)
+				.target(exists)
+				.label("label1")
+				.build();
+		Transition t2 = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.path("stuff")
+				.flags(Transition.FOR_EACH)
+				.target(exists)
+				.label("differentlabel")
+				.build();
 		assertFalse(t.equals(t2));
 		assertFalse(t.hashCode() == t2.hashCode());
 	}
@@ -104,7 +179,12 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
+		Transition t = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.path("stuff")
+				.target(end)
+				.build();
 		assertEquals("entity.begin>PUT>entity.end", t.getId());
 	}
 
@@ -113,7 +193,12 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "/begin");
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "/end");
 
-		Transition t = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
+		Transition.Builder tb = new Transition.Builder();
+		tb.source(begin)
+			.target(end)
+			.method("PUT")
+			.path("stuff");
+		Transition t = tb.build();
 		assertEquals("entity.begin>PUT>entity.end", t.toString());
 	}
 
@@ -122,9 +207,21 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 
-		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "A");
+		Transition.Builder tba = new Transition.Builder();
+		tba.source(begin)
+			.target(end)
+			.method("GET")
+			.path("stuff")
+			.label("A");
+		Transition ta = tba.build();
 		assertEquals("A", ta.getLabel());
-		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "B");
+		Transition.Builder tbb = new Transition.Builder();
+		tbb.source(begin)
+			.target(end)
+			.method("GET")
+			.path("stuff")
+			.label("B");
+		Transition tb = tbb.build();
 		assertEquals("B", tb.getLabel());
 	}
 
@@ -133,11 +230,29 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 
-		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "A");
-		Transition taPut = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end, "A");
+		Transition ta = new Transition.Builder()
+				.source(begin)
+				.method("GET")
+				.path("stuff")
+				.target(end)
+				.label("A")
+				.build();
+		Transition taPut = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.path("stuff")
+				.target(end)
+				.label("A")
+				.build();
 		assertEquals("entity.begin>GET(A)>entity.end", ta.getId());
 		assertEquals("entity.begin>PUT(A)>entity.end", taPut.getId());
-		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end, "B");
+		Transition tb = new Transition.Builder()
+				.source(begin)
+				.method("GET")
+				.path("stuff")
+				.target(end)
+				.label("B")
+				.build();
 		assertEquals("entity.begin>GET(B)>entity.end", tb.getId());
 	}
 
@@ -145,27 +260,32 @@ public class TestTransition {
 	public void testCheckTransitionFromCollectionToEntityResource() {
 		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
-		Transition t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		Transition t = new Transition.Builder()
+				.source(begin).method("GET").path("stuff").target(end).build();
 		assertFalse(t.isGetFromCollectionToEntityResource());
 
 		begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		end = new CollectionResourceState("entity", "end", new ArrayList<Action>(), "{id}");
-		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		t = new Transition.Builder()
+				.source(begin).method("GET").path("stuff").target(end).build();
 		assertFalse(t.isGetFromCollectionToEntityResource());
 
 		begin = new CollectionResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
-		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		t = new Transition.Builder()
+				.source(begin).method("GET").path("stuff").target(end).build();
 		assertTrue(t.isGetFromCollectionToEntityResource());
 
 		begin = new CollectionResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		end = new ResourceState("otherEntity", "end", new ArrayList<Action>(), "{id}");
-		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		t = new Transition.Builder()
+				.source(begin).method("GET").path("stuff").target(end).build();
 		assertFalse(t.isGetFromCollectionToEntityResource());
 
 		begin = new CollectionResourceState("otherEntity", "begin", new ArrayList<Action>(), "{id}");
 		end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
-		t = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0), end);
+		t = new Transition.Builder()
+				.source(begin).method("GET").path("stuff").target(end).build();
 		assertFalse(t.isGetFromCollectionToEntityResource());
 	}
 
@@ -176,13 +296,30 @@ public class TestTransition {
 
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("paramA", "hello A");
-		Transition ta = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, params), end);
-		Transition taPut = new Transition(begin, new TransitionCommandSpec("PUT", "stuff", 0), end);
+		Transition ta = new Transition.Builder()
+				.source(begin)
+				.method("GET")
+				.path("stuff")
+				.uriParameters(params)
+				.target(end)
+				.build();
+		Transition taPut = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.path("stuff")
+				.target(end)
+				.build();
 		assertEquals("entity.begin>GET>entity.end", ta.getId());
 		assertEquals("entity.begin>PUT>entity.end", taPut.getId());
 		params = new HashMap<String, String>();
 		params.put("paramB", "hello B");
-		Transition tb = new Transition(begin, new TransitionCommandSpec("GET", "stuff", 0, null, params), end);
+		Transition tb = new Transition.Builder()
+				.source(begin)
+				.method("GET")
+				.path("stuff")
+				.uriParameters(params)
+				.target(end)
+				.build();
 		assertEquals("entity.begin>GET>entity.end", tb.getId());
 	}
 }
