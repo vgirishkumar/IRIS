@@ -174,6 +174,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 		  		
 		try {
+			RESTResource restResource = processLinks((RESTResource) resource);
+			Collection<Link> processedLinks = restResource.getLinks();
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 				OEntity tempEntity = entityResource.getEntity();
@@ -181,39 +183,22 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
 				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
 				List<OLink> olinks = formOLinks(entityResource);
-
 				//Write entry
 	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
             	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
-
-				Collection<Link> linksCollection = entityResource.getLinks();
-				List<Link> processedLinks = new ArrayList<Link>();
-				if (linksCollection != null) {
-					for (Link linkToAdd : linksCollection) {
-						Link link = linkInterceptor.addingLink(entityResource, linkToAdd);
-						if (link != null) {
-							processedLinks.add(link);
-						}
-					}
-				}
-				entityResource.setLinks(processedLinks);
-				
 				//Write entry
 				Entity entity = entityResource.getEntity();
 				assert(entity.getName().equals(entityResource.getEntityName()));
 				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
 				// Write Entity object with Abdera implementation
 				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, processedLinks, metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, processedLinks, entityResource.getEmbedded(), metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
-
 				//Links and entity properties
-				Collection<Link> linksCollection = entityResource.getLinks();
-				List<Link> links = linksCollection != null ? new ArrayList<Link>(linksCollection) : new ArrayList<Link>();
 				Object entity = entityResource.getEntity();
 				String entityName = entityResource.getEntityName();
 				EntityProperties props = new EntityProperties();
@@ -227,7 +212,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				}
 				EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
 				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), new Entity(entityName, props), entityMetadata, links, metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), new Entity(entityName, props), entityMetadata, processedLinks, entityResource.getEmbedded(), metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
 				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();
@@ -236,6 +221,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
+					processLinks(collectionEntity);
 		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
 					OEntity tempEntity = collectionEntity.getEntity();
 					List<OLink> olinks = formOLinks(collectionEntity);
@@ -245,30 +231,13 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				List<Link> links = new ArrayList<Link>();
-				for (Link l : collectionResource.getLinks()) {
-					Link linkToAdd = linkInterceptor.addingLink(collectionResource, l);
-					if (linkToAdd != null) {
-						links.add(linkToAdd);
-					}
-				}
-				
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), links, Responses.entities(entities, entitySet, inlineCount, skipToken), metadata.getModelName());
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), processedLinks, Responses.entities(entities, entitySet, inlineCount, skipToken), metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
 				CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
 				
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				List<Link> links = new ArrayList<Link>();
-				for (Link l : collectionResource.getLinks()) {
-					Link linkToAdd = linkInterceptor.addingLink(collectionResource, l);
-					if (linkToAdd != null) {
-						links.add(linkToAdd);
-					}
-				}
-				collectionResource.setLinks(links);
-
 				//Write feed
 				EntityMetadata entityMetadata = metadata.getEntityMetadata(collectionResource.getEntityName());
 				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter();
@@ -282,25 +251,28 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 	}
 	
-	public List<OLink> formOLinks(EntityResource<OEntity> entityResource) {
-		Collection<Link> links = entityResource.getLinks();
+	public RESTResource processLinks(RESTResource restResource) {
+		Collection<Link> linksCollection = restResource.getLinks();
 		List<Link> processedLinks = new ArrayList<Link>();
-		if (links != null) {
-			for (Link linkToAdd : links) {
-				Link link = linkInterceptor.addingLink(entityResource, linkToAdd);
+		if (linksCollection != null) {
+			for (Link linkToAdd : linksCollection) {
+				Link link = linkInterceptor.addingLink(restResource, linkToAdd);
 				if (link != null) {
 					processedLinks.add(link);
 				}
 			}
 		}
-		entityResource.setLinks(processedLinks);
-
+		restResource.setLinks(processedLinks);
+		return restResource;
+	}
+	
+	public List<OLink> formOLinks(EntityResource<OEntity> entityResource) {
 		// Create embedded resources from $expand
 		addExpandedLinks(entityResource);
 		
 		//Add entity links
 		List<OLink> olinks = new ArrayList<OLink>();
-		if (entityResource.getLinks().size() > 0) {
+		if (entityResource.getLinks() != null && entityResource.getLinks().size() > 0) {
 			for(Link link : entityResource.getLinks()) {
 				addLinkToOLinks(olinks, link, entityResource);
 			}		

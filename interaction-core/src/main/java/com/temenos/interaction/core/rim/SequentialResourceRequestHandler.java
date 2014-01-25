@@ -71,6 +71,7 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 				}
 			}
 	    	InteractionContext newCtx = new InteractionContext(ctx, newPathParameters, null, t.getTarget());
+	    	newCtx.setResource(null);
 			Response response = rimHandler.handleRequest(headers, 
 					newCtx, 
 					event, 

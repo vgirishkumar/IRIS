@@ -31,7 +31,9 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,6 +55,8 @@ import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 
 public class TestAtomEntityEntryFormatWriter {
 
@@ -129,7 +133,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, simpleEntity, entityMetadata, links, modelName);
+		writer.write(uriInfo, strWriter, simpleEntity, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);
@@ -158,7 +162,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, simpleEntity, entityMetadata, links, modelName);
+		writer.write(uriInfo, strWriter, simpleEntity, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);
@@ -169,6 +173,38 @@ public class TestAtomEntityEntryFormatWriter {
 
 		String relContent = extractLinkRelFromString(output);
 		Assert.assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", relContent);
+	}
+
+	@Test
+	public void testWriteSimpleEntryWithEmbedded() {
+		// Get UriInfo and Links
+		UriInfo uriInfo = mock(UriInfo.class);
+		try {
+			when(uriInfo.getBaseUri()).thenReturn(new URI("http", "//www.temenos.com/iris/test", "simple"));
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+		List<Link> links = new ArrayList<Link>();
+		ResourceState mockResourceState = mock(ResourceState.class);
+		when(mockResourceState.getEntityName()).thenReturn("Entity");
+		Transition mockTransition = mock(Transition.class);
+		when(mockTransition.getLabel()).thenReturn("title");
+		when(mockTransition.getTarget()).thenReturn(mockResourceState);
+		links.add(new Link(mockTransition, "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", "href", "GET"));
+		
+		Map<Transition, RESTResource> embeddedResources = new HashMap<Transition, RESTResource>();
+		embeddedResources.put(mockTransition, new EntityResource<Entity>(simpleEntity));
+		
+		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
+		StringWriter strWriter = new StringWriter();
+		writer.write(uriInfo, strWriter, simpleEntity, entityMetadata, links, embeddedResources, modelName);
+		
+		String output = strWriter.toString();
+		System.out.println(strWriter);
+		
+		String relContent = extractLinkRelFromString(output);
+		Assert.assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", relContent);
+		Assert.assertTrue(output.contains("<m:inline>"));
 	}
 
 	private String extractLinkRelFromString(String in) {
@@ -194,7 +230,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, simpleEntityWithComplexTypes, entityMetadata, links, modelName);
+		writer.write(uriInfo, strWriter, simpleEntityWithComplexTypes, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);
@@ -217,7 +253,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, complexEntity, complexEntityMetadata, links, modelName);
+		writer.write(uriInfo, strWriter, complexEntity, complexEntityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);
@@ -240,7 +276,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, complexEntity2, complexEntityMetadata2, links, modelName);
+		writer.write(uriInfo, strWriter, complexEntity2, complexEntityMetadata2, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);

@@ -18,6 +18,7 @@ rim Airline {
 	command DeleteEntity
 	command GETEntities
 	command GETEntity
+	command GETEntityPassengerWithEmbeddedFlight
 	command GETException
 	command GETNavProperty
 	command GETServiceDocument
@@ -374,7 +375,7 @@ resource Passengers {
 		parameters [ id="{passengerNo}" ]
 	}
 	GET *-> passenger_flight {
-		title: "flight"
+		title: "Flight"
 		parameters [ id="{passengerNo}" ]
 	}
 	PUT *-> passenger_updated {
@@ -388,10 +389,10 @@ resource Passengers {
 resource passenger {
 	type: item
 	entity: Passenger
-	view: GETEntity
+	view: GETEntityPassengerWithEmbeddedFlight
 	path: "/Passengers({id})"
 	GET -> passenger_flight {
-		title: "flight"
+		title: "Flight"
 		parameters [ id="{passengerNo}" ]
 	}
 	PUT -> passenger_updated {

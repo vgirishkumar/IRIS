@@ -176,15 +176,8 @@
 		<constructor-arg ref="producer" />
 	</bean>
 	
-	<!-- Commands for this integration test project 
-	<bean id="GETEntityWithembedded" class="com.interaction.example.odata.embedded.command.GETEntityWithembeddedCommand">
-		<constructor-arg name="getEntityCommand" ref="GETEntity" />
-	</bean>
-	<bean id="UpdateEntityWithembedded" class="com.interaction.example.odata.embedded.command.UpdateEntityWithembeddedCommand">
-		<constructor-arg name="updateEntityCommand" ref="UpdateEntity" />
-		<constructor-arg name="getEntityCommand" ref="GETEntityWithembedded" />
-	</bean>
-	-->
+	<!-- Commands for this integration test project -->
+	<bean id="GETEntityPassengerWithEmbeddedFlight" class="com.interaction.example.odata.embedded.command.GETEntityPassengerWithFlightEmbedded" />
 	
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -200,10 +193,7 @@
 				<entry key="GETNavProperty" value-ref="GETNavProperty" />
 				<entry key="UpdateEntity" value-ref="UpdateEntity" />
 				<entry key="DeleteEntity" value-ref="DeleteEntity" />
-<!-- 
-				<entry key="GETEntityWithembedded" value-ref="GETEntityWithembedded" />
-				<entry key="UpdateEntityWithembedded" value-ref="UpdateEntityWithembedded" />
- -->				
+				<entry key="GETEntityPassengerWithEmbeddedFlight" value-ref="GETEntityPassengerWithEmbeddedFlight" />
 			</util:map> 
 		</constructor-arg>
 	</bean>

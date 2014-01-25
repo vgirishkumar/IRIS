@@ -116,7 +116,7 @@ public class AtomEntityFeedFormatWriter {
 	    
 	    //Write entries
 	    for (EntityResource<Entity> entityResource : collectionResource.getEntities()) {
-	    	entryWriter.writeEntry(writer, entitySetName, entityResource.getEntity(), entityResource.getLinks(), uriInfo, updated, entityMetadata, modelName);
+	    	entryWriter.writeEntry(writer, entitySetName, entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(), uriInfo, updated, entityMetadata, modelName);
 	    }
 
 	    if (skipToken != null) {

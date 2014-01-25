@@ -42,7 +42,9 @@ import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -533,7 +535,7 @@ public class TestAtomXMLProvider {
 
 		
 		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, metadata, mock(ResourceStateMachine.class), mock(Transformer.class));
-		List<OLink> olinks = null;
+		Collection<Link> processedLinks = null;
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link.Builder()
 					.transition(transition)
@@ -543,8 +545,9 @@ public class TestAtomXMLProvider {
 					.build());
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
 		entityResource.setLinks(links);
-		olinks = provider.formOLinks(entityResource);
-		assertEquals(1, olinks.size());
+		provider.processLinks(entityResource);
+		processedLinks = entityResource.getLinks();
+		assertEquals(1, processedLinks.size());
 		
 		// now add the 'edit' link, it should replace the 'self' link
 		links.add(new Link.Builder()
@@ -554,9 +557,9 @@ public class TestAtomXMLProvider {
 					.href("href")
 					.build());
 		entityResource.setLinks(links);
-		olinks = provider.formOLinks(entityResource);
-		assertEquals(1, olinks.size());
-		
+		provider.processLinks(entityResource);
+		processedLinks = entityResource.getLinks();
+		assertEquals(1, processedLinks.size());
 	}
 
 	@Test
@@ -573,15 +576,17 @@ public class TestAtomXMLProvider {
 		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
 		entityResource.setLinks(links);
-		List<OLink> olinks = provider.formOLinks(entityResource);
-		assertEquals(1, olinks.size());
+		provider.processLinks(entityResource);
+		Collection<Link> processedLinks = entityResource.getLinks();
+		assertEquals(1, processedLinks.size());
+		Link theLink = processedLinks.iterator().next();
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. The nav. property in this case is the EntitySet name
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", olinks.get(0).getRelation());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", theLink.getRel());
 		
-		assertEquals("Debit funds transfers", olinks.get(0).getTitle());
+		assertEquals("Debit funds transfers", theLink.getTitle());
 		
-		assertEquals("/FundsTransfers()?$filter=DebitAcctNo eq '123'", olinks.get(0).getHref());
+		assertEquals("/FundsTransfers()?$filter=DebitAcctNo eq '123'", theLink.getHref());
 	}
 
 	@Test
@@ -604,13 +609,23 @@ public class TestAtomXMLProvider {
 		links.add(new Link(transitions.get(1), transitions.get(1).getTarget().getRel(), transitions.get(1).getLabel().contains("Debit") ? "/FundsTransfers()?$filter=DebitAcctNo eq '123'" : "/FundsTransfers()?$filter=CreditAcctNo eq '123'", HttpMethod.GET));
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
 		entityResource.setLinks(links);
-		List<OLink> olinks = provider.formOLinks(entityResource);
-		assertEquals(2, olinks.size());
+		provider.processLinks(entityResource);
+		Collection<Link> processedLinks = entityResource.getLinks();
+		assertEquals(2, processedLinks.size());
+		Iterator<Link> iterator = processedLinks.iterator();
+		Link theLink1 = iterator.next();
+		Link theLink2 = iterator.next();
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. However, the nav. property in this case is NOT the EntitySet name
 		//but a transition ID identifying the link (the link title at the moment). It does not fully comply with OData but this one does not cater for multiple links to the same target.  
-		assertTrue(containsLink(olinks, "Debit funds transfers", "/FundsTransfers()?$filter=DebitAcctNo eq '123'", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers"));
-		assertTrue(containsLink(olinks, "Credit funds transfers", "/FundsTransfers()?$filter=CreditAcctNo eq '123'", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers"));
+		assertEquals("Credit funds transfers", theLink1.getTitle());
+		assertEquals("/FundsTransfers()?$filter=CreditAcctNo eq '123'", theLink1.getHref());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", theLink1.getRel());
+		
+		assertEquals("Debit funds transfers", theLink2.getTitle());
+		assertEquals("/FundsTransfers()?$filter=DebitAcctNo eq '123'", theLink2.getHref());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", theLink2.getRel());
+
 	}
 
 	@Test
@@ -666,15 +681,17 @@ public class TestAtomXMLProvider {
 		links.add(new Link(t, t.getTarget().getRel(), "/Currencys('USD')", HttpMethod.GET));
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
 		entityResource.setLinks(links);
-		List<OLink> olinks = provider.formOLinks(entityResource);
-		assertEquals(1, olinks.size());
+		provider.processLinks(entityResource);
+		Collection<Link> processedLinks = entityResource.getLinks();
+		assertEquals(1, processedLinks.size());
+		Link theLink = processedLinks.iterator().next();
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. The nav. property in this case is the entity (type) name
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Currency", olinks.get(0).getRelation());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Currency", theLink.getRel());
 		
-		assertEquals("currency", olinks.get(0).getTitle());
+		assertEquals("currency", theLink.getTitle());
 		
-		assertEquals("/Currencys('USD')", olinks.get(0).getHref());
+		assertEquals("/Currencys('USD')", theLink.getHref());
 	}
 
 	@Test
@@ -726,16 +743,18 @@ public class TestAtomXMLProvider {
 		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfersIAuth()", HttpMethod.GET));
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
 		entityResource.setLinks(links);
-		List<OLink> olinks = provider.formOLinks(entityResource);
-		assertEquals(1, olinks.size());
+		provider.processLinks(entityResource);
+		Collection<Link> processedLinks = entityResource.getLinks();
+		assertEquals(1, processedLinks.size());
+		Link theLink = processedLinks.iterator().next();
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. The nav. property in this case would be the EntitySet name, however, it is not
 		//an entity set so use the name of the target state.
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfersIAuth", olinks.get(0).getRelation());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfersIAuth", theLink.getRel());
 		
-		assertEquals("Unauthorised funds transfers", olinks.get(0).getTitle());
+		assertEquals("Unauthorised funds transfers", theLink.getTitle());
 		
-		assertEquals("/FundsTransfersIAuth()", olinks.get(0).getHref());
+		assertEquals("/FundsTransfersIAuth()", theLink.getHref());
 	}
 	
 	@Test
@@ -925,19 +944,4 @@ public class TestAtomXMLProvider {
 		return sb.toString();		
 	}
 	
-	private boolean containsLink(List<OLink> links, String title, String href, String relation) {
-		assert(links != null);
-		for (OLink l : links) {
-			if (l.getHref().equals(href) && 
-					l.getRelation().equals(relation) &&
-					l.getTitle().equals(title)) {
-				return true;
-			}
-		}
-		
-		for (OLink l : links) {
-			System.out.println("[" + l.getTitle() + "]: rel=\"" + l.getRelation() + "\", href=\"" + l.getHref() + "\"");
-		}
-		return false;
-	}
 }

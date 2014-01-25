@@ -626,7 +626,13 @@ public class ResourceStateMachine {
 					&& config.getTransitions().size() != results.keySet().size()) {
 				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state [" + ctx.getCurrentState().getId() + "] did not return correct number of embedded resources.");
 			}
-			Map<Transition, RESTResource> resourceResults = new HashMap<Transition, RESTResource>();
+			// don't replace any embedded resources added within the commands
+			Map<Transition, RESTResource> resourceResults = null;
+			if (ctx.getResource() != null && ctx.getResource().getEmbedded() != null) {
+				resourceResults = ctx.getResource().getEmbedded();
+			} else {
+				resourceResults = new HashMap<Transition, RESTResource>();
+			}
 			for (Transition transition : results.keySet()) {
 				ResourceRequestResult result = results.get(transition);
 				if (result.getStatus() != HttpStatus.OK.getCode()) {

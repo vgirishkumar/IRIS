@@ -35,6 +35,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 
 import org.apache.abdera.Abdera;
+import org.apache.abdera.model.Text.Type;
 import org.apache.abdera.writer.StreamWriter;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.joda.time.DateTime;
@@ -51,7 +52,12 @@ import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
+import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 /**
@@ -65,11 +71,12 @@ public class AtomEntityEntryFormatWriter {
 	public static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 	public static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
 	public static final String scheme = "http://schemas.microsoft.com/ado/2007/08/dataservices/scheme";
+	public static final String atom_feed_content_type = "application/atom+xml;type=feed";
 	public static final String atom_entry_content_type = "application/atom+xml;type=entry";
 	public static final String href_lang = "en";
 
 	public void write(UriInfo uriInfo, Writer w, Entity entity,
-			EntityMetadata entityMetadata, Collection<Link> links, String modelName) 
+			EntityMetadata entityMetadata, Collection<Link> links, Map<Transition,RESTResource> embeddedResources, String modelName) 
 	{
 		String baseUri = uriInfo.getBaseUri().toString();
 		String absoluteId = baseUri + uriInfo.getPath();
@@ -89,28 +96,29 @@ public class AtomEntityEntryFormatWriter {
 	    writer.writeNamespace("d", d);
 	    writer.writeNamespace("m", m);
 	    writer.writeAttribute("xml:base", baseUri);
-		writeEntry(writer, entity, links, baseUri, absoluteId, updated, entityMetadata, modelName);
+		writeEntry(writer, entity, links, embeddedResources, baseUri, absoluteId, updated, entityMetadata, modelName);
 		writer.endEntry();
 		writer.endDocument();
 		writer.flush();
 	}
 
 	public void writeEntry(StreamWriter writer, String entitySetName, Entity entity,
-			Collection<Link> entityLinks, UriInfo uriInfo, String updated,
-			EntityMetadata entityMetadata, String modelName) 
+			Collection<Link> entityLinks, Map<Transition,RESTResource> embeddedResources,
+			UriInfo uriInfo, String updated, EntityMetadata entityMetadata, String modelName) 
 	{
 		String baseUri = uriInfo.getBaseUri().toString();
 		String absoluteId = getAbsoluteId(baseUri, entitySetName, entity, entityMetadata);
 		
 		writer.startEntry();
-		writeEntry(writer, entity, entityLinks, baseUri, absoluteId, updated, entityMetadata, modelName);
+		writeEntry(writer, entity, entityLinks, embeddedResources, baseUri, absoluteId, updated, entityMetadata, modelName);
 		writer.endEntry();
 	}
 	
 	protected void writeEntry(StreamWriter writer, Entity entity,
-			Collection<Link> entityLinks, String baseUri, String absoluteId, String updated,
+			Collection<Link> entityLinks, Map<Transition,RESTResource> embeddedResources,
+			String baseUri, String absoluteId, String updated,
 			EntityMetadata entityMetadata, String modelName) 
-	{		
+	{
 		writer.writeId(absoluteId);
 		OAtomEntity oae = getAtomInfo(entity);
 
@@ -131,10 +139,23 @@ public class AtomEntityEntryFormatWriter {
 
 		if (entityLinks != null) {
 			for (Link link : entityLinks) {
-				String type = atom_entry_content_type;
-				String href = link.getHrefTransition(baseUri);
-				String rel = link.getRel();
-				writer.writeLink(href, rel, type, link.getTitle(), href_lang, 0);
+		        String type = (link.getTransition().getTarget() instanceof CollectionResourceState)
+			              ? atom_feed_content_type
+			              : atom_entry_content_type;
+			    String href = link.getHrefTransition(baseUri);
+			    String rel = link.getRel();
+	            writer.startLink(href, rel);
+	            if (!"self".equals(link.getRel()) &&
+	            		!"edit".equals(link.getRel())) {
+		            writer.writeAttribute("type", type);
+	            }
+	            writer.writeAttribute("title", link.getTitle());
+	            writer.writeAttribute("hreflang", href_lang);
+				if (embeddedResources.get(link.getTransition()) != null) {
+		            // write the inlined entities inside the link element
+					writeLinkInline(writer, link, embeddedResources.get(link.getTransition()), href, baseUri, absoluteId, updated, entityMetadata, modelName);
+				}
+	            writer.endLink();
 			}
 		}
 
@@ -150,6 +171,48 @@ public class AtomEntityEntryFormatWriter {
 		writer.endContent();
 	}
 
+	@SuppressWarnings("unchecked")
+	protected void writeLinkInline(StreamWriter writer, Link linkToInline, RESTResource embeddedResource,
+			String href, String baseUri, String absoluteId, String updated, EntityMetadata entityMetadata, String modelName) {
+
+		writer.startElement(new QName(m, "inline", "m"));
+		if (embeddedResource instanceof CollectionResource) {
+			CollectionResource<Entity> collectionResource = (CollectionResource<Entity>) embeddedResource;
+			Collection<EntityResource<Entity>> entities = collectionResource.getEntities();
+
+			if (entities != null && !entities.isEmpty()) {
+				writer.startFeed();
+				writer.writeTitle(Type.TEXT, linkToInline.getTitle());
+				writer.writeId(baseUri + href);
+				writer.writeUpdated(updated);
+				writer.startLink(href, "self");
+	            writer.writeAttribute("title", linkToInline.getTitle());
+				writer.endLink();
+				
+				for (EntityResource<Entity> entityResource : entities) {
+					writer.startEntry();
+					writeEntry(writer, entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(),
+							baseUri, absoluteId, updated, entityMetadata, modelName);
+					writer.endEntry();
+				}
+				writer.endFeed();
+			}
+		} else if (embeddedResource instanceof EntityResource) {
+			EntityResource<Entity> entityResource = (EntityResource<Entity>) embeddedResource;
+			Entity entity = entityResource.getEntity();
+			if (entity != null) {
+				writer.startEntry();
+				writeEntry(writer, entity, entityResource.getLinks(), entityResource.getEmbedded(),
+						baseUri, absoluteId, updated, entityMetadata, modelName);
+
+				writer.endEntry();
+			}
+		} else
+			throw new RuntimeException("Unknown OLink type "
+					+ linkToInline.getClass());
+		writer.endElement();  // end inline
+	}
+	  
 	private String getAbsoluteId(String baseUri, String entitySetName, Entity entity, EntityMetadata entityMetadata) {
 		String absId = "";
 		for(String key : entityMetadata.getIdFields()) {		

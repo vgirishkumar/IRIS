@@ -40,6 +40,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -54,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.HttpStatusTypes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -537,21 +539,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	    		@SuppressWarnings("rawtypes")
 				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource)resource).getEntity(), pathParameters);
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
-				
-	        	ResourceRequestConfig config = new ResourceRequestConfig.Builder()
-	        			.selfTransition(autoTransition)
-	        			.transition(autoTransition)
-	        			.build();
-	        	Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(this, headers, ctx, (EntityResource<?>) resource, config);
-	        	assert(results.keySet().size() == 1);
-	        	ResourceRequestResult autoResponse = results.values().iterator().next();
+				Response autoResponse = getResource(headers, autoTransition, ctx);
 	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
 	        		logger.warn("Auto transition target did not return HttpStatus.OK status ["+autoResponse.getStatus()+"]");
 	        		responseBuilder.status(autoResponse.getStatus());
 	        	}
-//	        	resource = (EntityResource<?>)((GenericEntity<?>)autoResponse.getResource()).getEntity();
-	        	resource = autoResponse.getResource();
-	        	resource.setEntityName(autoTransition.getTarget().getEntityName());
+	        	resource = (RESTResource) ((GenericEntity<?>)autoResponse.getEntity()).getEntity();
 			}
 			assert(resource != null);
     		responseBuilder.entity(resource.getGenericEntity());
@@ -570,12 +563,18 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if((status.getFamily() == Response.Status.Family.CLIENT_ERROR || status.getFamily() == Response.Status.Family.SERVER_ERROR) && ctx != null) {
 			if(ctx.getCurrentState().getErrorState() != null) {
 				//Resource has an onerror handler
-				RESTResource errorResource = getResource(headers, ctx.getCurrentState().getErrorState(), ctx);
+				ResourceState errorState = ctx.getCurrentState().getErrorState();
+				Transition resourceTransition = new Transition.Builder().method("GET").source(errorState).target(errorState).build();
+				Response errorResponse = getResource(headers, resourceTransition, ctx);
+				RESTResource errorResource = (RESTResource) ((GenericEntity<?>)errorResponse.getEntity()).getEntity();
 				responseBuilder.entity(errorResource.getGenericEntity());
 			}
 			else if(hypermediaEngine.getException() != null && ctx.getException() != null) {
 				//Resource state machine has an exception handler
-				RESTResource exceptionResource = getResource(headers, hypermediaEngine.getException(), ctx);
+				ResourceState exceptionState = hypermediaEngine.getException();
+				Transition resourceTransition = new Transition.Builder().method("GET").source(exceptionState).target(exceptionState).build();
+				Response exceptionResponse = getResource(headers, resourceTransition, ctx);
+				RESTResource exceptionResource = (RESTResource) ((GenericEntity<?>)exceptionResponse.getEntity()).getEntity();
 				responseBuilder.entity(exceptionResource.getGenericEntity());
 			}
 			else if(resource != null) {
@@ -590,24 +589,42 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     }
     
     /*
-     * Returns the resource on the specified resource state. 
+     * Returns the resource on the specified resource state.
+     * NB - the one essential difference between this getResource method and the ResourceRequestHandler
+     * is that the target here expects InteractionContext to be populated with the previous commands
+     * RESTResource i.e. {@link InteractionContext#getResource}
      */
-    private RESTResource getResource(HttpHeaders headers, ResourceState state, InteractionContext ctx) {
+    private Response getResource(HttpHeaders headers, Transition resourceTransition, InteractionContext ctx) {
+		ResourceState targetState = resourceTransition.getTarget();
 		try {
-			Transition resourceTransition = new Transition.Builder().method("GET").source(state).target(state).build();
 			ResourceRequestConfig config = new ResourceRequestConfig.Builder()
-				.transition(resourceTransition)
-				.selfTransition(resourceTransition)
-				.build();
-			Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(this, headers, ctx, null, config);
-			if(results.values() == null || results.values().size() == 0) {
-				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state [" + state.getId() + "] did not return a resource.");
+					.transition(resourceTransition)
+					.selfTransition(resourceTransition)
+					.build();
+	    	Event event = new Event("", "GET");
+	    	InteractionCommand action = hypermediaEngine.buildWorkflow(targetState.getActions());
+			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
+			newPathParameters.putAll(ctx.getPathParameters());
+			RESTResource currentResource = ctx.getResource();
+			if (currentResource != null) {
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition, ((EntityResource<?>)currentResource).getEntity(), ctx.getPathParameters());
+				for (String key : transitionProperties.keySet()) {
+					if (transitionProperties.get(key) != null)
+						newPathParameters.add(key, transitionProperties.get(key).toString());
+				}
 			}
-			ResourceRequestResult result = results.values().iterator().next();
-			RESTResource resource = result.getResource();
-			return resource;
-		} catch(InteractionException ie) {
-			logger.error("Failed to access resource [" + state.getId() + "] with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
+	    	InteractionContext newCtx = new InteractionContext(ctx, newPathParameters, ctx.getQueryParameters(), targetState);
+			Response response = handleRequest(headers, 
+					newCtx, 
+					event, 
+					action, 
+					null, 
+					config);
+        	RESTResource resource = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
+        	resource.setEntityName(targetState.getEntityName());
+			return response;
+		} catch(Exception ie) {
+			logger.error("Failed to access resource [" + targetState.getId() + "] with error [" + ie.getMessage() + "]");
 			throw new RuntimeException(ie);
 		}
     }
