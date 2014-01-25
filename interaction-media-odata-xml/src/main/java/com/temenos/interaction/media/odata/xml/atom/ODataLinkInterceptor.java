@@ -116,6 +116,10 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 		rel = rel.replace("item", "");
 		rel = rel.replace("collection", "");
 
+		// don't change the link relations if they have been specified in the RIM
+		if (rel.length() > 0)
+			return rel;
+		
 		if (transition.isGetFromCollectionToEntityResource() || (rel.equals("self") || rel.equals("edit"))) {
 			if (rel.length() == 0) {
 				//Links from collection to entity resource of an entity are considered 'self' links within an odata feed

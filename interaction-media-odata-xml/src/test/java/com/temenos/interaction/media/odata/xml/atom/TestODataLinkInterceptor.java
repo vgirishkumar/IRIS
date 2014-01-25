@@ -109,7 +109,7 @@ public class TestODataLinkInterceptor {
 		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
 		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers http://www.temenos.com/rels/new", result.getRel());
+		assertEquals("http://www.temenos.com/rels/new", result.getRel());
 	}
 
 	@Test
