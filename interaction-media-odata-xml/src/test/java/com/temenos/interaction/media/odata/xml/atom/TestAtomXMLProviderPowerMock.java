@@ -122,6 +122,49 @@ public class TestAtomXMLProviderPowerMock {
 		OEntityKey.parse("2");
 	}
 
+	@Test
+	public void testReadStringKey() throws Exception {
+		// enable mock of the static class (see also verifyStatic)
+		mockStatic(OEntityKey.class);
+		
+		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
+		Metadata metadata = createAirlineMetadata();
+		ResourceStateMachine rsm = new ResourceStateMachine(
+				new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource('{id}')"));
+
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
+		// don't do anything when trying to read context
+		AtomEntryFormatParserExt mockParser = mock(AtomEntryFormatParserExt.class);
+		Entry mockEntry = mock(Entry.class);
+		OEntity mockOEntity = mock(OEntity.class);
+		when(mockEntry.getEntity()).thenReturn(mockOEntity);
+		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
+		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		
+		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getPath()).thenReturn("/test/someresource('2')");
+		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
+		mockPathParameters.add("id", "2");
+		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
+		ap.setUriInfo(mockUriInfo);
+		Request requestContext = mock(Request.class);
+		when(requestContext.getMethod()).thenReturn("GET");
+		ap.setRequestContext(requestContext);
+		
+		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, new ByteArrayInputStream(new String("Antyhing").getBytes()));
+		assertNotNull(result);
+		assertEquals(mockOEntity, result.getEntity());
+
+		// verify entityset and key
+		verifyNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), eq("Flight"), any(OEntityKey.class), any(FeedCustomizationMapping.class));
+
+		// verify static with entity key "2"
+		verifyStatic();
+		OEntityKey.create("2");
+	}
+
 	/*
 	 * The create (POST) will need to parse the OEntity without a key supplied in the path
 	 */
