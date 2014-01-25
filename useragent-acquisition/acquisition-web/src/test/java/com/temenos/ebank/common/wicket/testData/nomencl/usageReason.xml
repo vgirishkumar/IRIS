@@ -1,0 +1,53 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>49</id>
+    <language>en</language>
+    <groupCode>usageReason</groupCode>
+    <code>BANKING</code>
+    <label>Day to day banking needs</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>50</id>
+    <language>en</language>
+    <groupCode>usageReason</groupCode>
+    <code>MULTI_ACCOUNTS</code>
+    <label>Multi currency accounts and cards to facilitate international travel</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>55</id>
+    <language>en</language>
+    <groupCode>usageReason</groupCode>
+    <code>OTHER</code>
+    <label>Other</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>54</id>
+    <language>en</language>
+    <groupCode>usageReason</groupCode>
+    <code>LIFE_EVENT</code>
+    <label>Saving for a Life Event</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>53</id>
+    <language>en</language>
+    <groupCode>usageReason</groupCode>
+    <code>CHILDREN_EDUCATION</code>
+    <label>Saving for children education</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>52</id>
+    <language>en</language>
+    <groupCode>usageReason</groupCode>
+    <code>HOUSE_PURCHASE</code>
+    <label>Saving for house purchase</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>51</id>
+    <language>en</language>
+    <groupCode>usageReason</groupCode>
+    <code>RETIREMENT</code>
+    <label>Saving for retirement</label>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

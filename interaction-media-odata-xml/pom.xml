@@ -63,7 +63,7 @@
             <groupId>org.odata4j</groupId>
             <artifactId>odata4j-core</artifactId>
         </dependency>
-        <!-- OData Extension (adds metadata and collection support) -->
+        <!-- OData Extension (adds metadata and collecion support) -->
         <dependency>
             <groupId>com.temenos.interaction</groupId>
             <artifactId>interaction-odata4j-ext</artifactId>

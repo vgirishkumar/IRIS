@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:panel>
+	<h3><wicket:message key="sectionTitle">Pre-account check</wicket:message></h3>
+	<dl wicket:id="accountCurrencyBorder">       
+		<dt>
+			<label for="accountCurrency" wicket:id="accountCurrencyLabel">Select currency</label>
+		</dt>
+		<dd class="compact" wicket:id="accountCurrency">
+		</dd>
+	</dl>
+	<dl wicket:id="ftdTermBorder">
+	      	<dt>
+			<label for="ftdTerm" wicket:id="ftdTermLabel">Select FTD Term</label>
+	      	</dt>
+	      	<dd>
+			<select wicket:id="ftdTerm">
+				<option>6 months</option><option>1 year</option>
+			</select>							    
+	       </dd>
+	</dl>
+	<dl wicket:id="ftdInterestRateBorder">
+	      	<dt>
+				<label for="ftdInterestRate" wicket:id="ftdInterestRateLabel">Interest rate</label>
+	      	</dt>
+	      	<dd>
+				<input wicket:id="ftdInterestRate" type="text" value="" />        	
+	       </dd>
+	</dl>		
+			
+	<div class="info">
+		<div>
+			<span class="infoTitle">
+				<wicket:message key="infoInitialDepositRequiredTitle">Initial deposit required.</wicket:message>
+			</span>
+			<br/>
+			<span>
+				<wicket:message key="infoInitialDepositRequired">For each account the initial payment deposit is greater or equal to 5000 currency equivalent. If more than one account no initial deposit is required.</wicket:message>
+			</span>
+		</div>
+	</div>
+	<div wicket:id="singleJoint"/>
+</wicket:panel>
+</body>
+</html>

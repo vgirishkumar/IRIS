@@ -23,7 +23,6 @@ package com.temenos.interaction.core.resource;
 
 
 import java.util.Collection;
-import java.util.Map;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -33,7 +32,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.temenos.interaction.core.hypermedia.Link;
-import com.temenos.interaction.core.hypermedia.Transition;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
@@ -54,8 +52,6 @@ public class EntityResource<T> implements RESTResource {
     private String entityName;
 	@XmlTransient
     private Collection<Link> links;
-	@XmlTransient
-    private Map<Transition, RESTResource> embedded;
 	@XmlTransient
     private String entityTag = null;
 
@@ -93,21 +89,6 @@ public class EntityResource<T> implements RESTResource {
 	@Override
     public void setLinks(Collection<Link> links) {
     	this.links = links;
-    }
-
-	@Override
-    public Map<Transition, RESTResource> getEmbedded() {
-    	return this.embedded;
-    }
-
-    /**
-     * Called during resource building phase to set the embedded
-     * resources for serialization by the provider.
-     * @param embedded
-     */
-	@Override
-    public void setEmbedded(Map<Transition, RESTResource> embedded) {
-    	this.embedded = embedded;
     }
 
 	@Override

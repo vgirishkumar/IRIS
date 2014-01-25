@@ -200,10 +200,10 @@
         <artifactId>interaction-media-hal</artifactId>
         <scope>runtime</scope>
     </dependency>
-
     <dependency>
         <groupId>com.theoryinpractise</groupId>
-        <artifactId>halbuilder-standard</artifactId>
+        <artifactId>halbuilder</artifactId>
+        <scope>compile</scope>
     </dependency>
 
   </dependencies>

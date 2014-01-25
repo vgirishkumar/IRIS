@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:panel>
+       <h3><wicket:message key="sectionTitle">Pre-account check</wicket:message></h3>
+	   <dl wicket:id="accountCurrenciesBorder">       
+	        <dt>
+	        	<label wicket:id="accountCurrenciesLabel" for="accountCurrencies">What currency Premier International Account(s) would you like to open?</label>
+	        </dt>
+	        <dd class="compact" wicket:id="accountCurrencies">
+		        <wicket:remove>
+			        <label for="sterling"><input type="checkbox" name="sterling" id="sterling" /> Sterling (&#xA3;)</label><br />
+			        <label for="euro"><input type="checkbox" name="euro" id="euro" /> Euro (&#x20AC;)</label><br />
+			        <label for="dollar"><input type="checkbox" name="dollar" id="dollar" /> <acronym title="United States">US</acronym> dollar ($)</label><br />
+			        <label for="hkdollar"><input type="checkbox" name="hkdollar" id="hkdollar" /> Hong Kong dollar ($)</label><br />
+			        <label for="candollar"><input type="checkbox" name="candollar" id="candollar" /> Canadian dollar ($)</label>
+		        </wicket:remove>
+	        </dd>
+		</dl>
+       <!-- TODO: ce facem cu astea, au disparut sau ce mama dracu? -->
+		<div class="info">
+			<div>
+				<span class="infoTitle">
+					<wicket:message key="infoInitialDepositRequiredTitle">Initial deposit required.</wicket:message>
+				</span>
+				<br/>
+				<span>
+					<wicket:message key="infoInitialDepositRequired">For each account the initial payment deposit is greater or equal to 5000 currency equivalent. If more than one account no initial deposit is required.</wicket:message>
+				</span>
+			</div>
+		</div>
+		<div class="info">
+			<div>
+				<span class="infoTitle">
+					<wicket:message key="infoSubscriptionFeeTitle">Subscription fee</wicket:message>
+				</span>
+				<br/>
+				<span>
+					<wicket:message key="infoSubscriptionFee">You will be charged \u00A3 X.YY. If you already have an account(s) with us, no subscription fee.</wicket:message>
+				</span>
+			</div>
+		</div>
+		<div wicket:id="singleJoint"/>
+</wicket:panel>
+</body>
+</html>

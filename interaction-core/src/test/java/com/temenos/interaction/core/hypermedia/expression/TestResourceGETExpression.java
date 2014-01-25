@@ -25,7 +25,6 @@ package com.temenos.interaction.core.hypermedia.expression;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,7 +36,6 @@ import java.util.Map;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.interaction.core.command.InteractionCommand;
@@ -45,33 +43,22 @@ import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
-import com.temenos.interaction.core.command.NoopGETCommand;
-import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Action.TYPE;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function;
-import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
-import com.temenos.interaction.core.web.RequestContext;
 
 public class TestResourceGETExpression {
-
-	@Before
-	public void setup() {
-		// initialise the thread local request context with requestUri and baseUri
-        RequestContext ctx = new RequestContext("/baseuri", "/requesturi", null);
-        RequestContext.setRequestContext(ctx);
-	}
 
 	private NewCommandController mockCommandController() {
 		NewCommandController cc = new NewCommandController();
 		try {
 			InteractionCommand notfound = mock(InteractionCommand.class);
 			when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-			InteractionCommand found = new NoopGETCommand();
+			InteractionCommand found = mock(InteractionCommand.class);
+			when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
 			
 			cc.addCommand("notfound", notfound);
 			cc.addCommand("found", found);
@@ -80,13 +67,6 @@ public class TestResourceGETExpression {
 			Assert.fail(ie.getMessage());
 		}
 		return cc;
-	}
-	
-	private HTTPHypermediaRIM mockRimHandler() {
-		NewCommandController mockCommandController = mockCommandController();
-		Metadata mockMetadata = mock(Metadata.class);
-		when(mockMetadata.getEntityMetadata(anyString())).thenReturn(mock(EntityMetadata.class));
-		return new HTTPHypermediaRIM(mockCommandController, mockRIM(), mockMetadata);
 	}
 	
 	private ResourceStateMachine mockRIM() {
@@ -108,12 +88,12 @@ public class TestResourceGETExpression {
 		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockFound, "/pconfirmed", "confirmed".split(" "));
 
 		// create transitions that indicate state
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(cancelled).build());
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(paid).build());
+		initial.addTransition(room);
+		initial.addTransition(cancelled);
+		initial.addTransition(paid);
 		// TODO, expressions should also be followed in determining resource state graph
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pwaiting).build());
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pconfirmed).build());
+		initial.addTransition(pwaiting);
+		initial.addTransition(pconfirmed);
 		
 		// pseudo states that do the processing
 		ResourceState cancel = new ResourceState(cancelled, "psuedo_cancel", new ArrayList<Action>());
@@ -123,13 +103,13 @@ public class TestResourceGETExpression {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		int transitionFlags = 0;  // regular transition
 		// create the transitions (links)
-		initial.addTransition(new Transition.Builder().method("POST").target(cancel).build());
-		initial.addTransition(new Transition.Builder().method("PUT").target(assignRoom).build());
+		initial.addTransition("POST", cancel);
+		initial.addTransition("PUT", assignRoom);
 		
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		initial.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
+		initial.addTransition("PUT", paymentDetails, uriLinkageMap, transitionFlags, expressions, "Make a payment");
 
 		return new ResourceStateMachine(initial);
 	}
@@ -137,32 +117,30 @@ public class TestResourceGETExpression {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testLookupResourceThenGET_404() {
-		HTTPHypermediaRIM rimHandler = mockRimHandler();
-		ResourceStateMachine rsm = rimHandler.getHypermediaEngine();
+		ResourceStateMachine rsm = mockRIM();
 		rsm.setCommandController(mockCommandController());
 		InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
 		
 		ResourceGETExpression rgeOK = new ResourceGETExpression("pwaiting", Function.OK);
-		boolean result1 = rgeOK.evaluate(rimHandler, ctx);
+		boolean result1 = rgeOK.evaluate(rsm, ctx);
 		assertFalse("We did a GET on 'pwaiting' and it was NOT_FOUND(404), therefore OK link condition evaluates to 'false'", result1);
 		ResourceGETExpression rgeNOT_FOUND = new ResourceGETExpression("pwaiting", Function.NOT_FOUND);
-		boolean result2 = rgeNOT_FOUND.evaluate(rimHandler, ctx);
+		boolean result2 = rgeNOT_FOUND.evaluate(rsm, ctx);
 		assertTrue("We did a GET on 'pwaiting' and it was NOT_FOUND(404), therefore NOT_FOUND link condition evaluates to 'true'", result2);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testLookupResourceThenGET_200() {
-		
-		HTTPHypermediaRIM rimHandler = mockRimHandler();
-		ResourceStateMachine rsm = rimHandler.getHypermediaEngine();
+		ResourceStateMachine rsm = mockRIM();
+		rsm.setCommandController(mockCommandController());
 		InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
 		
 		ResourceGETExpression rgeOK = new ResourceGETExpression("pconfirmed", Function.OK);
-		boolean result1 = rgeOK.evaluate(rimHandler, ctx);
+		boolean result1 = rgeOK.evaluate(rsm, ctx);
 		assertTrue("We did a GET on 'pconfirmed' and it was OK(200), therefore OK link condition evaluates to 'true'", result1);
 		ResourceGETExpression rgeNOT_FOUND = new ResourceGETExpression("pconfirmed", Function.NOT_FOUND);
-		boolean result2 = rgeNOT_FOUND.evaluate(rimHandler, ctx);
+		boolean result2 = rgeNOT_FOUND.evaluate(rsm, ctx);
 		assertFalse("We did a GET on 'pconfirmed' and it was OK(200), therefore NOT_FOUND link condition evaluates to 'false'", result2);
 	}
 	

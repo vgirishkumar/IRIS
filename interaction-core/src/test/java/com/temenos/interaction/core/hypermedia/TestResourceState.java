@@ -114,7 +114,7 @@ public class TestResourceState {
 		String ENTITY_NAME = "entity";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
-		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		begin.addTransition("PUT", exists);
 		assertEquals("PUT", begin.getTransition(exists).getCommand().getMethod());
 		assertEquals("{id}", begin.getTransition(exists).getCommand().getPath());
 	}
@@ -124,7 +124,7 @@ public class TestResourceState {
 		String ENTITY_NAME = "entity";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
-		begin.addTransition(new Transition.Builder().target(exists).flags(Transition.AUTO).build());
+		begin.addTransition(null, exists, Transition.AUTO);
 		assertTrue(begin.getTransition(exists).getCommand().isAutoTransition());
 	}	
 
@@ -133,7 +133,7 @@ public class TestResourceState {
 		String ENTITY_NAME = "entity";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
-		begin.addTransition(new Transition.Builder().method("PUT").target(exists).flags(Transition.AUTO).build());
+		begin.addTransition("PUT", exists, Transition.AUTO);
 	}	
 	
 	@Test
@@ -146,7 +146,7 @@ public class TestResourceState {
 		String ENTITY_NAME = "entity";
 		ResourceState begin = new ResourceState("SomeEntity", "initial", new ArrayList<Action>(), "/tests");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "/test/{id}");
-		begin.addTransition(new Transition.Builder().method("PUT").target(exists).uriParameters(uriLinkageMap).build());
+		begin.addTransition("PUT", exists, uriLinkageMap);
 		assertEquals("/test/{id}", begin.getTransition(exists).getCommand().getPath());
 		assertTrue(begin.getTransition(exists).getCommand().getUriParameters().containsKey("id"));
 	}
@@ -157,8 +157,8 @@ public class TestResourceState {
 		ResourceState A = new ResourceState("ENTITY", "initial", new ArrayList<Action>(), "/A");
 		ResourceState B = new ResourceState("ENTITY", "initial", new ArrayList<Action>(), "/B");
 		
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(A).build());
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(B).build());
+		initial.addTransition(A);
+		initial.addTransition(B);
 		
 		assertEquals(2, initial.getAllTargets().size());
 	}
@@ -174,15 +174,15 @@ public class TestResourceState {
 		ResourceState initial = new ResourceState(ENTITY_NAME1, "initial", new ArrayList<Action>(), "/test/{id}");
 		ResourceState exists = new ResourceState(initial, "exists", new ArrayList<Action>());
 		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>());
-		initial.addTransition(new Transition.Builder().method("PUT").target(exists).build());
-		exists.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
+		initial.addTransition("PUT", exists);
+		exists.addTransition("DELETE", deleted);
 		
 		String ENTITY_NAME2 = "entity2";
 		ResourceState initial2 = new ResourceState(ENTITY_NAME2, "initial", new ArrayList<Action>(), "/entity/2");
 		ResourceState exists2 = new ResourceState(initial2, "exists", new ArrayList<Action>());
 		ResourceState deleted2 = new ResourceState(initial2, "deleted", new ArrayList<Action>());
-		initial2.addTransition(new Transition.Builder().method("PUT").target(exists2).build());
-		exists2.addTransition(new Transition.Builder().method("DELETE").target(deleted2).build());
+		initial2.addTransition("PUT", exists2);
+		exists2.addTransition("DELETE", deleted2);
 		
 		ResourceStateMachine rsm1 = new ResourceStateMachine(initial);
 		ResourceStateMachine rsm2 = new ResourceStateMachine(initial2);
@@ -234,7 +234,7 @@ public class TestResourceState {
 		String ENTITY_NAME = "entity";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "/");
 		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "/");
-		begin.addTransition(new Transition.Builder().method("DELETE").target(end).build());
+		begin.addTransition("DELETE", end);
 		assertFalse(begin.isFinalState());
 		assertTrue(end.isFinalState());
 	}
@@ -257,8 +257,8 @@ public class TestResourceState {
 	public void testTransientState() {
 		ResourceState home = new ResourceState("root", "root", new ArrayList<Action>(), "/");
 		ResourceState reboot = new ResourceState("entity", "reboot", new ArrayList<Action>(), "/reboot");
-		home.addTransition(new Transition.Builder().method("POST").target(reboot).build());
-		reboot.addTransition(new Transition.Builder().flags(Transition.AUTO).target(home).build());
+		home.addTransition("POST", reboot);
+		reboot.addTransition(home);
 		assertTrue(reboot.isTransientState());
 	}
 
@@ -270,8 +270,8 @@ public class TestResourceState {
 	public void testTransientTarget() {
 		ResourceState home = new ResourceState("root", "root", new ArrayList<Action>(), "/");
 		ResourceState reboot = new ResourceState("entity", "reboot", new ArrayList<Action>(), "/reboot");
-		home.addTransition(new Transition.Builder().method("POST").target(reboot).build());
-		reboot.addTransition(new Transition.Builder().flags(Transition.AUTO).target(home).build());
+		home.addTransition("POST", reboot);
+		reboot.addTransition(home);
 		assertEquals(home, reboot.getAutoTransition().getTarget());
 	}
 
@@ -282,10 +282,10 @@ public class TestResourceState {
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		uriLinkageMap.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
-		airport.addTransition(new Transition.Builder().method("PUT").target(flights).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
+		airport.addTransition("PUT", flights, null, null);
 		
 		assertEquals(3, airport.getTransitions(flights).size());
 		List<Transition> transitions = airport.getTransitions(flights);
@@ -301,9 +301,9 @@ public class TestResourceState {
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		uriLinkageMap.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		assertEquals(2, airport.getTransitions(flights).size());
 		List<Transition> transitions = airport.getTransitions(flights);
@@ -319,7 +319,7 @@ public class TestResourceState {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
 		uriLinkageMap.put("id", "{code}");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		assertEquals(1, airport.getTransitions(flights).size());
 		List<Transition> transitions = airport.getTransitions(flights);
@@ -334,10 +334,10 @@ public class TestResourceState {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
 		uriLinkageMap.put("id", "{code}");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		uriLinkageMap.put("filter", "departureAirportCode eq '{code}'");
 		uriLinkageMap.put("id", "{code}");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		assertEquals(2, airport.getTransitions(flights).size());
 		List<Transition> transitions = airport.getTransitions(flights);
@@ -358,7 +358,7 @@ public class TestResourceState {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("myfilter", "arrivalAirportCode eq '{code}'");
 		uriLinkageMap.put("id", "{code}");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		List<Action> actions = flights.getActions();
 		assertEquals(1, actions.size());
@@ -383,9 +383,9 @@ public class TestResourceState {
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("myfilter", "arrivalAirportCode eq '{arrivalAirportCode}'");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		uriLinkageMap.put("myfilter", "departureAirportCode eq '{departureAirportCode}'");
-		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
+		airport.addTransition("GET", flights, uriLinkageMap);
 		
 		List<Action> actions = flights.getActions();
 		assertEquals(1, actions.size());

@@ -1,0 +1,121 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd"
+			>
+			
+<!-- 	<context:property-placeholder location="classpath:jdbc.properties"/> -->
+	
+		<!-- configuration for HSQLDB in-memory - for testing only, DO NOT USE in production  -->
+	<context:property-placeholder location="classpath:application.hsqldb.properties, classpath:application.properties"/>
+
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+        <property name="initialPoolSize" value="${c3p0.initialPoolSize}"/>
+        <property name="minPoolSize" value="${c3p0.minPoolSize}"/>
+        <property name="maxPoolSize" value="${c3p0.maxPoolSize}"/>
+        <property name="idleConnectionTestPeriod" value="${c3p0.idleConnectionTestPeriod}"/>
+        <property name="maxIdleTime" value="${c3p0.maxIdleTime}"/>
+        <property name="maxConnectionAge" value="${c3p0.maxConnectionAge}"/>
+        <property name="acquireIncrement" value="1"/>
+        <property name="maxStatements" value="0"/>  <!-- 0 means: statement caching is turned off.  -->
+        <property name="numHelperThreads" value="3"/>  <!-- 3 is default --> 
+ 	</bean>
+
+    <tx:annotation-driven transaction-manager="txManager" />
+
+    <!-- setup transaction manager  -->
+    <bean id="txManager"
+        class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory">
+            <ref bean="sessionFactory" />
+        </property>
+    </bean>
+
+	<!-- hibernate session factory -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+   		<property name="mappingDirectoryLocations">
+			<list>
+		        <value>classpath:mappings</value>
+		    </list>
+   		</property>
+		<property name="eventListeners"><!-- is this required? -->
+			<map>
+				<entry key="merge">
+					<bean class="org.springframework.orm.hibernate3.support.IdTransferringMergeEventListener"/>
+				</entry>
+			</map>
+		</property>
+
+		<!-- lobHandler ? -->
+
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.current_session_context_class">thread</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+				<prop key="hibernate.generate_statistics">false</prop>
+                <prop key="hibernate.bytecode.use_reflection_optimizer">true</prop><!-- or false? -->
+                <prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
+				<prop key="hibernate.cache.use_second_level_cache">${hibernate.cache.use_second_level_cache}</prop>				
+				<prop key="hibernate.cache.use_query_cache">${hibernate.cache.use_query_cache}</prop>				
+<!--				<prop key="hibernate.cache.provider_configuration_file_resource_path">/ehcache.xml</prop>-->
+				<prop key="hibernate.cache.region_prefix">wicked</prop>
+				
+				<!-- configuration for HSQLDB in-memory - for testing only, DO NOT USE in production  -->
+				<!-- to populate database at server start, use "./import.sql" -->
+				<prop key="hibernate.hbm2ddl.auto">create</prop>
+            </props>
+        </property>
+    </bean>
+
+	<!-- DAOs, in alphabetical order --> 
+	<bean id="abstractDao" abstract="true">
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+	
+	<bean id="applicationDao" class="com.temenos.ebank.dao.impl.acquisition.ApplicationDaoImpl" parent="abstractDao"/>
+	<bean id="nomenclDao" class="com.temenos.ebank.dao.impl.nomencl.NomenclDaoImpl" parent="abstractDao">
+		<constructor-arg name="irisUrl" value="${iris.url}" />	
+	</bean>
+
+	<bean id="resourceDao" class="com.temenos.ebank.dao.impl.resources.ResourcesDaoImpl" parent="abstractDao"/>
+
+	<bean id="serviceClientAcquisition"
+		class="com.temenos.ebank.services.impl.clientAquisition.ServiceClientAquisitionImpl">
+		<property name="applicationDao" ref="applicationDao" />
+		<property name="referenceGenerator" ref="referenceGeneratorService" />
+	</bean>
+
+ 	<bean id="serviceNomencl"
+		class="com.temenos.ebank.services.impl.nomencl.ServiceNomencl">
+		<property name="nomenclDao" ref="nomenclDao" />
+	</bean>
+		
+	<bean id="serviceCrossSell"
+		class="com.temenos.ebank.services.impl.clientAquisition.ServiceCrossSellImpl">
+		<property name="referenceGenerator" ref="referenceGeneratorService" />
+	</bean>	
+
+<!-- 	<bean id="serviceResourceLoader" class="com.temenos.ebank.services.impl.resources.ServiceResourceLoaderImpl">
+		<property name="resourceDao" ref="resourceDao" />
+	</bean> --> <!-- not used anymore -->
+
+	<bean id="referenceGeneratorService" class="com.temenos.ebank.services.impl.random.ReferenceGenerator"/>
+	
+	
+	<bean id="servicePafAddresses" class="com.temenos.ebank.services.impl.thirdParty.ServicePafAddressesImpl" >
+		<constructor-arg name="irisUrl" value="${iris.url}" />	
+	</bean>
+</beans>

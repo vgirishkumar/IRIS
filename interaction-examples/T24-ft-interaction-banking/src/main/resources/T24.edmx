@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+	<edmx:DataServices m:DataServiceVersion="1.0">
+		<Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="com.temenos.interaction.T24">
+			<EntityType Name="FundsTransfer">
+                <Key>
+                    <PropertyRef Name="Id" />
+                </Key>
+                <Property Type="Edm.String" Name="Id" Nullable="false" />
+                <Property Type="Edm.String" Name="TransactionType" Nullable="false" />
+				<Property Type="Edm.String" Name="DebitAcctNo" Nullable="false" />
+				<Property Type="Edm.String" Name="DebitCurrency" Nullable="false" />
+				<Property Type="Edm.String" Name="DebitAmount" Nullable="false" />
+				<Property Type="Edm.String" Name="CreditAcctNo" Nullable="false" />
+				<Property Type="Edm.String" Name="RecordStatus" Nullable="false" />
+            </EntityType>
+
+			<EntityContainer Name="Container" m:IsDefaultEntityContainer="true">
+				<EntitySet Name="FundsTransfer" EntityType="com.temenos.interaction.T24.FundsTransfer"/>
+			</EntityContainer>
+		</Schema>
+	</edmx:DataServices>
+</edmx:Edmx>
+	

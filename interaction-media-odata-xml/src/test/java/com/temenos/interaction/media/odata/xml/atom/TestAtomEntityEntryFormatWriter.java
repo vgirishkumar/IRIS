@@ -154,7 +154,7 @@ public class TestAtomEntityEntryFormatWriter {
 		Transition mockTransition = mock(Transition.class);
 		when(mockTransition.getLabel()).thenReturn("title");
 		when(mockTransition.getTarget()).thenReturn(mockResourceState);
-		links.add(new Link(mockTransition, "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", "href", "GET"));
+		links.add(new Link(mockTransition, "item", "href", "GET"));
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();

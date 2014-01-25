@@ -25,7 +25,7 @@ package com.temenos.interaction.core.hypermedia.expression;
 import java.util.List;
 
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 /**
  * A very simple Expression implementation that supports left to right, 'AND' expression
@@ -42,9 +42,9 @@ public class SimpleLogicalExpressionEvaluator implements Expression {
 	}
 	
 	@Override
-	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
+	public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
 		for (Expression e : expressions) {
-			if (!e.evaluate(rimHandler, ctx))
+			if (!e.evaluate(hypermediaEngine, ctx))
 				return false;
 		}
 		return true;

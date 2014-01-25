@@ -23,12 +23,10 @@ package com.temenos.interaction.core.resource;
 
 
 import java.util.Collection;
-import java.util.Map;
 
 import javax.ws.rs.core.GenericEntity;
 
 import com.temenos.interaction.core.hypermedia.Link;
-import com.temenos.interaction.core.hypermedia.Transition;
 
 /**
  * A RESTResource is the base interface for all types of resources.
@@ -56,19 +54,6 @@ public interface RESTResource {
      */
     public void setLinks(Collection<Link> links);
 
-    /**
-     * Called during resource building phase to set the embedded
-     * resources for serialization by the provider.
-     * @param embedded
-     */
-    public void setEmbedded(Map<Transition, RESTResource> embedded);
-
-	/**
-	 * Return the embedded resources.
-	 * @return Map<Transition, RESTResource>
-	 */
-    public Map<Transition, RESTResource> getEmbedded();
-    
 	/**
 	 * Return the entity name for this resource.
 	 * @return String

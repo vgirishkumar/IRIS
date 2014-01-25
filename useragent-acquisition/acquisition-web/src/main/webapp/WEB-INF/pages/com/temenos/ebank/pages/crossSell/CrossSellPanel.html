@@ -1,0 +1,29 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<wicket:panel>
+				<h1><wicket:message key="saveApplyProduct">Save time and apply for another product</wicket:message></h1>
+				<p><wicket:message key="info1">We can use the information you just submitted to open another account as part of the same application so you don't have to compelete another form later on.</wicket:message>
+				   <wicket:message key="info2">There's only one extra step to complete and it takes only about 5 minutes</wicket:message>
+				</p>
+				<div class="threecol">
+					<div wicket:id="productList" >
+							<div wicket:id="productDetails" class="cta"></div>
+					</div>
+				</div>
+		
+				<div class="twocol">
+					<div>
+						<h2><a href="#" wicket:id="compareAccounts" >
+								<wicket:message key="compareAccountsLabel">Compare accounts &nbsp;&#xBB;</wicket:message>
+						</a></h2>
+					</div>
+					<div class="last">
+						<p class="action">
+							<a href="#" wicket:id="noThanks" class="cancel r"><span><span>Close this page</span></span></a>
+						</p>
+					</div>
+				</div>
+</wicket:panel>
+</html>

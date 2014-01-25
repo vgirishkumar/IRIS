@@ -106,7 +106,11 @@ public class AtomEntityFeedFormatWriter {
 	    		href = href.substring(baseUri.length());
 	    	}
 	    	String title = link.getTitle();
-			String rel = link.getRel();
+	    	String targetEntitySetName = null;
+	    	if(link.getTransition().getTarget().getEntityName().equals(link.getTransition().getSource().getEntityName())) {
+	    		targetEntitySetName = entitySetName;
+	    	}
+			String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
 	        writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
 	    }
 

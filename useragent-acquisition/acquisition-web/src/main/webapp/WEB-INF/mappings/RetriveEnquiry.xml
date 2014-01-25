@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE none>
+<retriveEnquiry>
+	<enquiryId>RETRIVE.FORM</enquiryId>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>@ID</T24field>
+		<FrontEndObject>AppRef</FrontEndObject>
+	</retriveFieldMapping>	
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>PRODUCT.TYPE</T24field>
+		<FrontEndObject>ProductRef</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping   conversionType="Currency" dataType="String" addPosition="NILL"> 
+		<T24field>CURRENCY</T24field> 
+		<FrontEndObject>AccountCurrency</FrontEndObject> 
+	</retriveFieldMapping> 
+	<retriveFieldMapping   conversionType="booleanReverse" dataType="Boolean" addPosition="NILL">
+		<T24field>SINGLE.JOINT.APPL</T24field>
+		<FrontEndObject>IsSole</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>TITLE</T24field>
+		<FrontEndObject>Customer~Title</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>NAME.1</T24field>
+		<FrontEndObject>Customer~FirstName</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>NAME.2</T24field>
+		<FrontEndObject>Customer~LastName</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>PREVIOUS.NAME</T24field>
+		<FrontEndObject>Customer~PreviousName</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping  conversionType="date" dataType="Date" addPosition="NILL">
+		<T24field>DATE.OF.BIRTH</T24field>
+		<FrontEndObject>Customer~DateOfBirth</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping  conversionType="gender" dataType="String" addPosition="NILL">
+		<T24field>GENDER</T24field>
+		<FrontEndObject>Customer~Gender</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>NATIONALITY</T24field>
+		<FrontEndObject>Customer~Nationality</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>CITY.OF.BIRTH</T24field>
+		<FrontEndObject>Customer~TownOfBirth</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>COUNTRY.OF.BIRTH</T24field>
+		<FrontEndObject>Customer~CountryOfBirth</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>MOBILE</T24field>
+		<FrontEndObject>Customer~MobilePhone</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>EMAIL</T24field>
+		<FrontEndObject>Customer~EmailAddress</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>MARITAL.STATUS</T24field>
+		<FrontEndObject>Customer~MaritalStatus</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>RESIDENCE</T24field>
+		<FrontEndObject>Customer~CountryResidence</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>COUNTRY.MOVING.TO</T24field>
+		<FrontEndObject>Customer~CountryMoving</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping  conversionType="boolean" dataType="Boolean" addPosition="NILL">
+		<T24field>EXISTING.ACCOUNT</T24field>
+		<FrontEndObject>Customer~IsExistingCustomer</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>GROSS.INCOME</T24field>
+		<FrontEndObject>AnnualIncome</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping  conversionType="string" dataType="String" addPosition="NILL">
+		<T24field>GROSS.INVESTMENT</T24field>
+		<FrontEndObject>EstimatedDepositAmount</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>TERM</T24field>
+		<FrontEndObject>FtdTerm</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="BigDecimal" addPosition="NILL">
+		<T24field>INTEREST.RATE</T24field>
+		<FrontEndObject>FtdInterestRate</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>SORT.CODE</T24field >
+		<FrontEndObject>Customer~ExistingSortCode</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>ACCOUNT</T24field>
+		<FrontEndObject>Customer~ExistingAccNumber</FrontEndObject></retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>BIC.CODE</T24field>
+		<FrontEndObject>Customer~ExistingBic</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>IBAN.NO</T24field>
+		<FrontEndObject>Customer~ExistingIban</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL"> 
+		<T24field>RELATION.CODE</T24field> 
+		<FrontEndObject>SecondCustomer~JointRelationship</FrontEndObject> 
+	</retriveFieldMapping> 
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.TITLE</T24field>
+		<FrontEndObject>SecondCustomer~Title</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.EMAIL</T24field>
+		<FrontEndObject>SecondCustomer~EmailAddress</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.NAME.1</T24field>
+		<FrontEndObject>SecondCustomer~FirstName</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.NAME.2</T24field>
+		<FrontEndObject>SecondCustomer~LastName</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.PREV.NAME</T24field>
+		<FrontEndObject>SecondCustomer~PreviousName</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping  conversionType="date" dataType="Date" addPosition="NILL">
+		<T24field>JOINT.DOB</T24field>
+		<FrontEndObject>SecondCustomer~DateOfBirth</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping  conversionType="gender" dataType="String" addPosition="NILL">
+		<T24field>JOINT.GENDER</T24field>
+		<FrontEndObject>SecondCustomer~Gender</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.NATIONALITY</T24field>
+		<FrontEndObject>SecondCustomer~Nationality</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.CITY.OF.BIRT</T24field>
+		<FrontEndObject>SecondCustomer~TownOfBirth</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JO.COUNTRY.OF.BIRT</T24field>
+		<FrontEndObject>SecondCustomer~CountryOfBirth</FrontEndObject>
+	</retriveFieldMapping>	
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.MOBILE</T24field>
+		<FrontEndObject>SecondCustomer~MobilePhone</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.MARITAL.STAT</T24field>
+		<FrontEndObject>SecondCustomer~MaritalStatus</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.RESIDENCE</T24field>
+		<FrontEndObject>SecondCustomer~CountryResidence</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JO.COUNTRY.MOVING</T24field>
+		<FrontEndObject>SecondCustomer~CountryMoving</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="Boolean" addPosition="NILL">
+		<T24field>JO.EXISTING.ACCT</T24field>
+		<FrontEndObject>SecondCustomer~IsExistingCustomer</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.INCOME</T24field>
+		<FrontEndObject>AnnualIncome</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.INVESTMENT</T24field>
+		<FrontEndObject>EstimatedDepositAmount</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.SORTCODE</T24field>
+		<FrontEndObject>SecondCustomer~CountryMoving</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.ACCT.NO</T24field>
+		<FrontEndObject>SecondCustomer~ExistingAccNumber</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.BIC</T24field>
+		<FrontEndObject>SecondCustomer~ExistingBic</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.IBAN.NO</T24field>
+		<FrontEndObject>SecondCustomer~ExistingIban</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>PHONE</T24field>
+		<FrontEndObject>Customer~HomePhone</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>OFF.PHONE</T24field>
+		<FrontEndObject>Customer~WorkPhone</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>FAX</T24field>
+		<FrontEndObject>Customer~FaxNumber</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>PREF.CHANNEL</T24field>
+		<FrontEndObject>Customer~PreferredContactMethod</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>RESIDENTIAL.STATUS</T24field>
+		<FrontEndObject>Customer~ResidentialStatus</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="START">
+		<T24field>ADDRESS.1</T24field>
+		<FrontEndObject>Customer~ResidentialAddress~Line1</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>ADDRESS.2</T24field>
+		<FrontEndObject>Customer~ResidentialAddress~Line2</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>ADDRESS.3</T24field>
+		<FrontEndObject>Customer~ResidentialAddress~County</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>TOWN.COUNTRY</T24field>
+		<FrontEndObject>Customer~ResidentialAddress~Town</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>COUNTRY</T24field>
+		<FrontEndObject>Customer~ResidentialAddress~Country</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>CUR.POSTAL.CODE</T24field>
+		<FrontEndObject>Customer~ResidentialAddress~Postcode</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping  conversionType="duration" dataType="durationMonth" addPosition="END">
+		<T24field>RES.FROM.DATE</T24field>
+		<T24field>RES.TO.DATE</T24field>
+		<FrontEndObject>Customer~ResidentialAdrPeriod</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="Boolean" dataType="Boolean" addPosition="NILL">
+			<T24field>CORR.ADD.AS.RES</T24field>
+			<FrontEndObject>Customer~IsCorrespondenceAddressSameAsResidential</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="START">
+		<T24field>CORR.ADD.1</T24field>
+		<FrontEndObject>Customer~CorrespondenceAddress~Line1</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>CORR.ADD.2</T24field>
+		<FrontEndObject>Customer~CorrespondenceAddress~Line2</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>CORR.ADD.3</T24field>
+		<FrontEndObject>Customer~CorrespondenceAddress~County</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>CORR.TOWN.COUNTRY</T24field>
+		<FrontEndObject>Customer~CorrespondenceAddress~Town</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>CORR.COUNTRY</T24field>
+		<FrontEndObject>Customer~CorrespondenceAddress~Country</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>CORR.POST.CODE</T24field>
+		<FrontEndObject>Customer~CorrespondenceAddress~Postcode</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="END">
+		<T24field>CORR.COUNTRY</T24field>
+		<FrontEndObject>Customer~CorrespondenceAddress~Country</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.PHONE</T24field>
+		<FrontEndObject>SecondCustomer~HomePhone</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.OFF.PHONE</T24field>
+		<FrontEndObject>SecondCustomer~WorkPhone</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.FAX</T24field>
+		<FrontEndObject>SecondCustomer~FaxNumber</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>PREF.CHANNEL.JOINT</T24field>
+		<FrontEndObject>SecondCustomer~PreferredContactMethod</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.RESID.STATUS</T24field>
+		<FrontEndObject>SecondCustomer~ResidentialStatus</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="START">			
+		<T24field>JOINT.ADDRESS1</T24field>			
+		<FrontEndObject>SecondCustomer~ResidentialAddress~Line1</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JOINT.ADDRESS2</T24field>			
+		<FrontEndObject>SecondCustomer~ResidentialAddress~Line2</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JOINT.ADDRESS3</T24field>			
+		<FrontEndObject>SecondCustomer~ResidentialAddress~County</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.TOWN.COUNTRY</T24field>			
+		<FrontEndObject>SecondCustomer~ResidentialAddress~Town</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JOINT.COUNTRY</T24field>			
+		<FrontEndObject>SecondCustomer~ResidentialAddress~Country</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.CUR.POST.COD</T24field>			
+		<FrontEndObject>SecondCustomer~ResidentialAddress~Postcode</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="duration" dataType="durationMonth" addPosition="END">			
+		<T24field>JO.RES.FRM.DATE</T24field>	
+		<T24field>JO.RES.TO.DATE</T24field>		
+		<FrontEndObject>SecondCustomer~ResidentialAdrPeriod</FrontEndObject>			
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="Boolean" dataType="Boolean" addPosition="NILL"> 
+		<T24field>JO.ADD.AS.SINGLE</T24field>
+		<FrontEndObject>SecondResidentialSameAsFirstResidential</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="Boolean" dataType="Boolean" addPosition="NILL">
+		<T24field>JO.CORR.ADD.AS.RES</T24field>
+		<FrontEndObject>SecondCustomer~IsCorrespondenceAddressSameAsResidential</FrontEndObject>
+	</retriveFieldMapping>				
+	<retriveFieldMapping conversionType="NILL" dataType="fillAfter" addPosition="NILL">			
+		<T24field>JO.ADD.AS.SINGLE</T24field>			
+		<FrontEndObject>fillAfter</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="fillAfter" addPosition="NILL">			
+		<T24field>JO.CORR.ADD.AS.RES</T24field>			
+		<FrontEndObject>fillAfter</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="START">			
+		<T24field>JO.CORR.ADD.1</T24field>			
+		<FrontEndObject>SecondCustomer~CorrespondenceAddress~Line1</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.CORR.ADD.2</T24field>			
+		<FrontEndObject>SecondCustomer~CorrespondenceAddress~Line2</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.CORR.ADD.3</T24field>			
+		<FrontEndObject>SecondCustomer~CorrespondenceAddress~County</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.CORR.TOWN.CITY</T24field>			
+		<FrontEndObject>SecondCustomer~CorrespondenceAddress~Town</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.CORR.COUNTRY</T24field>			
+		<FrontEndObject>SecondCustomer~CorrespondenceAddress~Country</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.CORR.POST.CODE</T24field>			
+		<FrontEndObject>SecondCustomer~CorrespondenceAddress~Postcode</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="END">			
+		<T24field>JO.CORR.COUNTRY</T24field>			
+		<FrontEndObject>SecondCustomer~CorrespondenceAddress~Country</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>EMPLOYMENT.STATUS</T24field>
+		<FrontEndObject>Customer~EmploymentStatus</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>OCCUPATION</T24field>
+		<FrontEndObject>Customer~Occupation</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>EMPLOYERS.NAME</T24field>
+		<FrontEndObject>Customer~EmployerName</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping  conversionType="duration" dataType="durationMonth" addPosition="NILL">			
+		<T24field>EMP.FROM.DATE</T24field>	
+		<T24field>TODAY</T24field>		
+		<FrontEndObject>Customer~EmploymentLastDuration</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="START">			
+		<T24field>EMP.ADD.1</T24field>			
+		<FrontEndObject>Customer~EmployerAddress~Line1</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>EMP.ADD.2</T24field>			
+		<FrontEndObject>Customer~EmployerAddress~Line2</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>EMP.ADD.3</T24field>			
+		<FrontEndObject>Customer~EmployerAddress~County</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>EMP.TOWN.CITY</T24field>			
+		<FrontEndObject>Customer~EmployerAddress~Town</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>EMP.COUNTRY</T24field>			
+		<FrontEndObject>Customer~EmployerAddress~Country</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="END">			
+		<T24field>EMP.POST.CODE</T24field>			
+		<FrontEndObject>Customer~EmployerAddress~Postcode</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">
+		<T24field>JOINT.EMP.STATUS</T24field>
+		<FrontEndObject>SecondCustomer~EmploymentStatus</FrontEndObject>
+	</retriveFieldMapping>
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JOINT.OCCUPATION</T24field>			
+		<FrontEndObject>SecondCustomer~Occupation</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.EMP.NAME</T24field>			
+		<FrontEndObject>SecondCustomer~EmployerName</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping  conversionType="duration" dataType="durationMonth" addPosition="NILL">			
+		<T24field>JO.EMP.START.DATE</T24field>			
+		<T24field>TODAY</T24field>
+		<FrontEndObject>SecondCustomer~EmploymentLastDuration</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="START">			
+		<T24field>JO.EMP.ADD.1</T24field>			
+		<FrontEndObject>SecondCustomer~EmployerAddress~Line1</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.EMP.ADD.2</T24field>			
+		<FrontEndObject>SecondCustomer~EmployerAddress~Line2</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.EMP.ADD.3</T24field>			
+		<FrontEndObject>SecondCustomer~EmployerAddress~County</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.TOWN.CITY</T24field>			
+		<FrontEndObject>SecondCustomer~EmployerAddress~Town</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.COUNTRY</T24field>			
+		<FrontEndObject>SecondCustomer~EmployerAddress~Country</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="END">			
+		<T24field>JO.POST.CODE</T24field>			
+		<FrontEndObject>SecondCustomer~EmployerAddress~Postcode</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">		
+		<T24field>REASON.TO.EST.CUST</T24field>			
+		<FrontEndObject>AccEstablishReason</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>REAS.EST.CUS.OTHER</T24field>			
+		<FrontEndObject>OtherEstablishReason</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>REASON.TO.ACC.USE</T24field>			
+		<FrontEndObject>AccUsageReason</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>REAS.ACC.USE.OTHER</T24field>			
+		<FrontEndObject>OtherUsageReason</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>FUNDS.DEP.PER.YEAR</T24field>			
+		<FrontEndObject>AnnualDeposit</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>SOURCE.OF.FUNDS</T24field>			
+		<FrontEndObject>ActivityOriginDeposit</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>SOURCEOF.FUND.OTHR</T24field>			
+		<FrontEndObject>OtherActivityOrigin</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>COUNTRY.FUNDS.FROM</T24field>			
+		<FrontEndObject>CountryOriginMoney</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>SOURCE.OF.WEALTH</T24field>			
+		<FrontEndObject>ActivityWealth</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>SOURCE.WEALTH.OTHR</T24field>			
+		<FrontEndObject>OtherActivityWealth</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>DEPOSIT.AMOUNT</T24field>			
+		<FrontEndObject>DepositAmount</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>SEL.INT.PAYMENT</T24field>			
+		<FrontEndObject>InterestPayment</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>ROLLOVER.OPTION</T24field>			
+		<FrontEndObject>InterestPayment</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>MONTHLY.DEP.AMT</T24field>			
+		<FrontEndObject>DepositAmount</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>MOTHER.MAIDEN.NAME</T24field>			
+		<FrontEndObject>Customer~MotherMaidenName</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>JO.MTHR.MAIDEN.NAM</T24field>		
+		<FrontEndObject>SecondCustomer~MotherMaidenName</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping  conversionType="boolean" dataType="Boolean" addPosition="NILL">	
+		<T24field>TAM.TC.ACCEPTED</T24field>			
+		<FrontEndObject>Customer~FlagDiscloseIdentity</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping  conversionType="boolean" dataType="Boolean" addPosition="NILL">			
+		<T24field>TAM.TERM.COND.ACPT</T24field>			
+		<FrontEndObject>FlagDataPrivacy</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping  conversionType="boolean" dataType="Boolean" addPosition="NILL">			
+		<T24field>TAM.TERM.CON.ACPT1</T24field>			
+		<FrontEndObject>FlagTcs</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping  conversionType="boolean" dataType="Boolean" addPosition="NILL">			
+		<T24field>MRKTING.FIELD.TEL</T24field>			
+		<FrontEndObject>Customer~FlagReceiveMarketing</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>MRKTING.FLD.CRM</T24field>			
+		<FrontEndObject>Customer~MarketingContactMethod</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>KNOWN.FROM.SOURCE</T24field>			
+		<FrontEndObject>FeedbackHear</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL" dataType="String" addPosition="NILL">			
+		<T24field>PROMOTIONAL.CODE</T24field>			
+		<FrontEndObject>PromoCode</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping  conversionType="boolean" dataType="Boolean" addPosition="NILL">			
+		<T24field>JO.TAM.TC.ACCEPTED</T24field>			
+		<FrontEndObject>SecondCustomer~FlagDiscloseIdentity</FrontEndObject>		
+	</retriveFieldMapping>			
+	<retriveFieldMapping  conversionType="boolean" dataType="Boolean" addPosition="NILL">			
+		<T24field>JOINT.APPL.CONFIRM</T24field>			
+		<FrontEndObject>FlagJointApp</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping  conversionType="boolean" dataType="Boolean" addPosition="NILL">			
+		<T24field>JO.MRKTING.FLD.TEL</T24field>			
+		<FrontEndObject>FlagTcs</FrontEndObject>			
+	</retriveFieldMapping>			
+	<retriveFieldMapping conversionType="NILL"  dataType="String" addPosition="NILL">			
+		<T24field>JO.MRKT.FLD.CRM</T24field>			
+		<FrontEndObject>SecondCustomer~MarketingContactMethod</FrontEndObject>			
+	</retriveFieldMapping>			
+</retriveEnquiry>			
+	

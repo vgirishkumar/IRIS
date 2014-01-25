@@ -22,7 +22,7 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -76,38 +76,5 @@ public class TestLink {
 
 		assertEquals("arrivals", link.getTitle());
 		assertEquals("arrivals", link.getRel());
-	}
-	
-	@Test
-	public void testEquals() {
-		Link aLink = new Link.Builder()
-				.id("id")
-				.href("href")
-				.title("title")
-				.build();
-		Link aNOtherLink = new Link.Builder()
-				.id("id")
-				.href("href")
-				.title("title")
-				.build();
-		assertEquals(aLink, aNOtherLink);
-		Link aLinkDiffId = new Link.Builder()
-				.id("id_diff")
-				.href("href")
-				.title("title")
-				.build();
-		assertNotSame(aLink, aLinkDiffId);
-		Link aLinkDiffHref = new Link.Builder()
-				.id("id")
-				.href("href_diff")
-				.title("title")
-				.build();
-		assertNotSame(aLink, aLinkDiffHref);
-		Link aLinkDiffTitle = new Link.Builder()
-				.id("id")
-				.href("href")
-				.title("title_diff")
-				.build();
-		assertNotSame(aLink, aLinkDiffTitle);
 	}
 }

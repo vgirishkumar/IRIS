@@ -18,7 +18,7 @@
 		</dependency>
         <dependency>
             <groupId>com.theoryinpractise</groupId>
-            <artifactId>halbuilder-standard</artifactId>
+            <artifactId>halbuilder</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

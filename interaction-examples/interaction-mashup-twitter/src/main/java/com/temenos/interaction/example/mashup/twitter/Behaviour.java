@@ -31,7 +31,6 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.Transition;
 
 public class Behaviour {
 
@@ -65,24 +64,24 @@ public class Behaviour {
 		 * a link on each user to their Twitter activity
 		 */
 		uriLinkageMap.put("username", "{twitterHandle}");
-		allUsers.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(tweets).uriParameters(uriLinkageMap).build());
+		allUsers.addTransitionForEachItem("GET", tweets, uriLinkageMap);
 
 		/*
 		 * Add link from the user item (same linkage map as from collection of users to tweets
 		 */
-		userProfile.addTransition(new Transition.Builder().method("GET").target(tweets).uriParameters(uriLinkageMap).build());
+		userProfile.addTransition("GET", tweets, uriLinkageMap);
 		// TODO fix this dodgy self link, need this to add subresource in HAL
 		uriLinkageMap.clear();
 		uriLinkageMap.put("username", "username");
 		uriLinkageMap.put("tweet", "message");
-		tweets.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(tweet).uriParameters(uriLinkageMap).build());
+		tweets.addTransitionForEachItem("GET", tweet, uriLinkageMap);
 		
 		/* 
 		 * a link on each user in the collection to get view the user
 		 * no linkage map as target URI element (self) must exist in source entity element (also self)
 		 */
 		uriLinkageMap.clear();
-		allUsers.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(userProfile).uriParameters(uriLinkageMap).build());
+		allUsers.addTransitionForEachItem("GET", userProfile, uriLinkageMap);
 		
 		return new ResourceStateMachine(allUsers);
 	}

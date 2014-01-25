@@ -43,8 +43,6 @@ import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
 import org.custommonkey.xmlunit.Diff;
@@ -61,8 +59,6 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 
-import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
@@ -72,7 +68,6 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -100,11 +95,8 @@ public class TestHALProvider {
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
-
-		String strEntityStream = "<resource href=\"/children\"><name>noah</name><age>2</age></resource>";
+		
+		String strEntityStream = "<resource href=\"~/children\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
@@ -127,11 +119,8 @@ public class TestHALProvider {
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
 		
-		String strEntityStream = "<resource href=\"/children\"><name>noah</name><age>2</age></resource>";
+		String strEntityStream = "<resource href=\"~/children\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
@@ -148,9 +137,6 @@ public class TestHALProvider {
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
 
 		String strEntityStream = "{ \"_links\": { \"self\": { \"href\": \"http://www.temenos.com/rest.svc/children\" } }, \"name\": \"noah\", \"age\": 2 }";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
@@ -168,15 +154,9 @@ public class TestHALProvider {
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "123");
-		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
 		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
 		
-		String strEntityStream = "<resource href=\"/children/123\"><name>noah</name><age>2</age></resource>";
+		String strEntityStream = "<resource href=\"~/children/123\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
@@ -192,15 +172,9 @@ public class TestHALProvider {
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "123");
-		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
 		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
-
-		String strEntityStream = "<resource href=\"/children(123)/updated\"><name>noah</name><age>2</age></resource>";
+		
+		String strEntityStream = "<resource href=\"~/children(123)/updated\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
@@ -209,100 +183,6 @@ public class TestHALProvider {
 		assertEquals("Children", entity.getName());
 	}
 	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testDeserialiseResolveEntityNameUriInfo() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/children");
-		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
-		
-		String strEntityStream = "<resource><name>noah</name><age>2</age></resource>";
-		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
-		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
-		assertNotNull(er.getEntity());
-		Entity entity = er.getEntity();
-		assertEquals("Children", entity.getName());
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testDeserialiseResolveEntityNameUriInfoRelative() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/Orders()"));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("Orders()");
-		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
-
-		String strEntityStream = "<resource><name>noah</name><age>2</age></resource>";
-		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
-		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
-		assertNotNull(er.getEntity());
-		Entity entity = er.getEntity();
-		assertEquals("Children", entity.getName());
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testDeserialiseResolveEntityNameUriInfoWithId() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children/{id}", "id", null));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/children/123");
-		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "123");
-		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
-		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
-		
-		String strEntityStream = "<resource><name>noah</name><age>2</age></resource>";
-		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
-		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
-		assertNotNull(er.getEntity());
-		Entity entity = er.getEntity();
-		assertEquals("Children", entity.getName());
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testDeserialiseResolveEntityNameUriInfoWithIdODataPath() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children({id})/updated", "id", null));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/children(123)/updated");
-		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "123");
-		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
-		hp.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		hp.setRequestContext(requestContext);
-		
-		String strEntityStream = "<resource><name>noah</name><age>2</age></resource>";
-		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
-		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
-		assertNotNull(er.getEntity());
-		Entity entity = er.getEntity();
-		assertEquals("Children", entity.getName());
-	}
-
 	private Metadata createMockChildVocabMetadata() {
 		EntityMetadata vocs = new EntityMetadata("Children");
 		Vocabulary vocId = new Vocabulary();
@@ -334,9 +214,8 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
-		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
-		er.setEntityName("Children");
-
+		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
+		
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -376,63 +255,12 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, CollectionResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/children/1\" rel=\"item\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/2\" rel=\"item\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/3\" rel=\"item\"><age>2</age><name>noah</name></resource></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/children/1\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/2\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/3\" rel=\"collection.Children\"><age>2</age><name>noah</name></resource></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
 		// don't worry about the order of the elements in the xml
 		assertTrue(diff.similar());
-	}
-
-	@Test
-	public void testSerialiseEmbeddedResources() throws Exception {
-		OEntityKey parentEntityKey = OEntityKey.create("333");
-		List<OProperty<?>> parentProperties = new ArrayList<OProperty<?>>();
-		parentProperties.add(OProperties.string("name", "aaron"));
-		parentProperties.add(OProperties.string("age", "30"));
-
-		OEntityKey childEntityKey = OEntityKey.create("123");
-		List<OProperty<?>> childProperties = new ArrayList<OProperty<?>>();
-		childProperties.add(OProperties.string("name", "noah"));
-		childProperties.add(OProperties.string("age", "2"));
-
-		OEntity childEntity = OEntities.create(createMockChildrenEntitySet(), childEntityKey, childProperties, new ArrayList<OLink>());
-		EntityResource<OEntity> childEntityResource = CommandHelper.createEntityResource(childEntity);
-		childEntityResource.setEntityName("Children");
-
-		OEntity parentEntity = OEntities.create(createMockChildrenEntitySet(), parentEntityKey, parentProperties, new ArrayList<OLink>());
-		EntityResource<OEntity> parentEntityResource = CommandHelper.createEntityResource(parentEntity);
-		parentEntityResource.setEntityName("Children");
-
-		
-		// build the embedded map
-		Map<Transition, RESTResource> embedded = new HashMap<Transition, RESTResource>();
-		Transition childToParent = new Transition.Builder()
-				.source(new ResourceState("PERSON", "child", new ArrayList<Action>(), "/child/{id}"))
-				.target(new ResourceState("PERSON", "parent", new ArrayList<Action>(), "/parent/{id}"))
-				.path("/path")
-				.build();
-		embedded.put(childToParent, parentEntityResource);
-		// child has a parent
-		childEntityResource.setEmbedded(embedded);
-		
-		// mock the test links
-		List<Link> links = new ArrayList<Link>();
-		links.add(mockLink("child", "self", "/child/123", null));
-		links.add(mockLink("parent", "person", "/parent/333", childToParent));
-		childEntityResource.setLinks(links);
-		
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		hp.setUriInfo(mockUriInfo);
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(childEntityResource, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
-
-		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"/child/123\"},\"person\":{\"href\":\"/parent/333\",\"name\":\"parent\",\"title\":\"parent\"}},\"age\":\"2\",\"name\":\"noah\",\"_embedded\":{\"person\":{\"_links\":{\"self\":{\"href\":\"/parent/333\"}},\"age\":\"30\",\"name\":\"aaron\"}}}";
-		String responseString = new String(bos.toByteArray(), "UTF-8");
-		responseString = responseString.replaceAll(System.getProperty("line.separator"), "");
-		assertEquals(expectedXML, responseString);
 	}
 
 	private EntityResource<OEntity> createEntityResourceWithSelfLink(OEntityKey entityKey, List<OProperty<?>> properties, String selfLink) {
@@ -485,13 +313,12 @@ public class TestHALProvider {
 		return responseString;
 	}
 	
-	private Link mockLink(String id, String rel, String href, Transition transition) {
+	private Link mockLink(String id, String rel, String href) {
 		Link link = mock(Link.class);
 		when(link.getId()).thenReturn(id);
 		when(link.getTitle()).thenReturn(id);
 		when(link.getRel()).thenReturn(rel);
 		when(link.getHref()).thenReturn(href);
-		when(link.getTransition()).thenReturn(transition);
         return link;
 	}
 	
@@ -543,7 +370,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, null, null, javax.ws.rs.core.MediaType.valueOf("application/hal+json; charset=utf-8"), null, bos);
 
-		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"http://www.temenos.com/rest.svc/\"}}}";
+		String expectedXML = "{  \"_links\" : {    \"self\" : {      \"href\" : \"http://www.temenos.com/rest.svc/\"    }  }}";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		responseString = responseString.replaceAll(System.getProperty("line.separator"), "");
 		assertEquals(expectedXML, responseString);
@@ -577,12 +404,11 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 		// the test links
 		List<Link> links = new ArrayList<Link>();
-		links.add(mockLink("father", "_person", "humans/31", null));
-		links.add(mockLink("mother", "_person", "/rest.svc/humans/32", null));
+		links.add(mockLink("father", "_person", "humans/31"));
+		links.add(mockLink("mother", "_person", "/rest.svc/humans/32"));
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
-		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
-		er.setEntityName("Children");
+		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
 		er.setLinks(links);
 		
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
@@ -592,7 +418,7 @@ public class TestHALProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
-		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"/rest.svc/humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"http://www.temenos.com/rest.svc/humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);
@@ -615,13 +441,12 @@ public class TestHALProvider {
 		 * TODO add tests for 'inline' links
 		 */
 		List<Link> links = new ArrayList<Link>();
-		links.add(mockLink("father", "_person", "humans/31", null));
-		links.add(mockLink("mother", "_person", "humans/32", null));
-		links.add(mockLink("siblings", "_family", "humans/phetheans", null));
+		links.add(mockLink("father", "_person", "humans/31"));
+		links.add(mockLink("mother", "_person", "humans/32"));
+		links.add(mockLink("siblings", "_family", "humans/phetheans"));
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
 		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
-		er.setEntityName("Children");
 		er.setLinks(links);
 		
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
@@ -657,7 +482,7 @@ public class TestHALProvider {
 		
 		// map of property name to value object
 		Map<String, Object> map = new HashMap<String, Object>();
-		hp.buildFromOEntity(map, entity, "Children");
+		hp.buildFromOEntity(map, entity);
 		
 		assertEquals(2, map.keySet().size());
 		assertTrue(map.keySet().contains("name"));

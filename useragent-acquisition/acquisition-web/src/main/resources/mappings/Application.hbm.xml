@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 6 janv. 2011 09:56:01 by Hibernate Tools 3.4.0.Beta1 -->
+<hibernate-mapping>
+    <class name="com.temenos.ebank.domain.Application" table="APPLICATION">
+        <id name="appId" type="long">
+            <column name="APP_ID" precision="20" scale="0" />
+			<generator class="native">
+				<param name="sequence">SEQ_APPLICATION</param>
+			</generator>
+        </id>  
+        <property name="appRef" type="string">
+            <column name="APP_REF" not-null="true" />
+        </property>
+        <property name="productRef" type="string">
+            <column name="PRODUCT_REF" length="30" not-null="true" />
+        </property>
+        <property name="accountCurrency" type="string">
+            <column name="ACCOUNT_CURRENCY" length="100" />
+        </property>
+        <property name="isSole" type="java.lang.Boolean">
+            <column name="IS_SOLE" precision="1" scale="0" />
+        </property>
+<!--        <property name="applicantId" type="big_decimal">-->
+<!--            <column name="APPLICANT_ID" precision="20" scale="0" />-->
+<!--        </property>-->
+<!--        <property name="secondApplicantId" type="big_decimal">-->
+<!--            <column name="SECOND_APPLICANT_ID" precision="20" scale="0" />-->
+<!--        </property>-->
+        <property name="annualIncome" type="string">
+            <column name="ANNUAL_INCOME" length="20"/>
+        </property>
+        <property name="estimatedDepositAmount" type="string">
+            <column name="ESTIMATED_DEPOSIT_AMOUNT" length="20" />
+        </property>
+        <property name="accEstablishReason" type="string">
+            <column name="ACC_ESTABLISH_REASON" length="100" />
+        </property>
+        <property name="otherEstablishReason" type="string">
+            <column name="OTHER_ESTABLISH_REASON" length="100" />
+        </property>        
+        <property name="accUsageReason" type="string">
+            <column name="ACC_USAGE_REASON" length="100" />
+        </property>
+        <property name="otherUsageReason" type="string">
+            <column name="OTHER_USAGE_REASON" length="100" />
+        </property>        
+        <property name="annualDeposit" type="string">
+            <column name="ANNUAL_DEPOSIT" length="100" />
+        </property>
+        <property name="depositAmount" type="big_decimal">
+            <column name="DEPOSIT_AMOUNT" precision="18" scale="4" />
+        </property>        
+        <property name="activityOriginDeposit" type="string">
+            <column name="ACTIVITY_ORIGIN_DEPOSIT" length="100" />
+        </property>
+        <property name="otherActivityOrigin" type="string">
+            <column name="OTHER_ACTIVITY_ORIGIN" length="100" />
+        </property>        
+        <property name="countryOriginMoney" type="string">
+            <column name="COUNTRY_ORIGIN_MODEY" length="100" />
+        </property>
+        <property name="activityWealth" type="string">
+            <column name="ACTIVITY_WEALTH" length="100" />
+        </property>
+        <property name="otherActivityWealth" type="string">
+            <column name="OTHER_ACTIVITY_WEALTH" length="100" />
+        </property> 
+        <property name="interestPayment" type="string">
+            <column name="INTEREST_PAYMENT" length="100" />
+        </property>                
+        <property name="flagDataPrivacy" type="java.lang.Boolean">
+            <column name="FLAG_DATA_PRIVACY" precision="1" scale="0" />
+        </property>
+        <property name="flagTcs" type="java.lang.Boolean">
+            <column name="FLAG_TCS" precision="1" scale="0" />
+        </property>
+        <property name="flagJointApp" type="java.lang.Boolean">
+            <column name="FLAG_JOINT_APP" precision="1" scale="0" />
+        </property>
+        <property name="feedbackHear" type="string">
+            <column name="FEEDBACK_HEAR" length="100" />
+        </property>
+        <property name="promoCode" type="string">
+            <column name="PROMO_CODE" length="100" />
+        </property>
+        <property name="flagPostDocuments" type="java.lang.Boolean">
+            <column name="FLAG_POST_DOCUMENTS" precision="1" scale="0" />
+        </property>
+        <property name="documentsAddressType" type="string">
+            <column name="DOCUMENTS_ADDRESS_TYPE" length="100" />
+        </property>
+        <property name="creationDate" type="date">
+            <column name="CREATION_DATE" length="7" />
+        </property>
+        <property name="flagMailSent" type="java.lang.Boolean">
+            <column name="FLAG_MAIL_SENT" precision="1" scale="0" />
+        </property>
+        <property name="resumeStep" type="integer">
+            <column name="RESUME_STEP" precision="1" scale="0" />
+        </property>
+        <property name="ftdTerm" type="string">
+            <column name="FTD_TERM" length="20" />
+        </property>
+        <property name="ftdInterestRate" type="big_decimal">
+            <column name="FTD_INTEREST_RATE" precision="18" scale="4" />
+        </property>        
+		<many-to-one name="customer" not-found="ignore" fetch="join" cascade="save-update">
+			<column name="APPLICANT_ID" />
+		</many-to-one>
+		<many-to-one name="secondCustomer" not-found="ignore" fetch="select" cascade="save-update">
+			<column name="SECOND_APPLICANT_ID" />
+		</many-to-one>
+        <property name="secondResidentialSameAsFirstResidential" type="java.lang.Boolean">
+            <column name="SECOND_RESID_ADDR_SAME" precision="1" scale="0" />
+        </property>
+        <property name="secondCorrespondenceSameAsFirst" type="java.lang.Boolean">
+            <column name="SECOND_CORRESP_ADDR_SAME" precision="1" scale="0" />
+        </property>
+    </class>
+</hibernate-mapping>

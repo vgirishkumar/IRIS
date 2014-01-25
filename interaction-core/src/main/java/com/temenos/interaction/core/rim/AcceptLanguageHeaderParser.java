@@ -96,7 +96,7 @@ public class AcceptLanguageHeaderParser {
 		}
 	}
 
-	private  class QualityValueComparator implements Comparator<Language> {
+	private static class QualityValueComparator implements Comparator<Language> {
 		@Override
 		public int compare(Language lang1, Language lang2) {
 			if (lang1.quality > lang2.quality) {

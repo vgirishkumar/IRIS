@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE none>
+<T24>
+	<application>EB.APPLICATION.FORM</application>
+	<version>FORM.MAIN</version>
+	<operation>PROCESS</operation>
+	<step value="0">
+		<applicant singleOrJoint="single">
+			<group type="mandatory">
+				<fieldMapping conversion="no">
+					<T24field>PRODUCT.TYPE</T24field>
+					<FrontEndObject>ProductRef</FrontEndObject>
+				</fieldMapping>
+				<t24Constant>
+					<T24field>PROCESS.COMPLETE</T24field>
+					<T24Value>NULL</T24Value>
+				</t24Constant>
+			</group>
+			<group type="conditional" condition="save">
+				<fieldMapping conversion="no">
+					<T24field>FORM.STEP</T24field>
+					<FrontEndObject>RequestCode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>LANGUAGE</T24field>
+					<FrontEndObject>Language</FrontEndObject>
+				</fieldMapping>				
+			</group>
+		</applicant>
+	</step>
+	<step value="1">
+		<applicant singleOrJoint="single">
+			<group type="mandatory">
+				<fieldMapping conversion="yes" conversionType="currency"> 
+				 <T24field>CURRENCY</T24field> 
+				 <FrontEndObject>AccountCurrencies</FrontEndObject> 
+				</fieldMapping> 
+				<fieldMapping conversion="yes" conversionType="booleanReverse">
+					<T24field>SINGLE.JOINT.APPL</T24field>
+					<FrontEndObject>IsSole</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>TITLE</T24field>
+					<FrontEndObject>Customer~Title</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>NAME.1</T24field>
+					<FrontEndObject>Customer~FirstName</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>NAME.2</T24field>
+					<FrontEndObject>Customer~LastName</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>PREVIOUS.NAME</T24field>
+					<FrontEndObject>Customer~PreviousName</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="date">
+					<T24field>DATE.OF.BIRTH</T24field>
+					<FrontEndObject>Customer~DateOfBirth</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="gender">
+					<T24field>GENDER</T24field>
+					<FrontEndObject>Customer~Gender</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>NATIONALITY</T24field>
+					<FrontEndObject>Customer~Nationality</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CITY.OF.BIRTH</T24field>
+					<FrontEndObject>Customer~TownOfBirth</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>COUNTRY.OF.BIRTH</T24field>
+					<FrontEndObject>Customer~CountryOfBirth</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>MOBILE</T24field>
+					<FrontEndObject>Customer~MobilePhone</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>EMAIL</T24field>
+					<FrontEndObject>Customer~EmailAddress</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>MARITAL.STATUS</T24field>
+					<FrontEndObject>Customer~MaritalStatus</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>RESIDENCE</T24field>
+					<FrontEndObject>Customer~CountryResidence</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>COUNTRY.MOVING.TO</T24field>
+					<FrontEndObject>Customer~CountryMoving</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="boolean">
+					<T24field>EXISTING.ACCOUNT</T24field>
+					<FrontEndObject>Customer~IsExistingCustomer</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="IsSole" operand="boolean">
+				<fieldMapping conversion="no">
+					<T24field>GROSS.INCOME</T24field>
+					<FrontEndObject>AnnualIncome</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="string">
+					<T24field>GROSS.INVESTMENT</T24field>
+					<FrontEndObject>EstimatedDepositAmount</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="ProductRef" operand="equals" value="FTD">	
+				<fieldMapping conversion="no">
+					<T24field>TERM</T24field>
+					<FrontEndObject>FtdTerm</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>INTEREST.RATE</T24field>
+					<FrontEndObject>FtdInterestRate</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="Customer~IsExistingCustomer" operand="boolean">
+				<fieldMapping conversion="no">
+					<T24field>SORT.CODE</T24field>
+					<FrontEndObject>Customer~ExistingSortCode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>ACCOUNT</T24field>
+					<FrontEndObject>Customer~ExistingAccNumber</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>BIC.CODE</T24field>
+					<FrontEndObject>Customer~ExistingBic</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>IBAN.NO</T24field>
+					<FrontEndObject>Customer~ExistingIban</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+		<applicant singleOrJoint="joint">
+			<group type="mandatory">
+				<fieldMapping conversion="no"> 
+					<T24field>RELATION.CODE</T24field> 
+					<FrontEndObject>SecondCustomer~JointRelationship</FrontEndObject> 
+				</fieldMapping> 
+				<fieldMapping conversion="no">
+					<T24field>JOINT.TITLE</T24field>
+					<FrontEndObject>SecondCustomer~Title</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.EMAIL</T24field>
+					<FrontEndObject>SecondCustomer~EmailAddress</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.NAME.1</T24field>
+					<FrontEndObject>SecondCustomer~FirstName</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.NAME.2</T24field>
+					<FrontEndObject>SecondCustomer~LastName</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.PREV.NAME</T24field>
+					<FrontEndObject>SecondCustomer~PreviousName</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="date">
+					<T24field>JOINT.DOB</T24field>
+					<FrontEndObject>SecondCustomer~DateOfBirth</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="gender">
+					<T24field>JOINT.GENDER</T24field>
+					<FrontEndObject>SecondCustomer~Gender</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.NATIONALITY</T24field>
+					<FrontEndObject>SecondCustomer~Nationality</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.CITY.OF.BIRT</T24field>
+					<FrontEndObject>SecondCustomer~TownOfBirth</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.COUNTRY.OF.BIRT</T24field>
+					<FrontEndObject>SecondCustomer~CountryOfBirth</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.MOBILE</T24field>
+					<FrontEndObject>SecondCustomer~MobilePhone</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.MARITAL.STAT</T24field>
+					<FrontEndObject>SecondCustomer~MaritalStatus</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.RESIDENCE</T24field>
+					<FrontEndObject>SecondCustomer~CountryResidence</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.COUNTRY.MOVING</T24field>
+					<FrontEndObject>SecondCustomer~CountryMoving</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="boolean">
+					<T24field>JO.EXISTING.ACCT</T24field>
+					<FrontEndObject>SecondCustomer~IsExistingCustomer</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.INCOME</T24field>
+					<FrontEndObject>AnnualIncome</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.INVESTMENT</T24field>
+					<FrontEndObject>EstimatedDepositAmount</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="boolean">
+					<T24field>JO.COR.AD.AS.SINGL</T24field>
+					<FrontEndObject>EstimatedDepositAmount</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="SecondCustomer~IsExistingCustomer" operand="boolean">
+				<fieldMapping conversion="no">
+					<T24field>JOINT.SORTCODE</T24field>
+					<FrontEndObject>SecondCustomer~CountryMoving</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.ACCT.NO</T24field>
+					<FrontEndObject>SecondCustomer~ExistingAccNumber</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.BIC</T24field>
+					<FrontEndObject>SecondCustomer~ExistingBic</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.IBAN.NO</T24field>
+					<FrontEndObject>SecondCustomer~ExistingIban</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+	</step>
+	<step value="2">
+		<applicant singleOrJoint="single">
+			<group type="mandatory">
+				<fieldMapping conversion="no">
+					<T24field>PHONE</T24field>
+					<FrontEndObject>Customer~HomePhone</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>OFF.PHONE</T24field>
+					<FrontEndObject>Customer~WorkPhone</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>FAX</T24field>
+					<FrontEndObject>Customer~FaxNumber</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>PREF.CHANNEL</T24field>
+					<FrontEndObject>Customer~PreferredContactMethod</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>RESIDENTIAL.STATUS</T24field>
+					<FrontEndObject>Customer~ResidentialStatus</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>ADDRESS.1</T24field>
+					<FrontEndObject>Customer~ResidentialAddress~Line1</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>ADDRESS.2</T24field>
+					<FrontEndObject>Customer~ResidentialAddress~Line2</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>ADDRESS.3</T24field>
+					<FrontEndObject>Customer~ResidentialAddress~County</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>TOWN.COUNTRY</T24field>
+					<FrontEndObject>Customer~ResidentialAddress~Town</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>COUNTRY</T24field>
+					<FrontEndObject>Customer~ResidentialAddress~Country</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CUR.POSTAL.CODE</T24field>
+					<FrontEndObject>Customer~ResidentialAddress~Postcode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="duration">
+					<T24field>RES.TO.DATE</T24field>
+					<T24field>RES.FROM.DATE</T24field>
+					<FrontEndObject>Customer~ResidentialAdrPeriod</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="boolean">
+					<T24field>CORR.ADD.AS.RES</T24field>
+					<FrontEndObject>Customer~IsCorrespondenceAddressSameAsResidential</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CORR.ADD.1</T24field>
+					<FrontEndObject>Customer~CorrespondenceAddress~Line1</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CORR.ADD.2</T24field>
+					<FrontEndObject>Customer~CorrespondenceAddress~Line2</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CORR.ADD.3</T24field>
+					<FrontEndObject>Customer~CorrespondenceAddress~County</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CORR.TOWN.COUNTRY</T24field>
+					<FrontEndObject>Customer~CorrespondenceAddress~Town</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CORR.COUNTRY</T24field>
+					<FrontEndObject>Customer~CorrespondenceAddress~Country</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CORR.POST.CODE</T24field>
+					<FrontEndObject>Customer~CorrespondenceAddress~Postcode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CORR.COUNTRY</T24field>
+					<FrontEndObject>Customer~CorrespondenceAddress~Country</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="Customer~PreviousAddresses" operand="notEquals" value="null">
+				<fieldMapping conversion="no">
+					<T24field>ADDRESS.1</T24field>
+					<FrontEndObject>Line1</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>ADDRESS.2</T24field>
+					<FrontEndObject>Line2</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>ADDRESS.3</T24field>
+					<FrontEndObject>County</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>TOWN.COUNTRY</T24field>
+					<FrontEndObject>Town</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>COUNTRY</T24field>
+					<FrontEndObject>Country</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>CUR.POSTAL.CODE</T24field>
+					<FrontEndObject>Postcode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="duration">
+					<T24field>RES.TO.DATE</T24field>
+					<T24field>RES.FROM.DATE</T24field>
+					<FrontEndObject>Duration</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+		<applicant singleOrJoint="joint">
+			<group type="mandatory">
+				<fieldMapping conversion="no">
+					<T24field>JOINT.PHONE</T24field>
+					<FrontEndObject>SecondCustomer~HomePhone</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.OFF.PHONE</T24field>
+					<FrontEndObject>SecondCustomer~WorkPhone</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.FAX</T24field>
+					<FrontEndObject>SecondCustomer~FaxNumber</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>PREF.CHANNEL.JOINT</T24field>
+					<FrontEndObject>SecondCustomer~PreferredContactMethod</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.RESID.STATUS</T24field>
+					<FrontEndObject>SecondCustomer~ResidentialStatus</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.ADDRESS1</T24field>
+					<FrontEndObject>SecondCustomer~ResidentialAddress~Line1</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.ADDRESS2</T24field>
+					<FrontEndObject>SecondCustomer~ResidentialAddress~Line2</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.ADDRESS3</T24field>
+					<FrontEndObject>SecondCustomer~ResidentialAddress~County</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.TOWN.COUNTRY</T24field>
+					<FrontEndObject>SecondCustomer~ResidentialAddress~Town</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JOINT.COUNTRY</T24field>
+					<FrontEndObject>SecondCustomer~ResidentialAddress~Country</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CUR.POST.COD</T24field>
+					<FrontEndObject>SecondCustomer~ResidentialAddress~Postcode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="duration">
+				    <T24field>JO.RES.TO.DATE</T24field>
+					<T24field>JO.RES.FRM.DATE</T24field>
+					<FrontEndObject>SecondCustomer~ResidentialAdrPeriod</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="boolean">
+					<T24field>JO.ADD.AS.SINGLE</T24field>
+					<FrontEndObject>SecondResidentialSameAsFirstResidential</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="boolean">
+					<T24field>JO.CORR.ADD.AS.RES</T24field>
+					<FrontEndObject>SecondCustomer~IsCorrespondenceAddressSameAsResidential</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="boolean">
+					<T24field>JO.COR.AD.AS.SINGL</T24field>
+					<FrontEndObject>SecondCorrespondenceSameAsFirst</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.ADD.1</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Line1</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.ADD.2</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Line2</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.ADD.3</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~County</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.TOWN.CITY</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Town</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.COUNTRY</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Country</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.POST.CODE</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Postcode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.COUNTRY</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Country</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="SecondCustomer~PreviousAddresses" operand="notEquals" value="null">
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.ADD.1</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Line1</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.ADD.2</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Line2</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.ADD.3</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~County</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.TOWN.CITY</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Town</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.COUNTRY</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Country</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.POST.CODE</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Postcode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.CORR.COUNTRY</T24field>
+					<FrontEndObject>SecondCustomer~CorrespondenceAddress~Country</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+	</step>
+	<step value="3">
+		<applicant singleOrJoint="single">
+			<group type="mandatory">
+				<fieldMapping conversion="no">
+					<T24field>EMPLOYMENT.STATUS</T24field>
+					<FrontEndObject>Customer~EmploymentStatus</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="Customer~Occupation" operand="notEquals" value="null">
+				<fieldMapping conversion="no">
+					<T24field>OCCUPATION</T24field>
+					<FrontEndObject>Customer~Occupation</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="Customer~EmploymentStatus" operand="equals" value="EMPLOYED">
+				<fieldMapping conversion="no">
+					<T24field>EMPLOYERS.NAME</T24field>
+					<FrontEndObject>Customer~EmployerName</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="duration">
+					<T24field>EMP.FROM.DATE</T24field>
+					<FrontEndObject>Customer~EmploymentLastDuration</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>EMP.ADD.1</T24field>
+					<FrontEndObject>Customer~EmployerAddress~Line1</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>EMP.ADD.2</T24field>
+					<FrontEndObject>Customer~EmployerAddress~Line2</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>EMP.ADD.3</T24field>
+					<FrontEndObject>Customer~EmployerAddress~County</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>EMP.TOWN.CITY</T24field>
+					<FrontEndObject>Customer~EmployerAddress~Town</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>EMP.COUNTRY</T24field>
+					<FrontEndObject>Customer~EmployerAddress~Country</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>EMP.POST.CODE</T24field>
+					<FrontEndObject>Customer~EmployerAddress~Postcode</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+		<applicant singleOrJoint="joint">
+			<group type="mandatory">
+				<fieldMapping conversion="no">
+					<T24field>JOINT.EMP.STATUS</T24field>
+					<FrontEndObject>SecondCustomer~EmploymentStatus</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="SecondCustomer~Occupation" operand="notEquals" value="null">
+				<fieldMapping conversion="no">
+					<T24field>JOINT.OCCUPATION</T24field>
+					<FrontEndObject>SecondCustomer~Occupation</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="SecondCustomer~EmploymentStatus" operand="equals" value="EMPLOYED">
+				<fieldMapping conversion="no">
+					<T24field>JO.EMP.NAME</T24field>
+					<FrontEndObject>SecondCustomer~EmployerName</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="duration">
+					<T24field>JO.EMP.START.DATE</T24field>
+					<FrontEndObject>SecondCustomer~EmploymentLastDuration</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.EMP.ADD.1</T24field>
+					<FrontEndObject>SecondCustomer~EmployerAddress~Line1</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.EMP.ADD.2</T24field>
+					<FrontEndObject>SecondCustomer~EmployerAddress~Line2</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.EMP.ADD.3</T24field>
+					<FrontEndObject>SecondCustomer~EmployerAddress~County</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.TOWN.CITY</T24field>
+					<FrontEndObject>SecondCustomer~EmployerAddress~Town</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.COUNTRY</T24field>
+					<FrontEndObject>SecondCustomer~EmployerAddress~Country</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>JO.POST.CODE</T24field>
+					<FrontEndObject>SecondCustomer~EmployerAddress~Postcode</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+	</step>
+	<step value="4">
+		<applicant singleOrJoint="single">
+			<group type="mandatory">
+				<fieldMapping conversion="no">
+					<T24field>REASON.TO.EST.CUST</T24field>
+					<FrontEndObject>AccEstablishReason</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>REAS.EST.CUS.OTHER</T24field>
+					<FrontEndObject>OtherEstablishReason</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>REASON.TO.ACC.USE</T24field>
+					<FrontEndObject>AccUsageReason</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>REAS.ACC.USE.OTHER</T24field>
+					<FrontEndObject>OtherUsageReason</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>FUNDS.DEP.PER.YEAR</T24field>
+					<FrontEndObject>AnnualDeposit</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>SOURCE.OF.FUNDS</T24field>
+					<FrontEndObject>ActivityOriginDeposit</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>SOURCEOF.FUND.OTHR</T24field>
+					<FrontEndObject>OtherActivityOrigin</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>COUNTRY.FUNDS.FROM</T24field>
+					<FrontEndObject>CountryOriginMoney</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>SOURCE.OF.WEALTH</T24field>
+					<FrontEndObject>ActivityWealth</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>SOURCE.WEALTH.OTHR</T24field>
+					<FrontEndObject>OtherActivityWealth</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>MOTHER.MAIDEN.NAME</T24field>
+					<FrontEndObject>Customer~MotherMaidenName</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="ProductRef" operand="equals" value="FTD">
+			   <fieldMapping conversion="no">
+					<T24field>DEPOSIT.AMOUNT</T24field>
+					<FrontEndObject>DepositAmount</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>ROLLOVER.OPTION</T24field>
+					<FrontEndObject>InterestPayment</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="conditional" condition="ProductRef" operand="equals" value="RS">
+			    <fieldMapping conversion="no">
+					<T24field>MONTHLY.DEP.AMT</T24field>
+					<FrontEndObject>DepositAmount</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+		<applicant singleOrJoint="joint">
+			<group type="mandatory">
+				<fieldMapping conversion="no">
+					<T24field>JO.MTHR.MAIDEN.NAM</T24field>
+					<FrontEndObject>SecondCustomer~MotherMaidenName</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+	</step>
+	<step value="5">
+		<applicant singleOrJoint="single">
+			<group type="mandatory">
+				<fieldMapping conversion="yes" conversionType="booleanSingle">
+					<T24field>TAM.TC.ACCEPTED</T24field>
+					<FrontEndObject>Customer~FlagDiscloseIdentity</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="booleanSingle">
+					<T24field>TAM.TERM.COND.ACPT</T24field>
+					<FrontEndObject>FlagDataPrivacy</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="booleanSingle">
+					<T24field>TAM.TERM.CON.ACPT1</T24field>
+					<FrontEndObject>FlagTcs</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="booleanSingle">
+					<T24field>MRKTING.FIELD.TEL</T24field>
+					<FrontEndObject>Customer~FlagReceiveMarketing</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="multiple">
+					<T24field>MRKTING.FLD.CRM</T24field>
+					<FrontEndObject>Customer~MarketingContactMethod</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>KNOWN.FROM.SOURCE</T24field>
+					<FrontEndObject>FeedbackHear</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+					<T24field>PROMOTIONAL.CODE</T24field>
+					<FrontEndObject>PromoCode</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+		<applicant singleOrJoint="joint">
+			<group type="mandatory">
+				<fieldMapping conversion="yes" conversionType="booleanSingle">
+					<T24field>JO.TAM.TC.ACCEPTED</T24field>
+					<FrontEndObject>SecondCustomer~FlagDiscloseIdentity</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="booleanSingle">
+					<T24field>JOINT.APPL.CONFIRM</T24field>
+					<FrontEndObject>FlagJointApp</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="booleanSingle">
+					<T24field>JO.MRKTING.FLD.TEL</T24field>
+					<FrontEndObject>FlagTcs</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="yes" conversionType="multiple">
+					<T24field>JO.MRKT.FLD.CRM</T24field>
+					<FrontEndObject>SecondCustomer~MarketingContactMethod</FrontEndObject>
+				</fieldMapping>
+
+			</group>
+		</applicant>
+	</step>
+	<step value="6">
+		<applicant singleOrJoint="single">
+			<group type="conditional" condition="AccountGroup">
+				<fieldMapping conversion="no">
+				    <T24field>CURRENCY</T24field>
+				    <FrontEndObject>AccountDetails~AccountCurrency</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+				  	 <T24field>T24.SORTCODE</T24field>
+				    <FrontEndObject>AccountDetails~SortCode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+				  	 <T24field>T24.ACCOUNT</T24field>
+				    <FrontEndObject>AccountDetails~AccountNo</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+				  	 <T24field>T24.IBAN</T24field>
+				    <FrontEndObject>AccountDetails~IbanNo</FrontEndObject>
+				</fieldMapping>
+			    <fieldMapping conversion="no">
+				  	 <T24field>UNDRLYING.SORTCODE</T24field>
+				    <FrontEndObject>AccountDetailsUnderlying~SortCode</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+				  	 <T24field>UNDRLYING.ACCT.NO</T24field>
+				    <FrontEndObject>AccountDetailsUnderlying~AccountNo</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+				  	 <T24field>UNDRLYING.IBAN.NO</T24field>
+				    <FrontEndObject>AccountDetailsUnderlying~IbanNo</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+				  	 <T24field>UNDRLYING.CATEG</T24field>
+				    <FrontEndObject>AccountDetailsUnderlying~Category</FrontEndObject>
+				</fieldMapping>
+			</group>
+			<group type="mandatory">
+				<fieldMapping conversion="no">
+				  	 <T24field>MNEMONIC.SINGLE</T24field>
+				    <FrontEndObject>AccountCreationResponse~UserId</FrontEndObject>
+				</fieldMapping>
+				 <fieldMapping conversion="no">
+				  	 <T24field>MNEMONIC.JOINT</T24field>
+				    <FrontEndObject>AccountCreationResponse~SecondUserId</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+				  	 <T24field>DOCUMENTS</T24field>
+				    <FrontEndObject>AccountCreationResponse~DocumentList</FrontEndObject>
+				</fieldMapping>
+				<fieldMapping conversion="no">
+				  	 <T24field>JOINT.DOCUMENTS</T24field>
+				    <FrontEndObject>AccountCreationResponse~SecondDocumentList</FrontEndObject>
+				</fieldMapping>
+			</group>
+		</applicant>
+	</step>
+	<step value="7">
+	<applicant>
+	  <group type="mandatory">
+	     <fieldMapping conversion="no">
+			  <T24field>LINE1</T24field>
+			  <FrontEndObject>Line1</FrontEndObject>
+		 </fieldMapping>
+		 <fieldMapping conversion="no">
+			  <T24field>LINE2</T24field>
+			  <FrontEndObject>Line2</FrontEndObject>
+		 </fieldMapping>
+		 <fieldMapping conversion="no">
+			  <T24field>COUNTY</T24field>
+			  <FrontEndObject>County</FrontEndObject>
+		 </fieldMapping>
+		 <fieldMapping conversion="no">
+			  <T24field>TOWN</T24field>
+			  <FrontEndObject>Town</FrontEndObject>
+		 </fieldMapping>
+		 <fieldMapping conversion="no">
+			  <T24field>POSTCODE</T24field>
+			  <FrontEndObject>Postcode</FrontEndObject>
+		 </fieldMapping>
+		  <fieldMapping conversion="no">
+			  <T24field>COUNTRY</T24field>
+			  <FrontEndObject>Country</FrontEndObject>
+		 </fieldMapping>
+	  </group>
+	  </applicant>
+	</step>
+</T24>
+

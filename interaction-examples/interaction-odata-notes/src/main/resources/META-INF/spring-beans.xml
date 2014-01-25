@@ -72,20 +72,11 @@
         </property>
 	</bean>
 
-	<bean id="entityTransformer" class="com.temenos.interaction.core.hypermedia.StrategyBasedTransformer">
-		<constructor-arg>
-			<list>
-				<bean class="com.temenos.interaction.commands.odata.OEntityTransformer" />
-				<bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" />
-			</list>
-		</constructor-arg>
-	</bean>
-
 	<bean id="atomProvider" class="com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider">
     	<constructor-arg name="edmDataServices" ref="edmDataServices" />
 		<constructor-arg name="metadata" ref="edmMetadata" />
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
-		<constructor-arg ref="entityTransformer" />
+    	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
 	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />

@@ -58,6 +58,7 @@ import com.temenos.interaction.core.resource.ResourceTypeHelper;
 @Consumes({MediaType.APPLICATION_XML})
 @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XHTML_XML, MediaType.TEXT_HTML})
 public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
+	@SuppressWarnings("unused")
 	@Context
 	private UriInfo uriInfo;
 	

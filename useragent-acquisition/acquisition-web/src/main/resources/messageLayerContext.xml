@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xmlns:jee="http://www.springframework.org/schema/jee"
+		xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+        	http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd"
+			>
+
+	<context:property-placeholder location="classpath:t24.properties"/>
+
+    <!--  JMS Connectivity -->
+    <bean id="jmsConnector" class="com.temenos.messagingLayer.comms.JMSConnector" scope="prototype">
+    	<!--  TODO: inject the httpServletRequest if needed -->
+    </bean>
+    
+    <!-- Managed Connectivity with RA pooling new style -->
+    <bean id="agentConnector" class="com.temenos.messagingLayer.comms.AgentConnector" scope="prototype">
+    </bean>
+    <bean id="userCredentials" class="com.temenos.messagingLayer.securityContext.SecurityContext">
+		<description>The user credentials are externalized in the t24.properties configuration file</description>
+       <property name="userName" value="${t24.username}"/>
+       <property name="password" value="${t24.password}"/>
+    </bean>
+    <bean id="talkToServer" class="com.temenos.messagingLayer.talkToServer.TalkToServer" scope="prototype">
+		<description>The connector bean is externalized in the t24.properties configuration file</description>
+    	<property name="t24ConnectionBean" ref="${t24.connector}"/>
+    	 <property name="securityContext" ref="userCredentials"/> 
+    </bean>
+</beans>

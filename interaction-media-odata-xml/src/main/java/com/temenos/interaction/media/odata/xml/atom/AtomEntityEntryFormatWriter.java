@@ -133,7 +133,7 @@ public class AtomEntityEntryFormatWriter {
 			for (Link link : entityLinks) {
 				String type = atom_entry_content_type;
 				String href = link.getHrefTransition(baseUri);
-				String rel = link.getRel();
+				String rel = AtomXMLProvider.getODataLinkRelation(link, null);
 				writer.writeLink(href, rel, type, link.getTitle(), href_lang, 0);
 			}
 		}
@@ -169,7 +169,6 @@ public class AtomEntityEntryFormatWriter {
 	
 	@SuppressWarnings("unchecked")
 	private void writeProperties(StreamWriter writer, EntityMetadata entityMetadata, EntityProperties entityProperties, String modelName) {
-		assert(entityMetadata != null);
 		// Loop round all properties writing out fields and MV and SV sets
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 		

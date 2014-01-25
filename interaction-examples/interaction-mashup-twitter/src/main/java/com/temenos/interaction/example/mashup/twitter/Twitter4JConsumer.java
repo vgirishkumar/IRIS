@@ -74,16 +74,8 @@ public class Twitter4JConsumer {
 		if (!accessTokenStore.exists())
 			throw new RuntimeException(
 					"Access token not found, run OAuthRequester.main()");
-		ObjectInputStream ois = null;
-		AccessToken at = null;
-		try {
-			ois = new ObjectInputStream(new FileInputStream(accessTokenStore));
-			at = (AccessToken) ois.readObject();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			ois.close();
-		}
+		AccessToken at = (AccessToken) new ObjectInputStream(
+				new FileInputStream(accessTokenStore)).readObject();
 		return at;
 	}
 

@@ -23,13 +23,11 @@ package com.temenos.interaction.core.resource;
 
 
 import java.util.Collection;
-import java.util.Map;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.temenos.interaction.core.hypermedia.Link;
-import com.temenos.interaction.core.hypermedia.Transition;
 
 /**
  * A CollectionResource is the RESTful representation of a collection of
@@ -52,8 +50,6 @@ public class CollectionResource<T> implements RESTResource {
 	// links from a collection
 	@XmlTransient
     private Collection<Link> links;
-	@XmlTransient
-    private Map<Transition, RESTResource> embedded;
 	@XmlTransient
     private String entityTag = null;
 	
@@ -107,21 +103,6 @@ public class CollectionResource<T> implements RESTResource {
     }
 
 	@Override
-    public Map<Transition, RESTResource> getEmbedded() {
-    	return this.embedded;
-    }
-
-    /**
-     * Called during resource building phase to set the embedded
-     * resources for serialization by the provider.
-     * @param embedded
-     */
-	@Override
-    public void setEmbedded(Map<Transition, RESTResource> embedded) {
-    	this.embedded = embedded;
-    }
-
-	@Override
 	public String getEntityName() {
 		return entitySetName;
 	}
@@ -140,5 +121,4 @@ public class CollectionResource<T> implements RESTResource {
 	public void setEntityTag(String entityTag) {
 		this.entityTag = entityTag;
 	}
-
 }

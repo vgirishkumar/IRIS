@@ -33,7 +33,6 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.Transition;
 
 public class Behaviour {
 
@@ -70,21 +69,21 @@ public class Behaviour {
 		// links to entities of the same type, therefore same id linkage
 		uriLinkageMap.clear();
 		// link NotePerson to PersonNotes
-		root.getResourceStateByName("NotePerson").addTransition(new Transition.Builder().method("GET").target(root.getResourceStateByName("PersonNotes")).uriParameters(uriLinkageMap).build());
+		root.getResourceStateByName("NotePerson").addTransition("GET", root.getResourceStateByName("PersonNotes"), uriLinkageMap);
 		// link PersonNotes NotePerson
-		((CollectionResourceState) root.getResourceStateByName("PersonNotes")).addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(root.getResourceStateByName("NotePerson")).uriParameters(uriLinkageMap).build());
+		((CollectionResourceState) root.getResourceStateByName("PersonNotes")).addTransitionForEachItem("GET", root.getResourceStateByName("NotePerson"), uriLinkageMap);
 		// link back to person
-		root.getResourceStateByName("NotePerson").addTransition(new Transition.Builder().method("GET").target(root.getResourceStateByName("person")).uriParameters(uriLinkageMap).build());
+		root.getResourceStateByName("NotePerson").addTransition("GET", root.getResourceStateByName("person"), uriLinkageMap);
 		// link back to note
-		((CollectionResourceState) root.getResourceStateByName("PersonNotes")).addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(root.getResourceStateByName("note")).uriParameters(uriLinkageMap).build());
+		((CollectionResourceState) root.getResourceStateByName("PersonNotes")).addTransitionForEachItem("GET", root.getResourceStateByName("note"), uriLinkageMap);
 
 		// Links from a note to a person
 		uriLinkageMap.clear();
 		uriLinkageMap.put("id", "{personId}");
 		// link from each person's notes back to person
-		((CollectionResourceState) root.getResourceStateByName("PersonNotes")).addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(root.getResourceStateByName("person")).uriParameters(uriLinkageMap).build());
+		((CollectionResourceState) root.getResourceStateByName("PersonNotes")).addTransitionForEachItem("GET", root.getResourceStateByName("person"), uriLinkageMap);
 		// link from each note to their person
-		((CollectionResourceState) root.getResourceStateByName("Notes")).addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(root.getResourceStateByName("person")).uriParameters(uriLinkageMap).build());
+		((CollectionResourceState) root.getResourceStateByName("Notes")).addTransitionForEachItem("GET", root.getResourceStateByName("person"), uriLinkageMap);
 
 		uriLinkageMap.clear();
 	
@@ -131,15 +130,15 @@ public class Behaviour {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{id}");
 		// edit
-		notes.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("PUT").target(noteUpdated).uriParameters(uriLinkageMap).build());
-		notes.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(note).uriParameters(uriLinkageMap).build());
-		notes.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(notePerson).uriParameters(uriLinkageMap).build());
-		notes.addTransition(new Transition.Builder().method("POST").target(pseudoCreated).build());
+		notes.addTransitionForEachItem("PUT", noteUpdated, uriLinkageMap);
+		notes.addTransitionForEachItem("GET", note, uriLinkageMap);
+		notes.addTransitionForEachItem("GET", notePerson, uriLinkageMap);
+		notes.addTransition("POST", pseudoCreated);
 		// auto transition to new note that was just created
-		pseudoCreated.addTransition(new Transition.Builder().flags(Transition.AUTO).target(note).build());
-		note.addTransition(new Transition.Builder().method("GET").target(notePerson).uriParameters(uriLinkageMap).build());
-		note.addTransition(new Transition.Builder().method("PUT").target(noteUpdated).build());
-		note.addTransition(new Transition.Builder().method("DELETE").target(noteDeleted).build());
+		pseudoCreated.addTransition(note);
+		note.addTransition("GET", notePerson, uriLinkageMap);
+		note.addTransition("PUT", noteUpdated);
+		note.addTransition("DELETE", noteDeleted);
 
 		return new ResourceStateMachine(notes);
 	}
@@ -172,12 +171,12 @@ public class Behaviour {
 		// add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{id}");
-		persons.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(person).uriParameters(uriLinkageMap).build());
-		persons.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(personNotes).uriParameters(uriLinkageMap).build());
-		persons.addTransition(new Transition.Builder().method("POST").target(pseudo).build());
+		persons.addTransitionForEachItem("GET", person, uriLinkageMap);
+		persons.addTransitionForEachItem("GET", personNotes, uriLinkageMap);
+		persons.addTransition("POST", pseudo);
 		// add auto transition to new person that was just created
-		pseudo.addTransition(new Transition.Builder().flags(Transition.AUTO).target(person).build());
-		person.addTransition(new Transition.Builder().method("GET").target(personNotes).uriParameters(uriLinkageMap).build());
+		pseudo.addTransition(person);
+		person.addTransition("GET", personNotes, uriLinkageMap);
 
 		return new ResourceStateMachine(persons);
 	}

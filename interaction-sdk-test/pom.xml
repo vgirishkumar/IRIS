@@ -103,7 +103,6 @@
 	<profiles>
 		<!-- Skip integration-test phase - activate with '-Ddebug' -->
 	  	<profile>
-            <id>debug</id>
 	  		<activation>
 	  			<property>
 	  				<name>debug</name>

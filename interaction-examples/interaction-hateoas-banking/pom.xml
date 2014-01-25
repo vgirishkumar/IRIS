@@ -19,45 +19,30 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals><goal>add-source</goal></goals>
-            <configuration>
-              <sources>
-                <source>${project.build.directory}/src-gen</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <artifactId>maven-war-plugin</artifactId>
         <version>2.1.1</version>
         <configuration>
           <packagingExcludes>WEB-INF/web.xml</packagingExcludes>
         </configuration>
-      </plugin>   
+      </plugin>    
       <plugin>
         <groupId>com.temenos.interaction</groupId>
-        <artifactId>interaction-sdk-rim-plugin</artifactId>
-        <version>${project.version}</version>
-        <executions>
+        <artifactId>interaction-sdk-plugin</artifactId>
+        <version>0.4.0-SNAPSHOT</version>
+<!--		
+		<executions>
           <execution>
-            <phase>generate-sources</phase>
+            <phase>build</phase>
             <goals>
-              <goal>rim-generate</goal>
+              <goal>gen</goal>
             </goals>
           </execution>
-        </executions>
+       </executions>
+-->
         <configuration>
-          <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
-          <targetDirectory>${basedir}/src-gen</targetDirectory> 
-          -->
-          <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
+          <edmxFile>${basedir}/src/main/resources/service.edmx</edmxFile>
+          <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
+          <configTargetDirectory>${basedir}/src/main/resources</configTargetDirectory>
         </configuration>
       </plugin>
 
@@ -76,20 +61,15 @@
       
       <!-- Configure the jetty plugin to run an instance of our responder 'mvn jetty:run' -->
       <plugin>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-maven-plugin</artifactId>
-        <version>9.0.5.v20130815</version>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>maven-jetty-plugin</artifactId>
+        <version>6.1.26</version>
 		<configuration>
-          <scanIntervalSeconds>10</scanIntervalSeconds>
-          <stopPort>8005</stopPort>
-          <stopKey>STOP</stopKey>
-          <webApp>
+			<scanIntervalSeconds>10</scanIntervalSeconds>
+			<stopPort>8005</stopPort>
+			<stopKey>STOP</stopKey>
 			<!-- Configure the webapp root -->
 			<contextPath>/example</contextPath>
-            <resourceBases>
-              <resourceBase>${basedir}/src/main/webapp</resourceBase>
-            </resourceBases>
-          </webApp>
 		</configuration>
 		<executions>
 			<execution>
@@ -112,65 +92,15 @@
 			</execution>
 		</executions>
       </plugin>
-       <!--  Skip the deployment -->
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-deploy-plugin</artifactId>
-			<configuration>
-					<skip>true</skip>
-			</configuration>
-		</plugin>  
+      <!--  Skip the deployment -->
+	<plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-deploy-plugin</artifactId>
+		<configuration>
+				<skip>true</skip>
+		</configuration>
+	</plugin>
     </plugins>
-    <pluginManagement>
-    	<plugins>
-    		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-    		<plugin>
-    			<groupId>org.eclipse.m2e</groupId>
-    			<artifactId>lifecycle-mapping</artifactId>
-    			<version>1.0.0</version>
-    			<configuration>
-    				<lifecycleMappingMetadata>
-    					<pluginExecutions>
-    						<pluginExecution>
-    							<pluginExecutionFilter>
-    								<groupId>
-    									com.temenos.interaction
-    								</groupId>
-    								<artifactId>
-    									interaction-sdk-rim-plugin
-    								</artifactId>
-    								<versionRange>
-    									[0.4.0-SNAPSHOT,)
-    								</versionRange>
-    								<goals>
-    									<goal>rim-generate</goal>
-    								</goals>
-    							</pluginExecutionFilter>
-    							<action>
-    								<ignore></ignore>
-    							</action>
-    						</pluginExecution>
-    						<pluginExecution>
-    							<pluginExecutionFilter>
-    								<groupId>org.codehaus.mojo</groupId>
-    								<artifactId>
-    									build-helper-maven-plugin
-    								</artifactId>
-    								<versionRange>[1.7,)</versionRange>
-    								<goals>
-    									<goal>add-source</goal>
-    								</goals>
-    							</pluginExecutionFilter>
-    							<action>
-    								<ignore></ignore>
-    							</action>
-    						</pluginExecution>
-    					</pluginExecutions>
-    				</lifecycleMappingMetadata>
-    			</configuration>
-    		</plugin>
-    	</plugins>
-    </pluginManagement>
   </build>
 
   <repositories>
@@ -183,6 +113,7 @@
       <url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
     </repository>
   </repositories>
+
   <dependencies>
   
     <!-- Add dependency for our javascript user-agent -->
@@ -196,18 +127,6 @@
         <groupId>com.temenos.interaction</groupId>
         <artifactId>useragent-hal-inspector</artifactId>
         <type>war</type>
-    </dependency>
-    <!-- Add dependency for our hal provider -->
-    <dependency>
-        <groupId>com.temenos.interaction</groupId>
-        <artifactId>interaction-media-hal</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-	<!-- Add dependency for our xhtml provider-->
-    <dependency>
-    	<groupId>com.temenos.interaction</groupId>
-    	<artifactId>interaction-media-xhtml</artifactId>
-        <scope>runtime</scope>
     </dependency>
 
     <!-- IRIS -->
@@ -254,11 +173,6 @@
     	<scope>runtime</scope>
     </dependency>
 
-    <dependency>
-        <groupId>com.theoryinpractise</groupId>
-        <artifactId>halbuilder-standard</artifactId>
-    </dependency>
-
     <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
@@ -279,22 +193,37 @@
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
-
+    
     <dependency>
     	<groupId>ch.qos.logback</groupId>
     	<artifactId>logback-classic</artifactId>
     	<scope>runtime</scope>
     </dependency>
     <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-orm</artifactId>
-        <scope>runtime</scope>
+    	<groupId>org.springframework</groupId>
+    	<artifactId>spring-orm</artifactId>
+    	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>net.sf.ehcache</groupId>
     	<artifactId>ehcache-core</artifactId>
     </dependency>
+    
+    <dependency>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-media-hal</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>halbuilder</artifactId>
+        <scope>compile</scope>
+    </dependency>
 
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-media-xhtml</artifactId>
+        <scope>runtime</scope>
+    </dependency>
   </dependencies>
-  
 </project>

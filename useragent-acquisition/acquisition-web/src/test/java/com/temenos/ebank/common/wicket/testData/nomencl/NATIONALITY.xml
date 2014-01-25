@@ -1,0 +1,20 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>3</id>
+    <language>en</language>
+    <groupCode>NATIONALITY</groupCode>
+    <code>GB</code>
+    <label>British</label>
+    <sortOrder>1</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>4</id>
+    <language>en</language>
+    <groupCode>NATIONALITY</groupCode>
+    <code>US</code>
+    <label>American</label>
+    <sortOrder>2</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

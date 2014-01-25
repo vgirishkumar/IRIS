@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>88</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>GBP</code>
+    <label>Sterling</label>
+    <sortOrder>1</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>89</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>EUR</code>
+    <label>Euro</label>
+    <sortOrder>2</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>90</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>USD</code>
+    <label>US Dollar</label>
+    <sortOrder>3</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>91</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>HKD</code>
+    <label>HK $</label>
+    <sortOrder>4</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>92</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>CAN</code>
+    <label>CAN $</label>
+    <sortOrder>5</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>93</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>AUS</code>
+    <label>AUS $</label>
+    <sortOrder>6</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>94</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>NZD</code>
+    <label>NZ $</label>
+    <sortOrder>7</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>95</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>YEN</code>
+    <label>Yen</label>
+    <sortOrder>8</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>96</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>SGD</code>
+    <label>Sing $</label>
+    <sortOrder>9</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>97</id>
+    <language>en</language>
+    <groupCode>IASA.accountCurrency</groupCode>
+    <code>CHF</code>
+    <label>CHF</label>
+    <sortOrder>10</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

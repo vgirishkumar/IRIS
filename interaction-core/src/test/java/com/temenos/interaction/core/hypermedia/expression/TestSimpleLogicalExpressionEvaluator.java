@@ -36,19 +36,19 @@ import java.util.List;
 import org.junit.Test;
 
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestSimpleLogicalExpressionEvaluator {
 
 	private Expression createFalseExpression() {
 		Expression expression = mock(Expression.class);
-		when(expression.evaluate(any(HTTPHypermediaRIM.class), any(InteractionContext.class))).thenReturn(false);
+		when(expression.evaluate(any(ResourceStateMachine.class), any(InteractionContext.class))).thenReturn(false);
 		return expression;
 	}
 
 	private Expression createTrueExpression() {
 		Expression expression = mock(Expression.class);
-		when(expression.evaluate(any(HTTPHypermediaRIM.class), any(InteractionContext.class))).thenReturn(true);
+		when(expression.evaluate(any(ResourceStateMachine.class), any(InteractionContext.class))).thenReturn(true);
 		return expression;
 	}
 
@@ -57,7 +57,7 @@ public class TestSimpleLogicalExpressionEvaluator {
 		List<Expression> expressions = new ArrayList<Expression>();
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertTrue(expEvaluator.evaluate(mock(HTTPHypermediaRIM.class), mock(InteractionContext.class)));
+		assertTrue(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
 	}
 
 	@Test
@@ -66,7 +66,7 @@ public class TestSimpleLogicalExpressionEvaluator {
 		expressions.add(createTrueExpression());
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertTrue(expEvaluator.evaluate(mock(HTTPHypermediaRIM.class), mock(InteractionContext.class)));
+		assertTrue(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
 	}
 	
 	@Test
@@ -75,7 +75,7 @@ public class TestSimpleLogicalExpressionEvaluator {
 		expressions.add(createFalseExpression());
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertFalse(expEvaluator.evaluate(mock(HTTPHypermediaRIM.class), mock(InteractionContext.class)));
+		assertFalse(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
 	}
 
 	@Test
@@ -88,9 +88,9 @@ public class TestSimpleLogicalExpressionEvaluator {
 		expressions.add(falseEX);
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertFalse(expEvaluator.evaluate(mock(HTTPHypermediaRIM.class), mock(InteractionContext.class)));
-		verify(trueEX).evaluate(any(HTTPHypermediaRIM.class), any(InteractionContext.class));
-		verify(falseEX).evaluate(any(HTTPHypermediaRIM.class), any(InteractionContext.class));
+		assertFalse(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
+		verify(trueEX).evaluate(any(ResourceStateMachine.class), any(InteractionContext.class));
+		verify(falseEX).evaluate(any(ResourceStateMachine.class), any(InteractionContext.class));
 	}
 
 	@Test
@@ -103,9 +103,9 @@ public class TestSimpleLogicalExpressionEvaluator {
 		expressions.add(trueEX);
 		SimpleLogicalExpressionEvaluator expEvaluator = new SimpleLogicalExpressionEvaluator(expressions);
 
-		assertFalse(expEvaluator.evaluate(mock(HTTPHypermediaRIM.class), mock(InteractionContext.class)));
-		verify(falseEX).evaluate(any(HTTPHypermediaRIM.class), any(InteractionContext.class));
-		verify(trueEX, never()).evaluate(any(HTTPHypermediaRIM.class), any(InteractionContext.class));
+		assertFalse(expEvaluator.evaluate(mock(ResourceStateMachine.class), mock(InteractionContext.class)));
+		verify(falseEX).evaluate(any(ResourceStateMachine.class), any(InteractionContext.class));
+		verify(trueEX, never()).evaluate(any(ResourceStateMachine.class), any(InteractionContext.class));
 	}
 
 }

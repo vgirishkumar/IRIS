@@ -1,0 +1,46 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>80</id>
+    <language>en</language>
+    <groupCode>hearSource</groupCode>
+    <code>ADVERTISING</code>
+    <label>Advertising</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>81</id>
+    <language>en</language>
+    <groupCode>hearSource</groupCode>
+    <code>BRANCH</code>
+    <label>Lloyds TSB branch</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>78</id>
+    <language>en</language>
+    <groupCode>hearSource</groupCode>
+    <code>ONLINE_ADVERT</code>
+    <label>Online advert</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>79</id>
+    <language>en</language>
+    <groupCode>hearSource</groupCode>
+    <code>RECOMMENDATION</code>
+    <label>Recommendation from existing customer</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>77</id>
+    <language>en</language>
+    <groupCode>hearSource</groupCode>
+    <code>SEARCH_ENGINE</code>
+    <label>Search engine</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>76</id>
+    <language>en</language>
+    <groupCode>hearSource</groupCode>
+    <code>WEBSITE</code>
+    <label>Website</label>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

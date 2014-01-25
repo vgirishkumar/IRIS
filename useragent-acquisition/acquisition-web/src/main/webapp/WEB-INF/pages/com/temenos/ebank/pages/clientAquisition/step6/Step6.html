@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:extend>
+	<div class="twocol">
+		<div>
+			<h2><wicket:message key="stepHeader.title">Step 6: Summary</wicket:message></h2>
+			<p>
+				<wicket:message key="stepHeader.description">
+					<strong>You're one click away from submitting your application...</strong>
+					<br/>
+					Please check the information below and when you're happy, click <strong>Submit</strong>
+				</wicket:message>
+			</p>
+			<p><wicket:message key="youreApplyingFor">You're applying for: </wicket:message> <label wicket:id="productType">PIA</label> </p>
+		</div>
+	
+		<div class="last">
+			<wicket:container wicket:id="supportSnippet"></wicket:container>
+		</div>
+	</div>
+
+	<hr/>
+
+	<dl>
+		<dt class="important">
+			<strong><wicket:message key="step1.title">About You</wicket:message></strong>
+		</dt>
+		<dd class="action">
+			<a href="#" class="l" wicket:id="step1Link" ><span><span>Edit</span> </span> </a>
+		</dd>
+	</dl>
+
+	<span wicket:id="step1"></span>
+
+	<hr/>
+	
+	<dl>
+		<dt class="important">
+			<strong><wicket:message key="step2.title">Contact Details</wicket:message></strong>
+		</dt>
+		<dd class="action">
+			<a href="#" class="l" wicket:id="step2Link"><span><span>Edit</span> </span> </a>
+		</dd>
+	</dl>
+
+	<span wicket:id="step2"></span>
+	
+	<hr/>
+
+	<dl>
+		<dt class="important">
+			<strong><wicket:message key="step3.title">Your Work</wicket:message></strong>
+		</dt>
+		<dd class="action">
+			<a href="#" class="l" wicket:id="step3Link"><span><span>Edit</span> </span> </a>
+		</dd>
+	</dl>
+
+	<span wicket:id="step3"></span>
+
+	<hr/>
+	
+	<dl>
+		<dt class="important">
+			<strong><wicket:message key="step4.title">Your Money</wicket:message></strong>
+		</dt>
+		<dd class="action">
+			<a href="#" class="l" wicket:id="step4Link"><span><span>Edit</span> </span> </a>
+		</dd>
+	</dl>
+
+	<span wicket:id="step4"></span>
+
+	<hr/>
+
+	<dl>
+		<dt class="important">
+			<strong><wicket:message key="step5.title">Declaration</wicket:message></strong>
+		</dt>
+		<dd class="action">
+			<a href="#" class="l" wicket:id="step5Link"><span><span>Edit</span> </span> </a>
+		</dd>
+	</dl>
+
+	<span wicket:id="step5"></span>
+
+</wicket:extend>
+</body>
+</html>

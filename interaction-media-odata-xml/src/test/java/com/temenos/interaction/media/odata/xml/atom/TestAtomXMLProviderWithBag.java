@@ -26,23 +26,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
 import org.junit.AfterClass;
@@ -70,14 +66,12 @@ import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
 
 import com.temenos.interaction.commands.odata.OEntityTransformer;
-import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.UriSpecification;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -85,16 +79,13 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class TestAtomXMLProviderWithBag {
 	public final static String SERVICE_METADATA = "metadata.xml";
+	public final static String TELLER_ENTITY_SETNAME = "Teller_Cashinl";
 	public final static String NEW_TELLER_ENTRY = "NewTellerEntry.xml";
 	public final static String POPULATED_TELLER_ENTRY = "PopulatedTellerEntry.xml";
 	public final static String TELLER_ENTRY_REP_AS_COLLECTION = "TellerEntryRepAsCollection.xml";
 	public final static String NEW_TELLER_ENTRY_KEY = "TT13081VLCS3";
 	
-	public final static String TELLER_ENTITY_NAME = "Teller_Cashinl";
-	public final static String TELLER_ENTITY_SETNAME = "Teller_Cashinls";
-
-	public final static String CUSTOMER_ENTITY_NAME = "Customer";
-	public final static String CUSTOMER_ENTITY_SETNAME = "Customers";
+	public final static String CUSTOMER_ENTITY_SETNAME = "Customer";
 	
 	// Private Global Variables
 	private static Metadata metadata = null;
@@ -106,7 +97,7 @@ public class TestAtomXMLProviderWithBag {
 		MetadataParser testParser = new MetadataParser();
 		InputStream testIs = TestAtomXMLProviderWithBag.class.getClassLoader().getResourceAsStream(SERVICE_METADATA);
 		metadata = testParser.parse(testIs);
-		edmMetadata = getEdmDataServices(metadata, TELLER_ENTITY_NAME, CUSTOMER_ENTITY_NAME);
+		edmMetadata = getEdmDataServices(metadata, TELLER_ENTITY_SETNAME, CUSTOMER_ENTITY_SETNAME);
 	}
 	
 	@AfterClass
@@ -117,23 +108,21 @@ public class TestAtomXMLProviderWithBag {
 	
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void testReadPathWithCollection() throws Exception {
-		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
+	public void testReadPathWithCollection() {
+		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-		
 		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
-		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "2");
-		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
-		ap.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		ap.setRequestContext(requestContext);
-
-		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, readInputStream(NEW_TELLER_ENTRY));
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
+		ap.setUriInfo(uriInfo);
+		
+		EntityResource<OEntity> result = null;
+		try {
+			result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, readInputStream(NEW_TELLER_ENTRY));
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
 		assertNotNull(result);
 		
 		OEntity entity = result.getEntity();
@@ -169,23 +158,21 @@ public class TestAtomXMLProviderWithBag {
 	
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void testEntryRepAsBag() throws Exception {
-		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
+	public void testEntryRepAsBag() {
+		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-
 		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
-		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "2");
-		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
-		ap.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		ap.setRequestContext(requestContext);
 		
-		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, readInputStream(POPULATED_TELLER_ENTRY));
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
+		ap.setUriInfo(uriInfo);
+		
+		EntityResource<OEntity> result = null;
+		try {
+			result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, readInputStream(POPULATED_TELLER_ENTRY));
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
 		assertNotNull(result);
 		
 		OEntity entity = result.getEntity();
@@ -258,23 +245,21 @@ public class TestAtomXMLProviderWithBag {
 	
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void testEntryRepAsCollection() throws Exception {
-		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
+	public void testEntryRepAsCollection() {
+		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
 		
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
-		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "2");
-		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
-		ap.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		ap.setRequestContext(requestContext);
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
+		ap.setUriInfo(uriInfo);
 		
-		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, readInputStream(TELLER_ENTRY_REP_AS_COLLECTION));
+		EntityResource<OEntity> result = null;
+		try {
+			result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, readInputStream(TELLER_ENTRY_REP_AS_COLLECTION));
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
 		assertNotNull(result);
 		
 		OEntity entity = result.getEntity();
@@ -346,7 +331,7 @@ public class TestAtomXMLProviderWithBag {
 	}
 	
 	@Test
-	public void testCustomerNestedEntry() throws Exception {
+	public void testCustomerNestedEntry() {
 		// Prepare Customer OEntity with nested collections
 		OEntity origEntity = getCustomerEntity();
 		org.odata4j.format.Entry newEntry = createRequestEntry(edmMetadata.findEdmEntitySet(CUSTOMER_ENTITY_SETNAME), origEntity);
@@ -359,24 +344,20 @@ public class TestAtomXMLProviderWithBag {
         System.out.println("Original Entry:" + origEntryStr);
 		
         // Now verify the properties populated from OEntity
-        ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState(CUSTOMER_ENTITY_NAME, CUSTOMER_ENTITY_SETNAME, new ArrayList<Action>(), "/" + CUSTOMER_ENTITY_SETNAME));
-;
+        ResourceStateMachine rsm = getResourceStateMachine(CUSTOMER_ENTITY_SETNAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
 		
-		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/" + CUSTOMER_ENTITY_SETNAME);
-		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "2");
-		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
-		ap.setUriInfo(mockUriInfo);
-		Request requestContext = mock(Request.class);
-		when(requestContext.getMethod()).thenReturn("GET");
-		ap.setRequestContext(requestContext);
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPath()).thenReturn("/" + CUSTOMER_ENTITY_SETNAME);
+		ap.setUriInfo(uriInfo);
 		
-		EntityResource<OEntity> result = ap.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, new ByteArrayInputStream(origEntryStr.getBytes()));
+		EntityResource<OEntity> result = null;
+		try {
+			result = ap.readFrom(RESTResource.class, ge.getType(), null, null, null, new ByteArrayInputStream(origEntryStr.getBytes()));
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
 		assertNotNull(result);
 		
 		OEntity retEntity = result.getEntity();
@@ -421,8 +402,8 @@ public class TestAtomXMLProviderWithBag {
 	private static ResourceStateMachine getResourceStateMachine(String... collOfResource) {
 		ResourceState initial = new ResourceState("Initial", "initial_state", new ArrayList<Action>(), "/", null, new UriSpecification("Initial", "/"));
 		for (String resourceName : collOfResource) {
-			CollectionResourceState resourceType = new CollectionResourceState(resourceName, resourceName, new ArrayList<Action>(), "/" + resourceName +"s", null, null);
-			initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(resourceType).build());
+			CollectionResourceState resourceType = new CollectionResourceState(resourceName, resourceName, new ArrayList<Action>(), "/" + resourceName, null, null);
+			initial.addTransition("GET", resourceType, null, null);
 		}
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(initial);
 		return hypermediaEngine;
@@ -432,7 +413,7 @@ public class TestAtomXMLProviderWithBag {
 	 * Prepare Customer OEntity with nested collections
 	 */
 	private OEntity getCustomerEntity() {
-		EdmEntitySet entitySet = edmMetadata.findEdmEntitySet(CUSTOMER_ENTITY_NAME);
+		EdmEntitySet entitySet = edmMetadata.findEdmEntitySet(CUSTOMER_ENTITY_SETNAME);
 		EdmType type = entitySet.getType();
 		EdmEntityType entityType = (EdmEntityType) type;
 		

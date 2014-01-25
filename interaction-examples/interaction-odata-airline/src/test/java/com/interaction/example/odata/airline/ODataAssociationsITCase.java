@@ -113,8 +113,7 @@ public class ODataAssociationsITCase {
 			String departureAirportCode = (String) flightSchedule.getProperty("departureAirportCode").getValue();
 			String arrivalAirportCode = (String) flightSchedule.getProperty("arrivalAirportCode").getValue();
 
-			// there should be one link to self (OData4j swallows this)
-			// there should be one link to flights
+			// there should be one link to self
 			// there should be one link to one departureAirport for this flight schedule
 			// there should be one link to one departureAirport for this flight schedule
 			if(consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {
@@ -143,8 +142,6 @@ public class ODataAssociationsITCase {
 		String arrivalAirportCode = (String) flightSchedule.getProperty("arrivalAirportCode").getValue();
 		assertEquals(2, id.intValue());
 
-		// there should be one link to self (OData4j swallows this)
-		// there should be one link to flights
 		// there should be one link to one departureAirport for this flight schedule
 		// there should be one link to one arrivalAirport for this flight schedule
 		if(consumer.getServiceRootUri().contains(NON_STRICT_ODATA_COMPLIANCE_URI_SUFFIX)) {

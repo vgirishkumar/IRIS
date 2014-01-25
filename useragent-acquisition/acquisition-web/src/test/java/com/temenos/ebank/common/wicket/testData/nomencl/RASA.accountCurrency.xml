@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>103</id>
+    <language>en</language>
+    <groupCode>RASA.accountCurrency</groupCode>
+    <code>GBP</code>
+    <label>Sterling</label>
+    <sortOrder>1</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>104</id>
+    <language>en</language>
+    <groupCode>RASA.accountCurrency</groupCode>
+    <code>EUR</code>
+    <label>Euro</label>
+    <sortOrder>2</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>105</id>
+    <language>en</language>
+    <groupCode>RASA.accountCurrency</groupCode>
+    <code>USD</code>
+    <label>US Dollar</label>
+    <sortOrder>3</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>106</id>
+    <language>en</language>
+    <groupCode>RASA.accountCurrency</groupCode>
+    <code>HKD</code>
+    <label>HK $</label>
+    <sortOrder>4</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>107</id>
+    <language>en</language>
+    <groupCode>RASA.accountCurrency</groupCode>
+    <code>CAN</code>
+    <label>CAN $</label>
+    <sortOrder>5</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

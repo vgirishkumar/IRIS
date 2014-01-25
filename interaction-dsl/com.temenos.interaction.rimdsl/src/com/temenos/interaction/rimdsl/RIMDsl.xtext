@@ -31,13 +31,9 @@ QualifiedNameWithWildcard:
 
 ResourceInteractionModel:
     'rim' name = ID '{'
-    	// elements can appear in any order
-    	(
-	        (events += Event)*
-    	    & (commands += Command)*
-        	& (relations += Relation)*
-        	& (states += State)*
-       	)
+        (events += Event)*
+        (commands += Command)*
+        (states += State)*
     '}'
 ;
 
@@ -57,17 +53,6 @@ CommandProperty:
     name=ID '=' (value=ID | value=STRING)
 ;
 
-Relation:
-	'relation' name=ID '{' 
-    	// elements can appear in any order
-    	(
-    		// MUST define 'fqn:'
-	     	'fqn:' fqn=STRING
-	     	// MAY define 'description:'
-    	 	& ('description:' description=STRING)?
-     	)
-    '}'	
-;
 State: 
     (isInitial?='initial' | isException?='exception')? 'resource' name=ID '{'
     	// elements can appear in any order
@@ -78,8 +63,8 @@ State:
                 & entity=Entity
                	// MUST define a 'view:' command or 'actions []' commands
                 & impl=ImplRef
-                // MAY define relations [ "http://www.temenos.com/rels/input" , GloballyDefinedRelation ]
-                & ('relations' '[' ((relations+=RelationRef) (',' relations+=RelationRef)* ) ']')?
+                // MAY define relations [ { fqn: "http://www.temenos.com/rels/input" }, GlobalRelation ]
+                & ('relations' '[' ((relations+=Relation) (',' relations+=Relation)* ) ']')?
                 // MAY define a 'path:'
                 & path=Path?
                 // MAY define one or more transitions
@@ -102,7 +87,7 @@ ImplRef:
 
 // Order of transitions should be non deterministic
 TransitionRef:
-    Transition | TransitionForEach | TransitionAuto | TransitionEmbedded
+    Transition | TransitionForEach | TransitionAuto
 ;
 
 // create regular transitions
@@ -118,11 +103,6 @@ TransitionForEach:
 // create AUTO transitions
 TransitionAuto:
     event=[Event] '-->' state=[State|QualifiedName] (spec=TransitionSpec)?
-;
-
-// create embedded transitions
-TransitionEmbedded:
-    event=[Event] '+->' state=[State|QualifiedName] (spec=TransitionSpec)?
 ;
 
 TransitionSpec:
@@ -156,14 +136,9 @@ Function_NOT_FOUND:
     {NotFoundFunction} 'NOT_FOUND' '(' state=[State] ')'
 ;
 
-RelationRef:
-    relation=[Relation] | RelationConstant 
-;
-
-RelationConstant:
+Relation:
     name=STRING    
 ;
-
 
 Path:
     'path:' name=STRING

@@ -1,0 +1,36 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>82</id>
+    <language>en</language>
+    <groupCode>CA.accountCurrency</groupCode>
+    <code>GBP</code>
+    <label>Sterling</label>
+    <sortOrder>1</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>83</id>
+    <language>en</language>
+    <groupCode>CA.accountCurrency</groupCode>
+    <code>EUR</code>
+    <label>Euro</label>
+    <sortOrder>2</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>84</id>
+    <language>en</language>
+    <groupCode>CA.accountCurrency</groupCode>
+    <code>USD</code>
+    <label>US Dollar</label>
+    <sortOrder>3</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>85</id>
+    <language>en</language>
+    <groupCode>CA.accountCurrency</groupCode>
+    <code>HKD</code>
+    <label>HK Dollar</label>
+    <sortOrder>4</sortOrder>
+  </com.temenos.ebank.domain.Nomencl>  
+</list>

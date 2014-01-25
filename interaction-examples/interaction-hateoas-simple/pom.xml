@@ -212,6 +212,7 @@
       <url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
     </repository>
   </repositories>
+
   <dependencies>
   
     <!-- Add dependency for our javascript user-agent -->
@@ -284,11 +285,6 @@
     	<scope>runtime</scope>
     </dependency>
 
-    <dependency>
-        <groupId>com.theoryinpractise</groupId>
-        <artifactId>halbuilder-standard</artifactId>
-    </dependency>
-
     <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
@@ -326,5 +322,4 @@
     </dependency>
 
   </dependencies>
-  
 </project>

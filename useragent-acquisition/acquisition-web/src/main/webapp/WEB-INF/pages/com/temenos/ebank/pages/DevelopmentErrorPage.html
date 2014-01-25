@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:head>
+<style media="screen" type="text/css">
+.slidingDiv {
+	padding:20px;
+	margin-top:10px;
+	text-align: left;
+}
+
+.show_hide {
+	display:none;
+}
+#showHideContainer{
+	margin-left: 10px;
+	text-align: left;
+	font-size: 1.3em;
+}
+</style>
+<script src="js/lib/jquery-1.5.1.js" type="text/javascript"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	$(".slidingDiv").hide();
+	$(".show_hide").show();
+
+	$('.show_hide').click(function(){
+		$(".slidingDiv").slideToggle();
+	});
+});
+
+</script>
+</wicket:head>
+<wicket:extend>
+	<br/>
+	<div id="showHideContainer">
+		<a href="#" class="show_hide">Show error</a>
+	</div>
+	<div class="slidingDiv">
+		<label wicket:id="stackTrace">stack trace</label>
+	</div>
+</wicket:extend>
+</body>
+</html>

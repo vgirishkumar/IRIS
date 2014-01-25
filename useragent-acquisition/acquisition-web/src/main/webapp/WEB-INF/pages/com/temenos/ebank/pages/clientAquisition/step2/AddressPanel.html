@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<wicket:panel>
+	<input wicket:id="adrId" type="hidden" maxlength="35" value="" />
+
+	<dl wicket:id="line1Border">
+		<dt>
+			<label wicket:id="line1Label">Address line 1</label>
+		</dt>
+		<dd>
+			<input wicket:id="line1" type="text" maxlength="35" />
+		</dd>
+	</dl>
+	<dl wicket:id="line2Border">
+		<dt>
+			<label wicket:id="line2Label">Address line 2</label>
+		</dt>
+		<dd>
+			<input wicket:id="line2" type="text"/>
+		</dd>
+	</dl>
+
+	<dl wicket:id="townBorder">
+		<dt>
+			<label wicket:id="townLabel">Town or city</label>
+		</dt>
+		<dd>
+			<input type="text" wicket:id="town" maxlength="35" wicket:message="title:townLabel"/>
+		</dd>
+	</dl>
+
+	<dl wicket:id="countyBorder">
+		<dt>
+			<label wicket:id="countyLabel">State / County</label>
+		</dt>
+		<dd>
+			<input type="text" wicket:id="county"  maxlength="35" wicket:message="title:countyLabel"/>
+		</dd>
+	</dl>
+
+	<dl wicket:id="districtBorder">
+		<dt>
+			<label wicket:id="districtLabel">State / County</label>
+		</dt>
+		<dd>
+			<input type="text" wicket:id="district"  maxlength="35" wicket:message="title:districtLabel"/>
+		</dd>
+	</dl>
+
+	<dl wicket:id="countryBorder">
+		<dt>
+			<label wicket:id="countryLabel">Country</label>
+			<wicket:container wicket:id="hintPanel"/>
+		</dt>
+		<dd>
+			<select wicket:id="country">
+				<option value="">Please select</option>
+				<option value="GB-GBR">United Kingdom</option>
+
+			</select>
+		</dd>
+	</dl>
+
+	<form wicket:id="searchAgainForm">
+		<dl wicket:id="postcodeBorder">
+			<dt>
+				<label wicket:id="postcodeLabel">Post code or zip code</label>
+			</dt>
+			<dd>
+				<input type="text" wicket:id="postcode" wicket:message="title:postcodeLabel" maxlength="10"/>
+			</dd>
+		</dl>
+		<dl>
+			<dt>&nbsp;
+			</dt>
+			<dd class="action">
+				<a wicket:id="searchAgainBt" class="l" title="Change Address"><span><span>ChangeAddress</span></span></a>
+			</dd>
+		</dl>
+		<!-- <input wicket:id="searchAgainBt" type="image" style="border-width: 0px; float: right; margin-right: 17em;" src="images/change_address.png" class="autoWidth" title="Change Address"/> -->
+	</form>
+
+</wicket:panel>
+</html>

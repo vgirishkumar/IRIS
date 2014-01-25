@@ -1,19 +1,6 @@
 domain RestbucksModel {
 rim Restbucks {
 
-	relation order {
-		fqn: "http://relations.restbucks.com/order"
-	}
-	relation cancel {
-		fqn: "http://relations.restbucks.com/cancel"
-	}
-	relation update {
-		fqn: "http://relations.restbucks.com/update"
-	}
-	relation payment {
-		fqn: "http://relations.restbucks.com/payment"
-	}
-
 	event DELETE {
 		method: DELETE
 	}
@@ -98,7 +85,7 @@ resource OrderCancelled {
 	type: item
 	entity: Order
 	actions [ DeleteEntity ]
-	relations [ cancel ]
+	relations [ "http://relations.restbucks.com/cancel" ]
 	path: "/Orders({Id})"
 }
 
@@ -106,7 +93,7 @@ resource OrderUpdated {
 	type: item
 	entity: Order
 	actions [ UpdateEntity ]
-	relations [ update ]
+	relations [ "http://relations.restbucks.com/update" ]
 	path: "/Orders({Id})"
 }
 
@@ -114,7 +101,6 @@ resource OrderCreated {
 	type: item
 	entity: Order
 	actions [ CreateEntity ]
-	relations [ order ]
 	path: "/Orders()"
 	GET --> order {
 		condition: OK(order)
@@ -146,7 +132,7 @@ resource PaymentAccepted {
 	type: item
 	entity: Payment
 	actions [ CreateEntity ]
-	relations [ payment ]
+	relations [ "http://relations.restbucks.com/payment" ]
 	path: "/Payments()"
 	GET --> payment {
 		condition: OK(payment)

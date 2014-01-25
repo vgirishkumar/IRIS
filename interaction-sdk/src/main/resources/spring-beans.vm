@@ -28,7 +28,9 @@
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 	<bean id="modelName" factory-bean="edmMetadata" factory-method="getModelName"/>
-
+	<bean name="t24Config" class="com.temenos.interaction.t24.T24Configuration">
+		<constructor-arg value="modelName" />
+	</bean>
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 	
@@ -116,12 +118,6 @@
         <constructor-arg ref="edmMetadata" />
     </bean>
 
-	<!-- Start custom XML -->
-#foreach ( $xmlContent in $commands.getXmlContents() )	
-	$xmlContent
-#end
-	<!-- End custom XML -->
-	
 	<!-- Commands -->
 #foreach ( $command in $commands.getCommands() )
 	<bean id="$command.getId()" class="$command.getClassName()">

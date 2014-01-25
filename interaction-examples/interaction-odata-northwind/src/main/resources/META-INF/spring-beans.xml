@@ -139,12 +139,6 @@
 	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="UpdateEntity" class="com.temenos.interaction.commands.odata.UpdateEntityCommand">
-		<constructor-arg name="producer" ref="odataProducer" />
-	</bean>
-	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
-		<constructor-arg name="producer" ref="odataProducer" />
-	</bean>
 
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -156,8 +150,6 @@
 				<entry key="GETEntities" value-ref="GETEntities" />
 				<entry key="GETNavProperty" value-ref="GETNavProperty" />
 				<entry key="CreateEntity" value-ref="CreateEntity" />
-				<entry key="UpdateEntity" value-ref="UpdateEntity" />
-				<entry key="DeleteEntity" value-ref="DeleteEntity" />
 			</util:map> 
 		</constructor-arg>
 	</bean>

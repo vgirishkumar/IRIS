@@ -14,4 +14,17 @@
   <name>useragent-hal-inspector</name>
   <url>http://www.temenos.com</url>
 	
+	<build>
+		<plugins>
+			<!--  Skip the deployment -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+						<skip>true</skip>
+				</configuration>
+			</plugin>  
+    	</plugins>
+	</build>
+
 </project>

@@ -1,0 +1,25 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<!DOCTYPE none>
+<list>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>22</id>
+    <language>en</language>
+    <groupCode>jointRelationship</groupCode>
+    <code>DAUGHTER</code>
+    <label>Daughter</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>21</id>
+    <language>en</language>
+    <groupCode>jointRelationship</groupCode>
+    <code>SON</code>
+    <label>Son</label>
+  </com.temenos.ebank.domain.Nomencl>
+  <com.temenos.ebank.domain.Nomencl>
+    <id>20</id>
+    <language>en</language>
+    <groupCode>jointRelationship</groupCode>
+    <code>SPOUSE</code>
+    <label>Spouse</label>
+  </com.temenos.ebank.domain.Nomencl>
+</list>

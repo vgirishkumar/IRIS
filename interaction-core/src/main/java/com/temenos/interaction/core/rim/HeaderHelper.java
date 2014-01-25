@@ -71,11 +71,9 @@ public class HeaderHelper {
      * @return first header entry
      */
     public static String getFirstHeader(HttpHeaders headers, String header) {
-    	if (headers != null) {
-        	List<String> headerList = headers.getRequestHeader(header);
-        	if(headerList != null && headerList.size() > 0) {
-        		return headerList.get(0);
-        	}
+    	List<String> headerList = headers.getRequestHeader(header);
+    	if(headerList != null && headerList.size() > 0) {
+    		return headerList.get(0);
     	}
     	return null;
     }

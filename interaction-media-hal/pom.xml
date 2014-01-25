@@ -57,25 +57,9 @@
 	<dependencies>
         <dependency>
             <groupId>com.theoryinpractise</groupId>
-            <artifactId>halbuilder-standard</artifactId>
+            <artifactId>halbuilder</artifactId>
             <scope>compile</scope>
-            <exclusions>
-            	<exclusion>
-            		<artifactId>guava</artifactId>
-            		<groupId>com.google.guava</groupId>
-            	</exclusion>
-            </exclusions>
         </dependency>
-        <!-- Override the guava dependency in HAL with one that will deploy on various application servers
-        	https://code.google.com/p/guava-libraries/issues/detail?id=1527
-         -->
-        <dependency>
-		  <groupId>com.google.guava</groupId>
-		  <artifactId>guava</artifactId>
-		  <version>15.0</version>
-		  <classifier>cdi1.0</classifier>
-		</dependency>
-
         <!-- This provider can also accept and transform OEntity objects into HAL -->
         <dependency>
             <groupId>org.odata4j</groupId>
@@ -108,8 +92,17 @@
             <artifactId>xmlunit</artifactId>
             <scope>test</scope>
         </dependency>
-        
  	</dependencies>
 
+    <repositories>
+        <!-- The cambridge-core dependency is not in maven central repo -->
+        <repository>
+            <id>temenos-snapshot-repository</id>
+			<url>http://repository-temenostech.forge.cloudbees.com/snapshot/</url>
+<!--
+			<url>https://repository.temenos.com/snapshot/</url>
+-->
+        </repository>
+    </repositories>
 	
 </project>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:panel>
+	<dl wicket:id="depositAmountBorder">
+		<dt>
+			<label for="depositAmount" wicket:id="depositAmountLabel">Deposit amount</label>
+		</dt>
+		<dd>
+			<input type="text" wicket:id="depositAmount" maxlength="13"/>
+		</dd>
+	</dl>
+	<dl wicket:id="interestPaymentBorder">
+		<dt>
+			<label for="interestPayment" wicket:id="interestPaymentLabel">Interest payment</label>
+		</dt>
+		<dd>
+			<select wicket:id="interestPayment">
+				<option selected="selected" value="Please select">Please select</option>
+				<option value="Monthly - Rollover deposit amount only">Monthly - Rollover deposit amount only</option>
+				<option value="Monthly - No Rollover">Monthly - No Rollover</option>
+				<option value="Annual - Rollover deposit amount only">Annual - Rollover deposit amount only</option>
+				<option value="Annual - No Rollover">Annual - No Rollover</option>                          
+			</select>				
+		</dd>
+	</dl>	
+</wicket:panel>
+</body>
+</html>

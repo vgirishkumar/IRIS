@@ -81,15 +81,6 @@ public class OAuthRequestor {
 	private static void storeAccessToken(long useId, AccessToken accessToken) throws Exception {
 		System.out.println(accessToken.getToken() + " " + accessToken.getTokenSecret());
 		File accessTokenStore = new File("/tmp", "Twitter4jAccessToken.ser");
-		ObjectOutputStream os = null;
-		try {
-			os = new ObjectOutputStream(new FileOutputStream(accessTokenStore));
-			os.writeObject(accessToken);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (os != null)
-				os.close();
-		}
+		new ObjectOutputStream(new FileOutputStream(accessTokenStore)).writeObject(accessToken);
 	}
 }

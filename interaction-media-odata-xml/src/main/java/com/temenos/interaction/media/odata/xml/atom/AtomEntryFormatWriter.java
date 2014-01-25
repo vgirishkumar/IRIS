@@ -147,7 +147,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 
 	    if (entityLinks != null) {
 	      if (isResponse) {
-	        // the producer has populated the link collection, we just write what he gave us.
+	        // the producer has populated the link collection, we just what he gave us.
 	        for (OLink link : entityLinks) {
 	          String type = (link.isCollection())
 	              ? atom_feed_content_type
@@ -156,10 +156,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	          if (link.isInline()) {
 	            writer.startElement("link");
 	            writer.writeAttribute("rel", link.getRelation());
-	            if (!"self".equals(link.getRelation()) &&
-	            		!"edit".equals(link.getRelation())) {
-		            writer.writeAttribute("type", type);
-	            }
+	            writer.writeAttribute("type", type);
 	            writer.writeAttribute("title", link.getTitle());
 	            writer.writeAttribute("href", href);
 	            // write the inlined entities inside the link element
@@ -168,19 +165,11 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	            writer.endElement("link");
 	          } else {
 	            // deferred link.
-	            if (!"self".equals(link.getRelation()) &&
-	            		!"edit".equals(link.getRelation())) {
-		            writeElement(writer, "link", null,
-			                "rel", link.getRelation(),
-			                "type", type,
-			                "title", link.getTitle(),
-			                "href", href);
-	            } else {
-		            writeElement(writer, "link", null,
-			                "rel", link.getRelation(),
-			                "title", link.getTitle(),
-			                "href", href);
-	            }
+	            writeElement(writer, "link", null,
+	                "rel", link.getRelation(),
+	                "type", type,
+	                "title", link.getTitle(),
+	                "href", href);
 	          }
 	        }
 	      } else {

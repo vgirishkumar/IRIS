@@ -35,7 +35,7 @@ public class GETPreferencesCommand implements InteractionCommand {
 	public Result execute(InteractionContext ctx) {
 		assert(ctx != null);
 		// retrieve from a database, etc.
-		EntityResource<Preferences> resource = new EntityResource<Preferences>(new Preferences("user", "GBP", "en"));
+		EntityResource<Preferences> resource = new EntityResource<Preferences>(new Preferences("user", "UK", "en"));
 		ctx.setResource(resource);
 		return Result.SUCCESS;
 	}

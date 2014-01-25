@@ -1,0 +1,122 @@
+class @Link
+
+  constructor: (@resource,  @model) ->
+
+    @formModel = {}
+    @hyperLink = $('<a></a>').attr('href', @model.href).text(@model.name + '-' + @model.method)
+    @errorHandler = (XMLHttpRequest, textStatus, errorThrown) => alert "Error! Status = #{XMLHttpRequest.status}"
+
+    switch @model.method
+      when 'GET'
+        @hyperLink.click => @doGet()
+        @successHandler = (model, textStatus, jqXHR) => new ResourceView(this)
+      when 'DELETE'
+        @hyperLink.click => @doDelete()
+        @successHandler = (model, textStatus, jqXHR) =>
+            debugger
+            if jqXHR.status is (205 or 404)
+#
+# reload current view
+#
+                new ResourceView({rel: 'self', href: this.resource.selfLink.model.href, method: 'GET'})
+            else
+# switching resource self link to 'self' link from new model response
+                this.resource.selfLink.model.href = model._links.self.href
+#
+# render view from delete response (DELETE will return 303, ajax call will handle redirect to 'Location'
+#
+                @resource.render(model, textStatus, jqXHR)
+      when 'PUT'
+        @hyperLink.click => @doPut()
+        @formModel = @cloneModel @resource.model
+        @successHandler = (model, textStatus, jqXHR) => new ResourceView(@resource.selfLink)
+#      when 'POST'
+#        @hyperLink.click => @doPost()
+#        @formModel = @model.template
+#        @successHandler = (model, textStatus, jqXHR) => new ResourceView({rel: 'self', href: jqXHR.getResponseHeader('Location'), method: 'GET'})
+      when 'POST'
+        @hyperLink.click => @doPost()
+        @successHandler = (model, textStatus, jqXHR) => @handlePOSTResponse(model)
+
+  cloneModel: (model)->
+    clone = {}
+    $.extend true, clone, model
+    if clone.links? then delete clone.links
+    clone
+
+  trigger: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+json; charset=utf-8"
+          "Content-Type" : "application/hal+json; charset=utf-8"
+          "Link" : "<" + @model.href + "> ;rel=" + @model.name 
+      }
+      url: @model.href,
+      data: JSON.stringify(@formModel),
+      type: @model.method,
+      contentType: @model.consumes,
+      success: @successHandler,
+      error: @errorHandler
+    }
+
+  doGet: =>
+    @trigger()
+    false
+
+  doPut: =>
+    @resource.renderForm(this)
+    false
+
+#  doPost: =>
+#    @resource.renderForm(this)
+#    false
+
+  doDelete: =>
+    if confirm("R U sure?") then @trigger()
+    false
+
+  doPost: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+json; charset=utf-8"
+      }
+      url: @model.href,
+      data: "{ \"_links\": { \"self\": { \"href\": \"http://localhost:8080/example/api/fundtransfers/new\" } }, \"body\": \"FT0001\", \"id\": 1 }",
+      type: "POST",
+      contentType: "application/hal+json; charset=utf-8",
+      success: @successHandler
+      error: @errorHandler
+    }
+    false
+
+  handlePOSTResponse: (model)->
+    @resource.renderPOSTResponseForm(model)
+    false
+
+  triggerXML: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+xml; charset=utf-8"
+          "Content-Type" : "application/hal+xml; charset=utf-8"
+      }
+      url: @model.href,
+      data: @model.body,
+      type: @model.method,
+      contentType: @model.consumes,
+      success: @successHandler,
+      error: @errorHandler
+    }
+
+  triggerJSON: =>
+    $.ajax {
+      headers: { 
+          Accept : "application/hal+json; charset=utf-8"
+          "Content-Type" : "application/hal+json; charset=utf-8"
+      }
+      url: @model.href,
+      data: @model.body,
+      type: @model.method,
+      contentType: @model.consumes,
+      success: @successHandler,
+      error: @errorHandler
+    }
