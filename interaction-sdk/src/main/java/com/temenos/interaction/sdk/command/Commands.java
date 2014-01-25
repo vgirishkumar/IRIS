@@ -50,6 +50,7 @@ public class Commands {
 	
 	private List<Command> commands = new ArrayList<Command>();					//List of commands
 	private SortedMap<String, String> rimEvents = new TreeMap<String, String>();		//Map of <RIM event> to <HTTP command>
+	private List<String> xmlContents = new ArrayList<String>(); //return additional xml (or string) contents
 
 	/**
 	 * Define a new RIM event
@@ -148,5 +149,26 @@ public class Commands {
 		}
 		Collections.sort(events);
 		return events;
+	}
+	
+	/**
+	 * @return xmlContents list of additional xml(or string) contents
+	 */
+	public List<String> getXmlContents() {
+		return xmlContents;
+	}
+
+	/**
+	 * @param xmlContents add list of additional xml(or string) contents
+	 */
+	public void addXmlContents(List<String> xmlContents) {
+		this.xmlContents = xmlContents;
+	}
+
+	/**
+	 * @param xmlContent add additional xml(or string) content
+	 */
+	public void addXmlContents(String xmlContent) {
+		this.xmlContents.add(xmlContent);
 	}
 }

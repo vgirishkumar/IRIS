@@ -23,9 +23,6 @@ package com.temenos.interaction.core.hypermedia;
 
 
 import java.util.List;
-import java.util.Map;
-
-import com.temenos.interaction.core.hypermedia.expression.Expression;
 
 public class CollectionResourceState extends ResourceState {
 
@@ -40,22 +37,6 @@ public class CollectionResourceState extends ResourceState {
 	}
 	public CollectionResourceState(String entityName, String name, List<Action> actions, String path, String[] rels, UriSpecification uriSpec, ResourceState errorState) {
 		super(entityName, name, actions, path, rels != null ? rels : "collection".split(" "), uriSpec, errorState);
-	}
-
-	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap) {
-		addTransition(httpMethod, targetState, uriLinkageMap, true, null);
-	}
-	
-	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, String label) {
-		addTransition(httpMethod, targetState, uriLinkageMap, true, label);
-	}
-	
-	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, List<Expression> linkConditions, String label) {
-		addTransition(httpMethod, targetState, uriLinkageMap, targetState.getPath(), Transition.FOR_EACH, linkConditions, label);
-	}
-
-	public void addTransitionForEachItem(String httpMethod, ResourceState targetState, Map<String, String> uriLinkageMap, int transitionFlags) {
-		addTransition(httpMethod, targetState, uriLinkageMap, targetState.getPath(), transitionFlags | Transition.FOR_EACH, null, null);
 	}
 	
 }

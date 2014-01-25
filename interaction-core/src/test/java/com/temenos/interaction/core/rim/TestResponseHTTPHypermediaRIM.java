@@ -80,6 +80,7 @@ import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -221,7 +222,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testBuildResponseWithNoContent() throws Exception {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		initialState.addTransition(HttpMethod.PUT, initialState);
+		initialState.addTransition(new Transition.Builder().method(HttpMethod.PUT).target(initialState).build());
 		/*
 		 * construct an InteractionCommand that simply mocks the result of 
 		 * storing a resource, with no updated resource for the user agent
@@ -268,7 +269,7 @@ public class TestResponseHTTPHypermediaRIM {
 		 * to re-display
 		 */
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		initialState.addTransition(HttpMethod.DELETE, initialState);
+		initialState.addTransition(new Transition.Builder().method(HttpMethod.DELETE).target(initialState).build());
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
@@ -300,7 +301,7 @@ public class TestResponseHTTPHypermediaRIM {
 		 * to re-display
 		 */
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		initialState.addTransition("DELETE", initialState);
+		initialState.addTransition(new Transition.Builder().method("DELETE").target(initialState).build());
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
@@ -331,8 +332,8 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
 		ResourceState deletedState = new ResourceState(initialState, "deleted", mockActions());
-		initialState.addTransition("DELETE", deletedState);
-		deletedState.addTransition(initialState);
+		initialState.addTransition(new Transition.Builder().method("DELETE").target(deletedState).build());
+		deletedState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(initialState).build());
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
@@ -361,11 +362,11 @@ public class TestResponseHTTPHypermediaRIM {
 		CollectionResourceState initialState = new CollectionResourceState("entity", "state", mockActions(), "/entities");
 		ResourceState existsState = new ResourceState(initialState, "exists", mockActions(), "/123");
 		ResourceState deletedState = new ResourceState(existsState, "deleted", mockActions());
-		initialState.addTransitionForEachItem("GET", existsState, null);
-		initialState.addTransitionForEachItem("DELETE", deletedState, null);
-		existsState.addTransition("DELETE", deletedState);
+		initialState.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(existsState).build());
+		initialState.addTransition(new Transition.Builder().method("DELETE").target(deletedState).build());
+		existsState.addTransition(new Transition.Builder().method("DELETE").target(deletedState).build());
 		// the auto transition
-		deletedState.addTransition(initialState);
+		deletedState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(initialState).build());
 		
 		InteractionContext testContext = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
@@ -417,12 +418,12 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState idleState = new ResourceState(cookingState, "idle", mockActions());
 		
 		// view the toaster if it exists (could show time remaining if cooking)
-		initialState.addTransition("GET", existsState);
+		initialState.addTransition(new Transition.Builder().method("GET").target(existsState).build());
 		// start cooking the toast
-		existsState.addTransition("PUT", cookingState);
+		existsState.addTransition(new Transition.Builder().method("PUT").target(cookingState).build());
 		// stop the toast cooking
-		cookingState.addTransition("DELETE", idleState);
-		idleState.addTransition(existsState);
+		cookingState.addTransition(new Transition.Builder().method("DELETE").target(idleState).build());
+		idleState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(existsState).build());
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
@@ -466,11 +467,11 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
 		
 		// create new machine
-		initialState.addTransition("POST", createPsuedoState);
+		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
 		// an auto transition to the new resource
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{id}");
-		createPsuedoState.addTransition(individualMachine, uriLinkageMap);
+		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
@@ -507,14 +508,14 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
 		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
-		individualMachine.addTransition("GET", initialState);
+		individualMachine.addTransition(new Transition.Builder().method("GET").target(initialState).build());
 		
 		// create new machine
-		initialState.addTransition("POST", createPsuedoState);
+		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
 		// an auto transition to the new resource
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{id}");
-		createPsuedoState.addTransition(individualMachine, uriLinkageMap);
+		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
@@ -553,14 +554,14 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
 		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
-		individualMachine.addTransition("GET", initialState);
+		individualMachine.addTransition(new Transition.Builder().method("GET").target(initialState).build());
 		
 		// create new machine
-		initialState.addTransition("POST", createPsuedoState);
+		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
 		// an auto transition to the new resource
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{id}");
-		createPsuedoState.addTransition(individualMachine, uriLinkageMap);
+		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
 		
 		// RIM with command controller that issues commands that return SUCCESS for 'DO' action and FAILURE for 'GET' action (see mockActions())
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
@@ -595,11 +596,11 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{test}");
 		
 		// create new machine
-		initialState.addTransition("POST", createPsuedoState);
+		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
 		// an auto transition with parameters to the new resource
 		Map<String, String> linkageMap = new HashMap<String, String>();
 		linkageMap.put("test", "{id}");
-		createPsuedoState.addTransition(individualMachine, linkageMap, null);
+		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(linkageMap).build());
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
@@ -711,7 +712,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testOPTIONSBuildResponseWithNoContent() throws Exception {
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		initialState.addTransition(HttpMethod.GET, initialState);
+		initialState.addTransition(new Transition.Builder().method(HttpMethod.GET).target(initialState).build());
 		/*
 		 * Construct an InteractionCommand that simply mocks the result of 
 		 * a successful command.
@@ -817,7 +818,7 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
 		// create new machine
-		initialState.addTransition("POST", createPsuedoState);
+		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
 		
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", getGenericErrorMockCommand(Result.FAILURE, "Resource manager: 5 fatal error and 2 warnings."));
@@ -964,7 +965,7 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState individualMachine = new ResourceState(initialState, "machine", actions, "/{id}");
 		
 		// create new machine
-		initialState.addTransition("DELETE", individualMachine);
+		initialState.addTransition(new Transition.Builder().method("DELETE").target(individualMachine).build());
 		
 		// RIM with command controller that issues commands that return SUCCESS for 'DO' action and FAILURE for 'GET' action (see mockActions())
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
@@ -1169,12 +1170,12 @@ public class TestResponseHTTPHypermediaRIM {
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
 		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/individualMachine1/{id}");
-		individualMachine.addTransition("GET", initialState);
+		individualMachine.addTransition(new Transition.Builder().method("GET").target(initialState).build());
 		ResourceState individualMachine2 = new ResourceState(initialState, "machine2", mockActions(), "/individualMachine2/{id}");
-		individualMachine.addTransition("GET", initialState);
+		individualMachine.addTransition(new Transition.Builder().method("GET").target(initialState).build());
 		
 		// create new machine
-		initialState.addTransition("POST", createPsuedoState);
+		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
 		// an auto transition to the new resource
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{id}");
@@ -1183,23 +1184,23 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Expression> conditionalExpressions1 = new ArrayList<Expression>();
 		conditionalExpressions1.add(new SimpleLogicalExpressionEvaluator(new ArrayList<Expression>()) {
 			@Override
-			public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
+			public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
 				return false;
 			}
 			
 		});
-		createPsuedoState.addTransition(individualMachine, uriLinkageMap, conditionalExpressions1);
+		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).evaluation(new SimpleLogicalExpressionEvaluator(conditionalExpressions1)).build());
 
 		//Add a second auto-transition
 		List<Expression> conditionalExpressions2 = new ArrayList<Expression>();
 		conditionalExpressions2.add(new SimpleLogicalExpressionEvaluator(new ArrayList<Expression>()) {
 			@Override
-			public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
+			public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
 				return true;
 			}
 			
 		});
-		createPsuedoState.addTransition(individualMachine2, uriLinkageMap, conditionalExpressions2);
+		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine2).uriParameters(uriLinkageMap).evaluation(new SimpleLogicalExpressionEvaluator(conditionalExpressions2)).build());
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());

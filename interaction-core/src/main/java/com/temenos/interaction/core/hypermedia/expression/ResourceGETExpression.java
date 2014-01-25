@@ -27,14 +27,18 @@ import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.temenos.interaction.core.command.CommandFailureException;
+import org.apache.wink.common.http.HttpStatus;
+
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
+import com.temenos.interaction.core.rim.ResourceRequestConfig;
+import com.temenos.interaction.core.rim.ResourceRequestResult;
+import com.temenos.interaction.core.rim.SequentialResourceRequestHandler;
 
 public class ResourceGETExpression implements Expression {
 
@@ -60,7 +64,8 @@ public class ResourceGETExpression implements Expression {
 	}
 	
 	@Override
-	public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
+	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
+		ResourceStateMachine hypermediaEngine = rimHandler.getHypermediaEngine();
 		ResourceState target = hypermediaEngine.getResourceStateByName(state);
 		if (target == null)
 			throw new IllegalArgumentException("Indicates a problem with the RIM, it allowed an invalid state to be supplied");
@@ -73,21 +78,23 @@ public class ResourceGETExpression implements Expression {
     	InteractionContext newCtx = new InteractionContext(ctx, pathParameters, null, target);
 
     	//Get the target resource
-		try {
-			hypermediaEngine.getResource(target, newCtx, false);	//Ignore the resource and its links, just interested in the result status
-			if(getFunction().equals(Function.OK)) {
-				return true;
-			}
+		ResourceRequestConfig config = new ResourceRequestConfig.Builder()
+				.transition(transition)
+				.injectLinks(false)
+				.embedResources(false)
+				.build();
+		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, null, config);
+		assert(results.values() != null && results.values().size() == 1);
+		ResourceRequestResult result = results.values().iterator().next();
+		
+		//Ignore the resource and its links, just interested in the result status
+		if (HttpStatus.OK.getCode() == result.getStatus() 
+				&& getFunction().equals(Function.OK)) {
+			return true;
 		}
-		catch(CommandFailureException cfe) {
-			if(getFunction().equals(Function.NOT_FOUND)) {
-				return true;
-			}
-		}
-		catch(InteractionException ie) {
-			if(getFunction().equals(Function.NOT_FOUND)) {
-				return true;
-			}
+		if (HttpStatus.OK.getCode() != result.getStatus() 
+				&& getFunction().equals(Function.NOT_FOUND)) {
+			return true;
 		}
 		return false;
 	}

@@ -24,6 +24,7 @@ package com.temenos.interaction.example.hateoas.banking;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
@@ -39,7 +40,7 @@ public class GETCustomerCommand implements InteractionCommand {
 	/* Implement InteractionCommand interface */
 	
 	@Override
-	public Result execute(InteractionContext ctx) {
+	public Result execute(InteractionContext ctx) throws InteractionException {
 		assert(ctx != null);
 		// retrieve from a database, etc.
 		String id = ctx.getId();

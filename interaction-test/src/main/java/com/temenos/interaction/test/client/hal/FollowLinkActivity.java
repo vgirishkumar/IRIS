@@ -27,7 +27,7 @@ import java.util.Map;
 
 import com.temenos.interaction.test.client.Actions;
 import com.temenos.interaction.test.client.Activity;
-import com.theoryinpractise.halbuilder.spi.Representation;
+import com.theoryinpractise.halbuilder.api.Representation;
 
 /**
  * This class implements an Activity that will follow a series of links 
