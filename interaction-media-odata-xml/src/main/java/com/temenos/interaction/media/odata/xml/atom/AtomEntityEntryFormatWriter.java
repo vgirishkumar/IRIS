@@ -165,7 +165,9 @@ public class AtomEntityEntryFormatWriter {
 		writer.startContent(MediaType.APPLICATION_XML);
 		
 		writer.startElement(new QName(m, "properties", "m"));
-		writeProperties(writer, entityMetadata, entity.getProperties(), modelName);
+		if (entity != null) {
+			writeProperties(writer, entityMetadata, entity.getProperties(), modelName);
+		}
 		writer.endElement();
 		
 		writer.endContent();

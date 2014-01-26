@@ -207,6 +207,38 @@ public class TestAtomEntityEntryFormatWriter {
 		Assert.assertTrue(output.contains("<m:inline>"));
 	}
 
+	@Test
+	public void testWriteNullEntityWithEmbedded() {
+		// Get UriInfo and Links
+		UriInfo uriInfo = mock(UriInfo.class);
+		try {
+			when(uriInfo.getBaseUri()).thenReturn(new URI("http", "//www.temenos.com/iris/test", "simple"));
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+		List<Link> links = new ArrayList<Link>();
+		ResourceState mockResourceState = mock(ResourceState.class);
+		when(mockResourceState.getEntityName()).thenReturn("Entity");
+		Transition mockTransition = mock(Transition.class);
+		when(mockTransition.getLabel()).thenReturn("title");
+		when(mockTransition.getTarget()).thenReturn(mockResourceState);
+		links.add(new Link(mockTransition, "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", "href", "GET"));
+		
+		Map<Transition, RESTResource> embeddedResources = new HashMap<Transition, RESTResource>();
+		embeddedResources.put(mockTransition, new EntityResource<Entity>(null));
+		
+		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
+		StringWriter strWriter = new StringWriter();
+		writer.write(uriInfo, strWriter, simpleEntity.getName(), simpleEntity, entityMetadata, links, embeddedResources, modelName);
+		
+		String output = strWriter.toString();
+		System.out.println(strWriter);
+		
+		String relContent = extractLinkRelFromString(output);
+		Assert.assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", relContent);
+		Assert.assertTrue(output.contains("<m:inline>"));
+	}
+
 	private String extractLinkRelFromString(String in) {
 		String result = null;
 		Pattern pattern = Pattern.compile("rel=\"(.*?)\"");
