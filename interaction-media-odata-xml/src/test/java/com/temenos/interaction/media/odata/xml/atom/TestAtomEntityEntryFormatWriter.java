@@ -133,7 +133,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, simpleEntity, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
+		writer.write(uriInfo, strWriter, simpleEntity.getName(), simpleEntity, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);
@@ -162,7 +162,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, simpleEntity, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
+		writer.write(uriInfo, strWriter, simpleEntity.getName(), simpleEntity, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);
@@ -197,7 +197,7 @@ public class TestAtomEntityEntryFormatWriter {
 		
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, simpleEntity, entityMetadata, links, embeddedResources, modelName);
+		writer.write(uriInfo, strWriter, simpleEntity.getName(), simpleEntity, entityMetadata, links, embeddedResources, modelName);
 		
 		String output = strWriter.toString();
 		System.out.println(strWriter);
@@ -230,7 +230,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, simpleEntityWithComplexTypes, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
+		writer.write(uriInfo, strWriter, simpleEntityWithComplexTypes.getName(), simpleEntityWithComplexTypes, entityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);
@@ -253,7 +253,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, complexEntity, complexEntityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
+		writer.write(uriInfo, strWriter, complexEntity.getName(), complexEntity, complexEntityMetadata, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);
@@ -276,7 +276,7 @@ public class TestAtomEntityEntryFormatWriter {
 				
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
-		writer.write(uriInfo, strWriter, complexEntity2, complexEntityMetadata2, links, new HashMap<Transition, RESTResource>(), modelName);
+		writer.write(uriInfo, strWriter, complexEntity2.getName(), complexEntity2, complexEntityMetadata2, links, new HashMap<Transition, RESTResource>(), modelName);
 		
 		String output = strWriter.toString();
 		//System.out.println(strWriter);

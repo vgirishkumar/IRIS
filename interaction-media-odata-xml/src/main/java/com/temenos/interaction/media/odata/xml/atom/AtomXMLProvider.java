@@ -191,11 +191,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
 				//Write entry
 				Entity entity = entityResource.getEntity();
-				assert(entity.getName().equals(entityResource.getEntityName()));
+				String entityName = entityResource.getEntityName();
 				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
 				// Write Entity object with Abdera implementation
 				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, processedLinks, entityResource.getEmbedded(), metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, entity, entityMetadata, processedLinks, entityResource.getEmbedded(), metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
 				//Links and entity properties
@@ -212,7 +212,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				}
 				EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
 				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), new Entity(entityName, props), entityMetadata, processedLinks, entityResource.getEmbedded(), metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, new Entity(entityName, props), entityMetadata, processedLinks, entityResource.getEmbedded(), metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
 				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();

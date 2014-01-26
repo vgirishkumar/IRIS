@@ -75,7 +75,7 @@ public class AtomEntityEntryFormatWriter {
 	public static final String atom_entry_content_type = "application/atom+xml;type=entry";
 	public static final String href_lang = "en";
 
-	public void write(UriInfo uriInfo, Writer w, Entity entity,
+	public void write(UriInfo uriInfo, Writer w, String entityName, Entity entity,
 			EntityMetadata entityMetadata, Collection<Link> links, Map<Transition,RESTResource> embeddedResources, String modelName) 
 	{
 		String baseUri = uriInfo.getBaseUri().toString();
@@ -96,13 +96,13 @@ public class AtomEntityEntryFormatWriter {
 	    writer.writeNamespace("d", d);
 	    writer.writeNamespace("m", m);
 	    writer.writeAttribute("xml:base", baseUri);
-		writeEntry(writer, entity, links, embeddedResources, baseUri, absoluteId, updated, entityMetadata, modelName);
+		writeEntry(writer, entityName, entity, links, embeddedResources, baseUri, absoluteId, updated, entityMetadata, modelName);
 		writer.endEntry();
 		writer.endDocument();
 		writer.flush();
 	}
 
-	public void writeEntry(StreamWriter writer, String entitySetName, Entity entity,
+	public void writeEntry(StreamWriter writer, String entitySetName, String entityName, Entity entity,
 			Collection<Link> entityLinks, Map<Transition,RESTResource> embeddedResources,
 			UriInfo uriInfo, String updated, EntityMetadata entityMetadata, String modelName) 
 	{
@@ -110,11 +110,11 @@ public class AtomEntityEntryFormatWriter {
 		String absoluteId = getAbsoluteId(baseUri, entitySetName, entity, entityMetadata);
 		
 		writer.startEntry();
-		writeEntry(writer, entity, entityLinks, embeddedResources, baseUri, absoluteId, updated, entityMetadata, modelName);
+		writeEntry(writer, entityName, entity, entityLinks, embeddedResources, baseUri, absoluteId, updated, entityMetadata, modelName);
 		writer.endEntry();
 	}
 	
-	protected void writeEntry(StreamWriter writer, Entity entity,
+	protected void writeEntry(StreamWriter writer, String entityName, Entity entity,
 			Collection<Link> entityLinks, Map<Transition,RESTResource> embeddedResources,
 			String baseUri, String absoluteId, String updated,
 			EntityMetadata entityMetadata, String modelName) 
@@ -159,7 +159,7 @@ public class AtomEntityEntryFormatWriter {
 			}
 		}
 
-		writer.writeCategory(modelName + Metadata.MODEL_SUFFIX + "." + entity.getName(), scheme);
+		writer.writeCategory(modelName + Metadata.MODEL_SUFFIX + "." + entityName, scheme);
 		writer.flush();
 		
 		writer.startContent(MediaType.APPLICATION_XML);
@@ -191,7 +191,7 @@ public class AtomEntityEntryFormatWriter {
 				
 				for (EntityResource<Entity> entityResource : entities) {
 					writer.startEntry();
-					writeEntry(writer, entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(),
+					writeEntry(writer, entityResource.getEntityName(), entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(),
 							baseUri, absoluteId, updated, entityMetadata, modelName);
 					writer.endEntry();
 				}
@@ -200,13 +200,11 @@ public class AtomEntityEntryFormatWriter {
 		} else if (embeddedResource instanceof EntityResource) {
 			EntityResource<Entity> entityResource = (EntityResource<Entity>) embeddedResource;
 			Entity entity = entityResource.getEntity();
-			if (entity != null) {
-				writer.startEntry();
-				writeEntry(writer, entity, entityResource.getLinks(), entityResource.getEmbedded(),
-						baseUri, absoluteId, updated, entityMetadata, modelName);
+			writer.startEntry();
+			writeEntry(writer, entityResource.getEntityName(), entity, entityResource.getLinks(), entityResource.getEmbedded(),
+					baseUri, absoluteId, updated, entityMetadata, modelName);
 
-				writer.endEntry();
-			}
+			writer.endEntry();
 		} else
 			throw new RuntimeException("Unknown OLink type "
 					+ linkToInline.getClass());
