@@ -52,7 +52,9 @@ public class GETEntityPassengerWithFlightEmbedded implements InteractionCommand 
 		pProperties.setProperty(new EntityProperty("name", "Big Ron"));
 		pProperties.setProperty(new EntityProperty("flightID", "2629"));
 		Entity pEntity = new Entity("Passenger", pProperties);
-		ctx.setResource(new EntityResource<Entity>(pEntity));
+		EntityResource<Entity> pEntityResource = new EntityResource<Entity>(pEntity);
+		pEntityResource.setEntityName(pEntity.getName());
+		ctx.setResource(pEntityResource);
 
 		// find the Flight Transition
 		ResourceState passenger_flight = null;
@@ -70,7 +72,9 @@ public class GETEntityPassengerWithFlightEmbedded implements InteractionCommand 
 		fProperties.setProperty(new EntityProperty("flightID", 2629));
 		Entity fEntity = new Entity("Flight", fProperties);
 		Map<Transition, RESTResource> embeddedResources = new HashMap<Transition, RESTResource>();
-		embeddedResources.put(pfTranstion, new EntityResource<Entity>(fEntity));
+		EntityResource<Entity> fEntityResource = new EntityResource<Entity>(fEntity);
+		fEntityResource.setEntityName(pEntity.getName());
+		embeddedResources.put(pfTranstion, fEntityResource);
 		ctx.getResource().setEmbedded(embeddedResources);
 		
 		return Result.SUCCESS;

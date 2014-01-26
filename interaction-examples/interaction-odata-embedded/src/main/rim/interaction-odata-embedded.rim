@@ -409,7 +409,7 @@ resource passenger_flight {
 	view: GETNavProperty {
 		properties [ navproperty="flight", entity=Passenger ]
 	}
-	path: "/Passengers({id})/flight"
+	path: "/Passengers({id})/Flight"
 }
 
 resource passenger_deleted {

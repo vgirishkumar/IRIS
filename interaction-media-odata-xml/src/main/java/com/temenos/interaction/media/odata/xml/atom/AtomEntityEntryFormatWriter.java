@@ -119,6 +119,7 @@ public class AtomEntityEntryFormatWriter {
 			String baseUri, String absoluteId, String updated,
 			EntityMetadata entityMetadata, String modelName) 
 	{
+		assert(entityName != null);
 		writer.writeId(absoluteId);
 		OAtomEntity oae = getAtomInfo(entity);
 

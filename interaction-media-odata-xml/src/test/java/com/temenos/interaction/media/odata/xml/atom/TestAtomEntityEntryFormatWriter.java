@@ -193,7 +193,9 @@ public class TestAtomEntityEntryFormatWriter {
 		links.add(new Link(mockTransition, "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", "href", "GET"));
 		
 		Map<Transition, RESTResource> embeddedResources = new HashMap<Transition, RESTResource>();
-		embeddedResources.put(mockTransition, new EntityResource<Entity>(simpleEntity));
+		EntityResource<Entity> embeddedEntityResource = new EntityResource<Entity>(simpleEntity);
+		embeddedEntityResource.setEntityName(simpleEntity.getName());
+		embeddedResources.put(mockTransition, embeddedEntityResource);
 		
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
@@ -225,7 +227,9 @@ public class TestAtomEntityEntryFormatWriter {
 		links.add(new Link(mockTransition, "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", "href", "GET"));
 		
 		Map<Transition, RESTResource> embeddedResources = new HashMap<Transition, RESTResource>();
-		embeddedResources.put(mockTransition, new EntityResource<Entity>(null));
+		EntityResource<Entity> embeddedEntityResource = new EntityResource<Entity>(null);
+		embeddedEntityResource.setEntityName("SomeMockName");
+		embeddedResources.put(mockTransition, embeddedEntityResource);
 		
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter();
 		StringWriter strWriter = new StringWriter();
