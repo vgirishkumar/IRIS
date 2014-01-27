@@ -386,6 +386,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		if (headers != null) {
 			//Apply the etag on the If-Match header if available
 			ctx.setPreconditionIfMatch(HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_MATCH));
+
+			ctx.setAcceptLanguage(HeaderHelper.getFirstHeader(headers, HttpHeaders.ACCEPT_LANGUAGE));
 	    	// work out the target state and link used
 			LinkHeader linkHeader = null;
 			List<String> linkHeaders = headers.getRequestHeader("Link");
