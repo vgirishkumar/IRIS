@@ -339,25 +339,47 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			href = link.getHrefTransition(requestContext.getBasePath());
 		}
 		String title = link.getTitle();
-		OLink olink;
+		OLink olink = null;
 		Transition linkTransition = link.getTransition();
-		if(linkTransition != null && linkTransition.getTarget() instanceof CollectionResourceState) {
-			olink = OLinks.relatedEntities(rel, title, href);
-		} else if (embeddedResources != null && embeddedResources.get(linkTransition) != null
-				&& embeddedResources.get(linkTransition) instanceof EntityResource) {
-			@SuppressWarnings("unchecked")
-			EntityResource<OEntity> embeddedResource = (EntityResource<OEntity>) embeddedResources.get(linkTransition);
-			List<OLink> embeddedLinks = formOLinks(embeddedResource);
-			OEntity embeddedEntity = embeddedResource.getEntity();
-			// replace the OLink's on the embedded entity
-			OEntity newEmbeddedEntity = OEntities.create(embeddedEntity.getEntitySet(), embeddedEntity.getEntityKey(), embeddedEntity.getProperties(), embeddedLinks);
-			olink = OLinks.relatedEntityInline(rel, title, href, newEmbeddedEntity);
-		} else {
-			olink = OLinks.relatedEntity(rel, title, href);
+		if(linkTransition != null) {
+			if (embeddedResources != null && embeddedResources.get(linkTransition) != null
+					&&embeddedResources.get(linkTransition) instanceof EntityResource) {
+				@SuppressWarnings("unchecked")
+				EntityResource<OEntity> embeddedResource = (EntityResource<OEntity>) embeddedResources.get(linkTransition);
+				// replace the OLink's on the embedded entity
+				OEntity newEmbeddedEntity = processOEntity(embeddedResource);
+				olink = OLinks.relatedEntityInline(rel, title, href, newEmbeddedEntity);
+			} else if (embeddedResources != null && embeddedResources.get(linkTransition) != null
+					&&embeddedResources.get(linkTransition) instanceof CollectionResource) {
+				@SuppressWarnings("unchecked")
+				CollectionResource<OEntity> embeddedCollectionResource = (CollectionResource<OEntity>) embeddedResources.get(linkTransition);
+				List<OEntity> entities = new ArrayList<OEntity>();
+				for (EntityResource<OEntity> embeddedResource : embeddedCollectionResource.getEntities()) {
+					// replace the OLink's on the embedded entity
+					OEntity newEmbeddedEntity = processOEntity(embeddedResource);
+					entities.add(newEmbeddedEntity);
+				}
+				olink = OLinks.relatedEntitiesInline(rel, title, href, entities);
+			}
+			if (olink == null) {
+				if (linkTransition.getTarget() instanceof CollectionResourceState) {
+					olink = OLinks.relatedEntities(rel, title, href);
+				} else {
+					olink = OLinks.relatedEntity(rel, title, href);
+				}
+			}
 		}
 		olinks.add(olink);
 	}
 
+	private OEntity processOEntity(EntityResource<OEntity> entityResource) {
+		List<OLink> embeddedLinks = formOLinks(entityResource);
+		OEntity embeddedEntity = entityResource.getEntity();
+		// replace the OLink's on the embedded entity
+		OEntity newOEntity = OEntities.create(embeddedEntity.getEntitySet(), embeddedEntity.getEntityKey(), embeddedEntity.getProperties(), embeddedLinks);
+		return newOEntity;
+	}
+	
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
