@@ -70,6 +70,7 @@ public class GETEntityPassengerWithFlightEmbedded implements InteractionCommand 
 		// embed the Flight
 		EntityProperties fProperties = new EntityProperties();
 		fProperties.setProperty(new EntityProperty("flightID", 2629));
+		fProperties.setProperty(new EntityProperty("passengerNo", 123));
 		Entity fEntity = new Entity("Flight", fProperties);
 		Map<Transition, RESTResource> embeddedResources = new HashMap<Transition, RESTResource>();
 		EntityResource<Entity> fEntityResource = new EntityResource<Entity>(fEntity);

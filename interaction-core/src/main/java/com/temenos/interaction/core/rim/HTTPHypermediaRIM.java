@@ -338,6 +338,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		status = ie.getHttpStatus();
     		ctx.setException(ie);
     	}
+    	if (ctx.getResource() != null) {
+    		/*
+    		 * Add entity information to this resource
+    		 */
+    		ctx.getResource().setEntityName(ctx.getCurrentState().getEntityName());
+    	}
+    	
     	// determine status
     	if (ctx.getResource() != null && status.getFamily() == Status.Family.SUCCESSFUL) {
     		/*
@@ -351,11 +358,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     			injectLinks = config.isInjectLinks();
     			embedResources = config.isEmbedResources();
     		}
-    		
-    		/*
-    		 * Add entity information to this resource
-    		 */
-    		ctx.getResource().setEntityName(ctx.getCurrentState().getEntityName());
     		
     		if (injectLinks) {
         		/*
