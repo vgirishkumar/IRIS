@@ -21,11 +21,14 @@ package com.temenos.interaction.core.workflow;
  * #L%
  */
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
 
@@ -43,24 +46,46 @@ public class TestRetryWorkflowStrategyCommand {
 	
 	@Test
 	public void testCommandsSuccessExecution() throws InteractionException {
-		InteractionCommand command1 = mock(InteractionCommand.class);
-		when(command1.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
 		
 		InteractionContext ctx = mock(InteractionContext.class);
 		RetryWorkflowStrategyCommand w = 
-				new RetryWorkflowStrategyCommand(command1,5,5);
+				new RetryWorkflowStrategyCommand(mockCommand,5,5);
 		w.execute(ctx);
-		verify(command1, times(1)).execute(ctx);
+		verify(mockCommand, times(1)).execute(ctx);
 	}
 	
 	@Test(expected = InteractionException.class)
 	public void testCommandsRetryExecution() throws InteractionException {
-		InteractionCommand mockCommand = new MockInteractionCommand();
-		InteractionContext mockContext = mock(InteractionContext.class);
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenThrow(
+				new InteractionException(Status.INTERNAL_SERVER_ERROR, "Test Exception"));
 		
+		InteractionContext mockContext = mock(InteractionContext.class);
 		RetryWorkflowStrategyCommand w = 
 				new RetryWorkflowStrategyCommand(mockCommand,3,1);
 		w.execute(mockContext);
-		verify(mockCommand, times(1)).execute(mockContext);
+		verify(mockCommand, times(1)).execute(mockContext);		
+	}
+	
+	@Test(expected = InteractionException.class)
+	public void testCommandsRetryExecutionTime() throws InteractionException {
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenThrow(
+				new InteractionException(Status.INTERNAL_SERVER_ERROR, "Test Exception"));
+		
+		InteractionContext mockContext = mock(InteractionContext.class);
+		
+		int shouldWaitInMillis = 14; // e.g. shouldWaitInMillis = Math.pow(2,1) + Math.pow(2,2) + Math.pow(2,3)
+		long startTime = System.currentTimeMillis();
+		RetryWorkflowStrategyCommand w = 
+				new RetryWorkflowStrategyCommand(mockCommand,3,1);
+		try {
+			w.execute(mockContext);
+		} finally {
+			long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+			assertEquals(shouldWaitInMillis, elapsedTime);
+		}
 	}
 }
