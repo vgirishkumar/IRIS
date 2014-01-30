@@ -154,7 +154,8 @@ public class AtomEntityEntryFormatWriter {
 	            writer.writeAttribute("hreflang", href_lang);
 				if (embeddedResources.get(link.getTransition()) != null) {
 		            // write the inlined entities inside the link element
-					writeLinkInline(writer, link, embeddedResources.get(link.getTransition()), href, baseUri, absoluteId, updated, entityMetadata, modelName);
+					String embeddedAbsoluteId = link.getHref();
+					writeLinkInline(writer, link, embeddedResources.get(link.getTransition()), link.getHref(), baseUri, embeddedAbsoluteId, updated, entityMetadata, modelName);
 				}
 	            writer.endLink();
 			}

@@ -75,7 +75,7 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 				// is this the first instance of this rel/href combination
 				if (firstInstance != null
 						&& !firstInstance.equals(result)
-						&& result.getRel().equals(link.getRel())
+						&& rel.equals(link.getRel())
 						&& result.getHref().equals(link.getHref())) {
 					result = null;
 					break;
