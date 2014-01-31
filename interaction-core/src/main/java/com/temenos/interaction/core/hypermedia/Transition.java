@@ -43,6 +43,10 @@ public class Transition {
 	 * Add a subresource
 	 */
 	public static final int EMBEDDED = 4;
+	/**
+	 * Add a transition used in an expression
+	 */
+	public static final int EXPRESSION = 8;
 
 	private ResourceState source, target;
 	private final TransitionCommandSpec command;

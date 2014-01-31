@@ -22,9 +22,12 @@ package com.temenos.interaction.core.hypermedia.expression;
  */
 
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 
 /**
@@ -35,10 +38,14 @@ import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 public class SimpleLogicalExpressionEvaluator implements Expression {
 
 	private final List<Expression> expressions;
+	private final Set<Transition> transitions = new HashSet<Transition>();
 	
 	public SimpleLogicalExpressionEvaluator(List<Expression> expressions) {
 		this.expressions = expressions;
 		assert(this.expressions != null);
+		for (Expression e : expressions) {
+			transitions.addAll(e.getTransitions());
+		}
 	}
 	
 	@Override
@@ -48,6 +55,11 @@ public class SimpleLogicalExpressionEvaluator implements Expression {
 				return false;
 		}
 		return true;
+	}
+	
+	@Override
+	public Set<Transition> getTransitions() {
+		return transitions;
 	}
 	
 	public String toString() {

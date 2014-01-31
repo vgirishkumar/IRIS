@@ -927,7 +927,7 @@ public class TestResourceStateMachine {
 		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
 		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(cancelled).build());
 		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(paid).build());
-		// TODO, expressions should also be followed in determining resource state graph
+		// expressions can be added to the resource with the condition or anywhere in the resource state graph
 		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pwaiting).build());
 		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pconfirmed).build());
 
@@ -992,6 +992,67 @@ public class TestResourceStateMachine {
 		assertEquals("item", links.get(3).getRel());
 		assertEquals("/baseuri/bookings/123/room", links.get(3).getHref());
 		assertEquals("BOOKING.initial>PUT>BOOKING.psuedo_assignroom", links.get(3).getId());
+	}
+
+	/*
+	 * We use links (hypermedia) for controlling / describing application 
+	 * state.  Test we return the conditional links to other resource in our state
+	 * machine; in this scenario the conditional link is only available as a transition from the
+	 * resource with the condition
+	 */
+	@Test
+	public void testShowConditionalLinksTargetOnlyExistsInExpression() {
+		String rootResourcePath = "/bookings/{bookingId}";
+		ResourceState initial = new ResourceState("BOOKING", "initial", new ArrayList<Action>(), rootResourcePath);
+		// room reserved for the booking
+		ResourceState room = new ResourceState(initial, "room", new ArrayList<Action>(), "/room");
+		ResourceState paid = new ResourceState(initial, "paid", new ArrayList<Action>(), "/payment", "pay".split(" "));
+		List<Action> mockNotFound = new ArrayList<Action>();
+		mockNotFound.add(new Action("notfound", TYPE.VIEW));
+		ResourceState pwaiting = new ResourceState(paid, "pwaiting", mockNotFound, "/pwaiting", "wait".split(" "));
+		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockNotFound, "/pconfirmed", "confirmed".split(" "));
+		
+		// create transitions that indicate state
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
+
+		// pseudo states that do the processing
+		ResourceState paymentDetails = new ResourceState(paid, "psuedo_setcarddetails", new ArrayList<Action>(), null, "pay".split(" "));
+
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		int transitionFlags = 0;  // regular transition
+		
+		List<Expression> expressions = new ArrayList<Expression>();
+		expressions.add(new ResourceGETExpression(pconfirmed, Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pwaiting, Function.NOT_FOUND));
+		room.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
+
+		// initialise and get the application state (links)
+		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(room), new EntityResource<Object>(new Booking("123")));
+
+		assertNotNull(unsortedLinks);
+		assertFalse(unsortedLinks.isEmpty());
+		assertEquals(2, unsortedLinks.size());
+		/*
+		 * expect 2 links
+		 * 'self'  (the room)
+		 * & link to PUT pwaiting (as the booking has not been paid 'pconfirmed' and is not waiting 'pwaiting')
+		 */
+		List<Link> links = new ArrayList<Link>(unsortedLinks);
+		// sort the links so we have a predictable order for this test
+		Collections.sort(links, new Comparator<Link>() {
+			@Override
+			public int compare(Link o1, Link o2) {
+				return o1.getId().compareTo(o2.getId());
+			}
+			
+		});
+		
+		// booking
+		assertEquals("</baseuri/bookings/123/room>; rel=\"self\"; title=\"room\"", links.get(0).toString());
+		// make a payment
+		assertEquals("</baseuri/bookings/123/payment>; rel=\"pay\"; title=\"Make a payment\"", links.get(1).toString());
 	}
 
 	/*

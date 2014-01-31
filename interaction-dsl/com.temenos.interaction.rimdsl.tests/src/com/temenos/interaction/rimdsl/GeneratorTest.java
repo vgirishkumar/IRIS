@@ -366,20 +366,20 @@ public class GeneratorTest {
 		
 		int indexOfNewStatement = output.indexOf(NEW_STATEMENT);
 		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(\"B\", ResourceGETExpression.Function.OK))"));
+		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(sB, ResourceGETExpression.Function.OK))"));
 		int indexOfAddTransition = output.indexOf(ADD_TRANSITION);
 		assertTrue(indexOfAddTransition > 0);
 
 		indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
 		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(\"B\", ResourceGETExpression.Function.NOT_FOUND))"));
+		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(sB, ResourceGETExpression.Function.NOT_FOUND))"));
 		indexOfAddTransition = output.indexOf(ADD_TRANSITION, indexOfAddTransition);
 		assertTrue(indexOfAddTransition > 0);
 		
 		indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
 		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(\"C\", ResourceGETExpression.Function.OK))"));
-		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(\"D\", ResourceGETExpression.Function.NOT_FOUND))"));
+		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(sC, ResourceGETExpression.Function.OK))"));
+		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(sD, ResourceGETExpression.Function.NOT_FOUND))"));
 		indexOfAddTransition = output.indexOf(ADD_TRANSITION, indexOfAddTransition);
 		assertTrue(indexOfAddTransition > 0);
 	}

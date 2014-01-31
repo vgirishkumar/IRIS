@@ -23,7 +23,9 @@ package com.temenos.interaction.core.hypermedia.expression;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -49,10 +51,22 @@ public class ResourceGETExpression implements Expression {
 	
 	public final Function function;
 	public final String state;
+	public final Transition transition;
+	public final Set<Transition> transitions = new HashSet<Transition>();
 	
+	public ResourceGETExpression(ResourceState target, Function function) {
+		this.function = function;
+		this.state = null;
+		this.transition = new Transition.Builder().method("GET").target(target).flags(Transition.EXPRESSION).build();
+		this.transitions.add(transition);
+	}
+
+	// keep old way until 0.5.0
+	@Deprecated
 	public ResourceGETExpression(String state, Function function) {
 		this.function = function;
 		this.state = state;
+		this.transition = null;
 	}
 	
 	public Function getFunction() {
@@ -66,20 +80,27 @@ public class ResourceGETExpression implements Expression {
 	@Override
 	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
 		ResourceStateMachine hypermediaEngine = rimHandler.getHypermediaEngine();
-		ResourceState target = hypermediaEngine.getResourceStateByName(state);
+		ResourceState target = null;
+		Transition ourTransition = transition;
+		if (ourTransition == null) {
+			target = hypermediaEngine.getResourceStateByName(state);
+			ourTransition = ctx.getCurrentState().getTransition(target);
+		} else {
+			target = ourTransition.getTarget();
+		}
+    	assert(ourTransition != null);
 		if (target == null)
 			throw new IllegalArgumentException("Indicates a problem with the RIM, it allowed an invalid state to be supplied");
 		assert(target.getActions() != null);
 		assert(target.getActions().size() == 1);
 		
 		//Create a new interaction context for this state
-    	Transition transition = ctx.getCurrentState().getTransition(target);
-    	MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, transition);
+    	MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, ourTransition);
     	InteractionContext newCtx = new InteractionContext(ctx, pathParameters, null, target);
 
     	//Get the target resource
 		ResourceRequestConfig config = new ResourceRequestConfig.Builder()
-				.transition(transition)
+				.transition(ourTransition)
 				.injectLinks(false)
 				.embedResources(false)
 				.build();
@@ -97,6 +118,11 @@ public class ResourceGETExpression implements Expression {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public Set<Transition> getTransitions() {
+		return transitions;
 	}
 
 	public String toString() {
