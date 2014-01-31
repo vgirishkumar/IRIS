@@ -295,9 +295,9 @@ class RIMDslGenerator implements IGenerator {
 
     def produceExpression(Function expression) '''
         «IF expression instanceof OKFunction»
-            new ResourceGETExpression(s«(expression as OKFunction).state.name», ResourceGETExpression.Function.OK)«
+            new ResourceGETExpression(factory.getResourceState("«(expression as OKFunction).state.fullyQualifiedName»"), ResourceGETExpression.Function.OK)«
         ELSE»
-            new ResourceGETExpression(s«(expression as NotFoundFunction).state.name», ResourceGETExpression.Function.NOT_FOUND)«
+            new ResourceGETExpression(factory.getResourceState("«(expression as NotFoundFunction).state.fullyQualifiedName»"), ResourceGETExpression.Function.NOT_FOUND)«
         ENDIF»'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
