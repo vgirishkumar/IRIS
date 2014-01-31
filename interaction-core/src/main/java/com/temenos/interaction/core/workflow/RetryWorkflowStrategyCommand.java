@@ -33,28 +33,28 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 
 /**
- * <p>This command implements a workflow that will abort if there is an error.</p>
- * Commands are added to this workflow and then executed in the same order.  If a 
- * command returns an error, the workflow is aborted.
+ * <p>This command implements a workflow that will retry if there is an error.</p>
+ * Commands are added to this workflow and then retried according to the retry count
+ * and the incremental backoff (configured in milliseconds).
  * @author aphethean
  */
 public class RetryWorkflowStrategyCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(RetryWorkflowStrategyCommand.class);
 	private InteractionCommand command;
 	private int maxRetryCount;
-	private int retryCount;
 	private long maxRetryInterval;
 	
 	/**
 	 * Construct with a list of commands to execute.
 	 * @param commands
+	 * @param maxRetryCount
+	 * @param maxRetryInterval (in milliseconds)
 	 * @invariant commands not null
 	 */
 	public RetryWorkflowStrategyCommand(InteractionCommand command, int maxRetryCount, long maxRetryInterval) {
 		this.command = command;
 		this.maxRetryCount = maxRetryCount;
 		this.maxRetryInterval = maxRetryInterval;
-		retryCount = 0;
 		if (command == null)
 			throw new IllegalArgumentException("No commands supplied");		
 	}
@@ -67,7 +67,8 @@ public class RetryWorkflowStrategyCommand implements InteractionCommand {
 	private Result commandExecute(InteractionContext ctx) throws InteractionException {
 		Result result = null;
 		StatusType statusType = null;
-		while ( ( maxRetryCount - retryCount ) > -1 ) {
+		int retryCount = -1;
+		while ( ( maxRetryCount - retryCount++ ) > -1 ) {
 			try {
 				result = command.execute(ctx);
 				if (result == Result.SUCCESS || result == Result.FAILURE || 
@@ -75,22 +76,21 @@ public class RetryWorkflowStrategyCommand implements InteractionCommand {
 					break;
 				}
 			} catch (InteractionException ex) {
-				if ( maxRetryCount < ++retryCount ) {
+				if ( retryCount >= maxRetryCount) {
 					throw ex;
 				}
 				long nextRetry = maxRetryInterval * (int)Math.pow(2,retryCount);
 				statusType = ex.getHttpStatus();
-				if(Family.SERVER_ERROR.equals(statusType.getFamily())) {
+				if (Family.SERVER_ERROR.equals(statusType.getFamily())) {
 					logger.info("iris_request maxRetryCount=" + String.valueOf(maxRetryCount) +
 								" maxRetryInterval=" + String.valueOf(maxRetryInterval) +
 								" retryingNumber=" + String.valueOf(retryCount) +
 								" nextRetryIn=" + String.valueOf(nextRetry) + " seconds");
 					try {
-						Thread.sleep(nextRetry * 1000);
+						Thread.sleep(nextRetry);
 					} catch (InterruptedException e) {
 						logger.error("InterruptedException: " + e.getMessage());
 					}
-					commandExecute(ctx);
 				}
 			}
 		}
@@ -102,7 +102,6 @@ public class RetryWorkflowStrategyCommand implements InteractionCommand {
 	 */
 	@Override
 	public Result execute(InteractionContext ctx) throws InteractionException {
-		retryCount = 0;
 		assert(command != null);
 		if (ctx == null)
 			throw new IllegalArgumentException("InteractionContext must be supplied");

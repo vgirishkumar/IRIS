@@ -21,7 +21,7 @@ package com.temenos.interaction.core.workflow;
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -56,7 +56,7 @@ public class TestRetryWorkflowStrategyCommand {
 		verify(mockCommand, times(1)).execute(ctx);
 	}
 	
-	@Test(expected = InteractionException.class)
+	@Test
 	public void testCommandsRetryExecution() throws InteractionException {
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
 		when(mockCommand.execute(any(InteractionContext.class))).thenThrow(
@@ -65,8 +65,14 @@ public class TestRetryWorkflowStrategyCommand {
 		InteractionContext mockContext = mock(InteractionContext.class);
 		RetryWorkflowStrategyCommand w = 
 				new RetryWorkflowStrategyCommand(mockCommand,3,1);
-		w.execute(mockContext);
-		verify(mockCommand, times(1)).execute(mockContext);		
+		boolean exceptionThrown = false;
+		try {
+			w.execute(mockContext);
+		} catch (InteractionException e) {
+			exceptionThrown = true;
+		}
+		assertTrue(exceptionThrown);
+		verify(mockCommand, times(4)).execute(any(InteractionContext.class));		
 	}
 	
 	@Test(expected = InteractionException.class)
@@ -77,15 +83,15 @@ public class TestRetryWorkflowStrategyCommand {
 		
 		InteractionContext mockContext = mock(InteractionContext.class);
 		
-		int shouldWaitInMillis = 14; // e.g. shouldWaitInMillis = Math.pow(2,1) + Math.pow(2,2) + Math.pow(2,3)
+		int shouldWaitInMillis = 3500; // e.g. 500 before 1st attempt, 1000 before 2nd attempt, and 2000 before 3rd attempt
 		long startTime = System.currentTimeMillis();
 		RetryWorkflowStrategyCommand w = 
-				new RetryWorkflowStrategyCommand(mockCommand,3,1);
+				new RetryWorkflowStrategyCommand(mockCommand, 3, 500);
 		try {
 			w.execute(mockContext);
 		} finally {
-			long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-			assertEquals(shouldWaitInMillis, elapsedTime);
+			long elapsedTime = System.currentTimeMillis() - startTime;
+			assertTrue(elapsedTime >= shouldWaitInMillis);
 		}
 	}
 }
