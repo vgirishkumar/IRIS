@@ -39,8 +39,8 @@ public class FormatterTest {
 	
 	@Test
 	public void testFormatting() throws Exception {
-		String text = loadTestRIM();
-		DomainModel domainModel = parser.parse(loadTestRIM());
+		String text = loadTestRIM("Simple.rim");
+		DomainModel domainModel = parser.parse(text);
         IParseResult parseResult = ((XtextResource) domainModel.eResource()).getParseResult();
         Assert.assertNotNull(parseResult);
 		ICompositeNode rootNode = parseResult.getRootNode();
@@ -48,8 +48,19 @@ public class FormatterTest {
 		Assert.assertEquals(text, formattedText);
 	}
 
-	private String loadTestRIM() throws IOException {
-		URL url = Resources.getResource("Simple.rim");
+	@Test
+	public void testFormattingWithDomain() throws Exception {
+		String text = loadTestRIM("TestDomain.rim");
+		DomainModel domainModel = parser.parse(text);
+        IParseResult parseResult = ((XtextResource) domainModel.eResource()).getParseResult();
+        Assert.assertNotNull(parseResult);
+		ICompositeNode rootNode = parseResult.getRootNode();
+		String formattedText = formatter.format(rootNode, 0, text.length()).getFormattedText();
+		Assert.assertEquals(text, formattedText);
+	}
+
+	private String loadTestRIM(String rimPath) throws IOException {
+		URL url = Resources.getResource(rimPath);
 		String rim = Resources.toString(url, Charsets.UTF_8);
 		return rim;
 	}

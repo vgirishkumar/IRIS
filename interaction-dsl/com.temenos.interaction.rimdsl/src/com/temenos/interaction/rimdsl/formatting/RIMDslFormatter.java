@@ -25,6 +25,7 @@ public class RIMDslFormatter extends AbstractDeclarativeFormatter {
 		RIMDslGrammarAccess f = (RIMDslGrammarAccess) getGrammarAccess();
 
 		setPreservingLinewraps(c, 2).after(f.getDomainDeclarationRule());
+		setPreservingLinewraps(c, 1).after(f.getUseRule());
 		setPreservingLinewraps(c, 2).after(f.getResourceInteractionModelRule());
  		setPreservingLinewraps(c, 1).after(f.getEventRule());
 		setPreservingLinewraps(c, 1).after(f.getCommandRule());
