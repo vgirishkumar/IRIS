@@ -1,11 +1,12 @@
 package com.temenos.interaction.rimdsl.formatting;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.IOException;
 import java.net.URL;
 
 import javax.inject.Inject;
-
-import junit.framework.Assert;
 
 import org.eclipse.xtext.formatting.INodeModelFormatter;
 import org.eclipse.xtext.junit4.InjectWith;
@@ -42,10 +43,10 @@ public class FormatterTest {
 		String text = loadTestRIM("Simple.rim");
 		DomainModel domainModel = parser.parse(text);
         IParseResult parseResult = ((XtextResource) domainModel.eResource()).getParseResult();
-        Assert.assertNotNull(parseResult);
+        assertNotNull(parseResult);
 		ICompositeNode rootNode = parseResult.getRootNode();
 		String formattedText = formatter.format(rootNode, 0, text.length()).getFormattedText();
-		Assert.assertEquals(text, formattedText);
+		assertEquals(text, formattedText);
 	}
 
 	@Test
@@ -53,10 +54,10 @@ public class FormatterTest {
 		String text = loadTestRIM("TestDomain.rim");
 		DomainModel domainModel = parser.parse(text);
         IParseResult parseResult = ((XtextResource) domainModel.eResource()).getParseResult();
-        Assert.assertNotNull(parseResult);
+        assertNotNull(parseResult);
 		ICompositeNode rootNode = parseResult.getRootNode();
 		String formattedText = formatter.format(rootNode, 0, text.length()).getFormattedText();
-		Assert.assertEquals(text, formattedText);
+		assertEquals(text, formattedText);
 	}
 
 	private String loadTestRIM(String rimPath) throws IOException {
