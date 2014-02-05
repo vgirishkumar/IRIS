@@ -2,7 +2,6 @@ grammar com.temenos.interaction.rimdsl.RIMDsl with org.eclipse.xtext.common.Term
 
 generate rim "http://www.temenos.com/interaction/rimdsl/RimDsl"
 
-
 DomainModel:
     (rims += Ref)*
 ;
@@ -166,9 +165,8 @@ RelationConstant:
 
 
 Path:
-    'path:' name=STRING
+    'path:' name=URISTRING
 ;
-
 
 ResourceType:
     'type:' ((isCollection?='collection') | (isItem?='item'))
@@ -195,3 +193,34 @@ UriLinkage:
 Title:
     'title:' name=STRING    
 ;
+
+terminal URISTRING	: 
+	'"'
+	('/'
+        (
+            'a'..'z'|'A'..'Z'|
+            '0'..'9'|
+            '$'|
+            '-'|
+            '_'|
+            '~'|
+            '+'|
+            '.'|
+            '('|
+            ')'|
+            '{'|   // with uri template
+            '}'|
+            (
+                '\\'
+                ('0'..'9'|'a'..'f'|'A'..'F')
+                ('0'..'9'|'a'..'f'|'A'..'F')
+            ) |
+            (
+                '%'
+                ('0'..'9')
+                ('0'..'9')
+            )
+        )*
+    )*
+    '"'
+    ;
