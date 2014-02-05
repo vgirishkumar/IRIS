@@ -51,7 +51,7 @@ public class FormatterTest {
 
 	@Test
 	public void testFormattingWithDomain() throws Exception {
-		String text = loadTestRIM("TestDomain.rim");
+		String text = loadTestRIM("TestFormat.rim");
 		DomainModel domainModel = parser.parse(text);
         IParseResult parseResult = ((XtextResource) domainModel.eResource()).getParseResult();
         assertNotNull(parseResult);
