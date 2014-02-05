@@ -7,7 +7,9 @@ domain TestDomain {
 		initial resource A {
 			type: collection
 			entity: ENTITY
-			view: NoopGET
+			view: NoopGET {
+				properties [ property = "somevalue" ]
+			}
 			GET -> TestDomain.TWO.B
 		}
 	}

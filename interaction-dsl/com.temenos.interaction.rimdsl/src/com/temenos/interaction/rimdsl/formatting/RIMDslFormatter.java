@@ -35,6 +35,7 @@ public class RIMDslFormatter extends AbstractDeclarativeFormatter {
 		setPreservingLinewraps(c, 1).after(f.getPathRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionRefRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionSpecAccess().getRightSquareBracketKeyword_2_1_3());
+		setPreservingLinewraps(c, 1).after(f.getResourceCommandAccess().getRightSquareBracketKeyword_1_4());
 
 		// indent the domain {} block
 		setIndentationIncrementAndDecrementAndLinewrapAfter(c,
@@ -51,10 +52,15 @@ public class RIMDslFormatter extends AbstractDeclarativeFormatter {
 				f.getStateAccess().getLeftCurlyBracketKeyword_3(),
 				f.getStateAccess().getRightCurlyBracketKeyword_5());
 
-		// indent the transition block
+		// indent the transition {} block
 		setIndentationIncrementAndDecrementAndLinewrapAfter(c,
 				f.getTransitionSpecAccess().getLeftCurlyBracketKeyword_0(),
 				f.getTransitionSpecAccess().getRightCurlyBracketKeyword_3());
+
+		// indent the resource command {} block
+		setIndentationIncrementAndDecrementAndLinewrapAfter(c,
+				f.getResourceCommandAccess().getLeftCurlyBracketKeyword_1_0(),
+				f.getResourceCommandAccess().getRightCurlyBracketKeyword_1_5());
 
 		// formatting comments	    
 		setPreservingLinewrap(c).before(f.getML_COMMENTRule());
