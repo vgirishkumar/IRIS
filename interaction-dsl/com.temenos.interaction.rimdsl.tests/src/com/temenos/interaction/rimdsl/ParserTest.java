@@ -646,4 +646,44 @@ public class ParserTest {
 	    return actual;
 	}
 	
+	private final static String SIMPLE_PATHS_RIM = "" +
+	"rim Simple {" + LINE_SEP +	
+	"	command GetEntity" + LINE_SEP +
+	"	command UpdateEntity" + LINE_SEP +
+			
+	"initial resource A {" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	path: \"/A()\"" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
+	"}" + LINE_SEP +
+
+	"resource B {" + LINE_SEP +
+	"	type: item" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	path: \"/B('{id}')\"" + LINE_SEP +
+	"	actions [ UpdateEntity ]" + LINE_SEP +
+	"}" + LINE_SEP +
+	"}" + LINE_SEP +  // end rim
+	"";
+
+	@Test
+	public void testParseSimplePaths() throws Exception {
+		DomainModel domainModel = parser.parse(SIMPLE_PATHS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+	    assertEquals("A", model.getStates().get(0).getName());
+	    assertEquals("B", model.getStates().get(1).getName());
+
+	    // there should be no transitions between these states
+	    State Astate = model.getStates().get(0);
+	    assertEquals("/A()", Astate.getPath().getName());
+	    State Bstate = model.getStates().get(1);
+	    assertEquals("/B('{id}')", Bstate.getPath().getName());
+	}
+
 }
