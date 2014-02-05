@@ -664,6 +664,14 @@ public class ParserTest {
 	"	path: \"/B('{id}')\"" + LINE_SEP +
 	"	actions [ UpdateEntity ]" + LINE_SEP +
 	"}" + LINE_SEP +
+
+	"initial resource AnotherResource {" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	path: \"/AnotherResource()\"" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
+	"}" + LINE_SEP +
+
 	"}" + LINE_SEP +  // end rim
 	"";
 
@@ -675,15 +683,18 @@ public class ParserTest {
 		assertEquals(0, errors.size());
 		
 		// there should be exactly two states
-		assertEquals(2, model.getStates().size());
+		assertEquals(3, model.getStates().size());
 	    assertEquals("A", model.getStates().get(0).getName());
 	    assertEquals("B", model.getStates().get(1).getName());
+	    assertEquals("AnotherResource", model.getStates().get(2).getName());
 
 	    // there should be no transitions between these states
 	    State Astate = model.getStates().get(0);
 	    assertEquals("/A()", Astate.getPath().getName());
 	    State Bstate = model.getStates().get(1);
 	    assertEquals("/B('{id}')", Bstate.getPath().getName());
+	    State ANOstate = model.getStates().get(2);
+	    assertEquals("/AnotherResource()", ANOstate.getPath().getName());
 	}
 
 }
