@@ -206,7 +206,7 @@ terminal URISTRING	:
             '~'|
             '+'|
             '.'|
-            "'"|
+            "'" |
             '('|')'|
             '{'|'}'|   // with uri template
             (
@@ -222,4 +222,4 @@ terminal URISTRING	:
         )*
     )*
     '"'
-    ;
+;

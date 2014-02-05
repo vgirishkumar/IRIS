@@ -12,7 +12,7 @@ public class UriStringConverter extends AbstractLexerBasedConverter<String> {
 
 	@Override
 	protected String toEscapedString(String value) {
-		return value;
+		return '"' + value + '"';
 	}
 
 	public String toValue(String string, INode node) {
