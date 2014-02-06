@@ -62,6 +62,8 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 			}
 		}
 		if (selfLink != null && !selfLink.equals(linkToAdd)
+				&& (linkToAdd.getRel().equals("item") || linkToAdd.getRel().equals("collection") 
+						|| linkToAdd.getRel().equals("self") || linkToAdd.getRel().equals("edit"))
 				&& linkToAdd.getHref().equals(selfLink.getHref())) {
 			result = null;
 		}

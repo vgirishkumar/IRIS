@@ -363,6 +363,86 @@ public class TestODataLinkInterceptor {
 	}
 
 	@Test
+	/*
+	 * When two links a link with a relation, that has the same href as 'self' we don't
+	 * want to keep both
+	 */
+	public void testLinkSelfSharingHref() {
+		ResourceState sourceState = createMockResourceState("customer", "Customer", true);
+		// see
+		ResourceState targetStateUpdate = mock(ResourceState.class);
+		when(targetStateUpdate.getName()).thenReturn("customer_see");
+		when(targetStateUpdate.getEntityName()).thenReturn("Customer");
+		when(targetStateUpdate.getRel()).thenReturn("self");
+		Transition seeTransition = createMockTransition(
+				sourceState, 
+				targetStateUpdate);
+		Link seeLink = new Link(seeTransition, seeTransition.getTarget().getRel(), "/Customers('123')", HttpMethod.GET);
+		// input
+		ResourceState targetStateInput = mock(ResourceState.class);
+		when(targetStateInput.getName()).thenReturn("customer_input");
+		when(targetStateInput.getEntityName()).thenReturn("Customer");
+		when(targetStateInput.getRel()).thenReturn("input");
+		Transition inputTransition = createMockTransition(
+				sourceState, 
+				targetStateInput);
+		Link inputLink = new Link(inputTransition, inputTransition.getTarget().getRel(), "/Customers('123')", HttpMethod.PUT);
+
+		List<Link> mockLinks = new ArrayList<Link>();
+		mockLinks.add(seeLink);
+		mockLinks.add(inputLink);
+		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
+		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("Customers");
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		RESTResource mockResource = mock(RESTResource.class);
+		when(mockResource.getLinks()).thenReturn(mockLinks);
+		
+		Link resultSee = linkInterceptor.addingLink(mockResource, seeLink);
+		assertEquals("self", resultSee.getRel());
+		Link resultInput = linkInterceptor.addingLink(mockResource, inputLink);
+		assertEquals("input", resultInput.getRel());
+	}
+
+	@Test
+	/*
+	 * In some of the OData4j tests we expect to only receive the 'self' link in this case
+	 */
+	public void testLinkSelfWithInitialCollectionToCollectionSameEntity() {
+		ResourceState sourceState = createMockResourceState("customer", "Customer", true);
+		// see
+		ResourceState targetStateUpdate = mock(ResourceState.class);
+		when(targetStateUpdate.getName()).thenReturn("customer_see");
+		when(targetStateUpdate.getEntityName()).thenReturn("Customer");
+		when(targetStateUpdate.getRel()).thenReturn("self");
+		Transition seeTransition = createMockTransition(
+				sourceState, 
+				targetStateUpdate);
+		Link seeLink = new Link(seeTransition, seeTransition.getTarget().getRel(), "/Customers('123')", HttpMethod.GET);
+		// create
+		ResourceState targetStateCreate = createMockResourceState("customer_create", "Customer", true);
+		Transition createTransition = createMockTransition(
+				sourceState, 
+				targetStateCreate);
+		Link inputLink = new Link(createTransition, createTransition.getTarget().getRel(), "/Customers('123')", HttpMethod.POST);
+
+		List<Link> mockLinks = new ArrayList<Link>();
+		mockLinks.add(seeLink);
+		mockLinks.add(inputLink);
+		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
+		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("Customers");
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		RESTResource mockResource = mock(RESTResource.class);
+		when(mockResource.getLinks()).thenReturn(mockLinks);
+		
+		Link resultSee = linkInterceptor.addingLink(mockResource, seeLink);
+		assertEquals("self", resultSee.getRel());
+		Link resultInput = linkInterceptor.addingLink(mockResource, inputLink);
+		assertNull(resultInput);
+//		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customers", resultInput.getRel());
+	}
+
+
+	@Test
 	public void testLinkRelationInitialCollectionToCollectionSameEntity() {
 		Transition t = createMockTransition(
 				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
