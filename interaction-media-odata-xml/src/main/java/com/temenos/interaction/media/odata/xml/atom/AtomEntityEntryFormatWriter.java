@@ -218,10 +218,10 @@ public class AtomEntityEntryFormatWriter {
 	private String getAbsoluteId(String baseUri, String entitySetName, Entity entity, EntityMetadata entityMetadata) {
 		String absId = "";
 		for(String key : entityMetadata.getIdFields()) {		
-			EntityProperty prop = entity.getProperties().getProperty(key);
+			EntityProperty prop = entity.getProperties().getProperty(entityMetadata.getSimplePropertyName(key));
 			if(prop != null) {
 				absId += absId.isEmpty() ? baseUri + entitySetName : ",";
-				if(entityMetadata.isPropertyNumber(key)) {
+				if(entityMetadata.isPropertyNumber(prop.getFullyQualifiedName())) {
 					absId += "(" + entityMetadata.getPropertyValueAsString(prop) + ")";
 				}
 				else {
@@ -238,29 +238,28 @@ public class AtomEntityEntryFormatWriter {
 		// Loop round all properties writing out fields and MV and SV sets
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 		
-		for (Map.Entry<String, EntityProperty> property : properties.entrySet()) 
+		for (String propertyName:properties.keySet())
 		{
 			// Work out what the property looks like by looking at the metadata
-			String propertyName = property.getKey(); 
-			EntityProperty propertyValue = (EntityProperty) property.getValue();
-			boolean isComplex = entityMetadata.isPropertyComplex( propertyName );
+			EntityProperty property = (EntityProperty) properties.get(propertyName);
+			boolean isComplex = entityMetadata.isPropertyComplex(property.getFullyQualifiedName());
 	   		if( !isComplex )
 	   		{
 	   			// Simple field
-	   			writeProperty( writer, entityMetadata, propertyName, (EntityProperty) propertyValue  );
+	   			writeProperty( writer, entityMetadata, property);
 	   		}
 	   		else
 	   		{
 	   			// Complex List
-	   			writePropertyComplexList( writer, entityMetadata, propertyName, (List<EntityProperties>) propertyValue.getValue(), modelName);
+	   			writePropertyComplexList( writer, entityMetadata, property, modelName);
 	   		}
 	   	}
 	}
 	
-	private void writeProperty( StreamWriter writer, EntityMetadata entityMetadata, String name, EntityProperty property ) {
+	private void writeProperty( StreamWriter writer, EntityMetadata entityMetadata, EntityProperty property ) {
 		String elementText = entityMetadata.getPropertyValueAsString( property );
-		writer.startElement(new QName(d, name, "d"));
-		EdmType type = MetadataOData4j.termValueToEdmType(entityMetadata.getTermValue(name, TermValueType.TERM_NAME));
+		writer.startElement(new QName(d, property.getName(), "d"));
+		EdmType type = MetadataOData4j.termValueToEdmType(entityMetadata.getTermValue(property.getFullyQualifiedName(), TermValueType.TERM_NAME));
 		if(!type.equals(EdmSimpleType.STRING)) {
 			writer.writeAttribute(new QName(m, "type", "m"), type.getFullyQualifiedTypeName());
 		}
@@ -286,13 +285,15 @@ public class AtomEntityEntryFormatWriter {
 	 * @param propertiesList
 	 * @param modelName
 	 */
-	private void writePropertyComplexList( StreamWriter writer, EntityMetadata entityMetadata, String propertyName, List<EntityProperties> propertiesList, String modelName) {
-		String name = entityMetadata.getEntityName() + "_" + propertyName;
+	private void writePropertyComplexList( StreamWriter writer, EntityMetadata entityMetadata, EntityProperty property, String modelName) {
+		@SuppressWarnings("unchecked")
+		List<EntityProperties> propertiesList = (List<EntityProperties>) property.getValue();
+		String name = entityMetadata.getEntityName() + "_" + property.getName();
 		int parseCount = 0;
 		for ( EntityProperties properties : propertiesList ) {
 			String fqTypeName = modelName + Metadata.MODEL_SUFFIX + "." + name;
 			// We should be able to differentiate List<ComplexType> with regular ComplexType 
-			if (entityMetadata.isPropertyList(propertyName)) {
+			if (entityMetadata.isPropertyList(property.getFullyQualifiedName())) {
 				if (parseCount == 0) {
 					writer.startElement(new QName(d, name, "d"));
 					writer.writeAttribute(new QName(m, "type", "m"), "Bag(" + fqTypeName + ")");
@@ -309,7 +310,7 @@ public class AtomEntityEntryFormatWriter {
 			writer.endElement();
 		}
 		// For List<ComplexTypes> we should end the complex node here
-		if (entityMetadata.isPropertyList(propertyName)) {
+		if (entityMetadata.isPropertyList(property.getFullyQualifiedName())) {
 			writer.endElement();
 		}
 	}

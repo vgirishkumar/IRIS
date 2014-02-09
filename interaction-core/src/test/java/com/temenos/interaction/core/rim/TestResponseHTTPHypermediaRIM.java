@@ -1113,7 +1113,7 @@ public class TestResponseHTTPHypermediaRIM {
 	        }
 	    }).when(httpHeaders).getRequestHeader(any(String.class));				
 		
-		Response response = getMockResponse(getEntityMockCommand("TestEntity", null, "ABCDEFG"), null, httpHeaders);
+		Response response = getMockResponse(getEntityMockCommand("TestEntity", new EntityProperties(), "ABCDEFG"), null, httpHeaders);
 		assertEquals(Response.Status.NOT_MODIFIED.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
@@ -1142,7 +1142,7 @@ public class TestResponseHTTPHypermediaRIM {
 	        }
 	    }).when(httpHeaders).getRequestHeader(any(String.class));				
 		
-		Response response = getMockResponse(getEntityMockCommand("TestEntity", null, "IJKLMNO"), null, httpHeaders);
+		Response response = getMockResponse(getEntityMockCommand("TestEntity", new EntityProperties(), "IJKLMNO"), null, httpHeaders);
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 		
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
@@ -1313,9 +1313,8 @@ public class TestResponseHTTPHypermediaRIM {
 		return mockCommand;
 	}
 	
-	@SuppressWarnings("hiding")
-	public static<GenericError> EntityResource<GenericError> createGenericErrorResource(GenericError error) 
+	public static EntityResource<GenericError> createGenericErrorResource(GenericError error) 
 	{
-		return CommandHelper.createEntityResource(error);
+		return CommandHelper.createEntityResource(error, GenericError.class);
 	}	
 }

@@ -125,7 +125,7 @@ public class MetadataOData4j {
 				if (termComplex.equals("false")) {
 					// This means we are dealing with plain property, either belongs to Entity or ComplexType (decide later, lets build it first)
 					EdmType edmType = termValueToEdmType(entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME));
-					EdmProperty.Builder ep = EdmProperty.newBuilder(propertyName).
+					EdmProperty.Builder ep = EdmProperty.newBuilder(entityMetadata.getSimplePropertyName(propertyName)).
 							setType(edmType).
 							setNullable(isNullable);
 					if (termComplexGroup == null) {
@@ -134,19 +134,19 @@ public class MetadataOData4j {
 					} else {
 						// Property belongs to a group (complex type), first make sure we have a group 
 						// so add a group with Entity name space and group name
-						addComplexType(namespace, complexTypePrefix + termComplexGroup, bComplexTypeMap);
+						addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
 						// And then add the property into complex type
-						addPropertyToComplexType(namespace, complexTypePrefix + termComplexGroup, ep, bComplexTypeMap);
+						addPropertyToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), ep, bComplexTypeMap);
 					}
 				} else {
 					// This means vocabulary is a group (complex type), so add it in a map
-					String complexPropertyName = complexTypePrefix + propertyName;
+					String complexPropertyName = complexTypePrefix + entityMetadata.getSimplePropertyName(propertyName);
 					addComplexType(namespace, complexPropertyName, bComplexTypeMap);
 					if (termComplexGroup != null) {
 						// This mean group (complex type) belongs to a group (complex type), so make sure add the parent group and add
 						// nested group as group property
-						addComplexType(namespace, complexTypePrefix + termComplexGroup, bComplexTypeMap);
-						addComplexTypeToComplexType(namespace, complexTypePrefix + termComplexGroup, complexPropertyName, isNullable, termList, bComplexTypeMap);
+						addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
+						addComplexTypeToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), complexPropertyName, isNullable, termList, bComplexTypeMap);
 					} else {
 						// This means group (complex type) belongs to an Entity, so simply build and add as a Entity prop
 						EdmProperty.Builder ep;
@@ -167,7 +167,7 @@ public class MetadataOData4j {
 				//Entity keys
 				if(entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true")) {
 					if(termComplex.equals("true")) {
-						keys.add(complexTypePrefix + propertyName);
+						keys.add(complexTypePrefix + entityMetadata.getSimplePropertyName(propertyName));
 					}
 					else {
 						keys.add(propertyName);

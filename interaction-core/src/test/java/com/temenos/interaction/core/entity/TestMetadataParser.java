@@ -84,7 +84,7 @@ public class TestMetadataParser {
 		Set<String> propertyKeys = metadata.getEntityMetadata("Customer").getPropertyVocabularyKeySet();
 		Assert.assertEquals(12, propertyKeys.size());
 		Assert.assertTrue(propertyKeys.contains("name"));
-		Assert.assertTrue(propertyKeys.contains("streetType"));
+		Assert.assertTrue(propertyKeys.contains("address.street.streetType"));
 		Assert.assertTrue(propertyKeys.contains("industry"));
 	}
 	
@@ -95,10 +95,10 @@ public class TestMetadataParser {
 		Assert.assertFalse(md.isPropertyComplex("name"));
 		Assert.assertTrue(md.isPropertyComplex("address"));
 		Assert.assertFalse(md.isPropertyComplex("number"));
-		Assert.assertTrue(md.isPropertyComplex("street"));
-		Assert.assertFalse(md.isPropertyComplex("streetType"));
-		Assert.assertFalse(md.isPropertyComplex("town"));
-		Assert.assertFalse(md.isPropertyComplex("postCode"));
+		Assert.assertTrue(md.isPropertyComplex("address.street"));
+		Assert.assertFalse(md.isPropertyComplex("address.street.streetType"));
+		Assert.assertFalse(md.isPropertyComplex("address.town"));
+		Assert.assertFalse(md.isPropertyComplex("address.postCode"));
 		Assert.assertFalse(md.isPropertyComplex("dateOfBirth"));
 		Assert.assertFalse(md.isPropertyComplex("sector"));
 		Assert.assertFalse(md.isPropertyComplex("industry"));
@@ -126,11 +126,11 @@ public class TestMetadataParser {
 		EntityMetadata md = metadata.getEntityMetadata("Customer");
 		Assert.assertEquals("", md.getPropertyComplexGroup("name"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("address"));
-		Assert.assertEquals("address", md.getPropertyComplexGroup("number"));
-		Assert.assertEquals("address", md.getPropertyComplexGroup("street"));
-		Assert.assertEquals("street", md.getPropertyComplexGroup("streetType"));
-		Assert.assertEquals("address", md.getPropertyComplexGroup("town"));
-		Assert.assertEquals("address", md.getPropertyComplexGroup("postCode"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("address.number"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("address.street"));
+		Assert.assertEquals("address.street", md.getPropertyComplexGroup("address.street.streetType"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("address.town"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("address.postCode"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("dateOfBirth"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("sector"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("industry"));
@@ -142,11 +142,11 @@ public class TestMetadataParser {
 		EntityMetadata md = metadataNonExpanded.getEntityMetadata("Customer");
 		Assert.assertEquals("", md.getPropertyComplexGroup("name"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("address"));
-		Assert.assertEquals("address", md.getPropertyComplexGroup("number"));
-		Assert.assertEquals("address", md.getPropertyComplexGroup("street"));
-		Assert.assertEquals("street", md.getPropertyComplexGroup("streetType"));
-		Assert.assertEquals("address", md.getPropertyComplexGroup("town"));
-		Assert.assertEquals("address", md.getPropertyComplexGroup("postCode"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("number"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("street"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("streetType"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("town"));
+		Assert.assertEquals("", md.getPropertyComplexGroup("postCode"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("dateOfBirth"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("sector"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("industry"));
@@ -158,11 +158,11 @@ public class TestMetadataParser {
 		EntityMetadata md = metadata.getEntityMetadata("Customer");
 		Assert.assertTrue(md.isPropertyText("name"));
 		Assert.assertTrue(md.isPropertyText("address"));
-		Assert.assertFalse(md.isPropertyText("number"));
-		Assert.assertTrue(md.isPropertyText("street"));
-		Assert.assertTrue(md.isPropertyText("streetType"));
-		Assert.assertTrue(md.isPropertyText("town"));
-		Assert.assertTrue(md.isPropertyText("postCode"));
+		Assert.assertFalse(md.isPropertyText("address.number"));
+		Assert.assertTrue(md.isPropertyText("address.street"));
+		Assert.assertTrue(md.isPropertyText("address.street.streetType"));
+		Assert.assertTrue(md.isPropertyText("address.town"));
+		Assert.assertTrue(md.isPropertyText("address.postCode"));
 		Assert.assertFalse(md.isPropertyText("dateOfBirth"));
 		Assert.assertTrue(md.isPropertyText("sector"));
 		Assert.assertTrue(md.isPropertyText("industry"));
@@ -174,11 +174,11 @@ public class TestMetadataParser {
 		EntityMetadata md = metadata.getEntityMetadata("Customer");
 		Assert.assertFalse(md.isPropertyNumber("name"));
 		Assert.assertFalse(md.isPropertyNumber("address"));
-		Assert.assertTrue(md.isPropertyNumber("number"));
-		Assert.assertFalse(md.isPropertyNumber("street"));
-		Assert.assertFalse(md.isPropertyNumber("streetType"));
-		Assert.assertFalse(md.isPropertyNumber("town"));
-		Assert.assertFalse(md.isPropertyNumber("postCode"));
+		Assert.assertTrue(md.isPropertyNumber("address.number"));
+		Assert.assertFalse(md.isPropertyNumber("address.street"));
+		Assert.assertFalse(md.isPropertyNumber("address.street.streetType"));
+		Assert.assertFalse(md.isPropertyNumber("address.town"));
+		Assert.assertFalse(md.isPropertyNumber("address.postCode"));
 		Assert.assertFalse(md.isPropertyNumber("dateOfBirth"));
 		Assert.assertFalse(md.isPropertyNumber("sector"));
 		Assert.assertFalse(md.isPropertyNumber("industry"));
@@ -190,7 +190,7 @@ public class TestMetadataParser {
 	public void testGetTermValue()
 	{		
 		EntityMetadata md = metadata.getEntityMetadata("Customer");
-		Assert.assertEquals(TermValueType.INTEGER_NUMBER, md.getTermValue("number", TermValueType.TERM_NAME));
+		Assert.assertEquals(TermValueType.INTEGER_NUMBER, md.getTermValue("address.number", TermValueType.TERM_NAME));
 		Assert.assertEquals(TermValueType.TEXT, md.getTermValue("sector", TermValueType.TERM_NAME));
 		Assert.assertEquals("false", md.getTermValue("sector", TermMandatory.TERM_NAME));
 		Assert.assertEquals("true", md.getTermValue("dateOfBirth", TermMandatory.TERM_NAME));

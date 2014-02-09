@@ -24,6 +24,7 @@ package com.temenos.interaction.core.entity;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.Stack;
 
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalTime;
@@ -58,26 +59,29 @@ public class TestMetadata {
 		Vocabulary vocAddress = new Vocabulary();
 		vocAddress.setTerm(new TermComplexType(true));
 		vocs.setPropertyVocabulary("address", vocAddress);
+
+		Stack<String> collectionNames = new Stack<String>();
+		collectionNames.push("address");
 		
 		Vocabulary vocNumbert = new Vocabulary();
 		vocNumbert.setTerm(new TermComplexGroup("address"));
 		vocNumbert.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
-		vocs.setPropertyVocabulary("number", vocNumbert);
+		vocs.setPropertyVocabulary("number", vocNumbert, collectionNames.elements());
 		
 		Vocabulary vocStreet = new Vocabulary();
 		vocStreet.setTerm(new TermComplexGroup("address"));
 		vocStreet.setTerm(new TermValueType(TermValueType.TEXT));
-		vocs.setPropertyVocabulary("street", vocStreet);
+		vocs.setPropertyVocabulary("street", vocStreet, collectionNames.elements());
 		
 		Vocabulary vocTown = new Vocabulary();
 		vocTown.setTerm(new TermComplexGroup("address"));
 		vocTown.setTerm(new TermValueType(TermValueType.TEXT));
-		vocs.setPropertyVocabulary("town", vocStreet);
+		vocs.setPropertyVocabulary("town", vocStreet, collectionNames.elements());
 		
 		Vocabulary vocPostCode = new Vocabulary();
 		vocPostCode.setTerm(new TermComplexGroup("address"));
 		vocPostCode.setTerm(new TermValueType(TermValueType.TEXT));
-		vocs.setPropertyVocabulary("postCode", vocPostCode);
+		vocs.setPropertyVocabulary("postCode", vocPostCode, collectionNames.elements());
 		
 		Vocabulary vocDob = new Vocabulary();
 		vocDob.setTerm(new TermComplexType(false));
@@ -107,10 +111,10 @@ public class TestMetadata {
 		Assert.assertEquals(10, propertyKeys.size());
 		Assert.assertTrue(propertyKeys.contains("name"));
 		Assert.assertTrue(propertyKeys.contains("address"));
-		Assert.assertTrue(propertyKeys.contains("number"));
-		Assert.assertTrue(propertyKeys.contains("street"));
-		Assert.assertTrue(propertyKeys.contains("town"));
-		Assert.assertTrue(propertyKeys.contains("postCode"));
+		Assert.assertTrue(propertyKeys.contains("address.number"));
+		Assert.assertTrue(propertyKeys.contains("address.street"));
+		Assert.assertTrue(propertyKeys.contains("address.town"));
+		Assert.assertTrue(propertyKeys.contains("address.postCode"));
 		Assert.assertTrue(propertyKeys.contains("dateOfBirth"));
 		Assert.assertTrue(propertyKeys.contains("sector"));
 		Assert.assertTrue(propertyKeys.contains("industry"));
@@ -121,10 +125,10 @@ public class TestMetadata {
 	{		
 		Assert.assertFalse(vocs.isPropertyComplex("name"));
 		Assert.assertTrue(vocs.isPropertyComplex("address"));
-		Assert.assertFalse(vocs.isPropertyComplex("number"));
-		Assert.assertFalse(vocs.isPropertyComplex("street"));
-		Assert.assertFalse(vocs.isPropertyComplex("town"));
-		Assert.assertFalse(vocs.isPropertyComplex("postCode"));
+		Assert.assertFalse(vocs.isPropertyComplex("address.number"));
+		Assert.assertFalse(vocs.isPropertyComplex("address.street"));
+		Assert.assertFalse(vocs.isPropertyComplex("address.town"));
+		Assert.assertFalse(vocs.isPropertyComplex("address.postCode"));
 		Assert.assertFalse(vocs.isPropertyComplex("dateOfBirth"));
 		Assert.assertFalse(vocs.isPropertyComplex("sector"));
 		Assert.assertFalse(vocs.isPropertyComplex("industry"));
@@ -135,10 +139,10 @@ public class TestMetadata {
 	{		
 		Assert.assertEquals("", vocs.getPropertyComplexGroup("name"));
 		Assert.assertEquals("", vocs.getPropertyComplexGroup("address"));
-		Assert.assertEquals("address", vocs.getPropertyComplexGroup("number"));
-		Assert.assertEquals("address", vocs.getPropertyComplexGroup("street"));
-		Assert.assertEquals("address", vocs.getPropertyComplexGroup("town"));
-		Assert.assertEquals("address", vocs.getPropertyComplexGroup("postCode"));
+		Assert.assertEquals("address", vocs.getPropertyComplexGroup("address.number"));
+		Assert.assertEquals("address", vocs.getPropertyComplexGroup("address.street"));
+		Assert.assertEquals("address", vocs.getPropertyComplexGroup("address.town"));
+		Assert.assertEquals("address", vocs.getPropertyComplexGroup("address.postCode"));
 		Assert.assertEquals("", vocs.getPropertyComplexGroup("dateOfBirth"));
 		Assert.assertEquals("", vocs.getPropertyComplexGroup("sector"));
 		Assert.assertEquals("", vocs.getPropertyComplexGroup("industry"));
@@ -149,10 +153,10 @@ public class TestMetadata {
 	{		
 		Assert.assertTrue(vocs.isPropertyText("name"));
 		Assert.assertTrue(vocs.isPropertyText("address"));
-		Assert.assertFalse(vocs.isPropertyText("number"));
-		Assert.assertTrue(vocs.isPropertyText("street"));
-		Assert.assertTrue(vocs.isPropertyText("town"));
-		Assert.assertTrue(vocs.isPropertyText("postCode"));
+		Assert.assertFalse(vocs.isPropertyText("address.number"));
+		Assert.assertTrue(vocs.isPropertyText("address.street"));
+		Assert.assertTrue(vocs.isPropertyText("address.town"));
+		Assert.assertTrue(vocs.isPropertyText("address.postCode"));
 		Assert.assertFalse(vocs.isPropertyText("dateOfBirth"));
 		Assert.assertTrue(vocs.isPropertyText("sector"));
 		Assert.assertTrue(vocs.isPropertyText("industry"));
@@ -163,10 +167,10 @@ public class TestMetadata {
 	{		
 		Assert.assertFalse(vocs.isPropertyNumber("name"));
 		Assert.assertFalse(vocs.isPropertyNumber("address"));
-		Assert.assertTrue(vocs.isPropertyNumber("number"));
-		Assert.assertFalse(vocs.isPropertyNumber("street"));
-		Assert.assertFalse(vocs.isPropertyNumber("town"));
-		Assert.assertFalse(vocs.isPropertyNumber("postCode"));
+		Assert.assertTrue(vocs.isPropertyNumber("address.number"));
+		Assert.assertFalse(vocs.isPropertyNumber("address.street"));
+		Assert.assertFalse(vocs.isPropertyNumber("address.town"));
+		Assert.assertFalse(vocs.isPropertyNumber("address.postCode"));
 		Assert.assertFalse(vocs.isPropertyNumber("dateOfBirth"));
 		Assert.assertFalse(vocs.isPropertyNumber("sector"));
 		Assert.assertFalse(vocs.isPropertyNumber("industry"));
@@ -180,7 +184,7 @@ public class TestMetadata {
 
 	@Test
 	public void testCreateEmptyEntityProperty() {
-		Assert.assertEquals(0, ((Long) vocs.createEmptyEntityProperty("number").getValue()).longValue());
+		Assert.assertEquals(0, ((Long) vocs.createEmptyEntityProperty("address.number").getValue()).longValue());
 		Assert.assertEquals("", vocs.createEmptyEntityProperty("name").getValue());
 		Assert.assertTrue(vocs.createEmptyEntityProperty("dateOfBirth").getValue() instanceof Date);
 	}

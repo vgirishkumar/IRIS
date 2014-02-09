@@ -334,7 +334,7 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
-		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
+		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity, OEntity.class);
 		er.setEntityName("Children");
 
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
@@ -397,11 +397,11 @@ public class TestHALProvider {
 		childProperties.add(OProperties.string("age", "2"));
 
 		OEntity childEntity = OEntities.create(createMockChildrenEntitySet(), childEntityKey, childProperties, new ArrayList<OLink>());
-		EntityResource<OEntity> childEntityResource = CommandHelper.createEntityResource(childEntity);
+		EntityResource<OEntity> childEntityResource = CommandHelper.createEntityResource(childEntity, OEntity.class);
 		childEntityResource.setEntityName("Children");
 
 		OEntity parentEntity = OEntities.create(createMockChildrenEntitySet(), parentEntityKey, parentProperties, new ArrayList<OLink>());
-		EntityResource<OEntity> parentEntityResource = CommandHelper.createEntityResource(parentEntity);
+		EntityResource<OEntity> parentEntityResource = CommandHelper.createEntityResource(parentEntity, OEntity.class);
 		parentEntityResource.setEntityName("Children");
 
 		
@@ -581,7 +581,7 @@ public class TestHALProvider {
 		links.add(mockLink("mother", "_person", "/rest.svc/humans/32", null));
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
-		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
+		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity, OEntity.class);
 		er.setEntityName("Children");
 		er.setLinks(links);
 		

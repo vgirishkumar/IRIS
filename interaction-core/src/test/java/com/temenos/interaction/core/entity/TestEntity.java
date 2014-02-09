@@ -65,20 +65,24 @@ public class TestEntity {
 		Assert.assertEquals("Customer", customer.getName());
 		Assert.assertEquals("T24", vocs.getVocabulary().getTerm(TermResourceManager.TERM_NAME).getValue()); 
 		Assert.assertEquals("Fred", customer.getProperties().getProperty("name").getValue());
-		Assert.assertEquals("String", vocs.getPropertyVocabulary("name").getTerm(TermValueType.TERM_NAME).getValue()); 
+		Assert.assertEquals("String", vocs.getPropertyVocabulary(customer.getProperties().getProperty("name").getFullyQualifiedName()).getTerm(TermValueType.TERM_NAME).getValue()); 
 	}
 	 
 	@Test
 	public void testComplexEntity() {
 		//Create entity
 		EntityProperties addressFields = new EntityProperties();
-		addressFields.setProperty(new EntityProperty("postcode", "WD8 1LK"));
+		EntityProperty postCodeProperty = new EntityProperty("postcode", "WD8 1LK");
+		addressFields.setProperty(postCodeProperty);
 		addressFields.setProperty(new EntityProperty("houseNumber", "45"));
 		
 		EntityProperties customerFields = new EntityProperties();
 		customerFields.setProperty(new EntityProperty("id", "123"));
 		customerFields.setProperty(new EntityProperty("name", "Fred"));
-		customerFields.setProperty(new EntityProperty("address", addressFields));
+		EntityProperty addressProperty = new EntityProperty("address", addressFields);
+		postCodeProperty.setParent(addressProperty);
+		
+		customerFields.setProperty(addressProperty);
 		Entity customer = new Entity("Customer", customerFields);
 		
 		Assert.assertEquals("Customer", customer.getName());

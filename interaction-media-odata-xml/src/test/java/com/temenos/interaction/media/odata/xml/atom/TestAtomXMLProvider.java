@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.GenericEntity;
@@ -274,26 +275,33 @@ public class TestAtomXMLProvider {
 		Vocabulary voc_MvSvGroup = new Vocabulary();
 		voc_MvSvGroup.setTerm(new TermComplexType(true));
 		entityMetadata.setPropertyVocabulary("MvSvGroup", voc_MvSvGroup);
+
+		Stack<String> mvParentProperties = new Stack<String>();
+		mvParentProperties.push("MvSvGroup");
 		
 		Vocabulary voc_MvSv = new Vocabulary();
 		voc_MvSv.setTerm(new TermComplexGroup("MvSvGroup"));
 		voc_MvSv.setTerm(new TermValueType(TermValueType.TEXT));
-		entityMetadata.setPropertyVocabulary("MvSv", voc_MvSv);
+		entityMetadata.setPropertyVocabulary("MvSv", voc_MvSv, mvParentProperties.elements());
 		
 		Vocabulary voc_MvSvStartGroup = new Vocabulary();
 		voc_MvSvStartGroup.setTerm(new TermComplexType(true));
 		voc_MvSvStartGroup.setTerm(new TermComplexGroup("MvSvGroup"));
-		entityMetadata.setPropertyVocabulary("MvSvStartGroup", voc_MvSvStartGroup);
+		entityMetadata.setPropertyVocabulary("MvSvStartGroup", voc_MvSvStartGroup, mvParentProperties.elements());
 	
+		Stack<String> svParentProperties = new Stack<String>();
+		svParentProperties.push("MvSvGroup");
+		svParentProperties.push("MvSvStartGroup");
+		
 		Vocabulary voc_MvSvStart = new Vocabulary();
 		voc_MvSvStart.setTerm(new TermComplexGroup("MvSvStartGroup"));
 		voc_MvSvStart.setTerm(new TermValueType(TermValueType.TEXT));
-		entityMetadata.setPropertyVocabulary("MvSvStart", voc_MvSvStart);
+		entityMetadata.setPropertyVocabulary("MvSvStart", voc_MvSvStart, svParentProperties.elements());
 		
 		Vocabulary voc_MvSvEnd = new Vocabulary();
 		voc_MvSvEnd.setTerm(new TermComplexGroup("MvSvStartGroup"));
 		voc_MvSvEnd.setTerm(new TermValueType(TermValueType.TEXT));
-		entityMetadata.setPropertyVocabulary("MvSvEnd", voc_MvSvEnd);
+		entityMetadata.setPropertyVocabulary("MvSvEnd", voc_MvSvEnd, svParentProperties.elements());
 
 		mockMetadata.setEntityMetadata(entityMetadata);
 
@@ -870,7 +878,7 @@ public class TestAtomXMLProvider {
 		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
 		
 		Metadata mockMetadata = createMockFlightMetadata();
-		EntityResource<CustomError> er = CommandHelper.createEntityResource("CustomError", new CustomError("My custom error message."));
+		EntityResource<CustomError> er = CommandHelper.createEntityResource("CustomError", new CustomError("My custom error message."), CustomError.class);
 		
         //Wrap entity resource into a JAX-RS GenericEntity instance
 		GenericEntity<EntityResource<CustomError>> ge = new GenericEntity<EntityResource<CustomError>>(er) {};
