@@ -106,11 +106,7 @@ public class AtomEntityFeedFormatWriter {
 	    		href = href.substring(baseUri.length());
 	    	}
 	    	String title = link.getTitle();
-	    	String targetEntitySetName = null;
-	    	if(link.getTransition().getTarget().getEntityName().equals(link.getTransition().getSource().getEntityName())) {
-	    		targetEntitySetName = entitySetName;
-	    	}
-			String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
+			String rel = link.getRel();
 	        writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
 	    }
 
@@ -120,7 +116,7 @@ public class AtomEntityFeedFormatWriter {
 	    
 	    //Write entries
 	    for (EntityResource<Entity> entityResource : collectionResource.getEntities()) {
-	    	entryWriter.writeEntry(writer, entitySetName, entityResource.getEntity(), entityResource.getLinks(), uriInfo, updated, entityMetadata, modelName);
+	    	entryWriter.writeEntry(writer, entitySetName, entityResource.getEntityName(), entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(), uriInfo, updated, entityMetadata, modelName);
 	    }
 
 	    if (skipToken != null) {

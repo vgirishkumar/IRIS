@@ -778,20 +778,22 @@ public class JPAResponderGen {
 	 */
 	public static void addNavPropertiesToEntityInfo(EntityInfo entityInfo, InteractionModel interactionModel) {
 		IMResourceStateMachine rsm = interactionModel.findResourceStateMachine(entityInfo.getClazz());
-		for(IMTransition transition : rsm.getEntityStateTransitions()) {
-			List<FieldInfo> properties = entityInfo.getAllFieldInfos();
-			List<String> annotations = new ArrayList<String>();
-			if (transition instanceof IMCollectionStateTransition) {
-				//Transition to collection state
-				//TODO fix reciprocal links
-				//annotations.add("@OneToMany(cascade = CascadeType.ALL, mappedBy = \"" + transition.getTargetStateName() + "\")");
-				//properties.add(new FieldInfo(transition.getTargetStateName(), "Collection<" + transition.getTargetEntityName() + ">", annotations));
-			} else if(transition instanceof IMEntityStateTransition){
-				//Transition to entity state
-				IMEntityStateTransition t = (IMEntityStateTransition) transition;
-				annotations.add("@JoinColumn(name = \"" + t.getLinkProperty() + "\", referencedColumnName = \"" + t.getTargetResourceStateMachine().getMappedEntityProperty() + "\", insertable = false, updatable = false)");
-				annotations.add("@ManyToOne(optional = false)");
-				properties.add(new FieldInfo(t.getTargetState().getName(), t.getTargetResourceStateMachine().getEntityName(), annotations));
+		if (rsm != null) {
+			for(IMTransition transition : rsm.getEntityStateTransitions()) {
+				List<FieldInfo> properties = entityInfo.getAllFieldInfos();
+				List<String> annotations = new ArrayList<String>();
+				if (transition instanceof IMCollectionStateTransition) {
+					//Transition to collection state
+					//TODO fix reciprocal links
+					//annotations.add("@OneToMany(cascade = CascadeType.ALL, mappedBy = \"" + transition.getTargetStateName() + "\")");
+					//properties.add(new FieldInfo(transition.getTargetStateName(), "Collection<" + transition.getTargetEntityName() + ">", annotations));
+				} else if(transition instanceof IMEntityStateTransition){
+					//Transition to entity state
+					IMEntityStateTransition t = (IMEntityStateTransition) transition;
+					annotations.add("@JoinColumn(name = \"" + t.getLinkProperty() + "\", referencedColumnName = \"" + t.getTargetResourceStateMachine().getMappedEntityProperty() + "\", insertable = false, updatable = false)");
+					annotations.add("@ManyToOne(optional = false)");
+					properties.add(new FieldInfo(t.getTargetState().getName(), t.getTargetResourceStateMachine().getEntityName(), annotations));
+				}
 			}
 		}
 	}

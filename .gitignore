@@ -46,9 +46,7 @@
 /interaction-dsl/com.temenos.interaction.rimdsl.ui/src/com/temenos/interaction/rimdsl/ui/quickfix/RIMDslQuickfixProvider.java
 /interaction-dsl/com.temenos.interaction.rimdsl/.antlr-generator-3.2.0.jar
 /interaction-dsl/com.temenos.interaction.rimdsl/plugin.xml_gen
-/interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/RIMDslRuntimeModule.java
 /interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/RIMDslStandaloneSetup.java
-/interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/formatting/RIMDslFormatter.java
 /interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/scoping/RIMDslScopeProvider.java
 /interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/validation/RIMDslJavaValidator.java
 /interaction-examples/interaction-hateoas-simple/.settings/org.eclipse.core.resources.prefs
@@ -103,3 +101,5 @@
 /interaction-examples/interaction-hateoas-restbucks/src-gen
 /interaction-examples/interaction-hateoas-restbucks/target
 /interaction-examples/interaction-hateoas-restbucks/.settings
+/interaction-examples/interaction-odata-error/src-gen
+/interaction-examples/interaction-odata-etag/src-gen

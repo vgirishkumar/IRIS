@@ -21,6 +21,9 @@ import com.temenos.interaction.rimdsl.rim.Expression
 import javax.inject.Inject
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import com.temenos.interaction.rimdsl.rim.ImplRef
+import com.temenos.interaction.rimdsl.rim.RelationConstant
+import com.temenos.interaction.rimdsl.rim.Relation
+import com.temenos.interaction.rimdsl.rim.TransitionEmbedded
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -66,9 +69,11 @@ class RIMDslGenerator implements IGenerator {
         import com.temenos.interaction.core.hypermedia.ResourceFactory;
         import com.temenos.interaction.core.hypermedia.ResourceState;
         import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+        import com.temenos.interaction.core.hypermedia.Transition;
         import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
         import com.temenos.interaction.core.hypermedia.expression.Expression;
         import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+        import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
         
         public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
             
@@ -103,28 +108,27 @@ class RIMDslGenerator implements IGenerator {
                 «IF !resources.contains(state.name) && resources.add(state.name)»«ENDIF»
                 // create transitions
                 «FOR t : state.transitions»
-                // create regular transition
+                «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
+                ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
+                «ENDIF»
                 «IF t instanceof Transition»
-                    «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
-                    «ENDIF»
-                    «produceTransitions(state, t as Transition)»
+                // create regular transition
+                «produceTransitions(state, t as Transition)»
                 «ENDIF»
 
-                // create foreach transition
                 «IF t instanceof TransitionForEach»
-                    «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
-                    «ENDIF»
-                    «produceTransitionsForEach(state, t as TransitionForEach)»
+                // create foreach transition
+                «produceTransitionsForEach(state, t as TransitionForEach)»
                 «ENDIF»
 
-                // create AUTO transition
                 «IF t instanceof TransitionAuto»
-                    «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
-                    ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
-                    «ENDIF»
-                    «produceTransitionsAuto(state, t as TransitionAuto)»
+                // create AUTO transition
+                «produceTransitionsAuto(state, t as TransitionAuto)»
+                «ENDIF»
+
+                «IF t instanceof TransitionEmbedded»
+                // create EMBEDDED transition
+                «produceTransitionsEmbedded(state, t as TransitionEmbedded)»
                 «ENDIF»
                 «ENDFOR»
                 return true;
@@ -222,7 +226,11 @@ class RIMDslGenerator implements IGenerator {
         «IF state.relations != null && state.relations.size > 0»
         String «state.name»RelationsStr = "";
         «FOR relation : state.relations»
-        «state.name»RelationsStr += "«relation.name» ";
+        «IF relation instanceof RelationConstant»
+        «state.name»RelationsStr += "«(relation as RelationConstant).name» ";
+        «ELSE»
+        «state.name»RelationsStr += "«(relation.relation as Relation).fqn» ";
+        «ENDIF»
         «ENDFOR»
         String[] «state.name»Relations = «state.name»RelationsStr.trim().split(" ");
         «ELSE»
@@ -271,7 +279,9 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition("«transition.event.httpMethod»", s«transition.state.name», uriLinkageProperties, 0, conditionalLinkExpressions, «if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            s«fromState.name».addTransition(new Transition.Builder()
+            		.method("«transition.event.httpMethod»").target(s«transition.state.name»).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
+            		.build());
 	'''
 
     def produceExpressions(Expression conditionExpression) '''
@@ -285,9 +295,9 @@ class RIMDslGenerator implements IGenerator {
 
     def produceExpression(Function expression) '''
         «IF expression instanceof OKFunction»
-            new ResourceGETExpression("«(expression as OKFunction).state.name»", ResourceGETExpression.Function.OK)«
+            new ResourceGETExpression(factory.getResourceState("«(expression as OKFunction).state.fullyQualifiedName»"), ResourceGETExpression.Function.OK)«
         ELSE»
-            new ResourceGETExpression("«(expression as NotFoundFunction).state.name»", ResourceGETExpression.Function.NOT_FOUND)«
+            new ResourceGETExpression(factory.getResourceState("«(expression as NotFoundFunction).state.fullyQualifiedName»"), ResourceGETExpression.Function.NOT_FOUND)«
         ENDIF»'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
@@ -296,7 +306,14 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransitionForEachItem("«transition.event.httpMethod»", s«transition.state.name», uriLinkageProperties, conditionalLinkExpressions, «if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»);
+            s«fromState.name».addTransition(new Transition.Builder()
+            		.flags(Transition.FOR_EACH)
+            		.method("«transition.event.httpMethod»")
+            		.target(s«transition.state.name»)
+            		.uriParameters(uriLinkageProperties)
+            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+            		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
+            		.build());
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
@@ -305,7 +322,28 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition(s«transition.state.name», uriLinkageProperties, conditionalLinkExpressions);
+            s«fromState.name».addTransition(new Transition.Builder()
+            		.flags(Transition.AUTO)
+            		.target(s«transition.state.name»)
+            		.uriParameters(uriLinkageProperties)
+            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+            		.build());
+    '''
+
+    def produceTransitionsEmbedded(State fromState, TransitionEmbedded transition) '''
+            conditionalLinkExpressions = null;
+        «IF transition.spec != null»
+            «produceUriLinkage(transition.spec.uriLinks)»
+            «produceExpressions(transition.spec.eval)»
+        «ENDIF»
+            s«fromState.name».addTransition(new Transition.Builder()
+            		.flags(Transition.EMBEDDED)
+            		.method("«transition.event.httpMethod»")
+            		.target(s«transition.state.name»)
+            		.uriParameters(uriLinkageProperties)
+            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+            		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
+            		.build());
     '''
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''

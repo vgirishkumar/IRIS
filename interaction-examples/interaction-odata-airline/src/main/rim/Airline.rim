@@ -17,16 +17,12 @@ event DELETE {
 command GETServiceDocument
 command GETException
 command GETEntity
-command GETEntityWithEtag
 command GETEntities
 command CreateEntity
 command GETNavProperty
 command UpdateEntity
-command UpdateEntityWithEtag
 command DeleteEntity
 command NoopGET
-command GETGenericErrorCommand
-command ThrowInteractionExceptionCommand
 
 initial resource ServiceDocument {
 	type: item
@@ -37,13 +33,6 @@ initial resource ServiceDocument {
 	GET -> Flights
 	GET -> FlightSchedules
 	GET -> Passengers
-	GET -> Extended
-}
-
-exception resource AirlineException {
-	type: item
-	entity: Exception
-	view: GETException
 }
 
 resource Airports {
@@ -222,7 +211,7 @@ resource Flights {
 resource flight {
 	type: item
 	entity: Flight
-	view: GETEntityWithEtag
+	view: GETEntity
 	path: "/Flights({id})"
 	PUT -> flight_pseudo_updated {
 		parameters [ id="{flightID}" ]
@@ -258,7 +247,7 @@ resource flight_pseudo_created {
 resource flight_pseudo_updated {
 	type: item
 	entity: Flight
-	actions [ UpdateEntityWithEtag ]
+	actions [ UpdateEntity ]
 	relations [ "edit" ]
 	path: "/Flights({id})"
 }
@@ -472,111 +461,6 @@ resource passenger_flight {
 		properties [ navproperty="flight", entity=Passenger ]
 	}
 	path: "/Passenger({id})/flight"
-}
-
-resource Extended {
-	type: item
-	entity: ServiceDocument
-	view: NoopGET
-	path: "/Extended({id})"
-	GET -> error503 {
-		title: "throw 503 error"
-		parameters [ id="{flightID}" ]
-	}
-	GET -> error504 {
-		title: "throw 504 error"
-		parameters [ id="{flightID}" ]
-	}
-	GET -> error500RuntimeException {
-		title: "throw 500 server runtime exception"
-		parameters [ id="{flightID}" ]
-	}
-	GET -> error403 {
-		title: "throw 403 error"
-		parameters [ id="{flightID}" ]
-	}
-	GET -> error500RequestFailure {
-		title: "throw 500 request failure"
-		parameters [ id="{flightID}" ]
-	}
-	GET -> error400 {
-		title: "throw 400 error"
-		parameters [ id="{flightID}" ]
-	}
-	GET -> error404 {
-		title: "throw 404 error"
-		parameters [ id="{flightID}" ]
-	}
-}
-
-resource error503 {
-	type: item
-	entity: Flight
-	view: ThrowInteractionExceptionCommand {
-		properties [ status="503", message="Failed to connect to resource manager." ]
-	}
-	path: "/Extended({id})/error503"
-}
-
-resource error504 {
-	type: item
-	entity: Flight
-	view: ThrowInteractionExceptionCommand {
-		properties [ status="504", message="Request has timed out." ]
-	}
-	path: "/Extended({id})/error504"
-}
-
-resource error500RuntimeException {
-	type: item
-	entity: Flight
-	view: ThrowInteractionExceptionCommand {
-		properties [ status="500", message="Unexpected error." ]
-	}
-	path: "/Extended({id})/error500RuntimeException"
-}
-
-resource error403 {
-	type: item
-	entity: Flight
-	view: ThrowInteractionExceptionCommand {
-		properties [ status="403", message="User is not allowed to access this resource." ]
-	}
-	path: "/Extended({id})/error403"
-}
-
-resource error500RequestFailure {
-	type: item
-	entity: Flight
-	view: GETGenericErrorCommand {
-		properties [ code="FAILURE", message="Error while processing request." ]
-	}
-	path: "/Extended({id})/error500RequestFailure"
-}
-
-resource error400 {
-	type: item
-	entity: Flight
-	view: GETGenericErrorCommand {
-		properties [ code="INVALID_REQUEST", message="Resource manager: 4 validation errors." ]
-	}
-	path: "/Extended({id})/error400"
-}
-
-resource error404 {
-	type: item
-	entity: Flight
-	view: ThrowInteractionExceptionCommand {
-		properties [ status="404", message="Resource manager: entity not found or currently unavailable." ]
-	}
-	path: "/Extended({id})/error404"
-	onerror --> errorHandler
-}
-
-resource errorHandler {
-	type: item
-	entity: Exception
-	view: GETException
 }
 
 }

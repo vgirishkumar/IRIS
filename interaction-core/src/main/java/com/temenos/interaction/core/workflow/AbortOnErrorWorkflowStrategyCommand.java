@@ -63,7 +63,7 @@ public class AbortOnErrorWorkflowStrategyCommand implements InteractionCommand {
 	 * @precondition at least one command has been added {@link addCommand}
 	 * @postcondition returned {@link Result) will be the result of a logical 
 	 * short-circuit evaluation of the supplied commands.  Short-circut will 
-	 * occur when the {@link Command} result is not {@link Result.SUCCESS}
+	 * occur when the {@link Command} result is not {@link InteractionCommand.Result.SUCCESS}
 	 */
 	@Override
 	public Result execute(InteractionContext ctx) throws InteractionException {

@@ -30,8 +30,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.hypermedia.ResourceState;
-
 /**
  * A simple reflection based ResourceFactory that is used by the generated Behaviour
  * class to construct runtime instances of our resources.

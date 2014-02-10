@@ -27,7 +27,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -46,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
@@ -56,7 +56,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandFailureException;
 import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -72,10 +71,12 @@ import com.temenos.interaction.core.hypermedia.Action.TYPE;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function;
+import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.web.RequestContext;
 
 public class TestResourceStateMachine {
@@ -87,6 +88,14 @@ public class TestResourceStateMachine {
         RequestContext.setRequestContext(ctx);
 	}
 
+	private HTTPHypermediaRIM mockRIMHandler(ResourceStateMachine rsm) {
+		NewCommandController mockCommandController = mockCommandController();
+		Metadata mockMetadata = mock(Metadata.class);
+		when(mockMetadata.getEntityMetadata(anyString())).thenReturn(mock(EntityMetadata.class));
+		HTTPHypermediaRIM rimHandler = new HTTPHypermediaRIM(mockCommandController, rsm, mockMetadata);
+		return rimHandler;
+	}
+	
 	/*
 	 * Evaluate custom link relation, via the Link header.  See (see rfc5988)
 	 * We return a Link if the header is set and the @{link Transition} can be found.
@@ -98,9 +107,9 @@ public class TestResourceStateMachine {
 		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking");
 
 		// view the resource if the toaster is cooking (could be time remaining)
-		existsState.addTransition("GET", cookingState);
+		existsState.addTransition(new Transition.Builder().method("GET").target(cookingState).build());
 		// stop the toast cooking
-		cookingState.addTransition("DELETE", existsState);
+		cookingState.addTransition(new Transition.Builder().method("DELETE").target(existsState).build());
 		// the entity for linkage mapping
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		// initialise application state
@@ -127,9 +136,9 @@ public class TestResourceStateMachine {
 		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking");
 
 		// view the resource if the toaster is cooking (could be time remaining)
-		existsState.addTransition("GET", cookingState);
+		existsState.addTransition(new Transition.Builder().method("GET").target(cookingState).build());
 		// stop the toast cooking
-		cookingState.addTransition("DELETE", existsState);
+		cookingState.addTransition(new Transition.Builder().method("DELETE").target(existsState).build());
 		// the entity for linkage mapping
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		// initialise application state
@@ -151,7 +160,7 @@ public class TestResourceStateMachine {
 		CollectionResourceState collectionState = new CollectionResourceState("machines", "MachineView", new ArrayList<Action>(), "/machines");
 
 		// create machines
-		collectionState.addTransition("POST", collectionState);
+		collectionState.addTransition(new Transition.Builder().method("POST").target(collectionState).build());
 		// the entity for linkage mapping
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		// initialise application state
@@ -177,7 +186,7 @@ public class TestResourceStateMachine {
 		ResourceState deletedState = new ResourceState(existsState, "deleted", new ArrayList<Action>());
 
 		// delete the toaster
-		existsState.addTransition("DELETE", deletedState);
+		existsState.addTransition(new Transition.Builder().method("DELETE").target(deletedState).build());
 		// the entity for linkage mapping
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(null);
 		// initialise application state
@@ -199,15 +208,15 @@ public class TestResourceStateMachine {
 		ResourceState history = new ResourceState(ENTITY_NAME, "REVE", new ArrayList<Action>(), "history/{id}");
 		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
-		begin.addTransition("PUT", unauthorised);
+		begin.addTransition(new Transition.Builder().method("PUT").target(unauthorised).build());
 		
-		unauthorised.addTransition("PUT", unauthorised);
-		unauthorised.addTransition("PUT", authorised);
-		unauthorised.addTransition("DELETE", end);
+		unauthorised.addTransition(new Transition.Builder().method("PUT").target(unauthorised).build());
+		unauthorised.addTransition(new Transition.Builder().method("PUT").target(authorised).build());
+		unauthorised.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
-		authorised.addTransition("PUT", history);
+		authorised.addTransition(new Transition.Builder().method("PUT").target(history).build());
 		
-		history.addTransition("PUT", reversed);
+		history.addTransition(new Transition.Builder().method("PUT").target(reversed).build());
 		
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
@@ -239,9 +248,9 @@ public class TestResourceStateMachine {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
 	
-		begin.addTransition("PUT", exists);
-		exists.addTransition("PUT", exists);
-		exists.addTransition("DELETE", end);
+		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		Collection<ResourceState> states = sm.getStates();
@@ -258,9 +267,9 @@ public class TestResourceStateMachine {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
 	
-		begin.addTransition("PUT", exists);
-		exists.addTransition("PUT", exists);
-		exists.addTransition("DELETE", end);
+		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		Map<String,Transition> transitions = sm.getTransitionsById();
@@ -277,9 +286,9 @@ public class TestResourceStateMachine {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
-		begin.addTransition("PUT", exists);
-		exists.addTransition("PUT", exists);
-		exists.addTransition("DELETE", end);
+		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
@@ -298,7 +307,7 @@ public class TestResourceStateMachine {
 	public void testInteractionByPathSingle() {
 		String ENTITY_NAME = "";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "/root");
-		begin.addTransition("GET", begin);
+		begin.addTransition(new Transition.Builder().method("GET").target(begin).build());
 
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		
@@ -318,8 +327,8 @@ public class TestResourceStateMachine {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
 	
-		exists.addTransition("PUT", exists);
-		exists.addTransition("DELETE", end);
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(exists);
 
@@ -342,8 +351,8 @@ public class TestResourceStateMachine {
 	
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "entityPropertyToUse");
-		exists.addTransition("PUT", exists, uriLinkageMap);
-		exists.addTransition("DELETE", end);
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).uriParameters(uriLinkageMap).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(exists);
 
@@ -364,10 +373,10 @@ public class TestResourceStateMachine {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState deleted = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
-		exists.addTransition("PUT", exists);
-		exists.addTransition("DELETE", deleted);
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
 		// auto transition
-		deleted.addTransition(exists);
+		deleted.addTransition(new Transition.Builder().flags(Transition.AUTO).target(exists).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(exists);
 
@@ -389,9 +398,9 @@ public class TestResourceStateMachine {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
-		begin.addTransition("PUT", exists);
-		exists.addTransition("PUT", exists);
-		exists.addTransition("DELETE", end);
+		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
@@ -412,15 +421,15 @@ public class TestResourceStateMachine {
 		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new ArrayList<Action>());
 	
 		// create draft
-		initial.addTransition("PUT", draft);
+		initial.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// updated draft
-		draft.addTransition("PUT", draft);
+		draft.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// publish
-		draft.addTransition("PUT", published);
+		draft.addTransition(new Transition.Builder().method("PUT").target(published).build());
 		// delete draft
-		draft.addTransition("DELETE", draftDeleted);
+		draft.addTransition(new Transition.Builder().method("DELETE").target(draftDeleted).build());
 		// delete published
-		published.addTransition("DELETE", publishedDeleted);
+		published.addTransition(new Transition.Builder().method("DELETE").target(publishedDeleted).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
@@ -464,15 +473,15 @@ public class TestResourceStateMachine {
 		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new ArrayList<Action>());
 	
 		// create draft
-		initial.addTransition("PUT", draft);
+		initial.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// updated draft
-		draft.addTransition("PUT", draft);
+		draft.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// publish
-		draft.addTransition("PUT", published);
+		draft.addTransition(new Transition.Builder().method("PUT").target(published).build());
 		// delete draft
-		draft.addTransition("DELETE", draftDeleted);
+		draft.addTransition(new Transition.Builder().method("DELETE").target(draftDeleted).build());
 		// delete published
-		published.addTransition("DELETE", publishedDeleted);
+		published.addTransition(new Transition.Builder().method("DELETE").target(publishedDeleted).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
@@ -511,13 +520,13 @@ public class TestResourceStateMachine {
 		ResourceState deleted = new ResourceState(initial, "deleted", null);
 	
 		// create draft
-		initial.addTransition("PUT", draft);
+		initial.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// updated draft
-		draft.addTransition("PUT", draft);
+		draft.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// delete draft
-		draft.addTransition("DELETE", deleted);
+		draft.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
 		// delete entity
-		initial.addTransition("DELETE", deleted);
+		initial.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
@@ -544,15 +553,15 @@ public class TestResourceStateMachine {
 		ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new ArrayList<Action>());
 	
 		// create draft
-		initial.addTransition("PUT", draft);
+		initial.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// updated draft
-		draft.addTransition("PUT", draft);
+		draft.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// publish
-		draft.addTransition("PUT", published);
+		draft.addTransition(new Transition.Builder().method("PUT").target(published).build());
 		// delete draft
-		draft.addTransition("DELETE", draftDeleted);
+		draft.addTransition(new Transition.Builder().method("DELETE").target(draftDeleted).build());
 		// delete published
-		published.addTransition("DELETE", publishedDeleted);
+		published.addTransition(new Transition.Builder().method("DELETE").target(publishedDeleted).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
@@ -580,11 +589,11 @@ public class TestResourceStateMachine {
   		ResourceState duffnotes = new ResourceState(ENTITY_NAME, "duffnotes", new ArrayList<Action>(), "/duff/notes");
 	
   		// create transitions
-  		initial.addTransition("GET", notesRegex);
-  		initial.addTransition("GET", notesEntity);
-  		initial.addTransition("GET", notesEntityQuoted);
-  		initial.addTransition("GET", notesNavProperty);
-  		initial.addTransition("GET", duffnotes);
+  		initial.addTransition(new Transition.Builder().method("GET").target(notesRegex).build());
+  		initial.addTransition(new Transition.Builder().method("GET").target(notesEntity).build());
+  		initial.addTransition(new Transition.Builder().method("GET").target(notesEntityQuoted).build());
+  		initial.addTransition(new Transition.Builder().method("GET").target(notesNavProperty).build());
+  		initial.addTransition(new Transition.Builder().method("GET").target(duffnotes).build());
   		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
@@ -609,15 +618,15 @@ public class TestResourceStateMachine {
 		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>());
 	
 		// create draft
-		initial.addTransition("PUT", draft);
+		initial.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// updated draft
-		draft.addTransition("PUT", draft);
+		draft.addTransition(new Transition.Builder().method("PUT").target(draft).build());
 		// publish
-		draft.addTransition("PUT", published);
+		draft.addTransition(new Transition.Builder().method("PUT").target(published).build());
 		// delete draft
-		draft.addTransition("DELETE", deleted);
+		draft.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
 		// delete published
-		published.addTransition("DELETE", deleted);
+		published.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
@@ -637,9 +646,9 @@ public class TestResourceStateMachine {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
-		begin.addTransition("PUT", exists);
-		exists.addTransition("PUT", exists);
-		exists.addTransition("DELETE", end);
+		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 
@@ -656,7 +665,7 @@ public class TestResourceStateMachine {
 		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", new ArrayList<Action>(), "/processes");
 		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", new ArrayList<Action>(), "/new");
 		// create new process
-		processes.addTransition("POST", newProcess);
+		processes.addTransition(new Transition.Builder().method("POST").target(newProcess).build());
 
 		// Process states
 		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", new ArrayList<Action>(), "/processes/{id}");
@@ -664,12 +673,12 @@ public class TestResourceStateMachine {
 		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", new ArrayList<Action>(), "/nextTask");
 		ResourceState processCompleted = new ResourceState(processInitial,	"completedProcess", new ArrayList<Action>());
 		// start new process
-		newProcess.addTransition("PUT", processInitial);
-		processInitial.addTransition("PUT", processStarted);
+		newProcess.addTransition(new Transition.Builder().method("PUT").target(processInitial).build());
+		processInitial.addTransition(new Transition.Builder().method("PUT").target(processStarted).build());
 		// do a task
-		processStarted.addTransition("GET", nextTask);
+		processStarted.addTransition(new Transition.Builder().method("GET").target(nextTask).build());
 		// finish the process
-		processStarted.addTransition("DELETE", processCompleted);
+		processStarted.addTransition(new Transition.Builder().method("DELETE").target(processCompleted).build());
 
 		ResourceStateMachine processSM = new ResourceStateMachine(processes);
 
@@ -678,9 +687,9 @@ public class TestResourceStateMachine {
 		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", new ArrayList<Action>(), "/completed");
 		ResourceState taskAbandoned = new ResourceState(taskAcquired, "abandoned", new ArrayList<Action>());
 		// abandon task
-		taskAcquired.addTransition("DELETE", taskAbandoned);
+		taskAcquired.addTransition(new Transition.Builder().method("DELETE").target(taskAbandoned).build());
 		// complete task
-		taskAcquired.addTransition("PUT", taskComplete);
+		taskAcquired.addTransition(new Transition.Builder().method("PUT").target(taskComplete).build());
 
 		ResourceStateMachine taskSM = new ResourceStateMachine(taskAcquired);
 		/*
@@ -718,7 +727,8 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> links = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), testResponseEntity);
 		assertNotNull(links);
 		assertTrue(links.isEmpty());
 	}
@@ -736,7 +746,8 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(createMockInteractionContext(initial), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> links = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -768,7 +779,8 @@ public class TestResourceStateMachine {
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> links = stateMachine.injectLinks(rimHandler, new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -799,7 +811,8 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> links = stateMachine.injectLinks(new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> links = stateMachine.injectLinks(rimHandler, new InteractionContext(mockPathparameters, mock(MultivaluedMap.class), initial, mock(Metadata.class)), testResponseEntity);
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -827,12 +840,13 @@ public class TestResourceStateMachine {
 		CollectionResourceState personsResource = new CollectionResourceState(PERSON_ENTITY, "collection", new ArrayList<Action>(), personResourcePath);
 		
 		// create the transitions (links)
-		initial.addTransition("GET", notesResource);
-		initial.addTransition("GET", personsResource);
+		initial.addTransition(new Transition.Builder().method("GET").target(notesResource).build());
+		initial.addTransition(new Transition.Builder().method("GET").target(personsResource).build());
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial);
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(null));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), new EntityResource<Object>(null));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -910,12 +924,12 @@ public class TestResourceStateMachine {
 		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockNotFound, "/pconfirmed", "confirmed".split(" "));
 		
 		// create transitions that indicate state
-		initial.addTransition(room);
-		initial.addTransition(cancelled);
-		initial.addTransition(paid);
-		// TODO, expressions should also be followed in determining resource state graph
-		initial.addTransition(pwaiting);
-		initial.addTransition(pconfirmed);
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(cancelled).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(paid).build());
+		// expressions can be added to the resource with the condition or anywhere in the resource state graph
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pwaiting).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pconfirmed).build());
 
 		// pseudo states that do the processing
 		ResourceState cancel = new ResourceState(cancelled, "psuedo_cancel", new ArrayList<Action>(), null, "cancel".split(" "));
@@ -925,18 +939,18 @@ public class TestResourceStateMachine {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		int transitionFlags = 0;  // regular transition
 		// create the transitions (links)
-		initial.addTransition("POST", cancel);
-		initial.addTransition("PUT", assignRoom);
+		initial.addTransition(new Transition.Builder().method("POST").target(cancel).build());
+		initial.addTransition(new Transition.Builder().method("PUT").target(assignRoom).build());
 		
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, transitionFlags, expressions, "Make a payment");
+		initial.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
-		stateMachine.setCommandController(mockCommandController());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -983,6 +997,67 @@ public class TestResourceStateMachine {
 	/*
 	 * We use links (hypermedia) for controlling / describing application 
 	 * state.  Test we return the conditional links to other resource in our state
+	 * machine; in this scenario the conditional link is only available as a transition from the
+	 * resource with the condition
+	 */
+	@Test
+	public void testShowConditionalLinksTargetOnlyExistsInExpression() {
+		String rootResourcePath = "/bookings/{bookingId}";
+		ResourceState initial = new ResourceState("BOOKING", "initial", new ArrayList<Action>(), rootResourcePath);
+		// room reserved for the booking
+		ResourceState room = new ResourceState(initial, "room", new ArrayList<Action>(), "/room");
+		ResourceState paid = new ResourceState(initial, "paid", new ArrayList<Action>(), "/payment", "pay".split(" "));
+		List<Action> mockNotFound = new ArrayList<Action>();
+		mockNotFound.add(new Action("notfound", TYPE.VIEW));
+		ResourceState pwaiting = new ResourceState(paid, "pwaiting", mockNotFound, "/pwaiting", "wait".split(" "));
+		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockNotFound, "/pconfirmed", "confirmed".split(" "));
+		
+		// create transitions that indicate state
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
+
+		// pseudo states that do the processing
+		ResourceState paymentDetails = new ResourceState(paid, "psuedo_setcarddetails", new ArrayList<Action>(), null, "pay".split(" "));
+
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		int transitionFlags = 0;  // regular transition
+		
+		List<Expression> expressions = new ArrayList<Expression>();
+		expressions.add(new ResourceGETExpression(pconfirmed, Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pwaiting, Function.NOT_FOUND));
+		room.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
+
+		// initialise and get the application state (links)
+		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(room), new EntityResource<Object>(new Booking("123")));
+
+		assertNotNull(unsortedLinks);
+		assertFalse(unsortedLinks.isEmpty());
+		assertEquals(2, unsortedLinks.size());
+		/*
+		 * expect 2 links
+		 * 'self'  (the room)
+		 * & link to PUT pwaiting (as the booking has not been paid 'pconfirmed' and is not waiting 'pwaiting')
+		 */
+		List<Link> links = new ArrayList<Link>(unsortedLinks);
+		// sort the links so we have a predictable order for this test
+		Collections.sort(links, new Comparator<Link>() {
+			@Override
+			public int compare(Link o1, Link o2) {
+				return o1.getId().compareTo(o2.getId());
+			}
+			
+		});
+		
+		// booking
+		assertEquals("</baseuri/bookings/123/room>; rel=\"self\"; title=\"room\"", links.get(0).toString());
+		// make a payment
+		assertEquals("</baseuri/bookings/123/payment>; rel=\"pay\"; title=\"Make a payment\"", links.get(1).toString());
+	}
+
+	/*
+	 * We use links (hypermedia) for controlling / describing application 
+	 * state.  Test we return the conditional links to other resource in our state
 	 * machine.
 	 */
 	@Test
@@ -1002,12 +1077,12 @@ public class TestResourceStateMachine {
 		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockFound, "/pconfirmed", "confirmed".split(" "));
 		
 		// create transitions that indicate state
-		initial.addTransition(room);
-		initial.addTransition(cancelled);
-		initial.addTransition(paid);
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(cancelled).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(paid).build());
 		// TODO, expressions should also be followed in determining resource state graph
-		initial.addTransition(pwaiting);
-		initial.addTransition(pconfirmed);
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pwaiting).build());
+		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pconfirmed).build());
 
 		// pseudo states that do the processing
 		ResourceState cancel = new ResourceState(cancelled, "psuedo_cancel", new ArrayList<Action>(), null, "cancel".split(" "));
@@ -1017,8 +1092,8 @@ public class TestResourceStateMachine {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		int transitionFlags = 0;  // regular transition
 		// create the transitions (links)
-		initial.addTransition("POST", cancel);
-		initial.addTransition("PUT", assignRoom);
+		initial.addTransition(new Transition.Builder().method("POST").target(cancel).build());
+		initial.addTransition(new Transition.Builder().method("PUT").target(assignRoom).build());
 		
 		/*
 		 *  In this test case we are mocking that the 'pwaiting' resource
@@ -1027,12 +1102,12 @@ public class TestResourceStateMachine {
 		List<Expression> expressions = new ArrayList<Expression>();
 		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
 		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
-		initial.addTransition("PUT", paymentDetails, uriLinkageMap, transitionFlags, expressions, "Make a payment");
+		initial.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(initial, new BeanTransformer());
-		stateMachine.setCommandController(mockCommandController());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initial), new EntityResource<Object>(new Booking("123")));
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -1085,13 +1160,14 @@ public class TestResourceStateMachine {
 		ResourceState noteResource = new ResourceState(NOTE_ENTITY, "item", new ArrayList<Action>(), noteItemResourcePath, "item".split(" "));
 		/* create the transitions (links) */
 		// link to form to create new note
-		notesResource.addTransition("POST", new ResourceState("stack", "new", new ArrayList<Action>(), "/notes/new", "new".split(" ")));
+		notesResource.addTransition(new Transition.Builder().method("POST").target(new ResourceState("stack", "new", new ArrayList<Action>(), "/notes/new", "new".split(" "))).build());
 		/*
 		 * define transition to view each item of the note collection
 		 * no linkage map as target URI element (self) must exist in source entity element (also self)
 		 */
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		notesResource.addTransitionForEachItem("GET", noteResource, uriLinkageMap);
+		notesResource.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(noteResource).uriParameters(uriLinkageMap).build());
+		
 		// the items of the collection
 		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
 		entities.add(new EntityResource<Object>(createTestNote("1")));
@@ -1101,7 +1177,8 @@ public class TestResourceStateMachine {
 
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> unsortedLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(notesResource), testResponseEntity);
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
@@ -1183,8 +1260,8 @@ public class TestResourceStateMachine {
 		 * no linkage map as target URI element (self) must exist in source entity element (also self)
 		 */
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		notesResource.addTransitionForEachItem("GET", noteResource, uriLinkageMap);
-		notesResource.addTransitionForEachItem("DELETE", noteFinalState, uriLinkageMap);
+		notesResource.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(noteResource).uriParameters(uriLinkageMap).build());
+		notesResource.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("DELETE").target(noteFinalState).uriParameters(uriLinkageMap).build());
 		// the items of the collection
 		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
 		entities.add(new EntityResource<Object>(createTestNote("1")));
@@ -1194,7 +1271,8 @@ public class TestResourceStateMachine {
 				
 		// initialise and get the application state (links)
 		ResourceStateMachine stateMachine = new ResourceStateMachine(notesResource, new BeanTransformer());
-		Collection<Link> baseLinks = stateMachine.injectLinks(createMockInteractionContext(notesResource), testResponseEntity);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		Collection<Link> baseLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(notesResource), testResponseEntity);
 		// just one link to self, not really testing that here
 		assertEquals(1, baseLinks.size());
 		
@@ -1259,14 +1337,15 @@ public class TestResourceStateMachine {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("filter", "arrivalAirportCode eq '{code}'");
 		uriLinkageMap.put("id", "{code}");
-		airport.addTransition("GET", flights, uriLinkageMap);
+		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123", "BA")));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+		Collection<Link> links = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("123", "BA")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1284,16 +1363,17 @@ public class TestResourceStateMachine {
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("$filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, uriLinkageMap);
+		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
 		uriLinkageMap.put("$filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, uriLinkageMap);
+		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+		Collection<Link> links = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1325,9 +1405,9 @@ public class TestResourceStateMachine {
 
 		Map<String, String> uriLinkage = new HashMap<String, String>();
 		uriLinkage.put("$filter", "arrivalAirportCode eq '{code}'");
-		airports.addTransition("GET", flights, uriLinkage, true, "arrival");
+		airports.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkage).flags(Transition.FOR_EACH).label("arrival").build());
 		uriLinkage.put("$filter", "departureAirportCode eq '{code}'");
-		airports.addTransition("GET", flights, uriLinkage, true, "departure");
+		airports.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkage).flags(Transition.FOR_EACH).label("departure").build());
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airports, new BeanTransformer());
@@ -1336,7 +1416,8 @@ public class TestResourceStateMachine {
 		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
 		entities.add(new EntityResource<Object>(createAirport("London Luton", "LTN")));
 		CollectionResource<Object> collectionResource = new CollectionResource<Object>(entities);
-		Collection<Link> collectionLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+		Collection<Link> collectionLinks = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
 
 		assertNotNull(collectionLinks);
 		assertFalse(collectionLinks.isEmpty());
@@ -1372,10 +1453,10 @@ public class TestResourceStateMachine {
 		Map<String, String> uriLinkage = new HashMap<String, String>();
 		// just using code because its available on our mock object, real life this is arrivalAirportCode
 		uriLinkage.put("id", "{code}");
-		airports.addTransition("GET", airport, uriLinkage, true, "origin");
+		airports.addTransition(new Transition.Builder().method("GET").target(airport).uriParameters(uriLinkage).flags(Transition.FOR_EACH).label("origin").build());
 		// just using code because its available on our mock object, real life this is departureAirportCode
 		uriLinkage.put("id", "{iata}");
-		airports.addTransition("GET", airport, uriLinkage, true, "destination");
+		airports.addTransition(new Transition.Builder().method("GET").target(airport).uriParameters(uriLinkage).flags(Transition.FOR_EACH).label("destination").build());
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airports, new BeanTransformer());
@@ -1384,7 +1465,8 @@ public class TestResourceStateMachine {
 		List<EntityResource<Object>> entities = new ArrayList<EntityResource<Object>>();
 		entities.add(new EntityResource<Object>(createAirport("London Luton", "LTN")));
 		CollectionResource<Object> collectionResource = new CollectionResource<Object>(entities);
-		Collection<Link> collectionLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+		Collection<Link> collectionLinks = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airports, mock(Metadata.class)), collectionResource);
 
 		assertNotNull(collectionLinks);
 		assertFalse(collectionLinks.isEmpty());
@@ -1421,22 +1503,23 @@ public class TestResourceStateMachine {
 		//Add link to list flights
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("myfilter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, uriLinkageMap);
+		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
 		uriLinkageMap.put("myfilter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flights, uriLinkageMap);
+		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
 
 		//Add link to list passengers for all those flights
 		uriLinkageMap.clear();
 		uriLinkageMap.put("myfilter", "{myfilter}");
-		flights.addTransition("GET", passengers, uriLinkageMap);
+		flights.addTransition(new Transition.Builder().method("GET").target(passengers).uriParameters(uriLinkageMap).build());
 		
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
 
 		//Generate links from airport to flights
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> airportLinks = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
+		Collection<Link> airportLinks = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 		assertNotNull(airportLinks);
 		assertFalse(airportLinks.isEmpty());
 		assertEquals(3, airportLinks.size());
@@ -1458,7 +1541,7 @@ public class TestResourceStateMachine {
 			}
 			
 			//Create links
-			Collection<Link> flightsLinks = rsm.injectLinks(new InteractionContext(pathParameters, queryParameters, flights, mock(Metadata.class)), new EntityResource<Object>(null));
+			Collection<Link> flightsLinks = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, queryParameters, flights, mock(Metadata.class)), new EntityResource<Object>(null));
 
 			if(airportLink.getId().equals("Airport.airport>GET(arrivalAirportCode eq '{code}')>Flight.Flights")) {
 				assertTrue(containsLink(flightsLinks, "Flight.Flights>GET({myfilter})>Passenger.Passengers", "/baseuri/Passengers()?myfilter=arrivalAirportCode+eq+'London+Luton'"));
@@ -1477,14 +1560,15 @@ public class TestResourceStateMachine {
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("apikey", "Some literal value");
-		airport.addTransition("GET", flights, uriLinkageMap);
+		airport.addTransition(new Transition.Builder().method("GET").target(flights).uriParameters(uriLinkageMap).build());
 
 		// initialise and get the application state (links)
 		ResourceStateMachine rsm = new ResourceStateMachine(airport, new BeanTransformer());
-		
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(rsm);
+
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		Collection<Link> links = rsm.injectLinks(new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
+		Collection<Link> links = rsm.injectLinks(rimHandler, new InteractionContext(pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")));
 
 		assertNotNull(links);
 		assertFalse(links.isEmpty());
@@ -1506,6 +1590,54 @@ public class TestResourceStateMachine {
 		assertEquals("/baseuri/FlightStats?apikey=Some+literal+value", sortedLinks.get(1).getHref());
 	}
 
+	/*
+	 * We use links (hypermedia) for controlling / describing application 
+	 * state.  Test we return the links for the collection itself.
+	 */
+	@Test
+	public void testEmbedMultipleResourcesEntityResource() {
+		String ENTITY = "ENTITY";
+        List<Action> mockActions = new ArrayList<Action>();
+        mockActions.add(new Action("found", Action.TYPE.VIEW, null));
+		ResourceState parentResource = new ResourceState(ENTITY, "parentResource", new ArrayList<Action>(), "/path");
+		ResourceState childResource1 = new ResourceState("PROFILE", "childResource1", mockActions, "/root/profile", "profile".split(" "));
+		ResourceState childResource2 = new ResourceState("PREFERENCE", "childResource2", mockActions, "/root/preferences", "preferences".split(" "));
+		/* create the transitions (links) */
+		parentResource.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(childResource1).build());
+		parentResource.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(childResource2).build());
+		
+		// the mock resources
+		EntityResource<Object> testResponseEntity = new EntityResource<Object>(ENTITY, createTestNote("rootobject"));
+
+		// initialise and get the application state (links)
+		ResourceStateMachine stateMachine = new ResourceStateMachine(parentResource, new BeanTransformer());
+		HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+		InteractionContext mockCtx = createMockInteractionContext(parentResource);
+		stateMachine.injectLinks(rimHandler, mockCtx, testResponseEntity);
+		Map<Transition,RESTResource> embeddedResources = stateMachine.embedResources(rimHandler, mock(HttpHeaders.class), mockCtx, testResponseEntity);
+
+		assertNotNull(embeddedResources);
+		assertFalse(embeddedResources.isEmpty());
+		assertEquals(2, embeddedResources.size());
+		/*
+		 * expect 2 resources - profile and preferences
+		 */
+		List<RESTResource> resources = new ArrayList<RESTResource>(embeddedResources.values());
+		// sort the resources so we have a predictable order for this test
+		Collections.sort(resources, new Comparator<RESTResource>() {
+			@Override
+			public int compare(RESTResource o1, RESTResource o2) {
+				return o1.getEntityName().compareTo(o2.getEntityName());
+			}
+		});
+		// preferences resources
+		assertEquals("PREFERENCE", resources.get(0).getEntityName());
+		// profile resource
+		assertEquals("PROFILE", resources.get(1).getEntityName());
+				
+	}
+
+	
 	@Test
 	public void testDetermineAction() {
 		String ENTITY_NAME = "";
@@ -1518,8 +1650,8 @@ public class TestResourceStateMachine {
   		actions.add(new Action("CreateEntity", Action.TYPE.ENTRY));
 		ResourceState created = new ResourceState(initial, "created", actions, "/created");
 	
-		initial.addTransition("PUT", notes);
-		initial.addTransition("POST", created);
+		initial.addTransition(new Transition.Builder().method("PUT").target(notes).build());
+		initial.addTransition(new Transition.Builder().method("POST").target(created).build());
 		
 		//Define resource state machine
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
@@ -1550,7 +1682,7 @@ public class TestResourceStateMachine {
   		actions.add(new Action("CreateEntity", Action.TYPE.ENTRY));
 		ResourceState created = new ResourceState(initial, "created", actions, "/created");
 	
-		initial.addTransition("POST", created);
+		initial.addTransition(new Transition.Builder().method("POST").target(created).build());
 		
 		//Define resource state machine
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
@@ -1576,8 +1708,8 @@ public class TestResourceStateMachine {
   		actions.add(new Action("CreateEntity", Action.TYPE.ENTRY));
 		ResourceState created = new ResourceState(initial, "created", actions, "/created");
 	
-		initial.addTransition("PUT", notes);
-		initial.addTransition("POST", created);
+		initial.addTransition(new Transition.Builder().method("PUT").target(notes).build());
+		initial.addTransition(new Transition.Builder().method("POST").target(created).build());
 		
 		//Define resource state machine
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
@@ -1595,7 +1727,7 @@ public class TestResourceStateMachine {
 		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking");
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("linkParam", "def");
-		existsState.addTransition("GET", cookingState, uriLinkageMap);
+		existsState.addTransition(new Transition.Builder().method("GET").target(cookingState).uriParameters(uriLinkageMap).build());
 		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
 
 		//Create entity 
@@ -1620,7 +1752,7 @@ public class TestResourceStateMachine {
 		ResourceState customerState = new ResourceState("Customer", "child", new ArrayList<Action>(), "/customers/{id}");
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{parent}");
-		customerState.addTransition("GET", customerState, uriLinkageMap);
+		customerState.addTransition(new Transition.Builder().method("GET").target(customerState).uriParameters(uriLinkageMap).build());
 		ResourceStateMachine stateMachine = new ResourceStateMachine(customerState, new EntityTransformer());
 
 		//Create entity 
@@ -1642,7 +1774,7 @@ public class TestResourceStateMachine {
 		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking({id})");
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{toasterId}");
-		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
+		existsState.addTransition(new Transition.Builder().method("GET").target(cookingState).uriParameters(uriLinkageMap).build());
 		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
 
 		//Create entity 
@@ -1659,96 +1791,6 @@ public class TestResourceStateMachine {
 		assertEquals("SuperToaster", pathParams.getFirst("id"));	
 	}
 
-	@Test(expected=AssertionError.class)
-	public void testGetResourceWithoutViewAction() {
-		//Create RSM
-		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
-		ResourceState cookingState = new ResourceState("toaster", "cooking", new ArrayList<Action>(), "/machines/toaster/cooking({id})");
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "toasterId");
-		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
-		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
-
-		//Test getResource with links
-		try {
-			stateMachine.getResource(cookingState, createMockInteractionContext(existsState));
-		}
-		catch(CommandFailureException cfe) {
-			fail(cfe.getMessage());
-		} 
-		catch (InteractionException ie) {
-			assertEquals("Resource state [toaster.cooking] does not have a view action.", ie.getMessage());
-		}
-	}
-
-	@Test(expected=CommandFailureException.class)
-	public void testGetResourceCommandFails() throws CommandFailureException {
-		//Create RSM
-		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
-		List<Action> mockActions = new ArrayList<Action>();
-		mockActions.add(new Action("notfound", TYPE.VIEW));
-		ResourceState cookingState = new ResourceState("toaster", "cooking", mockActions, "/machines/toaster/cooking({id})");
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "toasterId");
-		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
-		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
-		stateMachine.setCommandController(mockCommandController());
-		//Test getResource with links
-		try {
-			stateMachine.getResource(cookingState, createMockInteractionContext(existsState));
-		}
-		catch(CommandFailureException cfe) {
-			assertEquals("View command on resource state [toaster.cooking] has failed.", cfe.getMessage());
-			throw cfe;
-		} 
-		catch (InteractionException ie) {
-			fail(ie.getMessage());
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testGetResource() {
-		//Create RSM
-		ResourceState existsState = new ResourceState("toaster", "exists", new ArrayList<Action>(), "/machines/toaster");
-		List<Action> mockActions = new ArrayList<Action>();
-		mockActions.add(new Action("found", TYPE.VIEW));
-		ResourceState cookingState = new ResourceState("toaster", "cooking", mockActions, "/machines/toaster/cooking({id})");
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "toasterId");
-		existsState.addTransition("GET", cookingState, uriLinkageMap, null);
-		ResourceStateMachine stateMachine = new ResourceStateMachine(existsState, new EntityTransformer());
-		stateMachine.setCommandController(mockCommandController());
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		pathParams.add("id", "123");
-		InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), existsState, mock(Metadata.class));
-		
-		
-		try {
-			//Test getResource without links
-			RESTResource resource = stateMachine.getResource(cookingState, ctx, false);
-			EntityResource<Entity> er = (EntityResource<Entity>) resource.getGenericEntity().getEntity();
-			assertEquals("Customer", er.getEntity().getName());
-
-			//Test getResource with links
-			resource = stateMachine.getResource(cookingState, ctx);
-			er = (EntityResource<Entity>) resource.getGenericEntity().getEntity();
-			assertEquals("Customer", er.getEntity().getName());
-			assertNotNull(er.getLinks());
-			assertFalse(er.getLinks().isEmpty());
-			assertEquals(1, er.getLinks().size());
-			Link link = (Link) er.getLinks().toArray()[0];
-			assertEquals("self", link.getRel());
-		}
-		catch(CommandFailureException cfe) {
-			fail(cfe.getMessage());
-		} 
-		catch (InteractionException ie) {
-			fail(ie.getMessage());
-		}
-	}
-	
 	@SuppressWarnings({ "unused" })
 	private Object createTestNote(final String id) {
 		return new Object() {

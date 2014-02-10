@@ -22,7 +22,7 @@ package com.temenos.interaction.core.workflow;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -35,8 +35,8 @@ import java.util.List;
 import org.junit.Test;
 
 import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 
 public class TestAbortOnErrorWorkflowStrategyCommand {

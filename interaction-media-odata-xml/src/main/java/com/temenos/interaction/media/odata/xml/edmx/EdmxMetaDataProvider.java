@@ -33,6 +33,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -55,9 +56,8 @@ import com.temenos.interaction.core.resource.ResourceTypeHelper;
  */
 @Provider
 @Consumes({MediaType.APPLICATION_XML})
-@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_ATOM_XML})
+@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XHTML_XML, MediaType.TEXT_HTML})
 public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
-	@SuppressWarnings("unused")
 	@Context
 	private UriInfo uriInfo;
 	
@@ -94,6 +94,10 @@ public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, Me
 
 		final String edmxString;
 		if(ResourceTypeHelper.isType(type, genericType, MetaDataResource.class, EdmDataServices.class)) {
+			//Set response headers
+			if (httpHeaders != null) {
+				httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
+			}
 			MetaDataResource<EdmDataServices> metadataResource = (MetaDataResource<EdmDataServices>) resource;
 			StringWriter sw = new StringWriter();
 			EdmxMetaDataWriter.write(metadataResource.getMetadata(), sw);

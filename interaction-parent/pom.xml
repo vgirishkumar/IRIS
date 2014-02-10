@@ -39,16 +39,18 @@
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../useragent-examples/useragent-odata-html5</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
-		<module>../useragent-examples/T24-ft-useragent-javascript</module>
 		<module>../useragent-examples/useragent-hal-inspector</module>
 		<module>../useragent-examples/useragent-swagger-ui</module>
 		<module>../interaction-examples/interaction-hateoas-simple</module>
 		<module>../interaction-examples/interaction-hateoas-banking</module>
-		<module>../interaction-examples/T24-ft-interaction-banking</module>
+		<module>../interaction-examples/interaction-hateoas-restbucks</module>
 		<module>../interaction-examples/interaction-mashup-twitter</module>
 		<module>../interaction-examples/interaction-odata-northwind</module>
 		<module>../interaction-examples/interaction-odata-airline</module>
 		<module>../interaction-examples/interaction-odata-notes</module>
+		<module>../interaction-examples/interaction-odata-etag</module>
+		<module>../interaction-examples/interaction-odata-error</module>
+		<module>../interaction-examples/interaction-odata-embedded</module>
 		<module>../interaction-sdk-archetype</module>
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
@@ -114,7 +116,7 @@
 		<slf4j.osgi.import.instruction>org.slf4j.*;version="[1.5,1.7)"</slf4j.osgi.import.instruction>
 
 		<odata4j.version>0.7.0</odata4j.version>
-        <halbuilder.version>2.0.1-SNAPSHOT</halbuilder.version>
+        <halbuilder.version>3.0.1</halbuilder.version>
 		<powermock.version>1.4.11</powermock.version>
 		<wink.version>1.3.0</wink.version>
 		<slf4j.version>1.6.2</slf4j.version>
@@ -135,6 +137,7 @@
 						<exclude>**/*.sql</exclude>
 						<exclude>**/*.apt</exclude>
 						<exclude>**/*.json</exclude>
+						<exclude>**/*.js</exclude>
 					</excludes>
 				</configuration>
 				<executions>
@@ -193,8 +196,18 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.12</version>
-                </plugin>
+                    <version>2.14</version>
+					<configuration>
+						<!-- 
+						<parallel>classes</parallel>
+        				<threadCount>4</threadCount>
+        				-->
+						<!-- 
+        				<reuseForks>false</reuseForks>
+        				<forkCount>4</forkCount>
+        				-->
+   					</configuration>
+                    </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
@@ -342,7 +355,7 @@
             <!-- Libraries to support media types -->
             <dependency>
                 <groupId>com.theoryinpractise</groupId>
-                <artifactId>halbuilder</artifactId>
+                <artifactId>halbuilder-standard</artifactId>
                 <version>${halbuilder.version}</version>
             </dependency>
             <dependency>

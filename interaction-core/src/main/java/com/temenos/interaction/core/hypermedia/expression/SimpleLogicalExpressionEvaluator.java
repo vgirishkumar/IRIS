@@ -22,10 +22,13 @@ package com.temenos.interaction.core.hypermedia.expression;
  */
 
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 
 /**
  * A very simple Expression implementation that supports left to right, 'AND' expression
@@ -35,19 +38,28 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 public class SimpleLogicalExpressionEvaluator implements Expression {
 
 	private final List<Expression> expressions;
+	private final Set<Transition> transitions = new HashSet<Transition>();
 	
 	public SimpleLogicalExpressionEvaluator(List<Expression> expressions) {
 		this.expressions = expressions;
 		assert(this.expressions != null);
+		for (Expression e : expressions) {
+			transitions.addAll(e.getTransitions());
+		}
 	}
 	
 	@Override
-	public boolean evaluate(ResourceStateMachine hypermediaEngine, InteractionContext ctx) {
+	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
 		for (Expression e : expressions) {
-			if (!e.evaluate(hypermediaEngine, ctx))
+			if (!e.evaluate(rimHandler, ctx))
 				return false;
 		}
 		return true;
+	}
+	
+	@Override
+	public Set<Transition> getTransitions() {
+		return transitions;
 	}
 	
 	public String toString() {
