@@ -34,6 +34,8 @@ ResourceInteractionModel:
     	(
 	        (events += Event)*
     	    & (commands += Command)*
+    	    // MAY define a 'basepath:'
+            & basepath=BasePath?
         	& (relations += Relation)*
         	& (states += State)*
        	)
@@ -54,6 +56,10 @@ Command:
 
 CommandProperty:
     name=ID '=' (value=ID | value=STRING)
+;
+
+BasePath:
+    'basepath:' name=URISTRING
 ;
 
 Relation:

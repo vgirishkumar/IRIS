@@ -85,9 +85,9 @@ class RIMDslGenerator implements IGenerator {
 
             public «state.name»ResourceState(ResourceFactory factory) {
                 «IF state.type.isCollection»
-                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
                 «ELSEIF state.type.isItem»
-                super("«state.entity.name»", "«state.name»", createActions(), "«if (state.path != null) { state.path.name } else { "/" + state.name }»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
                 «ENDIF»
                 «IF state.isInitial»
                 setInitial(true);
@@ -209,18 +209,27 @@ class RIMDslGenerator implements IGenerator {
 		}
 	'''
 	
-	def produceResourceStates(State state) '''
+	def produceResourceStates(ResourceInteractionModel rim, State state) '''
             «produceActionSet(state, state.impl)»
             «produceRelations(state)»
             «IF state.type.isCollection»
-            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations, null);
+            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations, null);
             «ELSEIF state.type.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«if (state.path != null) { state.path.name } else { "/" + state.name }»", «state.name»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + state.path.name + "\")" }»);
+            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" }»);
             «ENDIF»
             «IF state.isException»
             s«state.name».setException(true);
             «ENDIF»
 	'''
+
+    def producePath(ResourceInteractionModel rim, State state) '''«
+    	// prepend the basepath
+	    if (rim.basepath != null) {
+		    if (state.path != null) { rim.basepath.name + state.path.name } else { rim.basepath.name + "/" + state.name }
+		} else {
+		    if (state.path != null) { state.path.name } else { "/" + state.name }
+		}
+    »'''
 
     def produceRelations(State state) '''
         «IF state.relations != null && state.relations.size > 0»
