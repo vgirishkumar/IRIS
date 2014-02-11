@@ -70,10 +70,7 @@ public class RetryWorkflowStrategyCommand implements InteractionCommand {
 		while ( ( maxRetryCount - retryCount ) > -1 ) {
 			try {
 				result = command.execute(ctx);
-				if (result == Result.SUCCESS || result == Result.FAILURE || 
-						result == Result.INVALID_REQUEST) {
-					break;
-				}
+				break;
 			} catch (InteractionException ex) {
 				if ( maxRetryCount < ++retryCount ) {
 					throw ex;
