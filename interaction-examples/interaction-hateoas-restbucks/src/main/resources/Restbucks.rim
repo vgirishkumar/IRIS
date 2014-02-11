@@ -1,6 +1,9 @@
 domain RestbucksModel {
 rim Restbucks {
 
+	// our Restbucks chain has gone global, lets use a franchise id to identify the individual store
+	basepath: "/{franchise}" 
+
 	relation order {
 		fqn: "http://relations.restbucks.com/order"
 	}
