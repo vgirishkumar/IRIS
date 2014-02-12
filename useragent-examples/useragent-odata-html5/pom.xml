@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>useragent-odata-html5</artifactId>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
   <name>useragent-odata-html5</name>
   <url>http://www.temenos.com</url>
 	
