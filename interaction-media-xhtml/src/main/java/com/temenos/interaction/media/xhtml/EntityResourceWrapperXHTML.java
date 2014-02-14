@@ -95,7 +95,7 @@ public class EntityResourceWrapperXHTML extends EntityResourceWrapper {
 			s += "</dl>";
 		}
 		else {
-			s += "<dd>" + entityMetadata.getPropertyValueAsString(name, value) + "</dd>";
+			s += "<dd>" + entityMetadata.getPropertyValueAsString(entityProperty.getFullyQualifiedName(), value) + "</dd>";
 		}
 		return s;
 	}
@@ -114,7 +114,7 @@ public class EntityResourceWrapperXHTML extends EntityResourceWrapper {
 		if(entityPropertyNames != null) {
 			for(String entityPropertyName : entityPropertyNames) {
 				Map<String, Object> data = getResource().getEntity();
-				Object value = data.get(entityPropertyName);
+				Object value = data.get(entityMetadata.getSimplePropertyName(entityPropertyName));
 				if(value != null && !value.getClass().equals(EntityProperties.class)) {
 					entityProperties.add(entityMetadata.getPropertyValueAsString(entityPropertyName, value));
 				}

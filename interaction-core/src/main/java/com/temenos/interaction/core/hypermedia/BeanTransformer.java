@@ -27,6 +27,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,8 +69,11 @@ public class BeanTransformer implements Transformer {
 			for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
 			    String propertyName = propertyDesc.getName();
 			    if (!ReservedProperty.contains(propertyName)) {
-				    Object value = propertyDesc.getReadMethod().invoke(entity);
-					map.put(propertyName, value);				
+			    	Method readMethod = propertyDesc.getReadMethod();
+			    	if (readMethod != null) {
+			    		Object value = readMethod.invoke(entity);
+			    		map.put(propertyName, value);
+			    	}
 			    }
 			}
 		} catch (IllegalArgumentException e) {
