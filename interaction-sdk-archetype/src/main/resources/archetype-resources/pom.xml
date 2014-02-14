@@ -286,7 +286,6 @@
         <groupId>com.temenos.interaction</groupId>
         <artifactId>useragent-odata-html5</artifactId>
         <version>${irisVersion}</version>
-        <type>war</type>
     </dependency>
   </dependencies>
 </project>

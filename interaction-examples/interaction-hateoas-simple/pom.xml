@@ -218,19 +218,16 @@
     <dependency>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>useragent-generic-javascript</artifactId>
-        <type>war</type>
     </dependency>
     <!-- Add dependency for our HAL inspector user-agent -->
     <dependency>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>useragent-hal-inspector</artifactId>
-        <type>war</type>
     </dependency>
     <!-- Add dependency for the Swagger user-agent -->
     <dependency>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>useragent-swagger-ui</artifactId>
-        <type>war</type>
     </dependency>
 
     <!-- Add dependency for our hal provider -->

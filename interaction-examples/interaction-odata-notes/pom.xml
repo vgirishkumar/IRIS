@@ -128,7 +128,6 @@
     <dependency>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>useragent-odata-html5</artifactId>
-        <type>war</type>
     </dependency>
     <!-- Add dependency for jetty-servlet Access-Control-Allow-Origin filter -->
     <dependency>

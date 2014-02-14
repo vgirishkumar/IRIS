@@ -303,31 +303,21 @@
 				<groupId>com.temenos.interaction</groupId>
 				<artifactId>useragent-generic-javascript</artifactId>
 				<version>${project.version}</version>
-				<type>war</type>
-			</dependency>
-			<dependency>
-				<groupId>com.temenos.interaction</groupId>
-				<artifactId>T24-ft-useragent-javascript</artifactId>
-				<version>${project.version}</version>
-				<type>war</type>
 			</dependency>
             <dependency>
                 <groupId>com.temenos.interaction</groupId>
                 <artifactId>useragent-hal-inspector</artifactId>
                 <version>${project.version}</version>
-                <type>war</type>
             </dependency>
             <dependency>
                 <groupId>com.temenos.interaction</groupId>
                 <artifactId>useragent-swagger-ui</artifactId>
                 <version>${project.version}</version>
-                <type>war</type>
             </dependency>
             <dependency>
                 <groupId>com.temenos.interaction</groupId>
                 <artifactId>useragent-odata-html5</artifactId>
                 <version>${project.version}</version>
-                <type>war</type>
             </dependency>
 
 			<!-- APIs -->
