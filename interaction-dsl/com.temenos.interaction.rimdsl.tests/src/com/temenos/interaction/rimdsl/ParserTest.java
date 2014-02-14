@@ -697,4 +697,38 @@ public class ParserTest {
 	    assertEquals("/AnotherResource()", ANOstate.getPath().getName());
 	}
 
+	private final static String BASE_PATHS_RIM = "" +
+	"rim Base {" + LINE_SEP +	
+	"	command GetEntity" + LINE_SEP +
+	"	command UpdateEntity" + LINE_SEP +
+	"	basepath: \"/{companyid}\"" + LINE_SEP +
+			
+	"initial resource A {" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	path: \"/A()\"" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
+	"}" + LINE_SEP +
+
+	"}" + LINE_SEP +  // end rim
+	"";
+
+	@Test
+	public void testParseBasePaths() throws Exception {
+		DomainModel domainModel = parser.parse(BASE_PATHS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be exactly one states
+		assertEquals(1, model.getStates().size());
+	    assertEquals("A", model.getStates().get(0).getName());
+
+	    // company basepath
+	    assertEquals("/{companyid}", model.getBasepath().getName());
+	    // resource path
+	    State Astate = model.getStates().get(0);
+	    assertEquals("/A()", Astate.getPath().getName());
+	}
+
 }

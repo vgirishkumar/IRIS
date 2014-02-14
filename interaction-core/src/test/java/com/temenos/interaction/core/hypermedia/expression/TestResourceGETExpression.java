@@ -127,8 +127,8 @@ public class TestResourceGETExpression {
 		initial.addTransition(new Transition.Builder().method("PUT").target(assignRoom).build());
 		
 		List<Expression> expressions = new ArrayList<Expression>();
-		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
-		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pconfirmed, Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pwaiting, Function.NOT_FOUND));
 		initial.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
 
 		return new ResourceStateMachine(initial);
@@ -142,10 +142,11 @@ public class TestResourceGETExpression {
 		rsm.setCommandController(mockCommandController());
 		InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
 		
-		ResourceGETExpression rgeOK = new ResourceGETExpression("pwaiting", Function.OK);
+		
+		ResourceGETExpression rgeOK = new ResourceGETExpression(rsm.getResourceStateByName("pwaiting"), Function.OK);
 		boolean result1 = rgeOK.evaluate(rimHandler, ctx);
 		assertFalse("We did a GET on 'pwaiting' and it was NOT_FOUND(404), therefore OK link condition evaluates to 'false'", result1);
-		ResourceGETExpression rgeNOT_FOUND = new ResourceGETExpression("pwaiting", Function.NOT_FOUND);
+		ResourceGETExpression rgeNOT_FOUND = new ResourceGETExpression(rsm.getResourceStateByName("pwaiting"), Function.NOT_FOUND);
 		boolean result2 = rgeNOT_FOUND.evaluate(rimHandler, ctx);
 		assertTrue("We did a GET on 'pwaiting' and it was NOT_FOUND(404), therefore NOT_FOUND link condition evaluates to 'true'", result2);
 	}
@@ -158,10 +159,10 @@ public class TestResourceGETExpression {
 		ResourceStateMachine rsm = rimHandler.getHypermediaEngine();
 		InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
 		
-		ResourceGETExpression rgeOK = new ResourceGETExpression("pconfirmed", Function.OK);
+		ResourceGETExpression rgeOK = new ResourceGETExpression(rsm.getResourceStateByName("pconfirmed"), Function.OK);
 		boolean result1 = rgeOK.evaluate(rimHandler, ctx);
 		assertTrue("We did a GET on 'pconfirmed' and it was OK(200), therefore OK link condition evaluates to 'true'", result1);
-		ResourceGETExpression rgeNOT_FOUND = new ResourceGETExpression("pconfirmed", Function.NOT_FOUND);
+		ResourceGETExpression rgeNOT_FOUND = new ResourceGETExpression(rsm.getResourceStateByName("pconfirmed"), Function.NOT_FOUND);
 		boolean result2 = rgeNOT_FOUND.evaluate(rimHandler, ctx);
 		assertFalse("We did a GET on 'pconfirmed' and it was OK(200), therefore NOT_FOUND link condition evaluates to 'false'", result2);
 	}

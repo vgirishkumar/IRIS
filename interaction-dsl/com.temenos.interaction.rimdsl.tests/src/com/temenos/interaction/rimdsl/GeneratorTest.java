@@ -713,7 +713,37 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"Test.AE\"));"));
 	}
+
+	private final static String RESOURCE_WITH_BASEPATH = "" +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"	basepath: \"/{companyid}\"" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"	path: \"/A\"" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"}" + LINE_SEP +
+			"";
 	
+	@Test
+	public void testGenerateResourceWithBasepath() throws Exception {
+		DomainModel domainModel = parseHelper.parse(RESOURCE_WITH_BASEPATH);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		// collection
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/{companyid}/A\", createLinkRelations(), null, null);"));
+	}
+
 	private final static String INCOMPLETE_RIM = "" +
 			"rim Test {" + LINE_SEP +
 			"	command GetEntity" + LINE_SEP +

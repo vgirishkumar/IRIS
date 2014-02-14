@@ -74,6 +74,10 @@ public class ResourceGETExpression implements Expression {
 	}
 
 	public String getState() {
+		String state = null;
+		if (transition != null) {
+			state = transition.getTarget().getName();
+		}
 		return state;
 	}
 	
