@@ -21,30 +21,64 @@ package com.temenos.interaction.sdk.entity;
  * #L%
  */
 
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class holds information about an entity
  */
 public class EMEntity {
 	private String name;
-	private List<EMProperty> properties = new ArrayList<EMProperty>();
+	private Map<String, EMProperty> properties = new HashMap<String, EMProperty>();
 
 	public EMEntity(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * Returns the name of this entity.
+	 * @return entity name
+	 */
 	public String getName() {
 		return name;
 	}
 
-	public List<EMProperty> getProperties() {
-		return properties;
+	/**
+	 * Returns all the properties belong to this entity.
+	 * @return properties
+	 */
+	public Collection<EMProperty> getProperties() {
+		return properties.values();
 	}
 
+	/**
+	 * Adds a property to this entity.
+	 * @param property
+	 */
 	public void addProperty(EMProperty property) {
-		properties.add(property);
+		properties.put(property.getName(), property);
+	}
+
+	/**
+	 * Returns <i>true</i> if this entity contains a property with the property
+	 * name.
+	 * 
+	 * @param propertyName
+	 * @return true if this entity contains the property, false otherwise
+	 */
+	public boolean contains(String propertyName) {
+		return properties.containsKey(propertyName);
+	}
+
+	/**
+	 * Returns the {@link EMProperty} instance for the property name. If this entity does not
+	 * contain a property for the property name then <i>null</i> is returned.
+	 * 
+	 * @param propertyName
+	 * @return property
+	 */
+	public EMProperty getProperty(String propertyName) {
+		return properties.get(propertyName);
 	}
 }
