@@ -77,13 +77,18 @@ public class MetadataOData4j {
 	private EdmDataServices edmDataServices;
 
 	/**
-	 * Construct the odata metadata
+	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
+	 * called 'ServiceDocument' and add an EntitySet to the metadata for any collection
+	 * resource with a transition from this 'ServiceDocument' resource.
 	 * @param metadata metadata
 	 */
 	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine)
 	{
-		assert(!(hypermediaEngine.getInitial() instanceof CollectionResourceState)) : "Initial state must be an individual resource state";
-		this.edmDataServices = createOData4jMetadata(metadata, hypermediaEngine);
+		ResourceState serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+		if (serviceDocument == null)
+			throw new RuntimeException("No 'ServiceDocument' found.");
+		assert(!(serviceDocument instanceof CollectionResourceState)) : "Initial state must be an individual resource state";
+		this.edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
 	}
 
 	/**
@@ -99,7 +104,7 @@ public class MetadataOData4j {
 	 * @param producers Set of odata producers
 	 * @return Merged EDM metadata
 	 */
-	public EdmDataServices createOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine) {
+	public EdmDataServices createOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine, ResourceState serviceDocument) {
 		String serviceName = metadata.getModelName();
 		String namespace = serviceName + Metadata.MODEL_SUFFIX;
 		Builder mdBuilder = EdmDataServices.newBuilder();
@@ -187,7 +192,7 @@ public class MetadataOData4j {
 		// Add Navigation Properties
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
 			// build associations
-			Map<String, EdmAssociation.Builder> bAssociationMap = buildAssociations(namespace, bEntityType, bEntityTypeMap, hypermediaEngine);
+			Map<String, EdmAssociation.Builder> bAssociationMap = buildAssociations(namespace, bEntityType, bEntityTypeMap, hypermediaEngine, serviceDocument);
 			bAssociations.addAll(bAssociationMap.values());
 
 			//add navigation properties
@@ -203,6 +208,7 @@ public class MetadataOData4j {
 							ResourceState targetState = entityTransition.getTarget();
 							if (sourceState.getEntityName().equals(entityName) 
 									&& !entityTransition.getTarget().isPseudoState()
+									&& !entityTransition.getTarget().equals(serviceDocument)
 									&& !(entityTransition.getSource() instanceof CollectionResourceState)) {
 								//We can have more than one navigation property for the same association
 								String navPropertyName = targetState.getName();
@@ -233,20 +239,20 @@ public class MetadataOData4j {
 				EdmEntityType.Builder entityType = bEntityTypeMap.get(state.getEntityName());
 				if (entityType == null) 
 					throw new RuntimeException("Entity type not found for " + state.getEntityName());
-				Transition fromInitialState = hypermediaEngine.getInitial().getTransition(state);
+				Transition fromInitialState = serviceDocument.getTransition(state);
 				if (fromInitialState != null) {
 					//Add entity set
 					EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
 					bEntitySetMap.put(state.getEntityName(), bEntitySet);
 				} else {
-					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+hypermediaEngine.getInitial().getName()+"]");
+					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
 				}
 			}
 		}
 
 		for (ResourceState state : hypermediaEngine.getStates()) {
 			if (state instanceof CollectionResourceState) {
-				Transition fromInitialState = hypermediaEngine.getInitial().getTransition(state);
+				Transition fromInitialState = serviceDocument.getTransition(state);
 				if (fromInitialState == null) {
 					EdmEntitySet.Builder bEntitySet = bEntitySetMap.get(state.getEntityName());
 					// Add Function
@@ -290,7 +296,7 @@ public class MetadataOData4j {
 		return mdBuilder.build();
 	}
 
-	private Map<String, EdmAssociation.Builder> buildAssociations(String namespace, EdmEntityType.Builder entityType, Map<String, EdmEntityType.Builder> bEntityTypeMap, ResourceStateMachine hypermediaEngine) {
+	private Map<String, EdmAssociation.Builder> buildAssociations(String namespace, EdmEntityType.Builder entityType, Map<String, EdmEntityType.Builder> bEntityTypeMap, ResourceStateMachine hypermediaEngine, ResourceState serviceDocument) {
 		// Obtain the relation between entities and write navigation properties
 		Map<String, EdmAssociation.Builder> bAssociationMap = new HashMap<String, EdmAssociation.Builder>();
 		//Map<Association name, Entity relation>
@@ -304,7 +310,8 @@ public class MetadataOData4j {
 			Map<String, String> multipleNavPropsToEntity = new HashMap<String, String>();		//Map<TargetEntityName, TargetStateName>
 			for(Transition entityTransition : entityTransitions) {
 				if (entityTransition.getSource().getEntityName().equals(entityName) 
-						&& !entityTransition.getTarget().isPseudoState()) {
+						&& !entityTransition.getTarget().isPseudoState()
+						&& !entityTransition.getTarget().equals(serviceDocument)) {
 					String targetEntityName = entityTransition.getTarget().getEntityName();
 					String targetStateName = entityTransition.getTarget().getName();
 					String lastTargetStateName = multipleNavPropsToEntity.get(targetEntityName);
@@ -326,6 +333,7 @@ public class MetadataOData4j {
 				String npName = targetState.getName();
 				if (sourceState.getEntityName().equals(entityName) 
 						&& !entityTransition.getTarget().isPseudoState()
+						&& !entityTransition.getTarget().equals(serviceDocument)
 						&& !npNames.contains(npName)
 						&& !(entityTransition.getSource() instanceof CollectionResourceState)) {		//We can have transitions to a resource state from multiple source states
 					// Use the entity names to define the relation

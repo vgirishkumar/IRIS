@@ -117,16 +117,13 @@ public class Link {
 	/**
 	 * Obtain the transition, i.e. the link relative to the REST service.
 	 * 
-	 * @param href Full URL
 	 * @param basePath  Path to REST service
-	 * @return Path of transition relative to REST service 
+	 * @return relativePath of transition relative to REST service 
 	 */
-	public String getHrefTransition(String basePath) {
-		if (!basePath.endsWith("/")) {
-			basePath += "/";
-		}
-		String regex = "(?<=" + basePath + ")\\S+";
-		Pattern p = Pattern.compile(regex);
+	public String getRelativeHref(String basePath) {
+		String baseUri = HypermediaTemplateHelper.getTemplatedBaseUri(basePath, href);
+		StringBuffer regex = new StringBuffer("(?<=" + baseUri + ")\\S+");
+		Pattern p = Pattern.compile(regex.toString());
 		Matcher m = p.matcher(href);
 		while (m.find()) {
 			return m.group();

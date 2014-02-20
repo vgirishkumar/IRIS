@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,6 +55,7 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -97,6 +99,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.EntityTransformer;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -123,11 +126,14 @@ public class TestAtomXMLProvider {
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
 		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
-			super(edmDataServices, mock(Metadata.class), mock(ResourceStateMachine.class), null);
+			this(edmDataServices, mock(Metadata.class));
 		}
 		public MockAtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata) {
 			//super(null, metadata, new EntityTransformer());
-			super(edmDataServices, metadata, mock(ResourceStateMachine.class), null);
+			super(edmDataServices, 
+					metadata, 
+					new ResourceStateMachine(new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/")), 
+					null);
 		}
 		public void setUriInfo(UriInfo uriInfo) {
 			super.setUriInfo(uriInfo);
@@ -214,7 +220,7 @@ public class TestAtomXMLProvider {
 		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
 		EdmProperty.Builder ep = EdmProperty.newBuilder("MyId").setType(EdmSimpleType.STRING);
 		properties.add(ep);
-		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName("Flight").addKeys(keys).addProperties(properties);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("FlightModelModel").setAlias("MyAlias").setName("Flight").addKeys(keys).addProperties(properties);
 		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Flight").setEntityType(eet);
 		List<EdmEntityType.Builder> mockEntityTypes = new ArrayList<EdmEntityType.Builder>();
 		mockEntityTypes.add(eet);
@@ -228,6 +234,7 @@ public class TestAtomXMLProvider {
 		mockSchemas.add(es.build());
 		when(mockEDS.getSchemas()).thenReturn(ImmutableList.copyOf(mockSchemas));
 		when(mockEDS.findEdmEntitySet(anyString())).thenReturn(ees.build());
+		when(mockEDS.getEdmEntitySet(any(EdmEntityType.class))).thenReturn(ees.build());
 		
 		return mockEDS;
 	}
@@ -242,18 +249,23 @@ public class TestAtomXMLProvider {
 		return edmDataServices;
 	}
 	
-	@SuppressWarnings("unchecked")
-	private EntityResource<OEntity> createMockEntityResourceOEntity(EdmEntitySet ees) {
-		EntityResource<OEntity> er = mock(EntityResource.class);
+	private EntityResource<Entity> createMockEntityResourceEntity(String name) {
+		//Create an Entity
+		EntityProperties properties = new EntityProperties();
+		properties.setProperty(new EntityProperty("id", "1"));
+		properties.setProperty(new EntityProperty("flight", "EI218"));
+		Entity entity = new Entity(name, properties);
+		return new EntityResource<Entity>(name, entity);
+	}
 
+	private EntityResource<OEntity> createMockEntityResourceOEntity(EdmEntitySet ees) {
 		//Create an OEntity
-		OEntityKey entityKey = OEntityKey.create("123");
+		OEntityKey entityKey = OEntityKey.create("1");
 		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
 		properties.add(OProperties.string("id", "1"));
 		properties.add(OProperties.string("flight", "EI218"));
 		OEntity entity = OEntities.create(ees, entityKey, properties, new ArrayList<OLink>());
-		when(er.getEntity()).thenReturn(entity);
-		return er;
+		return new EntityResource<OEntity>(entity);
 	}
 	
 	private Metadata createMockFlightMetadata() {
@@ -263,7 +275,7 @@ public class TestAtomXMLProvider {
 		EntityMetadata entityMetadata = new EntityMetadata("Flight");
 		
 		Vocabulary voc_id = new Vocabulary();
-		voc_id.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
+		voc_id.setTerm(new TermValueType(TermValueType.TEXT));
 		voc_id.setTerm(new TermIdField(true));
 		entityMetadata.setPropertyVocabulary("id", voc_id);
 		
@@ -396,7 +408,7 @@ public class TestAtomXMLProvider {
 	public void testUnhandledRawType() throws IOException {
 		EdmDataServices metadata = mock(EdmDataServices.class);
 
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), mock(ResourceStateMachine.class), new OEntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), mockResourceStateMachine(), new OEntityTransformer());
         // Wrap an unsupported resource into a JAX-RS GenericEntity instance
 		GenericEntity<MetaDataResource<String>> ge = new GenericEntity<MetaDataResource<String>>(new MetaDataResource<String>("")) {};
 		// will throw exception if we check the class properly
@@ -477,7 +489,7 @@ public class TestAtomXMLProvider {
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest/");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
-		when(uriInfo.getPath()).thenReturn("Flight(123)");
+		when(uriInfo.getPath()).thenReturn("Flight('123')");
 		p.setUriInfo(uriInfo);
 
 		//Serialize resource
@@ -501,6 +513,13 @@ public class TestAtomXMLProvider {
 		when(mockEDS.getEdmEntitySet(anyString())).thenReturn(ees);
 		
 		Metadata mockMetadata = createMockFlightMetadata();
+		// change id to integer for this test
+		EntityMetadata entityMetadata = mockMetadata.getEntityMetadata("Flight");
+		Vocabulary voc_id = new Vocabulary();
+		voc_id.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
+		voc_id.setTerm(new TermIdField(true));
+		entityMetadata.setPropertyVocabulary("id", voc_id);
+
 		EntityResource<Flight> er = createMockEntityResourceObject();
 		
         //Wrap entity resource into a JAX-RS GenericEntity instance
@@ -542,7 +561,7 @@ public class TestAtomXMLProvider {
 				createMockResourceState("fundstransfer", "FundsTransfer", false));
 
 		
-		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, metadata, mock(ResourceStateMachine.class), mock(Transformer.class));
+		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, metadata, mockResourceStateMachine(), mock(Transformer.class));
 		Collection<Link> processedLinks = null;
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link.Builder()
@@ -578,7 +597,7 @@ public class TestAtomXMLProvider {
 		uriLinkageMap.put("DebitAcctNo", "{Acc}");
 		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Debit funds transfers").build());
 		
-		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
+		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mockResourceStateMachine(), mock(Transformer.class));
 		Transition t = account.getTransition(fundsTransfers);
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
@@ -608,7 +627,7 @@ public class TestAtomXMLProvider {
 		uriLinkageMap.put("CreditAcctNo", "{Acc}");
 		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Credit funds transfers").build());
 		
-		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
+		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mockResourceStateMachine(), mock(Transformer.class));
 		List<Transition> transitions = account.getTransitions(fundsTransfers);
 		assertEquals(2, transitions.size());
 
@@ -643,10 +662,14 @@ public class TestAtomXMLProvider {
         RequestContext.setRequestContext(ctx);
 
         //Create rsm
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
 		ResourceState fundsTransfersIAuth = new CollectionResourceState("FundsTransfer", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
 		fundsTransfers.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfersIAuth).label("Unauthorised input records").build());
-		ResourceStateMachine rsm = new ResourceStateMachine(fundsTransfers);
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(fundsTransfers)
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		//Create collection resource
 		CollectionResource<Entity> cr = new CollectionResource<Entity>("FundsTransfers", new ArrayList<EntityResource<Entity>>());
@@ -656,7 +679,7 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockEdmDataServices("FundsTransfers"), mock(Metadata.class));
+		AtomXMLProvider p = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), mock(Metadata.class), rsm, null);
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -677,13 +700,379 @@ public class TestAtomXMLProvider {
 	    }
 	}
 	
+	private final static String COMPANY_COLLECTION_LINK_COLLECTION = "<?xml version='1.0' encoding='UTF-8'?>"
+			+ "<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xml:base=\"http://localhost:8080/responder/rest/MockCompany001/\">"
+				+ "<title type=\"text\">FundsTransfers</title>"
+				+ "<id>http://localhost:8080/responder/rest/MockCompany001/FundsTransfers</id>"
+				+ "<updated>2014-02-20T09:27:18Z</updated>"
+				+ "<link rel=\"http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers\" title=\"Unauthorised input records\" href=\"FundsTransfersIAuth\">"
+				+ "</link>"
+				+ "</feed>";
+
+	private ResourceStateMachine createCollectionToCollectionRSM() {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/{companyid}");
+		ResourceState fundsTransfers = new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/{companyid}/FundsTransfers");
+		ResourceState fundsTransfersIAuth = new CollectionResourceState("FundsTransfer", "FundsTransfersIAuth", new ArrayList<Action>(), "/{companyid}/FundsTransfersIAuth");
+		fundsTransfers.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfersIAuth).label("Unauthorised input records").build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(fundsTransfers)
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		return rsm;
+	}
+
+	@Test
+	public void testCollectionToCollectionEntityWithCompanyBasePath() throws Exception {
+		// initialise the thread local request context with requestUri and baseUri
+        RequestContext ctx = new RequestContext("http://localhost:8080/responder/rest", "/MockCompany001/FundsTransfers", null);
+        RequestContext.setRequestContext(ctx);
+
+        //Create rsm
+        ResourceStateMachine rsm = createCollectionToCollectionRSM();
+        ResourceState fundsTransfers = rsm.getResourceStateByName("FundsTransfers");
+        ResourceState fundsTransfersIAuth = rsm.getResourceStateByName("FundsTransfersIAuth");
+
+		//Create collection resource
+		CollectionResource<Entity> cr = new CollectionResource<Entity>("FundsTransfers", new ArrayList<EntityResource<Entity>>());
+		List<Link> links = new ArrayList<Link>();
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		pathParameters.add("companyid", "MockCompany001");
+		links.add(rsm.createLinkToTarget(fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters));
+		cr.setLinks(links);
+		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), rsm, mock(Transformer.class));
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
+		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		System.out.println(responseString);
+
+		//Check response
+		assertTrue(responseString.contains("href=\"FundsTransfersIAuth\""));
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(COMPANY_COLLECTION_LINK_COLLECTION, responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+
+	@Test
+	public void testCollectionToCollectionOEntityWithCompanyBasePath() throws Exception {
+		// initialise the thread local request context with requestUri and baseUri
+        RequestContext ctx = new RequestContext("http://localhost:8080/responder/rest", "/MockCompany001/FundsTransfers", null);
+        RequestContext.setRequestContext(ctx);
+
+        //Create rsm
+        ResourceStateMachine rsm = createCollectionToCollectionRSM();
+        ResourceState fundsTransfers = rsm.getResourceStateByName("FundsTransfers");
+        ResourceState fundsTransfersIAuth = rsm.getResourceStateByName("FundsTransfersIAuth");
+
+		//Create collection resource
+		CollectionResource<OEntity> cr = new CollectionResource<OEntity>("FundsTransfers", new ArrayList<EntityResource<OEntity>>());
+		List<Link> links = new ArrayList<Link>();
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		pathParameters.add("companyid", "MockCompany001");
+		links.add(rsm.createLinkToTarget(fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters));
+		cr.setLinks(links);
+		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), rsm, mock(Transformer.class));
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
+		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		System.out.println(responseString);
+
+		//Check response
+		assertTrue(responseString.contains("href=\"FundsTransfersIAuth\""));
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(COMPANY_COLLECTION_LINK_COLLECTION, responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+
+	private final static String COLLECTION_LINK_ITEM = "<?xml version='1.0' encoding='utf-8'?>"
+			+ "<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" "
+				+ "xml:base=\"http://localhost:8080/responder/rest/\">"
+			+ "<title type=\"text\">Flight</title>"
+			+ "<id>http://localhost:8080/responder/rest/FundsTransfers</id>"
+			+ "<updated>2014-02-20T08:56:32Z</updated>"
+				+ "<entry><id>http://localhost:8080/responder/rest/Flight('1')</id>"
+				+ "<title type=\"text\" />"
+				+ "<updated>2014-02-20T08:56:32Z</updated>"
+				+ "<author><name /></author>"
+				+ "<link rel=\"self\" title=\"Link to entity\" href=\"Flights('1')\" />"
+				+ "<category term=\"FlightModelModel.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" />"
+				+ "<content type=\"application/xml\">"
+				+ "<m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content>"
+				+ "</entry>"
+			+ "</feed>";
+
+	private ResourceStateMachine createCollectionToItemRSM(Transformer transformer) {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		ResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights");
+		ResourceState flight = new ResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flights('{id}')");
+		flights.addTransition(new Transition.Builder().method(HttpMethod.GET).target(flight).label("Link to entity").build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(flights)
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial, transformer);
+		return rsm;
+	}
+	
+	@Test
+	public void testCollectionToItemEntityBasePath() throws Exception {
+		// initialise the thread local request context with requestUri and baseUri
+        RequestContext ctx = new RequestContext("http://localhost:8080/responder/rest", "/FundsTransfers", null);
+        RequestContext.setRequestContext(ctx);
+
+        // metadata
+        EdmDataServices edmDataServices = createMockFlightEdmDataServices();
+        Metadata metadata = createMockFlightMetadata();
+        // Create rsm
+        ResourceStateMachine rsm = createCollectionToItemRSM(new EntityTransformer());
+        ResourceState flights = rsm.getResourceStateByName("Flights");
+        ResourceState flight = rsm.getResourceStateByName("Flight");
+        
+		// Build up some entities
+		List<EntityResource<Entity>> entities = new ArrayList<EntityResource<Entity>>();
+		EntityResource<Entity> er = createMockEntityResourceEntity("Flight");
+		List<Link> links = new ArrayList<Link>();
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		links.add(rsm.createLinkToTarget(flights.getTransition(flight), er.getEntity(), pathParameters));
+		er.setLinks(links);
+		entities.add(er);
+		// Create collection resource
+		CollectionResource<Entity> cr = new CollectionResource<Entity>("Flight", entities);
+		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(edmDataServices, metadata, rsm, mock(Transformer.class));
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
+		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		System.out.println(responseString);
+
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(COLLECTION_LINK_ITEM, responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+
+	@Test
+	public void testCollectionToItemOEntityBasePath() throws Exception {
+		// initialise the thread local request context with requestUri and baseUri
+        RequestContext ctx = new RequestContext("http://localhost:8080/responder/rest", "/FundsTransfers", null);
+        RequestContext.setRequestContext(ctx);
+
+        // metadata
+        EdmDataServices edmDataServices = createMockFlightEdmDataServices();
+        Metadata metadata = createMockFlightMetadata();
+        // Create rsm
+        ResourceStateMachine rsm = createCollectionToItemRSM(new OEntityTransformer());
+        ResourceState flights = rsm.getResourceStateByName("Flights");
+        ResourceState flight = rsm.getResourceStateByName("Flight");
+
+		// Build up some entities
+		List<EntityResource<OEntity>> oentities = new ArrayList<EntityResource<OEntity>>();
+		EntityResource<OEntity> er = createMockEntityResourceOEntity(edmDataServices.findEdmEntitySet("Flights"));
+		List<Link> links = new ArrayList<Link>();
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		links.add(rsm.createLinkToTarget(flights.getTransition(flight), er.getEntity(), pathParameters));
+		er.setLinks(links);
+		oentities.add(er);
+		// Create collection resource
+		CollectionResource<OEntity> cr = new CollectionResource<OEntity>("Flights", oentities);
+		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(edmDataServices, metadata, rsm, mock(Transformer.class));
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
+		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		System.out.println(responseString);
+
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(COLLECTION_LINK_ITEM, responseString);
+		myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+
+	private final static String COMPANY_COLLECTION_LINK_ITEM = "<?xml version='1.0' encoding='utf-8'?>"
+			+ "<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" "
+				+ "xml:base=\"http://localhost:8080/responder/rest/MockCompany001/\">"
+			+ "<title type=\"text\">Flight</title>"
+			+ "<id>http://localhost:8080/responder/rest/MockCompany001/FundsTransfers</id>"
+			+ "<updated>2014-02-20T08:56:32Z</updated>"
+				+ "<entry><id>http://localhost:8080/responder/rest/MockCompany001/Flight('1')</id>"
+				+ "<title type=\"text\" />"
+				+ "<updated>2014-02-20T08:56:32Z</updated>"
+				+ "<author><name /></author>"
+				+ "<link rel=\"self\" title=\"Link to entity\" href=\"Flights('1')\" />"
+				+ "<category term=\"FlightModelModel.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" />"
+				+ "<content type=\"application/xml\">"
+				+ "<m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content>"
+				+ "</entry>"
+			+ "</feed>";
+
+	private ResourceStateMachine createCompanyCollectionToItemRSM(Transformer transformer) {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/{companyid}");
+		ResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/{companyid}/Flights");
+		ResourceState flight = new ResourceState("Flight", "Flight", new ArrayList<Action>(), "/{companyid}/Flights('{id}')");
+		flights.addTransition(new Transition.Builder().method(HttpMethod.GET).target(flight).label("Link to entity").build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(flights)
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial, transformer);
+		return rsm;
+	}
+	
+	@Test
+	public void testCollectionToItemEntityWithCompanyBasePath() throws Exception {
+		// initialise the thread local request context with requestUri and baseUri
+        RequestContext ctx = new RequestContext("http://localhost:8080/responder/rest", "/MockCompany001/FundsTransfers", null);
+        RequestContext.setRequestContext(ctx);
+
+        // metadata
+        EdmDataServices edmDataServices = createMockFlightEdmDataServices();
+        Metadata metadata = createMockFlightMetadata();
+        // Create rsm
+        ResourceStateMachine rsm = createCompanyCollectionToItemRSM(new EntityTransformer());
+        ResourceState flights = rsm.getResourceStateByName("Flights");
+        ResourceState flight = rsm.getResourceStateByName("Flight");
+        
+		// Build up some entities
+		List<EntityResource<Entity>> entities = new ArrayList<EntityResource<Entity>>();
+		EntityResource<Entity> er = createMockEntityResourceEntity("Flight");
+		List<Link> links = new ArrayList<Link>();
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		pathParameters.add("companyid", "MockCompany001");
+		links.add(rsm.createLinkToTarget(flights.getTransition(flight), er.getEntity(), pathParameters));
+		er.setLinks(links);
+		entities.add(er);
+		// Create collection resource
+		CollectionResource<Entity> cr = new CollectionResource<Entity>("Flight", entities);
+		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(edmDataServices, metadata, rsm, mock(Transformer.class));
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
+		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		System.out.println(responseString);
+
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(COMPANY_COLLECTION_LINK_ITEM, responseString);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+
+	@Test
+	public void testCollectionToItemOEntityWithCompanyBasePath() throws Exception {
+		// initialise the thread local request context with requestUri and baseUri
+        RequestContext ctx = new RequestContext("http://localhost:8080/responder/rest", "/MockCompany001/FundsTransfers", null);
+        RequestContext.setRequestContext(ctx);
+
+        // metadata
+        EdmDataServices edmDataServices = createMockFlightEdmDataServices();
+        Metadata metadata = createMockFlightMetadata();
+        // Create rsm
+        ResourceStateMachine rsm = createCompanyCollectionToItemRSM(new OEntityTransformer());
+        ResourceState flights = rsm.getResourceStateByName("Flights");
+        ResourceState flight = rsm.getResourceStateByName("Flight");
+
+		// Build up some entities
+		List<EntityResource<OEntity>> oentities = new ArrayList<EntityResource<OEntity>>();
+		EntityResource<OEntity> er = createMockEntityResourceOEntity(edmDataServices.findEdmEntitySet("Flights"));
+		List<Link> links = new ArrayList<Link>();
+		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
+		pathParameters.add("companyid", "MockCompany001");
+		links.add(rsm.createLinkToTarget(flights.getTransition(flight), er.getEntity(), pathParameters));
+		er.setLinks(links);
+		oentities.add(er);
+		// Create collection resource
+		CollectionResource<OEntity> cr = new CollectionResource<OEntity>("Flights", oentities);
+		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(edmDataServices, metadata, rsm, mock(Transformer.class));
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
+		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
+		p.setUriInfo(uriInfo);
+
+		//Serialize resource
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, bos);
+		String responseString = new String(bos.toByteArray(), "UTF-8");
+		System.out.println(responseString);
+
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(COMPANY_COLLECTION_LINK_ITEM, responseString);
+		myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+	}
+
 	@Test
 	public void testLinkEntryToEntity() {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceState account = new ResourceState("Account", "customerAccount", new ArrayList<Action>(), "/CustomerAccounts('{id}')");
 		ResourceState currency = new ResourceState("Currency", "currency", new ArrayList<Action>(), "/Currencys('{id}')");
 		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(currency).label("currency").build());
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(account)
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		
-		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("Currencys"), createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
+		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("Currencys"), createMockMetadata("MyModel"), rsm, mock(Transformer.class));
 		Transition t = account.getTransition(currency);
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(t, t.getTarget().getRel(), "/Currencys('USD')", HttpMethod.GET));
@@ -703,12 +1092,16 @@ public class TestAtomXMLProvider {
 	}
 
 	@Test
-	public void testEmbeddedEntry() {
-		// Create the RIM
+	public void testEmbeddedEntry() throws URISyntaxException {
+        // Create the RIM
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceState parent = new ResourceState("Flight", "parent", new ArrayList<Action>(), "/Flight('{id}')");
 		ResourceState child = new ResourceState("Flight", "child", new ArrayList<Action>(), "/Flight('id')/child')");
 		parent.addTransition(new Transition.Builder().method(HttpMethod.GET).target(child).label("My Child Link").build());
-		ResourceStateMachine mockRsm = new ResourceStateMachine(parent);
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(parent)
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		
 		EdmDataServices edmDataServices = createMockFlightEdmDataServices();
 		EdmEntitySet persons = edmDataServices.findEdmEntitySet("Flight");
@@ -724,7 +1117,11 @@ public class TestAtomXMLProvider {
 		links.add(new Link("title", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/title", "Flight('USD')/child", "type", null));
 		accountEntityResource.setLinks(links);
 		
-		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), mockRsm, mock(Transformer.class));
+		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), rsm, mock(Transformer.class));
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI("http://localhost:8080/responder/rest"));
+		when(uriInfo.getPath()).thenReturn("/mock");
+		provider.setUriInfo(uriInfo);
 		provider.addExpandedLinks(accountEntityResource);
 		
 		Map<Transition,RESTResource> embeddedResources = accountEntityResource.getEmbedded();
@@ -735,7 +1132,7 @@ public class TestAtomXMLProvider {
 	
 	@Test
 	public void testSingleLinkToCollectionNotEntitySet() {
-		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceState fundsTransfer = new ResourceState("FundsTransfer", "fundsTransfer", new ArrayList<Action>(), "/FundsTransfers('{id}')");
 		ResourceState fundsTransfersIAuth = new CollectionResourceState("Dummy", "FundsTransfersIAuth", new ArrayList<Action>(), "/FundsTransfersIAuth");
 		serviceRoot.addTransition(new Transition.Builder().flags(Transition.AUTO).target(fundsTransfer).build());
@@ -745,7 +1142,7 @@ public class TestAtomXMLProvider {
 		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
 		when(edmDataServices.getEdmEntitySet(any(EdmEntityType.class))).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));
 		
-		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), mock(ResourceStateMachine.class), mock(Transformer.class));
+		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), new ResourceStateMachine(serviceRoot), mock(Transformer.class));
 		Transition t = fundsTransfer.getTransition(fundsTransfersIAuth);
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfersIAuth()", HttpMethod.GET));
@@ -952,4 +1349,117 @@ public class TestAtomXMLProvider {
 		return sb.toString();		
 	}
 	
+	public ResourceStateMachine mockResourceStateMachine() {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		return rsm;
+	}
+	
+	@Test
+	public void testBaseUri() throws URISyntaxException {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI("http://localhost:8080/responder/rest"));
+		when(uriInfo.getPath()).thenReturn("/test");
+
+		assertEquals("http://localhost:8080/responder/rest/", AtomXMLProvider.getBaseUri(initial, uriInfo));
+	}
+
+	@Test
+	public void testBaseUriNested() throws URISyntaxException {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI("http://localhost:8080/responder/rest"));
+		when(uriInfo.getPath()).thenReturn("/test/blah");
+
+		assertEquals("http://localhost:8080/responder/rest/", AtomXMLProvider.getBaseUri(initial, uriInfo));
+	}
+
+	@Test
+	public void testBaseUriServiceDocumentTemplate() throws URISyntaxException {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/{companyid}");
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI("http://localhost:8080/responder/rest"));
+		when(uriInfo.getPath()).thenReturn("/MockCompany001/test");
+
+		assertEquals("http://localhost:8080/responder/rest/MockCompany001/", AtomXMLProvider.getBaseUri(initial, uriInfo));
+	}
+
+	@Test
+	public void testBaseUriNestedServiceDocumentTemplate() throws URISyntaxException {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/{companyid}");
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI("http://localhost:8080/responder/rest"));
+		when(uriInfo.getPath()).thenReturn("/MockCompany001/test/blah");
+
+		assertEquals("http://localhost:8080/responder/rest/MockCompany001/", AtomXMLProvider.getBaseUri(initial, uriInfo));
+	}
+
+	@Test
+	public void testGetCurrentState() {
+        // Create rsm
+        ResourceStateMachine rsm = createCollectionToItemRSM(new EntityTransformer());
+        ResourceState serviceDocument = rsm.getResourceStateByName("ServiceDocument");
+        ResourceState flights = rsm.getResourceStateByName("Flights");
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), rsm, mock(Transformer.class));
+		p.setUriInfo(mock(UriInfo.class));
+		p.setRequestContext(mock(Request.class));
+		ResourceState result = p.getCurrentState(serviceDocument, "/Flights");
+		assertEquals(flights, result);
+	}
+
+	@Test
+	public void testGetCurrentStateCompany() {
+        // Create rsm (creates a service document with '/{companyid})
+        ResourceStateMachine rsm = createCompanyCollectionToItemRSM(new EntityTransformer());
+        ResourceState serviceDocument = rsm.getResourceStateByName("ServiceDocument");
+        ResourceState flights = rsm.getResourceStateByName("Flights");
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), rsm, mock(Transformer.class));
+		p.setUriInfo(mock(UriInfo.class));
+		p.setRequestContext(mock(Request.class));
+		ResourceState result = p.getCurrentState(serviceDocument, "/Flights");
+		assertEquals(flights, result);
+	}
+
+	@Test
+	public void testGetCurrentStateCompanyNoPath() {
+        // Create rsm (creates a service document with '/{companyid})
+        ResourceStateMachine rsm = createCompanyCollectionToItemRSM(new EntityTransformer());
+        ResourceState serviceDocument = rsm.getResourceStateByName("ServiceDocument");
+        ResourceState flights = rsm.getResourceStateByName("Flights");
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), rsm, mock(Transformer.class));
+		p.setUriInfo(mock(UriInfo.class));
+		p.setRequestContext(mock(Request.class));
+		ResourceState result = p.getCurrentState(serviceDocument, "Flights");
+		assertEquals(flights, result);
+	}
+
+	@Test
+	public void testGetCurrentStateCompanyWithPath() {
+        // Create rsm (creates a service document with '/{companyid}/)
+		ResourceState serviceDocument = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/{companyid}/");
+		ResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/{companyid}/Flights");
+		serviceDocument.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(flights)
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(serviceDocument, mock(Transformer.class));
+
+		//Create provider
+		AtomXMLProvider p = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), rsm, mock(Transformer.class));
+		p.setUriInfo(mock(UriInfo.class));
+		p.setRequestContext(mock(Request.class));
+		ResourceState result = p.getCurrentState(serviceDocument, "Flights");
+		assertEquals(flights, result);
+	}
+
 }

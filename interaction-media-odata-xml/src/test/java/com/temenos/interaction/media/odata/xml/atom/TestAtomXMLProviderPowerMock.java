@@ -86,8 +86,11 @@ public class TestAtomXMLProviderPowerMock {
 		
 		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
-		ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource/{id}"));
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource/{id}"))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
@@ -129,8 +132,11 @@ public class TestAtomXMLProviderPowerMock {
 		
 		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
-		ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource('{id}')"));
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource('{id}')"))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
@@ -172,8 +178,11 @@ public class TestAtomXMLProviderPowerMock {
 	public void testReadPathNoEntityKey() throws Exception {
 		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
-		ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource"));
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource"))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
@@ -203,8 +212,11 @@ public class TestAtomXMLProviderPowerMock {
 	@Test
 	public void testReadPath404() throws Exception {
 		EdmDataServices metadata = mock(EdmDataServices.class);
-		ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState("SomeResource", "initial", new ArrayList<Action>(), "/test/someresource"));
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState("SomeResource", "initial", new ArrayList<Action>(), "/test/someresource"))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
@@ -238,8 +250,11 @@ public class TestAtomXMLProviderPowerMock {
 	public void testReadEntityResourceOData() throws Exception {
 		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
-		ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test('{id}')"));
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test('{id}')"))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
@@ -282,8 +297,11 @@ public class TestAtomXMLProviderPowerMock {
 		mockStatic(OEntityKey.class);
 		
 		EdmDataServices metadata = createAirlineEdmMetadata();//mock(EdmDataServices.class);
-		ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test()"));
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test()"))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		// don't do anything when trying to read context
@@ -317,13 +335,15 @@ public class TestAtomXMLProviderPowerMock {
 		mockStatic(OEntityKey.class);
 		
 		EdmDataServices metadata = createAirlineEdmMetadata();//mock(EdmDataServices.class);
-		ResourceState initial = new CollectionResourceState("Flight", "SomeResources", new ArrayList<Action>(), "/test()");
-		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/1")).build());
-		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/2")).build());
-		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/3")).build());
-		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/4")).build());
-		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/5")).build());
-		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/navproperty")).build());
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		CollectionResourceState flights = new CollectionResourceState("Flight", "SomeResources", new ArrayList<Action>(), "/test()");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(flights).build());
+		flights.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/1")).build());
+		flights.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/2")).build());
+		flights.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/3")).build());
+		flights.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/4")).build());
+		flights.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/5")).build());
+		flights.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("SomeOtherResource", "nav", new ArrayList<Action>(), "/test()/navproperty")).build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
@@ -357,8 +377,11 @@ public class TestAtomXMLProviderPowerMock {
 	public void testReadNullContent() throws Exception {
 		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
-		ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState("Flight", "initial", new ArrayList<Action>(), "/test/someresource"));
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState("Flight", "initial", new ArrayList<Action>(), "/test/someresource"))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		
 		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
@@ -383,8 +406,11 @@ public class TestAtomXMLProviderPowerMock {
 	public void testReadEmptyContents() throws Exception {
 		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
-		ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState("Flight", "initial", new ArrayList<Action>(), "/test/someresource"));
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState("Flight", "initial", new ArrayList<Action>(), "/test/someresource"))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		
 		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
@@ -414,7 +440,7 @@ public class TestAtomXMLProviderPowerMock {
 	}
 	private EdmDataServices createAirlineEdmMetadata() {
 		// Create mock state machine with entity sets
-		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		serviceRoot.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule")).build());
 		serviceRoot.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight")).build());
 		serviceRoot.addTransition(new Transition.Builder().method(HttpMethod.GET).target(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline")).build());

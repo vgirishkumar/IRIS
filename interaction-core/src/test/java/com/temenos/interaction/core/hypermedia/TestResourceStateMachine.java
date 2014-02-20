@@ -1787,7 +1787,7 @@ public class TestResourceStateMachine {
 		
 		//Evaluate test
 		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters);
-		MultivaluedMap<String, String> pathParams = stateMachine.getPathParametersForTargetState(existsState.getTransition(cookingState), transProps);
+		MultivaluedMap<String, String> pathParams = HypermediaTemplateHelper.getPathParametersForTargetState(existsState.getTransition(cookingState), transProps);
 		assertEquals("SuperToaster", pathParams.getFirst("id"));	
 	}
 

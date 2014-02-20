@@ -39,7 +39,7 @@ public class Behaviour {
 
 	public ResourceState getSimpleODataInteractionModel() {
 		// the service root
-		ResourceState initialState = new ResourceState("ServiceDocument", "begin", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
+		ResourceState initialState = new ResourceState("ServiceDocument", "ServiceDocument", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
 		ResourceState metadata = new ResourceState("Metadata", "metadata", createActionList(new Action("GETMetadata", Action.TYPE.VIEW), null), "/$metadata");
 
 		ResourceStateMachine categories = getCategoriesSM();

@@ -32,6 +32,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.wink.common.http.HttpStatus;
 
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
@@ -157,6 +158,6 @@ public class ResourceGETExpression implements Expression {
    		}    		
     	
     	//apply transition properties to path parameters 
-    	return hypermediaEngine.getPathParametersForTargetState(transition, transitionProperties);
+    	return HypermediaTemplateHelper.getPathParametersForTargetState(transition, transitionProperties);
 	}
 }

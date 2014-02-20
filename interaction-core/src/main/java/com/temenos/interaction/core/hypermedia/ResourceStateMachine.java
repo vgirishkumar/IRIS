@@ -36,9 +36,9 @@ import java.util.regex.Pattern;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
-import javax.ws.rs.core.Response.Status;
 
 import org.apache.wink.common.http.HttpStatus;
 import org.slf4j.Logger;
@@ -70,8 +70,6 @@ import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand
 public class ResourceStateMachine {
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
 	
-	public static Pattern TEMPLATE_PATTERN = Pattern.compile("\\{(.*?)\\}");
-
 	public final ResourceState initial;
 	public final ResourceState exception;
 	public final Transformer transformer;
@@ -172,6 +170,7 @@ public class ResourceStateMachine {
 	
 	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
+		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
 		assert(initialState != null);
 		assert(exceptionState == null || exceptionState.isException());
 		this.initial = initialState;
@@ -820,49 +819,12 @@ public class ResourceStateMachine {
 		if (linkParameters != null) {
 			for (String key : linkParameters.keySet()) {
 				String value = linkParameters.get(key);
-				value = templateReplace(value, transitionProps);
+				value = HypermediaTemplateHelper.templateReplace(value, transitionProps);
 				transitionProps.put(key, value);
 			}
 		}
 		
 		return transitionProps;
-	}
-
-	/**
-	 * Provide path parameters for a transition's target state.
-	 * @param transition transition
-	 * @param transitionProperties transition properties 
-	 * @return path parameters
-	 */
-	public MultivaluedMap<String, String> getPathParametersForTargetState(Transition transition, Map<String, Object> transitionProperties) {
-		//Parse source and target parameters from the transition's 'path' and 'originalPath' attributes respectively
-    	MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
-		TransitionCommandSpec cs = transition.getCommand();
-		String resourcePath = cs.getPath();
-		String[] sourceParameters = getPathTemplateParameters(resourcePath);
-		String[] targetParameters = getPathTemplateParameters(cs.getPath());
-		
-		//Apply transition properties to parameters
-		for(int i=0; i < sourceParameters.length; i++) {
-			Object paramValue = transitionProperties.get(sourceParameters[i]);
-			if(paramValue != null) {
-				pathParameters.putSingle(targetParameters[i], paramValue.toString());
-			}
-		}
-		return pathParameters;
-	}
-	
-	/*
-	 * Returns the list of parameters contained inside
-	 * a URI template. 
-	 */
-	public static String[] getPathTemplateParameters(String pathTemplate) {
-		List<String> params = new ArrayList<String>();
-		Matcher m = TEMPLATE_PATTERN.matcher(pathTemplate);
-		while(m.find()) {
-			params.add(m.group(1));
-		}
-		return params.toArray(new String[0]);
 	}
 	
 	/**
@@ -879,27 +841,13 @@ public class ResourceStateMachine {
 			for(String key : linkParameters.keySet()) {
 				String value = linkParameters.get(key);
 				if (targetStatePath.contains("{"+key+"}")) {
-					value = templateReplace(value, properties);
+// TODO, works fine without this, making this whole method dead code?
+//					value = templateReplace(value, properties);
 				} else {
 					linkTemplate.queryParam(key, value);
 				}
 			}
 		}
-	}
-
-	private String templateReplace(String template, Map<String, Object> properties) {
-		String result = template;
-		if (template != null && template.contains("{") && template.contains("}")) {
-			Matcher m = TEMPLATE_PATTERN.matcher(template);
-			while(m.find()) {
-				String param = m.group(1);
-				if (properties.containsKey(param)) {
-					// replace template tokens
-					result = template.replaceAll("\\{" + param + "\\}", properties.get(param).toString());
-				}
-			}
-		}
-		return result;
 	}
 	
 	public InteractionCommand determinAction(String event, String path) {

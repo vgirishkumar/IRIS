@@ -42,8 +42,16 @@ public class Behaviour {
 		ResourceState preferences = new ResourceState("Preferences", "preferences", createActionList(new Action("GETPreferences", Action.TYPE.VIEW), null), "/preferences");
 		
 		initialState.addTransition(new Transition.Builder().method("GET").target(preferences).build());
-		initialState.addTransition("GET", getFundsTransferInteractionModel());
-		initialState.addTransition("GET", getCustomerInteractionModel());
+		ResourceStateMachine fundsTransferModel = getFundsTransferInteractionModel();
+		initialState.addTransition("GET", fundsTransferModel);
+		ResourceStateMachine customerModel = getCustomerInteractionModel();
+		initialState.addTransition("GET", customerModel);
+
+		// create a 'ServiceDocument' and add our entity sets to make OData4j metadata available
+		ResourceState serviceDocumentState = new ResourceState("home", "ServiceDocument", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null), "/Banking.svc");
+		serviceDocumentState.addTransition("GET", fundsTransferModel);
+		serviceDocumentState.addTransition("GET", customerModel);
+		initialState.addTransition(new Transition.Builder().method("GET").target(serviceDocumentState).build());
 		return initialState;
 	}
 

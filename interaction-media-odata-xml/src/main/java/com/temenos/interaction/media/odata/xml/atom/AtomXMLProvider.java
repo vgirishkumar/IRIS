@@ -74,13 +74,13 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
-import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -96,7 +96,7 @@ import com.temenos.interaction.core.web.RequestContext;
 @Consumes({MediaType.APPLICATION_ATOM_XML})
 @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
-	private final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
+	private final static Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
 	private final static Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
 
 	@Context
@@ -105,10 +105,12 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private Request requestContext;
 	private AtomEntryFormatWriter entryWriter;
 	private AtomFeedFormatWriter feedWriter;
+	private AtomEntityEntryFormatWriter entityEntryWriter;
 	
 	private final EdmDataServices edmDataServices;
 	private final Metadata metadata;
 	private final ResourceStateMachine hypermediaEngine;
+	private final ResourceState serviceDocument;
 	private final Transformer transformer;
 	private final LinkInterceptor linkInterceptor = new ODataLinkInterceptor(this);
 
@@ -127,12 +129,17 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		this.edmDataServices = edmDataServices;
 		this.metadata = metadata;
 		this.hypermediaEngine = hypermediaEngine;
+		this.serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+		if (serviceDocument == null)
+			throw new RuntimeException("No 'ServiceDocument' found.");
 		assert(edmDataServices != null);
 		assert(metadata != null);
 		assert(hypermediaEngine != null);
 		this.transformer = transformer;
-		entryWriter = new AtomEntryFormatWriter();
-		feedWriter = new AtomFeedFormatWriter();
+		entryWriter = new AtomEntryFormatWriter(serviceDocument);
+		feedWriter = new AtomFeedFormatWriter(serviceDocument);
+		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+
 	}
 	
 	@Override
@@ -192,10 +199,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				//Write entry
 				Entity entity = entityResource.getEntity();
 				String entityName = entityResource.getEntityName();
-				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
 				// Write Entity object with Abdera implementation
-				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, entity, entityMetadata, processedLinks, entityResource.getEmbedded(), metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, entity, processedLinks, entityResource.getEmbedded());
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
 				//Links and entity properties
@@ -210,9 +215,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 						}
 					}
 				}
-				EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
-				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, new Entity(entityName, props), entityMetadata, processedLinks, entityResource.getEmbedded(), metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
 				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();
@@ -238,9 +241,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				Integer inlineCount = null;
 				String skipToken = null;
 				//Write feed
-				EntityMetadata entityMetadata = metadata.getEntityMetadata(collectionResource.getEntityName());
-				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter();
-				entityFeedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource, entityMetadata, inlineCount, skipToken, metadata.getModelName());
+				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
+				entityFeedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource, inlineCount, skipToken, metadata.getModelName());
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -315,7 +317,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 						String linkHref = link.getHref();
 						if(requestContext != null) {
 							//Extract the transition fragment from the URI path
-							linkHref = link.getHrefTransition(requestContext.getBasePath());
+							linkHref = link.getRelativeHref(getBaseUri(serviceDocument, uriInfo));
 						}
 						if (href.equals(linkHref)) {
 							if (entityResource.getEmbedded() == null) {
@@ -351,7 +353,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		String href = link.getHref();
 		if(requestContext != null) {
 			//Extract the transition fragment from the URI path
-			href = link.getHrefTransition(requestContext.getBasePath());
+			href = link.getRelativeHref(getBaseUri(serviceDocument, uriInfo));
 		}
 		String title = link.getTitle();
 		OLink olink = null;
@@ -423,22 +425,19 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			OEntityKey entityKey = null;
 
 			// work out the entity name using resource path from UriInfo
-			String baseUri = uriInfo.getBaseUri().toASCIIString();
-			String resourcePath = uriInfo.getPath();
-			logger.info("Reading atom xml content for [" + resourcePath + "]");
+			String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
+			String absoluteUri = AtomXMLProvider.getAbsolutePath(uriInfo);
+			logger.info("Reading atom xml content for [" + absoluteUri + "]");
+			String resourcePath = null;
+			StringBuffer regex = new StringBuffer("(?<=" + baseUri + ")\\S+");
+			Pattern p = Pattern.compile(regex.toString());
+			Matcher m = p.matcher(absoluteUri);
+			while (m.find()) {
+				resourcePath = m.group();
+			}
 			if (resourcePath == null)
 				throw new IllegalStateException("No resource found");
-			// trim the baseuri
-			if (resourcePath.length() > baseUri.length() && resourcePath.startsWith(baseUri))
-				resourcePath = resourcePath.substring(baseUri.length() - 1);
-			/*
-			 * add a leading '/' if it needs it (when defining resources we must use a 
-			 * full path, but requests can be relative, i.e. without a '/'
-			 */
-			if (!resourcePath.startsWith("/")) {
-				resourcePath = "/" + resourcePath;
-			}
-			ResourceState currentState = getCurrentState(resourcePath);
+			ResourceState currentState = getCurrentState(serviceDocument, resourcePath);
 			if (currentState == null)
 				throw new IllegalStateException("No state found");
 			String pathIdParameter = getPathIdParameter(currentState);
@@ -499,9 +498,23 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		return entitySetName;
 	}
 	
-	private ResourceState getCurrentState(String resourcePath) {
+	protected ResourceState getCurrentState(ResourceState serviceDocument, String resourcePath) {
 		ResourceState state = null;
 		if (resourcePath != null) {
+			/*
+			 * add a leading '/' if it needs it (when defining resources we must use a 
+			 * full path, but requests can be relative, i.e. without a '/'
+			 */
+			if (!resourcePath.startsWith("/")) {
+				resourcePath = "/" + resourcePath;
+			}
+			// add service document path to resource path
+			String serviceDocumentPath = serviceDocument.getPath();
+			if (serviceDocumentPath.endsWith("/")) {
+				serviceDocumentPath = serviceDocumentPath.substring(0, serviceDocumentPath.lastIndexOf("/"));
+			}
+			resourcePath = serviceDocumentPath + resourcePath;
+			// turn the uri back into a template uri
 			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
 			if (pathParameters != null) {
 				for (String key : pathParameters.keySet()) {
@@ -515,7 +528,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			Event event = new Event(httpMethod, httpMethod);
 			state = hypermediaEngine.determineState(event, resourcePath);
 			if (state == null) {
-				logger.error("No state found, dropping back to path matching");
+				logger.error("No state found, dropping back to path matching " + resourcePath);
+				// escape the braces in the regex
+				resourcePath = Pattern.quote(resourcePath);
 				Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
 				for (String path : pathToResourceStates.keySet()) {
 					for (ResourceState s : pathToResourceStates.get(path)) {
@@ -594,6 +609,32 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				return null;
 			}
 		}
+	}
+	
+	/**
+	 * Our base uri is the uri to the service document.
+	 * @param serviceDocument
+	 * @param uriInfo
+	 * @return
+	 */
+	public static String getBaseUri(ResourceState serviceDocument, UriInfo uriInfo) {
+		String baseUri = uriInfo.getBaseUri().toString();
+		if (serviceDocument.getPath() != null) {
+			if (baseUri.endsWith("/")) {
+				baseUri = baseUri.substring(0, baseUri.lastIndexOf("/"));
+			}
+			baseUri = baseUri + serviceDocument.getPath();
+			String absPath = getAbsolutePath(uriInfo);
+			baseUri = HypermediaTemplateHelper.getTemplatedBaseUri(baseUri, absPath);
+			if (!baseUri.endsWith("/")) {
+				baseUri += "/";
+			}
+		}
+		return baseUri;
+	}
+	
+	public static String getAbsolutePath(UriInfo uriInfo) {
+		return uriInfo.getBaseUri() + uriInfo.getPath();
 	}
 	
 }

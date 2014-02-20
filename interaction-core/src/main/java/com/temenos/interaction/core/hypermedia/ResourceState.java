@@ -274,7 +274,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 */	
 	public Transition getSelfTransition() {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		String[] pathParameters = ResourceStateMachine.getPathTemplateParameters(getPath());
+		String[] pathParameters = HypermediaTemplateHelper.getPathTemplateParameters(getPath());
 		if (pathParameters != null) {
 			for (String param : pathParameters) {
 				uriLinkageMap.put(param, "{"+param+"}");
@@ -355,7 +355,7 @@ public class ResourceState implements Comparable<ResourceState> {
 								String paramRefValue = linkParameters.get(actionRefProperty.getKey());
 								if (paramRefValue != null) {
 									String paramRefKey = "_";		
-									Matcher m = ResourceStateMachine.TEMPLATE_PATTERN.matcher(paramRefValue);
+									Matcher m = HypermediaTemplateHelper.TEMPLATE_PATTERN.matcher(paramRefValue);
 									while(m.find()) {
 										String param = m.group(1);								//e.g. code
 										if(param != null) {

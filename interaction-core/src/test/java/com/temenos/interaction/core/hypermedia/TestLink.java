@@ -31,12 +31,35 @@ import org.junit.Test;
 public class TestLink {
 
 	@Test
-	public void testGetHrefTransition() throws Exception {
+	public void testGetRelativeHref() throws Exception {
 		Link link = new Link(null, "NoteToPersonLink", "Person", 
 				"http://localhost:8080/example/interaction-odata-notes.svc/Notes(1)/Person",
 				null, null, "GET", null);
-		String hrefTransition = link.getHrefTransition("example/interaction-odata-notes.svc");
+		String hrefTransition = link.getRelativeHref("example/interaction-odata-notes.svc");
 		assertEquals("Notes(1)/Person", hrefTransition);
+	}
+
+	/**
+	 * Where a transition is between two resources with a basePath, we simply
+	 * strip the leading paths if they match to form a relative path to the target
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetRelativeHrefWithBasePath() throws Exception {
+		Link link = new Link(null, "ServiceDocumentToEntitySet", "rel", 
+				"http://localhost:8080/example/interaction-odata-multicompany.svc/MockCompany001/Flights",
+				null, null, "GET", null);
+		String relativeHref = link.getRelativeHref("http://localhost:8080/example/interaction-odata-multicompany.svc/{companyid}");
+		assertEquals("Flights", relativeHref);
+	}
+
+	@Test
+	public void testGetRelativeHref1() throws Exception {
+		Link link = new Link(null, "ServiceDocumentToEntitySet", "rel", 
+				"http://example.com/boo/moo",
+				null, null, "GET", null);
+		String relativeHref = link.getRelativeHref("http://example.com/{foo}");
+		assertEquals("moo", relativeHref);
 	}
 
 	@Test

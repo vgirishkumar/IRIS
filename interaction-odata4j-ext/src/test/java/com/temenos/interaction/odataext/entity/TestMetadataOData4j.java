@@ -87,10 +87,10 @@ public class TestMetadataOData4j {
 		Assert.assertNotNull(metadata);
 		
 		//Convert metadata to odata4j metadata
-		metadataOdata4j = new MetadataOData4j(metadata, new ResourceStateMachine(new ResourceState("SD", "initial", new ArrayList<Action>(), "/")));
+		metadataOdata4j = new MetadataOData4j(metadata, new ResourceStateMachine(new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/")));
 
 		// Create mock state machine with entity sets
-		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule")).build());
 		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight")).build());
 		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline")).build());
@@ -112,12 +112,12 @@ public class TestMetadataOData4j {
 		Assert.assertNotNull(complexMetadata);
 				
 		//Convert metadata to odata4j metadata
-		metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, new ResourceStateMachine(new ResourceState("SD", "initial", new ArrayList<Action>(), "/")));
+		metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, new ResourceStateMachine(new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/")));
 	}
 	
 	@Test(expected = AssertionError.class)
 	public void testAssertIndividualInitialState() {
-		CollectionResourceState serviceRoot = new CollectionResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		CollectionResourceState serviceRoot = new CollectionResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
 		new MetadataOData4j(metadataAirline, hypermediaEngine);
 	}
@@ -244,7 +244,7 @@ public class TestMetadataOData4j {
 	@Test
 	public void testManyToOneMandatoryNavProperty() {
 		// create mock resource interaction (which should result in creation of mandatory Navigation Property in EdmDataService metadata)
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/");
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/");
 		
 		// flights and airports
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights");
@@ -307,7 +307,7 @@ public class TestMetadataOData4j {
 	@Test
 	public void testManyToManyNavProperty() throws Exception {
 		// create mock resource interaction (which should result in creation of Navigation Property in EdmDataService metadata)
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/");
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/");
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights");
 		CollectionResourceState airports = new CollectionResourceState("Airport", "Airports", new ArrayList<Action>(), "/Airports");
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules");
@@ -364,7 +364,7 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testSingleOneToManyNavProperty() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
@@ -396,7 +396,7 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testSingleOneToManyFilteredNavProperty() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
@@ -430,7 +430,7 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testSingleOneToManyFilteredNavPropertyWithoutLabel() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
@@ -465,7 +465,7 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testMultipleOneToManyNavProperties() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
@@ -513,7 +513,7 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testMultipleOneToManyNavPropertiesWithoutLabel() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
