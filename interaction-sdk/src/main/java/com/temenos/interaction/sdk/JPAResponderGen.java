@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.velocity.Template;
@@ -59,12 +60,13 @@ import com.temenos.interaction.sdk.entity.EMProperty;
 import com.temenos.interaction.sdk.entity.EMTerm;
 import com.temenos.interaction.sdk.entity.EntityModel;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
+import com.temenos.interaction.sdk.interaction.InteractionModel;
 import com.temenos.interaction.sdk.interaction.state.IMState;
 import com.temenos.interaction.sdk.interaction.transition.IMCollectionStateTransition;
 import com.temenos.interaction.sdk.interaction.transition.IMEntityStateTransition;
 import com.temenos.interaction.sdk.interaction.transition.IMTransition;
-import com.temenos.interaction.sdk.interaction.InteractionModel;
 import com.temenos.interaction.sdk.rimdsl.RimDslGenerator;
+import com.temenos.interaction.sdk.util.IndentationFormatter;
 
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end
@@ -369,19 +371,60 @@ public class JPAResponderGen {
 		EntityModel entityModel = new EntityModel(modelName);
 		for (EntityMetadata entityMetadata: metadata.getEntitiesMetadata().values()) {
 			EMEntity emEntity = new EMEntity(entityMetadata.getEntityName());
-			for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
-				EMProperty emProperty = new EMProperty(propertyName);
-				Vocabulary propertyVoc = entityMetadata.getPropertyVocabulary(propertyName);
-				if(propertyVoc != null) {
-					for(Term term : propertyVoc.getTerms()) {
-						emProperty.addVocabularyTerm(new EMTerm(term.getName(), term.getValue()));
-					}
-				}
-				emEntity.addProperty(emProperty);
+			for(String fyllyQualifiedPropertyName : entityMetadata.getPropertyVocabularyKeySet()) {
+				addProperties(entityMetadata, emEntity, fyllyQualifiedPropertyName);
 			}
 			entityModel.addEntity(emEntity);
 		}
 		return entityModel;
+	}
+	
+	// adds the property tree to the entity metadata
+	private void addProperties(EntityMetadata entityMetadata, EMEntity entity, String fyllyQualifiedPropertyName) {
+		List<String> propertyNames = new ArrayList<String>(Arrays.asList(fyllyQualifiedPropertyName.split("\\.")));
+		String rootPropertyName = propertyNames.get(0);
+		EMProperty rootProperty = null;
+		if (entity.contains(rootPropertyName)) {
+			// this property already added to the entity
+			rootProperty = entity.getProperty(rootPropertyName);
+		} else {
+			// new property so create and add to the entity
+			rootProperty = new EMProperty(rootPropertyName);
+			entity.addProperty(rootProperty);
+			Vocabulary vocabulary = entityMetadata.getPropertyVocabulary(rootPropertyName);
+			for (Term term : vocabulary.getTerms()) {
+				rootProperty.addVocabularyTerm(new EMTerm(term.getName(), term.getValue()));
+			}
+		}
+		propertyNames.remove(0); // removes root property as it's already added to the entity
+		addChildProperties(entityMetadata, rootProperty, propertyNames);
+	}
+
+	// adds the child properties to the top most property
+	private void addChildProperties(EntityMetadata entityMetadata, EMProperty parentProperty,
+			List<String> childPropertyNames) {
+		String fullyQualifiedPropertyName = parentProperty.getName();
+		for (String childPropertyName : childPropertyNames) {
+			fullyQualifiedPropertyName = fullyQualifiedPropertyName + "." + childPropertyName;
+			EMProperty childProperty = null;
+			if (parentProperty.hasChildProperty(childPropertyName)) {
+				// this property already added to the parent property
+				childProperty = parentProperty.getChildProperty(childPropertyName);
+			} else {
+				// this is a new child property so create and add to the parent property
+				childProperty = new EMProperty(childPropertyName);
+				parentProperty.addChildProperty(childProperty);
+				Vocabulary propertyVocabulary = entityMetadata.getPropertyVocabulary(fullyQualifiedPropertyName);
+				for (Term vocTerm : propertyVocabulary.getTerms()) {
+					if (TermComplexGroup.TERM_NAME.equals(vocTerm.getName())) {
+						// complex group term not added as the properties are built in tree structure
+						continue;  
+					}
+					childProperty.addVocabularyTerm(new EMTerm(vocTerm.getName(), vocTerm.getValue()));
+				}
+			}
+			parentProperty = childProperty;
+		}
 	}
 	
 	public static String javaType(EdmType type) {
@@ -683,7 +726,8 @@ public class JPAResponderGen {
 	public String generateMetadata(EntityModel entityModel) {
 		VelocityContext context = new VelocityContext();
 		context.put("entityModel", entityModel);
-		
+		context.put("formatter", IndentationFormatter.getInstance());
+	
 		Template t = ve.getTemplate("/metadata.vm");
 		StringWriter sw = new StringWriter();
 		t.merge(context, sw);
