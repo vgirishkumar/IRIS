@@ -151,7 +151,7 @@ public class EntityMetadata  {
 
 		// update the complex group term with the fully qualified group name 
 		Term complexGroupTerm = vocabulary.getTerm(TermComplexGroup.TERM_NAME);
-		if (complexGroupTerm != null) {
+		if (complexGroupTerm != null && !fullyQualifiedGroupName.isEmpty()) {
 			complexGroupTerm = new TermComplexGroup(fullyQualifiedGroupName);
 			vocabulary.setTerm(complexGroupTerm);
 		}

@@ -22,8 +22,7 @@ package com.temenos.interaction.core.entity;
  */
 
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.InputStream;
 import java.util.Set;
@@ -142,11 +141,11 @@ public class TestMetadataParser {
 		EntityMetadata md = metadataNonExpanded.getEntityMetadata("Customer");
 		Assert.assertEquals("", md.getPropertyComplexGroup("name"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("address"));
-		Assert.assertEquals("", md.getPropertyComplexGroup("number"));
-		Assert.assertEquals("", md.getPropertyComplexGroup("street"));
-		Assert.assertEquals("", md.getPropertyComplexGroup("streetType"));
-		Assert.assertEquals("", md.getPropertyComplexGroup("town"));
-		Assert.assertEquals("", md.getPropertyComplexGroup("postCode"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("number"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("street"));
+		Assert.assertEquals("street", md.getPropertyComplexGroup("streetType"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("town"));
+		Assert.assertEquals("address", md.getPropertyComplexGroup("postCode"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("dateOfBirth"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("sector"));
 		Assert.assertEquals("", md.getPropertyComplexGroup("industry"));
