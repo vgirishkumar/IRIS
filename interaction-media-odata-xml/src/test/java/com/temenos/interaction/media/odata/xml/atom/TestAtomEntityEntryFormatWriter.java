@@ -56,6 +56,7 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.TermFactory;
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
@@ -166,6 +167,55 @@ public class TestAtomEntityEntryFormatWriter {
 		// We should not have List or infact any complex type representation here
 		Assert.assertFalse(output.contains("<d:CustomerWithTermList_address m:type=\"Bag(CustomerServiceTestModel.CustomerWithTermList_address)\">"));
 		Assert.assertFalse(output.contains("<d:CustomerWithTermList_street m:type=\"CustomerServiceTestModel.CustomerWithTermList_street\">"));
+	}
+
+	private final static String SIMPLE_ENTRY_COMPANY_OUTPUT = "<?xml version='1.0' encoding='UTF-8'?>" +
+			"<entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xml:base=\"http://www.temenos.com/iris/service/123/\">" +
+			"  <id>http://www.temenos.com/iris/service/123/simple('NAME')</id>" +
+			"  <title type=\"text\"></title>" +
+			"  <updated>2014-02-25T09:15:50Z</updated>" +
+			"  <author>" +
+			"    <name></name>" +
+			"  </author>" +
+			"  <category term=\"CustomerServiceTestModel.Customer\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\">" +
+				"  </category>" +
+				"  <content type=\"application/xml\">" +
+				"    <m:properties>" +
+				"      <d:loyal m:type=\"Edm.Boolean\">true</d:loyal>" +
+				"      <d:sector>Finance</d:sector>" +
+				"      <d:dateOfBirth m:type=\"Edm.DateTime\">2014-02-25T09:15:50</d:dateOfBirth>" +
+				"      <d:name>SomeName</d:name>" +
+				"      <d:loyalty_rating m:type=\"Edm.Double\">10</d:loyalty_rating>" +
+				"      <d:industry>Banking</d:industry>" +
+				"    </m:properties>" +
+				"  </content>" +
+				"</entry>";
+
+	@Test
+	public void testWriteSimpleEntryCompany() throws SAXException, IOException, URISyntaxException {
+		// Get UriInfo and Links
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/iris/service/"));
+		when(uriInfo.getPath()).thenReturn("123/simple('NAME')");
+		
+		List<Link> links = new ArrayList<Link>();
+				
+		// service document with company context
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/{companyid}");
+		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter(initial, metadata);
+		StringWriter strWriter = new StringWriter();
+		writer.write(uriInfo, strWriter, simpleEntity.getName(), simpleEntity, links, new HashMap<Transition, RESTResource>());
+		
+		String output = strWriter.toString();
+		//System.out.println(strWriter);
+		
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(SIMPLE_ENTRY_COMPANY_OUTPUT, output);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated", "d:dateOfBirth"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
 	}
 
 	@Test
