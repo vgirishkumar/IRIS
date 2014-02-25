@@ -525,7 +525,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.equals(Response.Status.SEE_OTHER)) {
 			ResourceState targetState = ctx.getTargetState();
 			Transition autoTransition = targetState.getAutoTransition();
-    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, resource, pathParameters);
+			Object entity = null;
+			if (resource != null) {
+				assert(resource instanceof EntityResource) : "Must be an EntityResource for an auto transition";
+				entity = ((EntityResource<?>)resource).getEntity();
+			}
+    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, entity, pathParameters);
 			responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 		} else if (status.equals(Response.Status.CREATED)) {
 			ResourceState currentState = ctx.getCurrentState();
@@ -543,8 +548,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			}
 			if (autoTransition != null && autoTransition.getCommand().isAutoTransition()) {
 				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
-	    		@SuppressWarnings("rawtypes")
-				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource)resource).getEntity(), pathParameters);
+				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 				Response autoResponse = getResource(headers, autoTransition, ctx);
 	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
