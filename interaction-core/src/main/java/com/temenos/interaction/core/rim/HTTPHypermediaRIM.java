@@ -430,11 +430,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		    	if (event.getMethod().equals(HttpMethod.GET)) {
 		    		String ifNoneMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_NONE_MATCH);
 		    		String etag = ctx.getResource() != null ? ctx.getResource().getEntityTag() : null;
+		    		ResourceState targetState = ctx.getTargetState();
 		    		if (result == Result.SUCCESS && 
 		    				etag != null && etag.equals(ifNoneMatch)) {
 		    			//Response etag matches IfNoneMatch precondition
 		    			status = Status.NOT_MODIFIED;
-		    		} else if(result == Result.SUCCESS) {
+		    		} else if (result == Result.SUCCESS && targetState.isTransientState()) {
+	        			status = Status.SEE_OTHER;
+		        	} else if (result == Result.SUCCESS) {
 		    			status = Status.OK;
 		    		}
 				} else if (event.getMethod().equals(HttpMethod.POST)) {
