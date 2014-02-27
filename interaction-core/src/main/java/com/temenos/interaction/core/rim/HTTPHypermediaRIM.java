@@ -530,7 +530,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				assert(resource instanceof EntityResource) : "Must be an EntityResource for an auto transition";
 				entity = ((EntityResource<?>)resource).getEntity();
 			}
-    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, entity, pathParameters);
+    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, entity, pathParameters, ctx.getQueryParameters());
 			responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 		} else if (status.equals(Response.Status.CREATED)) {
 			ResourceState currentState = ctx.getCurrentState();

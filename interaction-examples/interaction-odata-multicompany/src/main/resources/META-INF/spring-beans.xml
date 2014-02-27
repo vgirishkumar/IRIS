@@ -68,7 +68,6 @@
         <property name="serviceRoots">
             <set>
                 <ref local="ServiceRoot" />
-                <ref local="Metadata" />
             </set>
         </property>
 	</bean>
@@ -87,7 +86,7 @@
 	</bean>
 
     <!-- Behaviour -->
-    <bean id="behaviour" class="MultiCompanyModel.multicompanyBehaviour" />
+    <bean id="behaviour" class="MultiCompanyModel.baseBehaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
     <bean id="exception" factory-bean="behaviour" factory-method="getExceptionResource" />
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
@@ -100,31 +99,6 @@
     <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
         <constructor-arg ref="commands" />
         <constructor-arg ref="stateMachine" />
-        <constructor-arg ref="edmMetadata" />
-    </bean>
-
-    <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
-    <bean id="Metadata" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
-        <constructor-arg ref="commands" />
-        <constructor-arg>
-            <bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-                <constructor-arg>
-                    <bean class="com.temenos.interaction.core.hypermedia.ResourceState">
-                        <constructor-arg name="entityName" value="Metadata" />
-                        <constructor-arg name="name" value="initial" />
-                        <constructor-arg>
-                            <list>
-                                <bean class="com.temenos.interaction.core.hypermedia.Action">
-                                    <constructor-arg value="GETMetadata" />
-                                    <constructor-arg value="VIEW" />
-                                </bean>
-                            </list>
-                        </constructor-arg>
-                        <constructor-arg name="path" value="/{companyid}/$metadata" />
-                    </bean>
-                </constructor-arg>
-            </bean>
-        </constructor-arg>
         <constructor-arg ref="edmMetadata" />
     </bean>
 
@@ -177,4 +151,3 @@
 		</constructor-arg>
 	</bean>
 </beans>
-

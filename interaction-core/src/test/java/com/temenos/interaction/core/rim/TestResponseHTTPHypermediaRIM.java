@@ -462,8 +462,7 @@ public class TestResponseHTTPHypermediaRIM {
 	public void testBuildResponseWith303SeeOtherGET() throws Exception {
 		/*
 		 * construct an InteractionContext that simply mocks the result of 
-		 * deleting a resource, with no updated resource for the user agent
-		 * to re-display
+		 * a GET to a resource, with an auto transition
 		 */
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState existsState = new ResourceState("toaster", "exists", mockActions(), "/machines/toaster");
@@ -505,8 +504,7 @@ public class TestResponseHTTPHypermediaRIM {
 	public void testBuildResponseWith303SeeOtherGETWithParameters() throws Exception {
 		/*
 		 * construct an InteractionContext that simply mocks the result of 
-		 * deleting a resource, with no updated resource for the user agent
-		 * to re-display
+		 * a GET to a resource, with an auto transition
 		 */
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState existsState = new ResourceState("toaster", "exists", mockActions(), "/machines/toaster");
@@ -543,6 +541,54 @@ public class TestResponseHTTPHypermediaRIM {
 		assertNotNull(locationHeader);
         assertEquals(1, locationHeader.size());
         assertEquals("/baseuri/machines/toaster/2", locationHeader.get(0));
+	}
+
+	/*
+	 * Same as testBuildResponseWith303SeeOtherGET with query parameters
+	 */
+	@Test
+	public void testBuildResponseWith303SeeOtherGETWithQueryParameters() throws Exception {
+		/*
+		 * construct an InteractionContext that simply mocks the result of 
+		 * a GET to a resource, with an auto transition
+		 */
+		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
+		ResourceState existsState = new ResourceState("toaster", "exists", mockActions(), "/machines/toaster");
+		ResourceState existsElsewhereState = new ResourceState("toaster", "existsOther", mockActions(), "/machines/toaster/{id}");
+		
+		// view the toaster if it exists (could show time remaining if cooking)
+		initialState.addTransition(new Transition.Builder().method("GET").target(existsState).build());
+		existsState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(existsElsewhereState).build());
+		
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
+		Collection<ResourceInteractionModel> children = rim.getChildren();
+		// find the resource interaction model for the 'exists' state
+		HTTPHypermediaRIM existsStateRIM = null;
+		for (ResourceInteractionModel r : children) {
+			if (r.getResourcePath().equals("/machines/toaster")) {
+				existsStateRIM = (HTTPHypermediaRIM) r;
+			}
+		}
+		// mock the Link header
+		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
+		mockPathParameters.add("id", "2");
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(true)).thenReturn(mockPathParameters);
+		MultivaluedMap<String, String> mockQueryParameters = new MultivaluedMapImpl<String>();
+		mockQueryParameters.add("test", "123");
+		when(uriInfo.getQueryParameters(true)).thenReturn(mockQueryParameters);
+		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
+		
+		// null resource
+		RESTResource resource = (RESTResource) response.getEntity();
+		assertNull(resource);
+		// 303 "See Other" instructs user agent to fetch another resource as specified by the 'Location' header
+		assertEquals(Status.SEE_OTHER.getStatusCode(), response.getStatus());
+		List<Object> locationHeader = response.getMetadata().get("Location");
+		assertNotNull(locationHeader);
+        assertEquals(1, locationHeader.size());
+        assertEquals("/baseuri/machines/toaster/2?test=123", locationHeader.get(0));
 	}
 
 	/*
