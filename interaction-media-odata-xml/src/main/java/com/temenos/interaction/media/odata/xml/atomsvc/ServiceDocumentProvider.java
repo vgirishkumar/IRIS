@@ -72,7 +72,12 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class, EdmDataServices.class);
+		if (mediaType.equals(ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE)
+				|| mediaType.equals(MediaType.APPLICATION_ATOM_XML_TYPE) 
+				|| mediaType.equals(MediaType.APPLICATION_XML_TYPE)) {
+			return ResourceTypeHelper.isType(type, genericType, EntityResource.class, EdmDataServices.class);			
+		}
+		return false;
 	}
 
 	@Override

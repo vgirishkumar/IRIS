@@ -145,9 +145,13 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return 	ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
-				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
-				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class);
+		if (mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE) 
+				|| mediaType.equals(MediaType.APPLICATION_XML_TYPE)) {
+			return 	ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
+					ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
+					ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class);
+		}
+		return false;
 	}
 
 	@Override

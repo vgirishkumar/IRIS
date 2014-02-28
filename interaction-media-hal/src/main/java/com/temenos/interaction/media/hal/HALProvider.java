@@ -108,8 +108,12 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
-				|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
+		if (mediaType.equals(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)
+				|| mediaType.equals(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
+			return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
+					|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
+		}
+		return false;
 	}
 
 	@Override
