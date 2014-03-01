@@ -13,5 +13,13 @@
   <packaging>jar</packaging>
   <name>useragent-hal-inspector</name>
   <url>http://www.temenos.com</url>
-	
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/webapp</directory>
+      </resource>
+    </resources>
+  </build>
+
 </project>
