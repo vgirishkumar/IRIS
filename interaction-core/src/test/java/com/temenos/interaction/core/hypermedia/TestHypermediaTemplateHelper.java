@@ -89,4 +89,12 @@ public class TestHypermediaTemplateHelper {
 				HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/$metadata", properties));
 	}
 
+	@Test
+	public void testPartialTemplateReplace() {
+		Map<String,Object> properties = new HashMap<String,Object>();
+		properties.put("companyid", "GB0010001");
+		assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/flights/{id}",
+				HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/flights/{id}", properties));
+	}
+
 }
