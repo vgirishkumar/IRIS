@@ -170,8 +170,8 @@ public class ResourceStateMachine {
 	
 	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
+		if (initialState == null) throw new RuntimeException("Initial state must be supplied");
 		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
-		assert(initialState != null);
 		assert(exceptionState == null || exceptionState.isException());
 		this.initial = initialState;
 		this.initial.setInitial(true);
