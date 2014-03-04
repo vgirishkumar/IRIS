@@ -34,6 +34,7 @@ import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.resources.OptionsQueryParser;
+import org.odata4j.producer.resources.OptionsQueryParserExt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +109,7 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 		String select = queryParams.getFirst("$select");
 	      
 		return new EntityQueryInfo(
-				OptionsQueryParser.parseFilter(filter),
+				OptionsQueryParserExt.parseFilter(filter),
 				null,
 				OptionsQueryParser.parseExpand(expand),
 				OptionsQueryParser.parseSelect(select));		

@@ -33,6 +33,7 @@ import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.resources.OptionsQueryParser;
+import org.odata4j.producer.resources.OptionsQueryParserExt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +113,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 					OptionsQueryParser.parseInlineCount(inlineCount),
 					OptionsQueryParser.parseTop(top),
 					OptionsQueryParser.parseSkip(skip),
-					OptionsQueryParser.parseFilter(filter),
+					OptionsQueryParserExt.parseFilter(filter),
 					OptionsQueryParser.parseOrderBy(orderBy),
 					OptionsQueryParser.parseSkipToken(skipToken),
 					null,
