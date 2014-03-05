@@ -96,8 +96,11 @@ public class TestRimDslGenerator {
 	
 	@Test
 	public void testGenerateRimDslAirlines() {
-		String dsl = createAirlineModelDSL(true, null);
-		
+		InteractionModel interactionModel = createAirlineModelDSL(null);
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		String dsl = generator.generateRimDsl(interactionModel, JPAResponderGen.getDefaultCommands(), true);
+
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
 		assertEquals(readTextFile(RIM_DSL_AIRLINE_FILE), dsl);
@@ -105,7 +108,10 @@ public class TestRimDslGenerator {
 
 	@Test
 	public void testGenerateRimDslDomain() {
-		String dsl = createAirlineModelDSL(true, "airline");
+		InteractionModel interactionModel = createAirlineModelDSL("airline");
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		String dsl = generator.generateRimDsl(interactionModel, JPAResponderGen.getDefaultCommands(), true);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -114,7 +120,10 @@ public class TestRimDslGenerator {
 
 	@Test
 	public void testGenerateRimDslAirlinesNonStrictOData() {
-		String dsl = createAirlineModelDSL(false, null);
+		InteractionModel interactionModel = createAirlineModelDSL(null);
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		String dsl = generator.generateRimDsl(interactionModel, JPAResponderGen.getDefaultCommands(), false);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -165,7 +174,7 @@ public class TestRimDslGenerator {
 		assertEquals(readTextFile(RIM_DSL_BANKING_FILE), dsl);
 	}
 	
-	public String createAirlineModelDSL(boolean strictOData, String domain) {
+	public InteractionModel createAirlineModelDSL(String domain) {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
@@ -197,9 +206,7 @@ public class TestRimDslGenerator {
 		IMState rsflightCreated = rsmFlight.getPseudoState("Flights", "created");
 		rsflightCreated.setErrorHandlerState(rsResponseErrors);
 		
-		//Run the generator
-		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
-		return generator.generateRimDsl(interactionModel, JPAResponderGen.getDefaultCommands(), strictOData);
+		return interactionModel;
 	}
 	
 	/*
