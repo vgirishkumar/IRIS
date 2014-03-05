@@ -29,6 +29,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -247,9 +248,14 @@ public class JPAResponderGen {
 
 		// generate the rim DSL
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
-		String rimDslFilename = modelName + ".rim";
-		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands, strictOData))) {
-			ok = false;
+		Map<String,String> rims = rimDslGenerator.generateRimDslMap(interactionModel, commands, strictOData);
+		for (String key : rims.keySet()) {
+			String rimDslFilename = key + ".rim";
+			if (!writeRimDsl(configOutputPath, rimDslFilename, rims.get(key))) {
+				System.out.print("Failed to write " + key);
+				ok = false;
+				break;
+			}
 		}
 
 		if(generateMockResponder) {
