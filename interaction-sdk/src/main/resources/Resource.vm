@@ -100,7 +100,7 @@ $action##
 #elseif (${transition.class.simpleName} == "IMCollectionStateTransition") 
 ## Transition to a navigation state representing another RSM's collection state
 #if($strictOData)
-	${transition.getMethod()} *-> ${entityState.getName()}_${transition.getTargetState().getName()} {
+	${transition.getMethod()} *-> #if(${transition.getTargetResourceStateMachine().getRimName()})${transition.getTargetResourceStateMachine().getRimName()}.#end${entityState.getName()}_${transition.getTargetState().getName()} {
 #if ($transition.getTitle())
 		${transition.getTitleAssignment()}
 #end
@@ -117,7 +117,7 @@ $action##
 #elseif(${transition.class.simpleName} == "IMEntityStateTransition")
 ## Transition to a navigation state representing another RSM's entity state
 #if($strictOData)
-	${transition.getMethod()} *-> ${entityState.getName()}_${transition.getTargetState().getName()} {
+	${transition.getMethod()} *-> #if(${transition.getTargetResourceStateMachine().getRimName()})${transition.getTargetResourceStateMachine().getRimName()}.#end${entityState.getName()}_${transition.getTargetState().getName()} {
 #if ($transition.getTitle())
 		${transition.getTitleAssignment()}
 #end
@@ -162,7 +162,7 @@ $action##
 #elseif(${transition.class.simpleName} == "IMCollectionStateTransition")
 ## Transition to a navigation state representing another RSM's collection state
 #if($strictOData)
-	${transition.getMethod()} -> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} {
+	${transition.getMethod()} -> #if(${transition.getTargetResourceStateMachine().getRimName()})${transition.getTargetResourceStateMachine().getRimName()}.#end${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} {
 #if ($transition.getTitle())
 		${transition.getTitleAssignment()}
 #end
@@ -179,7 +179,7 @@ $action##
 #elseif(${transition.class.simpleName} == "IMEntityStateTransition")
 ## Transition to a navigation state representing another RSM's entity state
 #if($strictOData)
-	${transition.getMethod()} -> ${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} {
+	${transition.getMethod()} -> #if(${transition.getTargetResourceStateMachine().getRimName()})${transition.getTargetResourceStateMachine().getRimName()}.#end${rsm.getEntityState().getName()}_${transition.getTargetState().getName()} {
 #if ($transition.getTitle())
 		${transition.getTitleAssignment()}
 #end

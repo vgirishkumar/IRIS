@@ -17,7 +17,7 @@ initial resource ServiceDocument {
 	view: GETServiceDocument
 	path: "/"
 #foreach ( $rsm in $rim.getResourceStateMachines() )
-	GET -> ${rsm.getCollectionState().getName()}
+	GET -> #if(${rsm.getRimName()})${rsm.getRimName()}.#end${rsm.getCollectionState().getName()}
 #end
 #foreach ( $state in $rim.getErrorHandlerStates() )
 	GET -> ${state.getName()}
