@@ -26,7 +26,7 @@ resource ${state.getName()} {
 	view: $state.getView()
 #else
 	view: $state.getView() {
-		properties [ filter=filter ]
+		properties [ filter="{filter}" ]
 	}
 #end
 #else
