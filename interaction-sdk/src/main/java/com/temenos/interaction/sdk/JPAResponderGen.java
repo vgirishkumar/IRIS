@@ -221,7 +221,7 @@ public class JPAResponderGen {
 	}
 	
 	/**
-	 * @deprecated see {@link RimDslGenerator#getRIM(InteractionModel, Commands)}
+	 * see {@link RimDslGenerator#getRIM(InteractionModel, Commands)}
 	 */
 	public InputStream getRIM(InteractionModel interactionModel, Commands commands) throws Exception {
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
