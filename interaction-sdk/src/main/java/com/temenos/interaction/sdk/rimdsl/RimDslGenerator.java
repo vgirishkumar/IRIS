@@ -25,9 +25,7 @@ package com.temenos.interaction.sdk.rimdsl;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.velocity.Template;
