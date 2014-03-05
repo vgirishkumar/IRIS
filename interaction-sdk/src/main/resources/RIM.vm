@@ -1,0 +1,6 @@
+#######################################
+## Velocity template for just the rim{}
+#######################################
+rim ${rsm.getRimName()} {
+#parse("/Resource.vm")
+}
