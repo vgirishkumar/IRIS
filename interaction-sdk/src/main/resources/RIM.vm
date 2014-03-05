@@ -2,5 +2,15 @@
 ## Velocity template for just the rim{}
 #######################################
 rim ${rsm.getRimName()} {
+#foreach ( $rimEvent in ${commands.getRimEvents().entrySet()} )
+	event $rimEvent.getKey() {
+		method: $rimEvent.getValue()
+	}
+#end
+
+#foreach ( $command in $commands.getRIMCommands() )
+	command $command
+#end
+
 #parse("/Resource.vm")
 }

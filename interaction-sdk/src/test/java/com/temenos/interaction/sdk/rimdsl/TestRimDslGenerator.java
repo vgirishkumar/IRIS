@@ -127,6 +127,7 @@ public class TestRimDslGenerator {
 		// check results for ServiceDocument
 		String root = interactionModel.getName();
 		rimDSL = dslMap.get(root);
+		assertTrue(rimDSL.contains("event GET"));
 		assertTrue(rimDSL.contains("initial resource ServiceDocument"));
 		assertTrue(rimDSL.contains("GET -> Flight_Schedule.FlightSchedules"));
 		assertFalse(rimDSL.contains("resource FlightSchedules"));
@@ -138,6 +139,7 @@ public class TestRimDslGenerator {
 		// check results for FlightSchedules
 		rimDSL = dslMap.get("Flight_Schedule");
 		assertTrue(rimDSL.contains("rim Flight_Schedule {"));
+		assertTrue(rimDSL.contains("event GET"));
 		assertTrue(rimDSL.contains("resource FlightSchedules"));
 		assertTrue(rimDSL.contains("GET *-> flightschedule {" + RIM_LINE_SEP
 				+ "\t\tparameters [ id=\"{flightScheduleID}\" ]" + RIM_LINE_SEP

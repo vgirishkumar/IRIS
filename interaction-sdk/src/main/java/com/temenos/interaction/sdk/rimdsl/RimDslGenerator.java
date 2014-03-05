@@ -99,6 +99,7 @@ public class RimDslGenerator {
 		for (IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
 			VelocityContext rsmContext = new VelocityContext();
 			rsmContext.put("rsm", rsm);
+			rsmContext.put("commands", commands);
 			rsmContext.put("strictOData", strictOData);
 
 			String rimName = rsm.getRimName();
