@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -77,6 +78,11 @@ import com.temenos.interaction.sdk.util.IndentationFormatter;
  */
 public class JPAResponderGen {
 
+	// generator properties
+	public final static String PROPERTY_KEY_ROOT = "com.temenos.interaction.sdk";
+	public final static String STRICT_ODATA_KEY = "strictodata";
+	public final static String REGENERATE_OUTPUT_KEY = "regenerate";
+	
 	public final static String JPA_CONFIG_FILE = "jpa-persistence.xml";
 	public final static String SPRING_CONFIG_FILE = "spring-beans.xml";
 	public final static String SPRING_RESOURCEMANAGER_FILE = "resourcemanager-context.xml";
@@ -91,7 +97,8 @@ public class JPAResponderGen {
 	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
 	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
 			
-	private final boolean strictOData; 		//Indicates whether it should generate strict odata paths etc. (e.g. Flight(1)/flightschedule rather than FlightSchedule(2051))
+	private boolean strictOData; 		//Indicates whether it should generate strict odata paths etc. (e.g. Flight(1)/flightschedule rather than FlightSchedule(2051))
+	private boolean overwriteAllOutput = true;
 	
 	/*
 	 *  create a new instance of the engine
@@ -110,7 +117,23 @@ public class JPAResponderGen {
 	 * @param strictOData indicates whether to generate a strict odata model
 	 */
 	public JPAResponderGen(boolean strictOData) {
-		this.strictOData = strictOData;
+		Properties props = new Properties();
+		if (strictOData)
+			props.put(PROPERTY_KEY_ROOT + "." + STRICT_ODATA_KEY, "true");
+		initialise(props);
+	}
+
+	/**
+	 * Construct an instance of this class
+	 * @param strictOData indicates whether to generate a strict odata model
+	 */
+	public JPAResponderGen(Properties props) {
+		initialise(props);		
+	}
+
+	protected void initialise(Properties props) {
+		strictOData = isKeyTrue(props.get(PROPERTY_KEY_ROOT + "." + STRICT_ODATA_KEY));
+		overwriteAllOutput = isKeyTrue(props.get(PROPERTY_KEY_ROOT + "." + REGENERATE_OUTPUT_KEY));
 		
 		// load .vm templates using classloader
 		ve.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
@@ -118,6 +141,9 @@ public class JPAResponderGen {
 		ve.init();
 	}
 	
+	private boolean isKeyTrue(Object keyValue) {
+		return (keyValue != null && keyValue.toString().equalsIgnoreCase("true"));
+	}
 
 	
 	/**
@@ -594,7 +620,7 @@ public class JPAResponderGen {
 			File dir = new File(sourceDir.getPath());
 			dir.mkdirs();
 			File f = new File(dir, rimDslFilename);
-			if(!f.exists()) {
+			if(overwriteAllOutput || !f.exists()) {
 				fos = new FileOutputStream(f);
 				fos.write(generatedRimDsl.getBytes("UTF-8"));
 			}
