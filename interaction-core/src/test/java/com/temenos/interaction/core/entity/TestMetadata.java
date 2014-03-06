@@ -23,6 +23,7 @@ package com.temenos.interaction.core.entity;
 
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -32,11 +33,13 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
+import com.temenos.interaction.core.resource.ResourceMetadataManager;
 
 public class TestMetadata {
 
@@ -193,4 +196,40 @@ public class TestMetadata {
 	public void testTimePropertyAsString() {
 		Assert.assertEquals("00:00:00.001", vocs.getPropertyValueAsString("time", new LocalTime(1, DateTimeZone.UTC)));
 	}
+	
+	@Test
+	public void testEntityList() {
+		String entity1 = "CountryList";
+		String entity2 = "CustomerInfo";
+		TermFactory termFactory = new TermFactory();
+		ResourceMetadataManager rmManager = new ResourceMetadataManager(termFactory);
+		Metadata metadata = new Metadata(rmManager);
+		EntityMetadata em1 = metadata.getEntityMetadata(entity1);
+		EntityMetadata em2 = metadata.getEntityMetadata(entity2);
+		
+		Assert.assertEquals("CountryList", em1.getEntityName().toString());
+		Assert.assertEquals("CustomerInfo", em2.getEntityName().toString());
+	}
+	
+	@Test
+	public void testAllEntity() {
+		String entity1 = "CountryList";
+		String entity2 = "CustomerInfo";
+		TermFactory termFactory = new TermFactory();
+		ResourceMetadataManager rmManager = new ResourceMetadataManager(termFactory);
+		Metadata metadata = new Metadata(rmManager);
+		Map<String, EntityMetadata> mapEntity = metadata.getEntitiesMetadata();
+		
+		Assert.assertTrue(mapEntity.isEmpty());
+		
+		EntityMetadata em1 = metadata.getEntityMetadata(entity1);
+		EntityMetadata em2 = metadata.getEntityMetadata(entity2);
+		
+		Assert.assertEquals("CountryList", em1.getEntityName().toString());
+		Assert.assertEquals("CustomerInfo", em2.getEntityName().toString());
+
+		Assert.assertTrue(mapEntity.containsKey(entity1));
+		Assert.assertTrue(mapEntity.containsKey(entity2));
+	}
+
 }

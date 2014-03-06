@@ -44,6 +44,8 @@ public class ResourceMetadataManager {
 
 	private Metadata metadata = null;
 
+	private TermFactory termFactory = null;
+	
 	/**
 	 * Construct the metadata object
 	 */
@@ -75,6 +77,15 @@ public class ResourceMetadataManager {
 	{
 		metadata = parseMetadataXML(termFactory);
 	}
+	
+	/*
+	 * construct termFactory only
+	 */
+	public ResourceMetadataManager(TermFactory termFactory)
+	{
+		this.termFactory = termFactory;
+	}
+	
 	
 	/**
 	 * Return the entity model metadata
@@ -123,5 +134,36 @@ public class ResourceMetadataManager {
 			throw new RuntimeException("Failed to parse metadata xml: " + e.getMessage());
 		}
 	}
+	
+	//-----------------------------------------------------------
+	//-----------------------------------------------------------
+	/*
+	 *  get metadadata
+	 */
+	public Metadata getMetadata(String entityName) {
+		if(termFactory == null) {
+			logger.error("TermFactory Missing");
+			throw new RuntimeException("TermFactory Missing");
+		}
+		return parseMetadataXML(entityName, termFactory);
+	}
 
+	/*
+	 * Parse the XML metadata file
+	 */
+	protected Metadata parseMetadataXML(String entityName, TermFactory termFactory) {
+		try {
+			String metadataFilename = "metadata-" + entityName + ".xml";
+			InputStream is = getClass().getClassLoader().getResourceAsStream(metadataFilename);
+			if(is == null) {
+				throw new Exception("Unable to load " + METADATA_XML_FILE + " from classpath.");
+			}
+			return new MetadataParser(termFactory).parse(is);
+		}
+		catch(Exception e) {
+			logger.error("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
+			e.printStackTrace();
+			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
+		}
+	}
 }

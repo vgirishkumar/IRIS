@@ -25,6 +25,8 @@ package com.temenos.interaction.core.entity;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.temenos.interaction.core.resource.ResourceMetadataManager;
+
 /**
  * This class holds metadata information about resource entities.
  */
@@ -35,6 +37,8 @@ public class Metadata  {
 	private Map<String, EntityMetadata> entitiesMetadata = new HashMap<String, EntityMetadata>();
 	private String modelName;
 
+	private ResourceMetadataManager rmManager;
+	
 	/**
 	 * Construct a new metadata object
 	 * @param modelName name of this model
@@ -48,9 +52,9 @@ public class Metadata  {
 	 * @param entityName Entity name
 	 * @return entity metadata
 	 */
-	public EntityMetadata getEntityMetadata(String entityName) {
-		return entitiesMetadata.get(entityName);
-	}
+//	public EntityMetadata getEntityMetadata(String entityName) {
+//		return entitiesMetadata.get(entityName);
+//	}
 	
 	/**
 	 * Sets the metadata for the specified entity
@@ -75,5 +79,23 @@ public class Metadata  {
 	 */
 	public String getModelName() {
 		return modelName;
+	}
+	
+	/**
+	 * Returns the metadata of the specified entity
+	 * @param entityName Entity name
+	 * @return entity metadata
+	 */
+	
+	public Metadata(ResourceMetadataManager rmManager) {
+		this.rmManager = rmManager;
+	}
+	
+	public EntityMetadata getEntityMetadata(String entityName) {
+		if( !entitiesMetadata.containsKey(entityName)) {
+			entitiesMetadata.putAll(rmManager.getMetadata(entityName).getEntitiesMetadata());
+		} 
+		
+		return entitiesMetadata.get(entityName);
 	}
 }
