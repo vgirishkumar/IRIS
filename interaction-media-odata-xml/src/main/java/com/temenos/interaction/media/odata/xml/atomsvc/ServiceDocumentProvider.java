@@ -48,6 +48,8 @@ import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
@@ -65,8 +67,12 @@ import com.temenos.interaction.core.resource.ResourceTypeHelper;
 public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	@Context
 	private UriInfo uriInfo;
-	
-	public ServiceDocumentProvider() {
+	private final ResourceState serviceDocument;
+
+	public ServiceDocumentProvider(ResourceStateMachine hypermediaEngine) {
+		this.serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+		if (serviceDocument == null)
+			throw new RuntimeException("No 'ServiceDocument' found.");
 	}
 
 	@Override
@@ -110,7 +116,8 @@ public class ServiceDocumentProvider implements MessageBodyReader<RESTResource>,
 		    StringWriter sw = new StringWriter();
 		    MediaType[] acceptedMediaTypes = { ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE };
 		    FormatWriter<EdmDataServices> fw = FormatWriterFactory.getFormatWriter(EdmDataServices.class, Arrays.asList(acceptedMediaTypes), "atom", null);
-		    fw.write(uriInfo, sw, metadata);
+		    ExUriInfo extUriInfo = new ExUriInfo(serviceDocument, uriInfo);
+		    fw.write(extUriInfo, sw, metadata);
 			svcDocString = sw.toString();
 			
 			//Set HTTP response headers

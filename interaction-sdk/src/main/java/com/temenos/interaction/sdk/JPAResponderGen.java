@@ -21,8 +21,6 @@ package com.temenos.interaction.sdk;
  * #L%
  */
 
-
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,6 +29,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -222,16 +221,11 @@ public class JPAResponderGen {
 	}
 	
 	/**
-	 * Returns a character stream representing the RIM from the conceptual interaction and metadata models.
-	 * @param interactionModel Conceptual interaction model
-	 * @param commands Commands
-	 * @return RIM as character stream 
-	 * @throws Exception
+	 * see {@link RimDslGenerator#getRIM(InteractionModel, Commands)}
 	 */
 	public InputStream getRIM(InteractionModel interactionModel, Commands commands) throws Exception {
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
-		String dsl = rimDslGenerator.generateRimDsl(interactionModel, commands, strictOData);
-		return new ByteArrayInputStream(dsl.getBytes());
+		return rimDslGenerator.getRIM(interactionModel, commands, strictOData);
 	}
 	
 	private boolean writeArtefacts(String modelName, List<EntityInfo> entitiesInfo, Commands commands, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
@@ -254,9 +248,14 @@ public class JPAResponderGen {
 
 		// generate the rim DSL
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
-		String rimDslFilename = modelName + ".rim";
-		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands, strictOData))) {
-			ok = false;
+		Map<String,String> rims = rimDslGenerator.generateRimDslMap(interactionModel, commands, strictOData);
+		for (String key : rims.keySet()) {
+			String rimDslFilename = key + ".rim";
+			if (!writeRimDsl(configOutputPath, rimDslFilename, rims.get(key))) {
+				System.out.print("Failed to write " + key);
+				ok = false;
+				break;
+			}
 		}
 
 		if(generateMockResponder) {

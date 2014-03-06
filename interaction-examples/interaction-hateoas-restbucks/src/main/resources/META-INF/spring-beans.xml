@@ -89,7 +89,9 @@
 		<constructor-arg ref="entityTransformer" />
 	</bean>
     <bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
-	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />
+	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider">
+        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
+	</bean>
     <bean id="errorProvider" class="com.temenos.interaction.media.odata.xml.error.ErrorProvider" />
  	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
 		<constructor-arg ref="edmMetadata" />
