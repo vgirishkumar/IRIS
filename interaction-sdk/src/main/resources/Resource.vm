@@ -63,7 +63,7 @@ $action##
 #end
 ## ----- Error handler -----
 #if($state.hasOnError())
-	onerror --> ${state.getErrorHandlerState().getName()}
+	onerror --> #if(${rsm.getRimName()})#if(${rim.getDomain()})${rim.getDomain()}.#end${rim.getName()}.#end${state.getErrorHandlerState().getName()}
 #end
 }
 #end

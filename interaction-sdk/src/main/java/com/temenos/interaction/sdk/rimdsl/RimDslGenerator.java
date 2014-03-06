@@ -98,6 +98,7 @@ public class RimDslGenerator {
 		Template resourceTemplate = velocityEngine.getTemplate("/RIM.vm");
 		for (IMResourceStateMachine rsm : interactionModel.getResourceStateMachines()) {
 			VelocityContext rsmContext = new VelocityContext();
+			rsmContext.put("rim", interactionModel);
 			rsmContext.put("rsm", rsm);
 			rsmContext.put("commands", commands);
 			rsmContext.put("strictOData", strictOData);
