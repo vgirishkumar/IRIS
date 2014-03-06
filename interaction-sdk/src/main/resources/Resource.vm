@@ -169,7 +169,7 @@ $action##
 		parameters [ id="{${rsm.getMappedEntityProperty()}}" ]
 	}
 #else
-	${transition.getMethod()} -> ${transition.getTargetResourceStateMachine().getCollectionState().getName()} {
+	${transition.getMethod()} -> #if(${transition.getTargetResourceStateMachine().getRimName()})${transition.getTargetResourceStateMachine().getRimName()}.#end${transition.getTargetResourceStateMachine().getCollectionState().getName()} {
 #if ($transition.getTitle())
 		${transition.getTitleAssignment()}
 #end
@@ -186,7 +186,7 @@ $action##
 		parameters [ id="{${rsm.getMappedEntityProperty()}}" ]
 	}
 #else
-	${transition.getMethod()} -> ${transition.getTargetResourceStateMachine().getEntityState().getName()} {
+	${transition.getMethod()} -> #if(${transition.getTargetResourceStateMachine().getRimName()})${transition.getTargetResourceStateMachine().getRimName()}.#end${transition.getTargetResourceStateMachine().getEntityState().getName()} {
 #if ($transition.getTitle())
 		${transition.getTitleAssignment()}
 #end
