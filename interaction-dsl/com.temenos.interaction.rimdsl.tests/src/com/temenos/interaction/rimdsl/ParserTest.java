@@ -596,6 +596,7 @@ public class ParserTest {
 			"	         view: NoopGET" + LINE_SEP +
 			"	         GET -> ONE.A" + LINE_SEP +
 			"	         GET -> A" + LINE_SEP +
+			"	         onerror --> ONE.A" + LINE_SEP +
 			"        }" + LINE_SEP +
 			"    }" + LINE_SEP +  // end rim
 			"}" + LINE_SEP +  // end domain

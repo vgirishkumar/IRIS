@@ -90,7 +90,7 @@ State:
                 // MAY define one or more transitions
                 & transitions+=TransitionRef*
                 // MAY define an onerror transition
-                & ('onerror' '-->' errorState=[State])?
+                & ('onerror' '-->' errorState=[State|QualifiedName])?
     	)
     '}'
 ;
