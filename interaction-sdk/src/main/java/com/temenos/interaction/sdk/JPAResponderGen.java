@@ -254,6 +254,15 @@ public class JPAResponderGen {
 		return rimDslGenerator.getRIM(interactionModel, commands, strictOData);
 	}
 	
+	/**
+	 * see {@link RimDslGenerator#generateRimDslMap(InteractionModel, Commands)}
+	 */
+	public Map<String,String> getRIMsMap(InteractionModel interactionModel, Commands commands) {
+		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
+		Map<String,String> rims = rimDslGenerator.generateRimDslMap(interactionModel, commands, strictOData);
+		return rims;
+	}
+	
 	private boolean writeArtefacts(String modelName, List<EntityInfo> entitiesInfo, Commands commands, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
 		boolean ok = true;
 		String namespace = modelName + Metadata.MODEL_SUFFIX;
