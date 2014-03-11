@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -53,7 +52,6 @@ import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.entity.vocabulary.Term;
 import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.hypermedia.Action;
@@ -62,11 +60,15 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.resource.ResourceMetadataManager;
 import com.temenos.interaction.media.odata.xml.IgnoreNamedElementsXMLDifferenceListener;
 
 public class TestAtomEntityEntryFormatWriter {
 
 	public final static String METADATA_XML_FILE = "TestMetadataParser.xml";
+	public final static String METADATA_CUSTOMER = "Customer";
+	public final static String METADATA_CUSTOMER_ALL_TERM = "CustomerAllTermList";
+	public final static String METADATA_CUSTOMER_WITH_TERM = "CustomerWithTermList";
 	private static Entity simpleEntity;
 	private static Entity simpleEntityWithComplexTypes;
 	private static Entity complexEntity;
@@ -95,10 +97,19 @@ public class TestAtomEntityEntryFormatWriter {
 		};
 		
 		// Initialise
+		ResourceMetadataManager rm = new ResourceMetadataManager(null, termFactory);
 		serviceDocument = mock(ResourceState.class);
-		MetadataParser parser = new MetadataParser(termFactory);
-		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
-		metadata = parser.parse(is);
+		//MetadataParser parser = new MetadataParser(termFactory);
+		//InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
+		//metadata = parser.parse(is);
+		//metadata.setResourceMetadataManager(rm);
+		
+		metadata = new Metadata(rm);
+		metadata.setModelName("CustomerServiceTest");
+		metadata.getEntityMetadata(METADATA_CUSTOMER);
+		metadata.getEntityMetadata(METADATA_CUSTOMER_ALL_TERM);
+		metadata.getEntityMetadata(METADATA_CUSTOMER_WITH_TERM);
+		
 		Assert.assertNotNull(metadata);
 	
 		// Simple Metadata and Entity
@@ -301,7 +312,7 @@ public class TestAtomEntityEntryFormatWriter {
 		
 		Map<Transition, RESTResource> embeddedResources = new HashMap<Transition, RESTResource>();
 		EntityResource<Entity> embeddedEntityResource = new EntityResource<Entity>(null);
-		embeddedEntityResource.setEntityName("SomeMockName");
+		embeddedEntityResource.setEntityName("Customer");
 		embeddedResources.put(mockTransition, embeddedEntityResource);
 		
 		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter(serviceDocument, metadata);

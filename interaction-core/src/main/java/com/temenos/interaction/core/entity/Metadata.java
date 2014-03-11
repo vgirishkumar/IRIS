@@ -23,6 +23,7 @@ package com.temenos.interaction.core.entity;
 
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.temenos.interaction.core.resource.ResourceMetadataManager;
@@ -37,7 +38,7 @@ public class Metadata  {
 	private Map<String, EntityMetadata> entitiesMetadata = new HashMap<String, EntityMetadata>();
 	private String modelName;
 
-	private ResourceMetadataManager rmManager;
+	private ResourceMetadataManager resourceMetadataManager = null;
 	
 	/**
 	 * Construct a new metadata object
@@ -46,7 +47,13 @@ public class Metadata  {
 	public Metadata(String modelName) {
 		this.modelName = modelName;
 	}
-	
+
+	//TODO: Workout with this method - this is only to pass some of test
+	public Metadata(Metadata metadata) {
+		this.entitiesMetadata.putAll(metadata.getEntitiesMetadata());
+		this.modelName = metadata.modelName;
+		this.resourceMetadataManager = metadata.resourceMetadataManager;
+	}
 	/**
 	 * Returns the metadata of the specified entity
 	 * @param entityName Entity name
@@ -81,19 +88,43 @@ public class Metadata  {
 		return modelName;
 	}
 	
+	public void setModelName(String modelName) {
+		this.modelName = modelName;
+	}
+	
 	/**
 	 * Returns the metadata of the specified entity
 	 * @param entityName Entity name
 	 * @return entity metadata
 	 */
 	
-	public Metadata(ResourceMetadataManager rmManager) {
-		this.rmManager = rmManager;
+	public Metadata(ResourceMetadataManager rmManager, List<String> defaultEntities) {
+		this.resourceMetadataManager = rmManager;
+		if (defaultEntities.size() > 0 ) {
+			// Load
+		}
 	}
 	
-	public EntityMetadata getEntityMetadata(String entityName) {
+	
+	public Metadata(ResourceMetadataManager rmManager) {
+		setResourceMetadataManager(rmManager);
+	}
+	
+	public void setResourceMetadataManager(ResourceMetadataManager rmManager) {
+		this.resourceMetadataManager = rmManager;
+	}
+	
+	public Metadata getMetadata() {
+		return this;
+	}
+	
+	public EntityMetadata getEntityMetadata(String entityName) {		
 		if( !entitiesMetadata.containsKey(entityName)) {
-			entitiesMetadata.putAll(rmManager.getMetadata(entityName).getEntitiesMetadata());
+			if(resourceMetadataManager == null) {
+				//throw new RuntimeException("ResourceMetadataManager not instantiate");
+				resourceMetadataManager = new ResourceMetadataManager();
+			}
+			entitiesMetadata.putAll(resourceMetadataManager.getMetadata(entityName).getEntitiesMetadata());
 		} 
 		
 		return entitiesMetadata.get(entityName);

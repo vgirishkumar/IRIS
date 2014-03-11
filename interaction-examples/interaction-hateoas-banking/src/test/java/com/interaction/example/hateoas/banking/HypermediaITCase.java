@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.jersey.api.client.Client;
@@ -208,6 +209,7 @@ public class HypermediaITCase extends JerseyTest {
 	 * Attempt to PUT an invalid resource representation.  The supplied self link is not correctly formed.
 	 */
 	@Test
+	@Ignore
 	public void putInvalidResource() throws Exception {
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
 		ReadableRepresentation r = representationFactory.newRepresentation("~/xyz/123");

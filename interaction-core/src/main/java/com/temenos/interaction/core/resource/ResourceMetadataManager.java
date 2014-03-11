@@ -43,7 +43,6 @@ public class ResourceMetadataManager {
 	private final static String METADATA_XML_FILE = "metadata.xml";
 
 	private Metadata metadata = null;
-
 	private TermFactory termFactory = null;
 	
 	/**
@@ -75,17 +74,25 @@ public class ResourceMetadataManager {
 	 */
 	public ResourceMetadataManager(ResourceStateMachine hypermediaEngine, TermFactory termFactory)
 	{
-		metadata = parseMetadataXML(termFactory);
-	}
-	
-	/*
-	 * construct termFactory only
-	 */
-	public ResourceMetadataManager(TermFactory termFactory)
-	{
+		//metadata = parseMetadataXML(termFactory);
 		this.termFactory = termFactory;
 	}
 	
+	/*
+	 * construct termFactory & Metadata
+	 */
+	public ResourceMetadataManager(TermFactory termFactory, Metadata entityMetadata)
+	{
+		this.termFactory = termFactory;
+		this.metadata = entityMetadata;
+	}
+	
+
+ 	public ResourceMetadataManager()
+	{
+		termFactory = new TermFactory();
+	}
+
 	
 	/**
 	 * Return the entity model metadata
@@ -152,18 +159,18 @@ public class ResourceMetadataManager {
 	 * Parse the XML metadata file
 	 */
 	protected Metadata parseMetadataXML(String entityName, TermFactory termFactory) {
+		String metadataFilename = "metadata-" + entityName + ".xml";
 		try {
-			String metadataFilename = "metadata-" + entityName + ".xml";
 			InputStream is = getClass().getClassLoader().getResourceAsStream(metadataFilename);
 			if(is == null) {
-				throw new Exception("Unable to load " + METADATA_XML_FILE + " from classpath.");
+				throw new Exception("Unable to load " + metadataFilename + " from classpath.");
 			}
 			return new MetadataParser(termFactory).parse(is);
 		}
 		catch(Exception e) {
-			logger.error("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
+			logger.error("Failed to parse " + metadataFilename + ": " + e.getMessage());
 			e.printStackTrace();
-			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
+			throw new RuntimeException("Failed to parse " + metadataFilename + ": " + e.getMessage());
 		}
 	}
 }
