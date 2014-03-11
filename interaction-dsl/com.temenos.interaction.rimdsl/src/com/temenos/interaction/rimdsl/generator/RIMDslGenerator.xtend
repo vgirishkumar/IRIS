@@ -85,9 +85,9 @@ class RIMDslGenerator implements IGenerator {
 
             public «state.name»ResourceState(ResourceFactory factory) {
                 «IF state.type.isCollection»
-                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
                 «ELSEIF state.type.isItem»
-                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
                 «ENDIF»
                 «IF state.isInitial»
                 setInitial(true);
