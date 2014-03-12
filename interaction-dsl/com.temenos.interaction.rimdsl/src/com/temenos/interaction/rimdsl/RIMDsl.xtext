@@ -35,7 +35,7 @@ ResourceInteractionModel:
 	        (events += Event)*
     	    & (commands += Command)*
     	    // MAY define a 'basepath:'
-            & basepath=BasePath?
+            & (basepath=BasePath)?
         	& (relations += Relation)*
         	& (states += State)*
        	)
@@ -49,9 +49,19 @@ Event:
 ;
 
 Command:
-	'command' name=ID ('{' 
+	'command' name=ID (spec=CommandSpec)?
+;
+
+CommandSpec:
+	(
+	'{'
+		// force create of the container object i.e. CommandSpec
+        {CommandSpec}
+        (
         'properties' '[' ((properties+=CommandProperty) (',' properties+=CommandProperty)* ) ']'
-    '}')?
+        )
+    '}'
+    )
 ;
 
 CommandProperty:
