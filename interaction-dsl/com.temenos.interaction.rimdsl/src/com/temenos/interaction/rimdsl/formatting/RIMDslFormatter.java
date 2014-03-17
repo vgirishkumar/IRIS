@@ -42,6 +42,7 @@ public class RIMDslFormatter extends AbstractDeclarativeFormatter {
 		setPreservingLinewraps(c, 1).after(f.getTransitionAutoRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionEmbeddedRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionRefRule());
+		setPreservingLinewraps(c, 1).after(f.getTitleRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionSpecAccess().getRightSquareBracketKeyword_2_1_3());
 		setPreservingLinewraps(c, 1).after(f.getResourceCommandAccess().getRightSquareBracketKeyword_1_4());
 

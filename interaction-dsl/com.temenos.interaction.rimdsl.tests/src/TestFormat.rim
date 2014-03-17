@@ -28,6 +28,7 @@ domain TestDomain {
 			GET -> ONE.A
 			GET -> A {
 				parameters [ someparameter = "{EntityProperty}" ]
+				title: "A"
 			}
 		}
 
