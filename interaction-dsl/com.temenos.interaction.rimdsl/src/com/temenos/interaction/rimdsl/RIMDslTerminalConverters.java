@@ -18,4 +18,9 @@ public class RIMDslTerminalConverters extends DefaultTerminalConverters {
 		return uriStringConverter;
 	}
 
+	@ValueConverter(rule = "URIPARAM")
+	public IValueConverter<String> URIPARAM() {
+		return uriStringConverter;
+	}
+
 }

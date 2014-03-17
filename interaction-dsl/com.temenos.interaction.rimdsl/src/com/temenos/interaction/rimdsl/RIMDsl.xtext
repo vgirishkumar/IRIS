@@ -203,7 +203,7 @@ UriLink:
 ;
 
 UriLinkage:
-	{UriLinkage} name=STRING 
+	{UriLinkage} name=URIPARAM 
 ;
 
 Title:
@@ -239,3 +239,8 @@ terminal URISTRING	:
     )*
     '"'
 ;
+
+terminal URIPARAM	: 
+			'"' ( !('\\'|'"') )* '"' |
+			"'" ( !('\\'|"'") )* "'"
+		; 
