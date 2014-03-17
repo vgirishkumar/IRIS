@@ -12,6 +12,7 @@ domain TestDomain {
 				properties [ property = "somevalue" ]
 			}
 			GET -> TestDomain.TWO.B
+
 		}
 
 	}

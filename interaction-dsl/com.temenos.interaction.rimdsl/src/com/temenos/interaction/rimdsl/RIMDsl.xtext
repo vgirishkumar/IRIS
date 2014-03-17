@@ -65,7 +65,7 @@ CommandSpec:
 ;
 
 CommandProperty:
-    name=ID '=' (value=ID | value=STRING)
+    name=ID '=' (value=ID | value=DQ_STRING)
 ;
 
 BasePath:
@@ -77,9 +77,9 @@ Relation:
     	// elements can appear in any order
     	(
     		// MUST define 'fqn:'
-	     	'fqn:' fqn=STRING
+	     	'fqn:' fqn=DQ_STRING
 	     	// MAY define 'description:'
-    	 	& ('description:' description=STRING)?
+    	 	& ('description:' description=DQ_STRING)?
      	)
     '}'	
 ;
@@ -176,7 +176,7 @@ RelationRef:
 ;
 
 RelationConstant:
-    name=STRING    
+    name=DQ_STRING    
 ;
 
 
@@ -207,7 +207,7 @@ UriLinkage:
 ;
 
 Title:
-    'title:' name=STRING    
+    'title:' name=DQ_STRING    
 ;
 
 terminal URISTRING	: 
@@ -240,7 +240,11 @@ terminal URISTRING	:
     '"'
 ;
 
-terminal URIPARAM	: 
-			'"' ( !('\\'|'"') )* '"' |
-			"'" ( !('\\'|"'") )* "'"
+URIPARAM : DQ_STRING;
+// almost the same as STRING, but only accepts a string defined by a double quote
+terminal DQ_STRING	: 
+			'"' ( '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'u'|'\\')
+				| !('\\'|'"')
+			)* '"'
 		; 
+
