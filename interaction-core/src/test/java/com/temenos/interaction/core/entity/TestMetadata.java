@@ -36,6 +36,7 @@ import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 public class TestMetadata {
@@ -86,6 +87,7 @@ public class TestMetadata {
 		Vocabulary vocDob = new Vocabulary();
 		vocDob.setTerm(new TermComplexType(false));
 		vocDob.setTerm(new TermValueType(TermValueType.DATE));
+		vocDob.setTerm(new TermMandatory(true));
 		vocs.setPropertyVocabulary("dateOfBirth", vocDob);
 
 		Vocabulary vocTime = new Vocabulary();
@@ -184,9 +186,10 @@ public class TestMetadata {
 
 	@Test
 	public void testCreateEmptyEntityProperty() {
-		Assert.assertEquals(0, ((Long) vocs.createEmptyEntityProperty("address.number").getValue()).longValue());
+		Assert.assertEquals(null, vocs.createEmptyEntityProperty("address.number").getValue());
 		Assert.assertEquals("", vocs.createEmptyEntityProperty("name").getValue());
 		Assert.assertTrue(vocs.createEmptyEntityProperty("dateOfBirth").getValue() instanceof Date);
+		Assert.assertEquals(null, vocs.createEmptyEntityProperty("industry").getValue());
 	}
 	
 	@Test

@@ -277,10 +277,15 @@ public class AtomEntityEntryFormatWriter {
 		String elementText = entityMetadata.getPropertyValueAsString( property );
 		writer.startElement(new QName(d, property.getName(), "d"));
 		EdmType type = MetadataOData4j.termValueToEdmType(entityMetadata.getTermValue(property.getFullyQualifiedName(), TermValueType.TERM_NAME));
+		boolean isNullable = entityMetadata.isPropertyNullable(property.getFullyQualifiedName());
+		// Append Type Attribute
 		if(!type.equals(EdmSimpleType.STRING)) {
 			writer.writeAttribute(new QName(m, "type", "m"), type.getFullyQualifiedTypeName());
 		}
-
+		// Append Null attribute
+		if ( isNullable && (elementText == null || elementText.isEmpty()) && !type.equals(EdmSimpleType.STRING)) {
+			writer.writeAttribute(new QName(m, "null", "m"), "true");
+		}
 		//Write the property text
 		if(type.equals(EdmSimpleType.DATETIME)) {
 			//Write dates in UTC format

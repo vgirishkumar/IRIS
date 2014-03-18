@@ -58,7 +58,6 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -126,7 +125,7 @@ public class MetadataOData4j {
 				String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);							// Is vocabulary a group (Complex Type)
 				boolean termList = Boolean.parseBoolean(entityMetadata.getTermValue(propertyName, TermListType.TERM_NAME));	// Is vocabulary a List of (Complex Types)
 				String termComplexGroup = entityMetadata.getTermValue(propertyName, TermComplexGroup.TERM_NAME);					// Is vocabulary belongs to a group (ComplexType) 
-				boolean isNullable = !(entityMetadata.getTermValue(propertyName, TermMandatory.TERM_NAME).equals("true") || entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true"));
+				boolean isNullable = entityMetadata.isPropertyNullable(propertyName);
 				if (termComplex.equals("false")) {
 					// This means we are dealing with plain property, either belongs to Entity or ComplexType (decide later, lets build it first)
 					EdmType edmType = termValueToEdmType(entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME));
