@@ -1,4 +1,4 @@
-package com.temenos.interaction.example.hateoas.swagger.servlet;
+package com.temenos.useragent.example.swagger.servlet;
 
 /*
  * #%L
@@ -73,8 +73,10 @@ public class SwaggerServlet extends HttpServlet {
 			JsonWriter jsonWriter = Json.createWriter(resp.getOutputStream());
 			jsonWriter.writeObject(jsonFinalSwaggerObject);
 			jsonWriter.close();
-		} catch (IOException | URISyntaxException e) {
-			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

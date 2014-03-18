@@ -80,7 +80,7 @@
 	
 	<servlet>
 		<servlet-name>SwaggerServlet</servlet-name>
-		<servlet-class>com.temenos.interaction.example.hateoas.swagger.servlet.SwaggerServlet</servlet-class>
+		<servlet-class>com.temenos.useragent.example.swagger.servlet.SwaggerServlet</servlet-class>
 		<init-param>
 			<param-name>irisUrlMapping</param-name>
             <param-value>api</param-value>
@@ -90,7 +90,7 @@
 
 	<servlet-mapping>
 		<servlet-name>SwaggerServlet</servlet-name>
-		<url-pattern>/swagger</url-pattern>
+		<url-pattern>/api-docs</url-pattern>
 	</servlet-mapping>
 
 	<servlet-mapping>

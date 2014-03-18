@@ -132,7 +132,7 @@ public class HypermediaITCase extends JerseyTest {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
 			} else if (link.getName().equals("Note.notes>POST>Note.newNote")) {
-				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes()", link.getHref());
+				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName() + "]");
 			}
@@ -325,8 +325,9 @@ public class HypermediaITCase extends JerseyTest {
 		ClientResponse response = webResource.path("/notes").delete(ClientResponse.class);
         assertEquals(405, response.getStatus());
 
-        assertEquals(3, response.getAllow().size());
+        assertEquals(4, response.getAllow().size());
         assertTrue(response.getAllow().contains("GET"));
+        assertTrue(response.getAllow().contains("POST"));
         assertTrue(response.getAllow().contains("OPTIONS"));
         assertTrue(response.getAllow().contains("HEAD"));
 	}
