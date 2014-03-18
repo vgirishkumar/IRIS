@@ -131,7 +131,7 @@ public class HypermediaITCase extends JerseyTest {
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
-			} else if (link.getName().equals("Note.notes>POST>Note.newNote")) {
+			} else if (link.getName().equals("Note.notes>POST>Note.createNote")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName() + "]");
