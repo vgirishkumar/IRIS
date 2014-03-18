@@ -41,7 +41,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>SwaggerServlet</servlet-name>
-		<url-pattern>/swagger</url-pattern>
+		<url-pattern>/api-docs</url-pattern>
 	</servlet-mapping>
 	 -->
 </web-fragment>
