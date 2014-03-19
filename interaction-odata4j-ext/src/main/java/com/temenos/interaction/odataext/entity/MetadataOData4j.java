@@ -75,6 +75,9 @@ public class MetadataOData4j {
 	private final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 
 	private EdmDataServices edmDataServices;
+	private Metadata metadata;
+	private ResourceStateMachine hypermediaEngine;
+	private ResourceState serviceDocument;
 
 	/**
 	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
@@ -82,13 +85,13 @@ public class MetadataOData4j {
 	 * resource with a transition from this 'ServiceDocument' resource.
 	 * @param metadata metadata
 	 */
-	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine)
-	{
-		ResourceState serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine) {
+		serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
 		if (serviceDocument == null)
 			throw new RuntimeException("No 'ServiceDocument' found.");
 		assert(!(serviceDocument instanceof CollectionResourceState)) : "Initial state must be an individual resource state";
-		this.edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+		this.metadata = metadata;
+		this.hypermediaEngine = hypermediaEngine;
 	}
 
 	/**
@@ -96,7 +99,9 @@ public class MetadataOData4j {
 	 * @return edmdataservices object
 	 */
 	public EdmDataServices getMetadata() {
-		return this.edmDataServices;
+		if (edmDataServices == null) 
+			edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+		return edmDataServices;
 	}
 
 	/**

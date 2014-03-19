@@ -23,7 +23,6 @@ package com.temenos.interaction.core.entity;
 
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.temenos.interaction.core.resource.ResourceMetadataManager;
@@ -38,17 +37,19 @@ public class Metadata  {
 	private Map<String, EntityMetadata> entitiesMetadata = new HashMap<String, EntityMetadata>();
 	private String modelName;
 
-	private ResourceMetadataManager resourceMetadataManager = null;
+	private ResourceMetadataManager resourceMetadataManager;
 	
 	/**
 	 * Construct a new metadata object
 	 * @param modelName name of this model
+	 * Some unit test are using this
 	 */
 	public Metadata(String modelName) {
 		this.modelName = modelName;
 	}
 
 	//TODO: Workout with this method - this is only to pass some of test
+	@Deprecated
 	public Metadata(Metadata metadata) {
 		this.entitiesMetadata.putAll(metadata.getEntitiesMetadata());
 		this.modelName = metadata.modelName;
@@ -92,20 +93,6 @@ public class Metadata  {
 		this.modelName = modelName;
 	}
 	
-	/**
-	 * Returns the metadata of the specified entity
-	 * @param entityName Entity name
-	 * @return entity metadata
-	 */
-	
-	public Metadata(ResourceMetadataManager rmManager, List<String> defaultEntities) {
-		this.resourceMetadataManager = rmManager;
-		if (defaultEntities.size() > 0 ) {
-			// Load
-		}
-	}
-	
-	
 	public Metadata(ResourceMetadataManager rmManager) {
 		setResourceMetadataManager(rmManager);
 	}
@@ -124,9 +111,11 @@ public class Metadata  {
 				//throw new RuntimeException("ResourceMetadataManager not instantiate");
 				resourceMetadataManager = new ResourceMetadataManager();
 			}
-			entitiesMetadata.putAll(resourceMetadataManager.getMetadata(entityName).getEntitiesMetadata());
+			Metadata metadata = resourceMetadataManager.getMetadata(entityName);
+			entitiesMetadata.putAll(metadata.getEntitiesMetadata());
+			setModelName(metadata.getModelName());
 		} 
 		
 		return entitiesMetadata.get(entityName);
-	}
+	}	
 }
