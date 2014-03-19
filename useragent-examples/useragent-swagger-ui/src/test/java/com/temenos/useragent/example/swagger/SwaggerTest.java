@@ -21,10 +21,6 @@ package com.temenos.useragent.example.swagger;
  * #L%
  */
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 import javax.servlet.ServletException;
 
 import junit.framework.Assert;
@@ -65,57 +61,11 @@ public class SwaggerTest {
 
 	private static final DefaultResourceLoader defaultResourceLoader = new DefaultResourceLoader();
 	
-	private static final String LINE_SEP = System.getProperty("line.separator");
-	
 	private MockServletConfig servletConfig;
 
 	private SwaggerServlet swaggerServlet;
 	
 	private MockServletContext servletContext;
-
-	static {
-		// Swagger file creation
-		final String SIMPLE_STATES_SWAGGER = "" +		
-				"{" + LINE_SEP +
-				"  \"apiVersion\": \"0.2\"," + LINE_SEP +
-				"  \"swaggerVersion\": \"1.2\"," + LINE_SEP +
-				"\"resourcePath\": \"/A\"," + LINE_SEP +
-				"\"apis\": [" + LINE_SEP +
-				"{" + LINE_SEP +
-				"\"path\": \"/A\"," + LINE_SEP +
-				"\"operations\": [" + LINE_SEP +
-				"{" + LINE_SEP +
-				"\"method\": \"GET\"," + LINE_SEP +
-				"\"nickname\": \"A\"" + LINE_SEP +
-				"}" + LINE_SEP +
-				"]" + LINE_SEP +
-				"}," + LINE_SEP +
-				"{" + LINE_SEP +
-				"\"path\": \"/B\"," + LINE_SEP +
-				"\"operations\": [" + LINE_SEP +
-				"{" + LINE_SEP +
-				"\"method\": \"POST\"," + LINE_SEP +
-				"\"nickname\": \"B\"" + LINE_SEP +
-				"}," + LINE_SEP +
-				"{" + LINE_SEP +
-				"\"method\": \"GET\"," + LINE_SEP +
-				"\"nickname\": \"B\"" + LINE_SEP +
-				"}" + LINE_SEP +
-				"]" + LINE_SEP +
-				"}" + LINE_SEP +
-				"]" + LINE_SEP +
-				"}" + LINE_SEP;
-		try {
-			// Set up the same resource loader for the file and the servlet context
-			File apiDocsTmpfile = new File(defaultResourceLoader.getResource("/").getURL().getPath() + SwaggerServlet.SWAGGER_FILE_NAME);
-			apiDocsTmpfile.deleteOnExit();
-			FileWriter fileWriter = new FileWriter(apiDocsTmpfile);
-			fileWriter.write(SIMPLE_STATES_SWAGGER);
-			fileWriter.close();
-		} catch (IOException e) {
-			Assert.fail(e.getMessage());
-		}
-	}
 
 	@Before
 	public void setUp() throws ServletException {

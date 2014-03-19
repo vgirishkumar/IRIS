@@ -21,10 +21,8 @@ package com.temenos.useragent.example.swagger.servlet;
  * #L%
  */
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStreamReader;
 import java.util.Map.Entry;
 
 import javax.json.Json;
@@ -60,7 +58,7 @@ public class SwaggerServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
 			// Parse the api-docs.json file to get a JsonReader object
-			JsonReader jsonReader = Json.createReader(new FileReader(new File(getServletContext().getResource("/" + SWAGGER_FILE_NAME).toURI())));
+			JsonReader jsonReader = Json.createReader(new InputStreamReader(getServletContext().getResourceAsStream("/" + SWAGGER_FILE_NAME)));
 			JsonObject jsonSwaggerObject = jsonReader.readObject();
 			jsonReader.close();
 			// Build a JsonReader object with the basePath and the data from api-docs.json in order to write it to the response
@@ -74,8 +72,6 @@ public class SwaggerServlet extends HttpServlet {
 			jsonWriter.writeObject(jsonFinalSwaggerObject);
 			jsonWriter.close();
 		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
 	}
