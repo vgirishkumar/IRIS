@@ -164,7 +164,16 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						continue;
 					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
 					// Representation withLink(String rel, String href, String name, String title, String hreflang, String profile);
-					halResource.withLink(l.getRel(), l.getHref(), l.getId(), l.getTitle(), null, null); 
+					String[] rels = new String[0];
+					if (l.getRel() != null) {
+						rels = l.getRel().split(" ");
+					}
+					
+					if (rels != null) {
+						for (int i = 0 ; i < rels.length; i++) {
+							halResource.withLink(rels[i], l.getHref(), l.getId(), l.getTitle(), null, null); 
+						}
+					}
 				}
 			}
 			
