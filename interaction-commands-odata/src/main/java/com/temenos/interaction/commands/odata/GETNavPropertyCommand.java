@@ -37,7 +37,6 @@ import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.PropertyResponse;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.resources.OptionsQueryParser;
-import org.odata4j.producer.resources.OptionsQueryParserExt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +103,7 @@ public class GETNavPropertyCommand extends AbstractODataCommand implements Inter
 					OptionsQueryParser.parseInlineCount(inlineCount),
 					OptionsQueryParser.parseTop(top),
 					OptionsQueryParser.parseSkip(skip),
-					OptionsQueryParserExt.parseFilter(filter),
+					OptionsQueryParser.parseFilter(filter),
 					OptionsQueryParser.parseOrderBy(orderBy),
 					OptionsQueryParser.parseSkipToken(skipToken),
 					null,

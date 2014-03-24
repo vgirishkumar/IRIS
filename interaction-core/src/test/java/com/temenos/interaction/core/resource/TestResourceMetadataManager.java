@@ -45,15 +45,14 @@ public class TestResourceMetadataManager {
 		String xml = writer.toString();
 		ResourceStateMachine stateMachine = mock(ResourceStateMachine.class);
 		ResourceMetadataManager mdProducer = new ResourceMetadataManager(xml, stateMachine);
-		//Metadata metadata = mdProducer.getMetadata();
-		Metadata metadata = new Metadata(mdProducer.getMetadata());
+		Metadata metadata = mdProducer.getMetadata();
 		assertNotNull(metadata);
 	}
 	
 	@Test
 	public void testCurrencyList() throws Exception {
 		TermFactory termFactory  = new TermFactory();
-		ResourceMetadataManager mdProducer = new ResourceMetadataManager(null, termFactory);
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager(termFactory);
 		Metadata metadata = mdProducer.getMetadata("CountryList");
 		assertNotNull(metadata);
 	}
@@ -61,7 +60,7 @@ public class TestResourceMetadataManager {
 	@Test
 	public void testCustomerInfo() throws Exception {
 		TermFactory termFactory  = new TermFactory();
-		ResourceMetadataManager mdProducer = new ResourceMetadataManager(null, termFactory);
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager(termFactory);
 		Metadata metadata = mdProducer.getMetadata("CustomerInfo");
 		assertNotNull(metadata);
 	}

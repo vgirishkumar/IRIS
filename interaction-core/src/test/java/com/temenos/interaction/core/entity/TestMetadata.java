@@ -202,7 +202,7 @@ public class TestMetadata {
 		String entity1 = "CountryList";
 		String entity2 = "CustomerInfo";
 		TermFactory termFactory = new TermFactory();
-		ResourceMetadataManager rmManager = new ResourceMetadataManager(null, termFactory);
+		ResourceMetadataManager rmManager = new ResourceMetadataManager(termFactory);
 		Metadata metadata = new Metadata(rmManager);
 		EntityMetadata em1 = metadata.getEntityMetadata(entity1);
 		EntityMetadata em2 = metadata.getEntityMetadata(entity2);
@@ -216,7 +216,7 @@ public class TestMetadata {
 		String entity1 = "CountryList";
 		String entity2 = "CustomerInfo";
 		TermFactory termFactory = new TermFactory();
-		ResourceMetadataManager rmManager = new ResourceMetadataManager(null, termFactory);
+		ResourceMetadataManager rmManager = new ResourceMetadataManager(termFactory);
 		Metadata metadata = new Metadata(rmManager);
 		Map<String, EntityMetadata> mapEntity = metadata.getEntitiesMetadata();
 		

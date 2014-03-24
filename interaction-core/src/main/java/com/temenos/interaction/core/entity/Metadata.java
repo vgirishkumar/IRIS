@@ -48,21 +48,29 @@ public class Metadata  {
 		this.modelName = modelName;
 	}
 
-	//TODO: Workout with this method - this is only to pass some of test
-	@Deprecated
-	public Metadata(Metadata metadata) {
-		this.entitiesMetadata.putAll(metadata.getEntitiesMetadata());
-		this.modelName = metadata.modelName;
-		this.resourceMetadataManager = metadata.resourceMetadataManager;
+	/*
+	 * construct metadata with ResourceMetadataManager
+	 */
+	public Metadata(ResourceMetadataManager resourceMetadataManager) {
+		setResourceMetadataManager(resourceMetadataManager);
 	}
+	
 	/**
 	 * Returns the metadata of the specified entity
 	 * @param entityName Entity name
 	 * @return entity metadata
 	 */
-//	public EntityMetadata getEntityMetadata(String entityName) {
-//		return entitiesMetadata.get(entityName);
-//	}
+	public EntityMetadata getEntityMetadata(String entityName) {		
+		if( !entitiesMetadata.containsKey(entityName)) {
+			if(resourceMetadataManager == null) {
+				resourceMetadataManager = new ResourceMetadataManager();
+			}
+			Metadata metadata = resourceMetadataManager.getMetadata(entityName);
+			entitiesMetadata.putAll(metadata.getEntitiesMetadata());
+			setModelName(metadata.getModelName());
+		} 
+		return entitiesMetadata.get(entityName);
+	}
 	
 	/**
 	 * Sets the metadata for the specified entity
@@ -93,29 +101,18 @@ public class Metadata  {
 		this.modelName = modelName;
 	}
 	
-	public Metadata(ResourceMetadataManager rmManager) {
-		setResourceMetadataManager(rmManager);
-	}
-	
+	/*
+	 * setter method 
+	 */
 	public void setResourceMetadataManager(ResourceMetadataManager rmManager) {
 		this.resourceMetadataManager = rmManager;
 	}
 	
+
+	/*
+	 * return metadata
+	 */
 	public Metadata getMetadata() {
 		return this;
-	}
-	
-	public EntityMetadata getEntityMetadata(String entityName) {		
-		if( !entitiesMetadata.containsKey(entityName)) {
-			if(resourceMetadataManager == null) {
-				//throw new RuntimeException("ResourceMetadataManager not instantiate");
-				resourceMetadataManager = new ResourceMetadataManager();
-			}
-			Metadata metadata = resourceMetadataManager.getMetadata(entityName);
-			entitiesMetadata.putAll(metadata.getEntitiesMetadata());
-			setModelName(metadata.getModelName());
-		} 
-		
-		return entitiesMetadata.get(entityName);
 	}	
 }

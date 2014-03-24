@@ -74,7 +74,7 @@ public class ResourceMetadataManager {
 	 */
 	public ResourceMetadataManager(ResourceStateMachine hypermediaEngine, TermFactory termFactory)
 	{
-		//metadata = parseMetadataXML(termFactory);
+		metadata = parseMetadataXML(termFactory);
 		this.termFactory = termFactory;
 	}
 	
@@ -88,11 +88,22 @@ public class ResourceMetadataManager {
 	}
 	
 
+	/*
+	 * construct only term factory
+	 */
  	public ResourceMetadataManager()
 	{
 		termFactory = new TermFactory();
 	}
 
+	/*
+	 * construct only term factory
+	 */
+ 	public ResourceMetadataManager(TermFactory termFactory)
+	{
+		this.termFactory = termFactory;
+	}
+ 	
 	
 	/**
 	 * Return the entity model metadata
@@ -142,8 +153,7 @@ public class ResourceMetadataManager {
 		}
 	}
 	
-	//-----------------------------------------------------------
-	//-----------------------------------------------------------
+	
 	/*
 	 *  get metadadata
 	 */
@@ -155,8 +165,9 @@ public class ResourceMetadataManager {
 		return parseMetadataXML(entityName, termFactory);
 	}
 
+	
 	/*
-	 * Parse the XML metadata file
+	 * Parse the XML entity metadata file
 	 */
 	protected Metadata parseMetadataXML(String entityName, TermFactory termFactory) {
 		String metadataFilename = "metadata-" + entityName + ".xml";
@@ -169,7 +180,6 @@ public class ResourceMetadataManager {
 		}
 		catch(Exception e) {
 			logger.error("Failed to parse " + metadataFilename + ": " + e.getMessage());
-			e.printStackTrace();
 			throw new RuntimeException("Failed to parse " + metadataFilename + ": " + e.getMessage());
 		}
 	}
