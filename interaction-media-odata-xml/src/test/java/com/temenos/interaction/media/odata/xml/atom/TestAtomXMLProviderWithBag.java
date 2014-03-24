@@ -373,8 +373,7 @@ public class TestAtomXMLProviderWithBag {
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-		//AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
-		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
 		
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));

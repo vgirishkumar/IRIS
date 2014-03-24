@@ -170,7 +170,14 @@ public class ResourceMetadataManager {
 	 * Parse the XML entity metadata file
 	 */
 	protected Metadata parseMetadataXML(String entityName, TermFactory termFactory) {
-		String metadataFilename = "metadata-" + entityName + ".xml";
+		String metadataFilename;
+		if(entityName == null ) {
+			logger.error(entityName + " entity name received, loading " + METADATA_XML_FILE);
+			metadataFilename = METADATA_XML_FILE;
+		} else {
+			metadataFilename = "metadata-" + entityName + ".xml";
+		}
+		
 		try {
 			InputStream is = getClass().getClassLoader().getResourceAsStream(metadataFilename);
 			if(is == null) {

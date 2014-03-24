@@ -108,7 +108,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private AtomFeedFormatWriter feedWriter;
 	private AtomEntityEntryFormatWriter entityEntryWriter;
 	
-	private final MetadataOData4j metadataOdata4j;
+	private final MetadataOData4j metadataOData4j;
 	private EdmDataServices edmDataServices;
 	private final Metadata metadata;
 	private final ResourceStateMachine hypermediaEngine;
@@ -143,11 +143,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 		feedWriter = new AtomFeedFormatWriter(serviceDocument);
 		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
-		metadataOdata4j = null;
+		metadataOData4j = null;
 	}
 	
-	public AtomXMLProvider(MetadataOData4j metadataOdata4j, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
-		this.metadataOdata4j = metadataOdata4j;
+	public AtomXMLProvider(MetadataOData4j metadataOData4j, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
+		this.metadataOData4j = metadataOData4j;
 		this.metadata = metadata;
 		this.hypermediaEngine = hypermediaEngine;
 		this.serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
@@ -666,7 +666,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	private EdmDataServices getEdmDataService() {
 		if( edmDataServices == null )
-			edmDataServices = metadataOdata4j.getMetadata();
+			edmDataServices = metadataOData4j.getMetadata();
 		return edmDataServices;
 	}
 }

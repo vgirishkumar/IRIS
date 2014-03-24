@@ -79,15 +79,12 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
 @PrepareForTest({OEntityKey.class, AtomXMLProvider.class})
 public class TestAtomXMLProviderPowerMock {
 
-	private AtomXMLProvider getAtomXMLProvider(Metadata metadata, ResourceStateMachine rsm) {
-		return new AtomXMLProvider(new	MetadataOData4j(metadata, rsm), metadata, rsm, new OEntityTransformer());
-	}
-	
 	@Test
 	public void testReadPath() throws Exception {
 		// enable mock of the static class (see also verifyStatic)
 		mockStatic(OEntityKey.class);
 		
+		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
 		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
 		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
@@ -104,8 +101,7 @@ public class TestAtomXMLProviderPowerMock {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		//AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
-		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/test/someresource/2");
@@ -134,7 +130,7 @@ public class TestAtomXMLProviderPowerMock {
 		// enable mock of the static class (see also verifyStatic)
 		mockStatic(OEntityKey.class);
 		
-		//EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
+		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
 		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
 		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
@@ -151,7 +147,7 @@ public class TestAtomXMLProviderPowerMock {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/test/someresource('2')");
@@ -197,7 +193,7 @@ public class TestAtomXMLProviderPowerMock {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/test/someresource");
@@ -231,7 +227,7 @@ public class TestAtomXMLProviderPowerMock {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = getAtomXMLProvider(mock(Metadata.class), rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		// mock not finding any resources
@@ -269,7 +265,7 @@ public class TestAtomXMLProviderPowerMock {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/test('2')");
@@ -316,7 +312,7 @@ public class TestAtomXMLProviderPowerMock {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = getAtomXMLProvider(createAirlineMetadata(), rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, createAirlineMetadata(), rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/test()");
@@ -359,7 +355,7 @@ public class TestAtomXMLProviderPowerMock {
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
 		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
-		AtomXMLProvider ap = getAtomXMLProvider(createAirlineMetadata(), rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(metadata, createAirlineMetadata(), rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		// An odata request for the colleciton might arrive without the brackets
@@ -388,7 +384,7 @@ public class TestAtomXMLProviderPowerMock {
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		
-		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/test/someresource");
@@ -417,8 +413,7 @@ public class TestAtomXMLProviderPowerMock {
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		
-		//AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
-		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
+		AtomXMLProvider ap = new AtomXMLProvider(edmDataServices, metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/test/someresource");
