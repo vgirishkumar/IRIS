@@ -82,9 +82,5 @@
 			<artifactId>joda-time</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-	    	<groupId>com.temenos.interaction</groupId>
-	    	<artifactId>interaction-odata4j-ext</artifactId>
-	    </dependency>
 	</dependencies>
 </project>
