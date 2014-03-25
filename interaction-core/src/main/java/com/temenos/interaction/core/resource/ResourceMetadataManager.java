@@ -181,7 +181,12 @@ public class ResourceMetadataManager {
 		try {
 			InputStream is = getClass().getClassLoader().getResourceAsStream(metadataFilename);
 			if(is == null) {
-				throw new Exception("Unable to load " + metadataFilename + " from classpath.");
+				logger.error("Unable to load " + metadataFilename + " from classpath.");
+				is = getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
+				if(is == null) {
+					logger.error("Unable to load " + METADATA_XML_FILE + " from classpath.");
+					throw new Exception("Unable to load " + metadataFilename + " and " + METADATA_XML_FILE + " from classpath.");
+				}
 			}
 			return new MetadataParser(termFactory).parse(is);
 		}
