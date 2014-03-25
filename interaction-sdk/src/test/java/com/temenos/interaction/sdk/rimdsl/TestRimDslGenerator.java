@@ -151,6 +151,23 @@ public class TestRimDslGenerator {
 		rimDSL = dslMap.get("Passenger");
 		assertTrue(rimDSL.contains("rim Passenger {"));
 		assertTrue(rimDSL.contains("resource Passengers"));
+	}
+
+	@Test
+	public void testGenerateRimDslMapAirlinesOnError() {
+		InteractionModel interactionModel = createAirlineModelDSL(null);
+		// flight defines an onerror
+		interactionModel.findResourceStateMachine("Flight").setRimName("Flight");
+
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		// returns a map of specified resource state machine name and dsl
+		Map<String,String> dslMap = generator.generateRimDslMap(interactionModel, JPAResponderGen.getDefaultCommands(), true);
+
+		// check results for Flight
+		String rimDSL = dslMap.get("Flight");
+		assertTrue(rimDSL.contains("rim Flight {"));
+		assertTrue(rimDSL.contains("onerror --> FlightResponder.ErrorMessages"));
 
 	}
 

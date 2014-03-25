@@ -81,7 +81,7 @@
           <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
           <targetDirectory>${basedir}/src/main/java</targetDirectory> 
 		  -->
-          <rimSourceFile>${basedir}/src/main/resources/${artifactId}.rim</rimSourceFile>
+          <rimSourceDir>${basedir}/src/main/resources/</rimSourceDir>
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
         </configuration>
       </plugin>
