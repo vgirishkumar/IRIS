@@ -271,6 +271,8 @@ public class EntityMetadata  {
 		String termValueType = getTermValue(propertyName, TermValueType.TERM_NAME);
 		if(propertyValue == null) {
 			value = "";
+		} else if (propertyValue instanceof String) {
+			return propertyValue.toString();
 		}
 		else if(termValueType.equals(TermValueType.TEXT) ||
 				termValueType.equals(TermValueType.RECURRENCE) ||
