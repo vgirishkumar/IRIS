@@ -287,7 +287,7 @@ public class AtomEntityEntryFormatWriter {
 			writer.writeAttribute(new QName(m, "null", "m"), "true");
 		}
 		//Write the property text
-		if(type.equals(EdmSimpleType.DATETIME)) {
+		if(type.equals(EdmSimpleType.DATETIME) && property.getValue() != null) {
 			//Write dates in UTC format
 			SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
