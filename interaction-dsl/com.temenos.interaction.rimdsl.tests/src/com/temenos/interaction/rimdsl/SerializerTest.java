@@ -50,6 +50,7 @@ import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 import com.temenos.interaction.rimdsl.rim.ResourceType;
 import com.temenos.interaction.rimdsl.rim.RimFactory;
 import com.temenos.interaction.rimdsl.rim.State;
+import com.temenos.interaction.rimdsl.rim.Title;
 import com.temenos.interaction.rimdsl.rim.TransitionForEach;
 import com.temenos.interaction.rimdsl.rim.TransitionRef;
 import com.temenos.interaction.rimdsl.rim.TransitionSpec;
@@ -87,6 +88,72 @@ public class SerializerTest {
 
 		String output = saveRimFromDomain(domainModel);
 		assertEquals("rim Test {"+LINE_SEP+"}", output);
+	}
+
+	private final static String RIM_WITH_TRANSITION_TITLE = "" +
+			"rim Test {" + LINE_SEP +
+			"	event GET { method: GET }" + LINE_SEP +
+			"	command GETEntities" + LINE_SEP +
+			"	command GETEntity" + LINE_SEP +
+			"" + LINE_SEP +
+			"	resource A {" + LINE_SEP +
+			"		type: collection" + LINE_SEP +
+			"		entity: Entity" + LINE_SEP +
+			"		view: GETEntities" + LINE_SEP +
+			"		GET *-> B {" + LINE_SEP +
+			"			title: \"Aaron\\'s transition to B\"" + LINE_SEP +
+			"		}" + LINE_SEP +
+			"	}" + LINE_SEP +
+			"" + LINE_SEP +
+			"	resource B {" + LINE_SEP +
+			"		type: item" + LINE_SEP +
+			"		entity: Entity" + LINE_SEP +
+			"		view: GETEntity" + LINE_SEP +
+			"	}" + LINE_SEP +
+			"" + LINE_SEP +
+			"}" +
+			""
+	;
+
+	@Test
+	public void testSerializeTransitionWithTitle() throws Exception {
+		DomainModel domainModel = RimFactory.eINSTANCE.createDomainModel();
+		
+		// rim Test {}
+		ResourceInteractionModel rim = RimFactory.eINSTANCE.createResourceInteractionModel();
+		rim.setName("Test");
+		domainModel.getRims().add(rim);
+
+		// events
+		EventFactory eventFactory = new EventFactory(rim.getEvents());
+		// commands
+		CommandFactory commandFactory = new CommandFactory(rim.getCommands());
+		
+		// resource A {}
+		State A = RimFactory.eINSTANCE.createState();
+		A.setName("A");
+		A.setEntity(createEntity("Entity"));
+		A.setType(createResourceType(true));
+		ImplRef AImpl = RimFactory.eINSTANCE.createImplRef();
+		AImpl.setView(commandFactory.createResourceCommand("GETEntities", null));
+		A.setImpl(AImpl);
+		rim.getStates().add(A);
+		
+		// resource B {}
+		State B = RimFactory.eINSTANCE.createState();
+		B.setName("B");
+		B.setEntity(createEntity("Entity"));
+		B.setType(createResourceType(false));
+		ImplRef BImpl = RimFactory.eINSTANCE.createImplRef();
+		BImpl.setView(commandFactory.createResourceCommand("GETEntity", null));
+		B.setImpl(BImpl);
+		rim.getStates().add(B);
+		
+		// transition from A *-> B
+		A.getTransitions().add(createTransitionForEach(eventFactory, B, "Aaron's transition to B", null));
+		
+		String output = saveRimFromDomain(domainModel);
+		assertEquals(RIM_WITH_TRANSITION_TITLE, output);
 	}
 
 	private final static String RIM_WITH_TRANSITION_PARAMETERS = "" +
@@ -151,11 +218,10 @@ public class SerializerTest {
 		// transition from A *-> B
 		Map<String,String> parameters = new HashMap<String,String>();
 		parameters.put("filter", "CustomerCode eq '{Cno}'");
-		A.getTransitions().add(createTransitionForEach(eventFactory, B, parameters));
+		A.getTransitions().add(createTransitionForEach(eventFactory, B, null, parameters));
 		
 		String output = saveRimFromDomain(domainModel);
 		assertEquals(RIM_WITH_TRANSITION_PARAMETERS, output);
-
 	}
 
 	private String saveRimFromDomain(DomainModel rim) throws Exception {
@@ -180,12 +246,17 @@ public class SerializerTest {
 		return entity;
 	}
 
-	private TransitionRef createTransitionForEach(EventFactory factory, State target, Map<String,String> parameters) {
+	private TransitionRef createTransitionForEach(EventFactory factory, State target, String titleStr, Map<String,String> parameters) {
 		TransitionForEach transition = RimFactory.eINSTANCE.createTransitionForEach();
 		transition.setEvent(factory.createGET());
 		transition.setState(target);
 		
 		TransitionSpec spec = RimFactory.eINSTANCE.createTransitionSpec();
+		if (titleStr != null) {
+			Title title = RimFactory.eINSTANCE.createTitle();
+			title.setName(titleStr);
+			spec.setTitle(title);
+		}
 		// add any parameters and conditions
 		if (parameters != null) {
 			for (String paramkey : parameters.keySet()) {
