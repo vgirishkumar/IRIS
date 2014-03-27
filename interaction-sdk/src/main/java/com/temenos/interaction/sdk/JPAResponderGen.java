@@ -92,7 +92,7 @@ public class JPAResponderGen {
 	public final static String METADATA_FILE = "metadata.xml";
 
 	public final static Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
-	public final static Parameter COMMAND_EDM_DATA_SERVICES = new Parameter("edmDataServices", true, "");
+	public final static Parameter COMMAND_METADATA_ODATA4J = new Parameter("metadataOData4j", true, "");
 	public final static Parameter COMMAND_METADATA = new Parameter("Metadata", false, "");
 	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
 	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
@@ -837,8 +837,8 @@ public class JPAResponderGen {
 		commands.addRimEvent("DELETE", Commands.HTTP_COMMAND_DELETE);
 		
 		//Add commands
-		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
-		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_SERVICE_DOCUMENT, COMMAND_METADATA_ODATA4J);
+		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_METADATA, COMMAND_METADATA_ODATA4J);
 		commands.addCommand(Commands.GET_EXCEPTION, "com.temenos.interaction.core.command.GETExceptionCommand");
 		commands.addCommand(Commands.GET_NOOP, "com.temenos.interaction.core.command.NoopGETCommand");
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);
