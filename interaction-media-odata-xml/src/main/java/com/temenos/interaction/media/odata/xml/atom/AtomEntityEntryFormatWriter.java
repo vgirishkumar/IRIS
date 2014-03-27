@@ -283,11 +283,11 @@ public class AtomEntityEntryFormatWriter {
 			writer.writeAttribute(new QName(m, "type", "m"), type.getFullyQualifiedTypeName());
 		}
 		// Append Null attribute
-		if ( isNullable && (elementText == null || elementText.isEmpty()) && !type.equals(EdmSimpleType.STRING)) {
+		if ( isNullable && (elementText.isEmpty()) && !type.equals(EdmSimpleType.STRING)) {
 			writer.writeAttribute(new QName(m, "null", "m"), "true");
 		}
 		//Write the property text
-		if(type.equals(EdmSimpleType.DATETIME)) {
+		if(type.equals(EdmSimpleType.DATETIME) && !elementText.isEmpty()) {
 			//Write dates in UTC format
 			SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));

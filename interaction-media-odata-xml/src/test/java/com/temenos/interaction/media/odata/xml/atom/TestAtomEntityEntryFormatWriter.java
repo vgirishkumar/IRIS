@@ -74,6 +74,7 @@ public class TestAtomEntityEntryFormatWriter {
 	public final static String METADATA_CUSTOMER_WITH_TERM = "CustomerWithTermList";
 	private static Entity simpleEntity;
 	private static Entity simpleEmptyEntity;
+	private static Entity simpleEmptyDOBEntity;
 	private static Entity simpleEntityWithComplexTypes;
 	private static Entity complexEntity;
 	private static Entity complexEntity2;
@@ -119,6 +120,7 @@ public class TestAtomEntityEntryFormatWriter {
 		// Simple Metadata and Entity
 		simpleEntity = getSimpleEntity("Customer");
 		simpleEmptyEntity = getSimpleEmptyEntity("Customer");
+		simpleEmptyDOBEntity = getSimpleEmptyEntity("CustomerNonManDateOfBirth");
 		simpleEntityWithComplexTypes = getComplexEntity("Customer");
 		
 		// Complex Metadata and Entity
@@ -508,6 +510,57 @@ public class TestAtomEntityEntryFormatWriter {
 		XMLUnit.setIgnoreWhitespace(true);
 		Diff myDiff = XMLUnit.compareXML(SIMPLE_EMPTY_ENTRY_OUTPUT, output);
 	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated", "d:dateOfBirth"));
+	    if(!myDiff.similar()) {
+	    	fail(myDiff.toString());
+	    }
+		
+		// We should not have List or infact any complex type representation here
+		Assert.assertFalse(output.contains("<d:CustomerWithTermList_address m:type=\"Bag(CustomerServiceTestModel.CustomerWithTermList_address)\">"));
+		Assert.assertFalse(output.contains("<d:CustomerWithTermList_street m:type=\"CustomerServiceTestModel.CustomerWithTermList_street\">"));
+	}
+	
+	private final static String SIMPLE_EMPTY_ENTRY_WITH_DOB_NONMAN_OUTPUT = "<?xml version='1.0' encoding='UTF-8'?>" +
+			"<entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xml:base=\"http://www.temenos.com/iris/service/\">" +
+			"  <id>http://www.temenos.com/iris/service/simple('NAME')</id>" +
+			"  <title type=\"text\"></title>" +
+			"  <updated>2014-02-25T09:15:50Z</updated>" +
+			"  <author>" +
+			"    <name></name>" +
+			"  </author>" +
+			"  <category term=\"CustomerServiceTestModel.CustomerNonManDateOfBirth\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\">" +
+				"  </category>" +
+				"  <content type=\"application/xml\">" +
+				"    <m:properties>" +
+				"      <d:loyal m:type=\"Edm.Boolean\" m:null=\"true\"></d:loyal>" +
+				"      <d:sector></d:sector>" +
+				"      <d:dateOfBirth m:type=\"Edm.DateTime\" m:null=\"true\"></d:dateOfBirth>" +
+				"      <d:name></d:name>" +
+				"      <d:loyalty_rating m:type=\"Edm.Double\" m:null=\"true\"></d:loyalty_rating>" +
+				"      <d:industry></d:industry>" +
+				"    </m:properties>" +
+				"  </content>" +
+				"</entry>";
+	
+	@Test
+	public void testWriteSimpleEmptyDOBEntry() throws Exception {
+		// Get UriInfo and Links
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/iris/service/"));
+		when(uriInfo.getPath()).thenReturn("simple('NAME')");
+		
+		List<Link> links = new ArrayList<Link>();
+				
+		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+		StringWriter strWriter = new StringWriter();
+		writer.write(uriInfo, strWriter, simpleEmptyDOBEntity.getName(), simpleEmptyDOBEntity, links, new HashMap<Transition, RESTResource>());
+		
+		String output = strWriter.toString();
+		//System.out.println(strWriter);
+		
+		//Check response
+		XMLUnit.setIgnoreWhitespace(true);
+		Diff myDiff = XMLUnit.compareXML(SIMPLE_EMPTY_ENTRY_WITH_DOB_NONMAN_OUTPUT, output);
+	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
 	    if(!myDiff.similar()) {
 	    	fail(myDiff.toString());
 	    }
