@@ -62,7 +62,7 @@ public class ResourceGETExpression implements Expression {
 		this.transitions.add(transition);
 	}
 
-	// keep old way until 0.5.0
+	// keep old way until 0.5.1
 	@Deprecated
 	public ResourceGETExpression(String state, Function function) {
 		this.function = function;
