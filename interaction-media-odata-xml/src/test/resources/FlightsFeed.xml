@@ -28,7 +28,7 @@
   <id>http://localhost:8080/responder/rest/Flight()</id>
   <updated>2013-03-19T14:48:14Z</updated>
   <entry>
-    <id>http://localhost:8080/responder/rest/Flight(123)</id>
+    <id>http://localhost:8080/responder/rest/Flight('123')</id>
     <title type="text"></title>
     <updated>2013-03-19T14:48:14Z</updated>
     <author>
@@ -38,7 +38,7 @@
     </category>
     <content type="application/xml">
       <m:properties>
-        <d:id m:type="Edm.Int64">123</d:id>
+        <d:id>123</d:id>
         <d:flight>EI218</d:flight>
         <d:Flight_MvSvGroup m:type="FlightModelModel.Flight_MvSvGroup">
           <d:Flight_MvSvStartGroup m:type="FlightModelModel.Flight_MvSvStartGroup">

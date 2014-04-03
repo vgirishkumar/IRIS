@@ -146,7 +146,7 @@ public class TestHypermediaValidator {
 		ResourceState other = new ResourceState(ENTITY_NAME, "other", new ArrayList<Action>(), "/entities/{id}");
 	
 		List<Expression> expressions = new ArrayList<Expression>();
-		expressions.add(new ResourceGETExpression("other", ResourceGETExpression.Function.OK));
+		expressions.add(new ResourceGETExpression(other, ResourceGETExpression.Function.OK));
 		initial.addTransition(new Transition.Builder().method("PUT").target(other).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).build());
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);

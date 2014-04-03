@@ -59,6 +59,7 @@ import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 import com.temenos.interaction.rimdsl.rim.State;
 import com.temenos.interaction.rimdsl.rim.Transition;
 import com.temenos.interaction.rimdsl.rim.TransitionAuto;
+import com.temenos.interaction.rimdsl.rim.TransitionEmbedded;
 import com.temenos.interaction.rimdsl.rim.TransitionForEach;
 import com.temenos.interaction.rimdsl.rim.TransitionSpec;
 
@@ -281,6 +282,24 @@ public class ResourceInteractionContentProvider implements IGraphEntityContentPr
 			while (transitionsAuto.hasNext()) {
 				TransitionAuto transition = transitionsAuto.next();
 				String title = "-->";
+				assert(transition.eContainer() instanceof State);
+				State fromState = (State)transition.eContainer();
+				State toState = transition.getState();
+				if (fromState != null && toState != null) {
+					TransitionDescription t = new TransitionDescription.Builder()
+						.title(title)
+						.event(transition.getEvent().getName())
+						.conditions(createConditionsStr(transition.getSpec()))
+						.fromState(fromState)
+						.toState(toState)
+						.build();
+					addInOut(t, incomingTransitions, outgoingTransitions);
+				}
+			}
+			Iterator<TransitionEmbedded> transitionsEmbedded = Iterators.filter(state.eAllContents(), TransitionEmbedded.class);
+			while (transitionsEmbedded.hasNext()) {
+				TransitionEmbedded transition = transitionsEmbedded.next();
+				String title = "+->";
 				assert(transition.eContainer() instanceof State);
 				State fromState = (State)transition.eContainer();
 				State toState = transition.getState();

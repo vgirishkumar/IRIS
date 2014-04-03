@@ -84,7 +84,7 @@ public class LinkRelationsITCase extends JerseyTest {
 	     */
 	    
 	    // request root
-		ReadableRepresentation rootResource = get(webResource.path("/shop"));
+		ReadableRepresentation rootResource = get(webResource.path("/123456/shop"));
 	    
 		// POST order
 		Link order = rootResource.getLinkByRel("http://relations.restbucks.com/order");

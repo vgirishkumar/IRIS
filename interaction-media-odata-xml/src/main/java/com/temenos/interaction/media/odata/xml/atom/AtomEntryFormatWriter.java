@@ -49,6 +49,8 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
+import com.temenos.interaction.core.hypermedia.ResourceState;
+
 /**
  * Slightly modified version of @link{org.odata4j.format.xml.AtomEntryFormatWriter} that 
  * is more aligned with JAX-RS.
@@ -57,7 +59,11 @@ import org.odata4j.stax2.XMLWriter2;
  */
 public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWriter<EntityResponse> {
 
-  protected String baseUri;
+	private ResourceState serviceDocument;
+	
+	public AtomEntryFormatWriter(ResourceState serviceDocument) {
+		this.serviceDocument = serviceDocument;
+	}
 
   public void writeRequestEntry(Writer w, Entry entry) {
 
@@ -84,7 +90,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
   }
 
   public void write(UriInfo uriInfo, Writer w, EntityResponse target, EdmEntitySet entitySet, List<OLink> olinks) {
-    String baseUri = uriInfo.getBaseUri().toString();
+	String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 
     DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
     String updated = InternalUtil.toString(utc);
@@ -123,7 +129,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 		    	  relid = relid.substring(0, relid.length()-2) + ")";
 		      }
 	      }
-	      absid = baseUri + relid;
+	      absid = (!baseUri.endsWith("/") ? baseUri + "/" : baseUri) + relid;
 	      writeElement(writer, "id", absid);
 	    }
 

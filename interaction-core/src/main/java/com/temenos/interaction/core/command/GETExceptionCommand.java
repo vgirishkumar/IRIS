@@ -46,7 +46,7 @@ public final class GETExceptionCommand implements InteractionCommand {
 		}
 		String code = String.valueOf(exception.getHttpStatus().getStatusCode());
 		String message = exception.getMessage();
-		ctx.setResource(CommandHelper.createEntityResource(ctx.getCurrentState().getEntityName(), new GenericError(code, message)));
+		ctx.setResource(CommandHelper.createEntityResource(ctx.getCurrentState().getEntityName(), new GenericError(code, message), GenericError.class));
 		return Result.SUCCESS;
 	}
 

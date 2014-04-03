@@ -54,6 +54,7 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -75,11 +76,22 @@ public class AtomEntityEntryFormatWriter {
 	public static final String atom_entry_content_type = "application/atom+xml;type=entry";
 	public static final String href_lang = "en";
 
-	public void write(UriInfo uriInfo, Writer w, String entityName, Entity entity,
-			EntityMetadata entityMetadata, Collection<Link> links, Map<Transition,RESTResource> embeddedResources, String modelName) 
+	private ResourceState serviceDocument;
+	private Metadata metadata;
+
+	public AtomEntityEntryFormatWriter(ResourceState serviceDocument, Metadata metadata) {
+		this.serviceDocument = serviceDocument;
+		this.metadata = metadata;
+	}
+	
+	public void write(UriInfo uriInfo, Writer w, 
+			String entityName, 
+			Entity entity,
+			Collection<Link> links, 
+			Map<Transition,RESTResource> embeddedResources) 
 	{
-		String baseUri = uriInfo.getBaseUri().toString();
-		String absoluteId = baseUri + uriInfo.getPath();
+		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
+		String absoluteId = uriInfo.getBaseUri() + uriInfo.getPath();
 		
 		DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
 		String updated = InternalUtil.toString(utc);
@@ -96,7 +108,7 @@ public class AtomEntityEntryFormatWriter {
 	    writer.writeNamespace("d", d);
 	    writer.writeNamespace("m", m);
 	    writer.writeAttribute("xml:base", baseUri);
-		writeEntry(writer, entityName, entity, links, embeddedResources, baseUri, absoluteId, updated, entityMetadata, modelName);
+		writeEntry(writer, entityName, entity, links, embeddedResources, baseUri, absoluteId, updated);
 		writer.endEntry();
 		writer.endDocument();
 		writer.flush();
@@ -104,22 +116,27 @@ public class AtomEntityEntryFormatWriter {
 
 	public void writeEntry(StreamWriter writer, String entitySetName, String entityName, Entity entity,
 			Collection<Link> entityLinks, Map<Transition,RESTResource> embeddedResources,
-			UriInfo uriInfo, String updated, EntityMetadata entityMetadata, String modelName) 
+			UriInfo uriInfo, String updated) 
 	{
-		String baseUri = uriInfo.getBaseUri().toString();
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 		String absoluteId = getAbsoluteId(baseUri, entitySetName, entity, entityMetadata);
 		
 		writer.startEntry();
-		writeEntry(writer, entityName, entity, entityLinks, embeddedResources, baseUri, absoluteId, updated, entityMetadata, modelName);
+		writeEntry(writer, entityName, entity, entityLinks, embeddedResources, baseUri, absoluteId, updated);
 		writer.endEntry();
 	}
 	
-	protected void writeEntry(StreamWriter writer, String entityName, Entity entity,
-			Collection<Link> entityLinks, Map<Transition,RESTResource> embeddedResources,
-			String baseUri, String absoluteId, String updated,
-			EntityMetadata entityMetadata, String modelName) 
+	protected void writeEntry(StreamWriter writer,
+			String entityName, 
+			Entity entity,
+			Collection<Link> entityLinks, 
+			Map<Transition,RESTResource> embeddedResources,
+			String baseUri, String absoluteId, String updated) 
 	{
 		assert(entityName != null);
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+		String modelName = metadata.getModelName();
 		writer.writeId(absoluteId);
 		OAtomEntity oae = getAtomInfo(entity);
 
@@ -143,7 +160,7 @@ public class AtomEntityEntryFormatWriter {
 		        String type = (link.getTransition().getTarget() instanceof CollectionResourceState)
 			              ? atom_feed_content_type
 			              : atom_entry_content_type;
-			    String href = link.getHrefTransition(baseUri);
+			    String href = link.getRelativeHref(baseUri);
 			    String rel = link.getRel();
 	            writer.startLink(href, rel);
 	            if (!"self".equals(link.getRel()) &&
@@ -151,11 +168,12 @@ public class AtomEntityEntryFormatWriter {
 		            writer.writeAttribute("type", type);
 	            }
 	            writer.writeAttribute("title", link.getTitle());
-	            writer.writeAttribute("hreflang", href_lang);
-				if (embeddedResources.get(link.getTransition()) != null) {
+	            // TODO add support for hreflang
+//	            writer.writeAttribute("hreflang", href_lang);
+				if (embeddedResources != null && embeddedResources.get(link.getTransition()) != null) {
 		            // write the inlined entities inside the link element
 					String embeddedAbsoluteId = link.getHref();
-					writeLinkInline(writer, link, embeddedResources.get(link.getTransition()), link.getHref(), baseUri, embeddedAbsoluteId, updated, entityMetadata, modelName);
+					writeLinkInline(writer, metadata, link, embeddedResources.get(link.getTransition()), link.getHref(), baseUri, embeddedAbsoluteId, updated);
 				}
 	            writer.endLink();
 			}
@@ -176,8 +194,8 @@ public class AtomEntityEntryFormatWriter {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void writeLinkInline(StreamWriter writer, Link linkToInline, RESTResource embeddedResource,
-			String href, String baseUri, String absoluteId, String updated, EntityMetadata entityMetadata, String modelName) {
+	protected void writeLinkInline(StreamWriter writer, Metadata metadata, Link linkToInline, RESTResource embeddedResource,
+			String href, String baseUri, String absoluteId, String updated) {
 
 		writer.startElement(new QName(m, "inline", "m"));
 		if (embeddedResource instanceof CollectionResource) {
@@ -196,7 +214,7 @@ public class AtomEntityEntryFormatWriter {
 				for (EntityResource<Entity> entityResource : entities) {
 					writer.startEntry();
 					writeEntry(writer, entityResource.getEntityName(), entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(),
-							baseUri, absoluteId, updated, entityMetadata, modelName);
+							baseUri, absoluteId, updated);
 					writer.endEntry();
 				}
 				writer.endFeed();
@@ -206,7 +224,7 @@ public class AtomEntityEntryFormatWriter {
 			Entity entity = entityResource.getEntity();
 			writer.startEntry();
 			writeEntry(writer, entityResource.getEntityName(), entity, entityResource.getLinks(), entityResource.getEmbedded(),
-					baseUri, absoluteId, updated, entityMetadata, modelName);
+					baseUri, absoluteId, updated);
 
 			writer.endEntry();
 		} else
@@ -218,10 +236,10 @@ public class AtomEntityEntryFormatWriter {
 	private String getAbsoluteId(String baseUri, String entitySetName, Entity entity, EntityMetadata entityMetadata) {
 		String absId = "";
 		for(String key : entityMetadata.getIdFields()) {		
-			EntityProperty prop = entity.getProperties().getProperty(key);
+			EntityProperty prop = entity.getProperties().getProperty(entityMetadata.getSimplePropertyName(key));
 			if(prop != null) {
-				absId += absId.isEmpty() ? baseUri + entitySetName : ",";
-				if(entityMetadata.isPropertyNumber(key)) {
+				absId += absId.isEmpty() ? (!baseUri.endsWith("/") ? baseUri + "/" : baseUri) + entitySetName : ",";
+				if(entityMetadata.isPropertyNumber(prop.getFullyQualifiedName())) {
 					absId += "(" + entityMetadata.getPropertyValueAsString(prop) + ")";
 				}
 				else {
@@ -232,41 +250,44 @@ public class AtomEntityEntryFormatWriter {
 		return absId;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void writeProperties(StreamWriter writer, EntityMetadata entityMetadata, EntityProperties entityProperties, String modelName) {
 		assert(entityMetadata != null);
 		// Loop round all properties writing out fields and MV and SV sets
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 		
-		for (Map.Entry<String, EntityProperty> property : properties.entrySet()) 
+		for (String propertyName:properties.keySet())
 		{
 			// Work out what the property looks like by looking at the metadata
-			String propertyName = property.getKey(); 
-			EntityProperty propertyValue = (EntityProperty) property.getValue();
-			boolean isComplex = entityMetadata.isPropertyComplex( propertyName );
+			EntityProperty property = (EntityProperty) properties.get(propertyName);
+			boolean isComplex = entityMetadata.isPropertyComplex(property.getFullyQualifiedName());
 	   		if( !isComplex )
 	   		{
 	   			// Simple field
-	   			writeProperty( writer, entityMetadata, propertyName, (EntityProperty) propertyValue  );
+	   			writeProperty( writer, entityMetadata, property);
 	   		}
 	   		else
 	   		{
 	   			// Complex List
-	   			writePropertyComplexList( writer, entityMetadata, propertyName, (List<EntityProperties>) propertyValue.getValue(), modelName);
+	   			writePropertyComplexList( writer, entityMetadata, property, modelName);
 	   		}
 	   	}
 	}
 	
-	private void writeProperty( StreamWriter writer, EntityMetadata entityMetadata, String name, EntityProperty property ) {
+	private void writeProperty( StreamWriter writer, EntityMetadata entityMetadata, EntityProperty property ) {
 		String elementText = entityMetadata.getPropertyValueAsString( property );
-		writer.startElement(new QName(d, name, "d"));
-		EdmType type = MetadataOData4j.termValueToEdmType(entityMetadata.getTermValue(name, TermValueType.TERM_NAME));
+		writer.startElement(new QName(d, property.getName(), "d"));
+		EdmType type = MetadataOData4j.termValueToEdmType(entityMetadata.getTermValue(property.getFullyQualifiedName(), TermValueType.TERM_NAME));
+		boolean isNullable = entityMetadata.isPropertyNullable(property.getFullyQualifiedName());
+		// Append Type Attribute
 		if(!type.equals(EdmSimpleType.STRING)) {
 			writer.writeAttribute(new QName(m, "type", "m"), type.getFullyQualifiedTypeName());
 		}
-
+		// Append Null attribute
+		if ( isNullable && (elementText.isEmpty()) && !type.equals(EdmSimpleType.STRING)) {
+			writer.writeAttribute(new QName(m, "null", "m"), "true");
+		}
 		//Write the property text
-		if(type.equals(EdmSimpleType.DATETIME)) {
+		if(type.equals(EdmSimpleType.DATETIME) && !elementText.isEmpty()) {
 			//Write dates in UTC format
 			SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -286,13 +307,15 @@ public class AtomEntityEntryFormatWriter {
 	 * @param propertiesList
 	 * @param modelName
 	 */
-	private void writePropertyComplexList( StreamWriter writer, EntityMetadata entityMetadata, String propertyName, List<EntityProperties> propertiesList, String modelName) {
-		String name = entityMetadata.getEntityName() + "_" + propertyName;
+	private void writePropertyComplexList( StreamWriter writer, EntityMetadata entityMetadata, EntityProperty property, String modelName) {
+		@SuppressWarnings("unchecked")
+		List<EntityProperties> propertiesList = (List<EntityProperties>) property.getValue();
+		String name = entityMetadata.getEntityName() + "_" + property.getName();
 		int parseCount = 0;
 		for ( EntityProperties properties : propertiesList ) {
 			String fqTypeName = modelName + Metadata.MODEL_SUFFIX + "." + name;
 			// We should be able to differentiate List<ComplexType> with regular ComplexType 
-			if (entityMetadata.isPropertyList(propertyName)) {
+			if (entityMetadata.isPropertyList(property.getFullyQualifiedName())) {
 				if (parseCount == 0) {
 					writer.startElement(new QName(d, name, "d"));
 					writer.writeAttribute(new QName(m, "type", "m"), "Bag(" + fqTypeName + ")");
@@ -309,7 +332,7 @@ public class AtomEntityEntryFormatWriter {
 			writer.endElement();
 		}
 		// For List<ComplexTypes> we should end the complex node here
-		if (entityMetadata.isPropertyList(propertyName)) {
+		if (entityMetadata.isPropertyList(property.getFullyQualifiedName())) {
 			writer.endElement();
 		}
 	}

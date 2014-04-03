@@ -943,8 +943,8 @@ public class TestResourceStateMachine {
 		initial.addTransition(new Transition.Builder().method("PUT").target(assignRoom).build());
 		
 		List<Expression> expressions = new ArrayList<Expression>();
-		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
-		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pconfirmed, Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pwaiting, Function.NOT_FOUND));
 		initial.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
 
 		// initialise and get the application state (links)
@@ -1100,8 +1100,8 @@ public class TestResourceStateMachine {
 		 *  was actually found or OK, rather then NOT_FOUND
 		 */
 		List<Expression> expressions = new ArrayList<Expression>();
-		expressions.add(new ResourceGETExpression(pconfirmed.getName(), Function.NOT_FOUND));
-		expressions.add(new ResourceGETExpression(pwaiting.getName(), Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pconfirmed, Function.NOT_FOUND));
+		expressions.add(new ResourceGETExpression(pwaiting, Function.NOT_FOUND));
 		initial.addTransition(new Transition.Builder().method("PUT").target(paymentDetails).uriParameters(uriLinkageMap).flags(transitionFlags).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).label("Make a payment").build());
 
 		// initialise and get the application state (links)
@@ -1787,7 +1787,7 @@ public class TestResourceStateMachine {
 		
 		//Evaluate test
 		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters);
-		MultivaluedMap<String, String> pathParams = stateMachine.getPathParametersForTargetState(existsState.getTransition(cookingState), transProps);
+		MultivaluedMap<String, String> pathParams = HypermediaTemplateHelper.getPathParametersForTargetState(existsState.getTransition(cookingState), transProps);
 		assertEquals("SuperToaster", pathParams.getFirst("id"));	
 	}
 

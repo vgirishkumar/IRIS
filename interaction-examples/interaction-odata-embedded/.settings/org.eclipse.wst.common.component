@@ -27,11 +27,8 @@
         <dependent-module archiveName="interaction-media-odata-xml-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-media-odata-xml/interaction-media-odata-xml">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module deploy-path="/" handle="module:/overlay/prj/useragent-odata-html5?includes=**/**&amp;excludes=META-INF/MANIFEST.MF">
-            <dependency-type>consumes</dependency-type>
-        </dependent-module>
-        <dependent-module deploy-path="/" handle="module:/overlay/slf/?includes=**/**&amp;excludes=META-INF/MANIFEST.MF">
-            <dependency-type>consumes</dependency-type>
+        <dependent-module archiveName="useragent-odata-html5-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/useragent-odata-html5/useragent-odata-html5">
+            <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="interaction-odata-embedded"/>
         <property name="java-output-path" value="/interaction-odata-embedded/target/classes"/>

@@ -25,11 +25,13 @@ package com.temenos.interaction.core.entity;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
@@ -43,6 +45,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
@@ -57,6 +60,9 @@ public class EntityMetadata  {
 
 	//Map of <Entity property, Vocabulary>
 	private Map<String, Vocabulary> propertyVocabularies = new HashMap<String, Vocabulary>();
+	
+	// Map of fully qualified property name to simple property name
+	private Map<String, String> propertyNames = new HashMap<String, String>();
 
 	public EntityMetadata(String entityName) {
 		this.entityName = entityName;
@@ -125,7 +131,40 @@ public class EntityMetadata  {
 	 * @param vocabulary Vocabulary
 	 */
 	public void setPropertyVocabulary(String propertyName, Vocabulary vocabulary) {
-		propertyVocabularies.put(propertyName, vocabulary);
+		setPropertyVocabulary(propertyName, vocabulary, new Stack<String>().elements());
+	}	
+	
+	/**
+	 * Sets the vocabulary for the specified entity property.
+	 * @param propertyName Property name
+	 * @param vocabulary Vocabulary
+	 * @param collectionNames names of the collections this property belong to
+	 */
+	public void setPropertyVocabulary(String propertyName, Vocabulary vocabulary, Enumeration<String> collectionNames) {
+		// build fully qualified group name
+		String fullyQualifiedGroupName = "";
+		if (collectionNames.hasMoreElements()) {
+			fullyQualifiedGroupName = collectionNames.nextElement() ;
+			while(collectionNames.hasMoreElements()) {
+				fullyQualifiedGroupName = fullyQualifiedGroupName + "." + collectionNames.nextElement();
+			}
+		}
+
+		// update the complex group term with the fully qualified group name 
+		Term complexGroupTerm = vocabulary.getTerm(TermComplexGroup.TERM_NAME);
+		if (complexGroupTerm != null && !fullyQualifiedGroupName.isEmpty()) {
+			complexGroupTerm = new TermComplexGroup(fullyQualifiedGroupName);
+			vocabulary.setTerm(complexGroupTerm);
+		}
+		
+		// build the fully qualified property name
+		String fullyQualifiedPropertyName = propertyName;
+		if (!fullyQualifiedGroupName.isEmpty()){
+			fullyQualifiedPropertyName = fullyQualifiedGroupName + "." + propertyName;			
+		}
+		
+		propertyVocabularies.put(fullyQualifiedPropertyName, vocabulary);
+		propertyNames.put(fullyQualifiedPropertyName, propertyName);
 	}
 	
 	/**
@@ -215,7 +254,7 @@ public class EntityMetadata  {
 	 */
 	public String getPropertyValueAsString( EntityProperty property )
 	{
-		String propertyName = property.getName();
+		String propertyName = property.getFullyQualifiedName();
 		Object propertyValue = property.getValue();
 		return getPropertyValueAsString(propertyName, propertyValue);
 	}
@@ -232,6 +271,8 @@ public class EntityMetadata  {
 		String termValueType = getTermValue(propertyName, TermValueType.TERM_NAME);
 		if(propertyValue == null) {
 			value = "";
+		} else if (propertyValue instanceof String) {
+			return propertyValue.toString();
 		}
 		else if(termValueType.equals(TermValueType.TEXT) ||
 				termValueType.equals(TermValueType.RECURRENCE) ||
@@ -327,25 +368,53 @@ public class EntityMetadata  {
 	 * @return Entity property
 	 */
 	public EntityProperty createEmptyEntityProperty(String propertyName) {
-		String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
-		if(termValue.equals(TermValueType.INTEGER_NUMBER)) {
-			return new EntityProperty(propertyName, new Long(0));
+		boolean isNullable = isPropertyNullable(propertyName);
+		// If not nullable then initialise properly
+		if (!isNullable) {
+			String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
+			if(termValue.equals(TermValueType.INTEGER_NUMBER)) {
+				return new EntityProperty(propertyName, new Long(0));
+			}
+			else if(termValue.equals(TermValueType.NUMBER)) {
+				return new EntityProperty(propertyName, new Double(0.0));
+			}
+			else if(termValue.equals(TermValueType.BOOLEAN)) {
+				return new EntityProperty(propertyName, new Boolean(false));
+			}
+			else if(termValue.equals(TermValueType.TIMESTAMP) ||
+					termValue.equals(TermValueType.DATE) ||
+					termValue.equals(TermValueType.TIME)) {
+				return new EntityProperty(propertyName, new Date());
+			}
+			else if(termValue.equals(TermValueType.ENUMERATION)) {
+				String[] enumValues = {};
+				return new EntityProperty(propertyName, enumValues);
+			} else {
+				return new EntityProperty(propertyName, "");
+			}
+		} else {
+			// Leave it empty
+			return new EntityProperty(propertyName, null);
 		}
-		else if(termValue.equals(TermValueType.NUMBER)) {
-			return new EntityProperty(propertyName, new Double(0.0));
-		}
-		else if(termValue.equals(TermValueType.BOOLEAN)) {
-			return new EntityProperty(propertyName, new Boolean(false));
-		}
-		else if(termValue.equals(TermValueType.TIMESTAMP) ||
-				termValue.equals(TermValueType.DATE) ||
-				termValue.equals(TermValueType.TIME)) {
-			return new EntityProperty(propertyName, new Date());
-		}
-		else if(termValue.equals(TermValueType.ENUMERATION)) {
-			String[] enumValues = {};
-			return new EntityProperty(propertyName, enumValues);
-		}		
-		return new EntityProperty(propertyName, "");
+	}
+	
+	/**
+	 * Returns the simple property name to the passed in fully qualified property name.
+	 * If no such property exists in the entity metadata then <i>null</i> is returned.
+	 * @param fullyQualifiedPropertyName
+	 * @return simple property name
+	 */
+	public String getSimplePropertyName(String fullyQualifiedPropertyName) {
+		return propertyNames.get(fullyQualifiedPropertyName);
+	}
+	
+	/**
+	 * Method to find out if property is nullable
+	 * @param fullyQualifiedPropertyName
+	 * @return
+	 */
+	public boolean isPropertyNullable(String fullyQualifiedPropertyName) {
+		return !(getTermValue(fullyQualifiedPropertyName, TermMandatory.TERM_NAME).equals("true") || 
+				getTermValue(fullyQualifiedPropertyName, TermIdField.TERM_NAME).equals("true"));
 	}
 }

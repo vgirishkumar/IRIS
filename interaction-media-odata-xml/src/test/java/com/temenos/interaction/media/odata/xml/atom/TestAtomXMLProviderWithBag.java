@@ -115,13 +115,18 @@ public class TestAtomXMLProviderWithBag {
 		edmMetadata = null;
 	}
 	
+	private AtomXMLProvider getAtomXMLProvider(Metadata metadata, ResourceStateMachine rsm) {
+		return new AtomXMLProvider(new	MetadataOData4j(metadata, rsm), metadata, rsm, new OEntityTransformer());
+	}
+	
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testReadPathWithCollection() throws Exception {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		//AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
@@ -173,7 +178,8 @@ public class TestAtomXMLProviderWithBag {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		//AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
@@ -261,7 +267,8 @@ public class TestAtomXMLProviderWithBag {
 	public void testEntryRepAsCollection() throws Exception {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		//AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
 		
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
@@ -359,9 +366,12 @@ public class TestAtomXMLProviderWithBag {
         System.out.println("Original Entry:" + origEntryStr);
 		
         // Now verify the properties populated from OEntity
-        ResourceStateMachine rsm = new ResourceStateMachine(
-				new ResourceState(CUSTOMER_ENTITY_NAME, CUSTOMER_ENTITY_SETNAME, new ArrayList<Action>(), "/" + CUSTOMER_ENTITY_SETNAME));
-;
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
+				.target(new ResourceState(CUSTOMER_ENTITY_NAME, CUSTOMER_ENTITY_SETNAME, new ArrayList<Action>(), "/" + CUSTOMER_ENTITY_SETNAME))
+				.build());
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
 		
@@ -419,7 +429,7 @@ public class TestAtomXMLProviderWithBag {
 	} 
 	
 	private static ResourceStateMachine getResourceStateMachine(String... collOfResource) {
-		ResourceState initial = new ResourceState("Initial", "initial_state", new ArrayList<Action>(), "/", null, new UriSpecification("Initial", "/"));
+		ResourceState initial = new ResourceState("Initial", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("Initial", "/"));
 		for (String resourceName : collOfResource) {
 			CollectionResourceState resourceType = new CollectionResourceState(resourceName, resourceName, new ArrayList<Action>(), "/" + resourceName +"s", null, null);
 			initial.addTransition(new Transition.Builder().method(HttpMethod.GET).target(resourceType).build());

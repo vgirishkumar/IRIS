@@ -43,13 +43,16 @@ import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 
 public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWriter<EntitiesResponse> {
 	
+	private ResourceState serviceDocument;
 	private AtomEntryFormatWriter entryWriter;
 	
-	public AtomFeedFormatWriter() {
-		entryWriter = new AtomEntryFormatWriter();
+	public AtomFeedFormatWriter(ResourceState serviceDocument) {
+		this.serviceDocument = serviceDocument;
+		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 	}
 	
   @Override
@@ -67,7 +70,8 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
   }
   
   public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, String modelName) {
-    String baseUri = uriInfo.getBaseUri().toString();
+	String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
+	String absolutePath = AtomXMLProvider.getAbsolutePath(uriInfo);
 
     EdmEntitySet ees = response.getEntitySet();
     String entitySetName = ees.getName();
@@ -83,21 +87,16 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     writer.writeAttribute("xml:base", baseUri);
 
     writeElement(writer, "title", entitySetName, "type", "text");
-    writeElement(writer, "id", baseUri + uriInfo.getPath());
+    writeElement(writer, "id", absolutePath);
 
     writeElement(writer, "updated", updated);
 
     assert(links != null);
     for (Link link : links) {
-    	String href = link.getHref();
+    	// href is relative path from base path
+    	String href = link.getRelativeHref(baseUri);
     	String title = link.getTitle();
 		String rel = link.getRel();
-
-    	// TODO include href without base path in link
-    	// chop the leading base path
-    	if (href.startsWith(baseUri)) {
-    		href = href.substring(baseUri.length());
-    	}
         writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
     }
 

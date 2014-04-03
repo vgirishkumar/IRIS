@@ -58,7 +58,6 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -75,15 +74,23 @@ public class MetadataOData4j {
 	private final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 
 	private EdmDataServices edmDataServices;
+	private Metadata metadata;
+	private ResourceStateMachine hypermediaEngine;
+	private ResourceState serviceDocument;
 
 	/**
-	 * Construct the odata metadata
+	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
+	 * called 'ServiceDocument' and add an EntitySet to the metadata for any collection
+	 * resource with a transition from this 'ServiceDocument' resource.
 	 * @param metadata metadata
 	 */
-	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine)
-	{
-		assert(!(hypermediaEngine.getInitial() instanceof CollectionResourceState)) : "Initial state must be an individual resource state";
-		this.edmDataServices = createOData4jMetadata(metadata, hypermediaEngine);
+	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine) {
+		serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+		if (serviceDocument == null)
+			throw new RuntimeException("No 'ServiceDocument' found.");
+		assert(!(serviceDocument instanceof CollectionResourceState)) : "Initial state must be an individual resource state";
+		this.metadata = metadata;
+		this.hypermediaEngine = hypermediaEngine;
 	}
 
 	/**
@@ -91,7 +98,9 @@ public class MetadataOData4j {
 	 * @return edmdataservices object
 	 */
 	public EdmDataServices getMetadata() {
-		return this.edmDataServices;
+		if (edmDataServices == null) 
+			edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+		return edmDataServices;
 	}
 
 	/**
@@ -99,7 +108,7 @@ public class MetadataOData4j {
 	 * @param producers Set of odata producers
 	 * @return Merged EDM metadata
 	 */
-	public EdmDataServices createOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine) {
+	public EdmDataServices createOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine, ResourceState serviceDocument) {
 		String serviceName = metadata.getModelName();
 		String namespace = serviceName + Metadata.MODEL_SUFFIX;
 		Builder mdBuilder = EdmDataServices.newBuilder();
@@ -121,11 +130,11 @@ public class MetadataOData4j {
 				String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);							// Is vocabulary a group (Complex Type)
 				boolean termList = Boolean.parseBoolean(entityMetadata.getTermValue(propertyName, TermListType.TERM_NAME));	// Is vocabulary a List of (Complex Types)
 				String termComplexGroup = entityMetadata.getTermValue(propertyName, TermComplexGroup.TERM_NAME);					// Is vocabulary belongs to a group (ComplexType) 
-				boolean isNullable = !(entityMetadata.getTermValue(propertyName, TermMandatory.TERM_NAME).equals("true") || entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true"));
+				boolean isNullable = entityMetadata.isPropertyNullable(propertyName);
 				if (termComplex.equals("false")) {
 					// This means we are dealing with plain property, either belongs to Entity or ComplexType (decide later, lets build it first)
 					EdmType edmType = termValueToEdmType(entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME));
-					EdmProperty.Builder ep = EdmProperty.newBuilder(propertyName).
+					EdmProperty.Builder ep = EdmProperty.newBuilder(entityMetadata.getSimplePropertyName(propertyName)).
 							setType(edmType).
 							setNullable(isNullable);
 					if (termComplexGroup == null) {
@@ -134,19 +143,19 @@ public class MetadataOData4j {
 					} else {
 						// Property belongs to a group (complex type), first make sure we have a group 
 						// so add a group with Entity name space and group name
-						addComplexType(namespace, complexTypePrefix + termComplexGroup, bComplexTypeMap);
+						addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
 						// And then add the property into complex type
-						addPropertyToComplexType(namespace, complexTypePrefix + termComplexGroup, ep, bComplexTypeMap);
+						addPropertyToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), ep, bComplexTypeMap);
 					}
 				} else {
 					// This means vocabulary is a group (complex type), so add it in a map
-					String complexPropertyName = complexTypePrefix + propertyName;
+					String complexPropertyName = complexTypePrefix + entityMetadata.getSimplePropertyName(propertyName);
 					addComplexType(namespace, complexPropertyName, bComplexTypeMap);
 					if (termComplexGroup != null) {
 						// This mean group (complex type) belongs to a group (complex type), so make sure add the parent group and add
 						// nested group as group property
-						addComplexType(namespace, complexTypePrefix + termComplexGroup, bComplexTypeMap);
-						addComplexTypeToComplexType(namespace, complexTypePrefix + termComplexGroup, complexPropertyName, isNullable, termList, bComplexTypeMap);
+						addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
+						addComplexTypeToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), complexPropertyName, isNullable, termList, bComplexTypeMap);
 					} else {
 						// This means group (complex type) belongs to an Entity, so simply build and add as a Entity prop
 						EdmProperty.Builder ep;
@@ -167,7 +176,7 @@ public class MetadataOData4j {
 				//Entity keys
 				if(entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true")) {
 					if(termComplex.equals("true")) {
-						keys.add(complexTypePrefix + propertyName);
+						keys.add(complexTypePrefix + entityMetadata.getSimplePropertyName(propertyName));
 					}
 					else {
 						keys.add(propertyName);
@@ -187,7 +196,7 @@ public class MetadataOData4j {
 		// Add Navigation Properties
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
 			// build associations
-			Map<String, EdmAssociation.Builder> bAssociationMap = buildAssociations(namespace, bEntityType, bEntityTypeMap, hypermediaEngine);
+			Map<String, EdmAssociation.Builder> bAssociationMap = buildAssociations(namespace, bEntityType, bEntityTypeMap, hypermediaEngine, serviceDocument);
 			bAssociations.addAll(bAssociationMap.values());
 
 			//add navigation properties
@@ -203,6 +212,7 @@ public class MetadataOData4j {
 							ResourceState targetState = entityTransition.getTarget();
 							if (sourceState.getEntityName().equals(entityName) 
 									&& !entityTransition.getTarget().isPseudoState()
+									&& !entityTransition.getTarget().equals(serviceDocument)
 									&& !(entityTransition.getSource() instanceof CollectionResourceState)) {
 								//We can have more than one navigation property for the same association
 								String navPropertyName = targetState.getName();
@@ -233,20 +243,20 @@ public class MetadataOData4j {
 				EdmEntityType.Builder entityType = bEntityTypeMap.get(state.getEntityName());
 				if (entityType == null) 
 					throw new RuntimeException("Entity type not found for " + state.getEntityName());
-				Transition fromInitialState = hypermediaEngine.getInitial().getTransition(state);
+				Transition fromInitialState = serviceDocument.getTransition(state);
 				if (fromInitialState != null) {
 					//Add entity set
 					EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
 					bEntitySetMap.put(state.getEntityName(), bEntitySet);
 				} else {
-					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+hypermediaEngine.getInitial().getName()+"]");
+					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
 				}
 			}
 		}
 
 		for (ResourceState state : hypermediaEngine.getStates()) {
 			if (state instanceof CollectionResourceState) {
-				Transition fromInitialState = hypermediaEngine.getInitial().getTransition(state);
+				Transition fromInitialState = serviceDocument.getTransition(state);
 				if (fromInitialState == null) {
 					EdmEntitySet.Builder bEntitySet = bEntitySetMap.get(state.getEntityName());
 					// Add Function
@@ -290,7 +300,7 @@ public class MetadataOData4j {
 		return mdBuilder.build();
 	}
 
-	private Map<String, EdmAssociation.Builder> buildAssociations(String namespace, EdmEntityType.Builder entityType, Map<String, EdmEntityType.Builder> bEntityTypeMap, ResourceStateMachine hypermediaEngine) {
+	private Map<String, EdmAssociation.Builder> buildAssociations(String namespace, EdmEntityType.Builder entityType, Map<String, EdmEntityType.Builder> bEntityTypeMap, ResourceStateMachine hypermediaEngine, ResourceState serviceDocument) {
 		// Obtain the relation between entities and write navigation properties
 		Map<String, EdmAssociation.Builder> bAssociationMap = new HashMap<String, EdmAssociation.Builder>();
 		//Map<Association name, Entity relation>
@@ -304,7 +314,8 @@ public class MetadataOData4j {
 			Map<String, String> multipleNavPropsToEntity = new HashMap<String, String>();		//Map<TargetEntityName, TargetStateName>
 			for(Transition entityTransition : entityTransitions) {
 				if (entityTransition.getSource().getEntityName().equals(entityName) 
-						&& !entityTransition.getTarget().isPseudoState()) {
+						&& !entityTransition.getTarget().isPseudoState()
+						&& !entityTransition.getTarget().equals(serviceDocument)) {
 					String targetEntityName = entityTransition.getTarget().getEntityName();
 					String targetStateName = entityTransition.getTarget().getName();
 					String lastTargetStateName = multipleNavPropsToEntity.get(targetEntityName);
@@ -326,6 +337,7 @@ public class MetadataOData4j {
 				String npName = targetState.getName();
 				if (sourceState.getEntityName().equals(entityName) 
 						&& !entityTransition.getTarget().isPseudoState()
+						&& !entityTransition.getTarget().equals(serviceDocument)
 						&& !npNames.contains(npName)
 						&& !(entityTransition.getSource() instanceof CollectionResourceState)) {		//We can have transitions to a resource state from multiple source states
 					// Use the entity names to define the relation

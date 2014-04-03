@@ -122,7 +122,7 @@ public class MetadataParser extends DefaultHandler {
 					throw new SAXException(e.getMessage());
 				}
 			}
-			entityMetadata.setPropertyVocabulary(name, voc);
+			entityMetadata.setPropertyVocabulary(name, voc, propertyName.elements());
 			isComplexProperty = (propertyName.size() > 0);
 		}
 		else if (qName.equalsIgnoreCase("Term")) {

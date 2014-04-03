@@ -46,10 +46,13 @@ import org.odata4j.producer.ODataProducer;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class TestGETMetadataCommand {
 
@@ -62,9 +65,8 @@ public class TestGETMetadataCommand {
 
 	@Test
 	public void testMetadataResource() {
-		ODataProducer mockProducer = createMockODataProducer("A");
-		
-		GETMetadataCommand command = new GETMetadataCommand("Metadata", mockProducer.getMetadata());
+		Metadata md = mock(Metadata.class);
+		GETMetadataCommand command = new GETMetadataCommand("Metadata", getMetadataOData4j(md));
         InteractionContext ctx = createInteractionContext();
         command.execute(ctx);
 		assertTrue(ctx.getResource() instanceof MetaDataResource);
@@ -72,9 +74,8 @@ public class TestGETMetadataCommand {
 
 	@Test
 	public void testServiceDocumentResource() {
-		ODataProducer mockProducer = createMockODataProducer("A");
-		
-		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", mockProducer.getMetadata());
+		Metadata md = mock(Metadata.class);
+		GETMetadataCommand command = new GETMetadataCommand("ServiceDocument", getMetadataOData4j(md));
         InteractionContext ctx = createInteractionContext();
         command.execute(ctx);
 		assertTrue(ctx.getResource() instanceof EntityResource);
@@ -82,13 +83,24 @@ public class TestGETMetadataCommand {
 
 	@Test
 	public void testGETMetadataODataMetadata() {
-		GETMetadataCommand command = new GETMetadataCommand("Metadata", createMockODataProducer("A").getMetadata());
+		Metadata md = mock(Metadata.class);
+		GETMetadataCommand command = new GETMetadataCommand("Metadata", getMetadataOData4j(md));
         InteractionContext ctx = createInteractionContext();
         InteractionCommand.Result result = command.execute(ctx);
         assertEquals(InteractionCommand.Result.SUCCESS, result);
 		assertTrue(ctx.getResource() instanceof MetaDataResource);
 	}
 	
+	private MetadataOData4j getMetadataOData4j(Metadata metadata) {
+		MetadataOData4j metadataOdata4j = 
+						new	MetadataOData4j(metadata, 
+						new ResourceStateMachine(
+						new ResourceState("SD", "ServiceDocument", 
+						new ArrayList<Action>(), "/")));
+		return metadataOdata4j;
+	}
+	
+	@Deprecated
 	private ODataProducer createMockODataProducer(String suffix) {
 		ODataProducer mockProducer = mock(ODataProducer.class);
 		EdmDataServices mockEDS = createMetadata(suffix);
@@ -97,6 +109,7 @@ public class TestGETMetadataCommand {
 		return mockProducer;
 	}			
 
+	@Deprecated
 	private EdmDataServices createMetadata(String suffix) {
 		EdmDataServices mockEDS = mock(EdmDataServices.class);
 

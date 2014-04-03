@@ -23,10 +23,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom" 
 	xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" 
 	xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" 
-	xml:base="http://localhost:8080/responder/rest">
+	xml:base="http://localhost:8080/responder/rest/">
   <title type="text">FundsTransfers</title>
   <id>http://localhost:8080/responder/rest/FundsTransfers</id>
   <updated>2013-03-19T14:48:14Z</updated>
-  <link rel="http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers" title="Unauthorised input records" href="/FundsTransfersIAuth">
+  <link rel="http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers" title="Unauthorised input records" href="FundsTransfersIAuth">
   </link>
 </feed>

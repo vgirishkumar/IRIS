@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.jersey.api.client.Client;
@@ -73,7 +74,7 @@ public class HypermediaITCase extends JerseyTest {
 		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
-		assertEquals(4, links.size());
+		assertEquals(5, links.size());
 		for (Link link : links) {
 			if (link.getRel().equals("self")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/", link.getHref());
@@ -83,6 +84,8 @@ public class HypermediaITCase extends JerseyTest {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/fundtransfers", link.getHref());
 			} else if (link.getName().equals("home.initial>GET>Customer.customers")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/customers", link.getHref());
+			} else if (link.getName().equals("home.initial>GET>home.ServiceDocument")) {
+				assertEquals(Configuration.TEST_ENDPOINT_URI + "/Banking.svc", link.getHref());
 			} else {
 				fail("unexpected link [" + link.getName() + "]");
 			}

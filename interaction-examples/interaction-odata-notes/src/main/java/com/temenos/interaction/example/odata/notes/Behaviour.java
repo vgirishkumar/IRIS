@@ -49,7 +49,7 @@ public class Behaviour {
 	
 	public ResourceState getSimpleODataInteractionModel() {
 		// the service root
-		ResourceState initialState = new ResourceState("ServiceDocument", "begin", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
+		ResourceState initialState = new ResourceState("ServiceDocument", "ServiceDocument", createActionList(new Action("GETServiceDocument", Action.TYPE.VIEW), null), "/");
 
 		// notes service
 		ResourceStateMachine notes = getNotesSM();

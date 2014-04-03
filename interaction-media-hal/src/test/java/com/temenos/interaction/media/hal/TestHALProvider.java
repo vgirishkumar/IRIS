@@ -334,7 +334,7 @@ public class TestHALProvider {
 		properties.add(OProperties.string("age", "2"));
 
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
-		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
+		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity, OEntity.class);
 		er.setEntityName("Children");
 
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
@@ -397,11 +397,11 @@ public class TestHALProvider {
 		childProperties.add(OProperties.string("age", "2"));
 
 		OEntity childEntity = OEntities.create(createMockChildrenEntitySet(), childEntityKey, childProperties, new ArrayList<OLink>());
-		EntityResource<OEntity> childEntityResource = CommandHelper.createEntityResource(childEntity);
+		EntityResource<OEntity> childEntityResource = CommandHelper.createEntityResource(childEntity, OEntity.class);
 		childEntityResource.setEntityName("Children");
 
 		OEntity parentEntity = OEntities.create(createMockChildrenEntitySet(), parentEntityKey, parentProperties, new ArrayList<OLink>());
-		EntityResource<OEntity> parentEntityResource = CommandHelper.createEntityResource(parentEntity);
+		EntityResource<OEntity> parentEntityResource = CommandHelper.createEntityResource(parentEntity, OEntity.class);
 		parentEntityResource.setEntityName("Children");
 
 		
@@ -581,7 +581,7 @@ public class TestHALProvider {
 		links.add(mockLink("mother", "_person", "/rest.svc/humans/32", null));
 		
 		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
-		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity);
+		EntityResource<OEntity> er = CommandHelper.createEntityResource(entity, OEntity.class);
 		er.setEntityName("Children");
 		er.setLinks(links);
 		
@@ -632,6 +632,48 @@ public class TestHALProvider {
 		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\" title=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
+		String responseString = createFlatXML(bos);
+		
+		Diff diff = new Diff(expectedXML, responseString);
+		// don't worry about the order of the elements in the xml
+		assertTrue(diff.similar());
+	}
+
+	@Test
+	public void testSerialiseResourceWithDoubleBarrelledRelatedLinks() throws Exception {
+		// the test key
+		OEntityKey entityKey = OEntityKey.create("123");
+		// the test properties
+		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+		properties.add(OProperties.string("name", "noah"));
+		properties.add(OProperties.string("age", "2"));
+		// the test links
+		/*
+		 * Not sure, but I think relatedEntity and link are the same thing in an OEntity.
+		 * However, a relatedEntity also has the relatedEntityInline capability.
+		 * TODO add tests for 'inline' links
+		 */
+		List<Link> links = new ArrayList<Link>();
+		links.add(mockLink("father", "_person edit", "humans/31", null));
+		links.add(mockLink("mother", "_person edit", "humans/32", null));
+		links.add(mockLink("siblings", "_family", "humans/phetheans", null));
+		
+		OEntity entity = OEntities.create(createMockChildrenEntitySet(), entityKey, properties, new ArrayList<OLink>());
+		EntityResource<OEntity> er = new EntityResource<OEntity>(entity);
+		er.setEntityName("Children");
+		er.setLinks(links);
+		
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata());
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+
+		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\">"
+				+ "<link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\" title=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/>"
+				+ "<link rel=\"edit\" href=\"humans/31\" name=\"father\" title=\"father\" /><link rel=\"edit\" href=\"humans/32\" name=\"mother\" title=\"mother\" />"
+				+ "<name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
 		
 		Diff diff = new Diff(expectedXML, responseString);

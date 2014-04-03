@@ -5,12 +5,12 @@
   <parent>
     <groupId>com.temenos.interaction</groupId>
     <artifactId>interaction-parent</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
     <relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
   <artifactId>useragent-generic-javascript</artifactId>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
   <name>useragent-generic-javascript</name>
   <url>http://www.temenos.com</url>
   
@@ -23,6 +23,11 @@
   
   <build>
     <finalName>useragent-generic-javascript</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/webapp</directory>
+      </resource>
+    </resources>
     <plugins>
       <!-- 
       <plugin>
@@ -90,11 +95,11 @@ If you want to see and build the tests now, build this fork locally https://gith
           -->
           <coffeeScriptCompilationEnabled>false</coffeeScriptCompilationEnabled>
           <preloadSources>
-            <include>${project.basedir}/src/main/webapp/js/require-config.js</include>
-            <include>${project.basedir}/src/main/webapp/js/vendor/require-2.1.9.js</include>
-            <include>${project.basedir}/src/main/webapp/js/vendor/jquery-1.8.3.js</include>
+            <include>${project.basedir}/src/main/webapp/META-INF/resources/js/require-config.js</include>
+            <include>${project.basedir}/src/main/webapp/META-INF/resources/js/vendor/require-2.1.9.js</include>
+            <include>${project.basedir}/src/main/webapp/META-INF/resources/js/vendor/jquery-1.8.3.js</include>
           </preloadSources>
-          <jsSrcDir>${project.basedir}/src/main/webapp/js</jsSrcDir>
+          <jsSrcDir>${project.basedir}/src/main/webapp/META-INF/resources/js</jsSrcDir>
         </configuration>
       </plugin>
 	  <!--  Skip the deployment -->

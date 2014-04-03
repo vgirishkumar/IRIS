@@ -4,7 +4,7 @@
 
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.4.0-SNAPSHOT</version>
+	<version>0.5.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>interaction-parent</name>
 
@@ -51,6 +51,7 @@
 		<module>../interaction-examples/interaction-odata-etag</module>
 		<module>../interaction-examples/interaction-odata-error</module>
 		<module>../interaction-examples/interaction-odata-embedded</module>
+		<module>../interaction-examples/interaction-odata-multicompany</module>
 		<module>../interaction-sdk-archetype</module>
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
@@ -303,31 +304,21 @@
 				<groupId>com.temenos.interaction</groupId>
 				<artifactId>useragent-generic-javascript</artifactId>
 				<version>${project.version}</version>
-				<type>war</type>
-			</dependency>
-			<dependency>
-				<groupId>com.temenos.interaction</groupId>
-				<artifactId>T24-ft-useragent-javascript</artifactId>
-				<version>${project.version}</version>
-				<type>war</type>
 			</dependency>
             <dependency>
                 <groupId>com.temenos.interaction</groupId>
                 <artifactId>useragent-hal-inspector</artifactId>
                 <version>${project.version}</version>
-                <type>war</type>
             </dependency>
             <dependency>
                 <groupId>com.temenos.interaction</groupId>
                 <artifactId>useragent-swagger-ui</artifactId>
                 <version>${project.version}</version>
-                <type>war</type>
             </dependency>
             <dependency>
                 <groupId>com.temenos.interaction</groupId>
                 <artifactId>useragent-odata-html5</artifactId>
                 <version>${project.version}</version>
-                <type>war</type>
             </dependency>
 
 			<!-- APIs -->
