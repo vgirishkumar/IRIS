@@ -145,13 +145,13 @@ public class Behaviour {
 		ResourceState pseudo = new ResourceState(products, "Products_pseudo_created", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		ResourceState product = new ResourceState("Products", "product", createActionList(new Action("GETEntity", Action.TYPE.VIEW), null), "/Products({id})");
 		ResourceState productUpdated = new ResourceState(product, 
-				"updated", 
+				"Product", 
 				createActionList(null, new Action("UpdateEntity", Action.TYPE.ENTRY)),
 				null,
 				"edit".split(" ")
 				);
 		ResourceState productDeleted = new ResourceState(product, 
-				"Product", 
+				"deleted", 
 				createActionList(null, new Action("DeleteEntity", Action.TYPE.ENTRY)),
 				null,
 				"edit".split(" ")

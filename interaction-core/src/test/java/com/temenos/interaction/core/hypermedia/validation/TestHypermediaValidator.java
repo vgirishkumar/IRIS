@@ -254,8 +254,8 @@ public class TestHypermediaValidator {
 				"    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted /\"]\n" +
 				"    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived /archived\"]\n"
 			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT /\"]\n"
-			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE /\"]\n"
 			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE /\"]\n"
 			+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			+ "    CRUD_ENTITYdeleted->final[label=\"\"]\n"
 			+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
@@ -303,15 +303,15 @@ public class TestHypermediaValidator {
 				+ "    processcompletedProcess[label=\"process.completedProcess /processes/{id}\"]\n"
 				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskcomplete->final[label=\"\"]\n"
-				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
 				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired\"]\n"
+				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
 				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskabandoned->final1[label=\"\"]\n"
 				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
 				+ "    processprocesses->processnew[label=\"POST /processes/new\"]\n"
 				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id}\"]\n"
-				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
 				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n"
+				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
 				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			    + "    processcompletedProcess->final2[label=\"\"]\n"
 			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
@@ -335,11 +335,11 @@ public class TestHypermediaValidator {
 		metadata.setEntityMetadata(new EntityMetadata("SERVICE_ROOT"));
 		String expected = "digraph SERVICE_ROOT {\n"
 				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
-			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
 			    + "    processprocesses[shape=square, width=.25, label=\"process.processes\"]\n"
 			    + "    taskacquired[shape=square, width=.25, label=\"task.acquired\"]\n"
-				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
+			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
 				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
+				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
 				+ "}";
 		assertEquals(expected, HypermediaValidator.createValidator(serviceDocumentSM, metadata).graphEntityNextStates());
 	}

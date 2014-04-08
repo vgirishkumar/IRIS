@@ -640,18 +640,18 @@ public class TestAtomXMLProvider {
 		Collection<Link> processedLinks = entityResource.getLinks();
 		assertEquals(2, processedLinks.size());
 		Iterator<Link> iterator = processedLinks.iterator();
-		Link theLink1 = iterator.next();
-		Link theLink2 = iterator.next();
+		Link debitLink = iterator.next();
+		Link creditLink = iterator.next();
 		
 		//Link relation should contain MS-DATA base uri + /related/ + navigation property. However, the nav. property in this case is NOT the EntitySet name
 		//but a transition ID identifying the link (the link title at the moment). It does not fully comply with OData but this one does not cater for multiple links to the same target.  
-		assertEquals("Credit funds transfers", theLink1.getTitle());
-		assertEquals("/FundsTransfers()?$filter=CreditAcctNo eq '123'", theLink1.getHref());
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", theLink1.getRel());
+		assertEquals("Credit funds transfers", creditLink.getTitle());
+		assertEquals("/FundsTransfers()?$filter=CreditAcctNo eq '123'", creditLink.getHref());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", creditLink.getRel());
 		
-		assertEquals("Debit funds transfers", theLink2.getTitle());
-		assertEquals("/FundsTransfers()?$filter=DebitAcctNo eq '123'", theLink2.getHref());
-		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", theLink2.getRel());
+		assertEquals("Debit funds transfers", debitLink.getTitle());
+		assertEquals("/FundsTransfers()?$filter=DebitAcctNo eq '123'", debitLink.getHref());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", debitLink.getRel());
 
 	}
 

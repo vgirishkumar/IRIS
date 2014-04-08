@@ -33,7 +33,7 @@ domain MultiCompanyModel {
 			type: item
 			entity: ServiceDocument
 			view: NoopGET
-			path: "/$metadata"
+			path: "/"
 			// redirect to the /{companyid}/$metadata
 			GET --> MultiCompanyModel.multicompany.ServiceDocument {
 				parameters [ companyid="MockCompany001" ]
