@@ -48,6 +48,7 @@ public class InteractionModel {
 
 	private String domain;
 	private String name;
+	private String basepath;
 	private IMState exceptionState = null;
 	private Map<String, IMState> errorHandlerStates = new HashMap<String, IMState>();		//state name, state
 	private Map<String, IMResourceStateMachine> entityRsmMap = new HashMap<String, IMResourceStateMachine>();
@@ -205,7 +206,15 @@ public class InteractionModel {
 	public void setDomain(String domain) {
 		this.domain = domain;
 	}
-	
+
+	public String getBasepath() {
+		return basepath;
+	}
+
+	public void setBasepath(String basepath) {
+		this.basepath = basepath;
+	}
+
 	public void setExceptionState(IMState exceptionState) {
 		this.exceptionState = exceptionState;
 	}

@@ -1,5 +1,4 @@
 rim FlightResponder {
-
 	event DELETE {
 		method: DELETE
 	}

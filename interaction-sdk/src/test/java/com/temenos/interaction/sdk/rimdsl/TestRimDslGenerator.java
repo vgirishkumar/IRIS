@@ -200,6 +200,7 @@ public class TestRimDslGenerator {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_BANKING_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
+		interactionModel.setBasepath("/{companyid}");
 		interactionModel.setExceptionState(new IMEntityState("InteractionException", "", Commands.GET_EXCEPTION));
 		IMState rsErrors = new IMEntityState("Errors", "", Commands.GET_NOOP);
 		interactionModel.addErrorHandlerState(rsErrors);
