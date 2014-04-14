@@ -25,23 +25,23 @@ public class RIMDslFormatter extends AbstractDeclarativeFormatter {
 		RIMDslGrammarAccess f = (RIMDslGrammarAccess) getGrammarAccess();
 
 		setPreservingLinewraps(c, 2).after(f.getDomainDeclarationRule());
-		setPreservingLinewraps(c, 1).after(f.getUseRule());
+		setPreservingLinewraps(c, 1).around(f.getUseRule());
 		setPreservingLinewraps(c, 2).after(f.getResourceInteractionModelRule());
 		setPreservingLinewraps(c, 2).around(f.getStateRule());
- 		setPreservingLinewraps(c, 1).after(f.getEventRule());
-		setPreservingLinewraps(c, 1).after(f.getCommandRule());
-		setPreservingLinewraps(c, 1).after(f.getCommandSpecRule());
-		setPreservingLinewraps(c, 1).after(f.getBasePathRule());
+ 		setPreservingLinewraps(c, 1).around(f.getEventRule());
+		setPreservingLinewraps(c, 1).around(f.getCommandRule());
+		setPreservingLinewraps(c, 1).around(f.getCommandSpecRule());
+		setPreservingLinewraps(c, 1).around(f.getBasePathRule());
 		setPreservingLinewraps(c, 1).around(f.getResourceTypeRule());
-		setPreservingLinewraps(c, 1).after(f.getEntityRule());
-		setPreservingLinewraps(c, 1).after(f.getImplRefRule());
-		setPreservingLinewraps(c, 1).after(f.getPathRule());
+		setPreservingLinewraps(c, 1).around(f.getEntityRule());
+		setPreservingLinewraps(c, 1).around(f.getImplRefRule());
+		setPreservingLinewraps(c, 1).around(f.getPathRule());
 		setPreservingLinewraps(c, 1).around(f.getTransitionRule());
 		setPreservingLinewraps(c, 1).around(f.getTransitionForEachRule());
 		setPreservingLinewraps(c, 1).around(f.getTransitionAutoRule());
 		setPreservingLinewraps(c, 1).around(f.getTransitionEmbeddedRule());
 		setPreservingLinewraps(c, 1).around(f.getTransitionRefRule());
-		setPreservingLinewraps(c, 1).after(f.getTitleRule());
+		setPreservingLinewraps(c, 1).around(f.getTitleRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionSpecAccess().getRightSquareBracketKeyword_2_1_3());
 		setPreservingLinewraps(c, 1).after(f.getResourceCommandAccess().getRightSquareBracketKeyword_1_4());
 
