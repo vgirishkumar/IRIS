@@ -11,6 +11,7 @@ domain TestDomain {
 			view: NoopGET {
 				properties [ property = "somevalue" ]
 			}
+			relations [ "http://temenostech.temenos.com/rels/new" ]
 			GET -> TestDomain.TWO.B
 
 		}
