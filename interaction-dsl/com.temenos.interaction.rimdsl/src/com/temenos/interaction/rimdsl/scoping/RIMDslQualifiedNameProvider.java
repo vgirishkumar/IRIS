@@ -24,7 +24,6 @@ import com.temenos.interaction.rimdsl.rim.State;
  */
 public class RIMDslQualifiedNameProvider extends AbstractImpl {
 
-	@Override
 	public QualifiedName getFullyQualifiedName(EObject obj) {
 		QualifiedName partialQualifiedName = null;
 		if (obj instanceof DomainDeclaration) {
