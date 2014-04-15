@@ -37,13 +37,13 @@ public class RIMDslQualifiedNameProvider extends AbstractImpl {
 			partialQualifiedName = QualifiedName.create(s.getName());
 		} else if (obj instanceof Event) {
 			Event e = (Event) obj;
-			return QualifiedName.create(e.getName());
+			partialQualifiedName = QualifiedName.create(e.getName());
 		} else if (obj instanceof Command) {
 			Command c = (Command) obj;
-			return QualifiedName.create(c.getName());
+			partialQualifiedName = QualifiedName.create(c.getName());
 		} else if (obj instanceof Relation) {
 			Relation r = (Relation) obj;
-			return QualifiedName.create(r.getName());
+			partialQualifiedName = QualifiedName.create(r.getName());
 		}
 		
 		if (partialQualifiedName != null) {
