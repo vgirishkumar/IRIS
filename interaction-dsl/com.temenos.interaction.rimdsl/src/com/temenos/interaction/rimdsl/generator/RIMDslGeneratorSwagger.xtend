@@ -3,32 +3,17 @@
  */
 package com.temenos.interaction.rimdsl.generator
 
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
-import com.temenos.interaction.rimdsl.rim.ResourceCommand
 import com.temenos.interaction.rimdsl.rim.State
-import com.temenos.interaction.rimdsl.rim.Transition
-import com.temenos.interaction.rimdsl.rim.TransitionForEach
-import com.temenos.interaction.rimdsl.rim.TransitionAuto
-import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel
-import org.eclipse.emf.common.util.EList
-import com.temenos.interaction.rimdsl.rim.UriLink
-import com.temenos.interaction.rimdsl.rim.OKFunction;
-import com.temenos.interaction.rimdsl.rim.NotFoundFunction
-import com.temenos.interaction.rimdsl.rim.Function
-import com.temenos.interaction.rimdsl.rim.Expression
-import javax.inject.Inject
-import org.eclipse.xtext.naming.IQualifiedNameProvider
-import java.util.Iterator
-import java.util.Map
-import java.util.Set
-import java.util.List
+import com.temenos.interaction.rimdsl.rim.TransitionRef
 import java.util.ArrayList
 import java.util.Collection
-import java.util.HashSet
 import java.util.HashMap
-import com.temenos.interaction.rimdsl.rim.TransitionRef
+import java.util.HashSet
+import java.util.Map
+import java.util.Set
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
 
 class RIMDslGeneratorSwagger implements IGenerator {
 	

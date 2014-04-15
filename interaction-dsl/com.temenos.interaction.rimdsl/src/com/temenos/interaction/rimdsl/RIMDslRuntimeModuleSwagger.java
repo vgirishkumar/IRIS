@@ -4,10 +4,7 @@
 package com.temenos.interaction.rimdsl;
 
 import org.eclipse.xtext.generator.IGenerator;
-import org.eclipse.xtext.generator.IOutputConfigurationProvider;
 
-import com.google.inject.Binder;
-import com.google.inject.Singleton;
 import com.temenos.interaction.rimdsl.generator.RIMDslGeneratorSwagger;
 
 /*
@@ -34,7 +31,7 @@ import com.temenos.interaction.rimdsl.generator.RIMDslGeneratorSwagger;
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
-public class RIMDslRuntimeModuleSwagger extends com.temenos.interaction.rimdsl.AbstractRIMDslRuntimeModule {
+public class RIMDslRuntimeModuleSwagger extends RIMDslRuntimeModule {
 
 	  public Class<? extends IGenerator> bindIGenerator() {
 	        return RIMDslGeneratorSwagger.class;
