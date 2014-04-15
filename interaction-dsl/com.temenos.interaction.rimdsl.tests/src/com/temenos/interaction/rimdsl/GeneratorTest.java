@@ -483,7 +483,7 @@ public class GeneratorTest {
 			"	entity: ENTITY" + LINE_SEP +
 			"   view: Noop" + LINE_SEP +
 			"   relations [ \"archives\", \"http://www.temenos.com/statement-entries\" ]" + LINE_SEP +
-			"   GET -> B" + LINE_SEP +
+			"   GET -> accTransaction" + LINE_SEP +
 			"}\r\n" + LINE_SEP +
 			"resource accTransaction {" + LINE_SEP +
 			"	type: item" + LINE_SEP +

@@ -53,6 +53,8 @@ public class RIMDslQualifiedNameProvider extends AbstractImpl {
 				QualifiedName parentsQualifiedName = getFullyQualifiedName(temp);
 				if (parentsQualifiedName != null)
 					return parentsQualifiedName.append(partialQualifiedName);
+				else
+					return partialQualifiedName;
 			}
 		}
 		
