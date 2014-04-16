@@ -1,9 +1,11 @@
 package com.temenos.interaction.rimdsl.scoping;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.naming.IQualifiedNameConverter;
 import org.eclipse.xtext.naming.IQualifiedNameProvider.AbstractImpl;
 import org.eclipse.xtext.naming.QualifiedName;
 
+import com.google.inject.Inject;
 import com.temenos.interaction.rimdsl.rim.Command;
 import com.temenos.interaction.rimdsl.rim.DomainDeclaration;
 import com.temenos.interaction.rimdsl.rim.Event;
@@ -24,41 +26,41 @@ import com.temenos.interaction.rimdsl.rim.State;
  */
 public class RIMDslQualifiedNameProvider extends AbstractImpl {
 
+	@Inject
+	private IQualifiedNameConverter converter = new IQualifiedNameConverter.DefaultImpl();
+
 	public QualifiedName getFullyQualifiedName(EObject obj) {
 		QualifiedName partialQualifiedName = null;
 		if (obj instanceof DomainDeclaration) {
 			DomainDeclaration d = (DomainDeclaration) obj;
-			return QualifiedName.create(d.getName());
+			partialQualifiedName = converter.toQualifiedName(d.getName());
 		} else if (obj instanceof ResourceInteractionModel) {
 			ResourceInteractionModel r = (ResourceInteractionModel) obj;
-			partialQualifiedName = QualifiedName.create(r.getName());
+			partialQualifiedName = converter.toQualifiedName(r.getName());
 		} else if (obj instanceof State) {
 			State s = (State) obj;
-			partialQualifiedName = QualifiedName.create(s.getName());
+			partialQualifiedName = converter.toQualifiedName(s.getName());
 		} else if (obj instanceof Event) {
 			Event e = (Event) obj;
-			partialQualifiedName = QualifiedName.create(e.getName());
+			partialQualifiedName = converter.toQualifiedName(e.getName());
 		} else if (obj instanceof Command) {
 			Command c = (Command) obj;
-			partialQualifiedName = QualifiedName.create(c.getName());
+			partialQualifiedName = converter.toQualifiedName(c.getName());
 		} else if (obj instanceof Relation) {
 			Relation r = (Relation) obj;
-			partialQualifiedName = QualifiedName.create(r.getName());
+			partialQualifiedName = converter.toQualifiedName(r.getName());
+		} else {
+			return null;
 		}
 		
 		if (partialQualifiedName != null) {
-			EObject temp = obj;
-			while (temp.eContainer() != null) {
-				temp = temp.eContainer();
-				QualifiedName parentsQualifiedName = getFullyQualifiedName(temp);
-				if (parentsQualifiedName != null)
-					return parentsQualifiedName.append(partialQualifiedName);
-				else
-					return partialQualifiedName;
-			}
+			EObject parent = obj.eContainer();
+			QualifiedName parentsQualifiedName = getFullyQualifiedName(parent);
+			if (parentsQualifiedName != null)
+				partialQualifiedName = parentsQualifiedName.append(partialQualifiedName);
 		}
 		
-		return null;
+		return partialQualifiedName;
 	}
 
 }
