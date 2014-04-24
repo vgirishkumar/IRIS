@@ -384,6 +384,40 @@ public class GeneratorTest {
 		assertTrue(indexOfAddTransition > 0);
 	}
 
+	private final static String TRANSITION_WITH_MISSING_TARGET_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
+			
+			"	command GetEntities" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	GET -> B" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"}" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateTransitionsWithMissingTarget() throws Exception {
+		DomainModel domainModel = parseHelper.parse(TRANSITION_WITH_MISSING_TARGET_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		
+		// should not be adding the transition to a broken / missing state
+		assertFalse(output.contains("sA.addTransition(new Transition.Builder()"));
+		assertFalse(output.contains("factory.getResourceState(\"\");"));
+	}
+
 	private final static String AUTO_TRANSITION_WITH_URI_LINKAGE_RIM = "" +
 			"rim Test {" + LINE_SEP +
 			"	event GET {" + LINE_SEP +

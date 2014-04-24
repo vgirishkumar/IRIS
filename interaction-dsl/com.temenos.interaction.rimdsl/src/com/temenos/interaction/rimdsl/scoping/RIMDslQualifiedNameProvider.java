@@ -33,22 +33,22 @@ public class RIMDslQualifiedNameProvider extends AbstractImpl {
 		QualifiedName partialQualifiedName = null;
 		if (obj instanceof DomainDeclaration) {
 			DomainDeclaration d = (DomainDeclaration) obj;
-			partialQualifiedName = converter.toQualifiedName(d.getName());
+			partialQualifiedName = toQualifiedName(d.getName());
 		} else if (obj instanceof ResourceInteractionModel) {
 			ResourceInteractionModel r = (ResourceInteractionModel) obj;
-			partialQualifiedName = converter.toQualifiedName(r.getName());
+			partialQualifiedName = toQualifiedName(r.getName());
 		} else if (obj instanceof State) {
 			State s = (State) obj;
-			partialQualifiedName = converter.toQualifiedName(s.getName());
+			partialQualifiedName = toQualifiedName(s.getName());
 		} else if (obj instanceof Event) {
 			Event e = (Event) obj;
-			partialQualifiedName = converter.toQualifiedName(e.getName());
+			partialQualifiedName = toQualifiedName(e.getName());
 		} else if (obj instanceof Command) {
 			Command c = (Command) obj;
-			partialQualifiedName = converter.toQualifiedName(c.getName());
+			partialQualifiedName = toQualifiedName(c.getName());
 		} else if (obj instanceof Relation) {
 			Relation r = (Relation) obj;
-			partialQualifiedName = converter.toQualifiedName(r.getName());
+			partialQualifiedName = toQualifiedName(r.getName());
 		} else {
 			return null;
 		}
@@ -63,4 +63,9 @@ public class RIMDslQualifiedNameProvider extends AbstractImpl {
 		return partialQualifiedName;
 	}
 
+	private QualifiedName toQualifiedName(String name) {
+		if (name != null)
+			return converter.toQualifiedName(name);
+		return null;
+	}
 }
