@@ -108,9 +108,11 @@ class RIMDslGenerator implements IGenerator {
                 «IF !resources.contains(state.name) && resources.add(state.name)»«ENDIF»
                 // create transitions
                 «FOR t : state.transitions»
-                «IF !resources.contains(t.state.name) && resources.add(t.state.name)»
+                «IF t.state.name != null && !resources.contains(t.state.name) && resources.add(t.state.name)»
                 ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
                 «ENDIF»
+                «IF t.state.name != null»
+                if (s«t.state.name» != null) {
                 «IF t instanceof Transition»
                 // create regular transition
                 «produceTransitions(state, t as Transition)»
@@ -129,6 +131,8 @@ class RIMDslGenerator implements IGenerator {
                 «IF t instanceof TransitionEmbedded»
                 // create EMBEDDED transition
                 «produceTransitionsEmbedded(state, t as TransitionEmbedded)»
+                «ENDIF»
+                }
                 «ENDIF»
                 «ENDFOR»
                 return true;

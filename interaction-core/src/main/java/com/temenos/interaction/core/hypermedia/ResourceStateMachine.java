@@ -149,6 +149,9 @@ public class ResourceStateMachine {
 				Set<String> interactions = getInteractionByState().get(s);
 				if (interactions.contains(event.getMethod())) {
 					if(state == null || interactions.size() == 1 || !event.getMethod().equals("GET")) {		//Avoid overriding existing view actions
+						if (state != null && state.getViewAction() != null) {
+							logger.error("Multiple matching resource states for ["+event+"] event on ["+resourcePath+"], ["+state+"] and ["+s+"]");
+						}
 						state = s;
 					}
 				}
@@ -553,36 +556,33 @@ public class ResourceStateMachine {
 		/*
 		 * Add links to other application states (resources)
 		 */
-		Collection<ResourceState> targetStates = state.getAllTargets();
-		for (ResourceState s : targetStates) {
-			List<Transition> transitions = state.getTransitions(s);
-			for(Transition transition : transitions) {
-				TransitionCommandSpec cs = transition.getCommand();
-				/* 
-				 * build link and add to list of links
-				 */
-				if (cs.isForEach()) {
-					if (collectionResource != null) {
-						for (EntityResource<?> er : collectionResource.getEntities()) {
-							Collection<Link> eLinks = er.getLinks();
-							if (eLinks == null) {
-								eLinks = new ArrayList<Link>();
-							}
-							eLinks.add(createLink(transition, er.getEntity(), resourceProperties));
-							er.setLinks(eLinks);
+		List<Transition> transitions = state.getTransitions();
+		for(Transition transition : transitions) {
+			TransitionCommandSpec cs = transition.getCommand();
+			/* 
+			 * build link and add to list of links
+			 */
+			if (cs.isForEach()) {
+				if (collectionResource != null) {
+					for (EntityResource<?> er : collectionResource.getEntities()) {
+						Collection<Link> eLinks = er.getLinks();
+						if (eLinks == null) {
+							eLinks = new ArrayList<Link>();
 						}
+						eLinks.add(createLink(transition, er.getEntity(), resourceProperties));
+						er.setLinks(eLinks);
 					}
-				} else {
-					boolean addLink = true;
-					// evaluate the conditional expression
-					Expression conditionalExp = cs.getEvaluation();
-					if (conditionalExp != null) {
-						addLink = conditionalExp.evaluate(rimHander, ctx);
-					}
-						
-					if (addLink) {
-						links.add(createLink(transition, entity, resourceProperties));
-					}
+				}
+			} else {
+				boolean addLink = true;
+				// evaluate the conditional expression
+				Expression conditionalExp = cs.getEvaluation();
+				if (conditionalExp != null) {
+					addLink = conditionalExp.evaluate(rimHander, ctx);
+				}
+					
+				if (addLink) {
+					links.add(createLink(transition, entity, resourceProperties));
 				}
 			}
 		}

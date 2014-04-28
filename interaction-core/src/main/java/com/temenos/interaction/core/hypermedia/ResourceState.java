@@ -25,11 +25,9 @@ package com.temenos.interaction.core.hypermedia;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 
 import org.slf4j.Logger;
@@ -62,7 +60,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	/* the UriSpecification is used to append the path parameter template to the path */
 	private final UriSpecification uriSpecification;
 	
-	private Set<Transition> transitions = new HashSet<Transition>();
+	private List<Transition> transitions = new ArrayList<Transition>();
 
 	/* error state */
 	private ResourceState errorState;
@@ -376,6 +374,14 @@ public class ResourceState implements Comparable<ResourceState> {
 		}		
 	}
 
+	/**
+	 * Return all transitions {@link Transition}} from this state.
+	 * @return
+	 */
+	public List<Transition> getTransitions() {
+		return transitions;
+	}
+	
 	/**
 	 * Get the transition to the supplied target state.
 	 * @param targetState

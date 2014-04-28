@@ -101,6 +101,7 @@ public class ValidationTest {
 		EList<Resource.Diagnostic> rootErrors = rootModel.eResource().getErrors();
 		assertEquals(0, rootErrors.size());
 		List<Issue> issues = validator.validate(rootModel.eResource(), CheckMode.ALL, null);
+		// don't know, something broken here.
 		assertEquals(3, issues.size());
 		assertEquals("Couldn't resolve reference to Event 'GET'.", issues.get(0).getMessage());
 		assertEquals("Couldn't resolve reference to Event 'GET'.", issues.get(1).getMessage());

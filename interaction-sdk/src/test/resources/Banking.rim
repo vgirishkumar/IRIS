@@ -1,5 +1,5 @@
 rim Banking {
-
+	basepath: "/{companyid}"
 	event AUTHORISE {
 		method: PUT
 	}

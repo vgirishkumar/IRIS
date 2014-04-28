@@ -5,7 +5,9 @@
 domain ${rim.getDomain()} {
 #end
 rim ${rim.getName()} {
-
+#if(${rim.getBasepath()})
+	basepath: "${rim.getBasepath()}"
+#end
 #parse("/ServiceDocument.vm")
 
 ## -----------------------------------------------------

@@ -2,6 +2,9 @@
 ## Velocity template for just the rim{}
 #######################################
 rim ${rsm.getRimName()} {
+#if(${rim.getBasepath()})
+	basepath: "${rim.getBasepath()}"
+#end
 #foreach ( $rimEvent in ${commands.getRimEvents().entrySet()} )
 	event $rimEvent.getKey() {
 		method: $rimEvent.getValue()

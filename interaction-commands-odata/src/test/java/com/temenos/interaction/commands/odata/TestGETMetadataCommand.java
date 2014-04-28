@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Test;
@@ -59,7 +60,7 @@ public class TestGETMetadataCommand {
 	@SuppressWarnings("unchecked")
 	private InteractionContext createInteractionContext() {
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
         return ctx;
 	}
 
