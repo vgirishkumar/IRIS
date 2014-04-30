@@ -266,6 +266,43 @@ public class ParserTest {
 		assertEquals("B", aState.getTransitions().get(0).getState().getName());
 	}
 
+	private final static String DYNAMIC_TRANSITION_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	GET -> \"Test.B\"" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"resource B {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
+			"";
+
+	@Test
+	public void testParseStatesWithDynamicTransition() throws Exception {
+		DomainModel domainModel = parser.parse(DYNAMIC_TRANSITION_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+		State aState = model.getStates().get(0);
+	    assertEquals("A", aState.getName());
+
+	    // there should one transition from state A to state B
+		assertEquals(1, aState.getTransitions().size());
+		assertEquals(null, aState.getTransitions().get(0).getState());
+		assertEquals("Test.B", aState.getTransitions().get(0).getName());
+	}
+
 	private final static String TRANSITION_WITH_URI_CHARACTERS_PARAMETERS_RIM = "" +
 			"rim Test {" + LINE_SEP +
 			"	command GetEntity" + LINE_SEP +

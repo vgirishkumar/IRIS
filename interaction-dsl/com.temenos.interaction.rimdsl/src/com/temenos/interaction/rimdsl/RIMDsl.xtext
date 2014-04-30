@@ -122,27 +122,27 @@ TransitionRef:
 
 // create regular transitions
 Transition:
-    event=[Event] '->' state=[State|QualifiedName] (spec=TransitionSpec)?
+    event=[Event] '->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create foreach transitions
 TransitionForEach:
-    event=[Event] '*->' state=[State|QualifiedName] (spec=TransitionSpec)?
+    event=[Event] '*->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create AUTO transitions
 TransitionAuto:
-    event=[Event] '-->' state=[State|QualifiedName] (spec=TransitionSpec)?
+    event=[Event] '-->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create REDIRECT transitions
 TransitionRedirect:
-    event=[Event] '->>' state=[State|QualifiedName] (spec=TransitionSpec)?
+    event=[Event] '->>' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create embedded transitions
 TransitionEmbedded:
-    event=[Event] '+->' state=[State|QualifiedName] (spec=TransitionSpec)?
+    event=[Event] '+->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 TransitionSpec:

@@ -25,6 +25,7 @@ import com.temenos.interaction.rimdsl.rim.RelationConstant
 import com.temenos.interaction.rimdsl.rim.Relation
 import com.temenos.interaction.rimdsl.rim.TransitionEmbedded
 import com.temenos.interaction.rimdsl.rim.TransitionRedirect
+import com.temenos.interaction.rimdsl.rim.TransitionRef
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -102,18 +103,18 @@ class RIMDslGenerator implements IGenerator {
             public boolean initialise() {
                 Map<String, String> uriLinkageProperties = new HashMap<String, String>();
                 List<Expression> conditionalLinkExpressions = null;
-                «IF state.type.isCollection»Collection«ENDIF»ResourceState s«state.name» = this;
+                «IF state.type.isCollection»Collection«ENDIF»ResourceState «stateVariableName(state)» = this;
                 «
                 val resources = newArrayList()
                 »
                 «IF !resources.contains(state.name) && resources.add(state.name)»«ENDIF»
                 // create transitions
                 «FOR t : state.transitions»
-                «IF t.state.name != null && !resources.contains(t.state.name) && resources.add(t.state.name)»
-                ResourceState s«t.state.name» = factory.getResourceState("«t.state.fullyQualifiedName»");
+                «IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»
+                ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
                 «ENDIF»
-                «IF t.state.name != null»
-                if (s«t.state.name» != null) {
+                «IF (t.state != null && t.state.name != null) || t.name != null»
+                if («transitionTargetStateVariableName(t)» != null) {
                 «IF t instanceof Transition»
                 // create regular transition
                 «produceTransitions(state, t as Transition)»
@@ -157,6 +158,21 @@ class RIMDslGenerator implements IGenerator {
             
         }
 	'''
+	
+	def String transitionTargetStateVariableName(TransitionRef t) {
+		if (t.state != null) {
+			return stateVariableName(t.state);
+		} else {
+       		return "s" + (t.name).replaceAll("\\.", "_");
+		}
+	}
+
+	def String stateVariableName(State state) {
+		if (state != null && state.name != null) {
+			return "s" + (state.name).replaceAll("\\.", "_");
+		}
+		return null;
+	}
 	
 	def toJavaCode(ResourceInteractionModel rim) '''
 		«IF rim.eContainer.fullyQualifiedName != null»
@@ -223,12 +239,12 @@ class RIMDslGenerator implements IGenerator {
             «produceActionSet(state, state.impl)»
             «produceRelations(state)»
             «IF state.type.isCollection»
-            CollectionResourceState s«state.name» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations, null);
+            CollectionResourceState «stateVariableName(state)» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations, null);
             «ELSEIF state.type.isItem»
-            ResourceState s«state.name» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" }»);
+            ResourceState «stateVariableName(state)» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «stateVariableName(state)»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" }»);
             «ENDIF»
             «IF state.isException»
-            s«state.name».setException(true);
+            «stateVariableName(state)».setException(true);
             «ENDIF»
 	'''
 
@@ -302,8 +318,8 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition(new Transition.Builder()
-            		.method("«transition.event.httpMethod»").target(s«transition.state.name»).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
+            «stateVariableName(fromState)».addTransition(new Transition.Builder()
+            		.method("«transition.event.httpMethod»").target(«transitionTargetStateVariableName(transition)»).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
             		.build());
 	'''
 
@@ -329,10 +345,10 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition(new Transition.Builder()
+            «stateVariableName(fromState)».addTransition(new Transition.Builder()
             		.flags(Transition.FOR_EACH)
             		.method("«transition.event.httpMethod»")
-            		.target(s«transition.state.name»)
+            		.target(«transitionTargetStateVariableName(transition)»)
             		.uriParameters(uriLinkageProperties)
             		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
             		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
@@ -345,9 +361,9 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition(new Transition.Builder()
+            «stateVariableName(fromState)».addTransition(new Transition.Builder()
             		.flags(Transition.AUTO)
-            		.target(s«transition.state.name»)
+            		.target(«transitionTargetStateVariableName(transition)»)
             		.uriParameters(uriLinkageProperties)
             		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
             		.build());
@@ -359,9 +375,9 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition(new Transition.Builder()
+            «stateVariableName(fromState)».addTransition(new Transition.Builder()
             		.flags(Transition.REDIRECT)
-            		.target(s«transition.state.name»)
+            		.target(«transitionTargetStateVariableName(transition)»)
             		.uriParameters(uriLinkageProperties)
             		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
             		.build());
@@ -373,10 +389,10 @@ class RIMDslGenerator implements IGenerator {
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            s«fromState.name».addTransition(new Transition.Builder()
+            «stateVariableName(fromState)».addTransition(new Transition.Builder()
             		.flags(Transition.EMBEDDED)
             		.method("«transition.event.httpMethod»")
-            		.target(s«transition.state.name»)
+            		.target(«transitionTargetStateVariableName(transition)»)
             		.uriParameters(uriLinkageProperties)
             		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
             		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
