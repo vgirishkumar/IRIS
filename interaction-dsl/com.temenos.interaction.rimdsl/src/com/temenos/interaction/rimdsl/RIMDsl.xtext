@@ -117,7 +117,7 @@ ImplRef:
 
 // Order of transitions should be non deterministic
 TransitionRef:
-    Transition | TransitionForEach | TransitionAuto | TransitionEmbedded
+    Transition | TransitionForEach | TransitionAuto | TransitionRedirect | TransitionEmbedded
 ;
 
 // create regular transitions
@@ -133,6 +133,11 @@ TransitionForEach:
 // create AUTO transitions
 TransitionAuto:
     event=[Event] '-->' state=[State|QualifiedName] (spec=TransitionSpec)?
+;
+
+// create REDIRECT transitions
+TransitionRedirect:
+    event=[Event] '->>' state=[State|QualifiedName] (spec=TransitionSpec)?
 ;
 
 // create embedded transitions

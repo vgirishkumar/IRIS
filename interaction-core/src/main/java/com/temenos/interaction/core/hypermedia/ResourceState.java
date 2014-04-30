@@ -199,16 +199,16 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public boolean isTransientState() {
 		return (getAllTargets().size() == 1 
-				&& getTransition(getAllTargets().iterator().next()).getCommand().isAutoTransition());
+				&& getTransition(getAllTargets().iterator().next()).getCommand().isRedirectTransition());
 	}
 
 	/**
-	 * A transient state is a resource state with a single AUTO transition, get the
+	 * A transient state is a resource state with a single REDIRECT transition, get the
 	 * auto {@link Transition}.
 	 * @return the auto transition for this transient state
 	 * @invariant this must be a transient state {@link ResourceState#isTransientState()}
 	 */
-	public Transition getAutoTransition() {
+	public Transition getRedirectTransition() {
 		assert(isTransientState());
 		return getTransition(getAllTargets().iterator().next());
 	}

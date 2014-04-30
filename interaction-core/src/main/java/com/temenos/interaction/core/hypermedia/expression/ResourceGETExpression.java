@@ -154,7 +154,7 @@ public class ResourceGETExpression implements Expression {
    		RESTResource resource = ctx.getResource();
    		if(resource != null && resource instanceof EntityResource) {
    			Object entity = ((EntityResource<?>) resource).getEntity();
-   	    	transitionProperties.putAll(hypermediaEngine.getTransitionProperties(transition, entity, null)); 
+   	    	transitionProperties.putAll(hypermediaEngine.getTransitionProperties(transition, entity, null, null)); 
    		}    		
     	
     	//apply transition properties to path parameters 

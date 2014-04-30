@@ -89,11 +89,19 @@ public class TransitionCommandSpec {
 	}
 	
 	/**
-	 * Is this transition and auto transition?
+	 * Is this transition an auto transition?
 	 * @return
 	 */
 	public boolean isAutoTransition() {
 		return ((flags & Transition.AUTO) == Transition.AUTO);
+	}
+
+	/**
+	 * Is this transition a redirect transition?
+	 * @return
+	 */
+	public boolean isRedirectTransition() {
+		return ((flags & Transition.REDIRECT) == Transition.REDIRECT);
 	}
 
 	public boolean equals(Object other) {

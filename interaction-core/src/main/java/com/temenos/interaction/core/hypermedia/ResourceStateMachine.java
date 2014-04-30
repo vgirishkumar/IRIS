@@ -664,7 +664,7 @@ public class ResourceStateMachine {
 			for (String related : relationships) {
 				Transition transition = getTransitionsById().get(related);
 				if (transition != null) {
-					target = createLinkToTarget(transition, resourceEntity, pathParameters);
+					target = createLink(transition, resourceEntity, pathParameters);
 				}
 			}
 		}
@@ -697,23 +697,10 @@ public class ResourceStateMachine {
 			if (method.contains(transition.getCommand().getMethod())) {
 				// do not create link if this a pseudo state, effectively no state
 				if (!transition.getTarget().isPseudoState())
-					target = createLinkToTarget(transition, resourceEntity, pathParameters);
+					target = createLink(transition, resourceEntity, pathParameters);
 			}
 		}
 		return target;
-	}
-
-	/*
-	 * @invariant {@link RequestContext} must have been initialised
-	 */
-	public Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
-		return createLink(transition, entity, pathParameters);
-	}
-	/*
-	 * create link to target preserving the query parameters, useful for redirect
-	 */
-	public Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters) {
-		return createLink(transition, entity, pathParameters, queryParameters);
 	}
 
 	/*
@@ -721,7 +708,7 @@ public class ResourceStateMachine {
 	 */
 	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, pathParameters, null);
+		return createLink(cs.getPath(), transition, entity, pathParameters, null, false);
 	}
 
 	/*
@@ -737,11 +724,15 @@ public class ResourceStateMachine {
 	}
 	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters) {
 		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, transitionParameters, queryParameters);
+		return createLink(cs.getPath(), transition, entity, transitionParameters, queryParameters, false);
 	}
-	private Link createLink(String resourcePath, Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters) {
-		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, transitionParameters);
-		return createLink(resourcePath, transition, transitionProperties, entity, queryParameters);
+	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
+		TransitionCommandSpec cs = transition.getCommand();
+		return createLink(cs.getPath(), transition, entity, transitionParameters, queryParameters, allQueryParameters);
+	}
+	private Link createLink(String resourcePath, Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
+		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, transitionParameters, queryParameters);
+		return createLink(resourcePath, transition, transitionProperties, entity, queryParameters, allQueryParameters);
 	}
 
 	/*
@@ -755,11 +746,10 @@ public class ResourceStateMachine {
 	 * @return link
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
-	private Link createLink(String resourcePath, Transition transition, Map<String, Object> transitionProperties, Object entity, MultivaluedMap<String, String> queryParameters) {
+	private Link createLink(String resourcePath, Transition transition, Map<String, Object> transitionProperties, Object entity, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
 		assert(RequestContext.getRequestContext() != null);
 		TransitionCommandSpec cs = transition.getCommand();
-		UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath())
-				.path(resourcePath);
+		UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
 		try {
 			String rel = transition.getTarget().getRel();
 			if (transition.getSource().equals(transition.getTarget())) {
@@ -767,14 +757,24 @@ public class ResourceStateMachine {
 			}
 			String method = cs.getMethod();
 
-			//Add template elements in linkage properties e.g. filter=fld eq {code} as query parameters
-			Map<String, String> linkParameters = transition.getCommand().getUriParameters();
-			setQueryParameters(linkTemplate, linkParameters, transitionProperties, resourcePath);
+			// Pass uri parameters as query parameters if they are not replaceable in the path, and replace any token.
+			Map<String, String> uriParameters = transition.getCommand().getUriParameters();
+			if (uriParameters != null) {
+				for(String key : uriParameters.keySet()) {
+					String value = uriParameters.get(key);
+					if (!resourcePath.contains("{"+key+"}")) {
+						linkTemplate.queryParam(key, HypermediaTemplateHelper.templateReplace(value, transitionProperties));
+					}
+				}
+			}
+			linkTemplate.path(resourcePath);
 			
 			// Pass any query parameters
-			if (queryParameters != null) {
+			if (queryParameters != null && allQueryParameters) {
 				for (String param : queryParameters.keySet()) {
-					linkTemplate.queryParam(param, queryParameters.getFirst(param));
+					if (!resourcePath.contains("{"+param+"}") && (uriParameters == null || !uriParameters.containsKey(param))) {
+						linkTemplate.queryParam(param, queryParameters.getFirst(param));
+					}
 				}
 			}
 			
@@ -803,15 +803,23 @@ public class ResourceStateMachine {
 	
 	/**
 	 * Obtain transition properties.
-	 * Transition properties are a list of path parameters,
-	 * linkage properties and entity properties.
+	 * Transition properties are a list of entity properties, path parameters,
+	 * and query parameters.
 	 * @param transition transition
 	 * @param entity usually an entity of the source state
 	 * @param pathParameters path parameters
+	 * @param pathParameters path parameters
 	 * @return map of transition properties
 	 */
-	public Map<String, Object> getTransitionProperties(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
+	public Map<String, Object> getTransitionProperties(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters) {
 		Map<String, Object> transitionProps = new HashMap<String, Object>();
+
+		//Obtain query parameters
+		if (queryParameters != null) {
+			for (String key : queryParameters.keySet()) {
+				transitionProps.put(key, queryParameters.getFirst(key));
+			}
+		}
 
 		//Obtain path parameters
 		if (pathParameters != null) {
@@ -841,29 +849,6 @@ public class ResourceStateMachine {
 		}
 		
 		return transitionProps;
-	}
-	
-	/**
-	 * Set template elements in link properties as query parameters.
-	 * e.g. filter=fld eq {code} => ?code=123
-	 * e.g. filter=fld eq {code}, code="mycode" => ?mycode=123
-	 * @param linkTemplate URI builder
-	 * @param linkParameters link properties
-	 * @param properties entity and link properties
-	 * @param targetStatePath Resource path of target state
-	 */
-	protected void setQueryParameters(UriBuilder linkTemplate, Map<String, String> linkParameters, Map<String, Object> properties, String targetStatePath) {
-		if (linkParameters != null) {
-			for(String key : linkParameters.keySet()) {
-				String value = linkParameters.get(key);
-				if (targetStatePath.contains("{"+key+"}")) {
-// TODO, works fine without this, making this whole method dead code?
-//					value = templateReplace(value, properties);
-				} else {
-					linkTemplate.queryParam(key, value);
-				}
-			}
-		}
 	}
 	
 	public InteractionCommand determinAction(String event, String path) {

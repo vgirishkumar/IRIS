@@ -436,10 +436,19 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		    				etag != null && etag.equals(ifNoneMatch)) {
 		    			//Response etag matches IfNoneMatch precondition
 		    			status = Status.NOT_MODIFIED;
-		    		} else if (result == Result.SUCCESS && targetState.isTransientState()) {
-	        			status = Status.SEE_OTHER;
-		        	} else if (result == Result.SUCCESS) {
-		    			status = Status.OK;
+		    		} else if (result == Result.SUCCESS) {
+		    			boolean hasRedirect = false;
+		    			for (ResourceState target : targetState.getAllTargets()) {
+			    			for (Transition transition : targetState.getTransitions(target)) {
+			    				if ((transition.getCommand().getFlags() & Transition.REDIRECT) == Transition.REDIRECT)
+			    					hasRedirect = true;
+			    			}
+		    			}
+		    			if (hasRedirect) {
+		        			status = Status.SEE_OTHER;
+		    			} else {
+		    				status = Status.OK;
+		    			}
 		    		}
 				} else if (event.getMethod().equals(HttpMethod.POST)) {
 			    	// TODO need to add support for differed create (ACCEPTED) and actually created (CREATED)
@@ -475,7 +484,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			    		ResourceState targetState = ctx.getTargetState();
 			    		Link linkUsed = ctx.getLinkUsed();
 			        	if (targetState.isTransientState()) {
-							Transition autoTransition = targetState.getAutoTransition();
+							Transition autoTransition = targetState.getRedirectTransition();
 							if (autoTransition.getTarget().getPath().equals(ctx.getCurrentState().getPath())
 									|| (linkUsed != null && autoTransition.getTarget().equals(linkUsed.getTransition().getSource()))) {
 			            		// this transition has been configured to reset content
@@ -524,30 +533,40 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.equals(Response.Status.NO_CONTENT)) {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.equals(Response.Status.SEE_OTHER)) {
-			ResourceState targetState = ctx.getTargetState();
-			Transition autoTransition = targetState.getAutoTransition();
+			ResourceState currentState = ctx.getCurrentState();
 			Object entity = null;
 			if (resource != null) {
 				assert(resource instanceof EntityResource) : "Must be an EntityResource for an auto transition";
 				entity = ((EntityResource<?>)resource).getEntity();
 			}
-    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, entity, pathParameters, ctx.getQueryParameters());
-			responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
+			List<Transition> autoTransitions = getLinks(resource, Transition.AUTO);
+			Transition autoTransition = autoTransitions.size() > 0 ? autoTransitions.iterator().next() : null;
+			if (autoTransition != null) {
+				if (autoTransitions.size() > 1)
+					logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
+				Response autoResponse = getResource(headers, autoTransition, ctx);
+	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
+	        		logger.warn("Auto transition target did not return HttpStatus.OK status ["+autoResponse.getStatus()+"]");
+	        		responseBuilder.status(autoResponse.getStatus());
+	        	}
+	        	resource = (RESTResource) ((GenericEntity<?>)autoResponse.getEntity()).getEntity();
+				assert(resource != null);
+	    		responseBuilder.entity(resource.getGenericEntity());
+	   			responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
+			} else {
+				ResourceState targetState = ctx.getTargetState();
+				Transition redirectTransition = targetState.getRedirectTransition();
+				Link target = hypermediaEngine.createLink(redirectTransition, entity, pathParameters, ctx.getQueryParameters(), true);
+				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
+			}
 		} else if (status.equals(Response.Status.CREATED)) {
 			ResourceState currentState = ctx.getCurrentState();
 			assert(currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
-			Transition autoTransition = null;
-			for(Link link : resource.getLinks()) {
-				if(link.getRel() != null && !link.getRel().equals("self")) {		//Ignore self link
-					if(autoTransition != null) {
-						logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transition. Using [" + link.getId() + "].");
-					}
-					else {
-						autoTransition = link.getTransition();
-					}
-				}
-			}
-			if (autoTransition != null && autoTransition.getCommand().isAutoTransition()) {
+			List<Transition> autoTransitions = getLinks(resource, Transition.AUTO);
+			Transition autoTransition = autoTransitions.size() > 0 ? autoTransitions.iterator().next() : null;
+			if (autoTransition != null) {
+				if (autoTransitions.size() > 1)
+					logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
 				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
 				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
@@ -618,6 +637,18 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		return responseBuilder.build();
     }
     
+    private List<Transition> getLinks(RESTResource resource, int transitionType) {
+    	List<Transition> transitions = new ArrayList<Transition>();
+    	if (resource != null && resource.getLinks() != null) {
+        	for(Link link : resource.getLinks()) {
+    			if ((link.getTransition().getCommand().getFlags() & transitionType) == transitionType) {
+    				transitions.add(link.getTransition());
+    			}
+    		}
+    	}
+		return transitions;
+    }
+
     /*
      * Returns the resource on the specified resource state.
      * NB - the one essential difference between this getResource method and the ResourceRequestHandler
@@ -637,7 +668,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			newPathParameters.putAll(ctx.getPathParameters());
 			RESTResource currentResource = ctx.getResource();
 			if (currentResource != null) {
-				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition, ((EntityResource<?>)currentResource).getEntity(), ctx.getPathParameters());
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition, ((EntityResource<?>)currentResource).getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
 				for (String key : transitionProperties.keySet()) {
 					if (transitionProperties.get(key) != null)
 						newPathParameters.add(key, transitionProperties.get(key).toString());

@@ -33,10 +33,8 @@ public class Transition {
 	public static final int FOR_EACH = 1;
 	/**
 	 * This transition is an auto transition.<br>
-	 * A transition to this state from the same state as the auto target will result 
-	 * in a 205 Reset Content HTTP status at runtime.
-	 * A transition to this state from a different state to the auto target will result
-	 * in a 303 Redirect HTTP status at runtime.
+	 * This transition will result in the target state automatically being requested following
+	 * the successful execution of the current state.
 	 */
 	public static final int AUTO = 2;
 	/**
@@ -47,6 +45,14 @@ public class Transition {
 	 * Add a transition used in an expression
 	 */
 	public static final int EXPRESSION = 8;
+	/**
+	 * This transition is a redirect transition.<br>
+	 * A transition to this state from the same state as the auto target will result 
+	 * in a 205 Reset Content HTTP status at runtime.
+	 * A transition to this state from a different state to the auto target will result
+	 * in a 303 Redirect HTTP status at runtime.
+	 */
+	public static final int REDIRECT = 16;
 
 	private ResourceState source, target;
 	private final TransitionCommandSpec command;

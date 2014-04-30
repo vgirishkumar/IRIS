@@ -462,7 +462,56 @@ public class GeneratorTest {
 		
 		assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
 		assertTrue(output.contains("screate_pseudo_state.addTransition(new Transition.Builder()"));
+		assertTrue(output.contains("Transition.AUTO"));
 		assertTrue(output.contains(".target(screated)"));
+	}
+
+	private final static String REDIRECT_TRANSITION_WITH_URI_LINKAGE_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
+			
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+			"	command DeleteEntity" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	DELETE -> delete_pseudo_state" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"resource delete_pseudo_state {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	actions [ DeleteEntity ]" + LINE_SEP +
+			"   GET ->> deleted { parameters [ id=\"{MyId}\" ] }" + LINE_SEP +
+			"}" + LINE_SEP +
+			"resource deleted {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateRedirectTransitionsWithUriLinkage() throws Exception {
+		DomainModel domainModel = parseHelper.parse(REDIRECT_TRANSITION_WITH_URI_LINKAGE_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/delete_pseudo_stateResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		
+		assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
+		assertTrue(output.contains("sdelete_pseudo_state.addTransition(new Transition.Builder()"));
+		assertTrue(output.contains("Transition.REDIRECT"));
+		assertTrue(output.contains(".target(sdeleted)"));
 	}
 
 	private final static String EMBEDDED_TRANSITION_RIM = "" +

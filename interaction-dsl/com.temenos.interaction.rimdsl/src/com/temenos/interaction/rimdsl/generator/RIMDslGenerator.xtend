@@ -24,6 +24,7 @@ import com.temenos.interaction.rimdsl.rim.ImplRef
 import com.temenos.interaction.rimdsl.rim.RelationConstant
 import com.temenos.interaction.rimdsl.rim.Relation
 import com.temenos.interaction.rimdsl.rim.TransitionEmbedded
+import com.temenos.interaction.rimdsl.rim.TransitionRedirect
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -126,6 +127,11 @@ class RIMDslGenerator implements IGenerator {
                 «IF t instanceof TransitionAuto»
                 // create AUTO transition
                 «produceTransitionsAuto(state, t as TransitionAuto)»
+                «ENDIF»
+
+                «IF t instanceof TransitionRedirect»
+                // create REDIRECT transition
+                «produceTransitionsRedirect(state, t as TransitionRedirect)»
                 «ENDIF»
 
                 «IF t instanceof TransitionEmbedded»
@@ -341,6 +347,20 @@ class RIMDslGenerator implements IGenerator {
         «ENDIF»
             s«fromState.name».addTransition(new Transition.Builder()
             		.flags(Transition.AUTO)
+            		.target(s«transition.state.name»)
+            		.uriParameters(uriLinkageProperties)
+            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+            		.build());
+    '''
+
+    def produceTransitionsRedirect(State fromState, TransitionRedirect transition) '''
+            conditionalLinkExpressions = null;
+        «IF transition.spec != null»
+            «produceUriLinkage(transition.spec.uriLinks)»
+            «produceExpressions(transition.spec.eval)»
+        «ENDIF»
+            s«fromState.name».addTransition(new Transition.Builder()
+            		.flags(Transition.REDIRECT)
             		.target(s«transition.state.name»)
             		.uriParameters(uriLinkageProperties)
             		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)

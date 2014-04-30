@@ -45,7 +45,7 @@ resource deletedNote {
 	actions [ DELETENote ]
 	relations [ "http://relations.rimdsl.org/delete" ]
 	path: "/notes/{noteID}"
-	GET --> notes
+	GET ->> notes
 }
 
 resource createNote {

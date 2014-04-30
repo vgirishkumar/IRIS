@@ -96,6 +96,81 @@ public class TestResourceStateMachine {
 		return rimHandler;
 	}
 	
+	@Test
+	public void testCreateLinkHrefSimple() {
+		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class));
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+			.path("/test").
+			build();
+		Link result = engine.createLink(t, null, null);
+		assertEquals("/baseuri/test", result.getHref());
+	}
+
+	@Test
+	public void testCreateLinkHrefReplaceUsingEntity() {
+		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+			.path("/test/{noteId}").
+			build();
+		Link result = engine.createLink(t, createTestNote("123"), null);
+		assertEquals("/baseuri/test/123", result.getHref());
+	}
+
+	@Test
+	public void testCreateLinkHrefUriParameterTokensReplaceUsingEntity() {
+		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+		Map<String,String> uriParameters = new HashMap<String,String>();
+		uriParameters.put("test", "{noteId}");
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+			.uriParameters(uriParameters)
+			.path("/test").
+			build();
+		Link result = engine.createLink(t, createTestNote("123"), null);
+		assertEquals("/baseuri/test?test=123", result.getHref());
+	}
+
+	@Test
+	public void testCreateLinkHrefUriParameterTokensReplaceQueryParameters() {
+		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+		Map<String,String> uriParameters = new HashMap<String,String>();
+		uriParameters.put("test", "{noteId}");
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+			.uriParameters(uriParameters)
+			.path("/test").
+			build();
+		MultivaluedMap<String,String> queryParameters = new MultivaluedMapImpl<String>();
+		queryParameters.add("noteId", "123");
+		Link result = engine.createLink(t, null, queryParameters);
+		assertEquals("/baseuri/test?test=123", result.getHref());
+	}
+
+	@Test
+	public void testCreateLinkHrefUriParameterTokensReplaceQueryParametersSpecial() {
+		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+		Map<String,String> uriParameters = new HashMap<String,String>();
+		uriParameters.put("filter", "{$filter}");
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+			.uriParameters(uriParameters)
+			.path("/test").
+			build();
+		MultivaluedMap<String,String> queryParameters = new MultivaluedMapImpl<String>();
+		queryParameters.add("$filter", "123");
+		Link result = engine.createLink(t, null, queryParameters);
+		assertEquals("/baseuri/test?filter=123", result.getHref());
+	}
+
+	@Test
+	public void testCreateLinkHrefAllQueryParameters() {
+		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+			.path("/test").
+			build();
+		MultivaluedMap<String,String> queryParameters = new MultivaluedMapImpl<String>();
+		queryParameters.add("$filter", "123");
+		Link result = engine.createLink(t, null, new MultivaluedMapImpl<String>(), queryParameters, true);
+		assertEquals("/baseuri/test?$filter=123", result.getHref());
+	}
+
 	/*
 	 * Evaluate custom link relation, via the Link header.  See (see rfc5988)
 	 * We return a Link if the header is set and the @{link Transition} can be found.
@@ -1740,7 +1815,7 @@ public class TestResourceStateMachine {
 		pathParameters.putSingle("pathParam", "abc");
 		
 		//Evaluate test
-		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters);
+		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters, null);
 		assertEquals("abc", transProps.get("pathParam"));		//Check path parameter
 		assertEquals("def", transProps.get("linkParam"));		//Check link parameter
 		assertEquals("Fred", transProps.get("name"));			//Check entity property
@@ -1763,7 +1838,7 @@ public class TestResourceStateMachine {
 		Entity entity = new Entity("Customer", customerFields);
 
 		// link parameters must take priority
-		Map<String, Object> transProps = stateMachine.getTransitionProperties(customerState.getTransition(customerState), entity, new MultivaluedMapImpl<String>());
+		Map<String, Object> transProps = stateMachine.getTransitionProperties(customerState.getTransition(customerState), entity, new MultivaluedMapImpl<String>(), null);
 		assertEquals("123", transProps.get("id"));
 	}
 
@@ -1786,7 +1861,7 @@ public class TestResourceStateMachine {
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		
 		//Evaluate test
-		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters);
+		Map<String, Object> transProps = stateMachine.getTransitionProperties(existsState.getTransition(cookingState), entity, pathParameters, null);
 		MultivaluedMap<String, String> pathParams = HypermediaTemplateHelper.getPathParametersForTargetState(existsState.getTransition(cookingState), transProps);
 		assertEquals("SuperToaster", pathParams.getFirst("id"));	
 	}

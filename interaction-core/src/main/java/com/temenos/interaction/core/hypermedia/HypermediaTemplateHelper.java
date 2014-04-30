@@ -97,7 +97,7 @@ public class HypermediaTemplateHelper {
 					String param = m.group(1);
 					if (properties.containsKey(param)) {
 						// replace template tokens
-						result = template.replaceAll("\\{" + param + "\\}", properties.get(param).toString());
+						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", properties.get(param).toString());
 					}
 				}
 			}

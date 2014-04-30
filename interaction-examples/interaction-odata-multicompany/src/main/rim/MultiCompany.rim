@@ -35,7 +35,7 @@ domain MultiCompanyModel {
 			view: NoopGET
 			path: "/"
 			// redirect to the /{companyid}/$metadata
-			GET --> MultiCompanyModel.multicompany.ServiceDocument {
+			GET ->> MultiCompanyModel.multicompany.ServiceDocument {
 				parameters [ companyid="MockCompany001" ]
 			}
 		}
@@ -47,7 +47,7 @@ domain MultiCompanyModel {
 			view: NoopGET
 			path: "/$metadata"
 			// redirect to the /{companyid}/$metadata
-			GET --> MultiCompanyModel.multicompany.ODataMetadata {
+			GET ->> MultiCompanyModel.multicompany.ODataMetadata {
 				parameters [ companyid="MockCompany001" ]
 			}
 		}
@@ -59,8 +59,8 @@ domain MultiCompanyModel {
 			view: NoopGET
 			path: "/FlightSchedules()"
 			// redirect to the /{companyid}/FlightSchedules()
-			GET --> MultiCompanyModel.multicompany.FlightSchedules {
-				parameters [ companyid="MockCompany001" ]
+			GET ->> MultiCompanyModel.multicompany.FlightSchedules {
+				parameters [ companyid="MockCompany001", filter="{$filter}" ]
 			}
 		}
 		

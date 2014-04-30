@@ -258,12 +258,12 @@ public class TestResourceState {
 		ResourceState home = new ResourceState("root", "root", new ArrayList<Action>(), "/");
 		ResourceState reboot = new ResourceState("entity", "reboot", new ArrayList<Action>(), "/reboot");
 		home.addTransition(new Transition.Builder().method("POST").target(reboot).build());
-		reboot.addTransition(new Transition.Builder().flags(Transition.AUTO).target(home).build());
+		reboot.addTransition(new Transition.Builder().flags(Transition.REDIRECT).target(home).build());
 		assertTrue(reboot.isTransientState());
 	}
 
 	/**
-	 * A transient state is a resource state with a single AUTO transition, get the
+	 * A transient state is a resource state with a single REDIRECT transition, get the
 	 * target state.
 	 */
 	@Test
@@ -271,8 +271,8 @@ public class TestResourceState {
 		ResourceState home = new ResourceState("root", "root", new ArrayList<Action>(), "/");
 		ResourceState reboot = new ResourceState("entity", "reboot", new ArrayList<Action>(), "/reboot");
 		home.addTransition(new Transition.Builder().method("POST").target(reboot).build());
-		reboot.addTransition(new Transition.Builder().flags(Transition.AUTO).target(home).build());
-		assertEquals(home, reboot.getAutoTransition().getTarget());
+		reboot.addTransition(new Transition.Builder().flags(Transition.REDIRECT).target(home).build());
+		assertEquals(home, reboot.getRedirectTransition().getTarget());
 	}
 
 	@Test
