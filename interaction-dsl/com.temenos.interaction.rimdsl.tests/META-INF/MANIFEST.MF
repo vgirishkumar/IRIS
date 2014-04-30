@@ -8,7 +8,7 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: com.temenos.interaction.rimdsl,
  com.temenos.interaction.rimdsl.ui,
  org.eclipse.core.runtime,
- org.eclipse.xtext.junit4;bundle-version="[2.5.0,2.6)",
+ org.eclipse.xtext.junit4;bundle-version="[2.3.0,2.4)",
  org.eclipse.ui.workbench;resolution:=optional
 Import-Package: com.temenos.interaction.rimdsl.visualisation.providers,
  org.apache.log4j,
