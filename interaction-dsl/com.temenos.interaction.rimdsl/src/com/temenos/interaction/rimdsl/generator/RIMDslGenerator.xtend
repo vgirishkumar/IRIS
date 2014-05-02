@@ -314,6 +314,7 @@ class RIMDslGenerator implements IGenerator {
     
 	def produceTransitions(State fromState, Transition transition) '''
             conditionalLinkExpressions = null;
+            uriLinkageProperties.clear();
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
@@ -341,6 +342,7 @@ class RIMDslGenerator implements IGenerator {
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
             conditionalLinkExpressions = null;
+            uriLinkageProperties.clear();
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
@@ -357,6 +359,7 @@ class RIMDslGenerator implements IGenerator {
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
             conditionalLinkExpressions = null;
+            uriLinkageProperties.clear();
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
@@ -371,6 +374,7 @@ class RIMDslGenerator implements IGenerator {
 
     def produceTransitionsRedirect(State fromState, TransitionRedirect transition) '''
             conditionalLinkExpressions = null;
+            uriLinkageProperties.clear();
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
@@ -385,6 +389,7 @@ class RIMDslGenerator implements IGenerator {
 
     def produceTransitionsEmbedded(State fromState, TransitionEmbedded transition) '''
             conditionalLinkExpressions = null;
+            uriLinkageProperties.clear();
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
@@ -401,7 +406,6 @@ class RIMDslGenerator implements IGenerator {
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''
         «IF uriLinks != null»
-            uriLinkageProperties.clear();
             «FOR prop : uriLinks»
             uriLinkageProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
             «ENDFOR»«
