@@ -777,6 +777,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	MediaType.APPLICATION_XML, 
     	MediaType.APPLICATION_JSON, 
     	MediaType.WILDCARD})
+	@Produces({
+		MediaType.APPLICATION_ATOM_XML,
+    	MediaType.APPLICATION_XML, 
+    	MediaType.APPLICATION_JSON, 
+    	MediaType.WILDCARD})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.info("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
