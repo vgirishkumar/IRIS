@@ -125,6 +125,37 @@ public class ODataMulticompanyITCase {
 		assertEquals("http://localhost:8080/example/interaction-odata-multicompany.svc/MockCompany001/", service.getBaseUri().toString());
 	}
 
+	@Test
+	public void testGetServiceDocumentBaseUriWithoutTrailingSlash() throws Exception {
+		org.apache.abdera.model.Service service = null;
+		String testBaseUri = baseUri;
+    	if (testBaseUri.endsWith("/"))
+    		testBaseUri = testBaseUri.substring(0, testBaseUri.length() - 1);
+    	GetMethod method = new GetMethod(testBaseUri);
+		try {
+			client.executeMethod(method);
+			assertEquals(200, method.getStatusCode());
+
+			if (method.getStatusCode() == HttpStatus.SC_OK) {
+				// read as string for debugging
+				String response = method.getResponseBodyAsString();
+				System.out.println("Response = " + response);
+
+				Abdera abdera = new Abdera();
+				Parser parser = abdera.getParser();
+				Document<org.apache.abdera.model.Service> doc = parser.parse(new StringReader(response));
+				service = doc.getRoot();
+			}
+		} catch (IOException e) {
+			fail(e.getMessage());
+		} finally {
+			method.releaseConnection();
+		}
+
+		assertNotNull(service);
+		assertEquals("http://localhost:8080/example/interaction-odata-multicompany.svc/MockCompany001/", service.getBaseUri().toString());
+	}
+
 	
 	/**
 	 * GET item, check id of entity

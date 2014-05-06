@@ -74,6 +74,12 @@ public class TestHypermediaTemplateHelper {
 	}
 	
 	@Test
+	public void testGetTemplatedBaseUriLastCharacter() {
+		assertEquals("http://localhost:8080/example/interaction-odata-multicompany.svc/MockCompany001/", 
+				HypermediaTemplateHelper.getTemplatedBaseUri("http://localhost:8080/example/interaction-odata-multicompany.svc/{companyid}/", "http://localhost:8080/example/interaction-odata-multicompany.svc/MockCompany001"));
+	}
+		
+	@Test
 	public void testTemplateReplace() {
 		Map<String,Object> properties = new HashMap<String,Object>();
 		properties.put("companyid", "GB0010001");

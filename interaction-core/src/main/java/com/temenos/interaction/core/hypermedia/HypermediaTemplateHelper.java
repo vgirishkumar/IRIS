@@ -123,7 +123,7 @@ public class HypermediaTemplateHelper {
 				// match anything before the template
 				.append(".?")
 				// match on the provided template
-				.append(baseUriTemplate.substring(0, m.start()));
+				.append(Pattern.quote(baseUriTemplate.substring(0, m.start())));
 			templateRegex.append(getUriTemplatePattern(m.group(1)));
 			while(m.find()) {
 				templateRegex.append(getUriTemplatePattern(m.group(1)));
@@ -133,10 +133,8 @@ public class HypermediaTemplateHelper {
 				// match anything before the template
 				.append(".?")
 				// match on the provided template
-				.append(baseUriTemplate);
+				.append(Pattern.quote(baseUriTemplate));
 		}
-		// match the until the end
-		templateRegex.append("\\S+");
         String groups[] = getPathTemplateParameters(baseUriTemplate);
 		Map<String, Object> values = match(groups, templateRegex.toString(), uri);
 		String result = null;
