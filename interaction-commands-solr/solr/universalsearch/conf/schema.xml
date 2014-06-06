@@ -66,15 +66,12 @@
 
  <fields>   
   <!-- our schema for Party model -->
-  <field name="Id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
-  <field name="Mnemonic" type="text_en_splitting_tight" indexed="true" stored="true"/>
-  <field name="Name" type="text_general" indexed="true" stored="true"/>
-  <field name="Address" type="text_general" indexed="true" stored="true"/>
-  <field name="Postcode" type="text_general" indexed="true" stored="true"/>
-  <field name="Country" type="text_general" indexed="true" stored="true"/>
-  
-  <!-- CUSTOMER or ACCOUNT -->
-  <field name="table" type="string" indexed="true" stored="true"/>
+  <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+  <field name="mnemonic" type="text_en_splitting_tight" indexed="true" stored="true"/>
+  <field name="name" type="text_general" indexed="true" stored="true"/>
+  <field name="address" type="text_general" indexed="true" stored="true"/>
+  <field name="postcode" type="text_general" indexed="true" stored="true"/>
+  <field name="table" type="text_general" indexed="true" stored="true"/>
    
   <!--
       A Party could be either a person or an organisation.  We expect primary_location to be a
@@ -96,17 +93,17 @@
  </fields>
 
  <!-- field to use to determine and enforce document uniqueness. -->
- <uniqueKey>Id</uniqueKey>
+ <uniqueKey>id</uniqueKey>
 
  <!-- copyField commands copy one field to another at the time a document
       is added to the index.  It's used either to index the same field differently,
       or to add multiple fields to the same field for easier/faster searching.  -->
 
- <copyField source="Mnemonic" dest="text"/>
- <copyField source="Name" dest="text"/>
- <copyField source="Address" dest="text"/>
- <copyField source="Postcode" dest="text"/>
- <copyField source="Country" dest="text"/>
+ <copyField source="mnemonic" dest="text"/>
+ <copyField source="name" dest="text"/>
+ <copyField source="address" dest="text"/>
+ <copyField source="postcode" dest="text"/>
+ <copyField source="table" dest="text"/>
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
  <defaultSearchField>text</defaultSearchField>
