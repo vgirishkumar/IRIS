@@ -118,7 +118,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
-	 * @param edmDataServices
+	 * @param metadataOData4j
 	 * 		The entity metadata for reading and writing OData entities.
 	 * @param metadata
 	 * 		The entity metadata for reading and writing Entity entities.
@@ -127,25 +127,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * @param transformer
 	 * 		Transformer to convert an entity to a properties map
 	 */
-	//TODO - Delete this
-//	@Deprecated
-	public AtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
-		this.edmDataServices = edmDataServices;
-		this.metadata = metadata;
-		this.hypermediaEngine = hypermediaEngine;
-		this.serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
-		if (serviceDocument == null)
-			throw new RuntimeException("No 'ServiceDocument' found.");
-		assert(edmDataServices != null);
-		assert(metadata != null);
-		assert(hypermediaEngine != null);
-		this.transformer = transformer;
-		entryWriter = new AtomEntryFormatWriter(serviceDocument);
-		feedWriter = new AtomFeedFormatWriter(serviceDocument);
-		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
-		metadataOData4j = null;
-	}
-	
 	public AtomXMLProvider(MetadataOData4j metadataOData4j, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
 		this.metadataOData4j = metadataOData4j;
 		this.metadata = metadata;

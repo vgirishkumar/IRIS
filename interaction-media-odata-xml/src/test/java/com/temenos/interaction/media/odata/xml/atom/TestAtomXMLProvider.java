@@ -113,6 +113,7 @@ import com.temenos.interaction.core.web.RequestContext;
 import com.temenos.interaction.media.odata.xml.CustomError;
 import com.temenos.interaction.media.odata.xml.Flight;
 import com.temenos.interaction.media.odata.xml.IgnoreNamedElementsXMLDifferenceListener;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class TestAtomXMLProvider {
 
@@ -125,12 +126,12 @@ public class TestAtomXMLProvider {
 	public final static String EMPTY_FUNDS_TRANSFERS_FEED_XML = "EmptyFundsTransfersFeed.xml";
 	
 	public class MockAtomXMLProvider extends AtomXMLProvider {
-		public MockAtomXMLProvider(EdmDataServices edmDataServices) {
-			this(edmDataServices, mock(Metadata.class));
+		public MockAtomXMLProvider(MetadataOData4j metadataOData4j) {
+			this(metadataOData4j, mock(Metadata.class));
 		}
-		public MockAtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata) {
+		public MockAtomXMLProvider(MetadataOData4j metadataOData4j, Metadata metadata) {
 			//super(null, metadata, new EntityTransformer());
-			super(edmDataServices, 
+			super(metadataOData4j, 
 					metadata, 
 					new ResourceStateMachine(new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/")), 
 					null);
@@ -140,6 +141,12 @@ public class TestAtomXMLProvider {
 		}
 	};
 
+	private MetadataOData4j createMockMetadataOData4j(EdmDataServices mockEDS) {
+		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
+		when(mockMetadataOData4j.getMetadata()).thenReturn(mockEDS);
+		return mockMetadataOData4j;
+	}
+	
 	@Test
 	public void testWriteEntityResourceOEntity_XML() throws Exception {
 		EdmEntitySet ees = createMockEdmEntitySet();
@@ -152,7 +159,7 @@ public class TestAtomXMLProvider {
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(er) {};
 
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(mockEDS));
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -183,7 +190,7 @@ public class TestAtomXMLProvider {
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(er) {};
 
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(mockEDS));
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -408,7 +415,7 @@ public class TestAtomXMLProvider {
 	public void testUnhandledRawType() throws IOException {
 		EdmDataServices metadata = mock(EdmDataServices.class);
 
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, mock(Metadata.class), mockResourceStateMachine(), new OEntityTransformer());
+		AtomXMLProvider ap = new AtomXMLProvider(createMockMetadataOData4j(metadata), mock(Metadata.class), mockResourceStateMachine(), new OEntityTransformer());
         // Wrap an unsupported resource into a JAX-RS GenericEntity instance
 		GenericEntity<MetaDataResource<String>> ge = new GenericEntity<MetaDataResource<String>>(new MetaDataResource<String>("")) {};
 		// will throw exception if we check the class properly
@@ -451,7 +458,7 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(mockEDS), mockMetadata);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest/");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -485,7 +492,7 @@ public class TestAtomXMLProvider {
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(er) {};
 
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(mockEDS), mockMetadata);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest/");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -526,7 +533,7 @@ public class TestAtomXMLProvider {
 		GenericEntity<EntityResource<Flight>> ge = new GenericEntity<EntityResource<Flight>>(er) {};
 
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(mockEDS), mockMetadata);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest/");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -561,7 +568,9 @@ public class TestAtomXMLProvider {
 				createMockResourceState("fundstransfer", "FundsTransfer", false));
 
 		
-		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, metadata, mockResourceStateMachine(), mock(Transformer.class));
+		AtomXMLProvider provider = 
+				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), 
+						metadata, mockResourceStateMachine(), mock(Transformer.class));
 		Collection<Link> processedLinks = null;
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link.Builder()
@@ -597,7 +606,9 @@ public class TestAtomXMLProvider {
 		uriLinkageMap.put("DebitAcctNo", "{Acc}");
 		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Debit funds transfers").build());
 		
-		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mockResourceStateMachine(), mock(Transformer.class));
+		EdmDataServices mockEDS = createMockEdmDataServices("FundsTransfers");
+		
+		AtomXMLProvider provider = new AtomXMLProvider(createMockMetadataOData4j(mockEDS), createMockMetadata("MyModel"), mockResourceStateMachine(), mock(Transformer.class));
 		Transition t = account.getTransition(fundsTransfers);
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
@@ -627,7 +638,9 @@ public class TestAtomXMLProvider {
 		uriLinkageMap.put("CreditAcctNo", "{Acc}");
 		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(fundsTransfers).uriParameters(uriLinkageMap).label("Credit funds transfers").build());
 		
-		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), mockResourceStateMachine(), mock(Transformer.class));
+		AtomXMLProvider provider = 
+				new AtomXMLProvider(createMockMetadataOData4j(createMockEdmDataServices("FundsTransfers")), 
+						createMockMetadata("MyModel"), mockResourceStateMachine(), mock(Transformer.class));
 		List<Transition> transitions = account.getTransitions(fundsTransfers);
 		assertEquals(2, transitions.size());
 
@@ -679,7 +692,9 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), mock(Metadata.class), rsm, null);
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(createMockEdmDataServices("FundsTransfers")), 
+						mock(Metadata.class), rsm, null);
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -724,7 +739,8 @@ public class TestAtomXMLProvider {
 	@Test
 	public void testCollectionToCollectionEntityWithCompanyBasePath() throws Exception {
 		// initialise the thread local request context with requestUri and baseUri
-        RequestContext ctx = new RequestContext("http://localhost:8080/responder/rest", "/MockCompany001/FundsTransfers", null);
+        RequestContext ctx = 
+        		new RequestContext("http://localhost:8080/responder/rest", "/MockCompany001/FundsTransfers", null);
         RequestContext.setRequestContext(ctx);
 
         //Create rsm
@@ -733,7 +749,8 @@ public class TestAtomXMLProvider {
         ResourceState fundsTransfersIAuth = rsm.getResourceStateByName("FundsTransfersIAuth");
 
 		//Create collection resource
-		CollectionResource<Entity> cr = new CollectionResource<Entity>("FundsTransfers", new ArrayList<EntityResource<Entity>>());
+		CollectionResource<Entity> cr = 
+				new CollectionResource<Entity>("FundsTransfers", new ArrayList<EntityResource<Entity>>());
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
@@ -742,7 +759,9 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(createMockEdmDataServices("FundsTransfers")),
+						createMockMetadata("MyModel"), rsm, mock(Transformer.class));
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -786,7 +805,9 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(createMockEdmDataServices("FundsTransfers"), createMockMetadata("MyModel"), rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(createMockEdmDataServices("FundsTransfers")),
+						createMockMetadata("MyModel"), rsm, mock(Transformer.class));
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -865,7 +886,8 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(edmDataServices, metadata, rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, mock(Transformer.class));
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -913,7 +935,8 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(edmDataServices, metadata, rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, mock(Transformer.class));
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -991,7 +1014,8 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(edmDataServices, metadata, rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, mock(Transformer.class));
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -1040,7 +1064,8 @@ public class TestAtomXMLProvider {
 		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(edmDataServices, metadata, rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, mock(Transformer.class));
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -1072,7 +1097,9 @@ public class TestAtomXMLProvider {
 				.build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		
-		AtomXMLProvider provider = new AtomXMLProvider(createMockEdmDataServices("Currencys"), createMockMetadata("MyModel"), rsm, mock(Transformer.class));
+		AtomXMLProvider provider = 
+				new AtomXMLProvider(createMockMetadataOData4j(createMockEdmDataServices("Currencys")),
+						createMockMetadata("MyModel"), rsm, mock(Transformer.class));
 		Transition t = account.getTransition(currency);
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(t, t.getTarget().getRel(), "/Currencys('USD')", HttpMethod.GET));
@@ -1117,7 +1144,9 @@ public class TestAtomXMLProvider {
 		links.add(new Link("title", "http://schemas.microsoft.com/ado/2007/08/dataservices/related/title", "Flight('USD')/child", "type", null));
 		accountEntityResource.setLinks(links);
 		
-		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), rsm, mock(Transformer.class));
+		AtomXMLProvider provider =
+				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices),
+						createMockMetadata("MyModel"), rsm, mock(Transformer.class));
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI("http://localhost:8080/responder/rest"));
 		when(uriInfo.getPath()).thenReturn("/mock");
@@ -1142,7 +1171,9 @@ public class TestAtomXMLProvider {
 		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
 		when(edmDataServices.getEdmEntitySet(any(EdmEntityType.class))).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));
 		
-		AtomXMLProvider provider = new AtomXMLProvider(edmDataServices, createMockMetadata("MyModel"), new ResourceStateMachine(serviceRoot), mock(Transformer.class));
+		AtomXMLProvider provider = 
+				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), 
+						createMockMetadata("MyModel"), new ResourceStateMachine(serviceRoot), mock(Transformer.class));
 		Transition t = fundsTransfer.getTransition(fundsTransfersIAuth);
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfersIAuth()", HttpMethod.GET));
@@ -1187,7 +1218,7 @@ public class TestAtomXMLProvider {
 		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getModelName()).thenReturn("MyModel");
-		MockAtomXMLProvider p = new MockAtomXMLProvider(edmDataServices, metadata);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata);
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getBaseUri()).thenReturn(new URI(ctx.getBasePath()));
 		when(uriInfo.getPath()).thenReturn(ctx.getRequestUri());
@@ -1222,7 +1253,7 @@ public class TestAtomXMLProvider {
 		
 		
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(mockEDS), mockMetadata);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest/");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -1253,7 +1284,7 @@ public class TestAtomXMLProvider {
 		GenericEntity<EntityResource<GenericError>> ge = new GenericEntity<EntityResource<GenericError>>(er) {};
 		
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(mockEDS), mockMetadata);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest/");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -1282,7 +1313,7 @@ public class TestAtomXMLProvider {
 		
 		
 		//Create provider
-		MockAtomXMLProvider p = new MockAtomXMLProvider(mockEDS, mockMetadata);
+		MockAtomXMLProvider p = new MockAtomXMLProvider(createMockMetadataOData4j(mockEDS), mockMetadata);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest/");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -1407,7 +1438,9 @@ public class TestAtomXMLProvider {
         ResourceState flights = rsm.getResourceStateByName("Flights");
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(mock(EdmDataServices.class)), 
+						mock(Metadata.class), rsm, mock(Transformer.class));
 		p.setUriInfo(mock(UriInfo.class));
 		p.setRequestContext(mock(Request.class));
 		ResourceState result = p.getCurrentState(serviceDocument, "/Flights");
@@ -1422,7 +1455,9 @@ public class TestAtomXMLProvider {
         ResourceState flights = rsm.getResourceStateByName("Flights");
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(mock(EdmDataServices.class)), 
+						mock(Metadata.class), rsm, mock(Transformer.class));
 		p.setUriInfo(mock(UriInfo.class));
 		p.setRequestContext(mock(Request.class));
 		ResourceState result = p.getCurrentState(serviceDocument, "/Flights");
@@ -1437,7 +1472,9 @@ public class TestAtomXMLProvider {
         ResourceState flights = rsm.getResourceStateByName("Flights");
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), rsm, mock(Transformer.class));
+		AtomXMLProvider p = 
+				new AtomXMLProvider(createMockMetadataOData4j(mock(EdmDataServices.class)), 
+						mock(Metadata.class), rsm, mock(Transformer.class));
 		p.setUriInfo(mock(UriInfo.class));
 		p.setRequestContext(mock(Request.class));
 		ResourceState result = p.getCurrentState(serviceDocument, "Flights");
@@ -1455,7 +1492,9 @@ public class TestAtomXMLProvider {
 		ResourceStateMachine rsm = new ResourceStateMachine(serviceDocument, mock(Transformer.class));
 
 		//Create provider
-		AtomXMLProvider p = new AtomXMLProvider(mock(EdmDataServices.class), mock(Metadata.class), rsm, mock(Transformer.class));
+		AtomXMLProvider 
+		p = new AtomXMLProvider(createMockMetadataOData4j(mock(EdmDataServices.class)),
+				mock(Metadata.class), rsm, mock(Transformer.class));
 		p.setUriInfo(mock(UriInfo.class));
 		p.setRequestContext(mock(Request.class));
 		ResourceState result = p.getCurrentState(serviceDocument, "Flights");
