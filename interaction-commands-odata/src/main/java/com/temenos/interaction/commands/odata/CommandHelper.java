@@ -210,9 +210,12 @@ public class CommandHelper {
 		}
 		
 		//Find entity set
-		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((EdmEntityType) entityType);
-		if (entitySet == null) {
-			throw new Exception("Entity set does not exist");
+		EdmEntitySet entitySet = null;
+		try {
+			entitySet = edmDataServices.getEdmEntitySet((EdmEntityType) entityType);
+		} catch (Exception e) {
+			// don't throw any exception here if any
+			logger.error("Entity set does not exist for " + entityName);
 		}
 		return entitySet;
 	}
