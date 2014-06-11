@@ -22,6 +22,8 @@ package com.temenos.interaction.sdk.plugin;
  */
 
 
+import java.io.File;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -30,8 +32,7 @@ import com.google.inject.Injector;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetup;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSwagger;
 import com.temenos.interaction.rimdsl.generator.launcher.Generator;
-
-import java.io.File;
+import com.temenos.interaction.rimdsl.generator.launcher.ValidatorEventListener;
 
 /**
  * Goal which generates Java classes from a RIM.
@@ -126,6 +127,19 @@ public class RIMGeneratorMojo extends AbstractMojo {
     		}
     		Injector injector = new RIMDslStandaloneSetup().createInjectorAndDoEMFRegistration();
     		Generator generator = injector.getInstance(Generator.class);
+    		
+    		ValidatorEventListener listener = new ValidatorEventListener() {
+				
+				@Override
+				public void notify(String msg) {
+					// Log the validator messages
+					getLog().info(msg);
+					
+				}
+			};
+			
+			generator.setValidatorEventListener(listener);
+    		
     		if (rimSourceDir != null) {
         		ok = generator.runGeneratorDir(rimSourceDir.toString(), targetDirectory.toString());
     		} else {
