@@ -71,10 +71,7 @@
   <field name="name" type="text_general" indexed="true" stored="true"/>
   <field name="address" type="text_general" indexed="true" stored="true"/>
   <field name="postcode" type="text_general" indexed="true" stored="true"/>
-  <field name="country" type="text_general" indexed="true" stored="true"/>
-  
-  <!-- CUSTOMER or ACCOUNT -->
-  <field name="table" type="string" indexed="true" stored="true"/>
+  <field name="table" type="text_general" indexed="true" stored="true"/>
    
   <!--
       A Party could be either a person or an organisation.  We expect primary_location to be a
@@ -106,7 +103,7 @@
  <copyField source="name" dest="text"/>
  <copyField source="address" dest="text"/>
  <copyField source="postcode" dest="text"/>
- <copyField source="country" dest="text"/>
+ <copyField source="table" dest="text"/>
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
  <defaultSearchField>text</defaultSearchField>
