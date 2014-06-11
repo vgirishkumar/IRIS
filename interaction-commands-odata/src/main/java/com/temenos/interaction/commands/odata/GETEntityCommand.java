@@ -40,12 +40,17 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class GETEntityCommand extends AbstractODataCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(GETEntityCommand.class);
 
 	public GETEntityCommand(ODataProducer producer) {
 		super(producer);
+	}
+	
+	public GETEntityCommand(MetadataOData4j metadataOData4j, ODataProducer producer) {
+		super(metadataOData4j, producer);
 	}
 	
 	protected ODataProducer getProducer() {
@@ -64,6 +69,9 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 		logger.debug("Getting entity for " + entityName);
 		try {
 			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, getEdmMetadata());
+			if(entitySet == null) {
+				entitySet = getEdmEntitySet(entityName);
+			}
 			String entitySetName = entitySet.getName();
 
 			//Create entity key (simple types only)

@@ -22,8 +22,11 @@ package com.temenos.interaction.odataext.entity;
  */
 
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -549,5 +552,18 @@ public class TestMetadataOData4j {
 		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
 		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
 		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+	}
+	
+	/**
+	 * test for getEdmEntitySet
+	 */
+	@Test
+	public void testGetEdmEntitySet() {
+		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
+		String validEntitySetName = "ValidEntitySet";
+		EdmEntitySet validEntitySet = mock(EdmEntitySet.class);
+		when(validEntitySet.getName()).thenReturn(validEntitySetName);
+		when(mockMetadataOData4j.getEdmEntitySet("ValidEntitySet")).thenReturn(validEntitySet);
+		assertEquals(mockMetadataOData4j.getEdmEntitySet(validEntitySetName).getName(), validEntitySet.getName());
 	}
 }
