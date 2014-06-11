@@ -188,12 +188,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 				OEntity tempEntity = entityResource.getEntity();
-				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + entityResource.getEntityName();
-				EdmEntitySet entitySet = getEdmEntitySet(fqName);
+				EdmEntitySet entitySet = getEdmEntitySet(entityResource.getEntityName());
 				List<OLink> olinks = formOLinks(entityResource);
 				//Write entry
-	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
-            	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
+			// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+			OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
@@ -219,8 +218,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
-				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();
-				EdmEntitySet entitySet = getEdmEntitySet(fqName);
+				EdmEntitySet entitySet = getEdmEntitySet(collectionResource.getEntityName());
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
@@ -490,12 +488,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EdmEntitySet targetEntitySet = getEdmDataService().getEdmEntitySet(targetEntityType);
 				if (targetEntitySet != null)
 					entitySetName = targetEntitySet.getName();
-			} else {
-				logger.warn("No EdmEntityType found for [" + fqTargetEntityName + "]");
 			}
-		} catch (NotFoundException e) {
-			logger.warn("Entity [" + fqTargetEntityName + "] is not an entity set.");
-		}
+		} catch (NotFoundException e) {}
 		if (entitySetName == null) {
 			try {
 				entitySetName = getEdmEntitySet(state.getEntityName()).getName();
@@ -655,11 +649,17 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	/*
 	 * get edmEntitySet
 	 */
-	private EdmEntitySet getEdmEntitySet(String entityName) {
+	public EdmEntitySet getEdmEntitySet(String entityName) {
 		EdmEntityType entityType = (EdmEntityType) getEdmDataService().findEdmEntityType(entityName);
-		EdmEntitySet entitySet = getEdmDataService().getEdmEntitySet(entityType);
-		if(entitySet == null)
+		EdmEntitySet entitySet = null;
+		try {
+			entitySet = getEdmDataService().getEdmEntitySet(entityType);
+		} catch (Exception e) {
+			//logger.error("Unable to find entity set for [" +entityName + "]");
+		}
+		if(entitySet == null) {
 			return metadataOData4j.getEdmEntitySet(entityName);
+		}
 		return entitySet;
 	}
 }

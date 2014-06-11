@@ -1170,10 +1170,10 @@ public class TestAtomXMLProvider {
 		//FundsTransfersIAuth is not an entity set
 		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
 		when(edmDataServices.getEdmEntitySet(any(EdmEntityType.class))).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));
-		
+		MetadataOData4j mockMetadataOData4j = createMockMetadataOData4j(edmDataServices);
+		when(mockMetadataOData4j.getEdmEntitySet(anyString())).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));;
 		AtomXMLProvider provider = 
-				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), 
-						createMockMetadata("MyModel"), new ResourceStateMachine(serviceRoot), mock(Transformer.class));
+				new AtomXMLProvider(mockMetadataOData4j, createMockMetadata("MyModel"), new ResourceStateMachine(serviceRoot), mock(Transformer.class));
 		Transition t = fundsTransfer.getTransition(fundsTransfersIAuth);
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link(t, t.getTarget().getRel(), "/FundsTransfersIAuth()", HttpMethod.GET));
