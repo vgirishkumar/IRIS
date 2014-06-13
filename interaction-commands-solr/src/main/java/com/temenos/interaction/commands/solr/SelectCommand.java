@@ -22,6 +22,8 @@ package com.temenos.interaction.commands.solr;
  */
 
 
+import java.util.List;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.solr.client.solrj.SolrQuery;
@@ -39,12 +41,27 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	private final static Logger logger = LoggerFactory.getLogger(SelectCommand.class);
 
 	@Autowired
-	private SolrServer solrServer;
+	private SolrServer solrCustomerServer;
+
+	@Autowired
+	private SolrServer solrAccountServer;
 
 	public SelectCommand() {}
 	
-	public SelectCommand(SolrServer solrServer) {
-		this.solrServer = solrServer;
+	private static final String SOLR_CORE = "core";
+	private static final String SOLR_QUERY = "q";
+	private static final String SOLR_CORE_CUSTOMERS = "customer_search";
+	private static final String SOLR_CORE_ACCOUNTS = "account_search";
+	
+	/**
+	 * Instantiates a new select command.
+	 *
+	 * @param solrCustomerServer the solr customer server
+	 * @param solrAccountServer the solr account server
+	 */
+	public SelectCommand(SolrServer solrCustomerServer, SolrServer solrAccountServer) {
+		this.solrCustomerServer = solrCustomerServer;
+		this.solrAccountServer = solrAccountServer;
 	}
 	
 	public Result execute(InteractionContext ctx) {
@@ -53,11 +70,41 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 		String entityName = ctx.getCurrentState().getEntityName();
 		
 		try {
-			String queryStr = queryParams.getFirst("q");
+			// Get Solr query param
+			List<String> queryList = queryParams.get(SOLR_QUERY);
+			if (queryList == null)
+			{
+				logger.error("Solr queries not defined!");
+				return Result.FAILURE;
+			}
+		
+			String queryStrx = queryParams.getFirst("q");
+			String queryStr = queryList.get(0);
 			SolrQuery query = new SolrQuery();
 			query.setQuery(queryStr);
 
-			QueryResponse rsp = solrServer.query(query);
+			// Get Solr core param
+			List<String> cores = queryParams.get(SOLR_CORE);
+			if (cores == null)
+			{
+				logger.error("Solr core not defined!");
+				return Result.FAILURE;
+			}
+			QueryResponse rsp = null;
+			if (cores.get(0).equals(SOLR_CORE_CUSTOMERS))
+			{
+				rsp = solrCustomerServer.query(query);
+			}
+			else if (cores.get(0).equals(SOLR_CORE_ACCOUNTS))
+			{
+				rsp = solrAccountServer.query(query);
+			}
+			else
+			{
+				logger.error("Solr core not defined!");
+				return Result.FAILURE;
+			}
+
 			ctx.setResource(buildCollectionResource(entityName, rsp.getResults()));
 			return Result.SUCCESS;
 		} catch (SolrServerException e) {
