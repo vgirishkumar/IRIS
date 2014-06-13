@@ -31,6 +31,7 @@
   <cores adminPath="/admin/cores" host="${host:}" hostPort="${jetty.port:}">
     <core name="core0" instanceDir="core0" />
     <core name="core1" instanceDir="core1" />
-    <core name="universalsearch" instanceDir="universalsearch" />
+    <core name="customer_search" instanceDir="customer_search" />
+    <core name="account_search" instanceDir="account_search" />
   </cores>
 </solr>
