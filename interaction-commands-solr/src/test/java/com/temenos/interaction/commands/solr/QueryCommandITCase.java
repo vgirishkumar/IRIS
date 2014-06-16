@@ -109,11 +109,11 @@ public class QueryCommandITCase {
 	 * @throws Exception the exception
 	 */
 	private void initCustomerTestData() throws Exception {
-		customerSolrServer.add(createCustomer("1", "JOHN1", "John Jones", "123 Somewhere", "W1 IWSH", "UK"), 0);
-		customerSolrServer.add(createCustomer("2", "JOHN1", "John Jillian", "123 Somewhere", "W1 IWSH", "UK"), 0);
-		customerSolrServer.add(createCustomer("3", "JOHN1", "John Jake", "123 Somewhere", "W1 IWSH", "UK"), 0);
-		customerSolrServer.add(createCustomer("4", "JOHN1", "John Jones", "123 Somewhere", "W1 IWSH", "UK"), 0);
-		customerSolrServer.add(createCustomer("5", "JOHN1", "John Joker", "123 Somewhere", "W1 IWSH", "UK"), 0);
+		customerSolrServer.add(createCustomer("1111", "JOHN1", "A Jones", "111 Somewhere", "AA IWSH", "UK"), 0);
+		customerSolrServer.add(createCustomer("2222", "JOHN2", "B Jillian", "222 Somewhere", "BB IWSH", "UK"), 0);
+		customerSolrServer.add(createCustomer("3333", "JOHN3", "C Jakes", "333 Somewhere", "CC IWSH", "UK"), 0);
+		customerSolrServer.add(createCustomer("4444", "JOHN4", "D Smith", "444 Somewhere", "DD IWSH", "FR"), 0);
+		customerSolrServer.add(createCustomer("5555", "JOHN5", "E Carter", "555 Somewhere", "EE IWSH", "DE"), 0);
 		customerSolrServer.commit(true, true);
 	}
 
@@ -123,11 +123,11 @@ public class QueryCommandITCase {
 	 * @throws Exception the exception
 	 */
 	private void initAccountTestData() throws Exception {
-		accountSolrServer.add(createAccount("1", "JOHN1", "John Jones"), 0);
-		accountSolrServer.add(createAccount("2", "JOHN1", "John Jillian"), 0);
-		accountSolrServer.add(createAccount("3", "JOHN1", "John Jake"), 0);
-		accountSolrServer.add(createAccount("4", "JOHN1", "John Jones"), 0);
-		accountSolrServer.add(createAccount("5", "JOHN1", "John Joker"), 0);
+		accountSolrServer.add(createAccount("1111", "JOHN1", "Fred Jones"), 0);
+		accountSolrServer.add(createAccount("2222", "JOHN2", "John Jillian"), 0);
+		accountSolrServer.add(createAccount("3333", "JOHN3", "Euan Jakes"), 0);
+		accountSolrServer.add(createAccount("4444", "JOHN4", "Jim Smith"), 0);
+		accountSolrServer.add(createAccount("5555", "JOHN4", "Dee Carter"), 0);
 		accountSolrServer.commit(true, true);
 	}
 
@@ -176,9 +176,11 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testCustomerSelect() {
-		SelectCommand command = new SelectCommand(customerSolrServer);
+		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add("q", "John*");
+		queryParams.add("q", "Jillian");
+
+	
 		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
@@ -195,7 +197,7 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testAccountSelect() {
-		SelectCommand command = new SelectCommand(accountSolrServer);
+		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "John*");
 		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
