@@ -72,21 +72,26 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 		SolrQuery query = new SolrQuery();
 		String entityName = ctx.getCurrentState().getEntityName();
 		if (entityName != null){
-		       Properties properties = ctx.getCurrentState().getViewAction().getProperties();
-		        if (properties != null)
-		        {
-		        	String core = properties.getProperty(SOLR_CORE);
-		        	// Check for Customers Solr core in RIM
-		        	if (core.equalsIgnoreCase(SOLR_CORE_CUSTOMERS) ) {
-		        		solrServer = solrCustomerServer;
-		        		query.setQuery(getCustomerQuery(queryStr));
-		        	}
-		        	// Check for Account Solr core in RIM
-		        	else if (core.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
-		        		solrServer = solrAccountServer;
-		        		query.setQuery(getAccountQuery(queryStr));
-		        	}
+	       Properties properties = ctx.getCurrentState().getViewAction().getProperties();
+	        if (properties != null)
+	        {
+	        	String core = properties.getProperty(SOLR_CORE);
+	        	// Check for Customers Solr core in RIM
+	        	if (core.equalsIgnoreCase(SOLR_CORE_CUSTOMERS) ) {
+	        		solrServer = solrCustomerServer;
+	        		query.setQuery(getCustomerQuery(queryStr));
+	        	}
+	        	// Check for Account Solr core in RIM
+	        	else if (core.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
+	        		solrServer = solrAccountServer;
+	        		query.setQuery(getAccountQuery(queryStr));
+	        	}
+	        	else
+	        	{
+					logger.error("Solr core not defined!");
+					return Result.FAILURE;	        	
 				}
+			}
 		}
         else
         {
