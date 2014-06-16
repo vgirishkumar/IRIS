@@ -136,18 +136,14 @@ public class MetadataOData4j {
 		if(null == edmDataServices) {
 			getMetadata();
 		}
-		EdmEntitySet edmEntitySet = null;
 		for(String entityName : edmEntitySetMap.keySet()) {
-			edmEntitySet = edmEntitySetMap.get(entityName);
+			EdmEntitySet edmEntitySet = edmEntitySetMap.get(entityName);
 			if(edmEntitySet.getName().equals(entitySetName)) {
 				return edmEntitySet;
 			}
 		}
 		
-		if (null == edmEntitySet ) {
-			throw new NotFoundException("Entity Set [" + entitySetName + "] not found");
-		}
-		return edmEntitySet;
+		throw new NotFoundException("Entity Set [" + entitySetName + "] not found");
 	}
 	
 	/**
