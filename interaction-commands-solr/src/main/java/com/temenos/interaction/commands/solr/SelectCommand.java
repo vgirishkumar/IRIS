@@ -75,13 +75,14 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 		       Properties properties = ctx.getCurrentState().getViewAction().getProperties();
 		        if (properties != null)
 		        {
+		        	String core = properties.getProperty(SOLR_CORE);
 		        	// Check for Customers Solr core in RIM
-		        	if (properties.getProperty(SOLR_CORE_CUSTOMERS) != null) {
+		        	if (core.equalsIgnoreCase(SOLR_CORE_CUSTOMERS) ) {
 		        		solrServer = solrCustomerServer;
 		        		query.setQuery(getCustomerQuery(queryStr));
 		        	}
 		        	// Check for Account Solr core in RIM
-		        	else if (properties.getProperty(SOLR_CORE_ACCOUNTS) != null) {
+		        	else if (core.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
 		        		solrServer = solrAccountServer;
 		        		query.setQuery(getAccountQuery(queryStr));
 		        	}
