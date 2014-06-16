@@ -175,10 +175,10 @@ public class QueryCommandITCase {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testCustomerSelect() {
+	public void testCustomerSelectByName() {
 		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add("q", "Jillian");
+		queryParams.add("q", "A Jones");
 
 	
 		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
@@ -188,6 +188,70 @@ public class QueryCommandITCase {
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(5, cr.getEntities().size());
+
+	}
+
+	/**
+	 * Test customer select.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testCustomerSelectByMnenomic() {
+		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("q", "JOHN4");
+
+	
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		assertEquals(1, cr.getEntities().size());
+
+	}
+
+	/**
+	 * Test customer select.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testCustomerSelectById() {
+		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("q", "4444");
+
+	
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		assertEquals(1, cr.getEntities().size());
+
+	}
+
+
+	/**
+	 * Test customer select.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testCustomerSelectByAddress() {
+		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("q", "444 Somewhere");
+
+	
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		assertEquals(1, cr.getEntities().size());
 
 	}
 
