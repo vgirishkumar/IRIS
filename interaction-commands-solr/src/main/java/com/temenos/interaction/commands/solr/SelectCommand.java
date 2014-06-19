@@ -22,6 +22,8 @@ package com.temenos.interaction.commands.solr;
  */
 
 
+import java.util.Properties;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.solr.client.solrj.SolrQuery;
@@ -39,25 +41,70 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	private final static Logger logger = LoggerFactory.getLogger(SelectCommand.class);
 
 	@Autowired
-	private SolrServer solrServer;
+	private SolrServer solrCustomerServer;
+
+	@Autowired
+	private SolrServer solrAccountServer;
 
 	public SelectCommand() {}
 	
-	public SelectCommand(SolrServer solrServer) {
-		this.solrServer = solrServer;
+	private static final String SOLR_CORE = "core";
+	private static final String SOLR_QUERY = "q";
+	private static final String SOLR_CORE_CUSTOMERS = "customer_search";
+	private static final String SOLR_CORE_ACCOUNTS = "account_search";
+	
+	/**
+	 * Instantiates a new select command.
+	 *
+	 * @param solrCustomerServer the solr customer server
+	 * @param solrAccountServer the solr account server
+	 */
+	public SelectCommand(SolrServer solrCustomerServer, SolrServer solrAccountServer) {
+		this.solrCustomerServer = solrCustomerServer;
+		this.solrAccountServer = solrAccountServer;
 	}
 	
 	public Result execute(InteractionContext ctx) {
 
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+		String queryStr = queryParams.getFirst("q");
+		SolrServer solrServer = null;
+		SolrQuery query = new SolrQuery();
 		String entityName = ctx.getCurrentState().getEntityName();
-		
-		try {
-			String queryStr = queryParams.getFirst("q");
-			SolrQuery query = new SolrQuery();
-			query.setQuery(queryStr);
-
+		if (entityName != null){
+	       Properties properties = ctx.getCurrentState().getViewAction().getProperties();
+	        if (properties != null)
+	        {
+	        	String core = properties.getProperty(SOLR_CORE);
+	        	// Check for Customers Solr core in RIM
+	        	if (core.equalsIgnoreCase(SOLR_CORE_CUSTOMERS) ) {
+	        		solrServer = solrCustomerServer;
+	        		query.setQuery(getCustomerQuery(queryStr));
+	        	}
+	        	// Check for Account Solr core in RIM
+	        	else if (core.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
+	        		solrServer = solrAccountServer;
+	        		query.setQuery(getAccountQuery(queryStr));
+	        	}
+	        	else
+	        	{
+					logger.error("Solr core not defined!");
+					return Result.FAILURE;	        	
+				}
+			}
+		}
+        else
+        {
+        	// Default Solr core
+    		solrServer = solrCustomerServer;
+    		query.setQuery(getCustomerQuery(queryStr));
+        }
+	
+        try {
 			QueryResponse rsp = solrServer.query(query);
+			//SolrDocumentList list = rsp.getResults();
+			//System.out.println("Found : " +rsp.getResults().size() );
+			 
 			ctx.setResource(buildCollectionResource(entityName, rsp.getResults()));
 			return Result.SUCCESS;
 		} catch (SolrServerException e) {
@@ -67,4 +114,24 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 		return Result.FAILURE;
 	}
 
+	private String getCustomerQuery(String query)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("id:\"" + query + "\"");
+		sb.append(" name:\"*" + query + "*\"");
+		sb.append(" mnemonic:\"*" + query + "*\"");
+		sb.append(" address:\"*" + query + "*\"");
+		sb.append(" postcode:\"*" + query + "*\"");
+		return sb.toString();
+		
+	}	
+	
+	private String getAccountQuery(String query)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("id:\"" + query + "\"");
+		sb.append(" name:\"*" + query + "*\"");
+		sb.append(" mnemonic:\"*" + query + "*\"");
+		return sb.toString();
+	}
 }
