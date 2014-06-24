@@ -294,6 +294,12 @@
         <scope>runtime</scope>
     </dependency>
 
+	<dependency>
+		<groupId>javax.servlet</groupId>
+		<artifactId>servlet-api</artifactId>
+		<scope>provided</scope>
+	</dependency>
+
     <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
     <dependency>
       <groupId>org.eclipse.persistence</groupId>

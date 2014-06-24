@@ -20,10 +20,10 @@
   #L%
   -->
 
-<web-app id="WebApp_ID" version="2.4"
-	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
-	<display-name>Interaction Responder SDK - interaction-mashup-streaming</display-name>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+    id="interaction-hateoas-restbucks" version="2.5">
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
@@ -31,6 +31,8 @@
 			classpath:META-INF/spring-beans.xml
 		</param-value>
 	</context-param>
+
+	<display-name>Interaction Responder SDK - interaction-mashup-streaming</display-name>
 	
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
