@@ -23,7 +23,7 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-    id="interaction-hateoas-restbucks" version="2.5">
+    id="interaction-hateoas-simple" version="2.5">
    	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
