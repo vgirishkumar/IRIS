@@ -43,7 +43,7 @@ public class TestCommandHelper {
 
 	@Test
 	public void testCreateEntityResource() {
-		EntityResource<GenericError> er = CommandHelper.createEntityResource(new GenericError("123", "My error message"));
+		EntityResource<GenericError> er = CommandHelper.createEntityResource(new GenericError("123", "My error message"), GenericError.class);
 
 		GenericEntity<EntityResource<GenericError>> ge = er.getGenericEntity();
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));
@@ -52,7 +52,7 @@ public class TestCommandHelper {
 	
 	@Test
 	public void testCreateEntityResourceWithEntityName() {
-		EntityResource<Entity> er = CommandHelper.createEntityResource("Customer", createMockEntity("Customer"));
+		EntityResource<Entity> er = CommandHelper.createEntityResource("Customer", createMockEntity("Customer"), Entity.class);
 
 		GenericEntity<EntityResource<Entity>> ge = er.getGenericEntity();
 		assertTrue(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class));

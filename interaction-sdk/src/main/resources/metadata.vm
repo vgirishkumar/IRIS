@@ -3,21 +3,37 @@
           xmlns="http://iris.temenos.com/metadata.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
-    <Entity Name="ServiceDocument"></Entity>
-    <Entity Name="Metadata"></Entity>
+${formatter.indent()}${formatter.currentIndent()}<Entity Name="ServiceDocument"></Entity>
+${formatter.currentIndent()}<Entity Name="Metadata"></Entity>
 #foreach ( $entity in $entityModel.getEntities() )
-	<Entity Name="${entity.getName()}">
+${formatter.currentIndent()}<Entity Name="${entity.getName()}">
 #foreach ( $property in $entity.getProperties() )
-#if ($property.getVocabularyTerms().size() > 0) 
-		<Property Name="${property.getName()}">
-#foreach ( $term in $property.getVocabularyTerms() )
-			<Term Name="${term.getName()}">${term.getValue()}</Term>
+#buildProperty($property)
 #end
-		</Property>
+${formatter.outdent()}${formatter.currentIndent()}</Entity>
+#end
+${formatter.outdent()}${formatter.currentIndent()}</Metadata>
+#macro( buildProperty $property )
+${formatter.indent()}#if ($property.hasChildren())
+${formatter.currentIndent()}<Property Name="${property.getName()}">
+#if ($property.getVocabularyTerms().size() > 0)
+#foreach ($term in $property.getVocabularyTerms())
+${formatter.indent()}${formatter.currentIndent()}<Term Name="${term.getName()}">${term.getValue()}</Term>${formatter.outdent()}
+#end
+#end
+#foreach ($childProperty in $property.getChildProperties())
+#buildProperty($childProperty)
+#end
+${formatter.currentIndent()}</Property>
 #else
-		<Property Name="${property.getName()}" />
+#if ($property.getVocabularyTerms().size() > 0)
+${formatter.currentIndent()}<Property Name="${property.getName()}">
+#foreach ( $term in $property.getVocabularyTerms() )
+${formatter.indent()}${formatter.currentIndent()}<Term Name="${term.getName()}">${term.getValue()}</Term>${formatter.outdent()}
+#end
+${formatter.currentIndent()}</Property>
+#else
+${formatter.currentIndent()}<Property Name="${property.getName()}" />
 #end
 #end
-	</Entity>
-#end
-</Metadata>
+${formatter.outdent()}#end

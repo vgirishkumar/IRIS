@@ -47,6 +47,7 @@ import com.temenos.interaction.sdk.interaction.transition.IMTransition;
  */
 public class IMResourceStateMachine {
 
+	private String rimName;
 	private String entityName;											//Entity name
 	private IMState collectionState;							//Collection state
 	private IMState entityState;								//Entity state
@@ -58,12 +59,16 @@ public class IMResourceStateMachine {
 	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String mappedEntityProperty, String pathParametersTemplate) {
 		this(entityName, collectionStateName, entityStateName, HttpMethod.GET, mappedEntityProperty, pathParametersTemplate);
 	}
-	
+
 	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String methodGetEntity, String mappedEntityProperty, String pathParametersTemplate) {
+		this(entityName, collectionStateName, entityStateName, methodGetEntity, mappedEntityProperty, pathParametersTemplate, null);
+	}
+	
+	public IMResourceStateMachine(String entityName, String collectionStateName, String entityStateName, String methodGetEntity, String mappedEntityProperty, String pathParametersTemplate, String collectionRels) {
 		this.entityName = entityName;
 		this.entityState = new IMEntityState(entityStateName, "/" + collectionStateName + "(" + pathParametersTemplate + ")", Commands.GET_ENTITY);
 		resourceStates.put(entityStateName, entityState);
-		this.collectionState = new IMCollectionState(collectionStateName, "/" + collectionStateName + "()", Commands.GET_ENTITIES, (IMEntityState) entityState);
+		this.collectionState = new IMCollectionState(collectionStateName, "/" + collectionStateName + "()", Commands.GET_ENTITIES, collectionRels, (IMEntityState) entityState);
 		resourceStates.put(collectionStateName, collectionState);
 		this.mappedEntityProperty = mappedEntityProperty;
 		this.pathParametersTemplate = pathParametersTemplate;
@@ -72,6 +77,14 @@ public class IMResourceStateMachine {
 		addStateTransition(collectionState.getName(), entityState.getName(), methodGetEntity, null, null, null, null, null);
 	}
 	
+	public String getRimName() {
+		return rimName;
+	}
+
+	public void setRimName(String rimName) {
+		this.rimName = rimName;
+	}
+
 	public String getEntityName() {
 		return entityName;
 	}
@@ -171,6 +184,15 @@ public class IMResourceStateMachine {
 	 * @param title Label representing this resource
 	 */
 	public void addCollectionAndEntityState(String stateId, String title, String collectionMethod, String collectionView, String entityMethod, String entityView) {
+		addCollectionAndEntityState(stateId, title, collectionMethod, collectionView, entityMethod, entityView, null);
+	}
+	
+	/**
+	 * Add a new resource state and it's associated collection state. 
+	 * @param stateId State identifier
+	 * @param title Label representing this resource
+	 */
+	public void addCollectionAndEntityState(String stateId, String title, String collectionMethod, String collectionView, String entityMethod, String entityView, String collectionRels) {
 		if(collectionView == null) {
 			collectionView = Commands.GET_ENTITIES;
 		}
@@ -179,7 +201,7 @@ public class IMResourceStateMachine {
 		}
 		
 		//Add collection state
-		addStateTransition(collectionState.getName(), collectionState.getName() + "_" + stateId, collectionMethod, stateId, title, collectionView, null, null);
+		addStateTransition(collectionState.getName(), collectionState.getName() + "_" + stateId, collectionMethod, stateId, title, collectionView, null, collectionRels);
 
 		//Add entity state
 		addStateTransition(collectionState.getName() + "_" + stateId, entityState.getName() + "_" + stateId, entityMethod, stateId, null, entityView, null, null);
@@ -298,7 +320,7 @@ public class IMResourceStateMachine {
 				if(!resourceStates.containsKey(entityStateName)) {
 					resourceStates.put(entityStateName, new IMEntityState(entityStateName, stateId != null ? getPathWithStateId(entityState.getPath(), stateId) : entityState.getPath() + "/" + method.toLowerCase(), view));
 				}
-				targetState = new IMCollectionState(targetStateName, path, view, (IMEntityState) getResourceState(entityStateName));				
+				targetState = new IMCollectionState(targetStateName, path, view, relations, (IMEntityState) getResourceState(entityStateName));				
 			}
 			else if(action != null){
 				targetState = new IMEntityState(targetStateName, path, relations, action);				

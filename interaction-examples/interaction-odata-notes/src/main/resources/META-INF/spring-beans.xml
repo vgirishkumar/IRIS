@@ -46,16 +46,27 @@
 	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
         <constructor-arg ref="stateMachine" />
 	</bean>
+	<!-- 
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
+	 -->
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
-
+	
+	<!-- Odata4j Metadata -->
+	<bean id="metadataOData4j" class="com.temenos.interaction.odataext.entity.MetadataOData4j">
+        <constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="stateMachine" />
+    </bean>
+    
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 
+	<!-- Import Portable Resource Definitions (PRD) -->
+	<import resource="classpath:IRIS-*-PRD.xml" />
+	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
     -->
-	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
+	<bean id="registrar" class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
 				<ref local="serviceDocumentProvider" />
@@ -72,23 +83,37 @@
         </property>
 	</bean>
 
+	<bean id="entityTransformer" class="com.temenos.interaction.core.hypermedia.StrategyBasedTransformer">
+		<constructor-arg>
+			<list>
+				<bean class="com.temenos.interaction.commands.odata.OEntityTransformer" />
+				<bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" />
+			</list>
+		</constructor-arg>
+	</bean>
+
 	<bean id="atomProvider" class="com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider">
-    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+    	<constructor-arg name="metadataOData4j" ref="metadataOData4j" />
 		<constructor-arg name="metadata" ref="edmMetadata" />
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
-    	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
+		<constructor-arg ref="entityTransformer" />
 	</bean>
 	<bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
-	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />
+	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider">
+        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
+	</bean>
  	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
     	<constructor-arg ref="edmMetadata" />
 	</bean>
  
     <!-- Behaviour -->
+    
+    <!-- 
     <bean id="behaviour" class="com.temenos.interaction.example.odata.notes.Behaviour" />
-    <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
+    <bean id="initialState" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
+     -->
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-        <constructor-arg name="initialState" ref="interaction" />
+        <constructor-arg name="initialState" ref="initialState" />
     	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
     </bean>
 
@@ -127,11 +152,11 @@
     <!-- Commands -->
 	<bean id="GETServiceDocument" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="ServiceDocument" />
-		<constructor-arg ref="edmDataServices" />
+		<constructor-arg ref="metadataOData4j" />
 	</bean>
 	<bean id="GETMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="Metadata" />
-		<constructor-arg ref="edmDataServices" />
+		<constructor-arg ref="metadataOData4j" />
 	</bean>
 	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />

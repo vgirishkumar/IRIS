@@ -49,6 +49,8 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
+import com.temenos.interaction.core.hypermedia.ResourceState;
+
 /**
  * Slightly modified version of @link{org.odata4j.format.xml.AtomEntryFormatWriter} that 
  * is more aligned with JAX-RS.
@@ -57,7 +59,11 @@ import org.odata4j.stax2.XMLWriter2;
  */
 public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWriter<EntityResponse> {
 
-  protected String baseUri;
+	private ResourceState serviceDocument;
+	
+	public AtomEntryFormatWriter(ResourceState serviceDocument) {
+		this.serviceDocument = serviceDocument;
+	}
 
   public void writeRequestEntry(Writer w, Entry entry) {
 
@@ -84,7 +90,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
   }
 
   public void write(UriInfo uriInfo, Writer w, EntityResponse target, EdmEntitySet entitySet, List<OLink> olinks) {
-    String baseUri = uriInfo.getBaseUri().toString();
+	String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 
     DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
     String updated = InternalUtil.toString(utc);
@@ -123,7 +129,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 		    	  relid = relid.substring(0, relid.length()-2) + ")";
 		      }
 	      }
-	      absid = baseUri + relid;
+	      absid = (!baseUri.endsWith("/") ? baseUri + "/" : baseUri) + relid;
 	      writeElement(writer, "id", absid);
 	    }
 
@@ -147,7 +153,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 
 	    if (entityLinks != null) {
 	      if (isResponse) {
-	        // the producer has populated the link collection, we just what he gave us.
+	        // the producer has populated the link collection, we just write what he gave us.
 	        for (OLink link : entityLinks) {
 	          String type = (link.isCollection())
 	              ? atom_feed_content_type
@@ -156,7 +162,10 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	          if (link.isInline()) {
 	            writer.startElement("link");
 	            writer.writeAttribute("rel", link.getRelation());
-	            writer.writeAttribute("type", type);
+	            if (!"self".equals(link.getRelation()) &&
+	            		!"edit".equals(link.getRelation())) {
+		            writer.writeAttribute("type", type);
+	            }
 	            writer.writeAttribute("title", link.getTitle());
 	            writer.writeAttribute("href", href);
 	            // write the inlined entities inside the link element
@@ -165,11 +174,19 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	            writer.endElement("link");
 	          } else {
 	            // deferred link.
-	            writeElement(writer, "link", null,
-	                "rel", link.getRelation(),
-	                "type", type,
-	                "title", link.getTitle(),
-	                "href", href);
+	            if (!"self".equals(link.getRelation()) &&
+	            		!"edit".equals(link.getRelation())) {
+		            writeElement(writer, "link", null,
+			                "rel", link.getRelation(),
+			                "type", type,
+			                "title", link.getTitle(),
+			                "href", href);
+	            } else {
+		            writeElement(writer, "link", null,
+			                "rel", link.getRelation(),
+			                "title", link.getTitle(),
+			                "href", href);
+	            }
 	          }
 	        }
 	      } else {

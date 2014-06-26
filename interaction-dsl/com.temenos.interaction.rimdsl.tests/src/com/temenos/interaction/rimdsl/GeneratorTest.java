@@ -22,7 +22,9 @@ package com.temenos.interaction.rimdsl;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.IGenerator;
@@ -360,26 +362,94 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		
 		final String NEW_STATEMENT = "conditionalLinkExpressions = new ArrayList<Expression>();";
-		final String ADD_TRANSITION = "sA.addTransition(\"GET\", sB, uriLinkageProperties, 0, conditionalLinkExpressions, \"B\")";
+		final String ADD_TRANSITION = ".method(\"GET\").target(sB).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label(\"B\")";
 		
 		int indexOfNewStatement = output.indexOf(NEW_STATEMENT);
 		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(\"B\", ResourceGETExpression.Function.OK))"));
+		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.B\"), ResourceGETExpression.Function.OK))"));
 		int indexOfAddTransition = output.indexOf(ADD_TRANSITION);
 		assertTrue(indexOfAddTransition > 0);
 
 		indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
 		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(\"B\", ResourceGETExpression.Function.NOT_FOUND))"));
+		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.B\"), ResourceGETExpression.Function.NOT_FOUND))"));
 		indexOfAddTransition = output.indexOf(ADD_TRANSITION, indexOfAddTransition);
 		assertTrue(indexOfAddTransition > 0);
 		
 		indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
 		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(\"C\", ResourceGETExpression.Function.OK))"));
-		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(\"D\", ResourceGETExpression.Function.NOT_FOUND))"));
+		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.C\"), ResourceGETExpression.Function.OK))"));
+		assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.D\"), ResourceGETExpression.Function.NOT_FOUND))"));
 		indexOfAddTransition = output.indexOf(ADD_TRANSITION, indexOfAddTransition);
 		assertTrue(indexOfAddTransition > 0);
+	}
+
+	private final static String TRANSITION_WITH_MISSING_TARGET_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
+			
+			"	command GetEntities" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	GET -> B" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"}" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateTransitionsWithMissingTarget() throws Exception {
+		DomainModel domainModel = parseHelper.parse(TRANSITION_WITH_MISSING_TARGET_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		
+		// should not be adding the transition to a broken / missing state
+		assertFalse(output.contains("sA.addTransition(new Transition.Builder()"));
+		assertFalse(output.contains("factory.getResourceState(\"\");"));
+	}
+
+	private final static String TRANSITION_WITH_STRING_TARGET_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
+			
+			"	command GetEntities" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	GET -> \"B\"" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"}" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateTransitionsWithStringTarget() throws Exception {
+		DomainModel domainModel = parseHelper.parse(TRANSITION_WITH_STRING_TARGET_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		
+		// should find the transition to state
+		assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
+		assertTrue(output.contains("factory.getResourceState(\"B\");"));
 	}
 
 	private final static String AUTO_TRANSITION_WITH_URI_LINKAGE_RIM = "" +
@@ -425,9 +495,101 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		
 		assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
-		assertTrue(output.contains("screate_pseudo_state.addTransition(screated, uriLinkageProperties, conditionalLinkExpressions);"));
+		assertTrue(output.contains("screate_pseudo_state.addTransition(new Transition.Builder()"));
+		assertTrue(output.contains("Transition.AUTO"));
+		assertTrue(output.contains(".target(screated)"));
 	}
 
+	private final static String REDIRECT_TRANSITION_WITH_URI_LINKAGE_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
+			
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+			"	command DeleteEntity" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	DELETE -> delete_pseudo_state" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"resource delete_pseudo_state {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	actions [ DeleteEntity ]" + LINE_SEP +
+			"   GET ->> deleted { parameters [ id=\"{MyId}\" ] }" + LINE_SEP +
+			"}" + LINE_SEP +
+			"resource deleted {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateRedirectTransitionsWithUriLinkage() throws Exception {
+		DomainModel domainModel = parseHelper.parse(REDIRECT_TRANSITION_WITH_URI_LINKAGE_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/delete_pseudo_stateResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		
+		assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
+		assertTrue(output.contains("sdelete_pseudo_state.addTransition(new Transition.Builder()"));
+		assertTrue(output.contains("Transition.REDIRECT"));
+		assertTrue(output.contains(".target(sdeleted)"));
+	}
+
+	private final static String EMBEDDED_TRANSITION_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	event GET {" + LINE_SEP +
+			"		method: GET" + LINE_SEP +
+			"	}" + LINE_SEP +
+			
+			"	command GetEntity" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"	GET +-> B" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"resource B {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +
+			"";
+
+	@Test
+	public void testGenerateEmbeddedTransitions() throws Exception {
+		DomainModel domainModel = parseHelper.parse(EMBEDDED_TRANSITION_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+
+		assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
+		assertTrue(output.contains(".target(sB)"));
+		assertTrue(output.contains(".flags(Transition.EMBEDDED)"));
+
+		String expectedBKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/BResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedBKey));
+	}
+	
 	private final static String RESOURCE_RELATIONS_RIM = "" +
 			"rim Test {" + LINE_SEP +
 			"	command Noop" + LINE_SEP +
@@ -438,7 +600,7 @@ public class GeneratorTest {
 			"	entity: ENTITY" + LINE_SEP +
 			"   view: Noop" + LINE_SEP +
 			"   relations [ \"archives\", \"http://www.temenos.com/statement-entries\" ]" + LINE_SEP +
-			"   GET -> B" + LINE_SEP +
+			"   GET -> accTransaction" + LINE_SEP +
 			"}\r\n" + LINE_SEP +
 			"resource accTransaction {" + LINE_SEP +
 			"	type: item" + LINE_SEP +
@@ -486,6 +648,73 @@ public class GeneratorTest {
 		assertTrue(accTransactionOutput.contains(expectedAccTransactionRelArray));
 	}
 
+	private final static String GLOBAL_RESOURCE_RELATIONS_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"	command Update" + LINE_SEP +
+			
+			"	relation archiveRel {" + LINE_SEP +
+			"		fqn: \"archive\"" + LINE_SEP +
+			"	}" + LINE_SEP +
+
+			"	relation editRel {" + LINE_SEP +
+			"		fqn: \"edit\"" + LINE_SEP +
+			"		description: \"See 'edit' in http://www.iana.org/assignments/link-relations/link-relations.xhtml\"" + LINE_SEP +
+			"	}" + LINE_SEP +
+
+			"initial resource accTransactions {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"   view: Noop" + LINE_SEP +
+			"   relations [ archiveRel, \"http://www.temenos.com/statement-entries\" ]" + LINE_SEP +
+			"   PUT -> accTransaction" + LINE_SEP +
+			"}\r\n" + LINE_SEP +
+			"resource accTransaction {" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"   actions [ Update ]" + LINE_SEP +
+			"   relations [ editRel ]" + LINE_SEP +
+			"}\r\n" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
+			"";
+	
+	@Test
+	public void testGenerateResourcesWithGlobalRelations() throws Exception {
+		DomainModel domainModel = parseHelper.parse(GLOBAL_RESOURCE_RELATIONS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		// collection
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/accTransactionsResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String accTransactionsOutput = fsa.getFiles().get(expectedKey).toString();
+		// the constructor part
+		assertTrue(accTransactionsOutput.contains("\"/accTransactions\", createLinkRelations()"));
+		// createLinkRelations method
+		String expectedAccTransactionsRelArray = "" +
+			"        String accTransactionsRelationsStr = \"\";" + LINE_SEP +
+			"        accTransactionsRelationsStr += \"archive \";" + LINE_SEP +
+			"        accTransactionsRelationsStr += \"http://www.temenos.com/statement-entries \";" + LINE_SEP +
+			"        String[] accTransactionsRelations = accTransactionsRelationsStr.trim().split(\" \");" + LINE_SEP +
+			"";
+		assertTrue(accTransactionsOutput.contains(expectedAccTransactionsRelArray));
+		
+		// item
+		expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/accTransactionResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String accTransactionOutput = fsa.getFiles().get(expectedKey).toString();
+		// the constructor part
+		assertTrue(accTransactionOutput.contains("\"/accTransaction\", createLinkRelations()"));
+		// createLinkRelations method
+		String expectedAccTransactionRelArray = "" +
+			"        String accTransactionRelationsStr = \"\";" + LINE_SEP +
+			"        accTransactionRelationsStr += \"edit \";" + LINE_SEP +
+			"        String[] accTransactionRelations = accTransactionRelationsStr.trim().split(\" \");" + LINE_SEP +
+			"";
+		assertTrue(accTransactionOutput.contains(expectedAccTransactionRelArray));
+	}
+	
 	private final static String TRANSITION_WITH_UPDATE_EVENT = "" +
 			"rim Test {" + LINE_SEP +
 			"	event GET {" + LINE_SEP +
@@ -534,18 +763,38 @@ public class GeneratorTest {
 		String resourceAKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceAKey));
 		String resourceA = fsa.getFiles().get(resourceAKey).toString();
-		assertTrue(resourceA.contains("sA.addTransitionForEachItem(\"GET\", sB, uriLinkageProperties, conditionalLinkExpressions, \"B\");"));
+		assertTrue(resourceA.contains("sA.addTransition(new Transition.Builder()"));
+		assertTrue(resourceA.contains(".flags(Transition.FOR_EACH)"));
+		assertTrue(resourceA.contains(".method(\"GET\")"));
+		assertTrue(resourceA.contains(".target(sB)"));
+		assertTrue(resourceA.contains(".uriParameters(uriLinkageProperties)"));
+		assertTrue(resourceA.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
+		assertTrue(resourceA.contains(".label(\"B\")"));
 
 		String resourceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/BResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceBKey));
 		String resourceB = fsa.getFiles().get(resourceBKey).toString();
-		assertTrue(resourceB.contains("sB.addTransition(\"PUT\", sB_pseudo, uriLinkageProperties, 0, conditionalLinkExpressions, \"B_pseudo\");"));
+		assertTrue(resourceB.contains("sB.addTransition(new Transition.Builder()"));
+		assertTrue(resourceB.contains(".method(\"PUT\")"));
+		assertTrue(resourceB.contains(".target(sB_pseudo)"));
+		assertTrue(resourceB.contains(".uriParameters(uriLinkageProperties)"));
+		assertTrue(resourceB.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
+		assertTrue(resourceB.contains(".label(\"B_pseudo\")"));
 
 		String resourceB_pseudoKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/B_pseudoResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(resourceB_pseudoKey));
 		String resourceB_pseudo = fsa.getFiles().get(resourceB_pseudoKey).toString();
-		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sA, uriLinkageProperties, conditionalLinkExpressions);"));
-		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(sB, uriLinkageProperties, conditionalLinkExpressions);"));
+		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(new Transition.Builder()"));
+		assertTrue(resourceB_pseudo.contains(".flags(Transition.AUTO)"));
+		assertTrue(resourceB_pseudo.contains(".target(sA)"));
+		assertTrue(resourceB_pseudo.contains(".uriParameters(uriLinkageProperties)"));
+		assertTrue(resourceB_pseudo.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
+
+		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(new Transition.Builder()"));
+		assertTrue(resourceB_pseudo.contains(".flags(Transition.AUTO)"));
+		assertTrue(resourceB_pseudo.contains(".target(sB)"));
+		assertTrue(resourceB_pseudo.contains(".uriParameters(uriLinkageProperties)"));
+		assertTrue(resourceB_pseudo.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
 	}
 	
 	private final static String RESOURCE_ON_ERROR = "" +
@@ -581,7 +830,74 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"Test.AE\"));"));
 	}
+
+	private final static String RESOURCE_ON_ERROR_SEPARATE_RIM = "" +
+			"domain ErrorTest {" + LINE_SEP +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"	onerror --> Error.AE" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end Test rim
+
+			"rim Error {" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"resource AE {" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ERROR" + LINE_SEP +
+			"	view: Noop" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end Error rim
+			
+			"}" + LINE_SEP +
+			"";
 	
+	@Test
+	public void testGenerateOnErrorResourceSeparateRIM() throws Exception {
+		DomainModel domainModel = parseHelper.parse(RESOURCE_ON_ERROR_SEPARATE_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(domainModel.eResource(), fsa);
+		
+		// collection
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/Test/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"ErrorTest.Error.AE\"));"));
+	}
+
+	private final static String RESOURCE_WITH_BASEPATH = "" +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"	basepath: \"/{companyid}\"" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"	path: \"/A\"" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"}" + LINE_SEP +
+			"";
+	
+	@Test
+	public void testGenerateResourceWithBasepath() throws Exception {
+		DomainModel domainModel = parseHelper.parse(RESOURCE_WITH_BASEPATH);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+		
+		// collection
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/{companyid}/A\", createLinkRelations(), null, null);"));
+	}
+
 	private final static String INCOMPLETE_RIM = "" +
 			"rim Test {" + LINE_SEP +
 			"	command GetEntity" + LINE_SEP +

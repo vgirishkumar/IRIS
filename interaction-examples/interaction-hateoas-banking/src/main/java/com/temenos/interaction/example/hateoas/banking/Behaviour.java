@@ -31,6 +31,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 
 public class Behaviour {
 
@@ -40,9 +41,17 @@ public class Behaviour {
 		ResourceState initialState = new ResourceState("home", "initial", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null), "/");
 		ResourceState preferences = new ResourceState("Preferences", "preferences", createActionList(new Action("GETPreferences", Action.TYPE.VIEW), null), "/preferences");
 		
-		initialState.addTransition("GET", preferences);
-		initialState.addTransition("GET", getFundsTransferInteractionModel());
-		initialState.addTransition("GET", getCustomerInteractionModel());
+		initialState.addTransition(new Transition.Builder().method("GET").target(preferences).build());
+		ResourceStateMachine fundsTransferModel = getFundsTransferInteractionModel();
+		initialState.addTransition("GET", fundsTransferModel);
+		ResourceStateMachine customerModel = getCustomerInteractionModel();
+		initialState.addTransition("GET", customerModel);
+
+		// create a 'ServiceDocument' and add our entity sets to make OData4j metadata available
+		ResourceState serviceDocumentState = new ResourceState("home", "ServiceDocument", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null), "/Banking.svc");
+		serviceDocumentState.addTransition("GET", fundsTransferModel);
+		serviceDocumentState.addTransition("GET", customerModel);
+		initialState.addTransition(new Transition.Builder().method("GET").target(serviceDocumentState).build());
 		return initialState;
 	}
 
@@ -53,17 +62,21 @@ public class Behaviour {
 		ResourceState finalState = new ResourceState(fundstransfer, "end", createActionList(new Action("NoopGET", Action.TYPE.VIEW), null));
 
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		fundstransfers.addTransition("POST", newFtState);		
+		fundstransfers.addTransition(new Transition.Builder().method("POST").target(newFtState).build());		
 
 		uriLinkageMap.clear();
-		newFtState.addTransition("PUT", fundstransfer, uriLinkageMap);
+		newFtState.addTransition(new Transition.Builder().method("PUT").target(fundstransfer).uriParameters(uriLinkageMap).build());
 		//newFtState.addTransition("GET", exists, uriLinkageMap);
 		
 		uriLinkageMap.clear();
-		fundstransfers.addTransitionForEachItem("GET", fundstransfer, uriLinkageMap);		
+		fundstransfers.addTransition(new Transition.Builder()
+				.method("GET").target(fundstransfer)
+				.uriParameters(uriLinkageMap)
+				.flags(Transition.FOR_EACH)
+				.build());		
 
-		fundstransfer.addTransition("PUT", fundstransfer, uriLinkageMap);		
-		fundstransfer.addTransition("DELETE", finalState, uriLinkageMap);
+		fundstransfer.addTransition(new Transition.Builder().method("PUT").target(fundstransfer).uriParameters(uriLinkageMap).build());		
+		fundstransfer.addTransition(new Transition.Builder().method("DELETE").target(finalState).uriParameters(uriLinkageMap).build());
 		return new ResourceStateMachine(fundstransfers);
 	}
 
@@ -75,10 +88,14 @@ public class Behaviour {
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.clear();
 		uriLinkageMap.put("id", "name");
-		customers.addTransitionForEachItem("GET", customer, uriLinkageMap);		
+		customers.addTransition(new Transition.Builder()
+				.method("GET")
+				.target(customer)
+				.uriParameters(uriLinkageMap)
+				.build());		
 
-		customer.addTransition("PUT", customer, uriLinkageMap);		
-		customer.addTransition("DELETE", deleted, uriLinkageMap);
+		customer.addTransition(new Transition.Builder().method("PUT").target(customer).uriParameters(uriLinkageMap).build());		
+		customer.addTransition(new Transition.Builder().method("DELETE").target(deleted).uriParameters(uriLinkageMap).build());
 		return new ResourceStateMachine(customers);
 	}
 	

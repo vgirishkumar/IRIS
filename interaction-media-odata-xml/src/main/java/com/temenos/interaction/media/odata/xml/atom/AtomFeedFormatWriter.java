@@ -26,7 +26,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import javax.ws.rs.core.UriInfo;
 
@@ -34,11 +33,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.odata4j.core.ODataConstants;
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OLink;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.edm.EdmEntityType;
-import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
@@ -46,21 +41,18 @@ import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 
 public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWriter<EntitiesResponse> {
-	private final Logger logger = LoggerFactory.getLogger(AtomFeedFormatWriter.class);
 	
+	private ResourceState serviceDocument;
 	private AtomEntryFormatWriter entryWriter;
-	private EdmDataServices edmDataServices;
 	
-	public AtomFeedFormatWriter(EdmDataServices edmDataServices) {
-		this.edmDataServices = edmDataServices;
-		entryWriter = new AtomEntryFormatWriter();
+	public AtomFeedFormatWriter(ResourceState serviceDocument) {
+		this.serviceDocument = serviceDocument;
+		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 	}
 	
   @Override
@@ -74,11 +66,12 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 	  String entitySetName = ees.getName();
 	  List<Link> links = new ArrayList<Link>();
 	  links.add(new Link(entitySetName, "self", entitySetName, null, null));
-	  write(uriInfo, w, links, response, null, null);
+	  write(uriInfo, w, links, response, null);
   }
   
-  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, Map<String, List<OLink>> entityOlinks, String modelName) {
-    String baseUri = uriInfo.getBaseUri().toString();
+  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, String modelName) {
+	String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
+	String absolutePath = AtomXMLProvider.getAbsolutePath(uriInfo);
 
     EdmEntitySet ees = response.getEntitySet();
     String entitySetName = ees.getName();
@@ -94,33 +87,16 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     writer.writeAttribute("xml:base", baseUri);
 
     writeElement(writer, "title", entitySetName, "type", "text");
-    writeElement(writer, "id", baseUri + uriInfo.getPath());
+    writeElement(writer, "id", absolutePath);
 
     writeElement(writer, "updated", updated);
 
     assert(links != null);
     for (Link link : links) {
-    	String href = link.getHref();
+    	// href is relative path from base path
+    	String href = link.getRelativeHref(baseUri);
     	String title = link.getTitle();
-    	
-    	String targetEntitySetName = null;
-    	if(modelName != null) {
-			String fqTargetEntityName = modelName + Metadata.MODEL_SUFFIX + "." + link.getTransition().getTarget().getEntityName();
-			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
-			try {
-				targetEntitySetName = edmDataServices.getEdmEntitySet(targetEntityType).getName();
-			}
-			catch(NotFoundException nfe) {
-				logger.debug("Entity [" + fqTargetEntityName + "] is not an entity set.");
-			}
-    	}
-		String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
-
-    	// TODO include href without base path in link
-    	// chop the leading base path
-    	if (href.startsWith(baseUri)) {
-    		href = href.substring(baseUri.length());
-    	}
+		String rel = link.getRel();
         writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
     }
 
@@ -130,17 +106,8 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     }
 
     for (OEntity entity : response.getEntities()) {
-    	//Obtain olinks for this entity
-    	List<OLink> olinks;
-    	if(entityOlinks != null) {
-    		olinks = entityOlinks.get(InternalUtil.getEntityRelId(entity));
-    	}
-    	else {
-    		olinks = new ArrayList<OLink>();    		
-    	}
-    	
       writer.startElement("entry");
-      entryWriter.writeEntry(writer, entity, entity.getProperties(), olinks, baseUri, updated, ees, true);
+      entryWriter.writeEntry(writer, entity, entity.getProperties(), entity.getLinks(), baseUri, updated, ees, true);
       writer.endElement("entry");
     }
 

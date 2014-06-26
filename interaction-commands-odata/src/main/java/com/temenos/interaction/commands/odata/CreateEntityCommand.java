@@ -53,10 +53,8 @@ import com.temenos.interaction.core.entity.EntityProperty;
 public class CreateEntityCommand extends AbstractODataCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(CreateEntityCommand.class);
 
-	private ODataProducer producer;
-
 	public CreateEntityCommand(ODataProducer producer) {
-		this.producer = producer;
+		super(producer);
 	}
 
 	/* Implement InteractionCommand interface */
@@ -102,8 +100,8 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 		try {
 			assert(entity != null);
 			assert(entity.getName() != null);
-			EdmEntityType entityType = (EdmEntityType) producer.getMetadata().findEdmEntityType(entity.getName());
-			EdmEntitySet entitySet = producer.getMetadata().getEdmEntitySet(entityType);
+			EdmEntitySet entitySet = getEdmMetadata().findEdmEntitySet(entity.getName());
+			EdmEntityType entityType = entitySet.getType();
 					
 			String id = null;
 			EntityProperties entityProps = entity.getProperties();

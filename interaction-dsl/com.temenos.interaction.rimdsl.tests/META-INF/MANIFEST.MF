@@ -2,13 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: com.temenos.interaction.rimdsl.tests
 Bundle-Vendor: IRIS
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.5.0.qualifier
 Bundle-SymbolicName: com.temenos.interaction.rimdsl.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: com.temenos.interaction.rimdsl,
  com.temenos.interaction.rimdsl.ui,
  org.eclipse.core.runtime,
- org.eclipse.xtext.junit4;bundle-version="[2.3.0,2.4.0)",
+ org.eclipse.xtext.junit4;bundle-version="[2.5.0,2.6)",
  org.eclipse.ui.workbench;resolution:=optional
 Import-Package: com.temenos.interaction.rimdsl.visualisation.providers,
  org.apache.log4j,

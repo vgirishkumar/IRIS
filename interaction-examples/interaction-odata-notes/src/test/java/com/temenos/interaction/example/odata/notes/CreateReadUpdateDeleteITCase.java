@@ -176,6 +176,7 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
         postMethod.setRequestEntity(new StringRequestEntity("name=RonOnForm&abcd=",
                                                             "application/x-www-form-urlencoded",
                                                             "UTF-8"));
+        postMethod.addRequestHeader("Content-Type", PostMethod.FORM_URL_ENCODED_CONTENT_TYPE);
 
         String personId = null;
         try {

@@ -69,14 +69,14 @@ public class CommandHelper {
 		if(ResourceTypeHelper.isType(ge.getRawType(), t, OEntity.class, OEntity.class)) {
 			OEntity te = (OEntity) entity;
 			String entityName = te != null && te.getEntityType() != null ? te.getEntityType().getName() : null;
-			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, entity);
+			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, entity, OEntity.class);
 		} else if(ResourceTypeHelper.isType(ge.getRawType(), t, Entity.class, Entity.class)) {
 			Entity te = (Entity) entity;
 			String entityName = te != null ? te.getName() : null; 
-			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, entity);
+			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, entity, Entity.class);
 		} else {
 			// Call the generic and lets see what happens
-			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entity);
+			return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entity, null);
 		}
 	}
 	
@@ -97,7 +97,7 @@ public class CommandHelper {
 	 */
 	public static EntityResource<OEntity> createEntityResource(OEntity e) {
 		String entityName = e != null && e.getEntityType() != null ? e.getEntityType().getName() : null;
-		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, e);
+		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, e, OEntity.class);
 	}
 
 	/**
@@ -210,9 +210,12 @@ public class CommandHelper {
 		}
 		
 		//Find entity set
-		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet((EdmEntityType) entityType);
-		if (entitySet == null) {
-			throw new Exception("Entity set does not exist");
+		EdmEntitySet entitySet = null;
+		try {
+			entitySet = edmDataServices.getEdmEntitySet((EdmEntityType) entityType);
+		} catch (Exception e) {
+			// don't throw any exception here if any
+			logger.error("Entity set does not exist for " + entityName);
 		}
 		return entitySet;
 	}

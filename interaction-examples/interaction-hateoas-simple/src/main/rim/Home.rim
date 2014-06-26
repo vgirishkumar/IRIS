@@ -22,7 +22,6 @@ event GET {
 }
 
 command NoopGET
-command NoopPOST
 command GETPreferences
 
 initial resource home {
@@ -31,7 +30,8 @@ initial resource home {
 	view: NoopGET
     path: "/"
 	GET -> profile
-    GET -> preferences
+	// embed the resource if the media type supports embedding
+    GET +-> preferences
 	GET -> notes
 }
 
@@ -44,6 +44,7 @@ resource profile {
 
 resource preferences {
 	type: item
+	relations [ "http://relations.rimdsl.org/preferences" ]
 	entity: Preferences
     view: GETPreferences
 }

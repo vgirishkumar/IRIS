@@ -44,14 +44,16 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import javax.ws.rs.core.HttpHeaders;
 
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -65,19 +67,20 @@ import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParserExt;
-import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.producer.Responses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
-import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -88,27 +91,33 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.web.RequestContext;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})
 @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
-	private final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
-	private final static Pattern RESOURCE_PATTERN = Pattern.compile("(.*)/(.+)");
-	
+	private final static Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
+	private final static Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
+
 	@Context
 	private UriInfo uriInfo;
+	@Context
+	private Request requestContext;
 	private AtomEntryFormatWriter entryWriter;
 	private AtomFeedFormatWriter feedWriter;
+	private AtomEntityEntryFormatWriter entityEntryWriter;
 	
-	private final EdmDataServices edmDataServices;
+	private final MetadataOData4j metadataOData4j;
 	private final Metadata metadata;
 	private final ResourceStateMachine hypermediaEngine;
-//	private final Transformer transformer;
+	private final ResourceState serviceDocument;
+	private final Transformer transformer;
+	private final LinkInterceptor linkInterceptor = new ODataLinkInterceptor(this);
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
-	 * @param edmDataServices
+	 * @param metadataOData4j
 	 * 		The entity metadata for reading and writing OData entities.
 	 * @param metadata
 	 * 		The entity metadata for reading and writing Entity entities.
@@ -117,24 +126,31 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * @param transformer
 	 * 		Transformer to convert an entity to a properties map
 	 */
-	public AtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
-		this.edmDataServices = edmDataServices;
+	public AtomXMLProvider(MetadataOData4j metadataOData4j, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
+		this.metadataOData4j = metadataOData4j;
 		this.metadata = metadata;
 		this.hypermediaEngine = hypermediaEngine;
-		assert(edmDataServices != null);
+		this.serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+		if (serviceDocument == null)
+			throw new RuntimeException("No 'ServiceDocument' found.");
 		assert(metadata != null);
 		assert(hypermediaEngine != null);
-
-		entryWriter = new AtomEntryFormatWriter();
-		feedWriter = new AtomFeedFormatWriter(edmDataServices);
+		this.transformer = transformer;
+		entryWriter = new AtomEntryFormatWriter(serviceDocument);
+		feedWriter = new AtomFeedFormatWriter(serviceDocument);
+		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
 	}
-	
+
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return 	ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
-				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
-				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class);
+		if (mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE) 
+				|| mediaType.equals(MediaType.APPLICATION_XML_TYPE)) {
+			return 	ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
+					ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
+					ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class);
+		}
+		return false;
 	}
 
 	@Override
@@ -161,121 +177,70 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			WebApplicationException {
 		assert (resource != null);
 		assert(uriInfo != null);
-		
 		//Set response headers
 		if(httpHeaders != null) {
 			httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_ATOM_XML);		//Workaround for https://issues.apache.org/jira/browse/WINK-374
 		}
 		  		
 		try {
+			RESTResource restResource = processLinks((RESTResource) resource);
+			Collection<Link> processedLinks = restResource.getLinks();
 			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 				OEntity tempEntity = entityResource.getEntity();
-				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + entityResource.getEntityName();
-				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
-
-				//Convert Links to list of OLink
-				List<OLink> olinks = new ArrayList<OLink>();
-				if (entityResource.getLinks() != null) {
-					for(Link link : entityResource.getLinks()) {
-						addLinkToOLinks(olinks, link);
-					}
-				}
-				
+				EdmEntitySet entitySet = getEdmEntitySet(entityResource.getEntityName());
+				List<OLink> olinks = formOLinks(entityResource);
 				//Write entry
-	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
-            	OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
+			// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+			OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
-
-				Collection<Link> linksCollection = entityResource.getLinks();
-				List<Link> links = linksCollection != null ? new ArrayList<Link>(linksCollection) : new ArrayList<Link>();
-				
 				//Write entry
 				Entity entity = entityResource.getEntity();
-				assert(entity.getName().equals(entityResource.getEntityName()));
-				EntityMetadata entityMetadata = metadata.getEntityMetadata((entityResource.getEntityName() == null ? entity.getName() : entityResource.getEntityName()));
+				String entityName = entityResource.getEntityName();
 				// Write Entity object with Abdera implementation
-				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entity, entityMetadata, links, metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, entity, processedLinks, entityResource.getEmbedded());
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
-
 				//Links and entity properties
-				Collection<Link> linksCollection = entityResource.getLinks();
-				List<Link> links = linksCollection != null ? new ArrayList<Link>(linksCollection) : new ArrayList<Link>();
 				Object entity = entityResource.getEntity();
 				String entityName = entityResource.getEntityName();
 				EntityProperties props = new EntityProperties();
 				if(entity != null) {
-					Map<String, Object> objProps = new BeanTransformer().transform(entity);
-					for(String propName : objProps.keySet()) {
-						props.setProperty(new EntityProperty(propName, objProps.get(propName)));
+					Map<String, Object> objProps = (transformer != null ? transformer : new BeanTransformer()).transform(entity);
+					if (objProps != null) {
+						for(String propName : objProps.keySet()) {
+							props.setProperty(new EntityProperty(propName, objProps.get(propName)));
+						}
 					}
 				}
-				EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
-				AtomEntityEntryFormatWriter entityEntryWriter = new AtomEntityEntryFormatWriter();
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), new Entity(entityName, props), entityMetadata, links, metadata.getModelName());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
-				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();
-				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
+				EdmEntitySet entitySet = getEdmEntitySet(collectionResource.getEntityName());
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
-				Map<String, List<OLink>> entityOlinks = new HashMap<String, List<OLink>>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
 		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
 					OEntity tempEntity = collectionEntity.getEntity();
-	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
-					
-					//Add entity links
-					List<OLink> olinks = new ArrayList<OLink>();
-					if (collectionEntity.getLinks() != null) {
-						for(Link link : collectionEntity.getLinks()) {
-							addLinkToOLinks(olinks, link);		//Link to resource (feed entry) 		
-							
-							/*
-							 * TODO we can remove this way of adding links to other resources once we support multiple transitions 
-							 * to a resource state.  https://github.com/aphethean/IRIS/issues/17
-							//Links to other resources
-					        List<Transition> entityTransitions = resourceRegistry.getEntityTransitions(entity.getEntitySetName());
-					        if(entityTransitions != null) {
-						        for(Transition transition : entityTransitions) {
-						        	//Create Link from transition
-									String rel = transition.getTarget().getName();
-									UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath()).path(transition.getCommand().getPath());
-									Map<String, Object> properties = new HashMap<String, Object>();
-									properties.putAll(transformer.transform(entity));
-									URI href = linkTemplate.buildFromMap(properties);
-									Link entityLink = new Link(transition, rel, href.toASCIIString(), "GET");
-									
-									addLinkToOLinks(olinks, entityLink);
-								}
-					        }
-							 */
-						}		
-					}
-					entityOlinks.put(InternalUtil.getEntityRelId(entity), olinks);					
+					List<OLink> olinks = formOLinks(collectionEntity);
+	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), olinks);
 					entities.add(entity);
 				}
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource.getLinks(), Responses.entities(entities, entitySet, inlineCount, skipToken), entityOlinks, metadata.getModelName());
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), processedLinks, Responses.entities(entities, entitySet, inlineCount, skipToken), metadata.getModelName());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
 				CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
 				
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				
 				//Write feed
-				EntityMetadata entityMetadata = metadata.getEntityMetadata(collectionResource.getEntityName());
-				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter();
-				entityFeedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource, entityMetadata, inlineCount, skipToken, metadata.getModelName());
+				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
+				entityFeedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource, inlineCount, skipToken, metadata.getModelName());
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -285,58 +250,156 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 	}
 	
-	public void addLinkToOLinks(List<OLink> olinks, Link link) {
-		RequestContext requestContext = RequestContext.getRequestContext();		//TODO move to constructor to improve performance
-		String targetEntitySetName = null;
-		if(link.getTransition() != null) {
-			String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + link.getTransition().getTarget().getEntityName();
-			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
-			try {
-				targetEntitySetName = edmDataServices.getEdmEntitySet(targetEntityType).getName();
-			}
-			catch(NotFoundException nfe) {
-				logger.debug("Entity [" + fqTargetEntityName + "] is not an entity set.");
+	public RESTResource processLinks(RESTResource restResource) {
+		Collection<Link> linksCollection = restResource.getLinks();
+		List<Link> processedLinks = new ArrayList<Link>();
+		if (linksCollection != null) {
+			for (Link linkToAdd : linksCollection) {
+				Link link = linkInterceptor.addingLink(restResource, linkToAdd);
+				if (link != null) {
+					processedLinks.add(link);
+				}
 			}
 		}
-		String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
+		restResource.setLinks(processedLinks);
+		
+		// process embedded resources
+		if (restResource.getEmbedded() != null) {
+			Map<Transition,RESTResource> embeddedResources = restResource.getEmbedded();
+			for (RESTResource embeddedResource : embeddedResources.values()) {
+				processLinks(embeddedResource);
+			}
+		}
+		
+		// process entities in collection resource
+		if (restResource instanceof CollectionResource) {
+			CollectionResource<?> collectionResource = (CollectionResource<?>) restResource;
+			for (EntityResource<?> entityResource : collectionResource.getEntities()) {
+				processLinks(entityResource);
+			}
+		}
+		return restResource;
+	}
+	
+	public List<OLink> formOLinks(EntityResource<OEntity> entityResource) {
+		// Create embedded resources from $expand
+		addExpandedLinks(entityResource);
+		
+		//Add entity links
+		List<OLink> olinks = new ArrayList<OLink>();
+		if (entityResource.getLinks() != null && entityResource.getLinks().size() > 0) {
+			for(Link link : entityResource.getLinks()) {
+				addLinkToOLinks(olinks, link, entityResource);
+			}		
+		}
+		
+		return olinks;
+	}
+	
+	/*
+	 * Using the supplied EntityResource, add the embedded resources
+	 * from the OEntity embedded resources.  NB - only an OEntity can
+	 * carry OLinks.
+	 */
+	public void addExpandedLinks(EntityResource<OEntity> entityResource) {
+		RequestContext requestContext = RequestContext.getRequestContext();
+		Collection<Link> links = entityResource.getLinks();
+		if (links != null) {
+			OEntity oentity = entityResource.getEntity();
+			List<OLink> olinks = oentity.getLinks();
+			for (OLink olink : olinks) {
+				if (olink.isInline()) {
+					String relid = InternalUtil.getEntityRelId(oentity);
+					String href = relid + "/" + olink.getTitle();
+					for (Link link : links) {
+						String linkHref = link.getHref();
+						if(requestContext != null) {
+							//Extract the transition fragment from the URI path
+							linkHref = link.getRelativeHref(getBaseUri(serviceDocument, uriInfo));
+						}
+						if (href.equals(linkHref)) {
+							if (entityResource.getEmbedded() == null) {
+								entityResource.setEmbedded(new HashMap<Transition, RESTResource>());
+							}
+							if (olink.isCollection()) {
+								List<OEntity> oentities = olink.getRelatedEntities();
+								Collection<EntityResource<OEntity>> entityResources = new ArrayList<EntityResource<OEntity>>();
+								for (OEntity oe : oentities) {
+									entityResources.add(new EntityResource<OEntity>(oe));
+								}
+								entityResource.getEmbedded().put(link.getTransition(), new CollectionResource<OEntity>(entityResources));
+							} else {
+								// replace the OLink's on the current entity
+								OEntity inlineOentity = olink.getRelatedEntity();
+								List<OLink> inlineResourceOlinks = formOLinks(new EntityResource<OEntity>(inlineOentity));
+				            	OEntity newInlineOentity = OEntities.create(inlineOentity.getEntitySet(), inlineOentity.getEntityKey(), inlineOentity.getProperties(), inlineResourceOlinks);
+								entityResource.getEmbedded().put(link.getTransition(), new EntityResource<OEntity>(newInlineOentity));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void addLinkToOLinks(List<OLink> olinks, Link link, RESTResource resource) {
+		RequestContext requestContext = RequestContext.getRequestContext();
+		assert(link != null);
+		assert(link.getTransition() != null);
+		Map<Transition,RESTResource> embeddedResources = resource.getEmbedded();
+		String rel = link.getRel();
 		String href = link.getHref();
 		if(requestContext != null) {
 			//Extract the transition fragment from the URI path
-			href = link.getHrefTransition(requestContext.getBasePath());
+			href = link.getRelativeHref(getBaseUri(serviceDocument, uriInfo));
 		}
 		String title = link.getTitle();
-		OLink olink;
+		OLink olink = null;
 		Transition linkTransition = link.getTransition();
-		if(linkTransition != null && linkTransition.getTarget().getClass() == CollectionResourceState.class) {
-			olink = OLinks.relatedEntities(rel, title, href);
-		} else {
-			olink = OLinks.relatedEntity(rel, title, href);
-		}
-		olinks.add(olink);
-		if (rel.contains("edit")) {
-			dropLinkByRel(olinks, "self");
-		}
-	}
-
-	private boolean dropLinkByRel(List<OLink> links, String rel) {
-		boolean found = false;
-		for (int i = 0; i < links.size(); i++) {
-			OLink link = links.get(i);
-			if (link.getRelation().equals(rel)) {
-				links.remove(i);
-				found = true;
-				break;
+		if(linkTransition != null) {
+			if (embeddedResources != null && embeddedResources.get(linkTransition) != null
+					&&embeddedResources.get(linkTransition) instanceof EntityResource) {
+				@SuppressWarnings("unchecked")
+				EntityResource<OEntity> embeddedResource = (EntityResource<OEntity>) embeddedResources.get(linkTransition);
+				// replace the OLink's on the embedded entity
+				OEntity newEmbeddedEntity = processOEntity(embeddedResource);
+				olink = OLinks.relatedEntityInline(rel, title, href, newEmbeddedEntity);
+			} else if (embeddedResources != null && embeddedResources.get(linkTransition) != null
+					&&embeddedResources.get(linkTransition) instanceof CollectionResource) {
+				@SuppressWarnings("unchecked")
+				CollectionResource<OEntity> embeddedCollectionResource = (CollectionResource<OEntity>) embeddedResources.get(linkTransition);
+				List<OEntity> entities = new ArrayList<OEntity>();
+				for (EntityResource<OEntity> embeddedResource : embeddedCollectionResource.getEntities()) {
+					// replace the OLink's on the embedded entity
+					OEntity newEmbeddedEntity = processOEntity(embeddedResource);
+					entities.add(newEmbeddedEntity);
+				}
+				olink = OLinks.relatedEntitiesInline(rel, title, href, entities);
+			}
+			if (olink == null) {
+				if (linkTransition.getTarget() instanceof CollectionResourceState) {
+					olink = OLinks.relatedEntities(rel, title, href);
+				} else {
+					olink = OLinks.relatedEntity(rel, title, href);
+				}
 			}
 		}
-		return found;
+		olinks.add(olink);
 	}
 
+	private OEntity processOEntity(EntityResource<OEntity> entityResource) {
+		List<OLink> embeddedLinks = formOLinks(entityResource);
+		OEntity embeddedEntity = entityResource.getEntity();
+		// replace the OLink's on the embedded entity
+		OEntity newOEntity = OEntities.create(embeddedEntity.getEntitySet(), embeddedEntity.getEntityKey(), embeddedEntity.getProperties(), embeddedLinks);
+		return newOEntity;
+	}
+	
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		// TODO this class can only deserialise EntityResource with OEntity, but at the moment we are accepting any EntityResource or CollectionResource
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
-				|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
+		// this class can only deserialise EntityResource with OEntity
+		return ResourceTypeHelper.isType(type, genericType, EntityResource.class);
 	}
 
 	/**
@@ -352,54 +415,47 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 		
-		// TODO check media type can be handled
+		// check media type can be handled, isReadable must have been called
+		assert(ResourceTypeHelper.isType(type, genericType, EntityResource.class));
+		assert(mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE));
 		
-		if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
-			ResourceState currentState = null;
+		try {
 			OEntityKey entityKey = null;
-			/* 
-			 * TODO add uritemplate helper class (something like the wink JaxRsUriTemplateProcessor) to 
-			 * our project, or use wink directly, will also need it for handling link transitions
+
+			// work out the entity name using resource path from UriInfo
+			String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
+			String absoluteUri = AtomXMLProvider.getAbsolutePath(uriInfo);
+			logger.info("Reading atom xml content for [" + absoluteUri + "]");
+			String resourcePath = null;
+			StringBuffer regex = new StringBuffer("(?<=" + baseUri + ")\\S+");
+			Pattern p = Pattern.compile(regex.toString());
+			Matcher m = p.matcher(absoluteUri);
+			while (m.find()) {
+				resourcePath = m.group();
+			}
+			if (resourcePath == null)
+				throw new IllegalStateException("No resource found");
+			ResourceState currentState = getCurrentState(serviceDocument, resourcePath);
+			if (currentState == null)
+				throw new IllegalStateException("No state found");
+			String pathIdParameter = getPathIdParameter(currentState);
+			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
+			if (pathParameters != null && pathParameters.getFirst(pathIdParameter) != null) {
+				if (STRING_KEY_RESOURCE_PATTERN.matcher(resourcePath).find()) {
+					entityKey = OEntityKey.create(pathParameters.getFirst(pathIdParameter));				
+				} else {
+					entityKey = OEntityKey.parse(pathParameters.getFirst(pathIdParameter));				
+				}
+			}
+			
+			if (currentState.getEntityName() == null) {
+				throw new IllegalStateException("Entity name could not be determined");
+			}
+			
+			/*
+			 *  get the entity set name using the metadata
 			 */
-//			JaxRsUriTemplateProcessor processor = new JaxRsUriTemplateProcessor("/{therest}/");
-//			UriTemplateMatcher matcher = processor.matcher();
-//			matcher.matches(uriInfo.getPath());
-//			String entityKey = matcher.getVariableValue("id");
-			String path = uriInfo.getPath();
-			logger.info("Reading atom xml content for [" + path + "]");
-			Matcher matcher = RESOURCE_PATTERN.matcher(path);
-			if (matcher.find()) {
-				// the resource path
-				String resourcePath = matcher.group(1);
-				Set<ResourceState> states = hypermediaEngine.getResourceStatesForPath(resourcePath);
-				if (states != null && states.size() > 0) {
-					currentState = findCollectionResourceState(states);
-					// at the moment things are pretty simply, the bit after the last slash is the key
-					entityKey = OEntityKey.parse(matcher.group(2));
-				}
-			}
-			if (currentState == null) {
-				// might be a request without an entity key e.g. a POST
-				if (!path.startsWith("/")) {
-					// TODO remove this hack :-(
-					path = "/" + path;
-				}
-				// TODO, improve this ridiculously basic support for Update
-				if (path.contains("(")) {
-					path = path.substring(0, path.indexOf("("));
-					path = "^" + path + "(|\\(.*\\))";
-				} else {
-					path = "^" + path + "(|\\(\\))";
-				}
-				Set<ResourceState> states = hypermediaEngine.getResourceStatesForPathRegex(path);
-				if (states != null && states.size() > 0) {
-					currentState = findCollectionResourceState(states);
-				} else {
-					// give up, we can't handle this request 404
-					logger.error("resource not found in registry");
-					throw new WebApplicationException(Response.Status.NOT_FOUND);
-				}
-			}
+			String entitySetName = getEntitySet(currentState);
 			
 			// Check contents of the stream, if empty or null then return empty resource
 			InputStream verifiedStream = verifyContentReceieved(entityStream);
@@ -409,28 +465,115 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			
 			// Lets parse the request content
 			Reader reader = new InputStreamReader(verifiedStream);
-			assert(currentState != null) : "Must have found a resource or thrown exception";
-			Entry e = new AtomEntryFormatParserExt(edmDataServices, currentState.getName(), entityKey, null).parse(reader);
+			assert(entitySetName != null) : "Must have found a resource or thrown exception";
+			Entry e = new AtomEntryFormatParserExt(getEdmDataService(), entitySetName, entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
-		} else {
-			logger.error("Unhandled type");
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		} catch (IllegalStateException e) {
+			logger.warn("Malformed request from client", e);
+			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
 	}
 
-	private CollectionResourceState findCollectionResourceState(Set<ResourceState> states) {
-		for (ResourceState state : states) {
-			if (state instanceof CollectionResourceState) {
-				return (CollectionResourceState) state;
+	/*
+	 * Find the entity set name for this resource
+	 */
+	public String getEntitySet(ResourceState state) {
+		String entitySetName = null;
+		String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + state.getEntityName();
+		try {
+			EdmEntityType targetEntityType = (EdmEntityType) getEdmDataService().findEdmEntityType(fqTargetEntityName);
+			if (targetEntityType != null) {
+				EdmEntitySet targetEntitySet = getEdmDataService().getEdmEntitySet(targetEntityType);
+				if (targetEntitySet != null)
+					entitySetName = targetEntitySet.getName();
 			}
-		}
-		return null;
+		} catch (NotFoundException e) {}
+		if (entitySetName == null) {
+			try {
+				entitySetName = getEdmEntitySet(state.getEntityName()).getName();
+			} catch (NotFoundException e) {
+				logger.warn("Entity [" + fqTargetEntityName + "] is not an entity set.");
+			}
+			if(entitySetName == null) {
+				entitySetName = state.getName();
+			}
+		} 
+		return entitySetName;
 	}
 	
+	protected ResourceState getCurrentState(ResourceState serviceDocument, String resourcePath) {
+		ResourceState state = null;
+		if (resourcePath != null) {
+			/*
+			 * add a leading '/' if it needs it (when defining resources we must use a 
+			 * full path, but requests can be relative, i.e. without a '/'
+			 */
+			if (!resourcePath.startsWith("/")) {
+				resourcePath = "/" + resourcePath;
+			}
+			// add service document path to resource path
+			String serviceDocumentPath = serviceDocument.getPath();
+			if (serviceDocumentPath.endsWith("/")) {
+				serviceDocumentPath = serviceDocumentPath.substring(0, serviceDocumentPath.lastIndexOf("/"));
+			}
+			resourcePath = serviceDocumentPath + resourcePath;
+			// turn the uri back into a template uri
+			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
+			if (pathParameters != null) {
+				for (String key : pathParameters.keySet()) {
+					List<String> values = pathParameters.get(key);
+					for (String value : values) {
+						resourcePath = resourcePath.replace(value, "{" + key + "}");
+					}
+				}
+			}
+			String httpMethod = requestContext.getMethod();
+			Event event = new Event(httpMethod, httpMethod);
+			state = hypermediaEngine.determineState(event, resourcePath);
+			if (state == null) {
+				logger.error("No state found, dropping back to path matching " + resourcePath);
+				// escape the braces in the regex
+				resourcePath = Pattern.quote(resourcePath);
+				Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
+				for (String path : pathToResourceStates.keySet()) {
+					for (ResourceState s : pathToResourceStates.get(path)) {
+						String pattern = null;
+						if (s instanceof CollectionResourceState) {
+							pattern = resourcePath + "(|\\(\\))";
+							Matcher matcher = Pattern.compile(pattern).matcher(path);
+							if (matcher.matches()) {
+								state = s;
+							}
+						}
+					}
+				}
+			}
+		}
+		return state;
+	}
+
+	/*
+	 * For a given resource state, get the path parameter used for the id.
+	 * @param state
+	 * @return
+	 */
+	private String getPathIdParameter(ResourceState state) {
+		String pathIdParameter = InteractionContext.DEFAULT_ID_PATH_ELEMENT;
+		if (state.getPathIdParameter() != null) {
+			pathIdParameter = state.getPathIdParameter();
+		}
+		return pathIdParameter;
+	}
+
+	
+	/* Ugly testing support :-( */
 	protected void setUriInfo(UriInfo uriInfo) {
 		this.uriInfo = uriInfo;
+	}
+	protected void setRequestContext(Request request) {
+		this.requestContext = request;
 	}
 
 	/**
@@ -474,33 +617,49 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	}
 	
 	/**
-	 * Return the OData link relation from the specified link.
-	 * @param link link
-	 * @return odata link rel
+	 * Our base uri is the uri to the service document.
+	 * @param serviceDocument
+	 * @param uriInfo
+	 * @return
 	 */
-	public static String getODataLinkRelation(Link link, String entitySetName) {
-		String rel = link.getRel();
-		Transition transition = link.getTransition();
-		if(transition == null) {
-			return rel;
-		}
-		if(rel.contains("item")) {
-			if(transition.isGetFromCollectionToEntityResource()) {
-				//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
-				rel = "self";
+	public static String getBaseUri(ResourceState serviceDocument, UriInfo uriInfo) {
+		String baseUri = uriInfo.getBaseUri().toString();
+		if (serviceDocument.getPath() != null) {
+			if (baseUri.endsWith("/")) {
+				baseUri = baseUri.substring(0, baseUri.lastIndexOf("/"));
 			}
-			else {
-				//entry type relations should use the entityType name
-				rel = XmlFormatWriter.related + transition.getTarget().getEntityName();
-			}
-		} else if (rel.contains("collection")) {
-			if(entitySetName != null) {
-				rel = XmlFormatWriter.related + entitySetName;
-			}
-			else {
-				rel = XmlFormatWriter.related + transition.getTarget().getName();
+			baseUri = baseUri + serviceDocument.getPath();
+			String absPath = getAbsolutePath(uriInfo);
+			baseUri = HypermediaTemplateHelper.getTemplatedBaseUri(baseUri, absPath);
+			if (!baseUri.endsWith("/")) {
+				baseUri += "/";
 			}
 		}
-		return rel;
+		return baseUri;
+	}
+	
+	public static String getAbsolutePath(UriInfo uriInfo) {
+		return uriInfo.getBaseUri() + uriInfo.getPath();
+	}
+	
+	private EdmDataServices getEdmDataService() {
+		return metadataOData4j.getMetadata();
+	}
+
+	/*
+	 * get edmEntitySet
+	 */
+	public EdmEntitySet getEdmEntitySet(String entityName) {
+		EdmEntityType entityType = (EdmEntityType) getEdmDataService().findEdmEntityType(entityName);
+		EdmEntitySet entitySet = null;
+		try {
+			entitySet = getEdmDataService().getEdmEntitySet(entityType);
+		} catch (Exception e) {
+			//logger.error("Unable to find entity set for [" +entityName + "]");
+		}
+		if(entitySet == null) {
+			return metadataOData4j.getEdmEntitySet(entityName);
+		}
+		return entitySet;
 	}
 }

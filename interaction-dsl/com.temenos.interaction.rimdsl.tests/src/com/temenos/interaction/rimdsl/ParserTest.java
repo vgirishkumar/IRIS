@@ -22,7 +22,9 @@ package com.temenos.interaction.rimdsl;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URL;
@@ -50,9 +52,13 @@ import com.temenos.interaction.rimdsl.rim.DomainDeclaration;
 import com.temenos.interaction.rimdsl.rim.DomainModel;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction;
 import com.temenos.interaction.rimdsl.rim.OKFunction;
+import com.temenos.interaction.rimdsl.rim.Relation;
+import com.temenos.interaction.rimdsl.rim.RelationConstant;
+import com.temenos.interaction.rimdsl.rim.RelationRef;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 import com.temenos.interaction.rimdsl.rim.State;
 import com.temenos.interaction.rimdsl.rim.Transition;
+import com.temenos.interaction.rimdsl.rim.UriLink;
 
 @InjectWith(RIMDslInjectorProvider.class)
 @RunWith(XtextRunner.class)
@@ -260,6 +266,88 @@ public class ParserTest {
 		assertEquals("B", aState.getTransitions().get(0).getState().getName());
 	}
 
+	private final static String DYNAMIC_TRANSITION_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	GET -> \"Test.B\"" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"resource B {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
+			"";
+
+	@Test
+	public void testParseStatesWithDynamicTransition() throws Exception {
+		DomainModel domainModel = parser.parse(DYNAMIC_TRANSITION_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+		State aState = model.getStates().get(0);
+	    assertEquals("A", aState.getName());
+
+	    // there should one transition from state A to state B
+		assertEquals(1, aState.getTransitions().size());
+		assertEquals(null, aState.getTransitions().get(0).getState());
+		assertEquals("Test.B", aState.getTransitions().get(0).getName());
+	}
+
+	private final static String TRANSITION_WITH_URI_CHARACTERS_PARAMETERS_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	GET -> B {" + LINE_SEP +
+			"		parameters [ filter=\"CustomerCode eq '{Id}'\" ]" + LINE_SEP +
+			"	}" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"resource B {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity {" + LINE_SEP +
+			"		properties [ filter=\"{filter}\" ]" + LINE_SEP +
+			"	}" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
+			"";
+
+	@Test
+	public void testParseStatesWithTransitionUriCharactersParameters() throws Exception {
+		DomainModel domainModel = parser.parse(TRANSITION_WITH_URI_CHARACTERS_PARAMETERS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+		State aState = model.getStates().get(0);
+	    assertEquals("A", aState.getName());
+	    EList<UriLink> uriLinks = aState.getTransitions().get(0).getSpec().getUriLinks();
+	    assertEquals(1, uriLinks.size());
+	    assertEquals("filter", uriLinks.get(0).getTemplateProperty());
+	    assertEquals("CustomerCode eq '{Id}'", uriLinks.get(0).getEntityProperty().getName());
+
+	    // there should one transition from state A to state B
+		assertEquals(1, aState.getTransitions().size());
+		assertEquals("B", aState.getTransitions().get(0).getState().getName());
+	}
+
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" +
 			"rim Test {" + LINE_SEP +
 			"	command GetEntity" + LINE_SEP +
@@ -320,6 +408,42 @@ public class ParserTest {
 
 	}
 
+	private final static String EMBEDDED_TRANSITION_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	GET +-> B" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"resource B {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
+			"";
+
+	@Test
+	public void testParseStatesWithEmbeddedTransition() throws Exception {
+		DomainModel domainModel = parser.parse(EMBEDDED_TRANSITION_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		assertEquals(0, model.eResource().getErrors().size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+		State aState = model.getStates().get(0);
+	    assertEquals("A", aState.getName());
+
+	    // there should one transition from state A to state B
+		assertEquals(1, aState.getTransitions().size());
+		assertEquals("B", aState.getTransitions().get(0).getState().getName());
+	}
+	
 	private final static String EXCEPTION_RESOURCE_RIM = "" +
 			"rim Test {" + LINE_SEP +
 			"	command Noop" + LINE_SEP +
@@ -380,12 +504,62 @@ public class ParserTest {
 		State r1 = model.getStates().get(0);
 	    assertEquals("accTransactions", r1.getName());
 		assertEquals(2, r1.getRelations().size());
-		assertEquals("archives", r1.getRelations().get(0).getName());
-		assertEquals("http://www.temenos.com/statement-entries", r1.getRelations().get(1).getName());
+		assertEquals("archives", ((RelationConstant)r1.getRelations().get(0)).getName());
+		assertEquals("http://www.temenos.com/statement-entries", ((RelationConstant)r1.getRelations().get(1)).getName());
 		State r2 = model.getStates().get(1);
 	    assertEquals("accTransaction", r2.getName());
 		assertEquals(1, r2.getRelations().size());
-		assertEquals("edit", r2.getRelations().get(0).getName());
+		assertEquals("edit", ((RelationConstant)r2.getRelations().get(0)).getName());
+	}
+
+	private final static String GLOBAL_RESOURCE_RELATIONS_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"	command Update" + LINE_SEP +
+			
+			"	relation archiveRel {" + LINE_SEP +
+			"		fqn: \"archive\"" + LINE_SEP +
+			"	}" + LINE_SEP +
+
+			"	relation editRel {" + LINE_SEP +
+			"		fqn: \"edit\"" + LINE_SEP +
+			"		description: \"See 'edit' in http://www.iana.org/assignments/link-relations/link-relations.xhtml\"" + LINE_SEP +
+			"	}" + LINE_SEP +
+
+			"initial resource accTransactions {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"   view: Noop" + LINE_SEP +
+			"   relations [ archiveRel, \"http://www.temenos.com/statement-entries\" ]" + LINE_SEP +
+			"   PUT -> accTransaction" + LINE_SEP +
+			"}\r\n" + LINE_SEP +
+			"resource accTransaction {" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"   actions [ Update ]" + LINE_SEP +
+			"   relations [ editRel ]" + LINE_SEP +
+			"}\r\n" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
+			"";
+
+	@Test
+	public void testParseGlobalResourceRelations() throws Exception {
+		DomainModel domainModel = parser.parse(GLOBAL_RESOURCE_RELATIONS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be two states
+		assertEquals(2, model.getStates().size());
+		State r1 = model.getStates().get(0);
+	    assertEquals("accTransactions", r1.getName());
+		assertEquals(2, r1.getRelations().size());
+		assertEquals("archive", ((Relation) ((RelationRef)r1.getRelations().get(0)).getRelation()).getFqn());
+		assertEquals("http://www.temenos.com/statement-entries", ((RelationConstant)r1.getRelations().get(1)).getName());
+		State r2 = model.getStates().get(1);
+	    assertEquals("accTransaction", r2.getName());
+		assertEquals(1, r2.getRelations().size());
+		assertEquals("edit", ((Relation) ((RelationRef)r2.getRelations().get(0)).getRelation()).getFqn());
 	}
 
 	private final static String RESOURCE_ON_ERROR = "" +
@@ -505,6 +679,7 @@ public class ParserTest {
 			"	         view: NoopGET" + LINE_SEP +
 			"	         GET -> ONE.A" + LINE_SEP +
 			"	         GET -> A" + LINE_SEP +
+			"	         onerror --> ONE.A" + LINE_SEP +
 			"        }" + LINE_SEP +
 			"    }" + LINE_SEP +  // end rim
 			"}" + LINE_SEP +  // end domain
@@ -555,4 +730,89 @@ public class ParserTest {
 	    return actual;
 	}
 	
+	private final static String SIMPLE_PATHS_RIM = "" +
+	"rim Simple {" + LINE_SEP +	
+	"	command GetEntity" + LINE_SEP +
+	"	command UpdateEntity" + LINE_SEP +
+			
+	"initial resource A {" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	path: \"/A()\"" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
+	"}" + LINE_SEP +
+
+	"resource B {" + LINE_SEP +
+	"	type: item" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	path: \"/B('{id}')\"" + LINE_SEP +
+	"	actions [ UpdateEntity ]" + LINE_SEP +
+	"}" + LINE_SEP +
+
+	"initial resource AnotherResource {" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	path: \"/AnotherResource()\"" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
+	"}" + LINE_SEP +
+
+	"}" + LINE_SEP +  // end rim
+	"";
+
+	@Test
+	public void testParseSimplePaths() throws Exception {
+		DomainModel domainModel = parser.parse(SIMPLE_PATHS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be exactly two states
+		assertEquals(3, model.getStates().size());
+	    assertEquals("A", model.getStates().get(0).getName());
+	    assertEquals("B", model.getStates().get(1).getName());
+	    assertEquals("AnotherResource", model.getStates().get(2).getName());
+
+	    // there should be no transitions between these states
+	    State Astate = model.getStates().get(0);
+	    assertEquals("/A()", Astate.getPath().getName());
+	    State Bstate = model.getStates().get(1);
+	    assertEquals("/B('{id}')", Bstate.getPath().getName());
+	    State ANOstate = model.getStates().get(2);
+	    assertEquals("/AnotherResource()", ANOstate.getPath().getName());
+	}
+
+	private final static String BASE_PATHS_RIM = "" +
+	"rim Base {" + LINE_SEP +	
+	"	command GetEntity" + LINE_SEP +
+	"	command UpdateEntity" + LINE_SEP +
+	"	basepath: \"/{companyid}\"" + LINE_SEP +
+			
+	"initial resource A {" + LINE_SEP +
+	"	type: collection" + LINE_SEP +
+	"	entity: ENTITY" + LINE_SEP +
+	"	path: \"/A()\"" + LINE_SEP +
+	"	view: GetEntity" + LINE_SEP +
+	"}" + LINE_SEP +
+
+	"}" + LINE_SEP +  // end rim
+	"";
+
+	@Test
+	public void testParseBasePaths() throws Exception {
+		DomainModel domainModel = parser.parse(BASE_PATHS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be exactly one states
+		assertEquals(1, model.getStates().size());
+	    assertEquals("A", model.getStates().get(0).getName());
+
+	    // company basepath
+	    assertEquals("/{companyid}", model.getBasepath().getName());
+	    // resource path
+	    State Astate = model.getStates().get(0);
+	    assertEquals("/A()", Astate.getPath().getName());
+	}
+
 }

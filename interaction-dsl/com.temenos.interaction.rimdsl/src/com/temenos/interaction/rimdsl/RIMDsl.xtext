@@ -2,7 +2,6 @@ grammar com.temenos.interaction.rimdsl.RIMDsl with org.eclipse.xtext.common.Term
 
 generate rim "http://www.temenos.com/interaction/rimdsl/RimDsl"
 
-
 DomainModel:
     (rims += Ref)*
 ;
@@ -31,9 +30,15 @@ QualifiedNameWithWildcard:
 
 ResourceInteractionModel:
     'rim' name = ID '{'
-        (events += Event)*
-        (commands += Command)*
-        (states += State)*
+    	// elements can appear in any order
+    	(
+	        (events += Event)*
+    	    & (commands += Command)*
+    	    // MAY define a 'basepath:'
+            & (basepath=BasePath)?
+        	& (relations += Relation)*
+        	& (states += State)*
+       	)
     '}'
 ;
 
@@ -44,15 +49,40 @@ Event:
 ;
 
 Command:
-	'command' name=ID ('{' 
+	'command' name=ID (spec=CommandSpec)?
+;
+
+CommandSpec:
+	(
+	'{'
+		// force create of the container object i.e. CommandSpec
+        {CommandSpec}
+        (
         'properties' '[' ((properties+=CommandProperty) (',' properties+=CommandProperty)* ) ']'
-    '}')?
+        )
+    '}'
+    )
 ;
 
 CommandProperty:
-    name=ID '=' (value=ID | value=STRING)
+    name=ID '=' (value=ID | value=DQ_STRING)
 ;
 
+BasePath:
+    'basepath:' name=URISTRING
+;
+
+Relation:
+	'relation' name=ID '{' 
+    	// elements can appear in any order
+    	(
+    		// MUST define 'fqn:'
+	     	'fqn:' fqn=DQ_STRING
+	     	// MAY define 'description:'
+    	 	& ('description:' description=DQ_STRING)?
+     	)
+    '}'	
+;
 State: 
     (isInitial?='initial' | isException?='exception')? 'resource' name=ID '{'
     	// elements can appear in any order
@@ -63,14 +93,14 @@ State:
                 & entity=Entity
                	// MUST define a 'view:' command or 'actions []' commands
                 & impl=ImplRef
-                // MAY define relations [ { fqn: "http://www.temenos.com/rels/input" }, GlobalRelation ]
-                & ('relations' '[' ((relations+=Relation) (',' relations+=Relation)* ) ']')?
+                // MAY define relations [ "http://www.temenos.com/rels/input" , GloballyDefinedRelation ]
+                & ('relations' '[' ((relations+=RelationRef) (',' relations+=RelationRef)* ) ']')?
                 // MAY define a 'path:'
                 & path=Path?
                 // MAY define one or more transitions
                 & transitions+=TransitionRef*
                 // MAY define an onerror transition
-                & ('onerror' '-->' errorState=[State])?
+                & ('onerror' '-->' errorState=[State|QualifiedName])?
     	)
     '}'
 ;
@@ -87,22 +117,32 @@ ImplRef:
 
 // Order of transitions should be non deterministic
 TransitionRef:
-    Transition | TransitionForEach | TransitionAuto
+    Transition | TransitionForEach | TransitionAuto | TransitionRedirect | TransitionEmbedded
 ;
 
 // create regular transitions
 Transition:
-    event=[Event] '->' state=[State|QualifiedName] (spec=TransitionSpec)?
+    event=[Event] '->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create foreach transitions
 TransitionForEach:
-    event=[Event] '*->' state=[State|QualifiedName] (spec=TransitionSpec)?
+    event=[Event] '*->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create AUTO transitions
 TransitionAuto:
-    event=[Event] '-->' state=[State|QualifiedName] (spec=TransitionSpec)?
+    event=[Event] '-->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
+;
+
+// create REDIRECT transitions
+TransitionRedirect:
+    event=[Event] '->>' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
+;
+
+// create embedded transitions
+TransitionEmbedded:
+    event=[Event] '+->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 TransitionSpec:
@@ -117,6 +157,8 @@ TransitionSpec:
                 & ('parameters' '[' ((uriLinks+=UriLink) (',' uriLinks+=UriLink)* ) ']')?
                 // MAY define a 'title:'
                 & title=Title?
+                // MAY define a 'id:'
+                & id=TransitionID?
         )
     '}'
     )
@@ -136,14 +178,18 @@ Function_NOT_FOUND:
     {NotFoundFunction} 'NOT_FOUND' '(' state=[State] ')'
 ;
 
-Relation:
-    name=STRING    
+RelationRef:
+    relation=[Relation] | RelationConstant 
 ;
+
+RelationConstant:
+    name=DQ_STRING    
+;
+
 
 Path:
-    'path:' name=STRING
+    'path:' name=URISTRING
 ;
-
 
 ResourceType:
     'type:' ((isCollection?='collection') | (isItem?='item'))
@@ -164,9 +210,52 @@ UriLink:
 ;
 
 UriLinkage:
-	{UriLinkage} name=STRING 
+	{UriLinkage} name=URIPARAM 
 ;
 
 Title:
-    'title:' name=STRING    
+    'title:' name=DQ_STRING    
 ;
+
+TransitionID:
+    'id:' name=DQ_STRING    
+;
+
+terminal URISTRING	: 
+	'"'
+	('/'
+        (
+            'a'..'z'|'A'..'Z'|
+            '0'..'9'|
+            '$'|
+            '-'|
+            '_'|
+            '~'|
+            '+'|
+            '.'|
+            "'" |
+            '('|')'|
+            '{'|'}'|   // with uri template
+            (
+                '\\'
+                ('0'..'9'|'a'..'f'|'A'..'F')
+                ('0'..'9'|'a'..'f'|'A'..'F')
+            ) |
+            (
+                '%'
+                ('0'..'9')
+                ('0'..'9')
+            )
+        )*
+    )*
+    '"'
+;
+
+URIPARAM : DQ_STRING;
+// almost the same as STRING, but only accepts a string defined by a double quote
+terminal DQ_STRING	: 
+			'"' ( '\\' ('b'|'t'|'n'|'f'|'r'|"'"|'u'|'\\')
+				| !('\\'|'"')
+			)* '"'
+		; 
+

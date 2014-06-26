@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.temenos.interaction</groupId>
 		<artifactId>interaction-parent</artifactId>
-		<version>0.4.0-SNAPSHOT</version>
+		<version>0.5.0-SNAPSHOT</version>
 		<relativePath>../interaction-parent/pom.xml</relativePath>
 	</parent>
 
@@ -63,7 +63,7 @@
             <groupId>org.odata4j</groupId>
             <artifactId>odata4j-core</artifactId>
         </dependency>
-        <!-- OData Extension (adds metadata and collecion support) -->
+        <!-- OData Extension (adds metadata and collection support) -->
         <dependency>
             <groupId>com.temenos.interaction</groupId>
             <artifactId>interaction-odata4j-ext</artifactId>
@@ -85,6 +85,13 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
+
+ 		<!-- TEST DEPENDENCIES -->
+        <dependency>
+            <groupId>org.apache.wink</groupId>
+            <artifactId>wink-common</artifactId>
+			<scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

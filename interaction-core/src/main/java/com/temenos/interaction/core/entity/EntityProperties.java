@@ -28,8 +28,9 @@ import java.util.Map;
 /**
  * This class represents an unordered map of entity properties 
  */
-public class EntityProperties  {
+public class EntityProperties implements EntityTreeNode {
 	
+	private EntityTreeNode parent;
 	private Map<String, EntityProperty> properties = new HashMap<String, EntityProperty>();
 
 	/**
@@ -54,6 +55,7 @@ public class EntityProperties  {
 	 * @param property Entity property
 	 */
 	public void setProperty(EntityProperty property) {
+		property.setParent(this);
 		properties.put(property.getName(), property);
 	}
 	
@@ -69,5 +71,18 @@ public class EntityProperties  {
 			str.append(prop + " = " + properties.get(prop));
 		}
 		return str.toString();
+	}
+
+	@Override
+	public String getFullyQualifiedName() {
+		if (parent != null) {
+			return parent.getFullyQualifiedName(); 
+		}
+		return "";
+	}
+
+	@Override
+	public void setParent(EntityTreeNode parent) {
+		this.parent = parent;
 	}
 }

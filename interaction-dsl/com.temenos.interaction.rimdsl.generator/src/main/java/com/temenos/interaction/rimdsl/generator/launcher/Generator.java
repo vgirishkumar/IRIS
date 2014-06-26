@@ -55,15 +55,24 @@ public class Generator {
 	private IGenerator generator;
 	@Inject
 	private JavaIoFileSystemAccess fileAccess;
+	
+	private ValidatorEventListener listener = new ValidatorEventListener() {		
+		public void notify(String msg) {
+			System.err.println(msg);
+		}
+	};
 
 	public boolean runGeneratorDir(String inputDirPath, String outputPath) {
 		List<String> files = getFiles(inputDirPath, ".rim");
 		for (String modelPath : files) {
 			resourceSet.getResources().add(resourceSet.getResource(URI.createFileURI(modelPath), true));
 		}
-		boolean result = false;
+		boolean result = true;
 		for (String modelPath : files) {
-			result = runGenerator(modelPath, outputPath);
+			boolean fileResult = runGenerator(modelPath, outputPath);
+			if (!fileResult) {
+				result = fileResult;
+			}
 		}
 		return result;
 	}
@@ -90,14 +99,11 @@ public class Generator {
 	private void getFilesRecursively(String path, ArrayList<String> result, String extension) {
 		File file = new File(path);
 		if (file.isDirectory()) {
-//			if (!file.getName().equals(".svn")) {
-				String[] contents = file.list();
-				for (String sub : contents) {
-					getFilesRecursively(path+File.separator+sub, result, extension);
-				}
-//			}
-		}
-		else {
+			String[] contents = file.list();
+			for (String sub : contents) {
+				getFilesRecursively(path + File.separator + sub, result, extension);
+			}
+		} else {
 			if (file.getName().endsWith(extension))
 				result.add(file.getAbsolutePath());
 		}
@@ -112,9 +118,10 @@ public class Generator {
 		// validate the resource
 		List<Issue> list = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl);
 		if (!list.isEmpty()) {
-			for (Issue issue : list) {
-				System.err.println(issue);
+			for (Issue issue : list) {								
+				listener.notify(issue.toString());
 			}
+			
 			return false;
 		}
 
@@ -124,4 +131,10 @@ public class Generator {
 		
 		return true;
 	}
+	
+	public void setValidatorEventListener(ValidatorEventListener listener) {
+		if(listener != null) {
+			this.listener = listener;
+		}
+	}	
 }

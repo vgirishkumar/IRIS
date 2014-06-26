@@ -34,7 +34,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
 
@@ -42,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandFailureException;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -52,6 +53,10 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
+import com.temenos.interaction.core.rim.ResourceRequestConfig;
+import com.temenos.interaction.core.rim.ResourceRequestHandler;
+import com.temenos.interaction.core.rim.ResourceRequestResult;
 import com.temenos.interaction.core.web.RequestContext;
 import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand;
 
@@ -64,8 +69,6 @@ import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand
 public class ResourceStateMachine {
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
 	
-	public static Pattern TEMPLATE_PATTERN = Pattern.compile("\\{(.*?)\\}");
-
 	public final ResourceState initial;
 	public final ResourceState exception;
 	public final Transformer transformer;
@@ -73,6 +76,7 @@ public class ResourceStateMachine {
 	
 	// optimised access
 	private Map<String,Transition> transitionsById = new HashMap<String,Transition>();
+	private Map<String,Transition> transitionsByRel = new HashMap<String,Transition>();
 	private List<ResourceState> allStates = new ArrayList<ResourceState>();
 	private Map<String, Set<String>> interactionsByPath = new HashMap<String, Set<String>>();
 	private Map<ResourceState, Set<String>> interactionsByState = new HashMap<ResourceState, Set<String>>();
@@ -100,22 +104,31 @@ public class ResourceStateMachine {
 		List<Action> actions = new ArrayList<Action>();
 		Set<ResourceState> resourceStates = getResourceStatesByPath().get(resourcePath);
 		for (ResourceState s : resourceStates) {
-			Set<String> interactions = getInteractionByState().get(s);
-			// TODO turn interactions into Events
-			if (interactions.contains(event.getMethod())) {
-				for (Action a : s.getActions()) {
-					if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
-						// catch problem if overriding existing view actions 
-//						assert(actions.size() == 0) : "Multiple view actions detected";
-						if (actions.size() == 0)
-							actions.add(a);
-					} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
+			actions.addAll(determineActions(event, s));
+		}
+		return buildWorkflow(actions);
+	}
+	
+	public List<Action> determineActions(Event event, ResourceState state) {
+		List<Action> actions = new ArrayList<Action>();
+		Set<String> interactions = getInteractionByState().get(state);
+		// TODO turn interactions into Events
+		if (interactions.contains(event.getMethod())) {
+			for (Action a : state.getActions()) {
+				if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
+					// catch problem if overriding existing view actions 
+//					assert(actions.size() == 0) : "Multiple view actions detected";
+					if (actions.size() == 0)
 						actions.add(a);
-					}
+				} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
+					actions.add(a);
 				}
 			}
 		}
-		
+		return actions;
+	}
+	
+	public InteractionCommand buildWorkflow(List<Action> actions) {
 		if (actions.size() > 0) {
 			AbortOnErrorWorkflowStrategyCommand workflow = new AbortOnErrorWorkflowStrategyCommand();
 			for (Action action : actions) {
@@ -130,11 +143,16 @@ public class ResourceStateMachine {
 	public ResourceState determineState(Event event, String resourcePath) {
 		ResourceState state = null;
 		Set<ResourceState> resourceStates = getResourceStatesByPath().get(resourcePath);
-		for (ResourceState s : resourceStates) {
-			Set<String> interactions = getInteractionByState().get(s);
-			if (interactions.contains(event.getMethod())) {
-				if(state == null || interactions.size() == 1 || !event.getMethod().equals("GET")) {		//Avoid overriding existing view actions
-					state = s;
+		if (resourceStates != null) {
+			for (ResourceState s : resourceStates) {
+				Set<String> interactions = getInteractionByState().get(s);
+				if (interactions.contains(event.getMethod())) {
+					if(state == null || interactions.size() == 1 || !event.getMethod().equals("GET")) {		//Avoid overriding existing view actions
+						if (state != null && state.getViewAction() != null) {
+							logger.error("Multiple matching resource states for ["+event+"] event on ["+resourcePath+"], ["+state+"] and ["+s+"]");
+						}
+						state = s;
+					}
 				}
 			}
 		}
@@ -154,7 +172,8 @@ public class ResourceStateMachine {
 	
 	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
-		assert(initialState != null);
+		if (initialState == null) throw new RuntimeException("Initial state must be supplied");
+		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
 		assert(exceptionState == null || exceptionState.isException());
 		this.initial = initialState;
 		this.initial.setInitial(true);
@@ -166,6 +185,7 @@ public class ResourceStateMachine {
 	private void build() {
 		collectStates(allStates, initial);
 		collectTransitionsById(transitionsById);
+		collectTransitionsByRel(transitionsByRel);
 		collectInteractionsByPath(interactionsByPath);
 		collectInteractionsByState(interactionsByState);
 		collectResourceStatesByPath(resourceStatesByPath);
@@ -208,7 +228,17 @@ public class ResourceStateMachine {
 			}
 		}
 	}
-	
+
+	private void collectTransitionsByRel(Map<String,Transition> transitions) {
+		for (ResourceState s : getStates()) {
+			for (ResourceState target : s.getAllTargets()) {
+				for(Transition transition : s.getTransitions(target)) {
+					transitions.put(transition.getTarget().getRel(), transition);
+				}
+			}
+		}
+	}
+
 	/**
 	 * Return a map of all the paths, and interactions with those states
 	 * mapped to that path
@@ -468,19 +498,29 @@ public class ResourceStateMachine {
 
 	/**
 	 * Evaluate and return all the valid links (target states) from this resource state.
-	 * @param pathParameters
+	 * @param rimHandler
+	 * @param ctx
 	 * @param resourceEntity
-	 * @param state
-	 * @param autoTransition if we using an auto transition from another resource
-	 * 						 we need to use the transition parameters as there are no
-	 * 						 path parameters available - we've not made a request for
-	 * 						 this resource through the whole jax-rs stack
 	 * @return
 	 */
-	public Collection<Link> injectLinks(InteractionContext ctx, RESTResource resourceEntity) {
-		return injectLinks(ctx, resourceEntity, null);
+	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHandler, InteractionContext ctx, RESTResource resourceEntity) {
+		return injectLinks(rimHandler, ctx, resourceEntity, null);
 	}
-	public Collection<Link> injectLinks(InteractionContext ctx, RESTResource resourceEntity, Transition autoTransition) {
+	/**
+	 * Evaluate and return all the valid links (target states) from the current
+	 * resource state (@see {@link InteractionContext#getCurrentState()}).
+	 * @param rimHandler
+	 * @param ctx
+	 * @param resourceEntity
+	 * @param selfTransition if we are injecting links into a resource that has resulted
+	 *                       from a transition from another resource (e.g an auto transition
+	 *                       or an embedded transition) then we need to use the transition 
+	 *                       parameters as there are no path parameters available.
+	 *                       i.e. because we've not made a request for this resource 
+	 *                       through the whole jax-rs stack
+	 * @return
+	 */
+	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHander, InteractionContext ctx, RESTResource resourceEntity, Transition selfTransition) {
 		//Add path and query parameters to the list of resource properties
 		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
 		resourceProperties.putAll(ctx.getPathParameters());
@@ -508,52 +548,104 @@ public class ResourceStateMachine {
 		}
 		
 		// add link to GET 'self'
-		links.add(createSelfLink(state.getSelfTransition(), entity, resourceProperties, autoTransition));
+		if (selfTransition == null)
+			selfTransition = state.getSelfTransition();
+		links.add(createSelfLink(selfTransition, entity, resourceProperties));
 
 		/*
 		 * Add links to other application states (resources)
 		 */
-		Collection<ResourceState> targetStates = state.getAllTargets();
-		for (ResourceState s : targetStates) {
-			List<Transition> transitions = state.getTransitions(s);
-			for(Transition transition : transitions) {
-				TransitionCommandSpec cs = transition.getCommand();
-				/* 
-				 * build link and add to list of links
-				 */
-				if (cs.isForEach()) {
-					if (collectionResource != null) {
-						for (EntityResource<?> er : collectionResource.getEntities()) {
-							Collection<Link> eLinks = er.getLinks();
-							if (eLinks == null) {
-								eLinks = new ArrayList<Link>();
-							}
-							eLinks.add(createLink(transition, er.getEntity(), resourceProperties));
-							er.setLinks(eLinks);
+		List<Transition> transitions = state.getTransitions();
+		for(Transition transition : transitions) {
+			TransitionCommandSpec cs = transition.getCommand();
+			/* 
+			 * build link and add to list of links
+			 */
+			if (cs.isForEach()) {
+				if (collectionResource != null) {
+					for (EntityResource<?> er : collectionResource.getEntities()) {
+						Collection<Link> eLinks = er.getLinks();
+						if (eLinks == null) {
+							eLinks = new ArrayList<Link>();
 						}
+						eLinks.add(createLink(transition, er.getEntity(), resourceProperties));
+						er.setLinks(eLinks);
 					}
-				} else {
-					boolean addLink = true;
+				}
+			} else {
+				boolean addLink = true;
+				// evaluate the conditional expression
+				Expression conditionalExp = cs.getEvaluation();
+				if (conditionalExp != null) {
+					addLink = conditionalExp.evaluate(rimHander, ctx);
+				}
 					
-					//Obtain transition properties (to reuse for expression evaluation and link creation)
-//					Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, resourceProperties);
-//					ctx.setAttribute(TRANSITION_PROPERTIES_CTX_ATTRIBUTE, transitionProperties);
-					
-					// evaluate the conditional expression
-					Expression conditionalExp = cs.getEvaluation();
-					if (conditionalExp != null) {
-						addLink = conditionalExp.evaluate(this, ctx);
-					}
-						
-					if (addLink) {
-						links.add(createLink(transition, entity, resourceProperties));
-					}
+				if (addLink) {
+					links.add(createLink(transition, entity, resourceProperties));
 				}
 			}
 		}
 		resourceEntity.setLinks(links);
 		return links;
 	}
+
+	/**
+	 * Execute and return all the valid embedded links (target states) from the supplied
+	 * resource.  Should be identical to {@link InteractionContext#getResource()}.
+	 * @param rimHandler
+	 * @param headers
+	 * @param ctx
+	 * @param resource
+	 * @return
+	 */
+    public Map<Transition, RESTResource> embedResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, InteractionContext ctx, RESTResource resource) {
+		ResourceRequestHandler resourceRequestHandler = rimHandler.getResourceRequestHandler();
+		assert(resourceRequestHandler != null);
+    	try {
+			ResourceRequestConfig.Builder configBuilder = new ResourceRequestConfig.Builder();
+			Collection<Link> links = resource.getLinks();
+			if (links != null) {
+				for (Link link : links) {
+					Transition t = link.getTransition();
+					/*
+					 * when embedding resources we don't want to embed ourselves
+					 * we only want to embed the 'EMBEDDED' transitions
+					 */
+					if (!t.getSource().equals(t.getTarget()) &&
+							(t.getCommand().getFlags() & Transition.EMBEDDED) == Transition.EMBEDDED) {
+						configBuilder.transition(t);
+					}
+				}
+			}
+
+			ResourceRequestConfig config = configBuilder.build();
+			Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(rimHandler, headers, ctx, null, config);
+			if(config.getTransitions() != null && config.getTransitions().size() > 0
+					&& config.getTransitions().size() != results.keySet().size()) {
+				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state [" + ctx.getCurrentState().getId() + "] did not return correct number of embedded resources.");
+			}
+			// don't replace any embedded resources added within the commands
+			Map<Transition, RESTResource> resourceResults = null;
+			if (ctx.getResource() != null && ctx.getResource().getEmbedded() != null) {
+				resourceResults = ctx.getResource().getEmbedded();
+			} else {
+				resourceResults = new HashMap<Transition, RESTResource>();
+			}
+			for (Transition transition : results.keySet()) {
+				ResourceRequestResult result = results.get(transition);
+				if (result.getStatus() != Status.OK.getStatusCode()) {
+					logger.error("Failed to embed resource for transition [" + transition.getId() + "]");
+				} else {
+					resourceResults.put(transition, result.getResource());
+				}
+			}
+			resource.setEmbedded(resourceResults);
+			return resourceResults;
+		} catch(InteractionException ie) {
+			logger.error("Failed to embed resources [" + ctx.getCurrentState().getId() + "] with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
+			throw new RuntimeException(ie);
+		}
+    }
 
 	/**
 	 * Find the transition that was used by evaluating the LinkHeader and 
@@ -571,7 +663,7 @@ public class ResourceStateMachine {
 			for (String related : relationships) {
 				Transition transition = getTransitionsById().get(related);
 				if (transition != null) {
-					target = createLinkToTarget(transition, resourceEntity, pathParameters);
+					target = createLink(transition, resourceEntity, pathParameters);
 				}
 			}
 		}
@@ -581,7 +673,11 @@ public class ResourceStateMachine {
 	public Map<String,Transition> getTransitionsById() {
 		return transitionsById;
 	}
-	
+
+	public Map<String,Transition> getTransitionsByRel() {
+		return transitionsByRel;
+	}
+
 	/**
 	 * Find the transition that was used by assuming the HTTP method was
 	 * applied to this state; create a a Link for that transition.
@@ -600,27 +696,18 @@ public class ResourceStateMachine {
 			if (method.contains(transition.getCommand().getMethod())) {
 				// do not create link if this a pseudo state, effectively no state
 				if (!transition.getTarget().isPseudoState())
-					target = createLinkToTarget(transition, resourceEntity, pathParameters);
+					target = createLink(transition, resourceEntity, pathParameters);
 			}
 		}
 		return target;
 	}
 
 	/*
-	 * @invariant {@link RequestContext} must have been initialised
-	 */
-	public Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
-		return createLink(transition, entity, pathParameters);
-	}
-
-	/*
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
-	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters, Transition autoTransition) {
-		if (autoTransition != null)
-			transition = autoTransition;
+	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, pathParameters);
+		return createLink(cs.getPath(), transition, entity, pathParameters, null, false);
 	}
 
 	/*
@@ -631,13 +718,20 @@ public class ResourceStateMachine {
 	 * @param map path parameters
 	 * @return link
 	 */
-	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> map) {
-		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, map);
+	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters) {
+		return createLink(transition, entity, transitionParameters, null);
 	}
-	private Link createLink(String resourcePath, Transition transition, Object entity, MultivaluedMap<String, String> map) {
-		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, map);
-		return createLink(resourcePath, transition, transitionProperties, entity);
+	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters) {
+		TransitionCommandSpec cs = transition.getCommand();
+		return createLink(cs.getPath(), transition, entity, transitionParameters, queryParameters, false);
+	}
+	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
+		TransitionCommandSpec cs = transition.getCommand();
+		return createLink(cs.getPath(), transition, entity, transitionParameters, queryParameters, allQueryParameters);
+	}
+	private Link createLink(String resourcePath, Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
+		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, transitionParameters, queryParameters);
+		return createLink(resourcePath, transition, transitionProperties, entity, queryParameters, allQueryParameters);
 	}
 
 	/*
@@ -651,11 +745,10 @@ public class ResourceStateMachine {
 	 * @return link
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
-	private Link createLink(String resourcePath, Transition transition, Map<String, Object> transitionProperties, Object entity) {
+	private Link createLink(String resourcePath, Transition transition, Map<String, Object> transitionProperties, Object entity, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
 		assert(RequestContext.getRequestContext() != null);
 		TransitionCommandSpec cs = transition.getCommand();
-		UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath())
-				.path(resourcePath);
+		UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
 		try {
 			String rel = transition.getTarget().getRel();
 			if (transition.getSource().equals(transition.getTarget())) {
@@ -663,9 +756,26 @@ public class ResourceStateMachine {
 			}
 			String method = cs.getMethod();
 
-			//Add template elements in linkage properties e.g. filter=fld eq {code} as query parameters
-			Map<String, String> linkParameters = transition.getCommand().getUriParameters();
-			setQueryParameters(linkTemplate, linkParameters, transitionProperties, resourcePath);
+			// Pass uri parameters as query parameters if they are not replaceable in the path, and replace any token.
+			Map<String, String> uriParameters = transition.getCommand().getUriParameters();
+			if (uriParameters != null) {
+				for(String key : uriParameters.keySet()) {
+					String value = uriParameters.get(key);
+					if (!resourcePath.contains("{"+key+"}")) {
+						linkTemplate.queryParam(key, HypermediaTemplateHelper.templateReplace(value, transitionProperties));
+					}
+				}
+			}
+			linkTemplate.path(resourcePath);
+			
+			// Pass any query parameters
+			if (queryParameters != null && allQueryParameters) {
+				for (String param : queryParameters.keySet()) {
+					if (!resourcePath.contains("{"+param+"}") && (uriParameters == null || !uriParameters.containsKey(param))) {
+						linkTemplate.queryParam(param, queryParameters.getFirst(param));
+					}
+				}
+			}
 			
 			//Build href from template
 			URI href;
@@ -692,15 +802,23 @@ public class ResourceStateMachine {
 	
 	/**
 	 * Obtain transition properties.
-	 * Transition properties are a list of path parameters,
-	 * linkage properties and entity properties.
+	 * Transition properties are a list of entity properties, path parameters,
+	 * and query parameters.
 	 * @param transition transition
 	 * @param entity usually an entity of the source state
 	 * @param pathParameters path parameters
+	 * @param pathParameters path parameters
 	 * @return map of transition properties
 	 */
-	public Map<String, Object> getTransitionProperties(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
+	public Map<String, Object> getTransitionProperties(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters) {
 		Map<String, Object> transitionProps = new HashMap<String, Object>();
+
+		//Obtain query parameters
+		if (queryParameters != null) {
+			for (String key : queryParameters.keySet()) {
+				transitionProps.put(key, queryParameters.getFirst(key));
+			}
+		}
 
 		//Obtain path parameters
 		if (pathParameters != null) {
@@ -724,136 +842,16 @@ public class ResourceStateMachine {
 		if (linkParameters != null) {
 			for (String key : linkParameters.keySet()) {
 				String value = linkParameters.get(key);
-				value = templateReplace(value, transitionProps);
+				value = HypermediaTemplateHelper.templateReplace(value, transitionProps);
 				transitionProps.put(key, value);
 			}
 		}
 		
 		return transitionProps;
 	}
-
-	/**
-	 * Provide path parameters for a transition's target state.
-	 * @param transition transition
-	 * @param transitionProperties transition properties 
-	 * @return path parameters
-	 */
-	public MultivaluedMap<String, String> getPathParametersForTargetState(Transition transition, Map<String, Object> transitionProperties) {
-		//Parse source and target parameters from the transition's 'path' and 'originalPath' attributes respectively
-    	MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
-		TransitionCommandSpec cs = transition.getCommand();
-		String resourcePath = cs.getPath();
-		String[] sourceParameters = getPathTemplateParameters(resourcePath);
-		String[] targetParameters = getPathTemplateParameters(cs.getPath());
-		
-		//Apply transition properties to parameters
-		for(int i=0; i < sourceParameters.length; i++) {
-			Object paramValue = transitionProperties.get(sourceParameters[i]);
-			if(paramValue != null) {
-				pathParameters.putSingle(targetParameters[i], paramValue.toString());
-			}
-		}
-		return pathParameters;
-	}
-	
-	/*
-	 * Returns the list of parameters contained inside
-	 * a URI template. 
-	 */
-	public static String[] getPathTemplateParameters(String pathTemplate) {
-		List<String> params = new ArrayList<String>();
-		Matcher m = TEMPLATE_PATTERN.matcher(pathTemplate);
-		while(m.find()) {
-			params.add(m.group(1));
-		}
-		return params.toArray(new String[0]);
-	}
-	
-	/**
-	 * Set template elements in link properties as query parameters.
-	 * e.g. filter=fld eq {code} => ?code=123
-	 * e.g. filter=fld eq {code}, code="mycode" => ?mycode=123
-	 * @param linkTemplate URI builder
-	 * @param linkParameters link properties
-	 * @param properties entity and link properties
-	 * @param targetStatePath Resource path of target state
-	 */
-	protected void setQueryParameters(UriBuilder linkTemplate, Map<String, String> linkParameters, Map<String, Object> properties, String targetStatePath) {
-		if (linkParameters != null) {
-			for(String key : linkParameters.keySet()) {
-				String value = linkParameters.get(key);
-				if (targetStatePath.contains("{"+key+"}")) {
-					value = templateReplace(value, properties);
-				} else {
-					linkTemplate.queryParam(key, value);
-				}
-			}
-		}
-	}
-
-	private String templateReplace(String template, Map<String, Object> properties) {
-		String result = template;
-		if (template != null && template.contains("{") && template.contains("}")) {
-			Matcher m = TEMPLATE_PATTERN.matcher(template);
-			while(m.find()) {
-				String param = m.group(1);
-				if (properties.containsKey(param)) {
-					// replace template tokens
-					result = template.replaceAll("\\{" + param + "\\}", properties.get(param).toString());
-				}
-			}
-		}
-		return result;
-	}
 	
 	public InteractionCommand determinAction(String event, String path) {
 		return null;
 	}
 
-	/**
-	 * Get a resource.
-	 * The resource will have links.
-	 * This method will invoke the view command on the specified resource state to obtain a resource.
-	 * This operation does not modify the existing interaction context.
-	 * @param state resource state
-	 * @param ctx interaction context
-	 * @param withLinks if true, inject links into resource
-	 * @throws InteractionException
-	 * @return resource
-	 */
-    public RESTResource getResource(ResourceState state, InteractionContext ctx) throws InteractionException, CommandFailureException {
-    	return this.getResource(state, ctx, true);
-    }
-    
-	/**
-	 * Get a resource.
-	 * This method will invoke the view command on the specified resource state to obtain a resource.
-	 * This operation does not modify the existing interaction context.
-	 * @param state resource state
-	 * @param ctx interaction context
-	 * @param withLinks if true, inject links into resource
-	 * @throws InteractionException
-	 * @return resource
-	 */
-    public RESTResource getResource(ResourceState state, InteractionContext ctx, boolean withLinks) throws InteractionException, CommandFailureException {
-    	//Execute the view command on the specified resource state
-		Action action = state.getViewAction();
-		assert(action != null) : "Resource state [" + state.getId() + "] does not have a view action.";
-		InteractionCommand command = getCommandController().fetchCommand(action.getName());
-		assert(command != null) : "Command not bound";
-    	InteractionContext newCtx = new InteractionContext(ctx, null, null, state);
-		InteractionCommand.Result result = command.execute(newCtx);
-		RESTResource resource = newCtx.getResource();
-		if(resource != null) {
-			resource.setEntityName(newCtx.getCurrentState().getEntityName());
-			if(withLinks) {
-				//Inject links to other resources
-				injectLinks(newCtx, resource, null);
-			}
-		}
-		if(result != InteractionCommand.Result.SUCCESS) {
-			throw new CommandFailureException(result, resource, "View command on resource state [" + newCtx.getCurrentState().getId() + "] has failed.");
-		}
-		return resource;
-    }	
 }

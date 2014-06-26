@@ -27,7 +27,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntityQueryInfo;
@@ -41,16 +40,17 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class GETEntityCommand extends AbstractODataCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(GETEntityCommand.class);
 
-	private ODataProducer producer;
-	private EdmDataServices edmDataServices;
-
 	public GETEntityCommand(ODataProducer producer) {
-		this.producer = producer;
-		this.edmDataServices = producer.getMetadata();
+		super(producer);
+	}
+	
+	public GETEntityCommand(MetadataOData4j metadataOData4j, ODataProducer producer) {
+		super(metadataOData4j, producer);
 	}
 	
 	protected ODataProducer getProducer() {
@@ -65,18 +65,17 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 		assert(ctx.getCurrentState() != null);
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
 		
-		// auto transition
-		if (ctx.getResource() != null && ctx.getResource().getEntityName().equals(ctx.getCurrentState().getEntityName())) {
-			return Result.SUCCESS;
-		}
 		String entityName = getEntityName(ctx);
 		logger.debug("Getting entity for " + entityName);
 		try {
-			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);
+			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, getEdmMetadata());
+			if(entitySet == null) {
+				entitySet = getEdmEntitySet(entityName);
+			}
 			String entitySetName = entitySet.getName();
 
 			//Create entity key (simple types only)
-			OEntityKey key = CommandHelper.createEntityKey(edmDataServices, entitySetName, ctx.getId());
+			OEntityKey key = CommandHelper.createEntityKey(getEdmMetadata(), entitySetName, ctx.getId());
 			
 			//Get the entity
 			EntityResponse er = getProducer().getEntity(entitySetName, key, getEntityQueryInfo(ctx));

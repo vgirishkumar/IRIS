@@ -50,7 +50,7 @@ public abstract class AbstractSolrCommand {
 				properties.setProperty(new EntityProperty(propName, doc.getFirstValue(propName)));
 			}
 			Entity entity = new Entity(entityName, properties);
-			results.add(new EntityResource<Entity>(entity));
+			results.add(new EntityResource<Entity>(entityName, entity));
 		}
 		return new CollectionResource<Entity>(results) {};
 	}
@@ -62,7 +62,7 @@ public abstract class AbstractSolrCommand {
 			EntityProperties properties = new EntityProperties();
 			properties.setProperty(new EntityProperty(termName, t.getTerm()));
 			Entity entity = new Entity(entityName, properties);
-			results.add(new EntityResource<Entity>(entity));
+			results.add(new EntityResource<Entity>(entityName, entity));
 		}
 		return new CollectionResource<Entity>(results) {};
 	}

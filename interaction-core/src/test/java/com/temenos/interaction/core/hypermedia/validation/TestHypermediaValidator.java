@@ -42,6 +42,7 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
+import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 
 public class TestHypermediaValidator {
 
@@ -52,8 +53,8 @@ public class TestHypermediaValidator {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
-		begin.addTransition("PUT", exists);		
-		exists.addTransition("DELETE", end);
+		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());		
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		Set<ResourceState> states = new HashSet<ResourceState>();
 		states.add(begin);
@@ -74,8 +75,8 @@ public class TestHypermediaValidator {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
 	
-		begin.addTransition("PUT", exists);		
-		exists.addTransition("DELETE", end);
+		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());		
+		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
 		
 		ResourceState unreachableState = new ResourceState(ENTITY_NAME, "unreachable", new ArrayList<Action>(), "/unreachable");
 		Set<ResourceState> states = new HashSet<ResourceState>();
@@ -119,7 +120,7 @@ public class TestHypermediaValidator {
 		ResourceState exception = new ResourceState("EXCEPTION", "exception", new ArrayList<Action>(), "/");
 		exception.setException(true);
 	
-		initial.addTransition("PUT", exists);
+		initial.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial, exception, null);
 		Metadata metadata = new Metadata("");
@@ -145,8 +146,8 @@ public class TestHypermediaValidator {
 		ResourceState other = new ResourceState(ENTITY_NAME, "other", new ArrayList<Action>(), "/entities/{id}");
 	
 		List<Expression> expressions = new ArrayList<Expression>();
-		expressions.add(new ResourceGETExpression("other", ResourceGETExpression.Function.OK));
-		initial.addTransition("PUT", other, expressions);
+		expressions.add(new ResourceGETExpression(other, ResourceGETExpression.Function.OK));
+		initial.addTransition(new Transition.Builder().method("PUT").target(other).evaluation(new SimpleLogicalExpressionEvaluator(expressions)).build());
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		Metadata metadata = new Metadata("");
@@ -172,9 +173,9 @@ public class TestHypermediaValidator {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "/entities/{id}");
 		ResourceState deleted = new ResourceState(ENTITY_NAME, "deleted", new ArrayList<Action>(), "/entities/{id}");
 	
-		initial.addTransition("PUT", exists);
+		initial.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 		// a transition to a final state will result in 204 (No Content) at runtime
-		exists.addTransition("DELETE", deleted);
+		exists.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		Metadata metadata = new Metadata("");
@@ -200,11 +201,11 @@ public class TestHypermediaValidator {
 		ResourceState exists = new ResourceState(initial, "exists", new ArrayList<Action>(), "/{id}");
 		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>(), "/{id}");
 	
-		initial.addTransitionForEachItem("GET", exists, null);		
+		initial.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(exists).build());		
 		// add an auto transition from deleted state to a different state
-		deleted.addTransition(initial);
+		deleted.addTransition(new Transition.Builder().flags(Transition.AUTO).target(initial).build());
 		// 205, as the auto transition is to the same state we expect to see a 205 (Reset Content) at runtime
-		initial.addTransitionForEachItem("DELETE", deleted, null, Transition.FOR_EACH);
+		initial.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("DELETE").target(deleted).build());
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		Metadata metadata = new Metadata("");
@@ -230,11 +231,11 @@ public class TestHypermediaValidator {
 		ResourceState exists = new ResourceState(initial, "exists", new ArrayList<Action>(), "/{id}");
 		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>(), "/{id}");
 	
-		initial.addTransitionForEachItem("GET", exists, null);
+		initial.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(exists).build());
 		// add an auto transition from deleted state to a different state
-		deleted.addTransition(initial);
+		deleted.addTransition(new Transition.Builder().flags(Transition.AUTO).target(initial).build());
 		// 303, as the auto transition is to a different state we expect to see a 303 (Redirect) at runtime
-		exists.addTransition("DELETE", deleted);
+		exists.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
 		
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		Metadata metadata = new Metadata("");
@@ -253,8 +254,8 @@ public class TestHypermediaValidator {
 				"    CRUD_ENTITYdeleted[label=\"CRUD_ENTITY.deleted /\"]\n" +
 				"    CRUD_ENTITYarchived[label=\"CRUD_ENTITY.archived /archived\"]\n"
 			+ "    CRUD_ENTITYinitial->CRUD_ENTITYexists[label=\"PUT /\"]\n"
-			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE /\"]\n"
 			+ "    CRUD_ENTITYexists->CRUD_ENTITYarchived[label=\"PUT /archived\"]\n"
+			+ "    CRUD_ENTITYexists->CRUD_ENTITYdeleted[label=\"DELETE /\"]\n"
 			+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			+ "    CRUD_ENTITYdeleted->final[label=\"\"]\n"
 			+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
@@ -266,9 +267,9 @@ public class TestHypermediaValidator {
 		ResourceState archived = new ResourceState(ENTITY_NAME, "archived", new ArrayList<Action>(), "/archived");
 		ResourceState deleted = new ResourceState(initial, "deleted", new ArrayList<Action>(), null);
 	
-		initial.addTransition("PUT", exists);		
-		exists.addTransition("PUT", archived);
-		exists.addTransition("DELETE", deleted);
+		initial.addTransition(new Transition.Builder().method("PUT").target(exists).build());		
+		exists.addTransition(new Transition.Builder().method("PUT").target(archived).build());
+		exists.addTransition(new Transition.Builder().method("DELETE").target(deleted).build());
 				
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		Metadata metadata = new Metadata("");
@@ -302,15 +303,15 @@ public class TestHypermediaValidator {
 				+ "    processcompletedProcess[label=\"process.completedProcess /processes/{id}\"]\n"
 				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskcomplete->final[label=\"\"]\n"
-				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
 				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired\"]\n"
+				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
 				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 				+ "    taskabandoned->final1[label=\"\"]\n"
 				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
 				+ "    processprocesses->processnew[label=\"POST /processes/new\"]\n"
 				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id}\"]\n"
-				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
 				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n"
+				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
 				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
 			    + "    processcompletedProcess->final2[label=\"\"]\n"
 			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
@@ -334,11 +335,11 @@ public class TestHypermediaValidator {
 		metadata.setEntityMetadata(new EntityMetadata("SERVICE_ROOT"));
 		String expected = "digraph SERVICE_ROOT {\n"
 				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
-			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
 			    + "    processprocesses[shape=square, width=.25, label=\"process.processes\"]\n"
 			    + "    taskacquired[shape=square, width=.25, label=\"task.acquired\"]\n"
-				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
+			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
 				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
+				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
 				+ "}";
 		assertEquals(expected, HypermediaValidator.createValidator(serviceDocumentSM, metadata).graphEntityNextStates());
 	}
@@ -349,18 +350,18 @@ public class TestHypermediaValidator {
 		ResourceState processes = new ResourceState(PROCESS_ENTITY_NAME, "processes", new ArrayList<Action>(), "/processes");
 		ResourceState newProcess = new ResourceState(PROCESS_ENTITY_NAME, "new", new ArrayList<Action>(), "/processes/new");
 		// create new process
-		processes.addTransition("POST", newProcess);
+		processes.addTransition(new Transition.Builder().method("POST").target(newProcess).build());
 
 		// Process states
 		ResourceState processInitial = new ResourceState(PROCESS_ENTITY_NAME, "initialProcess", new ArrayList<Action>(), "/processes/{id}");
 		ResourceState nextTask = new ResourceState(PROCESS_ENTITY_NAME,	"taskAvailable", new ArrayList<Action>(), "/processes/nextTask");
 		ResourceState processCompleted = new ResourceState(PROCESS_ENTITY_NAME, "completedProcess", new ArrayList<Action>(), "/processes/{id}");
 		// start new process
-		newProcess.addTransition("PUT", processInitial);
+		newProcess.addTransition(new Transition.Builder().method("PUT").target(processInitial).build());
 		// do a task
-		processInitial.addTransition("GET", nextTask);
+		processInitial.addTransition(new Transition.Builder().method("GET").target(nextTask).build());
 		// finish the process
-		processInitial.addTransition("DELETE", processCompleted);
+		processInitial.addTransition(new Transition.Builder().method("DELETE").target(processCompleted).build());
 
 		/*
 		 * acquire task by a PUT to the initial state of the task state machine (acquired)
@@ -378,9 +379,9 @@ public class TestHypermediaValidator {
 		ResourceState taskComplete = new ResourceState(TASK_ENTITY_NAME, "complete", new ArrayList<Action>(), "/completed");
 		ResourceState taskAbandoned = new ResourceState(TASK_ENTITY_NAME, "abandoned", new ArrayList<Action>(), "/acquired");
 		// abandon task
-		taskAcquired.addTransition("DELETE", taskAbandoned);
+		taskAcquired.addTransition(new Transition.Builder().method("DELETE").target(taskAbandoned).build());
 		// complete task
-		taskAcquired.addTransition("PUT", taskComplete);
+		taskAcquired.addTransition(new Transition.Builder().method("PUT").target(taskComplete).build());
 
 		return new ResourceStateMachine(taskAcquired);
 	}

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.temenos.interaction</groupId>
 		<artifactId>interaction-parent</artifactId>
-		<version>0.4.0-SNAPSHOT</version>
+		<version>0.5.0-SNAPSHOT</version>
 		<relativePath>../interaction-parent/pom.xml</relativePath>
 	</parent>
 
@@ -57,9 +57,25 @@
 	<dependencies>
         <dependency>
             <groupId>com.theoryinpractise</groupId>
-            <artifactId>halbuilder</artifactId>
+            <artifactId>halbuilder-standard</artifactId>
             <scope>compile</scope>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>guava</artifactId>
+            		<groupId>com.google.guava</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
+        <!-- Override the guava dependency in HAL with one that will deploy on various application servers
+        	https://code.google.com/p/guava-libraries/issues/detail?id=1527
+         -->
+        <dependency>
+		  <groupId>com.google.guava</groupId>
+		  <artifactId>guava</artifactId>
+		  <version>15.0</version>
+		  <classifier>cdi1.0</classifier>
+		</dependency>
+
         <!-- This provider can also accept and transform OEntity objects into HAL -->
         <dependency>
             <groupId>org.odata4j</groupId>
@@ -77,6 +93,13 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
+ 
+ 		<!-- TEST DEPENDENCIES -->
+        <dependency>
+            <groupId>org.apache.wink</groupId>
+            <artifactId>wink-common</artifactId>
+			<scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -92,17 +115,8 @@
             <artifactId>xmlunit</artifactId>
             <scope>test</scope>
         </dependency>
+        
  	</dependencies>
 
-    <repositories>
-        <!-- The cambridge-core dependency is not in maven central repo -->
-        <repository>
-            <id>temenos-snapshot-repository</id>
-			<url>http://repository-temenostech.forge.cloudbees.com/snapshot/</url>
-<!--
-			<url>https://repository.temenos.com/snapshot/</url>
--->
-        </repository>
-    </repositories>
 	
 </project>

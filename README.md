@@ -21,6 +21,13 @@ The project allow you to:
 * Maven 3
 
 
+## Requires (outside Temenos)
+
+* Configure settings.xml to add the following maven repository https://repository-temenostech.forge.cloudbees.com/snapshot/
+* Java JDK 1.7 (JDK 1.6 by skipping some integration test modules)
+* Maven 3
+
+
 ## Requires (standalone)
 
 * svn checkout http://cambridge.googlecode.com/svn/trunk/ cambridge-read-only

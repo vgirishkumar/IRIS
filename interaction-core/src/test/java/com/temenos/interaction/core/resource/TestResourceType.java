@@ -115,6 +115,7 @@ public class TestResourceType {
 		assertFalse(ResourceTypeHelper.isType(er.getClass(), er.getEntity().getClass(), EntityResource.class, mock(Entity.class).getClass()));
 	}
 	
+	@SuppressWarnings("rawtypes")
 	private<E> Type getTestTypeVariable(String typeName) {
 		final String fTypeName = typeName;
 		@SuppressWarnings("rawtypes")

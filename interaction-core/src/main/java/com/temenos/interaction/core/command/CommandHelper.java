@@ -44,28 +44,17 @@ public class CommandHelper {
 	 */
 	public static EntityResource<Entity> createEntityResource(Entity e) {
 		String entityName = e != null ? e.getName() : null;
-		return com.temenos.interaction.core.command.CommandHelper.createEntityResource(entityName, e);
+		return createEntityResource(entityName, e, Entity.class);
 	}
 	
 	/**
 	 * Create a new entity resource.
 	 * @param entity entity
+	 * @param entityType
 	 * @return entity resource
 	 */
-	public static<E> EntityResource<E> createEntityResource(E entity) {
-		return createEntityResource(null, entity);
-	}
-
-	/**
-	 * Create a new entity resource.
-	 * This method will try to evaluate entity type E. If entity type E implements exactly one interface
-	 * it will use the interface type, otherwise it will use the class type of entity type E.
-	 * @param entityName entity name
-	 * @param entity entity
-	 * @return entity resource
-	 */
-	public static<E> EntityResource<E> createEntityResource(String entityName, final E entity) {
-		return createEntityResource(entityName, entity, null);
+	public static<E> EntityResource<E> createEntityResource(E entity, Class<?> entityType) {
+		return createEntityResource(null, entity, entityType);
 	}
 
 	/**

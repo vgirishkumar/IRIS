@@ -30,7 +30,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -42,8 +44,11 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmNavigationProperty;
-import org.odata4j.edm.EdmType;
+import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmProperty.CollectionKind;
+import org.odata4j.edm.EdmType;
+import org.odata4j.exceptions.NotFoundException;
 
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
@@ -53,8 +58,8 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.UriSpecification;
-import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class TestMetadataOData4j {
 	public final static String METADATA_XML_FILE = "TestMetadataParser.xml";
@@ -90,13 +95,13 @@ public class TestMetadataOData4j {
 		Assert.assertNotNull(metadata);
 		
 		//Convert metadata to odata4j metadata
-		metadataOdata4j = new MetadataOData4j(metadata, new ResourceStateMachine(new ResourceState("SD", "initial", new ArrayList<Action>(), "/")));
+		metadataOdata4j = new MetadataOData4j(metadata, new ResourceStateMachine(new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/")));
 
 		// Create mock state machine with entity sets
-		ResourceState serviceRoot = new ResourceState("SD", "initial", new ArrayList<Action>(), "/");
-		serviceRoot.addTransition(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule"));
-		serviceRoot.addTransition(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight"));
-		serviceRoot.addTransition(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline"));
+		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
+		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule")).build());
+		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight")).build());
+		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline")).build());
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
 
 		//Read the airline metadata file
@@ -115,12 +120,12 @@ public class TestMetadataOData4j {
 		Assert.assertNotNull(complexMetadata);
 				
 		//Convert metadata to odata4j metadata
-		metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, new ResourceStateMachine(new ResourceState("SD", "initial", new ArrayList<Action>(), "/")));
+		metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, new ResourceStateMachine(new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/")));
 	}
 	
 	@Test(expected = AssertionError.class)
 	public void testAssertIndividualInitialState() {
-		CollectionResourceState serviceRoot = new CollectionResourceState("SD", "initial", new ArrayList<Action>(), "/");
+		CollectionResourceState serviceRoot = new CollectionResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
 		new MetadataOData4j(metadataAirline, hypermediaEngine);
 	}
@@ -195,16 +200,6 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(CollectionKind.NONE, entityType.findProperty("Customer_address").getCollectionKind());//address should be List of Complex
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
-		
-		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer_address");
-		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
-		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
-		Assert.assertEquals(false, addressType.findProperty("Customer_street").getType().isSimple());
-		Assert.assertEquals(CollectionKind.NONE, addressType.findProperty("Customer_street").getCollectionKind());	// street should be complex only
-		
-		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.Customer_street");
-		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
-		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}
 	
 	@Test
@@ -221,16 +216,6 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(CollectionKind.List, entityType.findProperty("CustomerWithTermList_address").getCollectionKind());
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
-		
-		EdmComplexType addressType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.CustomerWithTermList_address");
-		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
-		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
-		Assert.assertEquals(false, addressType.findProperty("CustomerWithTermList_street").getType().isSimple());
-		Assert.assertEquals(CollectionKind.NONE, addressType.findProperty("CustomerWithTermList_street").getCollectionKind());
-		
-		EdmComplexType streetType = edmDataServices.findEdmComplexType("CustomerServiceTestModel.CustomerWithTermList_street");
-		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
-		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}
 	
 	@Test
@@ -267,7 +252,7 @@ public class TestMetadataOData4j {
 	@Test
 	public void testManyToOneMandatoryNavProperty() {
 		// create mock resource interaction (which should result in creation of mandatory Navigation Property in EdmDataService metadata)
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/");
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/");
 		
 		// flights and airports
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights");
@@ -278,12 +263,12 @@ public class TestMetadataOData4j {
 		ResourceState flightDepartureAirport = new ResourceState("Airport", "departureAirport", new ArrayList<Action>(), "/Flights({id})/departureAirport");
 		
 		
-		initial.addTransition(flights);
-		flights.addTransitionForEachItem("GET", flight, new HashMap<String, String>());
-		initial.addTransition(airports);
-		airports.addTransitionForEachItem("GET", airport, new HashMap<String, String>());
-		flight.addTransition(flightDepartureAirport);
-		flights.addTransitionForEachItem("GET", flightDepartureAirport, new HashMap<String, String>());
+		initial.addTransition(new Transition.Builder().target(flights).build());
+		flights.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(flight).build());
+		initial.addTransition(new Transition.Builder().target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
+		flight.addTransition(new Transition.Builder().target(flightDepartureAirport).build());
+		flights.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(flightDepartureAirport).build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -330,17 +315,17 @@ public class TestMetadataOData4j {
 	@Test
 	public void testManyToManyNavProperty() throws Exception {
 		// create mock resource interaction (which should result in creation of Navigation Property in EdmDataService metadata)
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/");
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/");
 		CollectionResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights");
 		CollectionResourceState airports = new CollectionResourceState("Airport", "Airports", new ArrayList<Action>(), "/Airports");
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules");
 		ResourceState flight = new ResourceState("Flight", "flight", new ArrayList<Action>(), "/Flights({id})");
 		CollectionResourceState airportFlights = new CollectionResourceState("Airport", "AirportFlights", new ArrayList<Action>(), "/Airports({id})/Flights");
-		initial.addTransition(flights);
-		initial.addTransition(airports);
-		initial.addTransition(flightSchedules);
-		flight.addTransition("GET", airportFlights, new HashMap<String, String>());
-		flights.addTransitionForEachItem("GET", airportFlights, new HashMap<String, String>());
+		initial.addTransition(new Transition.Builder().target(flights).build());
+		initial.addTransition(new Transition.Builder().target(airports).build());
+		initial.addTransition(new Transition.Builder().target(flightSchedules).build());
+		flight.addTransition(new Transition.Builder().method("GET").target(airportFlights).build());
+		flights.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airportFlights).build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -387,14 +372,14 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testSingleOneToManyNavProperty() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports);
-		airports.addTransitionForEachItem("GET", airport, null, null);
-		airport.addTransition("GET", flightSchedules);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -419,16 +404,16 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testSingleOneToManyFilteredNavProperty() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports, null, null);
-		airports.addTransitionForEachItem("GET", airport, null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "departures");
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).label("departures").build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -453,16 +438,16 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testSingleOneToManyFilteredNavPropertyWithoutLabel() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports, null, null);
-		airports.addTransitionForEachItem("GET", airport, null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -488,18 +473,18 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testMultipleOneToManyNavProperties() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports, null, null);
-		airports.addTransitionForEachItem("GET", airport, null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "arrivals");
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).label("arrivals").build());
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties, "departures");
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).label("departures").build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -536,18 +521,18 @@ public class TestMetadataOData4j {
 	 */
 	@Test
 	public void testMultipleOneToManyNavPropertiesWithoutLabel() {
-		ResourceState initial = new ResourceState("ROOT", "initial", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", new ArrayList<Action>(), "/", null, new UriSpecification("ROOT", "/"));
 		CollectionResourceState airports = new CollectionResourceState("Airport", "airports", new ArrayList<Action>(), "/Airports");
 		ResourceState airport = new ResourceState("Airport", "airport", new ArrayList<Action>(), "/Airports('{id}')", null, new UriSpecification("airport", "/Airports('{id}')"));
 		CollectionResourceState flightSchedules = new CollectionResourceState("FlightSchedule", "FlightSchedules", new ArrayList<Action>(), "/FlightSchedules({filter})", null, null);
 
-		initial.addTransition("GET", airports, null, null);
-		airports.addTransitionForEachItem("GET", airport, null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(airports).build());
+		airports.addTransition(new Transition.Builder().flags(Transition.FOR_EACH).method("GET").target(airport).build());
 		Map<String, String> uriLinkageProperties = new HashMap<String, String>();
 		uriLinkageProperties.put("filter", "arrivalAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).build());
 		uriLinkageProperties.put("filter", "departureAirportCode eq '{code}'");
-		airport.addTransition("GET", flightSchedules, uriLinkageProperties);
+		airport.addTransition(new Transition.Builder().method("GET").target(flightSchedules).uriParameters(uriLinkageProperties).build());
 
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
@@ -572,5 +557,68 @@ public class TestMetadataOData4j {
 		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
 		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
 		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+	}
+	
+	
+	/*
+	 * helper function to return mock EdmEntitySet
+	 */
+	private EdmEntitySet createMockEdmEntitySet() {
+		// Create an entity set
+		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("id").setType(EdmSimpleType.STRING);
+		eprops.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Flight").addKeys(Arrays.asList("id")).addProperties(eprops);
+		EdmEntitySet.Builder eesb = EdmEntitySet.newBuilder().setName("Flight").setEntityType(eet);
+		return eesb.build();
+	}
+	
+	/**
+	 * test for getEdmEntitySet function
+	 */
+	@Test
+	public void testGetEdmEntitySet() {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
+		when(mockMetadataOData4j.getEdmEntitySet("Flight")).thenReturn(ees);		
+		assertEquals(ees, mockMetadataOData4j.getEdmEntitySet("Flight"));
+		assertEquals("Flight", mockMetadataOData4j.getEdmEntitySet("Flight").getName());	
+	}
+	
+	/**
+	 * test for getEdmEntitySet function for missing entity set
+	 */
+	@Test (expected=NotFoundException.class)
+	public void testNullEdmEntitySet() {
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", 
+						new ArrayList<Action>(), "/", null, 
+						new UriSpecification("ROOT", "/"));
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
+		assertEquals("AnyEntity", metadataOData4j.getEdmEntitySet("AnyEntity").getName());
+	}
+	
+	/**
+	 * test for getEdmEntitySetName
+	 */
+	@Test
+	public void testGetEdmEntitySetName() {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
+		when(mockMetadataOData4j.getEdmEntitySetByEntitySetName("Flight")).thenReturn(ees);		
+		assertEquals(ees, mockMetadataOData4j.getEdmEntitySetByEntitySetName("Flight"));
+	}
+	
+	
+	/**
+	 * test for getEdmEntitySetName for missing entity set name
+	 */
+	@Test (expected=NotFoundException.class)
+	public void testNullEdmEntitySetName() {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
+		when(mockMetadataOData4j.getEdmEntitySetByEntitySetName("Dummy")).
+		thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));		
+		assertEquals(ees, mockMetadataOData4j.getEdmEntitySetByEntitySetName("Dummy"));
 	}
 }

@@ -43,6 +43,7 @@ public class Activator extends AbstractUIPlugin implements BundleActivator {
 	 */
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
+		super.start(bundleContext);
 		Activator.context = bundleContext;
 		plugin = this;
 	}

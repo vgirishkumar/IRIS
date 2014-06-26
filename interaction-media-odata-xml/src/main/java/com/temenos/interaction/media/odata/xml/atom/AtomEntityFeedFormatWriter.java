@@ -35,8 +35,9 @@ import org.joda.time.DateTimeZone;
 import org.odata4j.internal.InternalUtil;
 
 import com.temenos.interaction.core.entity.Entity;
-import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 
@@ -51,9 +52,13 @@ public class AtomEntityFeedFormatWriter {
 	public static final String atom_entry_content_type = "application/atom+xml;type=entry";
 	public static final String href_lang = "en";
 
-	private AtomEntityEntryFormatWriter entryWriter = new AtomEntityEntryFormatWriter();
-	protected UriInfo uriInfo = null;
-	protected String baseUri = "";
+	private ResourceState serviceDocument;
+	private AtomEntityEntryFormatWriter entryWriter;
+	
+	public AtomEntityFeedFormatWriter(ResourceState serviceDocument, Metadata metadata) {
+		this.serviceDocument = serviceDocument;
+		this.entryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+	}
 	
 	/**
 	 * Write a collection resource as an Atom XML feed
@@ -66,15 +71,13 @@ public class AtomEntityFeedFormatWriter {
 	 * @param modelName Model name
 	 */
 	public void write(UriInfo uriInfo,
-			Writer w, 
+			Writer w,
 			CollectionResource<Entity> collectionResource,
-			EntityMetadata entityMetadata, 
 			Integer inlineCount,
 			String skipToken,
 			String modelName) 
 	{
-		this.uriInfo = uriInfo;
-		String baseUri = uriInfo.getBaseUri().toString();
+		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 		String entitySetName = collectionResource.getEntitySetName();
 		Collection<Link> links = collectionResource.getLinks();
 
@@ -96,21 +99,15 @@ public class AtomEntityFeedFormatWriter {
 
 	    //Write elements
 	    writeElement(writer, "title", entitySetName, "type", "text");
-	    writeElement(writer, "id", baseUri + uriInfo.getPath());
+	    writeElement(writer, "id", AtomXMLProvider.getAbsolutePath(uriInfo));
 	    writeElement(writer, "updated", updated);
 
 	    assert(links != null);
 	    for (Link link : links) {
-	    	String href = link.getHref();
-	    	if (href.startsWith(baseUri)) {
-	    		href = href.substring(baseUri.length());
-	    	}
+	    	// href is relative path from base path
+	    	String href = link.getRelativeHref(baseUri);
 	    	String title = link.getTitle();
-	    	String targetEntitySetName = null;
-	    	if(link.getTransition().getTarget().getEntityName().equals(link.getTransition().getSource().getEntityName())) {
-	    		targetEntitySetName = entitySetName;
-	    	}
-			String rel = AtomXMLProvider.getODataLinkRelation(link, targetEntitySetName);
+			String rel = link.getRel();
 	        writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
 	    }
 
@@ -120,7 +117,8 @@ public class AtomEntityFeedFormatWriter {
 	    
 	    //Write entries
 	    for (EntityResource<Entity> entityResource : collectionResource.getEntities()) {
-	    	entryWriter.writeEntry(writer, entitySetName, entityResource.getEntity(), entityResource.getLinks(), uriInfo, updated, entityMetadata, modelName);
+			assert(collectionResource.getEntityName().equals(entityResource.getEntityName()));
+	    	entryWriter.writeEntry(writer, entitySetName, entityResource.getEntityName(), entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(), uriInfo, updated);
 	    }
 
 	    if (skipToken != null) {
