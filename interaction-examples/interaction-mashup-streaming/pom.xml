@@ -85,7 +85,6 @@
 			<contextPath>/example</contextPath>
             <resourceBases>
               <resourceBase>${basedir}/src/main/webapp</resourceBase>
-              <resourceBase>${basedir}/target/swagger-gen</resourceBase>
             </resourceBases>
           </webApp>
 		</configuration>
