@@ -28,7 +28,7 @@
 		<license.licenseName>agpl_v3</license.licenseName>
 		<tycho-version>0.18.1</tycho-version>
 		<junit-version>4.8.1</junit-version>
-		<xtext-version>2.3.1</xtext-version>
+		<xtend-version>2.3.1</xtend-version>
 	</properties>
 
 	<distributionManagement>
@@ -213,7 +213,7 @@
 				<plugin>
 					<groupId>org.eclipse.xtend</groupId>
 					<artifactId>xtend-maven-plugin</artifactId>
-					<version>${xtext-version}</version>
+					<version>${xtend-version}</version>
 					<configuration>
 						<!-- need to prefix by basedir to generate to currently built module -->
 						<outputDirectory>${basedir}/xtend-gen</outputDirectory>
@@ -326,7 +326,7 @@
 			<dependency>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>org.eclipse.xtend.standalone</artifactId>
-				<version>${xtext-version}</version>
+				<version>${xtend-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
