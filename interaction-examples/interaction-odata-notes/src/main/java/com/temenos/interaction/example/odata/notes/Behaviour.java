@@ -90,7 +90,7 @@ public class Behaviour {
 	
 	}
 
-	public ResourceStateMachine getNotesSM() {
+	public ResourceState getNotes() {
 		CollectionResourceState notes = new CollectionResourceState(NOTE, "Notes", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), NOTES_PATH);
 		ResourceState pseudoCreated = new ResourceState(notes, "PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 1 for configuring the interaction - use another state as a parent
@@ -127,7 +127,7 @@ public class Behaviour {
 				NOTE_PERSON_PATH, 
 				new ODataUriSpecification().getTemplate(NOTES_PATH, ODataUriSpecification.NAVPROPERTY_URI_TYPE));
 		
-		// add collection transition to individual items
+		// use to add collection transition to individual items
 		Map<String, String> uriLinkageMap = new HashMap<String, String>();
 		uriLinkageMap.put("id", "{id}");
 		// edit
@@ -141,10 +141,14 @@ public class Behaviour {
 		note.addTransition(new Transition.Builder().method("PUT").target(noteUpdated).build());
 		note.addTransition(new Transition.Builder().method("DELETE").target(noteDeleted).build());
 
-		return new ResourceStateMachine(notes);
+		return notes;
+	}
+	
+	public ResourceStateMachine getNotesSM() {
+		return new ResourceStateMachine(getNotes());
 	}
 
-	public ResourceStateMachine getPersonsSM() {
+	public ResourceState getPersons() {
 		CollectionResourceState persons = new CollectionResourceState(PERSON, "Persons", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), PERSONS_PATH);
 		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 2 for configuring the interaction - specify the entity, state, and fully qualified path
@@ -178,8 +182,12 @@ public class Behaviour {
 		// add auto transition to new person that was just created
 		pseudo.addTransition(new Transition.Builder().flags(Transition.AUTO).target(person).build());
 		person.addTransition(new Transition.Builder().method("GET").target(personNotes).uriParameters(uriLinkageMap).build());
-
-		return new ResourceStateMachine(persons);
+	
+		return persons;
+	}
+	
+	public ResourceStateMachine getPersonsSM() {
+		return new ResourceStateMachine(getPersons());
 	}
 
 	private List<Action> createActionList(Action view, Action entry) {
