@@ -157,8 +157,6 @@ TransitionSpec:
                 & ('parameters' '[' ((uriLinks+=UriLink) (',' uriLinks+=UriLink)* ) ']')?
                 // MAY define a 'title:'
                 & title=Title?
-                // MAY define a 'id:'
-                & id=TransitionID?
         )
     '}'
     )
@@ -215,10 +213,6 @@ UriLinkage:
 
 Title:
     'title:' name=DQ_STRING    
-;
-
-TransitionID:
-    'id:' name=DQ_STRING    
 ;
 
 terminal URISTRING	: 
