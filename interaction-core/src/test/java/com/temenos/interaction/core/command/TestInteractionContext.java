@@ -31,9 +31,9 @@ import java.util.ArrayList;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Test;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
@@ -47,7 +47,7 @@ public class TestInteractionContext {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testResolveIdDefault() {
-		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
+		MultivaluedMap<String, String> pathParameters = new com.temenos.interaction.core.MultivaluedMapImpl();
 		pathParameters.add("id", "123");
 		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParameters, new MultivaluedMapImpl(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
 		assertEquals("123", ctx.getId());
@@ -95,7 +95,7 @@ public class TestInteractionContext {
 
 	@Test
 	public void testAttributes() {
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String, String>(), new MultivaluedMapImpl<String, String>(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), new MultivaluedMapImpl<String>(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
 		ctx.setAttribute("abc", "test");
 		
 		assertEquals(ctx.getAttribute("abc"), "test");

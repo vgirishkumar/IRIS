@@ -39,6 +39,7 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class GETEntitiesCommand extends AbstractODataCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
@@ -47,6 +48,10 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		super(producer);
 	}
 
+	public GETEntitiesCommand(MetadataOData4j metadataOData4j, ODataProducer producer) {
+		super(metadataOData4j, producer);
+	}
+	
 	/* Implement InteractionCommand interface */
 
 	@Override
@@ -60,8 +65,10 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		logger.debug("Getting entities for " + entityName);
 		try {
 			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, getEdmMetadata());
+			if(entitySet == null) {
+				entitySet = getEdmEntitySet(entityName);
+			}
 			String entitySetName = entitySet.getName();
-
 			EntitiesResponse response = producer.getEntities(entitySetName, getQueryInfo(ctx));
 			    
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());

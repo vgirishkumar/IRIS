@@ -22,12 +22,17 @@ package com.temenos.interaction.odataext.entity;
  */
 
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -39,8 +44,11 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmNavigationProperty;
+import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmProperty.CollectionKind;
 import org.odata4j.edm.EdmType;
+import org.odata4j.exceptions.NotFoundException;
 
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
@@ -549,5 +557,68 @@ public class TestMetadataOData4j {
 		assertEquals("Airport_FlightSchedule_Target", flightScheduleNavProperty.getToRole().getRole());
 		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
 		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
+	}
+	
+	
+	/*
+	 * helper function to return mock EdmEntitySet
+	 */
+	private EdmEntitySet createMockEdmEntitySet() {
+		// Create an entity set
+		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("id").setType(EdmSimpleType.STRING);
+		eprops.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Flight").addKeys(Arrays.asList("id")).addProperties(eprops);
+		EdmEntitySet.Builder eesb = EdmEntitySet.newBuilder().setName("Flight").setEntityType(eet);
+		return eesb.build();
+	}
+	
+	/**
+	 * test for getEdmEntitySet function
+	 */
+	@Test
+	public void testGetEdmEntitySet() {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
+		when(mockMetadataOData4j.getEdmEntitySet("Flight")).thenReturn(ees);		
+		assertEquals(ees, mockMetadataOData4j.getEdmEntitySet("Flight"));
+		assertEquals("Flight", mockMetadataOData4j.getEdmEntitySet("Flight").getName());	
+	}
+	
+	/**
+	 * test for getEdmEntitySet function for missing entity set
+	 */
+	@Test (expected=NotFoundException.class)
+	public void testNullEdmEntitySet() {
+		ResourceState initial = new ResourceState("ROOT", "ServiceDocument", 
+						new ArrayList<Action>(), "/", null, 
+						new UriSpecification("ROOT", "/"));
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
+		assertEquals("AnyEntity", metadataOData4j.getEdmEntitySet("AnyEntity").getName());
+	}
+	
+	/**
+	 * test for getEdmEntitySetName
+	 */
+	@Test
+	public void testGetEdmEntitySetName() {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
+		when(mockMetadataOData4j.getEdmEntitySetByEntitySetName("Flight")).thenReturn(ees);		
+		assertEquals(ees, mockMetadataOData4j.getEdmEntitySetByEntitySetName("Flight"));
+	}
+	
+	
+	/**
+	 * test for getEdmEntitySetName for missing entity set name
+	 */
+	@Test (expected=NotFoundException.class)
+	public void testNullEdmEntitySetName() {
+		EdmEntitySet ees = createMockEdmEntitySet();
+		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
+		when(mockMetadataOData4j.getEdmEntitySetByEntitySetName("Dummy")).
+		thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));		
+		assertEquals(ees, mockMetadataOData4j.getEdmEntitySetByEntitySetName("Dummy"));
 	}
 }

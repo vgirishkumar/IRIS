@@ -317,6 +317,14 @@ public class ResourceState implements Comparable<ResourceState> {
 		transitions.add(transition);
 	}
 	
+	public void setTransitions(List<Transition> transitions) {
+		if (transitions != null) {
+			for (Transition t : transitions) {
+				addTransition(t);
+			}
+		}
+	}
+	
 	/**
 	 * Add transition to another resource interaction model.
 	 * @param httpMethod

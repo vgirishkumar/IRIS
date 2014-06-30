@@ -45,7 +45,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,6 +52,7 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -128,7 +128,7 @@ public class TestHTTPHypermediaRIM {
 		
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
-		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl<String>();
 		queryMap.add("$filter", "this+that");
 		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(queryMap);
 		

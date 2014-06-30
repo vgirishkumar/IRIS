@@ -36,6 +36,7 @@
 		<module>../interaction-media-hal</module>
 		<module>../interaction-media-xhtml</module>
 		<module>../interaction-media-odata-xml</module>
+		<module>../interaction-dsl/interaction-springdsl</module>
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../useragent-examples/useragent-odata-html5</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
@@ -271,6 +272,11 @@
 			<dependency>
 				<groupId>com.temenos.interaction</groupId>
 				<artifactId>interaction-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.temenos.interaction</groupId>
+				<artifactId>interaction-springdsl</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

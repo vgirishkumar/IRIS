@@ -79,10 +79,6 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.wink</groupId>
-            <artifactId>wink-common</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.codehaus.jettison</groupId>
             <artifactId>jettison</artifactId>
             <version>1.0.1</version>
@@ -109,6 +105,11 @@
         </dependency>
 		
 		<!-- TEST DEPENDENCIES -->
+        <dependency>
+            <groupId>org.apache.wink</groupId>
+            <artifactId>wink-common</artifactId>
+			<scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
