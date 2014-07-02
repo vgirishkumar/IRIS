@@ -23,6 +23,11 @@
     </site>
   </distributionManagement>
 
+  <properties>
+    <skipRIMGeneration>false</skipRIMGeneration>
+    <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
+  </properties>
+  
   <build>
     <plugins>
       <plugin>
@@ -58,6 +63,11 @@
           <targetDirectory>${basedir}/src-gen</targetDirectory> 
           -->
           <rimSourceFile>${basedir}/src/main/rim/Airline.rim</rimSourceFile>
+          <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
+          
+          <!-- Control generation of Spring XML to load generated classes  -->
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>          
+          
         </configuration>
       </plugin>
       

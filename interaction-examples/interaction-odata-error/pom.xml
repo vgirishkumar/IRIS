@@ -38,6 +38,7 @@
 
   <properties>
     <skipRIMGeneration>false</skipRIMGeneration>
+    <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
     <strictOdata>true</strictOdata>
   </properties>
 
@@ -89,6 +90,9 @@
 		  -->
           <rimSourceFile>${basedir}/src/main/rim/interaction-odata-error.rim</rimSourceFile>
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
+          
+          <!-- Control generation of Spring XML to load generated classes  -->
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>          
         </configuration>
       </plugin>
       

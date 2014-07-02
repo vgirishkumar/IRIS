@@ -16,6 +16,11 @@
   <name>interaction-example-hateoas-banking</name>
   <url>http://www.temenos.com</url>
 
+  <properties>
+    <skipRIMGeneration>false</skipRIMGeneration>
+    <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
+  </properties>
+  
   <build>
     <plugins>
       <plugin>
@@ -58,6 +63,11 @@
           <targetDirectory>${basedir}/src-gen</targetDirectory> 
           -->
           <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
+          <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
+          
+          <!-- Control generation of Spring XML to load generated classes  -->
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>          
+          
         </configuration>
       </plugin>
 

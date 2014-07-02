@@ -17,6 +17,8 @@
   <url>http://www.temenos.com</url>
 
   <properties>
+    <skipRIMGeneration>false</skipRIMGeneration>
+    <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
     <jetty.version>9.0.5.v20130815</jetty.version>
   </properties>
 
@@ -55,6 +57,11 @@
           <targetDirectory>${basedir}/src-gen</targetDirectory> 
           -->
           <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
+          <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
+          
+          <!-- Control generation of Spring XML to load generated classes  -->
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>          
+          
         </configuration>
       </plugin>
 
