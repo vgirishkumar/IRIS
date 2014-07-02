@@ -43,13 +43,17 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
         // generate Behaviour class
         var rimPath = rim.fullyQualifiedName.toString("/")
-        fsa.generateFile(rimPath+"Behaviour.xml", toSpringServiceDocXML(rim))
+                  
         // generate resource classes
         for (resourceState : rim.states) {
             val statePath = resourceState.fullyQualifiedName.toString("/")
             fsa.generateFile(statePath+"ResourceState.xml", toSpringXML(rim, resourceState))
         }
+        
+        fsa.generateFile(rimPath+"Behaviour.xml", toSpringServiceDocXML(rim))
+  
 	}
+
 	
 	def className(Resource res) {
 		var name = res.URI.lastSegment
@@ -224,7 +228,12 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
  «addXmlStart()»
  
     <!-- Spring Service Document -->
-    
+        // create states
+        «FOR resourceState :rim.states»
+        	«resourceState.fullyQualifiedName.toString("/")»
+        «ENDFOR»
+
+                          
 		«IF rim.eContainer.fullyQualifiedName != null»
 		package «rim.eContainer.fullyQualifiedName»;
 		«ENDIF»
