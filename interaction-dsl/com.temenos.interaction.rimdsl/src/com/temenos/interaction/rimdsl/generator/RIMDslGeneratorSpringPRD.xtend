@@ -61,7 +61,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	def toSpringXML(ResourceInteractionModel rim, State state) '''
  «addXmlStart()»
  	
-    <!-- Spring resource: Notes -->
+    	<!-- Spring resource: «state.name» -->
+    	
+    	// Define Spring bean for resource
+        «addXMLResourceBean()»
         
         public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
             
@@ -144,6 +147,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             
         }
         
+	«addXmlUtilMap»
 «addXmlEnd()»
         
 	'''
@@ -167,15 +171,42 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-
 '''
 	
 	// End XML for service document and resources.
 	def addXmlEnd() ''' 
-
 </beans>
 
+	'''		
+	// Add util Map for resources.
+	def addXmlUtilMap() ''' 
+
+	<util:map id="uriLinkageMap">
+	    <entry key="id" value="{id}"/>
+	</util:map>
+
 '''		
+
+	// Add Spring bean for resource.
+	def addXMLResourceBean() ''' 
+
+   <bean id="Notes" class="com.temenos.interaction.core.hypermedia.CollectionResourceState">
+        <constructor-arg name="entityName" value="Note" />
+        <constructor-arg name="name" value="Notes" />
+        <constructor-arg>
+            <list>
+                <bean class="com.temenos.interaction.core.hypermedia.Action">
+                    <constructor-arg value="GETEntities" />
+                    <constructor-arg value="VIEW" />
+                </bean>
+            </list>
+        </constructor-arg>
+        <constructor-arg name="path" value="/Notes" />
+
+'''		
+
+
+
 	def String transitionTargetStateVariableName(TransitionRef t) {
 		if (t.state != null) {
 			return stateVariableName(t.state);
@@ -201,22 +232,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		package «rim.eContainer.fullyQualifiedName»;
 		«ENDIF»
 
-		import java.util.ArrayList;
-		import java.util.HashMap;
-		import java.util.List;
-		import java.util.Map;
-		import java.util.Properties;
-
-		import com.temenos.interaction.core.hypermedia.UriSpecification;
-		import com.temenos.interaction.core.hypermedia.Action;
-		import com.temenos.interaction.core.hypermedia.CollectionResourceState;
-		import com.temenos.interaction.core.hypermedia.ResourceFactory;
-		import com.temenos.interaction.core.hypermedia.ResourceState;
-		import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-		import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
-		import com.temenos.interaction.core.hypermedia.expression.Expression;
-		import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
-		import com.temenos.interaction.core.resource.ResourceMetadataManager;
 		
 		public class «rim.name»Behaviour {
 		
