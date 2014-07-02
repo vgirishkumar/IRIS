@@ -207,10 +207,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 '''		
 	// Add Spring TransitionFactoryBean.
 	def addXMLTransitionFactoryBean(String target) ''' 
-					<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
-						<property name="method" value="GET" />
-						<property name="target" ref="« target »" />
-					</bean>
+      <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+          <property name="method" value="GET" />
+          <property name="target" ref="« target »" />
+      </bean>
 '''		
 
 	// Add ServiceDoc Spring bean for initialState.
@@ -258,7 +258,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
  «addXmlStart()»
  	«addXMLStartServiceDocInitialBean()»
         «FOR resourceState :rim.states»
-                    «addXMLTransitionFactoryBean(resourceState.name)»
+        	«addXMLTransitionFactoryBean(resourceState.name)»
         «ENDFOR»
 
  	«addXMLEndServiceDocInitialBean()»
