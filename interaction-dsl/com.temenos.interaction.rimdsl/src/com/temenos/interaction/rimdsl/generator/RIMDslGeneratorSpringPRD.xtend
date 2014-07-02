@@ -230,7 +230,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     <!-- Spring Service Document -->
         // create states
         «FOR resourceState :rim.states»
-        	«resourceState.fullyQualifiedName.toString("/")»
+        	«resourceState.name»
         «ENDFOR»
 
                           
