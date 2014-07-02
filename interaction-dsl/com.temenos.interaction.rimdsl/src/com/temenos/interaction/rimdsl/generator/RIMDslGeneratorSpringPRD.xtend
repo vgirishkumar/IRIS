@@ -50,7 +50,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             fsa.generateFile(statePath+"ResourceState.xml", toSpringXML(rim, resourceState))
         }
         
-        fsa.generateFile(rimPath+"Behaviour.xml", toSpringServiceDocXML(rim))
+        fsa.generateFile("IRIS-ServiceDocument-PRD.xml", toSpringServiceDocXML(rim))
   
 	}
 
@@ -205,8 +205,38 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         <constructor-arg name="path" value="«producePath(rim, state)»" />
 
 '''		
+	// Add Spring TransitionFactoryBean.
+	def addXMLTransitionFactoryBean(String target) ''' 
+					<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+						<property name="method" value="GET" />
+						<property name="target" ref="« target »" />
+					</bean>
+'''		
 
+	// Add ServiceDoc Spring bean for initialState.
+	def addXMLStartServiceDocInitialBean() ''' 
+    <!-- initialState -->
+    <bean id="initialState" class="com.temenos.interaction.core.hypermedia.ResourceState">
+        <constructor-arg name="entityName" value="ServiceDocument" />
+        <constructor-arg name="name" value="ServiceDocument" />
+        <constructor-arg>
+            <list>
+                <bean class="com.temenos.interaction.core.hypermedia.Action">
+                    <constructor-arg value="GETServiceDocument" />
+                    <constructor-arg value="VIEW" />
+                </bean>
+            </list>
+        </constructor-arg>
+        <constructor-arg name="path" value="/" />
+        <property name="transitions">
+        	<list>
+'''		
 
+	def addXMLEndServiceDocInitialBean() ''' 
+ 	        </list>
+	    </property>
+    </bean>
+'''		
 
 	def String transitionTargetStateVariableName(TransitionRef t) {
 		if (t.state != null) {
@@ -226,57 +256,12 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
   	// Spring XML definition for Service document
 	def toSpringServiceDocXML(ResourceInteractionModel rim) '''
  «addXmlStart()»
- 
-    <!-- Spring Service Document -->
-        // create states
+ 	«addXMLStartServiceDocInitialBean()»
         «FOR resourceState :rim.states»
-        	«resourceState.name»
+                    «addXMLTransitionFactoryBean(resourceState.name)»
         «ENDFOR»
 
-                          
-		«IF rim.eContainer.fullyQualifiedName != null»
-		package «rim.eContainer.fullyQualifiedName»;
-		«ENDIF»
-
-		
-		public class «rim.name»Behaviour {
-		
-		    public static void main(String[] args) {
-		        «rim.name»Behaviour behaviour = new «rim.name»Behaviour();
-		        ResourceStateMachine hypermediaEngine = new ResourceStateMachine(behaviour.getRIM(), behaviour.getExceptionResource());
-		        HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, new ResourceMetadataManager(hypermediaEngine).getMetadata());
-		        System.out.println(validator.graph());
-		    }
-		
-		    public ResourceState getRIM() {
-		        Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-		        List<Expression> conditionalLinkExpressions = null;
-		        Properties actionViewProperties;
-
-		        ResourceFactory factory = new ResourceFactory();
-		        ResourceState initial = null;
-		        // create states
-		        «FOR c : rim.states»
-		        	«IF c.isInitial»
-		        	// identify the initial state
-		        	initial = factory.getResourceState("«rim.fullyQualifiedName».«c.name»");
-					«ENDIF»
-				«ENDFOR»
-		        return initial;
-		    }
-
-		    public ResourceState getExceptionResource() {
-		        ResourceFactory factory = new ResourceFactory();
-		        ResourceState exceptionState = null;
-		        «FOR c : rim.states»
-		        	«IF c.isException»
-		        	exceptionState = factory.getResourceState("«rim.fullyQualifiedName».«c.name»");
-					«ENDIF»
-				«ENDFOR»
-		        return exceptionState;
-		    }
-		}
-
+ 	«addXMLEndServiceDocInitialBean()»
 «addXmlEnd()»
 		
 	'''
