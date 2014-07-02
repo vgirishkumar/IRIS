@@ -61,10 +61,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	def toSpringXML(ResourceInteractionModel rim, State state) '''
  «addXmlStart()»
  	
-    	<!-- Spring resource: «state.name» -->
-    	
-    	// Define Spring bean for resource
-        «addXMLResourceBean()»
+      	<!-- Define Spring bean for resource : «state.name» -->
+        «addXMLResourceBean( rim,  state)»
         
         public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
             
@@ -188,11 +186,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 '''		
 
 	// Add Spring bean for resource.
-	def addXMLResourceBean() ''' 
-
-   <bean id="Notes" class="com.temenos.interaction.core.hypermedia.CollectionResourceState">
-        <constructor-arg name="entityName" value="Note" />
-        <constructor-arg name="name" value="Notes" />
+	def addXMLResourceBean(ResourceInteractionModel rim, State state) ''' 
+   <bean id="« state.name »" class="com.temenos.interaction.core.hypermedia.CollectionResourceState">
+        <constructor-arg name="entityName" value="«state.entity.name»" />
+        <constructor-arg name="name" value="« state.name »" />
         <constructor-arg>
             <list>
                 <bean class="com.temenos.interaction.core.hypermedia.Action">
@@ -201,7 +198,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
                 </bean>
             </list>
         </constructor-arg>
-        <constructor-arg name="path" value="/Notes" />
+        <constructor-arg name="path" value="«producePath(rim, state)»" />
 
 '''		
 
