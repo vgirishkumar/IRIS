@@ -60,7 +60,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		return name.substring(0, name.indexOf('.'))
 	}
 	
-    
     	
 	def toSpringXML(ResourceInteractionModel rim, State state) '''
  «addXmlStart()»
@@ -70,7 +69,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         
         <!-- Start property transitions list -->
         «addXmlStartTransitions»
-		<!--         	
+		         	
         //public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
             
             private ResourceFactory factory = null;
@@ -81,7 +80,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
             public «state.name»ResourceState(ResourceFactory factory) {
                 «IF state.type.isCollection»
-                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
+                //		String entityName, 	  String name, List actions,      String path,                 String[] rels,         UriSpecification uriSpec, ResourceState errorState
+                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
                 «ELSEIF state.type.isItem»
                 super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
                 «ENDIF»
@@ -151,7 +151,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             }
             
         }
-	-->
+	
     <!-- End property transitions list -->
 	«addXmlEndTransitions»
 	
@@ -265,13 +265,13 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		if (t.state != null) {
 			return stateVariableName(t.state);
 		} else {
-       		return "s" + (t.name).replaceAll("\\.", "_");
+       		return "" + (t.name).replaceAll("\\.", "_");
 		}
 	}
 
 	def String stateVariableName(State state) {
 		if (state != null && state.name != null) {
-			return "s" + (state.name).replaceAll("\\.", "_");
+			return "" + (state.name).replaceAll("\\.", "_");
 		}
 		return null;
 	}
@@ -312,6 +312,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     »'''
 
     def produceRelations(State state) '''
+ 	<!-- produceRelations() -->    
         «IF state.relations != null && state.relations.size > 0»
         String «state.name»RelationsStr = "";
         «FOR relation : state.relations»
@@ -334,6 +335,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     }
 
     def produceActionSet(State state, ResourceCommand view, EList<ResourceCommand> actions) '''
+	<!-- produceActionSet() -->    
         List<Action> «state.name»Actions = new ArrayList<Action>();
         «IF view != null && ((view.command.spec != null && view.command.spec.properties.size > 0) || view.properties.size > 0)»
             actionViewProperties = new Properties();
@@ -367,18 +369,26 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         «ENDIF»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
+	<!-- produceTransitions() -->
             conditionalLinkExpressions = null;
             uriLinkageProperties.clear();
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
+	            <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+	                <property name="method" value="«transition.event.httpMethod»" />
+	                <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
+	                <property name="uriParameters" ref="uriLinkageMap" />
+	            </bean>
+                
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
             		.method("«transition.event.httpMethod»").target(«transitionTargetStateVariableName(transition)»).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
             		.build());
 	'''
 
     def produceExpressions(Expression conditionExpression) '''
+	<!-- produceExpressions(Expression) -->    
         «IF conditionExpression != null»
         conditionalLinkExpressions = new ArrayList<Expression>();
         «FOR function : conditionExpression.expressions»
@@ -388,6 +398,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     '''
 
     def produceExpression(Function expression) '''
+	<!-- produceExpression(Function) -->    
         «IF expression instanceof OKFunction»
             new ResourceGETExpression(factory.getResourceState("«(expression as OKFunction).state.fullyQualifiedName»"), ResourceGETExpression.Function.OK)«
         ELSE»
@@ -395,6 +406,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         ENDIF»'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
+ 	<!-- produceTransitionsForEach() -->    
             conditionalLinkExpressions = null;
             uriLinkageProperties.clear();
         «IF transition.spec != null»
@@ -412,6 +424,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
+ 	<!-- produceTransitionsForEach() -->    
             conditionalLinkExpressions = null;
             uriLinkageProperties.clear();
         «IF transition.spec != null»
@@ -427,6 +440,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     '''
 
     def produceTransitionsRedirect(State fromState, TransitionRedirect transition) '''
+  	<!-- produceTransitionsRedirect() -->    
             conditionalLinkExpressions = null;
             uriLinkageProperties.clear();
         «IF transition.spec != null»
@@ -442,6 +456,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     '''
 
     def produceTransitionsEmbedded(State fromState, TransitionEmbedded transition) '''
+  	<!-- produceTransitionsEmbedded() -->    
             conditionalLinkExpressions = null;
             uriLinkageProperties.clear();
         «IF transition.spec != null»
@@ -459,11 +474,15 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     '''
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''
+  	<!-- produceUriLinkage() -->    
         «IF uriLinks != null»
             «FOR prop : uriLinks»
-            uriLinkageProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
+            	uriLinkageProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
+                uriKey = «prop.templateProperty»
+       			uriValue = «prop.entityProperty.name»
             «ENDFOR»«
         ENDIF»
+
     '''
 
 }
