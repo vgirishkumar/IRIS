@@ -70,35 +70,21 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         <!-- Start property transitions list -->
         «addXmlStartTransitions»
 		         	
-        <!-- public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
-            
-            private ResourceFactory factory = null;
-
-            public «state.name»ResourceState() {
-                this(new ResourceFactory());
-            }
-
-            public «state.name»ResourceState(ResourceFactory factory) {
- -->
-                «IF state.type.isCollection»
-                 super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
-           
-                «ELSEIF state.type.isItem»
-                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
-                «ENDIF»
-                «IF state.isInitial»
-                setInitial(true);
-                «ENDIF»
-                «IF state.isException»
-                setException(true);
-                «ENDIF»
+       	«IF state.type.isCollection»
+        	super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);   
+        «ELSEIF state.type.isItem»
+        	super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
+        «ENDIF»
+        
+        «IF state.isInitial»
+        	setInitial(true);
+        «ENDIF»
+        
+        «IF state.isException»
+        	setException(true);
+        «ENDIF»
                
-             <!--
-            public boolean initialise() {
-                Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-                xxx List<Expression> conditionalLinkExpressions = null;
-                 -->
-                «IF state.type.isCollection»Collection«ENDIF»ResourceState «stateVariableName(state)» = this;
+                111 «IF state.type.isCollection»Collection«ENDIF»ResourceState «stateVariableName(state)» = this;
                 «
                 val resources = newArrayList()
                 »
@@ -108,8 +94,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	                «IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»
 	             xxx   ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
 	                «ENDIF»
+	                
 	                «IF (t.state != null && t.state.name != null) || t.name != null»
-	            xxx    if («transitionTargetStateVariableName(t)» != null) {
+	                {
+
 	                «IF t instanceof Transition»                
 	                	«produceTransitions(state, t as Transition)»
 	                «ENDIF»
