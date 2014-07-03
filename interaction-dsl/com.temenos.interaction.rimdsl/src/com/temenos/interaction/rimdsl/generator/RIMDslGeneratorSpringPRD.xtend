@@ -49,8 +49,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             val statePath = resourceState.fullyQualifiedName.toString("/")
             fsa.generateFile(statePath+"ResourceState.xml", toSpringXML(rim, resourceState))
         }
-        
-        fsa.generateFile("IRIS-ServiceDocument-PRD.xml", toSpringServiceDocXML(rim))
+               
+        fsa.generateFile(rimPath + "IRIS-ServiceDocument-PRD.xml", toSpringServiceDocXML(rim))
   
 	}
 
@@ -70,7 +70,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         <!-- Start property transitions list -->
         «addXmlStartTransitions»
 		         	
-        //public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
+        <!-- public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
             
             private ResourceFactory factory = null;
 
@@ -79,9 +79,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             }
 
             public «state.name»ResourceState(ResourceFactory factory) {
+ -->
                 «IF state.type.isCollection»
-                //		String entityName, 	  String name, List actions,      String path,                 String[] rels,         UriSpecification uriSpec, ResourceState errorState
-                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
+                 super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
+           
                 «ELSEIF state.type.isItem»
                 super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
                 «ENDIF»
@@ -91,50 +92,45 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
                 «IF state.isException»
                 setException(true);
                 «ENDIF»
-                this.factory = factory;
-            }
-            
+               
+             <!--
             public boolean initialise() {
                 Map<String, String> uriLinkageProperties = new HashMap<String, String>();
-                List<Expression> conditionalLinkExpressions = null;
+                xxx List<Expression> conditionalLinkExpressions = null;
+                 -->
                 «IF state.type.isCollection»Collection«ENDIF»ResourceState «stateVariableName(state)» = this;
                 «
                 val resources = newArrayList()
                 »
                 «IF !resources.contains(state.name) && resources.add(state.name)»«ENDIF»
-                // create transitions
+                <!-- create transitions  -->
                 «FOR t : state.transitions»
-                «IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»
-                ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
-                «ENDIF»
-                «IF (t.state != null && t.state.name != null) || t.name != null»
-                if («transitionTargetStateVariableName(t)» != null) {
-                «IF t instanceof Transition»
-                // create regular transition
-                «produceTransitions(state, t as Transition)»
-                «ENDIF»
-
-                «IF t instanceof TransitionForEach»
-                // create foreach transition
-                «produceTransitionsForEach(state, t as TransitionForEach)»
-                «ENDIF»
-
-                «IF t instanceof TransitionAuto»
-                // create AUTO transition
-                «produceTransitionsAuto(state, t as TransitionAuto)»
-                «ENDIF»
-
-                «IF t instanceof TransitionRedirect»
-                // create REDIRECT transition
-                «produceTransitionsRedirect(state, t as TransitionRedirect)»
-                «ENDIF»
-
-                «IF t instanceof TransitionEmbedded»
-                // create EMBEDDED transition
-                «produceTransitionsEmbedded(state, t as TransitionEmbedded)»
-                «ENDIF»
-                }
-                «ENDIF»
+	                «IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»
+	             xxx   ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
+	                «ENDIF»
+	                «IF (t.state != null && t.state.name != null) || t.name != null»
+	            xxx    if («transitionTargetStateVariableName(t)» != null) {
+	                «IF t instanceof Transition»                
+	                	«produceTransitions(state, t as Transition)»
+	                «ENDIF»
+	
+	                «IF t instanceof TransitionForEach»                
+	                	«produceTransitionsForEach(state, t as TransitionForEach)»
+	                «ENDIF»
+	
+	                «IF t instanceof TransitionAuto»                
+	                	«produceTransitionsAuto(state, t as TransitionAuto)»
+	                «ENDIF»
+	
+	                «IF t instanceof TransitionRedirect»                
+	                	«produceTransitionsRedirect(state, t as TransitionRedirect)»
+	                «ENDIF»
+	
+	                «IF t instanceof TransitionEmbedded»                
+	                	«produceTransitionsEmbedded(state, t as TransitionEmbedded)»
+	                «ENDIF»
+	                }
+	                «ENDIF»
                 «ENDFOR»
                 return true;
             }
@@ -293,7 +289,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             «produceActionSet(state, state.impl)»
             «produceRelations(state)»
             «IF state.type.isCollection»
-            CollectionResourceState «stateVariableName(state)» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations, null);
+            xxx CollectionResourceState «stateVariableName(state)» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations, null);
             «ELSEIF state.type.isItem»
             ResourceState «stateVariableName(state)» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «stateVariableName(state)»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" }»);
             «ENDIF»
@@ -370,17 +366,18 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     
 	def produceTransitions(State fromState, Transition transition) '''
 	<!-- produceTransitions() -->
-            conditionalLinkExpressions = null;
-            uriLinkageProperties.clear();
+	<!-- 	create regular transition  -->
+
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-	            <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
-	                <property name="method" value="«transition.event.httpMethod»" />
-	                <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
-	                <property name="uriParameters" ref="uriLinkageMap" />
-	            </bean>
+            <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+                <property name="method" value="«transition.event.httpMethod»" />
+                <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
+				<property name="uriParameters" ref="uriLinkageMap" />
+				<property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }» />
+            </bean>
                 
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
             		.method("«transition.event.httpMethod»").target(«transitionTargetStateVariableName(transition)»).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
@@ -406,71 +403,109 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         ENDIF»'''
 
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''
- 	<!-- produceTransitionsForEach() -->    
-            conditionalLinkExpressions = null;
-            uriLinkageProperties.clear();
+ 	<!-- produceTransitionsForEach() -->  
+ 	<!-- 	create for each transition  -->
+
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.flags(Transition.FOR_EACH)
-            		.method("«transition.event.httpMethod»")
-            		.target(«transitionTargetStateVariableName(transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
-            		.build());
+	                
+	    <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+	        <property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.FOR_EACH"/></property>
+	         <property name="method" value="« transition.event.httpMethod»" />
+	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
+	         <property name="uriParameters" ref="uriLinkageMap" />
+         	<property name="evaluation" ref="xxx" />
+				<property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
+	     </bean>
+           
+        «stateVariableName(fromState)».addTransition(new Transition.Builder()
+          		.flags(Transition.FOR_EACH)
+           		.method("«transition.event.httpMethod»")
+           		.target(«transitionTargetStateVariableName(transition)»)
+           		.uriParameters(uriLinkageProperties)
+           		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+           		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
+           		.build());            		            	
     '''
 		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
- 	<!-- produceTransitionsForEach() -->    
-            conditionalLinkExpressions = null;
-            uriLinkageProperties.clear();
+ 	<!-- produceTransitionsAuto() -->  
+	<!-- 	create AUTO transition  -->
+
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.flags(Transition.AUTO)
-            		.target(«transitionTargetStateVariableName(transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.build());
+        
+       	<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+	        <property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.AUTO"/></property>
+	         <property name="method" value="« transition.event.httpMethod»" />
+	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
+	         <property name="uriParameters" ref="uriLinkageMap" />
+         	<property name="evaluation" ref="xxx" />
+	     </bean>
+        
+        «stateVariableName(fromState)».addTransition(new Transition.Builder()
+        		.flags(Transition.AUTO)
+        		.target(«transitionTargetStateVariableName(transition)»)
+        		.uriParameters(uriLinkageProperties)
+        		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+        		.build());
     '''
 
     def produceTransitionsRedirect(State fromState, TransitionRedirect transition) '''
-  	<!-- produceTransitionsRedirect() -->    
-            conditionalLinkExpressions = null;
-            uriLinkageProperties.clear();
+  	<!-- produceTransitionsRedirect() -->   
+  	<!-- 	create REDIRECT transition --> 
+
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.flags(Transition.REDIRECT)
-            		.target(«transitionTargetStateVariableName(transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.build());
+        
+      	<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+	        <property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.REDIRECT"/></property>
+	         <property name="method" value="« transition.event.httpMethod»" />
+	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
+	         <property name="uriParameters" ref="uriLinkageMap" />
+         	<property name="evaluation" ref="xxx" />
+	     </bean>
+        
+        «stateVariableName(fromState)».addTransition(new Transition.Builder()
+        		.flags(Transition.REDIRECT)
+        		.target(«transitionTargetStateVariableName(transition)»)
+        		.uriParameters(uriLinkageProperties)
+        		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+        		.build());
     '''
 
     def produceTransitionsEmbedded(State fromState, TransitionEmbedded transition) '''
-  	<!-- produceTransitionsEmbedded() -->    
-            conditionalLinkExpressions = null;
-            uriLinkageProperties.clear();
+  	<!-- produceTransitionsEmbedded() -->  
+  	<!-- 	create EMBEDDED transition --> 
+
         «IF transition.spec != null»
             «produceUriLinkage(transition.spec.uriLinks)»
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
-            «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.flags(Transition.EMBEDDED)
-            		.method("«transition.event.httpMethod»")
-            		.target(«transitionTargetStateVariableName(transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
-            		.build());
+        
+     	<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+	        <property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.EMBEDDED"/></property>
+	         <property name="method" value="« transition.event.httpMethod»" />
+	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
+	         <property name="uriParameters" ref="uriLinkageMap" />
+         	<property name="evaluation" ref="xxx" />
+        	<property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
+ 	     </bean>
+        
+        «stateVariableName(fromState)».addTransition(new Transition.Builder()
+        		.flags(Transition.EMBEDDED)
+        		.method("«transition.event.httpMethod»")
+        		.target(«transitionTargetStateVariableName(transition)»)
+        		.uriParameters(uriLinkageProperties)
+        		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+        		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
+        		.build());
     '''
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''
