@@ -47,7 +47,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         // generate resource classes
         for (resourceState : rim.states) {
             val statePath = resourceState.fullyQualifiedName.toString("/")
-            fsa.generateFile(statePath+"ResourceState.xml", toSpringXML(rim, resourceState))
+            fsa.generateFile(statePath+"-PRD.xml", toSpringXML(rim, resourceState))
         }
                
         fsa.generateFile(rimPath + "IRIS-ServiceDocument-PRD.xml", toSpringServiceDocXML(rim))
@@ -76,50 +76,43 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         	super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
         «ENDIF»
         
+        <!-- 
         «IF state.isInitial»
         	setInitial(true);
         «ENDIF»
+        -->
         
         «IF state.isException»
         	setException(true);
         «ENDIF»
                
-                111 «IF state.type.isCollection»Collection«ENDIF»ResourceState «stateVariableName(state)» = this;
-                «
-                val resources = newArrayList()
-                »
-                «IF !resources.contains(state.name) && resources.add(state.name)»«ENDIF»
+               xxx  StateName = « state.name »
                 <!-- create transitions  -->
-                «FOR t : state.transitions»
-	                «IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»
-	             xxx   ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
-	                «ENDIF»
-	                
-	                «IF (t.state != null && t.state.name != null) || t.name != null»
-	                {
-
-	                «IF t instanceof Transition»                
-	                	«produceTransitions(state, t as Transition)»
-	                «ENDIF»
-	
-	                «IF t instanceof TransitionForEach»                
-	                	«produceTransitionsForEach(state, t as TransitionForEach)»
-	                «ENDIF»
-	
-	                «IF t instanceof TransitionAuto»                
-	                	«produceTransitionsAuto(state, t as TransitionAuto)»
-	                «ENDIF»
-	
-	                «IF t instanceof TransitionRedirect»                
-	                	«produceTransitionsRedirect(state, t as TransitionRedirect)»
-	                «ENDIF»
-	
-	                «IF t instanceof TransitionEmbedded»                
-	                	«produceTransitionsEmbedded(state, t as TransitionEmbedded)»
-	                «ENDIF»
-	                }
-	                «ENDIF»
-                «ENDFOR»
+				«FOR t : state.transitions»
+		    	    «IF (t.state != null && t.state.name != null) || (t.name != null ) »
+				    				
+					    «IF t instanceof Transition»                
+					    	«produceTransitions(state, t as Transition)»
+					    «ENDIF»
+					
+					    «IF t instanceof TransitionForEach»                
+					    	«produceTransitionsForEach(state, t as TransitionForEach)»
+					    «ENDIF»
+					
+					    «IF t instanceof TransitionAuto»                
+					    	«produceTransitionsAuto(state, t as TransitionAuto)»
+					    «ENDIF»
+					
+					    «IF t instanceof TransitionRedirect»                
+					    	«produceTransitionsRedirect(state, t as TransitionRedirect)»
+					    «ENDIF»
+					
+					    «IF t instanceof TransitionEmbedded»                
+					    	«produceTransitionsEmbedded(state, t as TransitionEmbedded)»
+					    «ENDIF»
+				    
+				    «ENDIF»
+				«ENDFOR»
                 return true;
             }
             
@@ -364,11 +357,12 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
                 <property name="method" value="«transition.event.httpMethod»" />
                 <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 				<property name="uriParameters" ref="uriLinkageMap" />
-				<property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }» />
+				<property name="label" ref="«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»" />
             </bean>
                 
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.method("«transition.event.httpMethod»").target(«transitionTargetStateVariableName(transition)»).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
+            		.method("«transition.event.httpMethod»").target(«transitionTargetStateVariableName(transition)»).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).
+            		label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
             		.build());
 	'''
 
@@ -404,8 +398,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	         <property name="method" value="« transition.event.httpMethod»" />
 	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 	         <property name="uriParameters" ref="uriLinkageMap" />
-         	<property name="evaluation" ref="xxx" />
-				<property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
+         	 <property name="evaluation" ref="xxx" />
+			 <property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
 	     </bean>
            
         «stateVariableName(fromState)».addTransition(new Transition.Builder()
@@ -432,7 +426,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	         <property name="method" value="« transition.event.httpMethod»" />
 	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 	         <property name="uriParameters" ref="uriLinkageMap" />
-         	<property name="evaluation" ref="xxx" />
+         	 <property name="evaluation" ref="xxx" />
 	     </bean>
         
         «stateVariableName(fromState)».addTransition(new Transition.Builder()
@@ -482,8 +476,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	         <property name="method" value="« transition.event.httpMethod»" />
 	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 	         <property name="uriParameters" ref="uriLinkageMap" />
-         	<property name="evaluation" ref="xxx" />
-        	<property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
+         	 <property name="evaluation" ref="xxx" />
+        	 <property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
  	     </bean>
         
         «stateVariableName(fromState)».addTransition(new Transition.Builder()
