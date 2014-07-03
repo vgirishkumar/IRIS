@@ -68,7 +68,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
       	<!-- Define Spring bean for resource : «state.name» -->
         «addXMLResourceBean( rim,  state)»
         
-        public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
+        <!-- Start property transitions list -->
+        «addXmlStartTransitions»
+		<!--         	
+        //public class «state.name»ResourceState extends «IF state.type.isCollection»Collection«ENDIF»ResourceState implements LazyResourceLoader {
             
             private ResourceFactory factory = null;
 
@@ -148,8 +151,13 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             }
             
         }
-        
+	-->
+    <!-- End property transitions list -->
+	«addXmlEndTransitions»
+	
+    <!-- Define URI map -->
 	«addXmlUtilMap»
+	
 «addXmlEnd()»
         
 	'''
@@ -188,6 +196,20 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	</util:map>
 
 '''		
+	// Add util Map for resources.
+	def addXmlStartTransitions() ''' 
+        <property name="transitions">
+	        <list>
+
+'''		
+	// Add util Map for resources.
+	def addXmlEndTransitions() ''' 
+	        </list>
+	    </property>
+    </bean>
+
+'''		
+
 
 	// Add Spring bean for resource.
 	def addXMLResourceBean(ResourceInteractionModel rim, State state) ''' 
@@ -203,7 +225,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             </list>
         </constructor-arg>
         <constructor-arg name="path" value="«producePath(rim, state)»" />
-
+        <property name="transitions">
+	        <list>
 '''		
 	// Add Spring TransitionFactoryBean.
 	def addXMLTransitionFactoryBean(String target) ''' 
