@@ -55,11 +55,17 @@ public class TestRIMGeneratorMojo {
 		mojo.execute();
 	}
 
-	@Test (expected = MojoExecutionException.class)
+	/**
+	 * Test rim generation spring prd.
+	 *
+	 * @throws MojoExecutionException the mojo execution exception
+	 * @throws MojoFailureException the mojo failure exception
+	 */
+	@Test 
 	public void testRIMGenerationSpringPRD() throws MojoExecutionException, MojoFailureException {
 		RIMGeneratorMojo mojo = new RIMGeneratorMojo();
 		
-	    File rimSourceFile = new File("yy");
+	    File rimSourceFile = new File("src/test/rim/Simple.rim");
 	    File targetDirectory = new File("target");
 		mojo.setSkipRIMGenerationSpringPRD("false");
 		mojo.setSkipSwaggerGeneration("true");

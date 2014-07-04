@@ -47,10 +47,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         // generate resource classes
         for (resourceState : rim.states) {
             val statePath = resourceState.fullyQualifiedName.toString("/")
-            fsa.generateFile(statePath+"-PRD.xml", toSpringXML(rim, resourceState))
+            fsa.generateFile( statePath + "IRIS-PRD.xml", toSpringXML(rim, resourceState))
         }
                
-        fsa.generateFile(rimPath + "IRIS-ServiceDocument-PRD.xml", toSpringServiceDocXML(rim))
+        fsa.generateFile(rimPath + "ServiceDocumentIRIS-PRD.xml", toSpringServiceDocXML(rim))
   
 	}
 
@@ -357,11 +357,13 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
                 <property name="method" value="«transition.event.httpMethod»" />
                 <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 				<property name="uriParameters" ref="uriLinkageMap" />
+				<property name="evaluation" ref="conditionalLinkExpressions" />
 				<property name="label" ref="«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»" />
             </bean>
                 
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.method("«transition.event.httpMethod»").target(«transitionTargetStateVariableName(transition)»).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).
+            		.method("«transition.event.httpMethod»").target(«transitionTargetStateVariableName(transition)»).uriParameters(uriLinkageProperties).
+            		evaluation( conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).
             		label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
             		.build());
 	'''
