@@ -13,10 +13,10 @@ import com.temenos.interaction.rimdsl.generator.RIMDslGeneratorSpringPRD;
  * Initialization support for running Xtext languages 
  * without equinox extension registry
  */
-public class RIMDslStandaloneSpringPRDSetup extends RIMDslStandaloneSetup{
+public class RIMDslStandaloneSetupSpringPRD extends RIMDslStandaloneSetup{
 
 	public static void doSetup() {
-		new RIMDslStandaloneSpringPRDSetup().createInjectorAndDoEMFRegistration();
+		new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
 	}
 	
 	public Injector createInjector() {

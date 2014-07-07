@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import com.google.inject.Injector;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetup;
-import com.temenos.interaction.rimdsl.RIMDslStandaloneSpringPRDSetup;
+import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSpringPRD;
 
 public class GeneratorTest {
 	private File validGenJavaDir = new File("target/valid-gen-java");
@@ -47,7 +47,7 @@ public class GeneratorTest {
 
 	@Test
 	public void testStandaloneSpringPRDWithoutListenerValidRim() {
-		Injector injector = new RIMDslStandaloneSpringPRDSetup().createInjectorAndDoEMFRegistration();
+		Injector injector = new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
 		Generator generator = injector.getInstance(Generator.class);
 				
 		boolean result = generator.runGenerator("src/test/resources/valid.rim", validGenJavaDir.getPath());
@@ -73,7 +73,7 @@ public class GeneratorTest {
 	
 	@Test
 	public void testStandaloneSpringPRDListenerWithValidRim() {
-		Injector injector = new RIMDslStandaloneSpringPRDSetup().createInjectorAndDoEMFRegistration();
+		Injector injector = new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
 		Generator generator = injector.getInstance(Generator.class);
 		
 		ValidatorEventListener listener = mock(ValidatorEventListener.class);
@@ -85,22 +85,6 @@ public class GeneratorTest {
 		verify(listener, times(0)).notify(anyString());
 	}
 
-	
-	@Test
-	public void testStandaloneSpringPRDListenerWithRestbucksRim() {
-		Injector injector = new RIMDslStandaloneSpringPRDSetup().createInjectorAndDoEMFRegistration();
-		Generator generator = injector.getInstance(Generator.class);
-		
-		ValidatorEventListener listener = mock(ValidatorEventListener.class);
-		
-		generator.setValidatorEventListener(listener);
-		
-		generator.runGenerator("src/test/resources/Restbucks.rim", validGenJavaDir.getPath());
-		
-		verify(listener, times(0)).notify(anyString());
-	}
-
-	
 	
 	@Test
 	public void testStandaloneListenerWithInvalidRim() {
@@ -118,7 +102,7 @@ public class GeneratorTest {
 	
 	@Test
 	public void testStandaloneSpringPRDListenerWithInvalidRim() {
-		Injector injector = new RIMDslStandaloneSpringPRDSetup().createInjectorAndDoEMFRegistration();
+		Injector injector = new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
 		Generator generator = injector.getInstance(Generator.class);
 		
 		ValidatorEventListener listener = mock(ValidatorEventListener.class);

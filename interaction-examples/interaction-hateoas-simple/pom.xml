@@ -17,7 +17,7 @@
   <url>http://www.temenos.com</url>
 
   <properties>
-    <skipRIMGeneration>false</skipRIMGeneration>
+    <skipRIMGeneration>true</skipRIMGeneration>
     <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
     <jetty.version>9.0.5.v20130815</jetty.version>
   </properties>
@@ -30,12 +30,14 @@
         <version>1.7</version>
         <executions>
           <execution>
-            <phase>generate-sources</phase>
-            <goals><goal>add-source</goal></goals>
+            <phase>generate-resources</phase>
+            <goals><goal>add-resource</goal></goals>
             <configuration>
-              <sources>
-                <source>${project.build.directory}/src-gen</source>
-              </sources>
+              <resources>
+                <resource>
+                	<directory>${project.build.directory}/src-gen</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -161,6 +163,7 @@
     								<versionRange>[1.7,)</versionRange>
     								<goals>
     									<goal>add-source</goal>
+    									<goal>add-resource</goal>
     								</goals>
     							</pluginExecutionFilter>
     							<action>
@@ -260,6 +263,12 @@
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-core</artifactId>
     	<type>jar</type>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-springdsl</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
