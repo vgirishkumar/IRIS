@@ -31,7 +31,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import com.google.inject.Injector;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetup;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSwagger;
-import com.temenos.interaction.rimdsl.RIMDslStandaloneSpringPRDSetup;
+import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSpringPRD;
 import com.temenos.interaction.rimdsl.generator.launcher.Generator;
 import com.temenos.interaction.rimdsl.generator.launcher.ValidatorEventListener;
 
@@ -178,7 +178,7 @@ public class RIMGeneratorMojo extends AbstractMojo {
     			getLog().info("Creating [targetDirectory] " + targetDirectory.toString());
     			targetDirectory.mkdirs();
     		}
-    		Injector injector = new RIMDslStandaloneSpringPRDSetup().createInjectorAndDoEMFRegistration();
+    		Injector injector = new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
     		Generator generator = injector.getInstance(Generator.class);
     		
     		ValidatorEventListener listener = new ValidatorEventListener() {

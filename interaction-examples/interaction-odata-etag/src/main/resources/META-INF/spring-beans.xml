@@ -59,6 +59,9 @@
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 	
+	<!-- Import Portable Resource Definitions (PRD) -->
+	<import resource="classpath:*IRIS-PRD.xml" />
+		
 	<!-- An extension of org.apache.wink.spring.Registrar with support for singletons -->
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
