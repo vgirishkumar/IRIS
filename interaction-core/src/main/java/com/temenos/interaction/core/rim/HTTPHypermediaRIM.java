@@ -68,9 +68,12 @@ import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.DynamicResourceState;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.LinkHeader;
+import com.temenos.interaction.core.hypermedia.ResourceLocator;
+import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
@@ -101,6 +104,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	private final ResourceRequestHandler resourceRequestHandler;
 	private final Metadata metadata;
 	private final String resourcePath;
+	private final ResourceLocatorProvider resourceLocatorProvider;
 		
 	/**
 	 * <p>Create a new resource for HTTP interaction.</p>
@@ -115,8 +119,27 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			NewCommandController commandController, 
 			ResourceStateMachine hypermediaEngine,
 			Metadata metadata) {
-		this(null, commandController, hypermediaEngine, metadata, hypermediaEngine.getInitial().getResourcePath(), true);
+		this(null, commandController, hypermediaEngine, metadata, hypermediaEngine.getInitial().getResourcePath(), true, null);				
 	}
+	
+	/**
+	 * <p>Create a new resource for HTTP interaction.</p>
+	 * @param commandController
+	 * 			All commands for all resources.
+	 * @param hypermediaEngine
+	 * 			All application states, responsible for creating links from one state to another.
+	 * @param currentState	
+	 * 			The current application state when accessing this resource.
+	 * @param resourceLocatorProvider
+	 * 			The provider to use to acquire resource locators, which are used to dynamically resolve resources at runtime 
+	 */
+	public HTTPHypermediaRIM(
+			NewCommandController commandController, 
+			ResourceStateMachine hypermediaEngine,
+			Metadata metadata,
+			ResourceLocatorProvider resourceLocatorProvider) {
+		this(null, commandController, hypermediaEngine, metadata, hypermediaEngine.getInitial().getResourcePath(), true, resourceLocatorProvider);
+	}	
 
 	/*
 	 * Create a child resource.  This constructor is used to create resources where there
@@ -136,7 +159,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			ResourceStateMachine hypermediaEngine,
 			ResourceState currentState,
 			Metadata metadata) {
-		this(parent, commandController, hypermediaEngine, metadata, currentState.getResourcePath(), false);
+		this(parent, commandController, hypermediaEngine, metadata, currentState.getResourcePath(), false, null);		
 	}
 	
 	private HTTPHypermediaRIM(
@@ -145,13 +168,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			ResourceStateMachine hypermediaEngine,
 			Metadata metadata,
 			String currentPath,
-			boolean printGraph) {
+			boolean printGraph,
+			ResourceLocatorProvider resourceLocatorProvider) {
 		this.parent = parent;
 		this.resourceRequestHandler = new SequentialResourceRequestHandler();
 		this.commandController = commandController;
 		this.hypermediaEngine = hypermediaEngine;
 		this.metadata = metadata;
 		this.resourcePath = currentPath;
+		this.resourceLocatorProvider = resourceLocatorProvider;		
 		assert(commandController != null);
 		assert(hypermediaEngine != null);
 		assert(metadata != null);
@@ -174,9 +199,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
 			@Override
 			public void viewActionNotSeen(ResourceStateMachine rsm, ResourceState state) {
-				if (!state.isPseudoState())
+				if (!state.isPseudoState()){
 					logger.warn("Invalid configuration of resource state [" + state + "] - no view command");
-				//				throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no view command");
+				}					
 			}
 			
 			@Override
@@ -185,9 +210,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no command for action [" + action + "]");
 			}
 		});
+		
 		if (printGraph && hypermediaEngine.getInitial() != null) {
 			logger.info("State graph for [" + this.toString() + "] [" + validator.graph() + "]");
 		}
+		
 		validator.validate();
 	}
 
@@ -199,47 +226,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		return resourceRequestHandler;
 	}
 	
-	/*
-	 * Bootstrap the resource by attempting to fetch a command for all the required
-	 * interactions with the resource state.
-	private void bootstrap() {
-		Set<String> interactions = new HashSet<String>();
-		Set<String> configuredInteractions = hypermediaEngine.getInteractions(currentState);
-		if (configuredInteractions != null)
-			interactions.addAll(configuredInteractions);
-		// every resource MUST have a GET command
-		interactions.add("GET");
-	
-		if (interactions != null) {
-			// interactions are a set of http methods
-			for (String method : interactions) {
-				logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
-				// check valid http method
-				if (!(method.equals(HttpMethod.GET) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE) || method.equals(HttpMethod.POST)))
-					throw new RuntimeException("Invalid configuration of state [" + hypermediaEngine.getInitial().getId() + "] - invalid http method [" + method + "]");
-				// fetch command from command controller for this method
-				InteractionCommand command = getCommandController().fetchCommand(method, getFQResourcePath());
-				if (command == null)
-					throw new RuntimeException("Invalid configuration of dynamic resource [" + this + "] - no state transition command for http method [" + method + "]");
-			}
-		}
-
-		// TODO should be verified in constructor, but this class is currently mixed with dynamic resources that do not use links
-		// assert(getResourceRegistry() != null);
-		// resource created and valid, now register ourselves in the resource registry
-//		if (getResourceRegistry() != null)
-//			getResourceRegistry().add(this);
-	}
-	 */
-
 	public String getResourcePath() {
 		return resourcePath;
 	}
 
 	public String getFQResourcePath() {
 		String result = "";
-		if (getParent() != null)
+		
+		if (getParent() != null) {
 			result = getParent().getResourcePath();
+		}
 			
 		return result + getResourcePath();
 	}
@@ -255,17 +251,20 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		
 		for (ResourceState s : hypermediaEngine.getResourceStatesForPath(this.resourcePath)) {
 			Map<String, Set<ResourceState>> resourceStates = hypermediaEngine.getResourceStatesByPath(s);
+			
 			for (String childPath : resourceStates.keySet()) {
 				// get the sub states
-//				Set<ResourceState> childStates = resourceStates.get(childPath);
 				HTTPHypermediaRIM child = null;
+				
 				if (childPath.equals(s.getResourcePath())) {
 					continue;
 				}
-				child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, metadata, childPath, false);
+				
+				child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, metadata, childPath, false, resourceLocatorProvider);
 				result.add(child);
 			}
 		}
+		
 		return result;
 	}
 
@@ -297,6 +296,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	logger.info("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	Event event = new Event("GET", HttpMethod.GET);
+    	
     	// handle request
     	return handleRequest(headers, uriInfo, event, null);
 	}
@@ -304,27 +304,86 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event, EntityResource<?> resource) {
     	// determine action
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
-    	// create the interaction context
-    	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
+    	
+		Set<ResourceState> resourceStates = hypermediaEngine.getResourceStatesForPath(resourcePath);
+		
+		ResourceState placeholderState = resourceStates.iterator().next();
+				
+		InteractionContext ctx = null;
+		
+		if(resourceStates.size() == 1 &&  placeholderState instanceof DynamicResourceState){
+			// We are dealing with a dynamic target
+			
+			// Identify real target state
+			ResourceState targetState = getDynamicTarget(uriInfo, (DynamicResourceState)placeholderState);
+			
+			// Identify the action
+			action = determineAction(event, targetState);
+			
+			// create the interaction context
+			ctx = buildInteractionContext(headers, uriInfo, targetState);
+		} else {
+	    	// create the interaction context
+	    	ctx = buildInteractionContext(headers, uriInfo, event);			
+		}
+    	
     	long begin = System.currentTimeMillis();
     	Response response = handleRequest(headers, ctx, event, action, resource, null);
     	long end = System.currentTimeMillis();
-		logger.info("iris_request EntityName=" +  getFQResourcePath() + 
-				" MethodType=" + event.getMethod() + 
-				" URI=" + uriInfo.getRequestUri() + 
+    	
+		logger.info("iris_request EntityName=" +  getFQResourcePath() + " MethodType=" + event.getMethod() + " URI=" + uriInfo.getRequestUri() + 
 				" RequestTime=" + String.valueOf(end-begin));
+		
 		return response;
+	}
+
+	private InteractionCommand determineAction(Event event, ResourceState targetState) {
+		InteractionCommand action;
+		List<Action> actions = new ArrayList<Action>();
+		
+		for (Action a : targetState.getActions()) {
+			if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
+				if (actions.isEmpty()) {
+					actions.add(a);
+				}
+			} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
+				actions.add(a);
+			}
+		}			
+					
+		action = hypermediaEngine.buildWorkflow(actions);
+		return action;
+	}
+
+	private ResourceState getDynamicTarget(UriInfo uriInfo, DynamicResourceState dynamic) {		
+		// Use resource locator to resolve dynamic target
+		ResourceLocator locator = resourceLocatorProvider.get(dynamic.getResourceLocatorName());
+		
+		Object id = null;
+		
+		MultivaluedMap<String,String> pathParams = uriInfo.getPathParameters();
+		
+		for (String param : pathParams.keySet()) {
+			if (resourcePath.contains("{"+param+"}")) {
+				id = pathParams.get(param);
+			}
+		}
+		
+		return locator.resolve(id, dynamic.getResourceLocatorArgs());
 	}
 
 	protected Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event, InteractionCommand action, EntityResource<?> resource, ResourceRequestConfig config) {
 		assert(event != null);
 		StatusType status = Status.NOT_FOUND;
+		
     	if (action == null) {
-    		if (event.isUnSafe()) {
-    			status = HttpStatusTypes.METHOD_NOT_ALLOWED;
-    		}
-    		return buildResponse(headers, ctx.getPathParameters(), status, null, getInteractions(), null);
+        	if (event.isUnSafe()) {
+        		status = HttpStatusTypes.METHOD_NOT_ALLOWED;
+        	}
+        		
+        	return buildResponse(headers, ctx.getPathParameters(), status, null, getInteractions(), null);    			    			    		    		
     	}
+    	
     	// determine current state, target state, and link used
     	initialiseInteractionContext(headers, event, ctx, resource);
     	// execute action
@@ -339,6 +398,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		status = ie.getHttpStatus();
     		ctx.setException(ie);
     	}
+    	
     	if (ctx.getResource() != null) {
     		/*
     		 * Add entity information to this resource
@@ -354,6 +414,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		Transition selfTransition = null;
     		boolean injectLinks = true;
     		boolean embedResources = true;
+    		
     		if (config != null) {
     			selfTransition = config.getSelfTransition();
     			injectLinks = config.isInjectLinks();
@@ -375,6 +436,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		}
 
     	}
+    	
     	// build response
     	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx);
     }
@@ -386,6 +448,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
 		
 		ResourceState targetState = null;
+		
 		if (headers != null) {
 			//Apply the etag on the If-Match header if available
 			ctx.setPreconditionIfMatch(HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_MATCH));
@@ -394,19 +457,27 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	    	// work out the target state and link used
 			LinkHeader linkHeader = null;
 			List<String> linkHeaders = headers.getRequestHeader("Link");
+			
 			if (linkHeaders != null && linkHeaders.size() > 0) {
 	    		// there must be only one Link header
 	    		assert(linkHeaders.size() == 1);
 				linkHeader = LinkHeader.valueOf(linkHeaders.get(0));
 			}
+			
 			Link linkUsed = hypermediaEngine.getLinkFromRelations(ctx.getPathParameters(), null, linkHeader);
 			ctx.setLinkUsed(linkUsed);
-			if (linkUsed != null)
+			
+			if (linkUsed != null) {
 				targetState = linkUsed.getTransition().getTarget();
+			}
 		}
-		if (targetState == null)
+		
+		if (targetState == null) {
 			targetState = ctx.getCurrentState();
+		}
+		
 		ctx.setTargetState(targetState);
+		
 		return targetState;
 	}
 	
@@ -415,6 +486,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		assert(ctx != null);
 
     	StatusType status = null;
+    	
     	switch(result) {
 	    	case INVALID_REQUEST:					status = Status.BAD_REQUEST; break;
 	    	case FAILURE: {
@@ -428,6 +500,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	    	case SUCCESS: {
 
 	    		status = Status.INTERNAL_SERVER_ERROR;
+	    		
 		    	if (event.getMethod().equals(HttpMethod.GET)) {
 		    		String ifNoneMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_NONE_MATCH);
 		    		String etag = ctx.getResource() != null ? ctx.getResource().getEntityTag() : null;
@@ -508,6 +581,18 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
 		return status;
 	}
+
+	private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, ResourceState currentState) {
+    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
+    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+    	// work around an issue in wink, wink does not decode query parameters in 1.1.3
+    	decodeQueryParams(queryParameters);
+    	// create the interaction context
+
+    	InteractionContext ctx = new InteractionContext(headers, pathParameters, queryParameters, currentState, metadata);
+    	
+    	return ctx;
+	}
 	
 	private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, Event event) {
     	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
@@ -517,6 +602,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// create the interaction context
     	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
     	InteractionContext ctx = new InteractionContext(headers, pathParameters, queryParameters, currentState, metadata);
+    	
     	return ctx;
 	}
 
@@ -525,6 +611,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
 		// Build the Response (representation will be created by the jax-rs Provider)
 		ResponseBuilder responseBuilder = Response.status(status);
+		
 		if (status.equals(HttpStatusTypes.RESET_CONTENT)) {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.equals(HttpStatusTypes.METHOD_NOT_ALLOWED)) {
@@ -633,12 +720,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				responseBuilder.header(name, responseHeaders.get(name));
 			}
 		}
+		
 		logger.info("Building response " + status.getStatusCode() + " " + status.getReasonPhrase());
+		
 		return responseBuilder.build();
     }
     
     private List<Transition> getLinks(RESTResource resource, int transitionType) {
     	List<Transition> transitions = new ArrayList<Transition>();
+    	
     	if (resource != null && resource.getLinks() != null) {
         	for(Link link : resource.getLinks()) {
     			if ((link.getTransition().getCommand().getFlags() & transitionType) == transitionType) {
@@ -646,6 +736,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     			}
     		}
     	}
+    	
 		return transitions;
     }
 
@@ -657,6 +748,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
      */
     private Response getResource(HttpHeaders headers, Transition resourceTransition, InteractionContext ctx) {
 		ResourceState targetState = resourceTransition.getTarget();
+		
 		try {
 			ResourceRequestConfig config = new ResourceRequestConfig.Builder()
 					.transition(resourceTransition)
@@ -667,6 +759,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
 			newPathParameters.putAll(ctx.getPathParameters());
 			RESTResource currentResource = ctx.getResource();
+			
 			if (currentResource != null) {
 				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition, ((EntityResource<?>)currentResource).getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
 				for (String key : transitionProperties.keySet()) {
@@ -674,6 +767,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 						newPathParameters.add(key, transitionProperties.get(key).toString());
 				}
 			}
+			
 	    	InteractionContext newCtx = new InteractionContext(ctx, headers, newPathParameters, ctx.getQueryParameters(), targetState);
 			Response response = handleRequest(headers, 
 					newCtx, 
@@ -683,7 +777,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 					config);
         	RESTResource resource = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
         	resource.setEntityName(targetState.getEntityName());
+        	
 			return response;
+			
 		} catch(Exception ie) {
 			logger.error("Failed to access resource [" + targetState.getId() + "] with error [" + ie.getMessage() + "]");
 			throw new RuntimeException(ie);
@@ -693,10 +789,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
+    	
     	try {
-    		if (queryParameters == null)
+    		
+    		if (queryParameters == null) {
     			return;
+    		}
+    		
 			URLDecoder ud = new URLDecoder();
+			
 			for (String key : queryParameters.keySet()) {
 				List<String> values = queryParameters.get(key);
 				if (values != null) {
@@ -708,6 +809,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				    queryParameters.put(key, newValues);
 				}
 			}
+			
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}
@@ -727,14 +829,17 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	initialiseInteractionContext(headers, event, ctx, null);
     	String entityName = ctx.getCurrentState().getEntityName();
 		EntityResource<Entity> resource = new EntityResource<Entity>(entityName, createEntity(entityName, formParams));
+		
     	return handleRequest(headers, uriInfo, event, resource);
     }
     
     private Entity createEntity(String entityName, MultivaluedMap<String, String> formParams) {
 		EntityProperties fields = new EntityProperties();
+		
 		for (String key : formParams.keySet()) {
 			fields.setProperty(new EntityProperty(key, formParams.getFirst(key)));
 		}
+		
 		return new Entity(entityName, fields);
     }
 
@@ -756,9 +861,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	MediaType.APPLICATION_JSON, 
     	MediaType.WILDCARD})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
-    	logger.info("POST " + getFQResourcePath());
-    	assert(getResourcePath() != null);
+    	logger.info("POST " + getFQResourcePath());    	
+    	assert(getResourcePath() != null);    	
     	Event event = new Event("POST", HttpMethod.POST);
+    	
     	// handle request
     	return handleRequest(headers, uriInfo, event, resource);
     }
@@ -786,6 +892,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	logger.info("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	Event event = new Event("PUT", HttpMethod.PUT);
+    	
     	// handle request
     	return handleRequest(headers, uriInfo, event, resource);
     }
@@ -803,6 +910,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	logger.info("DELETE " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	Event event = new Event("DELETE", HttpMethod.DELETE);
+    	
     	// handle request
     	return handleRequest(headers, uriInfo, event, null);
     }
@@ -820,6 +928,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	Event event = new Event("OPTIONS", HttpMethod.GET);
     	// create the interaction context
     	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
+    	
     	// TODO add support for OPTIONS /resource/* which will provide information about valid interactions for any entity
 		return buildResponse(headers, ctx.getPathParameters(), Status.NO_CONTENT, null, getInteractions(), null);
     }
@@ -833,6 +942,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	interactions.addAll(hypermediaEngine.getInteractionByPath().get(getFQResourcePath()));
     	interactions.add("HEAD");
     	interactions.add("OPTIONS");
+    	
     	return interactions;
     }
 
@@ -844,9 +954,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
 	public boolean equals(Object other) {
 		//check for self-comparison
-	    if ( this == other ) return true;
-	    if ( !(other instanceof HTTPHypermediaRIM) ) return false;
+	    if ( this == other ) { return true; }
+	    if ( !(other instanceof HTTPHypermediaRIM) ) {return false; }
 	    HTTPHypermediaRIM otherResource = (HTTPHypermediaRIM) other;
+	    
 	    return getFQResourcePath().equals(otherResource.getFQResourcePath());
 	}
 	

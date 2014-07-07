@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 
+
 /*
  * #%L
  * interaction-core
@@ -55,6 +56,7 @@ public class Transition {
 	public static final int REDIRECT = 16;
 
 	private ResourceState source, target;
+	private ResourceLocator locator;
 	private final TransitionCommandSpec command;
 	private String label;
 
@@ -113,6 +115,20 @@ public class Transition {
 				&& source instanceof CollectionResourceState
 				&& (target instanceof ResourceState && !(target instanceof CollectionResourceState));
 	}
+	
+	/**
+	 * @return the locator
+	 */
+	public ResourceLocator getLocator() {
+		return locator;
+	}
+
+	/**
+	 * @param locator the locator to set
+	 */
+	public void setLocator(ResourceLocator locator) {
+		this.locator = locator;
+	}	
 
 	public boolean equals(Object other) {
 		//check for self-comparison
@@ -147,6 +163,7 @@ public class Transition {
 	public static class Builder {
 		private ResourceState source;
 		private ResourceState target;
+		private ResourceLocator locator;
 		private String label;
 		private String method;
 		private String path;
@@ -161,6 +178,11 @@ public class Transition {
 
 		public Builder target(ResourceState target) {
 			this.target = target;
+			return this;
+		}
+
+		public Builder locator(ResourceLocator locator) {
+			this.locator = locator;
 			return this;
 		}
 
@@ -202,6 +224,7 @@ public class Transition {
 	private Transition(Builder builder) {
 		this.source = builder.source;
 		this.target = builder.target;
+		this.locator = builder.locator;
 		this.label = builder.label;
 		this.method = builder.method;
 		this.path = builder.path;
