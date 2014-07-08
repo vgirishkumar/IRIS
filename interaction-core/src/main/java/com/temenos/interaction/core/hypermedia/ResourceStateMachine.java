@@ -73,6 +73,7 @@ public class ResourceStateMachine {
 	public final ResourceState exception;
 	public final Transformer transformer;
 	public NewCommandController commandController;
+	ResourceLocatorProvider resourceLocatorProvider;
 	
 	// optimised access
 	private Map<String,Transition> transitionsById = new HashMap<String,Transition>();
@@ -84,11 +85,19 @@ public class ResourceStateMachine {
 	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
 	
 	public ResourceStateMachine(ResourceState initialState) {
-		this(initialState, null, null);
+		this(initialState, null, null, null);
 	}
 
+	public ResourceStateMachine(ResourceState initialState, ResourceLocatorProvider resourceLocatorProvider) {	
+		this(initialState, null, null, resourceLocatorProvider);
+	}
+	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState) {
-		this(initialState, exceptionState, null);
+		this(initialState, exceptionState, null, null);
+	}
+	
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, ResourceLocatorProvider resourceLocatorProvider) {
+		this(initialState, exceptionState, null, resourceLocatorProvider);
 	}
 	
 	public NewCommandController getCommandController() {
@@ -167,11 +176,20 @@ public class ResourceStateMachine {
 	 * @param transformer
 	 */
 	public ResourceStateMachine(ResourceState initialState, Transformer transformer) {
-		this(initialState, null, transformer);
+		this(initialState, null, transformer, null);
 	}
 	
+	/**
+	 * 
+	 * @invariant initial state not null
+	 * @param initialState
+	 * @param transformer
+	 */
+	public ResourceStateMachine(ResourceState initialState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
+		this(initialState, null, transformer, resourceLocatorProvider);
+	}
 	
-	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
 		if (initialState == null) throw new RuntimeException("Initial state must be supplied");
 		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
 		assert(exceptionState == null || exceptionState.isException());
@@ -179,6 +197,7 @@ public class ResourceStateMachine {
 		this.initial.setInitial(true);
 		this.exception = exceptionState;
 		this.transformer = transformer;
+		this.resourceLocatorProvider = resourceLocatorProvider;
 		build();
 	}
 
@@ -733,6 +752,27 @@ public class ResourceStateMachine {
 		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, transitionParameters, queryParameters);
 		return createLink(resourcePath, transition, transitionProperties, entity, queryParameters, allQueryParameters);
 	}
+	
+	private ResourceState getDynamicTarget(DynamicResourceState dynamic, String packageName, Object... aliases) {		
+		// Use resource locator to resolve dynamic target
+		ResourceLocator locator = resourceLocatorProvider.get(dynamic.getResourceLocatorName());
+		
+		String targetStateName = locator.resolve(aliases);
+		ResourceState targetState = getResourceStateByName(targetStateName);
+		
+		if(targetState == null) {
+			String stateClassName = packageName + "." + targetStateName + "ResourceState";
+			
+			try {
+				targetState = (ResourceState) Class.forName(stateClassName).newInstance();
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to dynamically instantiate state class", e);
+			}
+		}
+				
+		return targetState;
+	}
+	
 
 	/*
 	 * Create a link using the supplied transition, entity and transition properties.
@@ -750,7 +790,24 @@ public class ResourceStateMachine {
 		TransitionCommandSpec cs = transition.getCommand();
 		UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
 		try {
-			String rel = transition.getTarget().getRel();
+			ResourceState targetState = transition.getTarget();
+			String targetResourcePath = resourcePath;
+			
+			if(targetState instanceof DynamicResourceState){
+				// We are dealing with a dynamic target
+				
+				// Identify real target state
+				DynamicResourceState dynamicResourceState = (DynamicResourceState)targetState;
+				
+				List<Object> aliases = getResourceAliases(transitionProperties, dynamicResourceState);
+								
+				targetState = getDynamicTarget(dynamicResourceState, transition.getSource().getClass().getPackage().getName(), aliases.toArray());
+				
+				targetResourcePath = targetState.getPath();				
+			}
+			
+			
+			String rel = targetState.getRel();
 			if (transition.getSource().equals(transition.getTarget())) {
 				rel = "self"; 
 			}
@@ -761,17 +818,17 @@ public class ResourceStateMachine {
 			if (uriParameters != null) {
 				for(String key : uriParameters.keySet()) {
 					String value = uriParameters.get(key);
-					if (!resourcePath.contains("{"+key+"}")) {
+					if (!targetResourcePath.contains("{"+key+"}")) {
 						linkTemplate.queryParam(key, HypermediaTemplateHelper.templateReplace(value, transitionProperties));
 					}
 				}
 			}
-			linkTemplate.path(resourcePath);
+			linkTemplate.path(targetResourcePath);
 			
 			// Pass any query parameters
 			if (queryParameters != null && allQueryParameters) {
 				for (String param : queryParameters.keySet()) {
-					if (!resourcePath.contains("{"+param+"}") && (uriParameters == null || !uriParameters.containsKey(param))) {
+					if (!targetResourcePath.contains("{"+param+"}") && (uriParameters == null || !uriParameters.containsKey(param))) {
 						linkTemplate.queryParam(param, queryParameters.getFirst(param));
 					}
 				}
@@ -798,6 +855,29 @@ public class ResourceStateMachine {
 			logger.error("An error occurred while creating link [" + transition + "]", e);
 			throw e;
 		}
+	}
+
+	/**
+	 * @param transitionProperties
+	 * @param dynamicResourceState
+	 * @return
+	 */
+	private List<Object> getResourceAliases(Map<String, Object> transitionProperties,
+			DynamicResourceState dynamicResourceState) {
+		List<Object> aliases = new ArrayList<Object>();
+		
+		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9]+)\\}*");
+		
+		for(String resourceLocatorArg: dynamicResourceState.getResourceLocatorArgs()) {
+			Matcher matcher = pattern.matcher(resourceLocatorArg);
+			matcher.find();
+			String key = matcher.group(1);
+			
+			if(transitionProperties.containsKey(key)) {
+				aliases.add(transitionProperties.get(key));	
+			}					
+		}
+		return aliases;
 	}
 	
 	/**

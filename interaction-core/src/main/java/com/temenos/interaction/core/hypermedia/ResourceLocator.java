@@ -29,14 +29,11 @@ package com.temenos.interaction.core.hypermedia;
  *
  */
 public interface ResourceLocator {
-	/**
-	 * 
-	 * @param id
-	 * 			The identifier of the selected record
+	/** 
 	 * @param alias
 	 * 			The alias to resolve to a resource state name
 	 * 
 	 * @return
 	 */
-	ResourceState resolve(Object id, String... alias);
+	String resolve(Object... alias);
 }
