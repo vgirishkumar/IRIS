@@ -72,7 +72,7 @@ public class GeneratorTest {
 
 	
 	@Test
-	public void testStandaloneSpringPRDListenerWithValidRim() {
+	public void testStandaloneSpringPRDListenerWithRestbucksRim() {
 		Injector injector = new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
 		Generator generator = injector.getInstance(Generator.class);
 		
@@ -80,7 +80,7 @@ public class GeneratorTest {
 		
 		generator.setValidatorEventListener(listener);
 		
-		generator.runGenerator("src/test/resources/valid.rim", validGenJavaDir.getPath());
+		generator.runGenerator("src/test/resources/Restbucks.rim", validGenJavaDir.getPath());
 		
 		verify(listener, times(0)).notify(anyString());
 	}
@@ -112,5 +112,19 @@ public class GeneratorTest {
 		generator.runGenerator("src/test/resources/invalid.rim", invalidGenJavaDir.getPath());
 		
 		verify(listener, times(1)).notify(anyString());
+	}
+
+	@Test
+	public void testStandaloneSpringPRDListenerWithValidRim() {
+		Injector injector = new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
+		Generator generator = injector.getInstance(Generator.class);
+		
+		ValidatorEventListener listener = mock(ValidatorEventListener.class);
+		
+		generator.setValidatorEventListener(listener);
+		
+		generator.runGenerator("src/test/resources/valid.rim", validGenJavaDir.getPath());
+		
+		verify(listener, times(0)).notify(anyString());
 	}	
 }

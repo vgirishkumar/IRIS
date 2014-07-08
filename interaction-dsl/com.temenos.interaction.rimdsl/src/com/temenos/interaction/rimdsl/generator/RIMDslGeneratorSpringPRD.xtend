@@ -247,6 +247,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	def toSpringServiceDocXML(ResourceInteractionModel rim) '''
  «addXmlStart()»
  	«addXMLStartServiceDocInitialBean()»
+        <!-- Start property transitions list -->
+        «addXmlStartTransitions»
         «FOR resourceState :rim.states»
         	«addXMLTransitionFactoryBean(resourceState.name)»
         «ENDFOR»
