@@ -77,12 +77,8 @@ public class GeneratorSpringPRDTest {
 
 	private final static String SIMPLE_STATES_BEHAVIOUR = "       <bean id=\"A\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"
 			+ LINE_SEP + "<constructor-arg name=\"entityName\" value=\"ENTITY\" />";
-
-	private String beanId;
-	private String constructorName;
-	private String beanClass;
-
-	private String path;
+	private final static String INCOMPLETE_RIM = "" + "rim Test {" + LINE_SEP + "	command GetEntity" + LINE_SEP
+			+ "	command Noop" + LINE_SEP + "}" + LINE_SEP + "";
 
 	private static final String BEAN_ID_INITIAL_STATE = "initialState";
 	private static final String BEAN_ID_COLLECTION_RESOURCE_STATE = "com.temenos.interaction.core.hypermedia.CollectionResourceState";
@@ -90,6 +86,11 @@ public class GeneratorSpringPRDTest {
 	private static final String RESOURCE_STATE = "com.temenos.interaction.core.hypermedia.ResourceState";
 	private static final String ACTION = "com.temenos.interaction.core.hypermedia.Action";
 	private static final String TRANSITION_FACTORY_BEAN = "com.temenos.interaction.springdsl.TransitionFactoryBean";
+
+	private String beanId;
+	private String beanClass;
+	private String path;
+
 
 	private enum PROCESSING_STATE {
 		INIT, RESOURCE_STATE, ACTION, FACTORY_BEAN, COLLECTION_RESOURCE_STATE
@@ -103,8 +104,11 @@ public class GeneratorSpringPRDTest {
 			"initial resource A {" + LINE_SEP + "	type: collection" + LINE_SEP + "	entity: ENTITY" + LINE_SEP
 			+ "	view: GetEntity" + LINE_SEP + "}" + LINE_SEP + "}" + LINE_SEP + "";
 
-	/*
-	 * doGenerate should producer one file per resource
+	/**
+	 * Test generate one file.
+	 * 
+	 * @throws Exception
+	 *             the exception
 	 */
 	@Test
 	public void testGenerateOneFile() throws Exception {
@@ -115,8 +119,11 @@ public class GeneratorSpringPRDTest {
 		System.out.println(fsa.getFiles());
 		assertEquals(2, fsa.getFiles().size());
 
-		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "TestBehaviour.java"));
-		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java"));
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		Set<String> keys = allFiles.keySet();
+
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "Test/AIRIS-PRD.xml"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "TestServiceDocumentIRIS-PRD.xml"));
 
 	}
 
@@ -126,8 +133,11 @@ public class GeneratorSpringPRDTest {
 			"initial resource A {" + LINE_SEP + "	type: collection" + LINE_SEP + "	entity: ENTITY" + LINE_SEP
 			+ "	view: GetEntity" + LINE_SEP + "}" + LINE_SEP + "}" + LINE_SEP + "}" + LINE_SEP + "";
 
-	/*
-	 * doGenerate should producer one file per resource
+	/**
+	 * Test generate file in package.
+	 * 
+	 * @throws Exception
+	 *             the exception
 	 */
 	@Test
 	public void testGenerateFileInPackage() throws Exception {
@@ -137,30 +147,50 @@ public class GeneratorSpringPRDTest {
 		System.out.println(fsa.getFiles());
 		assertEquals(2, fsa.getFiles().size());
 
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "blah/TestBehaviour.java";
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		Set<String> keys = allFiles.keySet();
+
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "blah/Test/AIRIS-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output.contains("package blah;"));
-		assertTrue(output.contains("public class TestBehaviour {"));
-		assertTrue(output.contains("getRIM"));
-		assertTrue(output.contains("factory.getResourceState(\"blah.Test.A\");"));
+		assertTrue(output
+				.contains("<bean id=\"A\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
+		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
+		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/A\" />"));
+		assertTrue(output.contains("<property name=\"transitions\">"));
 
-		String expectedRSKey = IFileSystemAccess.DEFAULT_OUTPUT + "blah/Test/AResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedRSKey));
-		String outputRS = fsa.getFiles().get(expectedRSKey).toString();
-		assertTrue(outputRS.contains("package blah.Test;"));
 	}
 
+	/**
+	 * Test generate single state view command only.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testGenerateSingleStateViewCommandOnly() throws Exception {
 		DomainModel domainModel = parseHelper.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(domainModel.eResource(), fsa);
 
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		Set<String> keys = allFiles.keySet();
+
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AIRIS-PRD.xml";
+		String output = fsa.getFiles().get(expectedKey).toString();
+
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		assertTrue(fsa.getFiles().get(expectedKey).toString()
-				.contains("new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties())"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "TestServiceDocumentIRIS-PRD.xml"));
+		assertTrue(output
+				.contains("<bean id=\"A\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
+		assertTrue(output.contains("<constructor-arg name=\"entityName\" value=\"ENTITY\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"name\" value=\"A\" />"));
+		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
+		assertTrue(output.contains("<constructor-arg value=\"GETEntities\" />"));
+		assertTrue(output.contains("<constructor-arg value=\"VIEW\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/A\" />"));
+		assertTrue(output.contains("<property name=\"transitions\">"));
+
 	}
 
 	private final static String SINGLE_STATE_ACTION_COMMANDS_RIM = "" + "rim Test {" + LINE_SEP
@@ -599,6 +629,12 @@ public class GeneratorSpringPRDTest {
 			"resource AE {" + LINE_SEP + "	type: item" + LINE_SEP + "	entity: ERROR" + LINE_SEP + "	view: Noop"
 			+ LINE_SEP + "}" + LINE_SEP + "}" + LINE_SEP + "";
 
+	/**
+	 * Test generate on error resource.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testGenerateOnErrorResource() throws Exception {
 		DomainModel domainModel = parseHelper.parse(RESOURCE_ON_ERROR);
@@ -606,12 +642,24 @@ public class GeneratorSpringPRDTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		Set<String> keys = allFiles.keySet();
+		
 		// collection
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AEIRIS-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "TestServiceDocumentIRIS-PRD.xml"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "Test/AIRIS-PRD.xml"));
 		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output
-				.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"Test.AE\"));"));
+				.contains("<bean id=\"AE\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
+		assertTrue(output.contains("<constructor-arg name=\"entityName\" value=\"ERROR\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"name\" value=\"AE\" />"));
+		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
+		assertTrue(output.contains("<constructor-arg value=\"GETEntities\" />"));
+		assertTrue(output.contains("<constructor-arg value=\"VIEW\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/AE\" />"));
+
 	}
 
 	private final static String RESOURCE_ON_ERROR_SEPARATE_RIM = "" + "domain ErrorTest {" + LINE_SEP + "rim Test {"
@@ -627,18 +675,37 @@ public class GeneratorSpringPRDTest {
 
 			"}" + LINE_SEP + "";
 
+	/**
+	 * Test generate on error resource separate rim.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void testGenerateOnErrorResourceSeparateRIM() throws Exception {
 		DomainModel domainModel = parseHelper.parse(RESOURCE_ON_ERROR_SEPARATE_RIM);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(domainModel.eResource(), fsa);
 
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		Set<String> keys = allFiles.keySet();
+		
 		// collection
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/Test/AResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/Error/AEIRIS-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/ErrorServiceDocumentIRIS-PRD.xml"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/Test/AIRIS-PRD.xml"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/TestServiceDocumentIRIS-PRD.xml"));
+
 		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output
-				.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"ErrorTest.Error.AE\"));"));
+		assertTrue(output.contains("<bean id=\"AE\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
+		assertTrue(output.contains("<constructor-arg name=\"entityName\" value=\"ERROR\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"name\" value=\"AE\" />"));
+		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
+		assertTrue(output.contains("<constructor-arg value=\"GETEntities\" />"));
+		assertTrue(output.contains("<constructor-arg value=\"VIEW\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/AE\" />"));
+
+
 	}
 
 	private final static String RESOURCE_WITH_BASEPATH = "" + "rim Test {" + LINE_SEP + "	command GetEntity" + LINE_SEP
@@ -649,6 +716,11 @@ public class GeneratorSpringPRDTest {
 
 			"}" + LINE_SEP + "";
 
+	/**
+	 * Test generate resource with basepath.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void testGenerateResourceWithBasepath() throws Exception {
 		DomainModel domainModel = parseHelper.parse(RESOURCE_WITH_BASEPATH);
@@ -656,17 +728,29 @@ public class GeneratorSpringPRDTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		Set<String> keys = allFiles.keySet();
+
 		// collection
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AIRIS-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output
-				.contains("super(\"ENTITY\", \"A\", createActions(), \"/{companyid}/A\", createLinkRelations(), null, null);"));
+				.contains("<bean id=\"A\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
+		assertTrue(output.contains("<constructor-arg name=\"entityName\" value=\"ENTITY\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"name\" value=\"A\" />"));
+		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
+		assertTrue(output.contains("<constructor-arg value=\"GETEntities\" />"));
+		assertTrue(output.contains("<constructor-arg value=\"VIEW\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/{companyid}/A\" />"));
 	}
 
-	private final static String INCOMPLETE_RIM = "" + "rim Test {" + LINE_SEP + "	command GetEntity" + LINE_SEP
-			+ "	command Noop" + LINE_SEP + "}" + LINE_SEP + "";
-
+	/**
+	 * Test generate from incomplete rim.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testGenerateFromIncompleteRIM() throws Exception {
 		DomainModel model = parseHelper.parse(INCOMPLETE_RIM);
@@ -680,6 +764,12 @@ public class GeneratorSpringPRDTest {
 		assertFalse(exceptionThrown);
 	}
 
+	/**
+	 * Test generate with null.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testGenerateWithNull() throws Exception {
 		boolean exceptionThrown = false;
@@ -692,16 +782,11 @@ public class GeneratorSpringPRDTest {
 		assertTrue(exceptionThrown);
 	}
 
-	/*
+	/**
+	 * Test generate simple states.
 	 * 
-	 * <constructor-arg name="name" value="A" /> <constructor-arg> <list> <bean
-	 * class="com.temenos.interaction.core.hypermedia.Action"> <constructor-arg
-	 * value="GETEntities" /> <constructor-arg value="VIEW" /> </bean> </list>
-	 * </constructor-arg> <constructor-arg name="path" value="/A" /> <property
-	 * name="transitions"> <list>
-	 * 
-	 * <!-- Start property transitions list --> <property name="transitions">
-	 * <list>
+	 * @throws Exception
+	 *             the exception
 	 */
 	@Test
 	public void testGenerateSimpleStates() throws Exception {
@@ -709,8 +794,8 @@ public class GeneratorSpringPRDTest {
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
+		
 		Map<String, Object> allFiles = fsa.getAllFiles();
-
 		Set<String> keys = allFiles.keySet();
 
 		System.out.println(fsa.getFiles());
@@ -729,146 +814,13 @@ public class GeneratorSpringPRDTest {
 		String expectedKey4 = IFileSystemAccess.DEFAULT_OUTPUT + "Simple/EIRIS-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey4));
 
-		// the behaviour class
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "SimpleBehaviour.java";
-		StringConcatenation doc2 = (StringConcatenation) allFiles.get(expectedKey2);
-
-		if (doc2.toString().contains(
-				"<bean id=\"A\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">")) {
-			assertTrue(fsa.getFiles().containsKey(expectedKey2));
-		}
-
-		if (doc2.toString().contains(SIMPLE_STATES_BEHAVIOUR)) {
-			assertTrue(fsa.getFiles().containsKey(expectedKey2));
-		}
-
-		StringConcatenation root = (StringConcatenation) allFiles
-				.get("DEFAULT_OUTPUTSimpleServiceDocumentIRIS-PRD.xml");
-		Reader reader = new StringReader(root.toString());
-
-		XMLInputFactory factory = XMLInputFactory.newInstance();
-		// XMLStreamReader xmlStreamReader =
-		// factory.createXMLStreamReader(reader);
-		XMLEventReader eventReader = factory.createXMLEventReader(reader);
-		String tagContent = null;
-
-		while (eventReader.hasNext()) {
-			XMLEvent event = eventReader.nextEvent();
-
-			// reach the start of an item
-			if (event.isStartElement()) {
-
-				StartElement startElement = event.asStartElement();
-
-				if (startElement.getName().getLocalPart() == "bean") {
-					// item = new Item();
-					System.out.println("--start of an item");
-					// attribute
-					Iterator<Attribute> attributes = startElement.getAttributes();
-					while (attributes.hasNext()) {
-						Attribute attribute = attributes.next();
-						System.out.println("attribute.getName() = " + attribute.getName().toString());
-
-						if (attribute.getName().toString().equals("id")) {
-							beanId = attribute.getValue();
-							System.out.println("beanId = " + attribute.getValue());
-						}
-						if (attribute.getName().toString().equals("class")) {
-							beanClass = attribute.getValue();
-							System.out.println("beanClass = " + attribute.getValue());
-							if (beanId.equals(BEAN_ID_INITIAL_STATE)) {
-								assertTrue(beanClass.equals(RESOURCE_STATE));
-								beanId = "";
-							} else
-								assertTrue(beanClass.equals(ACTION));
-
-						} else {
-							System.out.println("id = " + attribute.getValue());
-						}
-
-					}
-				}
-
-				if (startElement.getName().getLocalPart() == "constructor-arg") {
-					// item = new Item();
-					System.out.println("--start of an item");
-					// attribute
-					Iterator<Attribute> attributes = startElement.getAttributes();
-					while (attributes.hasNext()) {
-						Attribute attribute = attributes.next();
-						System.out.println("attribute.getName() = " + attribute.getName().toString());
-
-						if (attribute.getName().toString().equals("entityName")) {
-							constructorName = attribute.getValue();
-							System.out.println("beanId = " + attribute.getValue());
-						}
-						if (attribute.getName().toString().equals("ServiceDocument")) {
-							beanClass = attribute.getValue();
-							System.out.println("beanClass = " + attribute.getValue());
-
-							assertTrue(constructorName.equals("entityName"));
-
-						} else {
-							System.out.println("id = " + attribute.getValue());
-						}
-
-					}
-				}
-
-				// data
-				if (event.isStartElement()) {
-					if (event.asStartElement().getName().getLocalPart().equals("thetext")) {
-						event = eventReader.nextEvent();
-						System.out.println("thetext: " + event.asCharacters().getData());
-						/*
-						 * if(item.getFirstText() == null){
-						 * System.out.println("thetext: " +
-						 * event.asCharacters().getData());
-						 * item.setFirstText("notnull"); continue; }else{
-						 * continue; }
-						 */
-
-					}
-				}
-			}
-
-			// reach the end of an item
-			if (event.isAttribute()) {
-				EndElement endElement = event.asEndElement();
-				if (endElement.getName().getLocalPart() == "item") {
-					System.out.println("--end of an item\n");
-					// item = null;
-				}
-			}
-			// reach the end of an item
-			if (event.isEndElement()) {
-				EndElement endElement = event.asEndElement();
-				if (endElement.getName().getLocalPart() == "item") {
-					System.out.println("--end of an item\n");
-					// item = null;
-				}
-			}
-
-		}
-
-		// one class per resource
-		// assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT
-		// + "Simple/AResourceState.java"));
-		// assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT
-		// + "Simple/BResourceState.java"));
-
 	}
 
-	/*
+	/**
+	 * Test generate resource root.
 	 * 
-	 * <constructor-arg name="name" value="A" /> <constructor-arg> <list> <bean
-	 * class="com.temenos.interaction.core.hypermedia.Action"> <constructor-arg
-	 * value="GETEntities" /> <constructor-arg value="VIEW" /> </bean> </list>
-	 * </constructor-arg> <constructor-arg name="path" value="/A" /> <property
-	 * name="transitions"> <list>
-	 * 
-	 * <!-- Start property transitions list --> <property name="transitions">
-	 * <list>
+	 * @throws Exception
+	 *             the exception
 	 */
 	@Test
 	public void testGenerateResourceRoot() throws Exception {
@@ -877,8 +829,8 @@ public class GeneratorSpringPRDTest {
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
+		
 		Map<String, Object> allFiles = fsa.getAllFiles();
-
 		Set<String> keys = allFiles.keySet();
 
 		System.out.println(fsa.getFiles());
@@ -922,7 +874,7 @@ public class GeneratorSpringPRDTest {
 						} else if (attribute.getName().toString().equals("class")) {
 							beanClass = attribute.getValue();
 							System.out.println("beanClass = " + attribute.getValue());
-							if ( (beanId != null) && (beanId.equals(BEAN_ID_INITIAL_STATE)) ) {
+							if ((beanId != null) && (beanId.equals(BEAN_ID_INITIAL_STATE))) {
 								processState = PROCESSING_STATE.RESOURCE_STATE;
 								beanId = "";
 							} else if (beanClass.equals(ACTION)) {
@@ -1066,7 +1018,7 @@ public class GeneratorSpringPRDTest {
 	private void resetState() {
 		// constructorValue1 = null;
 		// constructorValue2 = null;
-		beanClass = null;		
+		beanClass = null;
 		beanId = null;
 	}
 
@@ -1096,11 +1048,13 @@ public class GeneratorSpringPRDTest {
 			if (constructorValue1 == null) {
 				constructorValue1 = attribute.getValue();
 				System.out.println("constructorValue1 = " + attribute.getValue());
-				assertTrue((constructorValue1.equals("GETServiceDocument")) || (constructorValue1.equals("VIEW"))  || (constructorValue1.equals("path")) || (constructorValue1.equals("GETEntities")) );
+				assertTrue((constructorValue1.equals("GETServiceDocument")) || (constructorValue1.equals("VIEW"))
+						|| (constructorValue1.equals("path")) || (constructorValue1.equals("GETEntities")));
 			} else if (constructorValue2 == null) {
 				constructorValue2 = attribute.getValue();
 				System.out.println("constructorValue2 = " + attribute.getValue());
-				assertTrue(constructorValue2.equals("/A") || constructorValue2.equals("/") || constructorValue2.equals("/B")  || constructorValue2.equals("/E")  );
+				assertTrue(constructorValue2.equals("/A") || constructorValue2.equals("/")
+						|| constructorValue2.equals("/B") || constructorValue2.equals("/E"));
 
 			}
 
@@ -1109,12 +1063,13 @@ public class GeneratorSpringPRDTest {
 		resetState();
 	}
 
-	
 	/**
 	 * Process collection resource state constructor args.
-	 *
-	 * @param startElement the start element
-	 * @param beanClass the bean class
+	 * 
+	 * @param startElement
+	 *            the start element
+	 * @param beanClass
+	 *            the bean class
 	 */
 	private void processCollectionResourceStateConstructorArgs(StartElement startElement, String beanClass) {
 
@@ -1133,11 +1088,13 @@ public class GeneratorSpringPRDTest {
 			if (constructorValue1 == null) {
 				constructorValue1 = attribute.getValue();
 				System.out.println("constructorValue1 = " + attribute.getValue());
-				assertTrue( (constructorValue1.equals("entityName")) ||  (constructorValue1.equals("name"))  )  ;
+				assertTrue((constructorValue1.equals("entityName")) || (constructorValue1.equals("name")));
 			} else if (constructorValue2 == null) {
 				constructorValue2 = attribute.getValue();
 				System.out.println("constructorValue2 = " + attribute.getValue());
-				assertTrue( constructorValue2.equals("ENTITY") ||  constructorValue2.equals("A") ||  constructorValue2.equals("B") ||  constructorValue2.equals("E") ||  constructorValue2.equals("EXCEPTION"))  ;
+				assertTrue(constructorValue2.equals("ENTITY") || constructorValue2.equals("A")
+						|| constructorValue2.equals("B") || constructorValue2.equals("E")
+						|| constructorValue2.equals("EXCEPTION"));
 
 			}
 
@@ -1145,7 +1102,7 @@ public class GeneratorSpringPRDTest {
 
 		resetState();
 	}
-	
+
 	/*
 	 * 
 	 * <constructor-arg name="name" value="A" /> <constructor-arg> <list> <bean
@@ -1163,8 +1120,8 @@ public class GeneratorSpringPRDTest {
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
+		
 		Map<String, Object> allFiles = fsa.getAllFiles();
-
 		Set<String> keys = allFiles.keySet();
 
 		System.out.println(fsa.getFiles());
@@ -1209,12 +1166,10 @@ public class GeneratorSpringPRDTest {
 							System.out.println("beanClass = " + attribute.getValue());
 							if (beanClass.equals(BEAN_ID_COLLECTION_RESOURCE_STATE)) {
 								processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
-								assertTrue( beanId.equals("A") ||  beanId.equals("B")  );
-							}
-							else if (beanClass.equals(ACTION)) {
+								assertTrue(beanId.equals("A") || beanId.equals("B"));
+							} else if (beanClass.equals(ACTION)) {
 								processState = PROCESSING_STATE.ACTION;
-							}
-							else{
+							} else {
 								throw new Exception("Invalid beanClass");
 							}
 
@@ -1239,7 +1194,7 @@ public class GeneratorSpringPRDTest {
 						processActionConstructorArgs(startElement, beanClass);
 					} else if (processState == PROCESSING_STATE.RESOURCE_STATE) {
 						processResourceStateConstructorArgs(startElement, beanClass);
-					}else if (processState == PROCESSING_STATE.COLLECTION_RESOURCE_STATE) {
+					} else if (processState == PROCESSING_STATE.COLLECTION_RESOURCE_STATE) {
 						processCollectionResourceStateConstructorArgs(startElement, beanClass);
 					}
 
@@ -1338,35 +1293,35 @@ public class GeneratorSpringPRDTest {
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
+		
 		Map<String, Object> allFiles = fsa.getAllFiles();
-	
 		Set<String> keys = allFiles.keySet();
-	
+
 		System.out.println(fsa.getFiles());
 		assertEquals(4, fsa.getFiles().size());
-	
+
 		// Verify keys
 		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "Simple/AIRIS-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey2));
-	
+
 		StringConcatenation root = (StringConcatenation) allFiles.get(expectedKey2);
 		Reader reader = new StringReader(root.toString());
-	
+
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		// XMLStreamReader xmlStreamReader =
 		// factory.createXMLStreamReader(reader);
 		XMLEventReader eventReader = factory.createXMLEventReader(reader);
 		String tagContent = null;
-	
+
 		while (eventReader.hasNext()) {
 			XMLEvent event = eventReader.nextEvent();
-	
+
 			// reach the start of an item
 			if (event.isStartElement()) {
-	
+
 				StartElement startElement = event.asStartElement();
 				System.out.println("startElement = " + startElement.getName().getLocalPart());
-	
+
 				if (startElement.getName().getLocalPart() == "bean") {
 					// item = new Item();
 					System.out.println("start bean...");
@@ -1375,7 +1330,7 @@ public class GeneratorSpringPRDTest {
 					while (attributes.hasNext()) {
 						Attribute attribute = attributes.next();
 						System.out.println("attribute.getName() = " + attribute.getName().toString());
-	
+
 						if (attribute.getName().toString().equals("id")) {
 							beanId = attribute.getValue();
 							System.out.println("beanId = " + attribute.getValue());
@@ -1385,20 +1340,18 @@ public class GeneratorSpringPRDTest {
 							if (beanClass.equals(BEAN_ID_COLLECTION_RESOURCE_STATE)) {
 								processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
 								assertTrue(beanId.equals("A"));
-							}
-							else if (beanClass.equals(ACTION)) {
+							} else if (beanClass.equals(ACTION)) {
 								processState = PROCESSING_STATE.ACTION;
-							}
-							else{
+							} else {
 								throw new Exception("Invalid beanClass");
 							}
-	
+
 						}
 					}
 					resetState();
 					continue;
 				}
-	
+
 				if (startElement.getName().getLocalPart() == "property") {
 					if (processState == PROCESSING_STATE.ACTION) {
 						processInitialStateProperty(startElement);
@@ -1407,19 +1360,19 @@ public class GeneratorSpringPRDTest {
 					}
 					continue;
 				}
-	
+
 				// Process constructor-arg for current beanClass
 				if (startElement.getName().getLocalPart() == "constructor-arg") {
 					if (processState == PROCESSING_STATE.ACTION) {
 						processActionConstructorArgs(startElement, beanClass);
 					} else if (processState == PROCESSING_STATE.RESOURCE_STATE) {
 						processResourceStateConstructorArgs(startElement, beanClass);
-					}else if (processState == PROCESSING_STATE.COLLECTION_RESOURCE_STATE) {
+					} else if (processState == PROCESSING_STATE.COLLECTION_RESOURCE_STATE) {
 						processCollectionResourceStateConstructorArgs(startElement, beanClass);
 					}
-	
+
 				}
-	
+
 				// data
 				if (event.isStartElement()) {
 					if (event.asStartElement().getName().getLocalPart().equals("thetext")) {
@@ -1432,11 +1385,11 @@ public class GeneratorSpringPRDTest {
 						 * item.setFirstText("notnull"); continue; }else{
 						 * continue; }
 						 */
-	
+
 					}
 				}
 			}
-	
+
 			// reach the end of an item
 			if (event.isAttribute()) {
 				EndElement endElement = event.asEndElement();
@@ -1453,7 +1406,7 @@ public class GeneratorSpringPRDTest {
 					// item = null;
 				}
 			}
-	
+
 		}
 	}
 
@@ -1474,35 +1427,35 @@ public class GeneratorSpringPRDTest {
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
+		
 		Map<String, Object> allFiles = fsa.getAllFiles();
-	
 		Set<String> keys = allFiles.keySet();
-	
+
 		System.out.println(fsa.getFiles());
 		assertEquals(4, fsa.getFiles().size());
-	
+
 		// Verify keys
 		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "Simple/EIRIS-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey2));
-	
+
 		StringConcatenation root = (StringConcatenation) allFiles.get(expectedKey2);
 		Reader reader = new StringReader(root.toString());
-	
+
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		// XMLStreamReader xmlStreamReader =
 		// factory.createXMLStreamReader(reader);
 		XMLEventReader eventReader = factory.createXMLEventReader(reader);
 		String tagContent = null;
-	
+
 		while (eventReader.hasNext()) {
 			XMLEvent event = eventReader.nextEvent();
-	
+
 			// reach the start of an item
 			if (event.isStartElement()) {
-	
+
 				StartElement startElement = event.asStartElement();
 				System.out.println("startElement = " + startElement.getName().getLocalPart());
-	
+
 				if (startElement.getName().getLocalPart() == "bean") {
 					// item = new Item();
 					System.out.println("start bean...");
@@ -1511,7 +1464,7 @@ public class GeneratorSpringPRDTest {
 					while (attributes.hasNext()) {
 						Attribute attribute = attributes.next();
 						System.out.println("attribute.getName() = " + attribute.getName().toString());
-	
+
 						if (attribute.getName().toString().equals("id")) {
 							beanId = attribute.getValue();
 							System.out.println("beanId = " + attribute.getValue());
@@ -1520,21 +1473,19 @@ public class GeneratorSpringPRDTest {
 							System.out.println("beanClass = " + attribute.getValue());
 							if (beanClass.equals(BEAN_ID_COLLECTION_RESOURCE_STATE)) {
 								processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
-								assertTrue( beanId.equals("A") ||  beanId.equals("B")  ||  beanId.equals("E")  );
-							}
-							else if (beanClass.equals(ACTION)) {
+								assertTrue(beanId.equals("A") || beanId.equals("B") || beanId.equals("E"));
+							} else if (beanClass.equals(ACTION)) {
 								processState = PROCESSING_STATE.ACTION;
-							}
-							else{
+							} else {
 								throw new Exception("Invalid beanClass");
 							}
-	
+
 						}
 					}
 					resetState();
 					continue;
 				}
-	
+
 				if (startElement.getName().getLocalPart() == "property") {
 					if (processState == PROCESSING_STATE.ACTION) {
 						processInitialStateProperty(startElement);
@@ -1543,19 +1494,19 @@ public class GeneratorSpringPRDTest {
 					}
 					continue;
 				}
-	
+
 				// Process constructor-arg for current beanClass
 				if (startElement.getName().getLocalPart() == "constructor-arg") {
 					if (processState == PROCESSING_STATE.ACTION) {
 						processActionConstructorArgs(startElement, beanClass);
 					} else if (processState == PROCESSING_STATE.RESOURCE_STATE) {
 						processResourceStateConstructorArgs(startElement, beanClass);
-					}else if (processState == PROCESSING_STATE.COLLECTION_RESOURCE_STATE) {
+					} else if (processState == PROCESSING_STATE.COLLECTION_RESOURCE_STATE) {
 						processCollectionResourceStateConstructorArgs(startElement, beanClass);
 					}
-	
+
 				}
-	
+
 				// data
 				if (event.isStartElement()) {
 					if (event.asStartElement().getName().getLocalPart().equals("thetext")) {
@@ -1568,11 +1519,11 @@ public class GeneratorSpringPRDTest {
 						 * item.setFirstText("notnull"); continue; }else{
 						 * continue; }
 						 */
-	
+
 					}
 				}
 			}
-	
+
 			// reach the end of an item
 			if (event.isAttribute()) {
 				EndElement endElement = event.asEndElement();
@@ -1589,7 +1540,7 @@ public class GeneratorSpringPRDTest {
 					// item = null;
 				}
 			}
-	
+
 		}
 	}
 }
