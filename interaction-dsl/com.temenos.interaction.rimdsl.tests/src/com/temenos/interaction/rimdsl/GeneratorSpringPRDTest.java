@@ -83,7 +83,8 @@ public class GeneratorSpringPRDTest {
 	private String beanClass;
 	private String constructorValue1;
 	private String constructorValue2;
-
+	private String path;
+	
 	private static final String BEAN_ID_INITIAL_STATE = "initialState";
 	private static final String FACTORY_BEAN = "com.temenos.interaction.springdsl.TransitionFactoryBean";
 	private static final String RESOURCE_STATE = "com.temenos.interaction.core.hypermedia.ResourceState";
@@ -1069,7 +1070,7 @@ public class GeneratorSpringPRDTest {
 
 				if (startElement.getName().getLocalPart() == "bean") {
 					// item = new Item();
-					System.out.println("--start of an item");
+					System.out.println("start bean...");
 					// attribute
 					Iterator<Attribute> attributes = startElement.getAttributes();
 					while (attributes.hasNext()) {
@@ -1094,10 +1095,35 @@ public class GeneratorSpringPRDTest {
 						}
 
 					}
-					constructorValue1 = null;
-					constructorValue2 = null;
+					resetState();
 					continue;
 				}
+
+
+				if (startElement.getName().getLocalPart() == "property") {
+					// item = new Item();
+					System.out.println("start property...");
+					// attribute
+					String propertyValue = null;
+					
+					Iterator<Attribute> attributes = startElement.getAttributes();
+					while (attributes.hasNext()) {
+						Attribute attribute = attributes.next();
+						System.out.println("attribute.getName() = " + attribute.getName().toString());
+
+						if (attribute.getName().toString().equals("name")) {
+							propertyValue =  attribute.getValue();
+							System.out.println("propertyValue = " + propertyValue);
+						}
+
+					}
+					assertTrue(propertyValue.equals("transitions"));
+
+					resetState();
+					continue;
+				}
+
+
 
 				// Process constructor-arg for current beanClass
 				if (startElement.getName().getLocalPart() == "constructor-arg") {
@@ -1149,6 +1175,14 @@ public class GeneratorSpringPRDTest {
 	}
 
 	/**
+	 * 
+	 */
+	private void resetState() {
+		constructorValue1 = null;
+		constructorValue2 = null;
+	}
+
+	/**
 	 * Process resource constructor args.
 	 * 
 	 * @param startElement
@@ -1183,7 +1217,6 @@ public class GeneratorSpringPRDTest {
 					} else if (constructorValue1 == null) {
 						constructorValue1 = attribute.getValue();
 						System.out.println("constructorValue = " + attribute.getValue());
-
 					}
 				}
 				else if (beanClass.equals(ACTION)) {
@@ -1207,8 +1240,17 @@ public class GeneratorSpringPRDTest {
 			} else if (beanClass.equals(ACTION)) {
 				if ((constructorValue1 != null) && (constructorValue2 != null)) {
 
+					if (constructorValue1.equals("path"))
+					{
+						assertTrue(constructorValue2.equals("/"));
+
+					}
+					else
+					{
 					assertTrue(constructorValue1.equals("GETServiceDocument"));
 					assertTrue(constructorValue2.equals("VIEW"));
+					}
+					resetState();
 				}
 			}
 		}
