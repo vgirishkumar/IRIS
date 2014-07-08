@@ -1048,8 +1048,8 @@ public class GeneratorSpringPRDTest {
 			if (constructorValue1 == null) {
 				constructorValue1 = attribute.getValue();
 				System.out.println("constructorValue1 = " + attribute.getValue());
-				assertTrue((constructorValue1.equals("GETServiceDocument")) || (constructorValue1.equals("VIEW"))
-						|| (constructorValue1.equals("path")) || (constructorValue1.equals("GETEntities")));
+				assertTrue(constructorValue1.equals("GETServiceDocument") || constructorValue1.equals("VIEW")
+						|| constructorValue1.equals("path") || constructorValue1.equals("ENTRY")|| constructorValue1.equals("UpdateEntity") || constructorValue1.equals("GetEntity") || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException"));
 			} else if (constructorValue2 == null) {
 				constructorValue2 = attribute.getValue();
 				System.out.println("constructorValue2 = " + attribute.getValue());
@@ -1128,7 +1128,7 @@ public class GeneratorSpringPRDTest {
 		assertEquals(4, fsa.getFiles().size());
 
 		// Verify keys
-		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "Simple/BIRIS-PRD.xml";
+		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_B-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey2));
 
 		StringConcatenation root = (StringConcatenation) allFiles.get(expectedKey2);
@@ -1166,7 +1166,7 @@ public class GeneratorSpringPRDTest {
 							System.out.println("beanClass = " + attribute.getValue());
 							if (beanClass.equals(BEAN_ID_COLLECTION_RESOURCE_STATE)) {
 								processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
-								assertTrue(beanId.equals("A") || beanId.equals("B"));
+								assertTrue(beanId.equals("A") || beanId.equals("Simple_B"));
 							} else if (beanClass.equals(ACTION)) {
 								processState = PROCESSING_STATE.ACTION;
 							} else {
@@ -1301,7 +1301,7 @@ public class GeneratorSpringPRDTest {
 		assertEquals(4, fsa.getFiles().size());
 
 		// Verify keys
-		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "Simple/AIRIS-PRD.xml";
+		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_A-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey2));
 
 		StringConcatenation root = (StringConcatenation) allFiles.get(expectedKey2);
@@ -1339,7 +1339,7 @@ public class GeneratorSpringPRDTest {
 							System.out.println("beanClass = " + attribute.getValue());
 							if (beanClass.equals(BEAN_ID_COLLECTION_RESOURCE_STATE)) {
 								processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
-								assertTrue(beanId.equals("A"));
+								assertTrue(beanId.equals("Simple_A"));
 							} else if (beanClass.equals(ACTION)) {
 								processState = PROCESSING_STATE.ACTION;
 							} else {
@@ -1435,7 +1435,7 @@ public class GeneratorSpringPRDTest {
 		assertEquals(4, fsa.getFiles().size());
 
 		// Verify keys
-		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "Simple/EIRIS-PRD.xml";
+		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_E-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey2));
 
 		StringConcatenation root = (StringConcatenation) allFiles.get(expectedKey2);
@@ -1473,7 +1473,7 @@ public class GeneratorSpringPRDTest {
 							System.out.println("beanClass = " + attribute.getValue());
 							if (beanClass.equals(BEAN_ID_COLLECTION_RESOURCE_STATE)) {
 								processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
-								assertTrue(beanId.equals("A") || beanId.equals("B") || beanId.equals("E"));
+								assertTrue(beanId.equals("A") || beanId.equals("B") || beanId.equals("Simple_E"));
 							} else if (beanClass.equals(ACTION)) {
 								processState = PROCESSING_STATE.ACTION;
 							} else {
