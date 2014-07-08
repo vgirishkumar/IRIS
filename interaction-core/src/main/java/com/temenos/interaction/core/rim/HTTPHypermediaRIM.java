@@ -68,11 +68,9 @@ import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
-import com.temenos.interaction.core.hypermedia.DynamicResourceState;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.LinkHeader;
-import com.temenos.interaction.core.hypermedia.ResourceLocator;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -104,7 +102,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	private final ResourceRequestHandler resourceRequestHandler;
 	private final Metadata metadata;
 	private final String resourcePath;
-	private final ResourceLocatorProvider resourceLocatorProvider;
 		
 	/**
 	 * <p>Create a new resource for HTTP interaction.</p>
@@ -119,7 +116,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			NewCommandController commandController, 
 			ResourceStateMachine hypermediaEngine,
 			Metadata metadata) {
-		this(null, commandController, hypermediaEngine, metadata, hypermediaEngine.getInitial().getResourcePath(), true, null);				
+		this(null, commandController, hypermediaEngine, metadata, hypermediaEngine.getInitial().getResourcePath(), true);				
 	}
 	
 	/**
@@ -130,15 +127,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * 			All application states, responsible for creating links from one state to another.
 	 * @param currentState	
 	 * 			The current application state when accessing this resource.
-	 * @param resourceLocatorProvider
-	 * 			The provider to use to acquire resource locators, which are used to dynamically resolve resources at runtime 
 	 */
 	public HTTPHypermediaRIM(
 			NewCommandController commandController, 
 			ResourceStateMachine hypermediaEngine,
 			Metadata metadata,
 			ResourceLocatorProvider resourceLocatorProvider) {
-		this(null, commandController, hypermediaEngine, metadata, hypermediaEngine.getInitial().getResourcePath(), true, resourceLocatorProvider);
+		this(null, commandController, hypermediaEngine, metadata, hypermediaEngine.getInitial().getResourcePath(), true);
 	}	
 
 	/*
@@ -159,7 +154,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			ResourceStateMachine hypermediaEngine,
 			ResourceState currentState,
 			Metadata metadata) {
-		this(parent, commandController, hypermediaEngine, metadata, currentState.getResourcePath(), false, null);		
+		this(parent, commandController, hypermediaEngine, metadata, currentState.getResourcePath(), false);		
 	}
 	
 	private HTTPHypermediaRIM(
@@ -168,15 +163,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			ResourceStateMachine hypermediaEngine,
 			Metadata metadata,
 			String currentPath,
-			boolean printGraph,
-			ResourceLocatorProvider resourceLocatorProvider) {
+			boolean printGraph) {
 		this.parent = parent;
 		this.resourceRequestHandler = new SequentialResourceRequestHandler();
 		this.commandController = commandController;
 		this.hypermediaEngine = hypermediaEngine;
 		this.metadata = metadata;
-		this.resourcePath = currentPath;
-		this.resourceLocatorProvider = resourceLocatorProvider;		
+		this.resourcePath = currentPath;		
 		assert(commandController != null);
 		assert(hypermediaEngine != null);
 		assert(metadata != null);
@@ -260,7 +253,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 					continue;
 				}
 				
-				child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, metadata, childPath, false, resourceLocatorProvider);
+				child = new HTTPHypermediaRIM(null, getCommandController(), hypermediaEngine, metadata, childPath, false);
 				result.add(child);
 			}
 		}
@@ -304,28 +297,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event, EntityResource<?> resource) {
     	// determine action
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
-    	
-		Set<ResourceState> resourceStates = hypermediaEngine.getResourceStatesForPath(resourcePath);
-		
-		ResourceState placeholderState = resourceStates.iterator().next();
-				
-		InteractionContext ctx = null;
-		
-		if(resourceStates.size() == 1 &&  placeholderState instanceof DynamicResourceState){
-			// We are dealing with a dynamic target
-			
-			// Identify real target state
-			ResourceState targetState = getDynamicTarget(uriInfo, (DynamicResourceState)placeholderState);
-			
-			// Identify the action
-			action = determineAction(event, targetState);
-			
-			// create the interaction context
-			ctx = buildInteractionContext(headers, uriInfo, targetState);
-		} else {
-	    	// create the interaction context
-	    	ctx = buildInteractionContext(headers, uriInfo, event);			
-		}
+    			
+	    // create the interaction context
+		InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);			
     	
     	long begin = System.currentTimeMillis();
     	Response response = handleRequest(headers, ctx, event, action, resource, null);
@@ -335,41 +309,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				" RequestTime=" + String.valueOf(end-begin));
 		
 		return response;
-	}
-
-	private InteractionCommand determineAction(Event event, ResourceState targetState) {
-		InteractionCommand action;
-		List<Action> actions = new ArrayList<Action>();
-		
-		for (Action a : targetState.getActions()) {
-			if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
-				if (actions.isEmpty()) {
-					actions.add(a);
-				}
-			} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
-				actions.add(a);
-			}
-		}			
-					
-		action = hypermediaEngine.buildWorkflow(actions);
-		return action;
-	}
-
-	private ResourceState getDynamicTarget(UriInfo uriInfo, DynamicResourceState dynamic) {		
-		// Use resource locator to resolve dynamic target
-		ResourceLocator locator = resourceLocatorProvider.get(dynamic.getResourceLocatorName());
-		
-		Object id = null;
-		
-		MultivaluedMap<String,String> pathParams = uriInfo.getPathParameters();
-		
-		for (String param : pathParams.keySet()) {
-			if (resourcePath.contains("{"+param+"}")) {
-				id = pathParams.get(param);
-			}
-		}
-		
-		return locator.resolve(id, dynamic.getResourceLocatorArgs());
 	}
 
 	protected Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event, InteractionCommand action, EntityResource<?> resource, ResourceRequestConfig config) {
@@ -580,18 +519,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	    }
 
 		return status;
-	}
-
-	private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, ResourceState currentState) {
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
-    	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-    	// work around an issue in wink, wink does not decode query parameters in 1.1.3
-    	decodeQueryParams(queryParameters);
-    	// create the interaction context
-
-    	InteractionContext ctx = new InteractionContext(headers, pathParameters, queryParameters, currentState, metadata);
-    	
-    	return ctx;
 	}
 	
 	private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, Event event) {

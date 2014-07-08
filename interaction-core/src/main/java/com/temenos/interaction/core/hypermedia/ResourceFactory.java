@@ -39,6 +39,7 @@ public class ResourceFactory {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceFactory.class);
 
 	private Map<String, ResourceState> resources = new HashMap<String, ResourceState>();
+	private ResourceLocatorProvider resourceLocatorProvider;
 	
 	@SuppressWarnings("unchecked")
 	public ResourceState getResourceState(String name) {
@@ -71,5 +72,21 @@ public class ResourceFactory {
 		
 		return rs;
 	}
+
+	/**
+	 * @return the resourceLocatorProvider
+	 */
+	public ResourceLocatorProvider getResourceLocatorProvider() {
+		return resourceLocatorProvider;
+	}
+
+	/**
+	 * @param resourceLocatorProvider the resourceLocatorProvider to set
+	 */
+	public void setResourceLocatorProvider(ResourceLocatorProvider resourceLocatorProvider) {
+		this.resourceLocatorProvider = resourceLocatorProvider;
+	}
+	
+	
 	
 }
