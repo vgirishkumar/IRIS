@@ -42,15 +42,15 @@ public class Note {
 	private Long noteID;
     @XmlElement(name = "body")
     private String body;
-    private String author;
+    private String reference;
     
     /* Hibernate & JAXB */
     public Note() {}
     
-    public Note(Long id, String body, String author) {
+    public Note(Long id, String body, String reference) {
     	this.noteID = id;
     	this.body = body;
-    	this.author = author;
+    	this.reference = reference;
     }
     
 	public Long getNoteID() {
@@ -61,7 +61,7 @@ public class Note {
     	return body;
     }
     
-    public String getAuthor() {
-    	return author;
+    public String getReference() {
+    	return reference;
     }
 }
