@@ -12,11 +12,11 @@ INSERT INTO `Preferences`(`userID` , `currency` , `language`) VALUES('aphethean'
 
 DELETE FROM `Note` WHERE `NoteID` BETWEEN 1 AND 8
 
-INSERT INTO `Note`(`NoteID`,`Body`) VALUES(1,'Beverages');
-INSERT INTO `Note`(`NoteID`,`Body`) VALUES(2,'Condiments');
-INSERT INTO `Note`(`NoteID`,`Body`) VALUES(3,'Confections');
-INSERT INTO `Note`(`NoteID`,`Body`) VALUES(4,'Dairy Products');
-INSERT INTO `Note`(`NoteID`,`Body`) VALUES(5,'Grains/Cereals');
-INSERT INTO `Note`(`NoteID`,`Body`) VALUES(6,'Meat/Poultry');
-INSERT INTO `Note`(`NoteID`,`Body`) VALUES(7,'Produce');
-INSERT INTO `Note`(`NoteID`,`Body`) VALUES(8,'Seafood');
+INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(1,'Beverages', 'AU001');
+INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(2,'Condiments', 'SY001');
+INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(3,'Confections', 'SY002');
+INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(4,'Dairy Products', 'AU002');
+INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(5,'Grains/Cereals', 'AU003');
+INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(6,'Meat/Poultry', 'AU001');
+INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(7,'Produce', 'SY002');
+INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(8,'Seafood', 'SY002');

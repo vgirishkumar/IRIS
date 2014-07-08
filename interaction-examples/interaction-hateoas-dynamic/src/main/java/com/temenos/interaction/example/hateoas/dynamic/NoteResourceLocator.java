@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.temenos.interaction.core.hypermedia.ResourceLocator;
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 /**
  * A mock resource locator
@@ -35,29 +33,25 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
  * @author mlambert
  *
  */
-public class NoteResourceLocator implements ResourceLocator {
-	private ResourceStateMachine stateMachine;
-	
+public class NoteResourceLocator implements ResourceLocator {	
 	private static final Map<String, String> aliasToResourceName = new HashMap<String, String>();
 	
 	static {
-		aliasToResourceName.put("{Author}", "noteDynmc");
+		aliasToResourceName.put("AU001", "author");
+		aliasToResourceName.put("AU002", "author");
+		aliasToResourceName.put("AU003", "author");
+		aliasToResourceName.put("SY001", "system");
+		aliasToResourceName.put("SY002", "system");
+		aliasToResourceName.put("SY003", "system");		
 	}
 	
-	/**
-	 * @param stateMachine
-	 */
-	public NoteResourceLocator(ResourceStateMachine stateMachine) {
-		this.stateMachine = stateMachine;
-	}
-
 	@Override
-	public ResourceState resolve(Object id, String... alias) {
+	public String resolve(Object... alias) {
 
 		if(aliasToResourceName.containsKey(alias[0])) {
 			String resourceName = aliasToResourceName.get(alias[0]);
 			
-			return stateMachine.getResourceStateByName(resourceName);	
+			return resourceName;	
 		} else {
 			throw new IllegalArgumentException("Invalid resource state supplied: " + alias[0]);
 		}		

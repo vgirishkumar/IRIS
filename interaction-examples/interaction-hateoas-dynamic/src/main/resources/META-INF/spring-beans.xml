@@ -78,16 +78,15 @@
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg ref="interaction" />
         <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
+        <constructor-arg ref="resourceLocatorProvider" />        
     </bean>
     
-	<bean id="resourceLocator" class="com.temenos.interaction.example.hateoas.dynamic.NoteResourceLocator">
-		<constructor-arg ref="stateMachine" />
-	</bean>
+	<bean id="resourceLocator" class="com.temenos.interaction.example.hateoas.dynamic.NoteResourceLocator"/>
 	
 	<bean id="resourceLocatorProvider" class="com.temenos.interaction.example.hateoas.dynamic.NoteResourceLocatorProvider">
 		<constructor-arg>
 			<map>  
-				<entry key="x"  value-ref="resourceLocator"></entry>
+				<entry key="findsource"  value-ref="resourceLocator"></entry>
 			</map> 
 		</constructor-arg>	
 	</bean>    
@@ -97,7 +96,6 @@
         <constructor-arg ref="commands" />
     	<constructor-arg ref="stateMachine" />
         <constructor-arg ref="edmMetadata" />
-        <constructor-arg ref="resourceLocatorProvider" />
     </bean>
 
     <!-- Commands -->

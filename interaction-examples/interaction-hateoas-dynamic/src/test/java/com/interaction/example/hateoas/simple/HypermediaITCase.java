@@ -97,40 +97,33 @@ public class HypermediaITCase extends JerseyTest {
 		 * the HALProvider is broken then we won't get any subresources here.
 		 */
 		assertTrue(subresources.size() > 0);
+		
+		boolean authorLinksFound = false;
+		boolean systemLinksFound = false;
+		
 		for (Map.Entry<String, ReadableRepresentation> entry : subresources) {
 			ReadableRepresentation item = entry.getValue();
 			List<Link> itemLinks = item.getLinks();
 			assertEquals(2, itemLinks.size());
+						
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
-					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notesDynmc/dynamic/" + item.getProperties().get("noteID"), link.getHref());
+					if(link.getHref().contains(Configuration.TEST_ENDPOINT_URI + "/authors/AU")) {
+						authorLinksFound = true;
+					}
+
+					if(link.getHref().contains(Configuration.TEST_ENDPOINT_URI + "/systems/SY")) {
+						systemLinksFound = true;
+					}					
 				} else if (link.getName().contains("DynmcNote.deletedDynmcNote")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notesDynmc/" + item.getProperties().get("noteID"), link.getHref());
 				} else {
 					fail("unexpected link [" + link.getName() + "]");
 				}
-			}
+			}			
 		}
-	}
-	
-	@Test
-	public void testRequestingDynamicResource() {
-		ClientResponse response = webResource.path("/notesDynmc/dynamic/1").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
 		
-		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
-
-		List<Link> links = resource.getLinks();
-		
-		assertEquals(2, links.size());
-		for (Link link : links) {
-			if (link.getRel().equals("self")) {
-				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notesDynmc/" + resource.getProperties().get("noteID"), link.getHref());
-			} else if(link.getName().equals("DynmcNote.noteDynmc>DELETE>DynmcNote.deletedDynmcNote")) {
-				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notesDynmc/" + resource.getProperties().get("noteID"), link.getHref());
-			} else {
-				fail("unexpected link [" + link.getName() + "]");				
-			}
-		}
-	}
+		assertTrue(authorLinksFound);
+		assertTrue(systemLinksFound);					
+	}	
 }

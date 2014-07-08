@@ -23,11 +23,21 @@ rim Dynamic {
 
 initial resource notesDynmc {
 	type: collection
+	
+	// reference:  'AU001' or 'SY001'
 	entity: DynmcNote
 	view: GETDynmcNotes
 	path: "/notesDynmc"
     POST -> createDynmcNote
-	GET *-> locator x("{Author}", "Other")/{noteID}
+	/*GET *-> noteDynmc {
+		parameters [ id = "{noteID}" ]
+		title: "View note"		
+	}*/
+	GET *-> locator findsource("{reference}"){
+		parameters [ id = "{reference}" ]
+		title: "Who"		
+	}
+		
 	DELETE *-> deletedDynmcNote
 }
 
@@ -37,6 +47,20 @@ resource noteDynmc {
 	view: GETDynmcNote
 	path: "/notesDynmc/{noteID}"
 	DELETE -> deletedDynmcNote
+}
+
+resource author {
+	type: item
+	entity: DynmcNote
+	view: GETDynmcNote
+	path: "/authors/{id}"
+}
+
+resource system {
+	type: item
+	entity: DynmcNote
+	view: GETDynmcNote
+	path: "/systems/{id}"
 }
 
 resource deletedDynmcNote {
