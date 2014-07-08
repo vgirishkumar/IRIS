@@ -34,7 +34,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import com.google.inject.Injector;
-import com.temenos.interaction.rimdsl.RIMDslStandaloneSpringPRDSetup;
+import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSpringPRD;
 
 public class MainSpringPRD {
 
@@ -68,7 +68,7 @@ public class MainSpringPRD {
 		}
 		
 		// execute the generator
-		Injector injector = new RIMDslStandaloneSpringPRDSetup().createInjectorAndDoEMFRegistration();
+		Injector injector = new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
 		Generator generator = injector.getInstance(Generator.class);
 		File srcFile = new File(line.getOptionValue(optSrc.getArgName()));
 		if (srcFile.exists()) {
