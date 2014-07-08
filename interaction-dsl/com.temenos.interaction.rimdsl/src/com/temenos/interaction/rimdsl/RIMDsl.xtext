@@ -101,6 +101,8 @@ State:
                 & transitions+=TransitionRef*
                 // MAY define an onerror transition
                 & ('onerror' '-->' errorState=[State|QualifiedName])?
+                // MAY define an image id
+                & id=ImageId?
     	)
     '}'
 ;
@@ -213,6 +215,10 @@ UriLinkage:
 
 Title:
     'title:' name=DQ_STRING    
+;
+
+ImageId:
+	'id:' name=DQ_STRING
 ;
 
 terminal URISTRING	: 
