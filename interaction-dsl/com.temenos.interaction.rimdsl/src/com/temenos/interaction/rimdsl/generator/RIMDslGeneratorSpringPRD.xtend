@@ -536,7 +536,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
        		«IF uriLinks.size() != 0»
 			<util:map id="uriMap">
             «FOR prop : uriLinks»				
-	    		<entry key="«prop.templateProperty»" value="{«prop.entityProperty.name»}"/>	  
+	    		<entry key="«prop.templateProperty»" value="«prop.entityProperty.name»"/>	  
             «ENDFOR»
 			</util:map>
 			«ENDIF»
