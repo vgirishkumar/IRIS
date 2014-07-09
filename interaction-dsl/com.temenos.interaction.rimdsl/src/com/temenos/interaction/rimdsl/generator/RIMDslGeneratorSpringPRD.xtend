@@ -75,13 +75,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         «ELSEIF state.type.isItem»
         	<!-- super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->
         «ENDIF»
-        
-        <!-- 
-        «IF state.isInitial»
-        	setInitial(true);
-        «ENDIF»
-        -->
-        
+             
         «IF state.isException»
         	setException(true);
         «ENDIF»
@@ -89,8 +83,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
                 <!--  xxx  StateName = « state.name » -->
                 <!-- create transitions  -->
 				«FOR t : state.transitions»
-		    	    «IF "".equals("DISABLED") 
-		    	    	&& (t.state != null && t.state.name != null) 
+		    	    «IF (t.state != null && t.state.name != null) 
 		    	    	|| (t.name != null ) »
 				    				
 					    «IF t instanceof Transition»                
@@ -114,7 +107,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 					    «ENDIF»
 				    «ENDIF»
 				«ENDFOR»
-    <!-- End property transitions list -->
 	«addXmlEndTransitions»
             <!-- 
                }
@@ -347,7 +339,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         «ENDIF»'''
     
 	def produceTransitions(State fromState, Transition transition) '''
-	<!-- produceTransitions() -->
+	<!-- XXX produceTransitions() -->
 	<!-- 	create regular transition  -->
 
         «IF transition.spec != null»
@@ -361,7 +353,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
                 <property name="method" value="«transition.event.httpMethod»" />
                 <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 				<property name="uriParameters" ref="uriLinkageMap" />
-				<property name="evaluation" ref="conditionalLinkExpressions" />
+				<!-- <property name="evaluation" ref="conditionalLinkExpressions" /> -->
 				<property name="label" value="«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»" />
             </bean>
                 
@@ -425,7 +417,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	         <property name="method" value="« transition.event.httpMethod»" />
 	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 	         <property name="uriParameters" ref="uriLinkageMap" />
-         	 <property name="evaluation" ref="xxx" />
+         	 <!-- <property name="evaluation" ref="xxx" /> -->
 			 <property name="label" value=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
 	     </bean>
            
@@ -455,10 +447,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         
        	<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
 	        <property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.AUTO"/></property>
-	         <property name="method" value="« transition.event.httpMethod»" />
 	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
+	         <!-- <property name="method" value="« transition.event.httpMethod»" /> -->
 	         <property name="uriParameters" ref="uriLinkageMap" />
-         	 <property name="evaluation" ref="xxx" />
+         	 <!-- <property name="evaluation" ref="xxx" /> -->
 	     </bean>
         
 <!--
@@ -488,7 +480,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	         <property name="method" value="« transition.event.httpMethod»" />
 	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 	         <property name="uriParameters" ref="uriLinkageMap" />
-         	<property name="evaluation" ref="xxx" />
+          	 <!-- <property name="evaluation" ref="xxx" /> -->
 	     </bean>
         
 <!--
@@ -518,8 +510,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	         <property name="method" value="« transition.event.httpMethod»" />
 	         <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 	         <property name="uriParameters" ref="uriLinkageMap" />
-         	 <property name="evaluation" ref="xxx" />
-        	 <property name="label" ref=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
+         	 <!-- <property name="evaluation" ref="xxx" /> -->
+        	 <property name="label" value=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
  	     </bean>
         
 <!--
@@ -535,14 +527,17 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     '''
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''
-  	<!-- produceUriLinkage() -->    
+  	<!-- xxxproduceUriLinkage() -->    
         «IF uriLinks != null»
+111
             «FOR prop : uriLinks»
+222
+aaa «prop.templateProperty»", "«prop.entityProperty.name»"
             	uriLinkageProperties.put("«prop.templateProperty»", "«prop.entityProperty.name»");
                 uriKey = «prop.templateProperty»
        			uriValue = «prop.entityProperty.name»
-            «ENDFOR»«
-        ENDIF»
+            «ENDFOR»
+		«ENDIF»
 
     '''
 
