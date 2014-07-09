@@ -426,7 +426,7 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
 		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
 		assertTrue(output.contains("<property name=\"target\" ref=\"B\" />"));
-		assertTrue(output.contains("<property name=\"uriParameters\" value=\"\" />"));
+		assertTrue(output.contains("<property name=\"uriParameters\" value=\"<util:map id=\"uriMap\"></util:map>"));
 		assertTrue(output.contains("<property name=\"evaluation\" ref=\"conditionalLinkExpressions\" />"));
 		assertTrue(output.contains("<property name=\"label\" value=\"B\" />"));
 		//assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
