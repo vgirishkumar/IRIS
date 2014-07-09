@@ -102,6 +102,7 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${jetty.version}</version>
 		<configuration>
+		 <jvmArgs>-Xmx2024m -Xms512m -XX:PermSize=256M -XX:MaxPermSize=512M</jvmArgs>
           <scanIntervalSeconds>10</scanIntervalSeconds>
           <stopPort>8005</stopPort>
           <stopKey>STOP</stopKey>
