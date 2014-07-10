@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.temenos.interaction.core.hypermedia.ResourceFactory;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 
@@ -64,13 +65,14 @@ public class TestTransitionFactoryBean {
 	public void testConstructWithExpressionOK() throws Exception {
 		ResourceState mockTargetResoruce = new ResourceState("entity", "name", null, "/test");
 
-		List<String> expressions = new ArrayList<String>();
-		expressions.add("RestbucksModel.Restbucks.payment , ResourceGETExpression.Function.OK");
+		List<String> functionList = new ArrayList<String>();		
+		functionList.add("RestbucksModel.Restbucks.payment , ResourceGETExpression.Function.OK");
 		
+		ResourceFactory resourceFactory = new ResourceFactory(); 
 		Transition fromBuilder = new Transition.Builder().target(mockTargetResoruce).build();
 		TransitionFactoryBean factoryBean = new TransitionFactoryBean();
 		factoryBean.setTarget(mockTargetResoruce);
-		//factoryBean.setFunctions(expressions);
+		factoryBean.setFunctionList(functionList);
 		Transition fromFactory = factoryBean.getObject();
 		assertEquals(fromBuilder, fromFactory);
 	}

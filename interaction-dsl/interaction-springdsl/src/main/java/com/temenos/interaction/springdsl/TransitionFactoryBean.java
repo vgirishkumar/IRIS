@@ -24,6 +24,7 @@ package com.temenos.interaction.springdsl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.springframework.beans.factory.FactoryBean;
 
@@ -132,42 +133,36 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 		this.uriParameters = uriParameters;
 	}
 
-
 	/**
 	 * Sets the function list.
-	 *
-	 * @param functionList the new function list
+	 * 
+	 * @param functionList
+	 *            the new function list
 	 */
 	public void setFunctionList(List<String> functionList) {
 		this.functionList = functionList;
-
+		
 		if (functionList != null) {
 			List<Expression> expressionsList = new ArrayList<Expression>();
 			Expression expression = null;
 
-			/*
-			for (String expressionTxt : expressions) {
-				
+			for (String expressionTxt : functionList) {
+
 				StringTokenizer tokenizer = new StringTokenizer(expressionTxt, ",");
-				String fqn = tokenizer.nextToken();
+				String name = tokenizer.nextToken();
 				String functionName = tokenizer.nextToken();
-				// ResourceState resourceState = new ResourceState();
 
 				if (functionName.contains("OK")) {
-					// expression = new ResourceGETExpression(resourceState,
-					// Function.OK);
+					//expression = new ResourceGETExpression(resourceState, Function.OK);
 				} else {
-					// expression = new ResourceGETExpression(resourceState,
-					// Function.NOT_FOUND);
+					//expression = new ResourceGETExpression(resourceState, Function.NOT_FOUND);
 				}
-				// ResourceState target = new ResourceState();
 
 				expressionsList.add(expression);
+
 			}
-			evaluation = new SimpleLogicalExpressionEvaluator(expressionsList);
-			*/
+			//evaluation = new SimpleLogicalExpressionEvaluator(expressionsList);
+
 		}
 	}
-
-
 }
