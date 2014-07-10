@@ -21,25 +21,56 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.Assert.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class TestTransitionFactoryBean.
+ */
 public class TestTransitionFactoryBean {
 
+	/**
+	 * Test construct.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testConstruct() throws Exception {
 		ResourceState mockTargetResoruce = new ResourceState("entity", "name", null, "/test");
-		
-		Transition fromBuilder = new Transition.Builder()
-			.target(mockTargetResoruce)
-			.build();
+
+		Transition fromBuilder = new Transition.Builder().target(mockTargetResoruce).build();
 		TransitionFactoryBean factoryBean = new TransitionFactoryBean();
 		factoryBean.setTarget(mockTargetResoruce);
+		Transition fromFactory = factoryBean.getObject();
+		assertEquals(fromBuilder, fromFactory);
+	}
+
+	/**
+	 * Test construct.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test
+	public void testConstructWithExpressionOK() throws Exception {
+		ResourceState mockTargetResoruce = new ResourceState("entity", "name", null, "/test");
+
+		List<String> expressions = new ArrayList<String>();
+		expressions.add("RestbucksModel.Restbucks.payment , ResourceGETExpression.Function.OK");
+		
+		Transition fromBuilder = new Transition.Builder().target(mockTargetResoruce).build();
+		TransitionFactoryBean factoryBean = new TransitionFactoryBean();
+		factoryBean.setTarget(mockTargetResoruce);
+		//factoryBean.setFunctions(expressions);
 		Transition fromFactory = factoryBean.getObject();
 		assertEquals(fromBuilder, fromFactory);
 	}

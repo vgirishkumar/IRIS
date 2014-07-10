@@ -21,14 +21,17 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.springframework.beans.factory.FactoryBean;
 
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
+import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 
 public class TransitionFactoryBean implements FactoryBean<Transition> {
 
@@ -39,9 +42,10 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 	private String method;
 	private String path;
 	private int flags;
-	// conditional link evaluation expression 
+	// conditional link evaluation expression
 	private Expression evaluation;
 	private Map<String, String> uriParameters;
+	private List<String> functions;
 
 	@Override
 	public Transition getObject() throws Exception {
@@ -128,6 +132,54 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 
 	public void setUriParameters(Map<String, String> uriParameters) {
 		this.uriParameters = uriParameters;
+	}
+
+	/**
+	 * Sets the expressions.
+	 * 
+	 * @param expressions
+	 *            the expressions to set
+	 */
+	public void setFunctions(List<String> functions) {
+		//this.functions = functions;
+
+		if (functions != null) {
+			List<Expression> expressionsList = new ArrayList<Expression>();
+			Expression expression = null;
+
+			for (String expressionTxt : functions) {
+				StringTokenizer tokenizer = new StringTokenizer(expressionTxt, ",");
+				String fqn = tokenizer.nextToken();
+				String functionName = tokenizer.nextToken();
+				// ResourceState resourceState = new ResourceState();
+
+				if (functionName.contains("OK")) {
+					// expression = new ResourceGETExpression(resourceState,
+					// Function.OK);
+				} else {
+					// expression = new ResourceGETExpression(resourceState,
+					// Function.NOT_FOUND);
+				}
+				// ResourceState target = new ResourceState();
+
+				expressionsList.add(expression);
+			}
+			evaluation = new SimpleLogicalExpressionEvaluator(expressionsList);
+
+		}
+	}
+
+	/**
+	 * Gets the functions.
+	 * 
+	 * @return the functions
+	 */
+	public List<String> getFunctions() {
+		if (functions == null)
+		{
+			functions = new ArrayList<String>();
+		}
+		return functions;
 	}
 
 }
