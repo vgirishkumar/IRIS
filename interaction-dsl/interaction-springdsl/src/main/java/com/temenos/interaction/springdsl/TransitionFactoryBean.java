@@ -43,7 +43,7 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 	// conditional link evaluation expression
 	private Expression evaluation;
 	private Map<String, String> uriParameters;
-	private List<String> expressions;
+	private List<String> functionList;
 
 	@Override
 	public Transition getObject() throws Exception {
@@ -138,10 +138,10 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 	 *
 	 * @param functionList the new function list
 	 */
-	public void setExpressions(List<String> expressions) {
-		this.expressions = expressions;
+	public void setFunctionList(List<String> functionList) {
+		this.functionList = functionList;
 
-		if (expressions != null) {
+		if (functionList != null) {
 			List<Expression> expressionsList = new ArrayList<Expression>();
 			Expression expression = null;
 
@@ -169,17 +169,5 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 		}
 	}
 
-	/**
-	 * Gets the functions.
-	 * 
-	 * @return the functions
-	 */
-	public List<String> getExpressions() {
-		if (expressions == null)
-		{
-			expressions = new ArrayList<String>();
-		}
-		return expressions;
-	}
 
 }

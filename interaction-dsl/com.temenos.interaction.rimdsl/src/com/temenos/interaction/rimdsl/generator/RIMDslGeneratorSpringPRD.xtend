@@ -333,11 +333,11 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  				«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="expressions">«produceExpressions(transition.spec.eval)»</property>
+					<property name="functionList">«produceExpressions(transition.spec.eval)»</property>
 				«ENDIF»
 				«IF transition.spec == null»
 					<property name="uriParameters"><util:map></util:map></property>
-					<property name="expressions"><util:list></util:list></property>
+					<property name="functionList"><util:list></util:list></property>
 				«ENDIF»
 
 				<property name="label" value="«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»" />
@@ -398,11 +398,11 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  				«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="expressions">«produceExpressions(transition.spec.eval)»</property>
+					<property name="functionList">«produceExpressions(transition.spec.eval)»</property>
 				«ENDIF»
 				«IF transition.spec == null»
 					<property name="uriParameters"><util:map></util:map></property>
-					<property name="expressions"><util:list></util:list></property>
+					<property name="functionList"><util:list></util:list></property>
 				«ENDIF»
    			 <property name="label" value=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
 	     </bean>
@@ -430,11 +430,11 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  				«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="expressions">«produceExpressions(transition.spec.eval)»</property>
+					<property name="functionList">«produceExpressions(transition.spec.eval)»</property>
 				«ENDIF»
 				«IF transition.spec == null»
 					<property name="uriParameters"><util:map></util:map></property>
-					<property name="expressions"><util:list></util:list></property>
+					<property name="functionList"><util:list></util:list></property>
 				«ENDIF»
  	     </bean>
         
@@ -459,11 +459,11 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  			«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="expressions">«produceExpressions(transition.spec.eval)»</property>
+					<property name="functionList">«produceExpressions(transition.spec.eval)»</property>
 			«ENDIF»
 			«IF transition.spec == null»
 				<property name="uriParameters"><util:map></util:map></property>
-				<property name="expressions"><util:list></util:list></property>
+				<property name="functionList"><util:list></util:list></property>
 			«ENDIF»
 	     </bean>
         
@@ -488,11 +488,11 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  			«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="expressions">«produceExpressions(transition.spec.eval)»</property>
+					<property name="functionList">«produceExpressions(transition.spec.eval)»</property>
 			«ENDIF»
 			«IF transition.spec == null»
 				<property name="uriParameters"><util:map></util:map></property>
-				<property name="expressions"><util:list></util:list></property>
+				<property name="functionList"><util:list></util:list></property>
 			«ENDIF»
          	 <property name="label" value=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
  	     </bean>
