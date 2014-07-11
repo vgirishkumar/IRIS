@@ -585,8 +585,8 @@ public class GeneratorSpringPRDTest {
 
 		// the constructor part
 		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"rels\">"));
-		assertTrue(accTransactionsOutput.contains("<value>archives</value>"));
-		assertTrue(accTransactionsOutput.contains("<value>http://www.temenos.com/statement-entries</value>"));
+		assertTrue(accTransactionsOutput.contains("<value><![CDATA[archives]]></value>"));
+		assertTrue(accTransactionsOutput.contains("<value><![CDATA[http://www.temenos.com/statement-entries]]></value>"));
 		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"uriSpec\"><null /></constructor-arg>"));
 		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"errorState\"><null /></constructor-arg>"));
 
@@ -605,7 +605,7 @@ public class GeneratorSpringPRDTest {
 
 		// the constructor part
 		assertTrue(accTransactionOutput.contains("<constructor-arg name=\"rels\">"));
-		assertTrue(accTransactionOutput.contains("<value>edit</value>"));
+		assertTrue(accTransactionOutput.contains("<value><![CDATA[edit]]></value>"));
 	}
 
 	private final static String GLOBAL_RESOURCE_RELATIONS_RIM = "" + "rim Test {" + LINE_SEP + "	command Noop"
