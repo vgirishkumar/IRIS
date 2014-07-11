@@ -617,21 +617,29 @@ public class GeneratorSpringPRDTest {
 		assertTrue(accTransactionOutput.contains("<value><![CDATA[edit]]></value>"));
 	}
 
-	private final static String GLOBAL_RESOURCE_RELATIONS_RIM = "" + "rim Test {" + LINE_SEP + "	command Noop"
-			+ LINE_SEP + "	command Update" + LINE_SEP +
+	private final static String GLOBAL_RESOURCE_RELATIONS_RIM = "" + "rim Test {" + LINE_SEP + 
+			"	command Noop" + LINE_SEP + 
+			"	command Update" + LINE_SEP +
+			"	relation archiveRel {" + LINE_SEP + 
+			"		fqn: \"archive\"" + LINE_SEP + 
+			"	}" + LINE_SEP +
+			"	relation editRel {" + LINE_SEP + 
+			"		fqn: \"edit\"" + LINE_SEP
+			+ "		description: \"See 'edit' in http://www.iana.org/assignments/link-relations/link-relations.xhtml\"" + LINE_SEP + 
+			"	}" + LINE_SEP +
 
-			"	relation archiveRel {" + LINE_SEP + "		fqn: \"archive\"" + LINE_SEP + "	}" + LINE_SEP +
-
-			"	relation editRel {" + LINE_SEP + "		fqn: \"edit\"" + LINE_SEP
-			+ "		description: \"See 'edit' in http://www.iana.org/assignments/link-relations/link-relations.xhtml\""
-			+ LINE_SEP + "	}" + LINE_SEP +
-
-			"initial resource accTransactions {" + LINE_SEP + "	type: collection" + LINE_SEP + "	entity: ENTITY"
-			+ LINE_SEP + "   view: Noop" + LINE_SEP
-			+ "   relations [ archiveRel, \"http://www.temenos.com/statement-entries\" ]" + LINE_SEP
-			+ "   PUT -> accTransaction" + LINE_SEP + "}\r\n" + LINE_SEP + "resource accTransaction {" + LINE_SEP
-			+ "	type: item" + LINE_SEP + "	entity: ENTITY" + LINE_SEP + "   actions [ Update ]" + LINE_SEP
-			+ "   relations [ editRel ]" + LINE_SEP + "}\r\n" + LINE_SEP + "}" + LINE_SEP + // end
+			"initial resource accTransactions {" + LINE_SEP + 
+			"	type: collection" + LINE_SEP + 
+			"	entity: ENTITY" + LINE_SEP + 
+			"   view: Noop" + LINE_SEP + 
+			"   relations [ archiveRel, \"http://www.temenos.com/statement-entries\" ]" + LINE_SEP + 
+			"   PUT -> accTransaction" + LINE_SEP + 
+			"}\r\n" + LINE_SEP + 
+			"resource accTransaction {" + LINE_SEP + 
+			"	type: item" + LINE_SEP + 
+			"	entity: ENTITY" + LINE_SEP + 
+			"   actions [ Update ]" + LINE_SEP + 
+			"   relations [ editRel ]" + LINE_SEP + "}\r\n" + LINE_SEP + "}" + LINE_SEP + // end
 																							// rim
 			"";
 
@@ -643,31 +651,42 @@ public class GeneratorSpringPRDTest {
 		underTest.doGenerate(model.eResource(), fsa);
 
 		// collection
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/accTransactionsResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String accTransactionsOutput = fsa.getFiles().get(expectedKey).toString();
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_accTransactions-PRD.xml";
+		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
+		String accTransactionsOutput = fsa.getAllFiles().get(expectedKey).toString();
+	
+		/*
+		 * <constructor-arg name="rels">
+		 *   	<array>
+		 *      	<value>archives</value>
+		 *      	<value>http://www.temenos.com/statement-entries</value>
+		 *   	</array>
+         * </constructor-arg>
+		 */
+
 		// the constructor part
-		assertTrue(accTransactionsOutput.contains("\"/accTransactions\", createLinkRelations()"));
-		// createLinkRelations method
-		String expectedAccTransactionsRelArray = "" + "        String accTransactionsRelationsStr = \"\";" + LINE_SEP
-				+ "        accTransactionsRelationsStr += \"archive \";" + LINE_SEP
-				+ "        accTransactionsRelationsStr += \"http://www.temenos.com/statement-entries \";" + LINE_SEP
-				+ "        String[] accTransactionsRelations = accTransactionsRelationsStr.trim().split(\" \");"
-				+ LINE_SEP + "";
-		assertTrue(accTransactionsOutput.contains(expectedAccTransactionsRelArray));
+		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"rels\">"));
+		assertTrue(accTransactionsOutput.contains("<value><![CDATA[archive]]></value>"));
+		assertTrue(accTransactionsOutput.contains("<value><![CDATA[http://www.temenos.com/statement-entries]]></value>"));
+		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"uriSpec\"><null /></constructor-arg>"));
+		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"errorState\"><null /></constructor-arg>"));
 
 		// item
-		expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/accTransactionResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String accTransactionOutput = fsa.getFiles().get(expectedKey).toString();
+		expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_accTransaction-PRD.xml";
+		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
+		String accTransactionOutput = fsa.getAllFiles().get(expectedKey).toString();
+
+		/*
+		 * <constructor-arg name="rels">
+		 *   	<array>
+		 *      	<value>edit</value>
+		 *   	</array>
+         * </constructor-arg>
+		 */
+
 		// the constructor part
-		assertTrue(accTransactionOutput.contains("\"/accTransaction\", createLinkRelations()"));
-		// createLinkRelations method
-		String expectedAccTransactionRelArray = "" + "        String accTransactionRelationsStr = \"\";" + LINE_SEP
-				+ "        accTransactionRelationsStr += \"edit \";" + LINE_SEP
-				+ "        String[] accTransactionRelations = accTransactionRelationsStr.trim().split(\" \");"
-				+ LINE_SEP + "";
-		assertTrue(accTransactionOutput.contains(expectedAccTransactionRelArray));
+		assertTrue(accTransactionOutput.contains("<constructor-arg name=\"rels\">"));
+		assertTrue(accTransactionOutput.contains("<value><![CDATA[edit]]></value>"));
 	}
 
 	private final static String TRANSITION_WITH_UPDATE_EVENT = "" + "rim Test {" + LINE_SEP + "	event GET {" + LINE_SEP
