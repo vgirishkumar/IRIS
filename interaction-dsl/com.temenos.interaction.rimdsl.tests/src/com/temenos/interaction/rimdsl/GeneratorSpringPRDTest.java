@@ -434,8 +434,8 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
 		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
 		assertTrue(output.contains("<property name=\"target\" ref=\"B\" />"));
-		assertTrue(output.contains("<property name=\"uriParameters\" value=\"<util:map id=\"uriMap\"></util:map>"));
-		assertTrue(output.contains("<property name=\"evaluation\" ref=\"conditionalLinkExpressions\" />"));
+		assertTrue(output.contains("<property name=\"uriParameters\"><util:map></util:map></property>"));
+		assertTrue(output.contains("<property name=\"functionList\"><util:list></util:list></property>"));
 		assertTrue(output.contains("<property name=\"label\" value=\"B\" />"));
 		//assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
 		//assertTrue(output.contains("factory.getResourceState(\"B\");"));
@@ -686,48 +686,52 @@ public class GeneratorSpringPRDTest {
 		assertTrue(resourceA.contains("<property name=\"flags\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.Transition.FOR_EACH\"/></property>"));
 		assertTrue(resourceA.contains("<property name=\"method\" value=\"GET\" />"));
 		assertTrue(resourceA.contains("<property name=\"target\" ref=\"Test_B\" />"));
-		assertTrue(resourceA.contains("<property name=\"uriParameters\" ref=\"uriLinkageMap\" />"));
-		assertTrue(resourceA.contains(""));
-		assertTrue(resourceA.contains(""));
-		assertTrue(resourceA.contains(""));
+		assertTrue(resourceA.contains("<property name=\"uriParameters\"><util:map></util:map></property>"));
+		assertTrue(resourceA.contains("<property name=\"functionList\"><util:list></util:list></property>"));
+		assertTrue(resourceA.contains("<property name=\"label\" value=\"B\" />"));
 
 		//
-		assertTrue(resourceA.contains("sA.addTransition(new Transition.Builder()"));
-		assertTrue(resourceA.contains(".flags(Transition.FOR_EACH)"));
-		assertTrue(resourceA.contains(".method(\"GET\")"));
-		assertTrue(resourceA.contains(".target(sB)"));
-		assertTrue(resourceA.contains(".uriParameters(uriLinkageProperties)"));
-		assertTrue(resourceA
-				.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
-		assertTrue(resourceA.contains(".label(\"B\")"));
+		//assertTrue(resourceA.contains("sA.addTransition(new Transition.Builder()"));
+		//assertTrue(resourceA.contains(".flags(Transition.FOR_EACH)"));
+		//assertTrue(resourceA.contains(".method(\"GET\")"));
+		//assertTrue(resourceA.contains(".target(sB)"));
+		//assertTrue(resourceA.contains(".uriParameters(uriLinkageProperties)"));
+		//assertTrue(resourceA.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
+		//assertTrue(resourceA.contains(".label(\"B\")"));
 
-		String resourceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/BResourceState.java";
+		String resourceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_B-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(resourceBKey));
 		String resourceB = fsa.getFiles().get(resourceBKey).toString();
-		assertTrue(resourceB.contains("sB.addTransition(new Transition.Builder()"));
-		assertTrue(resourceB.contains(".method(\"PUT\")"));
-		assertTrue(resourceB.contains(".target(sB_pseudo)"));
-		assertTrue(resourceB.contains(".uriParameters(uriLinkageProperties)"));
-		assertTrue(resourceB
-				.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
-		assertTrue(resourceB.contains(".label(\"B_pseudo\")"));
-
-		String resourceB_pseudoKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/B_pseudoResourceState.java";
+		
+		//assertTrue(resourceB.contains("sB.addTransition(new Transition.Builder()"));
+		//assertTrue(resourceB.contains(".method(\"PUT\")"));
+		//assertTrue(resourceB.contains(".target(sB_pseudo)"));
+		//assertTrue(resourceB.contains(".uriParameters(uriLinkageProperties)"));
+		//assertTrue(resourceB.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
+		//assertTrue(resourceB.contains(".label(\"B_pseudo\")"));		
+		assertTrue(resourceB.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
+		assertTrue(resourceB.contains("<property name=\"method\" value=\"PUT\" />"));
+		assertTrue(resourceB.contains("<property name=\"target\" ref=\"Test_B_pseudo\" />"));
+		assertTrue(resourceB.contains("<property name=\"uriParameters\"><util:map></util:map></property>"));
+		assertTrue(resourceB.contains("<property name=\"functionList\"><util:list></util:list></property>"));
+		assertTrue(resourceB.contains("<property name=\"label\" value=\"B_pseudo\" />"));
+	
+		String resourceB_pseudoKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_B_pseudo-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(resourceB_pseudoKey));
 		String resourceB_pseudo = fsa.getFiles().get(resourceB_pseudoKey).toString();
-		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(new Transition.Builder()"));
-		assertTrue(resourceB_pseudo.contains(".flags(Transition.AUTO)"));
-		assertTrue(resourceB_pseudo.contains(".target(sA)"));
-		assertTrue(resourceB_pseudo.contains(".uriParameters(uriLinkageProperties)"));
-		assertTrue(resourceB_pseudo
-				.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
-
-		assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(new Transition.Builder()"));
-		assertTrue(resourceB_pseudo.contains(".flags(Transition.AUTO)"));
-		assertTrue(resourceB_pseudo.contains(".target(sB)"));
-		assertTrue(resourceB_pseudo.contains(".uriParameters(uriLinkageProperties)"));
-		assertTrue(resourceB_pseudo
-				.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
+		//assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(new Transition.Builder()"));
+		//assertTrue(resourceB_pseudo.contains(".flags(Transition.AUTO)"));
+		//assertTrue(resourceB_pseudo.contains(".target(sA)"));
+		//assertTrue(resourceB_pseudo.contains(".uriParameters(uriLinkageProperties)"));
+		//assertTrue(resourceB_pseudo.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
+		assertTrue(resourceB_pseudo.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
+		assertTrue(resourceB_pseudo.contains("<property name=\"flags\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.Transition.AUTO\"/></property>"));
+		assertTrue(resourceB_pseudo.contains("<property name=\"target\" ref=\"Test_A\" />"));
+		assertTrue(resourceB_pseudo.contains("<property name=\"uriParameters\"><util:map>"));
+		assertTrue(resourceB_pseudo.contains("</util:map>"));
+		assertTrue(resourceB_pseudo.contains("<property name=\"functionList\"><!-- super(\"ENTITY\", \"B_pseudo\", createActions(state), \"/B_pseudo\", \"createLinkRelations()\", null, null);  -->"));
+		assertTrue(resourceB_pseudo.contains(""));
+		assertTrue(resourceB_pseudo.contains(""));	
 	}
 
 	private final static String RESOURCE_ON_ERROR = "" + "rim Test {" + LINE_SEP + "	command GetEntity" + LINE_SEP
@@ -813,20 +817,21 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"ErrorTest.Error.AE\"));"));
 		 
 		 */
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/Error/AEIRIS-PRD.xml";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-ErrorTest_Test_A-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/ErrorServiceDocumentIRIS-PRD.xml"));
-		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/Test/AIRIS-PRD.xml"));
 		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/TestServiceDocumentIRIS-PRD.xml"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-ErrorTest_Error_AE-PRD.xml"));
+		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-ErrorTest_Test_A-PRD.xml"));
 
 		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output.contains("<bean id=\"AE\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
-		assertTrue(output.contains("<constructor-arg name=\"entityName\" value=\"ERROR\" />"));
-		assertTrue(output.contains("<constructor-arg name=\"name\" value=\"AE\" />"));
+		assertTrue(output.contains("<bean id=\"ErrorTest_Test_A\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
+		assertTrue(output.contains("<constructor-arg name=\"entityName\" value=\"ENTITY\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"name\" value=\"A\" />"));
 		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
-		assertTrue(output.contains("<constructor-arg value=\"GETEntities\" />"));
+		assertTrue(output.contains("<constructor-arg value=\"GetEntity\" />"));
 		assertTrue(output.contains("<constructor-arg value=\"VIEW\" />"));
-		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/AE\" />"));
+		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/A\" />"));
 
 
 	}
