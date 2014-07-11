@@ -472,8 +472,7 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("<property name=\"flags\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.Transition.AUTO\"/></property>"));
 		assertTrue(output.contains("<property name=\"target\" ref=\"Test_created\" />"));
 		assertTrue(output.contains("<!-- <property name=\"method\" value=\"GET\" /> -->"));
-		assertTrue(output.contains("<property name=\"uriParameters\" value=\""));
-		assertTrue(output.contains("<util:map id=\"uriMap\">"));
+		assertTrue(output.contains("<property name=\"uriParameters\"><util:map>"));
 		assertTrue(output.contains("<entry key=\"id\" value=\"{MyId}\"/>"));
 		assertTrue(output.contains("</util:map>"));
 
@@ -502,6 +501,9 @@ public class GeneratorSpringPRDTest {
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
+
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		Set<String> keys = allFiles.keySet();
 
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/delete_pseudo_stateResourceState.java";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
