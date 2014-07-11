@@ -330,34 +330,43 @@ public class GeneratorSpringPRDTest {
 		Map<String, Object> allFiles = fsa.getAllFiles();
 		Set<String> keys = allFiles.keySet();
 		
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 
-		final String NEW_STATEMENT = "conditionalLinkExpressions = new ArrayList<Expression>();";
-		final String ADD_TRANSITION = ".method(\"GET\").target(sB).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label(\"B\")";
+		//final String NEW_STATEMENT = "conditionalLinkExpressions = new ArrayList<Expression>();";
+		//final String ADD_TRANSITION = ".method(\"GET\").target(sB).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label(\"B\")";
 
-		int indexOfNewStatement = output.indexOf(NEW_STATEMENT);
-		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output
-				.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.B\"), ResourceGETExpression.Function.OK))"));
-		int indexOfAddTransition = output.indexOf(ADD_TRANSITION);
+		//int indexOfNewStatement = output.indexOf(NEW_STATEMENT);
+		//assertTrue(indexOfNewStatement > 0);
+		
+		//assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.B\"), ResourceGETExpression.Function.OK))"));
+		assertTrue(output.contains("Test.B , ResourceGETExpression.Function.OK;"));
+		assertTrue(output.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
+		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
+		assertTrue(output.contains("<property name=\"target\" ref=\"Test_B\" />"));
+
+
+		//int indexOfAddTransition = output.indexOf(ADD_TRANSITION);
+		//assertTrue(indexOfAddTransition > 0);
+
+		//indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
+		//assertTrue(indexOfNewStatement > 0);
+		//assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.B\"), ResourceGETExpression.Function.NOT_FOUND))"));
+		assertTrue(output.contains("Test.B , ResourceGETExpression.Function.NOT_FOUND;"));
+		
+		int indexOfAddTransition = output.indexOf("<property name=\"functionList\">");
 		assertTrue(indexOfAddTransition > 0);
 
-		indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
-		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output
-				.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.B\"), ResourceGETExpression.Function.NOT_FOUND))"));
-		indexOfAddTransition = output.indexOf(ADD_TRANSITION, indexOfAddTransition);
-		assertTrue(indexOfAddTransition > 0);
-
-		indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
-		assertTrue(indexOfNewStatement > 0);
-		assertTrue(output
-				.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.C\"), ResourceGETExpression.Function.OK))"));
-		assertTrue(output
-				.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.D\"), ResourceGETExpression.Function.NOT_FOUND))"));
-		indexOfAddTransition = output.indexOf(ADD_TRANSITION, indexOfAddTransition);
+		//indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
+		//assertTrue(indexOfNewStatement > 0);
+		//assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.C\"), ResourceGETExpression.Function.OK))"));
+		assertTrue(output.contains("Test.C , ResourceGETExpression.Function.OK;"));
+		
+		//assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.D\"), ResourceGETExpression.Function.NOT_FOUND))"));
+		assertTrue(output.contains("Test.D , ResourceGETExpression.Function.NOT_FOUND;"));
+		
+		//indexOfAddTransition = output.indexOf(ADD_TRANSITION, indexOfAddTransition);
 		assertTrue(indexOfAddTransition > 0);
 	}
 
