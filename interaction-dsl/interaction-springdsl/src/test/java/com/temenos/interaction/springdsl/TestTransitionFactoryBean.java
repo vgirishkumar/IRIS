@@ -66,16 +66,52 @@ public class TestTransitionFactoryBean {
 		ResourceState mockTargetResoruce = new ResourceState("entity", "name", null, "/test");
 
 		List<String> functionList = new ArrayList<String>();	
-		StringBuilder function1 = new StringBuilder("entityName= Order ;");
-		function1.append("name= OrderCreated;");
-		function1.append("actions= ");
-		function1.append("CreateEntity, Action.TYPE.ENTRY, actionViewProperties; ");
-		function1.append("path= /{franchise}/Orders(); ");
+		StringBuilder function1 = new StringBuilder("");
+		function1.append("entityName= Note;");
+		function1.append("name= createNote;");
+		function1.append("actions=");
+		function1.append("       CREATENote, Action.TYPE.ENTRY, actionViewProperties;");
+		function1.append("path= /notes;");
 		function1.append("linkRelations= ");
-		function1.append("http://relations.restbucks.com/order;");
-    	function1.append("function=RestbucksModel.Restbucks.order , ResourceGETExpression.Function.OK;");
+		function1.append("		    http://relations.restbucks.com/order");
+		function1.append("		    ;");
+		function1.append("function=SimpleModel.Simple.note , ResourceGETExpression.Function.OK;");
+
+
     	functionList.add(function1.toString());
     	
+		ResourceFactory resourceFactory = new ResourceFactory(); 
+		Transition fromBuilder = new Transition.Builder().target(mockTargetResoruce).build();
+		TransitionFactoryBean factoryBean = new TransitionFactoryBean();
+		factoryBean.setTarget(mockTargetResoruce);
+		factoryBean.setFunctionList(functionList);
+		Transition fromFactory = factoryBean.getObject();
+		assertEquals(fromBuilder, fromFactory);
+	}
+
+	@Test
+	public void testConstructWithNoData() throws Exception {
+		ResourceState mockTargetResoruce = new ResourceState("entity", "name", null, "/test");
+
+		List<String> functionList = new ArrayList<String>();	
+	
+    	functionList.add("");
+    	
+		ResourceFactory resourceFactory = new ResourceFactory(); 
+		Transition fromBuilder = new Transition.Builder().target(mockTargetResoruce).build();
+		TransitionFactoryBean factoryBean = new TransitionFactoryBean();
+		factoryBean.setTarget(mockTargetResoruce);
+		factoryBean.setFunctionList(functionList);
+		Transition fromFactory = factoryBean.getObject();
+		assertEquals(fromBuilder, fromFactory);
+	}
+
+	@Test
+	public void testConstructWithEmptyList() throws Exception {
+		ResourceState mockTargetResoruce = new ResourceState("entity", "name", null, "/test");
+
+		List<String> functionList = new ArrayList<String>();	
+	    	
 		ResourceFactory resourceFactory = new ResourceFactory(); 
 		Transition fromBuilder = new Transition.Builder().target(mockTargetResoruce).build();
 		TransitionFactoryBean factoryBean = new TransitionFactoryBean();

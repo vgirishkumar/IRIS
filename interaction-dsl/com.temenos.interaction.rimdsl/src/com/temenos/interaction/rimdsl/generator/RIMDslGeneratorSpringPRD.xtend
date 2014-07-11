@@ -382,17 +382,16 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 </util:list>    
 '''
     def produceExpression(ResourceInteractionModel rim, State state, Function expression) '''
-		entityName= «state.entity.name»
-		name= «state.name»
+		entityName= «state.entity.name»;
+		name= «state.name»;
 		actions= «produceActionSet(state, state.impl)»
-		path= «producePath(rim, state)»
-		linkRelations= «produceRelations(state)»
-		uriSpec = xxx
+		path= «producePath(rim, state)»;
+		linkRelations= «produceRelations(state)»;
 
 	«IF expression instanceof OKFunction»
-		function=«(expression as OKFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.OK
+		function=«(expression as OKFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.OK;
 	«ELSE»
-    	function=«(expression as NotFoundFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.NOT_FOUND
+    	function=«(expression as NotFoundFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.NOT_FOUND;
 	«ENDIF»
 	
 
