@@ -79,31 +79,6 @@ public class HypermediaITCase extends JerseyTest {
 				.getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		InputStream is = response.getEntityInputStream();
-
-		BufferedReader br = null;
-		StringBuilder sb = new StringBuilder();
-
-		String line;
-		try {
-
-			br = new BufferedReader(new InputStreamReader(is));
-			while ((line = br.readLine()) != null) {
-				sb.append(line);
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
 		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response
 				.getEntityInputStream()));
 
