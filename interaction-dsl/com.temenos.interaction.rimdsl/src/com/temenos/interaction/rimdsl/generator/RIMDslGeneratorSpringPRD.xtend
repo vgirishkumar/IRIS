@@ -50,7 +50,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             fsa.generateFile("IRIS-" + stateName + "-PRD.xml", toSpringXML(rim, resourceState))
         }
                
-        fsa.generateFile(rimPath + "ServiceDocumentIRIS-PRD.xml", toSpringServiceDocXML(rim))
+        fsa.generateFile(rimPath + "IRISServiceDocument-PRD.xml", toSpringServiceDocXML(rim))
   
 	}
 

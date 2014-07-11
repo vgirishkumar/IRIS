@@ -38,7 +38,6 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.IGenerator;
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess;
@@ -963,9 +962,8 @@ public class GeneratorSpringPRDTest {
 		String expectedKey1 = IFileSystemAccess.DEFAULT_OUTPUT + "SimpleServiceDocumentIRIS-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey1));
 
-		StringConcatenation root = (StringConcatenation) allFiles
-				.get("DEFAULT_OUTPUTSimpleServiceDocumentIRIS-PRD.xml");
-		Reader reader = new StringReader(root.toString());
+		String root = (String) allFiles.get(expectedKey1).toString();
+		Reader reader = new StringReader(root);
 
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		// XMLStreamReader xmlStreamReader =
@@ -1254,8 +1252,8 @@ public class GeneratorSpringPRDTest {
 		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_B-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey2));
 
-		StringConcatenation root = (StringConcatenation) allFiles.get(expectedKey2);
-		Reader reader = new StringReader(root.toString());
+		String root = (String) allFiles.get(expectedKey2).toString();
+		Reader reader = new StringReader(root);
 
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		// XMLStreamReader xmlStreamReader =
@@ -1426,9 +1424,9 @@ public class GeneratorSpringPRDTest {
 		// Verify keys
 		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_A-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey2));
-
-		StringConcatenation root = (StringConcatenation) allFiles.get(expectedKey2);
-		Reader reader = new StringReader(root.toString());
+		
+		String root = (String) allFiles.get(expectedKey2).toString();
+		Reader reader = new StringReader(root);
 
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		// XMLStreamReader xmlStreamReader =
@@ -1561,8 +1559,9 @@ public class GeneratorSpringPRDTest {
 		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_E-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey2));
 
-		StringConcatenation root = (StringConcatenation) allFiles.get(expectedKey2);
-		Reader reader = new StringReader(root.toString());
+		String root = (String) allFiles.get(expectedKey2).toString();
+		Reader reader = new StringReader(root);
+
 
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		// XMLStreamReader xmlStreamReader =
