@@ -540,25 +540,29 @@ public class GeneratorSpringPRDTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		Set<String> keys = allFiles.keySet();
+
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 
-		assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
-		assertTrue(output.contains(".target(sB)"));
-		assertTrue(output.contains(".flags(Transition.EMBEDDED)"));
+		//assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
+		//assertTrue(output.contains(".target(sB)"));
+		//assertTrue(output.contains(".flags(Transition.EMBEDDED)"));
+		assertTrue(output.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
+		assertTrue(output.contains("<property name=\"flags\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.Transition.EMBEDDED\"/></property>"));
+		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
+		assertTrue(output.contains("<property name=\"target\" ref=\"Test_B\" />"));
+		assertTrue(output.contains("<property name=\"uriParameters\"><util:map></util:map></property>"));
+		assertTrue(output.contains("<property name=\"functionList\"><util:list></util:list></property>"));
+		assertTrue(output.contains("<property name=\"label\" value=\"B\" />"));
 
-		String expectedBKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/BResourceState.java";
+
+		String expectedBKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_B-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedBKey));
-		
-		/*
-		assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
-		assertTrue(output.contains(".target(sB)"));
-		assertTrue(output.contains(".flags(Transition.EMBEDDED)"));
+		output = fsa.getFiles().get(expectedBKey).toString();
 
-		String expectedBKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/BResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedBKey));		 
-		 */
 	}
 
 	private final static String RESOURCE_RELATIONS_RIM = "" + "rim Test {" + LINE_SEP + "	command Noop" + LINE_SEP
@@ -1204,7 +1208,7 @@ public class GeneratorSpringPRDTest {
 				constructorValue1 = attribute.getValue();
 				System.out.println("constructorValue1 = " + attribute.getValue());
 				assertTrue(constructorValue1.equals("GETServiceDocument") || constructorValue1.equals("VIEW")
-						|| constructorValue1.equals("path") || constructorValue1.equals("ENTRY")|| constructorValue1.equals("UpdateEntity") || constructorValue1.equals("GetEntity") || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException"));
+						|| constructorValue1.equals("path") || constructorValue1.equals("ENTRY")|| constructorValue1.equals("UpdateEntity") || constructorValue1.equals("GetEntity") || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException")  || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException")  || constructorValue1.equals("VIEW") || constructorValue1.equals("rels") || constructorValue1.equals("uriSpec") || constructorValue1.equals("errorState") );
 			} else if (constructorValue2 == null) {
 				constructorValue2 = attribute.getValue();
 				System.out.println("constructorValue2 = " + attribute.getValue());
@@ -1270,7 +1274,7 @@ public class GeneratorSpringPRDTest {
 	 * <list>
 	 */
 	@Test
-	public void testGenerateResourceB() throws Exception {
+	public void testGenerateResourceSimpleBPRD() throws Exception {
 		DomainModel domainModel = parseHelper.parse(SIMPLE_STATES_RIM);
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
@@ -1443,7 +1447,7 @@ public class GeneratorSpringPRDTest {
 	 * <list>
 	 */
 	@Test
-	public void testGenerateResourceA() throws Exception {
+	public void testGenerateResourceSimpleAPRD() throws Exception {
 		DomainModel domainModel = parseHelper.parse(SIMPLE_STATES_RIM);
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
@@ -1577,7 +1581,7 @@ public class GeneratorSpringPRDTest {
 	 * <list>
 	 */
 	@Test
-	public void testGenerateResourceE() throws Exception {
+	public void testGenerateResourceSimpleEPRD() throws Exception {
 		DomainModel domainModel = parseHelper.parse(SIMPLE_STATES_RIM);
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
