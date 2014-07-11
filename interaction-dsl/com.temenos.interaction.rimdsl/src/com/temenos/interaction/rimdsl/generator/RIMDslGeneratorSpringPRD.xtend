@@ -107,9 +107,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 					    «ENDIF»
 				    «ENDIF»
 				«ENDFOR»
-	«addXmlEndTransitions»
-«addXmlEnd()»
-        
+    «addXmlEndTransitions»
+    </beans><!-- end spring bean for resource : «stateVariableName(state)» -->
+
 	'''
 
 	// Start XML for service document and resources.
@@ -133,11 +133,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
 '''
 	
-	// End XML for service document and resources.
-	def addXmlEnd() ''' 
-</beans>
-	'''		
-	
 	// Add util Map for resources.
 	def addXmlStartTransitions() ''' 
         <property name="transitions">
@@ -154,7 +149,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
 	// Add Spring bean for resource.
 	def addXMLResourceBean(ResourceInteractionModel rim, State state) ''' 
-   <bean id="« state.fullyQualifiedName.toString("_") »" class="«produceResourceStateType(state)»">
+	<!-- begin spring bean for resource : «stateVariableName(state)» -->
+	<bean id="«stateVariableName(state)»" class="«produceResourceStateType(state)»">
         <constructor-arg name="entityName" value="«state.entity.name»" />
         <constructor-arg name="name" value="« state.name »" />
         <constructor-arg>
@@ -225,8 +221,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         	«addXMLTransitionFactoryBean(resourceState.name)»
         «ENDFOR»
 
- 	«addXMLEndServiceDocInitialBean()»
-«addXmlEnd()»
+	«addXMLEndServiceDocInitialBean()»
+	</beans><!-- end spring bean for ServiceDocument -->
 		
 	'''
 	
@@ -319,24 +315,26 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         «ENDIF»'''
     
 	def produceTransitions(ResourceInteractionModel rim, State fromState, Transition transition) '''
-	<!-- produceTransitions() -->
-	<!-- 	create regular transition  -->
 
+			<!-- begin transition : «transitionTargetStateVariableName(transition)» -->
             <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
                 <property name="method" value="«transition.event.httpMethod»" />
                 <property name="target" ref="«transitionTargetStateVariableName(transition)»" />
 
  				«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="functionList">«produceExpressions(rim, fromState, transition.spec.eval)»</property>
+					<property name="evaluation">
+					    «produceEvaluation(rim, fromState, transition.spec.eval)»
+					</property>
 				«ENDIF»
 				«IF transition.spec == null»
 					<property name="uriParameters"><util:map></util:map></property>
-					<property name="functionList"><util:list></util:list></property>
+					<property name="evaluation"><null /></property>
 				«ENDIF»
 
 				<property name="label" value="«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»" />
-            </bean>
+            </bean><!-- end transition : «transitionTargetStateVariableName(transition)» -->
+            
                 
 <!--
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
@@ -347,36 +345,42 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 -->
 	'''
 
-    def produceExpressions(ResourceInteractionModel rim, State state, Expression conditionExpression) '''
+    def produceEvaluation(ResourceInteractionModel rim, State state, Expression conditionExpression) '''
        	«IF state.type.isCollection»
         	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", "createLinkRelations()", null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->   
         «ELSEIF state.type.isItem»
         	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", "createLinkRelations()", «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->
         «ENDIF»
 
- <util:list>
-       «IF conditionExpression != null»
-         	«FOR function : conditionExpression.expressions»
-        		<value>«produceExpression( rim,  state, function)»</value>
-         	«ENDFOR»
+		<bean class="com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator">
+		    <constructor-arg name="expressions">
+		    <util:list>
+		«IF conditionExpression != null»
+			«FOR function : conditionExpression.expressions»
+			«produceExpression( rim,  state, function)»
+			«ENDFOR»
         «ENDIF»
-</util:list>    
-'''
+		    </util:list>
+		    </constructor-arg>
+		</bean>
+	'''
+    
     def produceExpression(ResourceInteractionModel rim, State state, Function expression) '''
-		entityName= «state.entity.name»;
-		name= «state.name»;
-		actions= «produceActionSet(state, state.impl)»
-		path= «producePath(rim, state)»;
-
-	«IF expression instanceof OKFunction»
-		function=«(expression as OKFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.OK;
-	«ELSE»
-    	function=«(expression as NotFoundFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.NOT_FOUND;
-	«ENDIF»
+		<bean class="com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression">
+		    <constructor-arg name="target" ref="«IF expression instanceof OKFunction»«stateVariableName((expression as OKFunction).state)»«ELSE»«stateVariableName((expression as NotFoundFunction).state)»«ENDIF»" />
+		    <constructor-arg name="function">«produceFunction(expression)»</constructor-arg>
+		</bean>
+	'''
 	
-
-'''
-   def produceActionSet(State state, ImplRef impl) {
+	def produceFunction(Function expression) '''
+		«IF expression instanceof OKFunction»
+		<util:constant static-field="com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.OK"/>
+		«ELSE»
+		<util:constant static-field="com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.NOT_FOUND"/>
+		«ENDIF»
+	'''
+   	
+	def produceActionSet(State state, ImplRef impl) {
     	if (impl != null) {
    			produceActionSet(state, impl.view, impl.actions);
     	}
@@ -429,7 +433,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  				«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="functionList">«produceExpressions(rim, fromState, transition.spec.eval)»</property>
+					<property name="evaluation">
+					    «produceEvaluation(rim, fromState, transition.spec.eval)»
+					</property>
 				«ENDIF»
 				«IF transition.spec == null»
 					<property name="uriParameters"><util:map></util:map></property>
@@ -461,7 +467,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  				«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="functionList">«produceExpressions(rim, fromState, transition.spec.eval)»</property>
+					<property name="evaluation">
+					    «produceEvaluation(rim, fromState, transition.spec.eval)»
+					</property>
 				«ENDIF»
 				«IF transition.spec == null»
 					<property name="uriParameters"><util:map></util:map></property>
@@ -490,7 +498,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  			«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="functionList">«produceExpressions(rim, fromState, transition.spec.eval)»</property>
+					<property name="evaluation">
+					    «produceEvaluation(rim, fromState, transition.spec.eval)»
+					</property>
 			«ENDIF»
 			«IF transition.spec == null»
 				<property name="uriParameters"><util:map></util:map></property>
@@ -519,7 +529,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
  			«IF transition.spec != null»
 					<property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
-					<property name="functionList">«produceExpressions(rim, fromState, transition.spec.eval)»</property>
+					<property name="evaluation">
+					    «produceEvaluation(rim, fromState, transition.spec.eval)»
+					</property>
 			«ENDIF»
 			«IF transition.spec == null»
 				<property name="uriParameters"><util:map></util:map></property>

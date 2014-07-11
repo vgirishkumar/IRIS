@@ -306,20 +306,41 @@ public class GeneratorSpringPRDTest {
 
 	}
 
-	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" + "rim Test {" + LINE_SEP + "	event GET {"
-			+ LINE_SEP + "		method: GET" + LINE_SEP + "	}" + LINE_SEP +
+	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" + 
+			"rim Test {" + LINE_SEP + 
+			"	event GET {" + LINE_SEP + 
+			"		method: GET" + LINE_SEP + 
+			"	}" + LINE_SEP +
 
-			"	command GetEntity" + LINE_SEP + "	command GetEntities" + LINE_SEP + "	command PutEntity" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP + 
+			"	command GetEntities" + LINE_SEP + 
+			"	command PutEntity" + LINE_SEP +
 
-			"initial resource A {" + LINE_SEP + "	type: collection" + LINE_SEP + "	entity: ENTITY" + LINE_SEP
-			+ "	view: GetEntities" + LINE_SEP + "	GET -> B { condition: OK(B) }" + LINE_SEP
-			+ "	GET -> B { condition: NOT_FOUND(B) }" + LINE_SEP + "	GET -> B { condition: OK(C) && NOT_FOUND(D) }"
-			+ LINE_SEP + "}" + LINE_SEP +
+			"initial resource A {" + LINE_SEP + 
+			"	type: collection" + LINE_SEP + 
+			"	entity: ENTITY" + LINE_SEP + 
+			"	view: GetEntities" + LINE_SEP + 
+			"	GET -> B { condition: OK(C) }" + LINE_SEP + 
+			"	GET -> C { condition: NOT_FOUND(B) }" + LINE_SEP + 
+			"	GET -> D { condition: OK(A) && NOT_FOUND(B) }" + LINE_SEP + 
+			"}" + LINE_SEP +
 
-			"resource B {" + "	type: item" + LINE_SEP + "	entity: ENTITY" + LINE_SEP + "	view: GetEntity" + LINE_SEP
-			+ "}" + LINE_SEP + "resource C {" + "	type: item" + LINE_SEP + "	entity: ENTITY" + LINE_SEP
-			+ "	view: GetEntity" + LINE_SEP + "}" + LINE_SEP + "resource D {" + "	type: item" + LINE_SEP
-			+ "	entity: ENTITY" + LINE_SEP + "	view: GetEntity" + LINE_SEP + "}" + LINE_SEP + "}" + LINE_SEP + "";
+			"resource B {" + 
+			"	type: item" + LINE_SEP + 
+			"	entity: ENTITY" + LINE_SEP + 
+			"	view: GetEntity" + LINE_SEP + 
+			"}" + LINE_SEP + 
+			"resource C {" + 
+			"	type: item" + LINE_SEP + 
+			"	entity: ENTITY" + LINE_SEP + 
+			"	view: GetEntity" + LINE_SEP + 
+			"}" + LINE_SEP + 
+			"resource D {" + 
+			"	type: item" + LINE_SEP + 
+			"	entity: ENTITY" + LINE_SEP + 
+			"	view: GetEntity" + LINE_SEP + 
+			"}" + LINE_SEP + 
+			"}" + LINE_SEP + "";
 
 	@Test
 	public void testGenerateTransitionsWithExpressions() throws Exception {
@@ -328,47 +349,46 @@ public class GeneratorSpringPRDTest {
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 
-		Map<String, Object> allFiles = fsa.getAllFiles();
-		Set<String> keys = allFiles.keySet();
-		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
+		String output = fsa.getAllFiles().get(expectedKey).toString();
 
-		//final String NEW_STATEMENT = "conditionalLinkExpressions = new ArrayList<Expression>();";
-		//final String ADD_TRANSITION = ".method(\"GET\").target(sB).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label(\"B\")";
-
-		//int indexOfNewStatement = output.indexOf(NEW_STATEMENT);
-		//assertTrue(indexOfNewStatement > 0);
+		// find the first resource (Test_A)
+		String resourceA = getResourceBean(output, "Test_A");
 		
-		//assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.B\"), ResourceGETExpression.Function.OK))"));
-		assertTrue(output.contains("Test.B , ResourceGETExpression.Function.OK;"));
-		assertTrue(output.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
-		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
-		assertTrue(output.contains("<property name=\"target\" ref=\"Test_B\" />"));
-
-
-		//int indexOfAddTransition = output.indexOf(ADD_TRANSITION);
-		//assertTrue(indexOfAddTransition > 0);
-
-		//indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
-		//assertTrue(indexOfNewStatement > 0);
-		//assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.B\"), ResourceGETExpression.Function.NOT_FOUND))"));
-		assertTrue(output.contains("Test.B , ResourceGETExpression.Function.NOT_FOUND;"));
+		// find the transition to B, depends on C being found
+		String transitionB = getTransitionBean(resourceA, "Test_B");
+		assertTrue(transitionB.contains("<constructor-arg name=\"target\" ref=\"Test_C\" />"));
+		assertTrue(transitionB.contains("<constructor-arg name=\"function\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.OK\"/>"));
 		
-		int indexOfAddTransition = output.indexOf("<property name=\"functionList\">");
-		assertTrue(indexOfAddTransition > 0);
+		// find the transition to C, depends on B not being found
+		String transitionC = getTransitionBean(resourceA, "Test_C");
+		assertTrue(transitionC.contains("<constructor-arg name=\"target\" ref=\"Test_B\" />"));
+		assertTrue(transitionC.contains("<constructor-arg name=\"function\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.NOT_FOUND\"/>"));
 
-		//indexOfNewStatement = output.indexOf(NEW_STATEMENT, indexOfNewStatement);
-		//assertTrue(indexOfNewStatement > 0);
-		//assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.C\"), ResourceGETExpression.Function.OK))"));
-		assertTrue(output.contains("Test.C , ResourceGETExpression.Function.OK;"));
+		// find the transition to D, depends on A being found and B not being found
+		String transitionD = getTransitionBean(resourceA, "Test_D");
+		assertTrue(transitionD.contains("<constructor-arg name=\"target\" ref=\"Test_A\" />"));
+		assertTrue(transitionD.contains("<constructor-arg name=\"function\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.OK\"/>"));
+		assertTrue(transitionD.contains("<constructor-arg name=\"target\" ref=\"Test_B\" />"));
+		assertTrue(transitionD.contains("<constructor-arg name=\"function\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.NOT_FOUND\"/>"));
 		
-		//assertTrue(output.contains("conditionalLinkExpressions.add(new ResourceGETExpression(factory.getResourceState(\"Test.D\"), ResourceGETExpression.Function.NOT_FOUND))"));
-		assertTrue(output.contains("Test.D , ResourceGETExpression.Function.NOT_FOUND;"));
-		
-		//indexOfAddTransition = output.indexOf(ADD_TRANSITION, indexOfAddTransition);
-		assertTrue(indexOfAddTransition > 0);
+	}
+
+	private String getResourceBean(String output, String name) {
+		String begin = "<!-- begin spring bean for resource : " + name;
+		int beginIndex = output.indexOf(begin);
+		String end = "<!-- end spring bean for resource : " + name;
+		int endIndex = output.indexOf(end, beginIndex);
+		return output.substring(beginIndex, endIndex);
+	}
+
+	private String getTransitionBean(String output, String name) {
+		String begin = "<!-- begin transition : " + name;
+		int beginIndex = output.indexOf(begin);
+		String end = "<!-- end transition : " + name;
+		int endIndex = output.indexOf(end, beginIndex);
+		return output.substring(beginIndex, endIndex);
 	}
 
 	private final static String TRANSITION_WITH_MISSING_TARGET_RIM = "" + "rim Test {" + LINE_SEP + "	event GET {"
@@ -436,7 +456,7 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
 		assertTrue(output.contains("<property name=\"target\" ref=\"B\" />"));
 		assertTrue(output.contains("<property name=\"uriParameters\"><util:map></util:map></property>"));
-		assertTrue(output.contains("<property name=\"functionList\"><util:list></util:list></property>"));
+		assertTrue(output.contains("<property name=\"evaluation\"><null /></property>"));
 		assertTrue(output.contains("<property name=\"label\" value=\"B\" />"));
 		//assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
 		//assertTrue(output.contains("factory.getResourceState(\"B\");"));
@@ -757,7 +777,7 @@ public class GeneratorSpringPRDTest {
 		assertTrue(resourceB.contains("<property name=\"method\" value=\"PUT\" />"));
 		assertTrue(resourceB.contains("<property name=\"target\" ref=\"Test_B_pseudo\" />"));
 		assertTrue(resourceB.contains("<property name=\"uriParameters\"><util:map></util:map></property>"));
-		assertTrue(resourceB.contains("<property name=\"functionList\"><util:list></util:list></property>"));
+		assertTrue(resourceB.contains("<property name=\"evaluation\"><null /></property>"));
 		assertTrue(resourceB.contains("<property name=\"label\" value=\"B_pseudo\" />"));
 	
 		String resourceB_pseudoKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_B_pseudo-PRD.xml";
@@ -773,7 +793,7 @@ public class GeneratorSpringPRDTest {
 		assertTrue(resourceB_pseudo.contains("<property name=\"target\" ref=\"Test_A\" />"));
 		assertTrue(resourceB_pseudo.contains("<property name=\"uriParameters\"><util:map>"));
 		assertTrue(resourceB_pseudo.contains("</util:map>"));
-		assertTrue(resourceB_pseudo.contains("<property name=\"functionList\"><!-- super(\"ENTITY\", \"B_pseudo\", createActions(state), \"/B_pseudo\", \"createLinkRelations()\", null, null);  -->"));
+		assertTrue(resourceB_pseudo.contains("<property name=\"evaluation\">"));
 		assertTrue(resourceB_pseudo.contains(""));
 		assertTrue(resourceB_pseudo.contains(""));	
 	}
