@@ -505,14 +505,21 @@ public class GeneratorSpringPRDTest {
 		Map<String, Object> allFiles = fsa.getAllFiles();
 		Set<String> keys = allFiles.keySet();
 
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/delete_pseudo_stateResourceState.java";
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_delete_pseudo_state-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 
-		assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
-		assertTrue(output.contains("sdelete_pseudo_state.addTransition(new Transition.Builder()"));
-		assertTrue(output.contains("Transition.REDIRECT"));
-		assertTrue(output.contains(".target(sdeleted)"));
+		//assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
+		//assertTrue(output.contains("sdelete_pseudo_state.addTransition(new Transition.Builder()"));
+		//assertTrue(output.contains("Transition.REDIRECT"));
+		//assertTrue(output.contains(".target(sdeleted)"));
+		assertTrue(output.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
+		assertTrue(output.contains("<property name=\"flags\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.Transition.REDIRECT\"/></property>"));
+		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
+		assertTrue(output.contains("<property name=\"target\" ref=\"Test_deleted\" />"));
+		assertTrue(output.contains("<property name=\"uriParameters\"><util:map>"));
+		assertTrue(output.contains("<entry key=\"id\" value=\"{MyId}\"/>"));
+
 	}
 
 	private final static String EMBEDDED_TRANSITION_RIM = "" + "rim Test {" + LINE_SEP + "	event GET {" + LINE_SEP
