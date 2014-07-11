@@ -81,6 +81,7 @@ public class GeneratorSpringPRDTest {
 
 	private static final String BEAN_ID_INITIAL_STATE = "initialState";
 	private static final String BEAN_ID_COLLECTION_RESOURCE_STATE = "com.temenos.interaction.core.hypermedia.CollectionResourceState";
+	private static final String BEAN_ID_RESOURCE_STATE = "com.temenos.interaction.core.hypermedia.ResourceState";
 	private static final String FACTORY_BEAN = "com.temenos.interaction.springdsl.TransitionFactoryBean";
 	private static final String RESOURCE_STATE = "com.temenos.interaction.core.hypermedia.ResourceState";
 	private static final String ACTION = "com.temenos.interaction.core.hypermedia.Action";
@@ -816,7 +817,7 @@ public class GeneratorSpringPRDTest {
 		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml"));
 		String output = fsa.getFiles().get(expectedKey).toString();
 		assertTrue(output
-				.contains("<bean id=\"Test_AE\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
+				.contains("<bean id=\"Test_AE\" class=\"com.temenos.interaction.core.hypermedia.ResourceState\">"));
 		assertTrue(output.contains("<constructor-arg name=\"entityName\" value=\"ERROR\" />"));
 		assertTrue(output.contains("<constructor-arg name=\"name\" value=\"AE\" />"));
 		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
@@ -1336,21 +1337,37 @@ public class GeneratorSpringPRDTest {
 						Attribute attribute = attributes.next();
 						System.out.println("attribute.getName() = " + attribute.getName().toString());
 
-						if (attribute.getName().toString().equals("id")) {
+						if (attribute.getName().toString().equals("id")) 
+						{
 							beanId = attribute.getValue();
 							System.out.println("beanId = " + attribute.getValue());
-						} else if (attribute.getName().toString().equals("class")) {
+						}
+						else if (attribute.getName().toString().equals("class")) 
+						{
 							beanClass = attribute.getValue();
 							System.out.println("beanClass = " + attribute.getValue());
-							if (beanClass.equals(BEAN_ID_COLLECTION_RESOURCE_STATE)) {
-								processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
-								assertTrue(beanId.equals("A") || beanId.equals("Simple_B"));
-							} else if (beanClass.equals(ACTION)) {
-								processState = PROCESSING_STATE.ACTION;
-							} else {
-								throw new Exception("Invalid beanClass");
+						}
+						
+						if (beanClass != null)
+						{
+							if (beanClass.equals(BEAN_ID_COLLECTION_RESOURCE_STATE)) 
+							{
+									processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
+									assertTrue(beanId.equals("A") || beanId.equals("Simple_B"));
+							} 
+							else if (beanClass.equals(ACTION)) 
+							{
+									processState = PROCESSING_STATE.ACTION;
+							}							
+							else if (beanClass.equals(BEAN_ID_RESOURCE_STATE)) 
+							{
+									processState = PROCESSING_STATE.COLLECTION_RESOURCE_STATE;
+									assertTrue(beanId.equals("A") || beanId.equals("Simple_B"));
+							}  
+							else 
+							{
+									throw new Exception("Invalid beanClass");
 							}
-
 						}
 					}
 					resetState();
