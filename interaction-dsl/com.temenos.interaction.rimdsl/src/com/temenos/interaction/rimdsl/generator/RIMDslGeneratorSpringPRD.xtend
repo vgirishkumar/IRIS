@@ -108,16 +108,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				    «ENDIF»
 				«ENDFOR»
 	«addXmlEndTransitions»
-            <!-- 
-               }
-
-            private static String[] createLinkRelations() {
-            
-                «produceRelations(state)»
-              
-                return «state.name»Relations;
-            } -->
-            
 «addXmlEnd()»
         
 	'''
@@ -173,6 +163,11 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             </list>
         </constructor-arg>
         <constructor-arg name="path" value="«producePath(rim, state)»" />
+        <constructor-arg name="rels">
+            «produceRelations(state)»
+        </constructor-arg>
+        <constructor-arg name="uriSpec"><null /></constructor-arg>
+        <constructor-arg name="errorState"><null /></constructor-arg>
 '''		
 	// Add Spring TransitionFactoryBean.
 	def addXMLTransitionFactoryBean(String target) ''' 
@@ -237,7 +232,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	
 	def produceResourceStates(ResourceInteractionModel rim, State state) '''
             «produceActionList(state, state.impl)»
-            «produceRelations(state)»
             «IF state.type.isCollection»
             xxx CollectionResourceState «stateVariableName(state)» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations, null);
             «ELSEIF state.type.isItem»
@@ -256,35 +250,20 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		    if (state.path != null) { state.path.name } else { "/" + state.name }
 		}
     »'''
-
-    def String produceRelations2(State state) ''' 
-	«var relationsStr = ""»
-
-	«IF state.relations != null && state.relations.size > 0»
-		«FOR relation : state.relations»
-			«IF relation instanceof RelationConstant»
-				«relationsStr = relationsStr + (relation as RelationConstant).name» 
-			«ELSE»
-				«relationsStr = relationsStr + (relation.relation as Relation).fqn»
-			«ENDIF»
-		«ENDFOR»
-		
-	«ENDIF»
-	return «relationsStr»
-    '''
     
     def produceRelations(State state) ''' 
-	«var relationsStr = ""»
-
 	«IF state.relations != null && state.relations.size > 0»
+		<array>
 		«FOR relation : state.relations»
 			«IF relation instanceof RelationConstant»
-				«relationsStr = relationsStr + (relation as RelationConstant).name» 
+			<value><![CDATA[«(relation as RelationConstant).name»]]></value>
 			«ELSE»
-				«relationsStr = relationsStr + (relation.relation as Relation).fqn»
+			<value><![CDATA[«(relation.relation as Relation).fqn»]]></value>
 			«ENDIF»
 		«ENDFOR»
-		
+		</array>
+	«ELSE»
+		<null />
 	«ENDIF»
     '''
 
@@ -386,7 +365,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		name= «state.name»;
 		actions= «produceActionSet(state, state.impl)»
 		path= «producePath(rim, state)»;
-		linkRelations= «produceRelations(state)»;
 
 	«IF expression instanceof OKFunction»
 		function=«(expression as OKFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.OK;

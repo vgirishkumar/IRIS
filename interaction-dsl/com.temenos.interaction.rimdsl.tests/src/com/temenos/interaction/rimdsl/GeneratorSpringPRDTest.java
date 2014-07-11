@@ -572,31 +572,42 @@ public class GeneratorSpringPRDTest {
 		underTest.doGenerate(model.eResource(), fsa);
 
 		// collection
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/accTransactionsResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String accTransactionsOutput = fsa.getFiles().get(expectedKey).toString();
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_accTransactions-PRD.xml";
+		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
+		String accTransactionsOutput = fsa.getAllFiles().get(expectedKey).toString();
+	
+		/*
+		 * <constructor-arg name="rels">
+		 *   	<array>
+		 *      	<value>archives</value>
+		 *      	<value>http://www.temenos.com/statement-entries</value>
+		 *   	</array>
+         * </constructor-arg>
+		 */
+
 		// the constructor part
-		assertTrue(accTransactionsOutput.contains("\"/accTransactions\", createLinkRelations()"));
-		// createLinkRelations method
-		String expectedAccTransactionsRelArray = "" + "        String accTransactionsRelationsStr = \"\";" + LINE_SEP
-				+ "        accTransactionsRelationsStr += \"archives \";" + LINE_SEP
-				+ "        accTransactionsRelationsStr += \"http://www.temenos.com/statement-entries \";" + LINE_SEP
-				+ "        String[] accTransactionsRelations = accTransactionsRelationsStr.trim().split(\" \");"
-				+ LINE_SEP + "";
-		assertTrue(accTransactionsOutput.contains(expectedAccTransactionsRelArray));
+		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"rels\">"));
+		assertTrue(accTransactionsOutput.contains("<value><![CDATA[archives]]></value>"));
+		assertTrue(accTransactionsOutput.contains("<value><![CDATA[http://www.temenos.com/statement-entries]]></value>"));
+		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"uriSpec\"><null /></constructor-arg>"));
+		assertTrue(accTransactionsOutput.contains("<constructor-arg name=\"errorState\"><null /></constructor-arg>"));
 
 		// item
-		expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/accTransactionResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String accTransactionOutput = fsa.getFiles().get(expectedKey).toString();
+		expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_accTransaction-PRD.xml";
+		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
+		String accTransactionOutput = fsa.getAllFiles().get(expectedKey).toString();
+
+		/*
+		 * <constructor-arg name="rels">
+		 *   	<array>
+		 *      	<value>edit</value>
+		 *   	</array>
+         * </constructor-arg>
+		 */
+
 		// the constructor part
-		assertTrue(accTransactionOutput.contains("\"/accTransaction\", createLinkRelations()"));
-		// createLinkRelations method
-		String expectedAccTransactionRelArray = "" + "        String accTransactionRelationsStr = \"\";" + LINE_SEP
-				+ "        accTransactionRelationsStr += \"edit \";" + LINE_SEP
-				+ "        String[] accTransactionRelations = accTransactionRelationsStr.trim().split(\" \");"
-				+ LINE_SEP + "";
-		assertTrue(accTransactionOutput.contains(expectedAccTransactionRelArray));
+		assertTrue(accTransactionOutput.contains("<constructor-arg name=\"rels\">"));
+		assertTrue(accTransactionOutput.contains("<value><![CDATA[edit]]></value>"));
 	}
 
 	private final static String GLOBAL_RESOURCE_RELATIONS_RIM = "" + "rim Test {" + LINE_SEP + "	command Noop"
