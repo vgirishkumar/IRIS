@@ -61,6 +61,9 @@
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 	
+	<!-- Import Portable Resource Definitions (PRD) -->
+	<import resource="classpath:IRIS-*-PRD.xml" />
+
 	<!-- An extension of org.apache.wink.spring.Registrar with support for singletons -->
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
@@ -111,12 +114,14 @@
 	</bean>
 
 	<!-- Behaviour -->
+	<!-- Java generated from RIM
 	<bean id="behaviour" class="RestbucksModel.RestbucksBehaviour" />
 	<bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
     <bean id="exception" factory-bean="behaviour" factory-method="getExceptionResource" />
+	-->
 	<bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-		<constructor-arg ref="interaction" />
-    	<constructor-arg ref="exception" />
+        <constructor-arg name="initialState" ref="RestbucksModel_Restbucks_ServiceDocument" />
+    	<constructor-arg name="exceptionState"><null /></constructor-arg>
 		<constructor-arg ref="entityTransformer" />
 	</bean>
 
