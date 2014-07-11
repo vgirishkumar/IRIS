@@ -32,6 +32,8 @@
 		http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
+	<context:component-scan base-package="com.temenos.interaction.core.hypermedia"/>
+		
 	<!-- Read property files -->
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
@@ -89,6 +91,9 @@
         <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
     </bean>
 
+   <bean id="resourceFactory" class="com.temenos.interaction.core.hypermedia.ResourceFactory">
+    </bean>
+	
     <!-- Resources -->
     <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
         <constructor-arg ref="commands" />

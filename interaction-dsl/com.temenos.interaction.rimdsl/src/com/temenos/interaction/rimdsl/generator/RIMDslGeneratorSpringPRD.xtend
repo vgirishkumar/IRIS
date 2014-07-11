@@ -71,9 +71,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         «addXmlStartTransitions»
 		         	
        	«IF state.type.isCollection»
-        	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", createLinkRelations(), null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->   
+        	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", "createLinkRelations()", null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->   
         «ELSEIF state.type.isItem»
-        	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->
+        	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", "createLinkRelations()", «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->
         «ENDIF»
              
         «IF state.isException»
@@ -257,21 +257,35 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		}
     »'''
 
-    def produceRelations(State state) '''
- 	// produceRelations()    
-        «IF state.relations != null && state.relations.size > 0»
-        String «state.name»RelationsStr = "";
-        «FOR relation : state.relations»
-        «IF relation instanceof RelationConstant»
-        «state.name»RelationsStr += "«(relation as RelationConstant).name» ";
-        «ELSE»
-        «state.name»RelationsStr += "«(relation.relation as Relation).fqn» ";
-        «ENDIF»
-        «ENDFOR»
-        String[] «state.name»Relations = «state.name»RelationsStr.trim().split(" ");
-        «ELSE»
-        String[] «state.name»Relations = null;
-        «ENDIF»
+    def String produceRelations2(State state) ''' 
+	«var relationsStr = ""»
+
+	«IF state.relations != null && state.relations.size > 0»
+		«FOR relation : state.relations»
+			«IF relation instanceof RelationConstant»
+				«relationsStr = relationsStr + (relation as RelationConstant).name» 
+			«ELSE»
+				«relationsStr = relationsStr + (relation.relation as Relation).fqn»
+			«ENDIF»
+		«ENDFOR»
+		
+	«ENDIF»
+	return «relationsStr»
+    '''
+    
+    def produceRelations(State state) ''' 
+	«var relationsStr = ""»
+
+	«IF state.relations != null && state.relations.size > 0»
+		«FOR relation : state.relations»
+			«IF relation instanceof RelationConstant»
+				«relationsStr = relationsStr + (relation as RelationConstant).name» 
+			«ELSE»
+				«relationsStr = relationsStr + (relation.relation as Relation).fqn»
+			«ENDIF»
+		«ENDFOR»
+		
+	«ENDIF»
     '''
 
     def produceActionList(State state, ImplRef impl) {
@@ -314,7 +328,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             «ENDIF»
 
 <!--            
-            «state.name»Actions.add(new Action("«action.command.name»", Action.TYPE.ENTRY, actionViewProperties));
+            Action(«action.command.name», Action.TYPE.ENTRY, actionViewProperties)
 -->
             <bean class="com.temenos.interaction.core.hypermedia.Action">
                 <constructor-arg value="« action.command.name »" />
@@ -324,7 +338,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         «ENDIF»'''
     
 	def produceTransitions(ResourceInteractionModel rim, State fromState, Transition transition) '''
-	<!-- XXX produceTransitions() -->
+	<!-- produceTransitions() -->
 	<!-- 	create regular transition  -->
 
             <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
@@ -354,9 +368,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
     def produceExpressions(ResourceInteractionModel rim, State state, Expression conditionExpression) '''
        	«IF state.type.isCollection»
-        	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", createLinkRelations(), null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->   
+        	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", "createLinkRelations()", null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->   
         «ELSEIF state.type.isItem»
-        	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->
+        	<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", "createLinkRelations()", «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->
         «ENDIF»
 
  <util:list>
@@ -368,16 +382,20 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 </util:list>    
 '''
     def produceExpression(ResourceInteractionModel rim, State state, Function expression) '''
-<!-- START produceExpression() --> 
-entityName=«state.entity.name»
-name=«state.name»
-action=«produceActionSet(state, state.impl)»
-        «IF expression instanceof OKFunction»
-            function=«(expression as OKFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.OK
-		«ELSE»
-           function=«(expression as NotFoundFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.NOT_FOUND
-		«ENDIF»
-<!-- END produceExpression() --> 
+		entityName= «state.entity.name»
+		name= «state.name»
+		actions= «produceActionSet(state, state.impl)»
+		path= «producePath(rim, state)»
+		linkRelations= «produceRelations(state)»
+		uriSpec = xxx
+
+	«IF expression instanceof OKFunction»
+		function=«(expression as OKFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.OK
+	«ELSE»
+    	function=«(expression as NotFoundFunction).state.fullyQualifiedName» , ResourceGETExpression.Function.NOT_FOUND
+	«ENDIF»
+	
+
 '''
    def produceActionSet(State state, ImplRef impl) {
     	if (impl != null) {
@@ -386,9 +404,8 @@ action=«produceActionSet(state, state.impl)»
     }
 
     def produceActionSet(State state, ResourceCommand view, EList<ResourceCommand> actions) '''
-	<!-- START produceActionSet() -->  
+ 
           «IF view != null && ((view.command.spec != null && view.command.spec.properties.size > 0) || view.properties.size > 0)»
-			actionViewProperties = new Properties();
             «IF view.command.spec != null && view.command.spec.properties.size > 0»
             	«FOR commandProperty :view.command.spec.properties»
                	 	actionPropertyName = «commandProperty.name»
@@ -401,12 +418,10 @@ action=«produceActionSet(state, state.impl)»
             «ENDFOR»
         «ENDIF»
         «IF view != null»
-        	«state.name»Actions.add(new Action("«view.command.name»", Action.TYPE.VIEW, «if (view != null && ((view.command.spec != null && view.command.spec.properties.size > 0) || view.properties.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
+        	«view.command.name»", Action.TYPE.VIEW, «if (view != null && ((view.command.spec != null && view.command.spec.properties.size > 0) || view.properties.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
         «ENDIF»
         «IF actions != null»
             «FOR action : actions»
-				actionViewProperties = new Properties();
-
              	«IF action != null && ((action.command.spec != null && action.command.spec.properties.size > 0) || action.properties.size > 0)»
                 	«IF action.command.spec != null && action.command.spec.properties.size > 0»
                     	«FOR commandProperty :action.command.spec.properties»
@@ -419,11 +434,9 @@ action=«produceActionSet(state, state.impl)»
  						actionPropertyValue = «commandProperty.value»
                 	«ENDFOR»
             	«ENDIF»
-            	«state.name»Actions.add(new Action("«action.command.name»", Action.TYPE.ENTRY, actionViewProperties));
+            	«action.command.name», Action.TYPE.ENTRY, actionViewProperties;
             «ENDFOR»
         «ENDIF»
-	<!-- END produceActionSet() -->  
-
 '''
 
     def produceTransitionsForEach(ResourceInteractionModel rim, State fromState, TransitionForEach transition) '''

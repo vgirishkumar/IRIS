@@ -65,9 +65,17 @@ public class TestTransitionFactoryBean {
 	public void testConstructWithExpressionOK() throws Exception {
 		ResourceState mockTargetResoruce = new ResourceState("entity", "name", null, "/test");
 
-		List<String> functionList = new ArrayList<String>();		
-		functionList.add("RestbucksModel.Restbucks.payment , ResourceGETExpression.Function.OK");
-		
+		List<String> functionList = new ArrayList<String>();	
+		StringBuilder function1 = new StringBuilder("entityName= Order ;");
+		function1.append("name= OrderCreated;");
+		function1.append("actions= ");
+		function1.append("CreateEntity, Action.TYPE.ENTRY, actionViewProperties; ");
+		function1.append("path= /{franchise}/Orders(); ");
+		function1.append("linkRelations= ");
+		function1.append("http://relations.restbucks.com/order;");
+    	function1.append("function=RestbucksModel.Restbucks.order , ResourceGETExpression.Function.OK;");
+    	functionList.add(function1.toString());
+    	
 		ResourceFactory resourceFactory = new ResourceFactory(); 
 		Transition fromBuilder = new Transition.Builder().target(mockTargetResoruce).build();
 		TransitionFactoryBean factoryBean = new TransitionFactoryBean();
