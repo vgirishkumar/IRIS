@@ -154,7 +154,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
 	// Add Spring bean for resource.
 	def addXMLResourceBean(ResourceInteractionModel rim, State state) ''' 
-   <bean id="« state.fullyQualifiedName.toString("_") »" class="com.temenos.interaction.core.hypermedia.CollectionResourceState">
+   <bean id="« state.fullyQualifiedName.toString("_") »" class="«produceResourceStateType(state)»">
         <constructor-arg name="entityName" value="«state.entity.name»" />
         <constructor-arg name="name" value="« state.name »" />
         <constructor-arg>
@@ -229,6 +229,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 «addXmlEnd()»
 		
 	'''
+	
+	def produceResourceStateType(State state) '''«IF state.type.isCollection»com.temenos.interaction.core.hypermedia.CollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.ResourceState«ENDIF»'''
 	
 	def produceResourceStates(ResourceInteractionModel rim, State state) '''
             «produceActionList(state, state.impl)»
