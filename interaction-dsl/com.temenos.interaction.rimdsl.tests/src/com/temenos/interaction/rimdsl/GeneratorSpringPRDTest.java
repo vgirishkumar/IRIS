@@ -228,19 +228,19 @@ public class GeneratorSpringPRDTest {
 		underTest.doGenerate(model.eResource(), fsa);
 
 		Map<String, Object> allFiles = fsa.getAllFiles();
-		Set<String> keys = allFiles.keySet();
-		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		assertTrue(allFiles.containsKey(expectedKey));
 
-		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output.contains("<bean id=\"Test_A\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
-		assertTrue(output.contains("<constructor-arg name=\"entityName\" value=\"ENTITY\" />"));
-		assertTrue(output.contains("<constructor-arg name=\"name\" value=\"A\" />"));
-		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
-		assertTrue(output.contains("<constructor-arg value=\"GetEntity\" />"));
-		assertTrue(output.contains("<constructor-arg value=\"VIEW\" />"));
-		assertTrue(output.contains("constructor-arg name=\"path\" value=\"/A\" />"));
+		String output = allFiles.get(expectedKey).toString();
+		String resourceA = getResourceBean(output, "Test_A");
+		assertTrue(resourceA.contains("<bean id=\"Test_A\" class=\"com.temenos.interaction.core.hypermedia.CollectionResourceState\">"));
+		assertTrue(resourceA.contains("<constructor-arg name=\"entityName\" value=\"ENTITY\" />"));
+		assertTrue(resourceA.contains("<constructor-arg name=\"name\" value=\"A\" />"));
+		assertTrue(resourceA.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
+		assertTrue(resourceA.contains("<constructor-arg value=\"GetEntity\" />"));
+		assertTrue(resourceA.contains("<constructor-arg value=\"VIEW\" />"));
+		assertTrue(resourceA.contains("<prop key=\"getkey\">getvalue</prop>"));
+		assertTrue(resourceA.contains("constructor-arg name=\"path\" value=\"/A\" />"));
 		
 		//int indexOfFirstNewProperties = output.indexOf("actionViewProperties = new Properties()");
 		//assertTrue(indexOfFirstNewProperties > 0);

@@ -26,6 +26,7 @@ import com.temenos.interaction.rimdsl.rim.Relation
 import com.temenos.interaction.rimdsl.rim.TransitionEmbedded
 import com.temenos.interaction.rimdsl.rim.TransitionRedirect
 import com.temenos.interaction.rimdsl.rim.TransitionRef
+import com.temenos.interaction.rimdsl.rim.CommandSpec
 
 class RIMDslGeneratorSpringPRD implements IGenerator {
 	
@@ -270,48 +271,48 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     }
 
     def produceActionList(State state, ResourceCommand view, EList<ResourceCommand> actions) '''
-        «IF "".equals("DISABLED") 
-        	&& view != null && ((view.command.spec != null && view.command.spec.properties.size > 0) || view.properties.size > 0)»
-            actionViewProperties = new Properties();
-            «IF view.command.spec != null && view.command.spec.properties.size > 0»
-            «FOR commandProperty :view.command.spec.properties»
-                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
-	        	«ENDFOR»
-	        «ENDIF»
-            «FOR commandProperty :view.properties»
-            actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
-            «ENDFOR»
-        «ENDIF»
-        «IF view != null»
-            <bean class="com.temenos.interaction.core.hypermedia.Action">
-                <constructor-arg value="« view.command.name »" />
-                <constructor-arg value="VIEW" />
-            </bean>
+		«IF view != null»
+			<bean class="com.temenos.interaction.core.hypermedia.Action">
+				<constructor-arg value="« view.command.name »" />
+				<constructor-arg value="VIEW" />
+				«IF view != null && ((view.command.spec != null && view.command.spec.properties.size > 0) || view.properties.size > 0)»
+				<constructor-arg>
+					<props>
+					«produceActionProperties(view)»
+					</props>
+				</constructor-arg>
+            	«ENDIF»
+			</bean>
         «ENDIF»
         «IF actions != null»
             «FOR action : actions»
-            «IF "".equals("DISABLED") 
-            	&& action != null && ((action.command.spec != null && action.command.spec.properties.size > 0) || action.properties.size > 0)»
-                «IF action.command.spec != null && action.command.spec.properties.size > 0»
-                    «FOR commandProperty :action.command.spec.properties»
-                    actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
-                    «ENDFOR»
-		        «ENDIF»
-                «FOR commandProperty :action.properties»
-                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
-                «ENDFOR»
-            «ENDIF»
-
 <!--            
             Action(«action.command.name», Action.TYPE.ENTRY, actionViewProperties)
 -->
             <bean class="com.temenos.interaction.core.hypermedia.Action">
                 <constructor-arg value="« action.command.name »" />
                 <constructor-arg value="ENTRY" />
+				«IF action != null && ((action.command.spec != null && action.command.spec.properties.size > 0) || action.properties.size > 0)»
+				<constructor-arg>
+					<props>
+                	«produceActionProperties(action)»
+					</props>
+				</constructor-arg>
+            	«ENDIF»
             </bean>
             «ENDFOR»
         «ENDIF»'''
     
+    def produceActionProperties(ResourceCommand rcommand) '''
+		«IF rcommand.command.spec != null && rcommand.command.spec.properties.size > 0»
+			«FOR commandProperty :rcommand.command.spec.properties»
+				<prop key="«commandProperty.name»">«commandProperty.value»</prop>
+			«ENDFOR»
+		«ENDIF»
+		«FOR commandProperty :rcommand.properties»
+			<prop key="«commandProperty.name»">«commandProperty.value»</prop>
+		«ENDFOR»
+    '''
 	def produceTransitions(ResourceInteractionModel rim, State fromState, Transition transition) '''
 
 			<!-- begin transition : «transitionTargetStateVariableName(transition)» -->
