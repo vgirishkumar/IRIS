@@ -21,22 +21,13 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.StringTokenizer;
 
 import org.springframework.beans.factory.FactoryBean;
 
-import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.hypermedia.UriSpecification;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
-import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
-import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function;
-import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 
 public class TransitionFactoryBean implements FactoryBean<Transition> {
 
@@ -50,14 +41,6 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 	// conditional link evaluation expression
 	private Expression evaluation;
 	private Map<String, String> uriParameters;
-	private List<String> functionList;
-
-	private static final String ENTITY_NAME = "entityName";
-	private static final String NAME = "name";
-	private static final String ACTIONS = "actions";
-	private static final String PATH = "path";
-	private static final String LINK_RELATIONS = "linkRelations";
-	private static final String FUNCTION = "function";
 
 	@Override
 	public Transition getObject() throws Exception {
@@ -147,120 +130,4 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 		this.uriParameters = uriParameters;
 	}
 
-	/**
-	 * Sets the function list.
-	 * 
-	 * @param functionList
-	 *            the new function list
-	 */
-	public void setFunctionList(List<String> functionList) {
-		this.functionList = functionList;
-
-		String entityName = null;
-		String name = null;
-		String actions = null;
-		String path = null;
-		String functionName = null;
-		String function = null;
-		String linkRelations = null;
-
-
-		if ((functionList != null) && (functionList.size() > 0) ){
-			List<Expression> expressionsList = new ArrayList<Expression>();
-			Expression expression = null;
-
-			for (String expressionTxt : functionList) {
-				System.out.println("expressionTxt = " + expressionTxt);
-
-				StringTokenizer tokenizer = new StringTokenizer(expressionTxt, ";");
-
-				if (tokenizer.countTokens() < 6)
-				{
-					// Invalid token count
-					return;
-				}
-								
-				while (tokenizer.hasMoreTokens()) {
-					String keyValue = tokenizer.nextToken().trim();
-					StringTokenizer tokenizer2 = new StringTokenizer(keyValue, "=");
-					if (tokenizer2.countTokens() == 2) {
-						String key = tokenizer2.nextToken();
-						if (key.equals(ENTITY_NAME)) {
-							entityName = tokenizer2.nextToken().trim();
-						} else if (key.equals(NAME)) {
-							name = tokenizer2.nextToken().trim();
-						} else if (key.equals(ACTIONS)) {
-							actions = tokenizer2.nextToken().trim();
-						} else if (key.equals(PATH)) {
-							path = tokenizer2.nextToken().trim();
-						} else if (key.equals(LINK_RELATIONS)) {
-							linkRelations = tokenizer2.nextToken().trim();
-						} else if (key.equals(FUNCTION)) {
-							function = tokenizer2.nextToken().trim();
-						}
-
-					}
-				}
-				System.out.println("entityName = " + entityName);
-				System.out.println("name = " + name);
-				System.out.println("actions = " + actions);
-				System.out.println("path = " + path);
-				System.out.println("linkRelations = " + linkRelations);
-				System.out.println("function = " + function);
-				
-				
-				List<Action> actionList = createActions(actions);
-				String[] rels = createLinkRelations(linkRelations);
-
-				UriSpecification uriSpec = new UriSpecification(name, path);
-
-				ResourceState resourceState = new ResourceState(entityName, name, actionList, path, rels, uriSpec);
-				if (function.contains("OK")) {
-					expression = new ResourceGETExpression(resourceState, Function.OK);
-				} else {
-					expression = new ResourceGETExpression(resourceState, Function.NOT_FOUND);
-				}
-
-				expressionsList.add(expression);
-			}
-			evaluation = new SimpleLogicalExpressionEvaluator(expressionsList);
-		}
-		
-	}
-
-	/**
-	 * Creates the link relations.
-	 *
-	 * @param linkRelations the link relations
-	 * @return the string[]
-	 */
-	private static String[] createLinkRelations(String linkRelations) {
-		List<String> relationsList = new ArrayList<String>();
-		relationsList.add(linkRelations);
-
-		String[] relations = relationsList.toArray(new String[relationsList.size()]);
-		return relations;
-	}
-
-	/**
-	 * Creates the actions.
-	 * 
-	 * @return the list
-	 */
-	private static List<Action> createActions(String actions) {
-		StringTokenizer tokenizer = new StringTokenizer(actions, ",");
-		Properties actionViewProperties = null;
-
-		String entity = tokenizer.nextToken().trim();
-		String entry = tokenizer.nextToken().trim();
-
-		List<Action> createdActions = new ArrayList<Action>();
-		actionViewProperties = new Properties();
-		if (entry.equals("Action.TYPE.ENTRY")) {
-			createdActions.add(new Action(entity, Action.TYPE.ENTRY, actionViewProperties));
-		} else {
-			createdActions.add(new Action(entity, Action.TYPE.VIEW, actionViewProperties));
-		}
-		return createdActions;
-	}
 }
