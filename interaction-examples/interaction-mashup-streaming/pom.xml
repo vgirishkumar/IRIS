@@ -146,6 +146,7 @@
     								<versionRange>[1.7,)</versionRange>
     								<goals>
     									<goal>add-source</goal>
+    									<goal>add-resource</goal>
     								</goals>
     							</pluginExecutionFilter>
     							<action>
