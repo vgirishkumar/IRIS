@@ -24,12 +24,30 @@
   </distributionManagement>
 
   <properties>
-    <skipRIMGeneration>false</skipRIMGeneration>
+   <skipRIMGeneration>true</skipRIMGeneration>
     <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
   </properties>
   
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals><goal>add-resource</goal></goals>
+            <configuration>
+              <resources>
+                <resource>
+                	<directory>${project.build.directory}/src-gen</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>	
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -66,7 +84,7 @@
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
           
           <!-- Control generation of Spring XML to load generated classes  -->
-          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>                    
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRD}</skipRIMGenerationSpringPRD>                    
         </configuration>
       </plugin>
       
