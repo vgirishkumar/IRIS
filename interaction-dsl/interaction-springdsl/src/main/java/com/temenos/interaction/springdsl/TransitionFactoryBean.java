@@ -62,6 +62,7 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 	@Override
 	public Transition getObject() throws Exception {
 		Transition.Builder builder = new Transition.Builder();
+		builder.label(label);
 		builder.source(source);
 		builder.target(target);
 		builder.method(method);
