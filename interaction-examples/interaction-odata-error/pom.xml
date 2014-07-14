@@ -37,25 +37,27 @@
   <url>http://www.temenos.com</url>
 
   <properties>
-    <skipRIMGeneration>false</skipRIMGeneration>
+    <skipRIMGeneration>true</skipRIMGeneration>
     <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
     <strictOdata>true</strictOdata>
   </properties>
 
   <build>
     <plugins>
-      <plugin>
+        <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>1.7</version>
         <executions>
           <execution>
-            <phase>generate-sources</phase>
-            <goals><goal>add-source</goal></goals>
+            <phase>generate-resources</phase>
+            <goals><goal>add-resource</goal></goals>
             <configuration>
-              <sources>
-                <source>${project.build.directory}/src-gen</source>
-              </sources>
+              <resources>
+                <resource>
+                	<directory>${project.build.directory}/src-gen</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -92,7 +94,7 @@
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
           
           <!-- Control generation of Spring XML to load generated classes  -->
-          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>          
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRD}</skipRIMGenerationSpringPRD>          
         </configuration>
       </plugin>
       
