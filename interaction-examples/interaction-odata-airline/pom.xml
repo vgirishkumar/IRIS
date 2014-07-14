@@ -64,11 +64,11 @@
           <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
           <targetDirectory>${basedir}/src-gen</targetDirectory> 
           -->
-          <rimSourceFile>${basedir}/src/main/rim/Airline.rim</rimSourceFile>
+          <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
           
           <!-- Control generation of Spring XML to load generated classes  -->
-          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>          
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRD}</skipRIMGenerationSpringPRD>          
           
         </configuration>
       </plugin>
