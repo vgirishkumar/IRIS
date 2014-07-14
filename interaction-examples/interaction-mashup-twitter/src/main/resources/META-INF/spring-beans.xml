@@ -50,7 +50,10 @@
 
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
-
+	
+	<!-- Import Portable Resource Definitions (PRD) -->
+	<import resource="classpath:IRIS-*-PRD.xml" />
+	
     <!-- Persistence manager -->
     <bean id="persistence" class="com.temenos.interaction.example.mashup.twitter.Persistence" >
         <constructor-arg ref="entityManagerFactory" />
