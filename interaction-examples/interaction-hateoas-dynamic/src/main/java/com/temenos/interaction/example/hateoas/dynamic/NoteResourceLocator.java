@@ -22,10 +22,13 @@ package com.temenos.interaction.example.hateoas.dynamic;
  */
 
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.temenos.interaction.core.hypermedia.ResourceLocator;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 
 /**
  * A mock resource locator
@@ -34,26 +37,41 @@ import com.temenos.interaction.core.hypermedia.ResourceLocator;
  *
  */
 public class NoteResourceLocator implements ResourceLocator {	
-	private static final Map<String, String> aliasToResourceName = new HashMap<String, String>();
+	private final Map<String, ResourceState> aliasToResourceState = new HashMap<String, ResourceState>();
 	
-	static {
-		aliasToResourceName.put("AU001", "author");
-		aliasToResourceName.put("AU002", "author");
-		aliasToResourceName.put("AU003", "author");
-		aliasToResourceName.put("SY001", "system");
-		aliasToResourceName.put("SY002", "system");
-		aliasToResourceName.put("SY003", "system");		
+	public NoteResourceLocator(ResourceState state, Map<String, ResourceState> additionalAliasToResourceState) {
+		collectResourceStatesByName(aliasToResourceState, new ArrayList<ResourceState>(), state);
+		
+		aliasToResourceState.putAll(additionalAliasToResourceState);
 	}
-	
+		
 	@Override
-	public String resolve(Object... alias) {
-
-		if(aliasToResourceName.containsKey(alias[0])) {
-			String resourceName = aliasToResourceName.get(alias[0]);
-			
-			return resourceName;	
+	public ResourceState resolve(Object... alias) {
+		if(aliasToResourceState.containsKey(alias[0])) {
+			 return aliasToResourceState.get(alias[0]);	
 		} else {
-			throw new IllegalArgumentException("Invalid resource state supplied: " + alias[0]);
+			throw new RuntimeException("Invalid resource state supplied: " + alias[0]);							
 		}		
 	}
+		
+	private void collectResourceStatesByName(Map<String, ResourceState> result, Collection<ResourceState> states, ResourceState currentState) {
+		if (currentState == null || states.contains(currentState)) {
+			return;
+		}
+		
+		states.add(currentState);
+		
+		// add current state to results
+		result.put(currentState.getName(), currentState);
+		
+		for (ResourceState next : currentState.getAllTargets()) {
+			if (!next.equals(currentState)) {
+				String name = next.getName();
+				result.put(name, next);
+			}
+			
+			// Recurse
+			collectResourceStatesByName(result, states, next);
+		}
+	}	
 }

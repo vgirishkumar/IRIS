@@ -35,5 +35,5 @@ public interface ResourceLocator {
 	 * 
 	 * @return
 	 */
-	String resolve(Object... alias);
+	ResourceState resolve(Object... alias);
 }
