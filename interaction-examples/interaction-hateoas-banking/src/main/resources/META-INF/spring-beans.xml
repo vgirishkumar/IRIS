@@ -52,6 +52,9 @@
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 
+	<!-- Import Portable Resource Definitions (PRD) -->
+	<import resource="classpath:IRIS-*-PRD.xml" />
+	
 	<!-- DaoManager -->
 	<bean id="daoHibernate" class="com.temenos.interaction.example.hateoas.banking.DaoHibernate" >
 		<constructor-arg ref="entityManagerFactory" />
