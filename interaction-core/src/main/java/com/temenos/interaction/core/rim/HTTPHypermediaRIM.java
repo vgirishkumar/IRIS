@@ -667,7 +667,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			newPathParameters.putAll(ctx.getPathParameters());
 			RESTResource currentResource = ctx.getResource();
 			if (currentResource != null) {
-				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition, ((EntityResource<?>)currentResource).getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition, getEntityResource(currentResource), ctx.getPathParameters(), ctx.getQueryParameters());
 				for (String key : transitionProperties.keySet()) {
 					if (transitionProperties.get(key) != null)
 						newPathParameters.add(key, transitionProperties.get(key).toString());
@@ -689,7 +689,19 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
     }
     
-    
+     //helper function 
+	private Object getEntityResource(RESTResource currentResource) {
+		try {
+			//sometime some resource throw ClassCastException
+			return ((EntityResource<?>)currentResource).getEntity();
+		} catch (ClassCastException e) {
+			logger.error(e.getMessage());
+		}
+ 	
+		EntityResource<?> er = new EntityResource<RESTResource>(currentResource);
+		return er.getEntity();
+	}
+
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
     	try {
