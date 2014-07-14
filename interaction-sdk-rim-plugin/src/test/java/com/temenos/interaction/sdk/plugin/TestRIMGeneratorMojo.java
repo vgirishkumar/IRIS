@@ -78,7 +78,7 @@ public class TestRIMGeneratorMojo {
 		// will throw error if generation is not skipping properly
 		mojo.execute();
 		
-		assertEquals(5, targetDirectory.list().length);
+		assertEquals(4, targetDirectory.list().length);
 	}
 
 }
