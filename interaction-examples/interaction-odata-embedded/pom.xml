@@ -90,7 +90,7 @@
           <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
           <targetDirectory>${basedir}/src/main/java</targetDirectory> 
 		  -->
-          <rimSourceFile>${basedir}/src/main/rim/interaction-odata-embedded.rim</rimSourceFile>
+          <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
           
           <!-- Control generation of Spring XML to load generated classes  -->
