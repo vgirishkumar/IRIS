@@ -96,40 +96,37 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			<constructor-arg name="uriSpec">«IF state.path != null »<bean class="com.temenos.interaction.core.hypermedia.UriSpecification"><constructor-arg name="name" value="«state.name»" /><constructor-arg name="template" value="«producePath(rim, state)»" /></bean>«ELSE»<null />«ENDIF»</constructor-arg>
 			<constructor-arg name="errorState"><null /></constructor-arg>
 
+			«IF state.isInitial»
+			<property name="initial" value="true" />
+			«ENDIF»
+			«IF state.isException»
+			<property name="exception" value="true" />
+			«ENDIF»
+
 			<!-- Start property transitions list -->
 			<property name="transitions">
 				<list>
-
-		«IF state.isException»
-		setException(true);
-		«ENDIF»
-
-		<!-- create transitions  -->
-		«FOR t : state.transitions»
-    	    «IF (t.state != null && t.state.name != null) 
-    	    	|| (t.name != null ) »
-
-			    «IF t instanceof Transition»                
+				<!-- create transitions  -->
+			«FOR t : state.transitions»
+    	    	«IF (t.state != null && t.state.name != null) 
+    	    		|| (t.name != null ) »
+					«IF t instanceof Transition»                
 			    	«produceTransitions(rim, state, t as Transition)»
-			    «ENDIF»
-			
-			    «IF t instanceof TransitionForEach»                
-			    	«produceTransitionsForEach(rim, state, t as TransitionForEach)»
-			    «ENDIF»
-			
-			    «IF t instanceof TransitionAuto»                
-			    	«produceTransitionsAuto(rim, state, t as TransitionAuto)»
-			    «ENDIF»
-			
-			    «IF t instanceof TransitionRedirect»                
-			    	«produceTransitionsRedirect(rim, state, t as TransitionRedirect)»
-			    «ENDIF»
-			
-			    «IF t instanceof TransitionEmbedded»                
-			    	«produceTransitionsEmbedded(rim, state, t as TransitionEmbedded)»
-			    «ENDIF»
-		    «ENDIF»
-		«ENDFOR»
+			    	«ENDIF»
+					«IF t instanceof TransitionForEach»                
+					«produceTransitionsForEach(rim, state, t as TransitionForEach)»
+					«ENDIF»
+					«IF t instanceof TransitionAuto»                
+					«produceTransitionsAuto(rim, state, t as TransitionAuto)»
+					«ENDIF»
+					«IF t instanceof TransitionRedirect»                
+					«produceTransitionsRedirect(rim, state, t as TransitionRedirect)»
+					«ENDIF»
+					«IF t instanceof TransitionEmbedded»                
+					«produceTransitionsEmbedded(rim, state, t as TransitionEmbedded)»
+					«ENDIF»
+				«ENDIF»
+			«ENDFOR»
 				</list>
 			</property>
 		</bean>
@@ -153,18 +150,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	
 	def produceResourceStateType(State state) '''«IF state.type.isCollection»com.temenos.interaction.core.hypermedia.CollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.ResourceState«ENDIF»'''
 	
-	def produceResourceStates(ResourceInteractionModel rim, State state) '''
-            «produceActionList(state, state.impl)»
-            «IF state.type.isCollection»
-            xxx CollectionResourceState «stateVariableName(state)» = new CollectionResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «state.name»Relations, null);
-            «ELSEIF state.type.isItem»
-            ResourceState «stateVariableName(state)» = new ResourceState("«state.entity.name»", "«state.name»", «state.name»Actions, "«producePath(rim, state)»", «stateVariableName(state)»Relations«if (state.path != null) { ", new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" }»);
-            «ENDIF»
-            «IF state.isException»
-            «stateVariableName(state)».setException(true);
-            «ENDIF»
-	'''
-
     def producePath(ResourceInteractionModel rim, State state) '''«
     	// prepend the basepath
 	    if (rim.basepath != null) {

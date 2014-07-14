@@ -1007,68 +1007,46 @@ public class GeneratorSpringPRDTest {
 	}
 
 	/**
+	 * Iterate through properties and assert that one exists for the supplied name and value
 	 * @param startElement
 	 */
-	private void processInitialStateProperty(StartElement startElement) {
+	private void assertProperty(StartElement startElement, String expectedPropertyName, String expectedPropertyValue, String expectedPropertyRef) {
 		// item = new Item();
 		System.out.println("start property...");
 		// attribute
-		String propertyValue = null;
-
+		String actualPropertyName = null;
+		String actualPropertyValue = null;
+		String actualPropertyRef = null;
+		
 		Iterator<Attribute> attributes = startElement.getAttributes();
 		while (attributes.hasNext()) {
 			Attribute attribute = attributes.next();
 			System.out.println("attribute.getName() = " + attribute.getName().toString());
 
-			if (attribute.getName().toString().equals("name")) {
-				propertyValue = attribute.getValue();
-				System.out.println("propertyValue = " + propertyValue);
-
-			}
-		}
-
-		assertTrue(propertyValue.equals("transitions"));
-
-		resetState();
-	}
-
-	/**
-	 * @param startElement
-	 */
-	private void processTransitionFactoryProperty(StartElement startElement) {
-		// item = new Item();
-		System.out.println("start property...");
-		// attribute
-		String propertyName1 = null;
-		String propertyValue1 = null;
-
-		Iterator<Attribute> attributes = startElement.getAttributes();
-		while (attributes.hasNext()) {
-			Attribute attribute = attributes.next();
-			System.out.println("attribute.getName() = " + attribute.getName().toString());
-
-			if (attribute.getName().toString().equals("name")) {
-				propertyName1 = attribute.getValue();
-				System.out.println("propertyName1 = " + propertyName1);
+			if (actualPropertyName == null && attribute.getName().toString().equals("name")) {
+				actualPropertyName = attribute.getValue();
+				System.out.println("actualPropertyName = " + actualPropertyName);
 			}
 
-			if (attribute.getName().toString().equals("ref")) {
-				propertyValue1 = attribute.getValue();
-				System.out.println("propertyValue1 = " + propertyValue1);
+			if (actualPropertyValue == null && attribute.getName().toString().equals("value")) {
+				actualPropertyValue = attribute.getValue();
+				System.out.println("actualPropertyValue = " + actualPropertyValue);
 			}
 
-			if (attribute.getName().toString().equals("value")) {
-				propertyValue1 = attribute.getValue();
-				System.out.println("propertyValue1 = " + propertyValue1);
+			if (actualPropertyRef == null && attribute.getName().toString().equals("ref")) {
+				actualPropertyRef = attribute.getValue();
+				System.out.println("actualPropertyRef = " + actualPropertyRef);
 			}
 
 		}
 
-		if (propertyName1.equals("target")) {
-			assertTrue((propertyValue1.equals("A")) || (propertyValue1.equals("B")) || (propertyValue1.equals("E")));
-		} else {
-			assertTrue((propertyName1.equals("method")) || (propertyValue1.equals("GET")));
-		}
+		if (expectedPropertyName != null)
+			assertEquals(expectedPropertyName, actualPropertyName);
+		if (expectedPropertyValue != null)
+			assertEquals(expectedPropertyValue, actualPropertyValue);
+		if (expectedPropertyRef != null)
+			assertEquals(expectedPropertyRef, actualPropertyRef);
+
 		resetState();
 	}
 
@@ -1254,9 +1232,9 @@ public class GeneratorSpringPRDTest {
 
 				if (startElement.getName().getLocalPart() == "property") {
 					if (processState == PROCESSING_STATE.ACTION) {
-						processInitialStateProperty(startElement);
+//						assertProperty(startElement, "blah", "blah", null);
 					} else if (processState == PROCESSING_STATE.FACTORY_BEAN) {
-						processTransitionFactoryProperty(startElement);
+						assertProperty(startElement, "method", "GET", null);
 					}
 					continue;
 				}
@@ -1394,6 +1372,7 @@ public class GeneratorSpringPRDTest {
 				if (startElement.getName().getLocalPart() == "bean") {
 					// item = new Item();
 					System.out.println("start bean...");
+
 					// attribute
 					Iterator<Attribute> attributes = startElement.getAttributes();
 					while (attributes.hasNext()) {
@@ -1423,9 +1402,9 @@ public class GeneratorSpringPRDTest {
 
 				if (startElement.getName().getLocalPart() == "property") {
 					if (processState == PROCESSING_STATE.ACTION) {
-						processInitialStateProperty(startElement);
+//						assertProperty(startElement, "blah", "blah", null);
 					} else if (processState == PROCESSING_STATE.FACTORY_BEAN) {
-						processTransitionFactoryProperty(startElement);
+						assertProperty(startElement, "method", "GET", null);
 					}
 					continue;
 				}
@@ -1555,9 +1534,9 @@ public class GeneratorSpringPRDTest {
 
 				if (startElement.getName().getLocalPart() == "property") {
 					if (processState == PROCESSING_STATE.ACTION) {
-						processInitialStateProperty(startElement);
+//						assertProperty(startElement, "blah", "blah", null);
 					} else if (processState == PROCESSING_STATE.FACTORY_BEAN) {
-						processTransitionFactoryProperty(startElement);
+						assertProperty(startElement, "method", "GET", null);
 					}
 					continue;
 				}
