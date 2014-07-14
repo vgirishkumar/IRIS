@@ -756,21 +756,8 @@ public class ResourceStateMachine {
 	private ResourceState getDynamicTarget(DynamicResourceState dynamic, String packageName, Object... aliases) {		
 		// Use resource locator to resolve dynamic target
 		ResourceLocator locator = resourceLocatorProvider.get(dynamic.getResourceLocatorName());
-		
-		String targetStateName = locator.resolve(aliases);
-		ResourceState targetState = getResourceStateByName(targetStateName);
-		
-		if(targetState == null) {
-			String stateClassName = packageName + "." + targetStateName + "ResourceState";
-			
-			try {
-				targetState = (ResourceState) Class.forName(stateClassName).newInstance();
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to dynamically instantiate state class", e);
-			}
-		}
-				
-		return targetState;
+						
+		return locator.resolve(aliases);
 	}
 	
 

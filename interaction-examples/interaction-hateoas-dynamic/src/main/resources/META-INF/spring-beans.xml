@@ -81,7 +81,22 @@
         <constructor-arg ref="resourceLocatorProvider" />        
     </bean>
     
-	<bean id="resourceLocator" class="com.temenos.interaction.example.hateoas.dynamic.NoteResourceLocator"/>
+    <bean id="authorState" class="DynamicModel.Dynamic.authorResourceState" />
+    <bean id="systemState" class="DynamicModel.Dynamic.systemResourceState" />
+    
+	<bean id="resourceLocator" class="com.temenos.interaction.example.hateoas.dynamic.NoteResourceLocator">
+		<constructor-arg ref="interaction" />
+		<constructor-arg>		
+			<map>  
+				<entry key="AU001"  value-ref="authorState"></entry>
+				<entry key="AU002"  value-ref="authorState"></entry>
+				<entry key="AU003"  value-ref="authorState"></entry>
+				<entry key="SY001"  value-ref="systemState"></entry>
+				<entry key="SY002"  value-ref="systemState"></entry>
+				<entry key="SY003"  value-ref="systemState"></entry>				
+			</map> 		
+		</constructor-arg>			
+	</bean>
 	
 	<bean id="resourceLocatorProvider" class="com.temenos.interaction.example.hateoas.dynamic.NoteResourceLocatorProvider">
 		<constructor-arg>
