@@ -24,7 +24,7 @@
   </distributionManagement>
 
   <properties>
-   <skipRIMGeneration>true</skipRIMGeneration>
+	<skipRIMGeneration>true</skipRIMGeneration>
     <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
   </properties>
   
@@ -44,22 +44,6 @@
                 	<directory>${project.build.directory}/src-gen</directory>
                 </resource>
               </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>	
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals><goal>add-source</goal></goals>
-            <configuration>
-              <sources>
-                <source>${project.build.directory}/src-gen</source>
-              </sources>
             </configuration>
           </execution>
         </executions>
