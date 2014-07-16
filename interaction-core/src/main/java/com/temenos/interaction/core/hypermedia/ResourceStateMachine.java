@@ -754,7 +754,7 @@ public class ResourceStateMachine {
 		return createLink(resourcePath, transition, transitionProperties, entity, queryParameters, allQueryParameters);
 	}
 	
-	private ResourceState getDynamicTarget(DynamicResourceState dynamic, String packageName, Object... aliases) {		
+	private ResourceState getDynamicTarget(DynamicResourceState dynamic, Object... aliases) {		
 		// Use resource locator to resolve dynamic target
 		ResourceLocator locator = resourceLocatorProvider.get(dynamic.getResourceLocatorName());
 						
@@ -789,7 +789,7 @@ public class ResourceStateMachine {
 				
 				List<Object> aliases = getResourceAliases(transitionProperties, dynamicResourceState);
 								
-				targetState = getDynamicTarget(dynamicResourceState, transition.getSource().getClass().getPackage().getName(), aliases.toArray());
+				targetState = getDynamicTarget(dynamicResourceState, aliases.toArray());
 				
 				targetResourcePath = targetState.getPath();				
 			}
