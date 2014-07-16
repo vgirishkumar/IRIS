@@ -197,39 +197,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	public ResourceRequestHandler getResourceRequestHandler() {
 		return resourceRequestHandler;
 	}
-	
-	/*
-	 * Bootstrap the resource by attempting to fetch a command for all the required
-	 * interactions with the resource state.
-	private void bootstrap() {
-		Set<String> interactions = new HashSet<String>();
-		Set<String> configuredInteractions = hypermediaEngine.getInteractions(currentState);
-		if (configuredInteractions != null)
-			interactions.addAll(configuredInteractions);
-		// every resource MUST have a GET command
-		interactions.add("GET");
-	
-		if (interactions != null) {
-			// interactions are a set of http methods
-			for (String method : interactions) {
-				logger.debug("Checking configuration for [" + method + "] " + getFQResourcePath());
-				// check valid http method
-				if (!(method.equals(HttpMethod.GET) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE) || method.equals(HttpMethod.POST)))
-					throw new RuntimeException("Invalid configuration of state [" + hypermediaEngine.getInitial().getId() + "] - invalid http method [" + method + "]");
-				// fetch command from command controller for this method
-				InteractionCommand command = getCommandController().fetchCommand(method, getFQResourcePath());
-				if (command == null)
-					throw new RuntimeException("Invalid configuration of dynamic resource [" + this + "] - no state transition command for http method [" + method + "]");
-			}
-		}
-
-		// TODO should be verified in constructor, but this class is currently mixed with dynamic resources that do not use links
-		// assert(getResourceRegistry() != null);
-		// resource created and valid, now register ourselves in the resource registry
-//		if (getResourceRegistry() != null)
-//			getResourceRegistry().add(this);
-	}
-	 */
 
 	public String getResourcePath() {
 		return resourcePath;
