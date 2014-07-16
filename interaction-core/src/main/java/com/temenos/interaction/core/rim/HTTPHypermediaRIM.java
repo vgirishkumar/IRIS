@@ -51,7 +51,6 @@ import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.wink.common.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -559,7 +558,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				if (autoTransitions.size() > 1)
 					logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
 				Response autoResponse = getResource(headers, autoTransition, ctx);
-	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
+	        	if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
 	        		logger.warn("Auto transition target did not return HttpStatus.OK status ["+autoResponse.getStatus()+"]");
 	        		responseBuilder.status(autoResponse.getStatus());
 	        	}
@@ -585,7 +584,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 				Response autoResponse = getResource(headers, autoTransition, ctx);
-	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {
+	        	if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
 	        		logger.warn("Auto transition target did not return HttpStatus.OK status ["+autoResponse.getStatus()+"]");
 	        		responseBuilder.status(autoResponse.getStatus());
 	        	}
@@ -688,7 +687,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			RESTResource currentResource = ctx.getResource();
 			
 			if (currentResource != null) {
-				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition, ((EntityResource<?>)currentResource).getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition, getEntityResource(currentResource), ctx.getPathParameters(), ctx.getQueryParameters());
 				for (String key : transitionProperties.keySet()) {
 					if (transitionProperties.get(key) != null)
 						newPathParameters.add(key, transitionProperties.get(key).toString());
@@ -713,7 +712,19 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
     }
     
-    
+     //helper function 
+	private Object getEntityResource(RESTResource currentResource) {
+		try {
+			//sometime some resource throw ClassCastException
+			return ((EntityResource<?>)currentResource).getEntity();
+		} catch (ClassCastException e) {
+			logger.error(e.getMessage());
+		}
+ 	
+		EntityResource<?> er = new EntityResource<RESTResource>(currentResource);
+		return er.getEntity();
+	}
+
     @SuppressWarnings("static-access")
 	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
     	
