@@ -88,6 +88,7 @@ public class GeneratorTest {
 	"import com.temenos.interaction.core.hypermedia.Action;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.CollectionResourceState;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.ResourceFactory;" + LINE_SEP +
+	"import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.ResourceState;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.ResourceStateMachine;" + LINE_SEP +
 	"import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;" + LINE_SEP +
@@ -96,6 +97,7 @@ public class GeneratorTest {
 	"import com.temenos.interaction.core.resource.ResourceMetadataManager;" + LINE_SEP +
 	LINE_SEP +
 	"public class SimpleBehaviour {" + LINE_SEP +
+	"	private ResourceLocatorProvider locatorProvider;" + LINE_SEP +
 	LINE_SEP +
 	"    public static void main(String[] args) {" + LINE_SEP +
 	"        SimpleBehaviour behaviour = new SimpleBehaviour();" + LINE_SEP +
@@ -110,6 +112,7 @@ public class GeneratorTest {
 	"        Properties actionViewProperties;" + LINE_SEP +
 	LINE_SEP +
 	"        ResourceFactory factory = new ResourceFactory();" + LINE_SEP +
+	"        factory.setResourceLocatorProvider(locatorProvider);" + LINE_SEP +
 	"        ResourceState initial = null;" + LINE_SEP +
 	"        // create states" + LINE_SEP +
 	"        // identify the initial state" + LINE_SEP +
@@ -123,6 +126,14 @@ public class GeneratorTest {
 	"        exceptionState = factory.getResourceState(\"Simple.E\");" + LINE_SEP +
 	"        return exceptionState;" + LINE_SEP +
 	"    }" + LINE_SEP +
+	"    " + LINE_SEP +
+	"    public void setResourceLocatorProvider(ResourceLocatorProvider locatorProvider) {" + LINE_SEP +
+	"    	this.locatorProvider = locatorProvider;" + LINE_SEP +
+	"    }" + LINE_SEP +
+	"    " + LINE_SEP +
+	"    public ResourceLocatorProvider getResourceLocatorProvider() {" + LINE_SEP +
+	"    	return locatorProvider;" + LINE_SEP +
+	"    }		    " + LINE_SEP +
 	"}" + LINE_SEP;
 	
 	@Test
@@ -362,7 +373,11 @@ public class GeneratorTest {
 		String output = fsa.getFiles().get(expectedKey).toString();
 		
 		final String NEW_STATEMENT = "conditionalLinkExpressions = new ArrayList<Expression>();";
-		final String ADD_TRANSITION = ".method(\"GET\").target(sB).uriParameters(uriLinkageProperties).evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).label(\"B\")";
+		final String ADD_TRANSITION = ".method(\"GET\")" + LINE_SEP +
+				"                            .target(sB)" + LINE_SEP +
+				"                            .uriParameters(uriLinkageProperties)" + LINE_SEP +
+				"                            .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)" + LINE_SEP +
+				"                            .label(\"B\")";
 		
 		int indexOfNewStatement = output.indexOf(NEW_STATEMENT);
 		assertTrue(indexOfNewStatement > 0);
