@@ -22,7 +22,7 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,6 +71,30 @@ public class TestHypermediaTemplateHelper {
 	public void testGetTemplatedBaseUriLookBehind() {
 		assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/", 
 				HypermediaTemplateHelper.getTemplatedBaseUri("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/", "http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/root"));
+	}
+	
+	@Test
+	public void testGetTemplatedBaseUriLookBehind_FundsTransferNew() {
+		assertEquals("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/", 
+				HypermediaTemplateHelper.getTemplatedBaseUri("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/{companyid}/", "http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/FundsTransfer_FtTaps()/new"));
+	}
+	
+	@Test
+	public void testGetTemplatedBaseUriLookBehind_FundsTransferValidate() {
+		assertEquals("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/", 
+				HypermediaTemplateHelper.getTemplatedBaseUri("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/{companyid}/", "http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/FundsTransfer_FtTaps('FT1336500058')/validate"));
+	}
+	
+	@Test
+	public void testGetTemplatedBaseUriLookBehind_FundsTransferFtTaps() {
+		assertEquals("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/", 
+				HypermediaTemplateHelper.getTemplatedBaseUri("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/{companyid}/", "http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/FundsTransfer_FtTaps()"));
+	}
+	
+	@Test
+	public void testGetTemplatedBaseUriLookBehind_FundsTransferFtTapsNewHol() {
+		assertEquals("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/", 
+				HypermediaTemplateHelper.getTemplatedBaseUri("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/{companyid}/", "http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/FundsTransfer_FtTaps()/new/hold?id=FT1336500058"));
 	}
 	
 	@Test

@@ -22,7 +22,8 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +54,48 @@ public class TestLink {
 		assertEquals("Flights", relativeHref);
 	}
 
+	
+	
+	@Test
+	public void testGetRelativeHref_FundsTransferNew() throws Exception {
+		Link link = new Link(null, "ServiceDocumentToEntitySet", "rel", 
+				"http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/FundsTransfer_FtTaps()/new",
+				null, null, "GET", null);
+		String relativeHref = link.getRelativeHref("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/{companyid}");
+		assertEquals("FundsTransfer_FtTaps()/new", relativeHref);
+
+	}
+
+	@Test
+	public void testGetRelativeHref_FundsTransferValidate() throws Exception {
+		Link link = new Link(null, "ServiceDocumentToEntitySet", "rel", 
+				"http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/FundsTransfer_FtTaps('FT1336500058')/validate",
+				null, null, "GET", null);
+		String relativeHref = link.getRelativeHref("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/{companyid}");
+		assertEquals("FundsTransfer_FtTaps('FT1336500058')/validate", relativeHref);
+
+	}
+
+	@Test
+	public void testGetRelativeHref_FundsTransferFtTaps() throws Exception {
+		Link link = new Link(null, "ServiceDocumentToEntitySet", "rel", 
+				"http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/FundsTransfer_FtTaps()",
+				null, null, "GET", null);
+		String relativeHref = link.getRelativeHref("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/{companyid}");
+		assertEquals("FundsTransfer_FtTaps()", relativeHref);
+
+	}
+
+	@Test
+	public void testGetRelativeHref_FundsTransferFtNewHold() throws Exception {
+		Link link = new Link(null, "ServiceDocumentToEntitySet", "rel", 
+				"http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/LU0010001/FundsTransfer_FtTaps()/new/hold?id=FT1336500058",
+				null, null, "GET", null);
+		String relativeHref = link.getRelativeHref("http://portal3.xlb2.lo/tapt24-iris/tapt24.svc/{companyid}");
+		assertEquals("FundsTransfer_FtTaps()/new/hold?id=FT1336500058", relativeHref);
+
+	}
+	
 	@Test
 	public void testGetRelativeHref1() throws Exception {
 		Link link = new Link(null, "ServiceDocumentToEntitySet", "rel", 

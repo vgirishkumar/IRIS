@@ -1,0 +1,88 @@
+// test comment
+domain DynamicModel {
+rim Dynamic {
+
+	event GET {
+		method: GET
+	}
+	event PUT {
+		method: PUT
+	}
+	event POST {
+		method: POST
+	}
+	event DELETE {
+		method: DELETE
+	}
+
+	command CREATEDynmcNote
+	command NoopGET
+	command GETDynmcNotes
+	command GETDynmcNote
+	command DELETEDynmcNote 
+
+initial resource notesDynmc {
+	type: collection
+	
+	// reference:  'AU001' or 'SY001'
+	entity: DynmcNote
+	view: GETDynmcNotes
+	path: "/notesDynmc"
+    POST -> createDynmcNote
+	/*GET *-> noteDynmc {
+		parameters [ id = "{noteID}" ]
+		title: "View note"		
+	}*/
+	GET *-> locator findsource("{reference}"){
+		parameters [ id = "{reference}" ]
+		title: "Who"		
+	}
+		
+	DELETE *-> deletedDynmcNote
+}
+
+resource noteDynmc {
+	type: item
+	entity: DynmcNote
+	view: GETDynmcNote
+	path: "/notesDynmc/{noteID}"
+	DELETE -> deletedDynmcNote
+}
+
+resource author {
+	type: item
+	entity: DynmcNote
+	view: GETDynmcNote
+	path: "/authors/{id}"
+}
+
+resource system {
+	type: item
+	entity: DynmcNote
+	view: GETDynmcNote
+	path: "/systems/{id}"
+}
+
+resource deletedDynmcNote {
+	type: item
+	entity: DynmcNote
+	actions [ DELETEDynmcNote ]
+	relations [ "http://relations.rimdsl.org/delete" ]
+	path: "/notesDynmc/{noteID}"
+	GET ->> notesDynmc
+}
+
+resource createDynmcNote {
+	type: item
+	entity: DynmcNote
+	actions [ CREATEDynmcNote ]
+	path: "/notesDynmc"
+	// 'create' means post to the collection, 'new' means get the next available number
+	relations [ "http://relations.rimdsl.org/create" ]
+	GET --> noteDynmc {
+		condition: OK(noteDynmc)
+	}
+}
+
+}
+}
