@@ -336,12 +336,12 @@ class RIMDslGenerator implements IGenerator {
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.method("«transition.event.httpMethod»")
-            		.target(«findTargetState(fromState, transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
-            		.build());
+                    .method("«transition.event.httpMethod»")
+                    .target(«findTargetState(fromState, transition)»)
+                    .uriParameters(uriLinkageProperties)
+                    .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+                    .label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
+                    .build());
 	'''
 	
     def produceTransitionsForEach(State fromState, TransitionForEach transition) '''    		
@@ -352,13 +352,13 @@ class RIMDslGenerator implements IGenerator {
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.flags(Transition.FOR_EACH)
-            		.method("«transition.event.httpMethod»")
-            		.target(«findTargetState(fromState, transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.label(« getTransitionLabel(transition) »)
-            		.build());
+                    .flags(Transition.FOR_EACH)
+                    .method("«transition.event.httpMethod»")
+                    .target(«findTargetState(fromState, transition)»)
+                    .uriParameters(uriLinkageProperties)
+                    .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+                    .label(« getTransitionLabel(transition) »)
+                    .build());
     '''
     		
     def produceTransitionsAuto(State fromState, TransitionAuto transition) '''
@@ -369,11 +369,11 @@ class RIMDslGenerator implements IGenerator {
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.flags(Transition.AUTO)
-            		.target(«findTargetState(fromState, transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.build());
+                    .flags(Transition.AUTO)
+                    .target(«findTargetState(fromState, transition)»)
+                    .uriParameters(uriLinkageProperties)
+                    .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+                    .build());
     '''
 
     def produceTransitionsRedirect(State fromState, TransitionRedirect transition) '''
@@ -384,11 +384,11 @@ class RIMDslGenerator implements IGenerator {
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.flags(Transition.REDIRECT)
-            		.target(«findTargetState(fromState, transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.build());
+                    .flags(Transition.REDIRECT)
+                    .target(«findTargetState(fromState, transition)»)
+                    .uriParameters(uriLinkageProperties)
+                    .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+                    .build());
     '''
 
     def produceTransitionsEmbedded(State fromState, TransitionEmbedded transition) '''
@@ -399,13 +399,13 @@ class RIMDslGenerator implements IGenerator {
             «produceExpressions(transition.spec.eval)»
         «ENDIF»
             «stateVariableName(fromState)».addTransition(new Transition.Builder()
-            		.flags(Transition.EMBEDDED)
-            		.method("«transition.event.httpMethod»")
-            		.target(«findTargetState(fromState, transition)»)
-            		.uriParameters(uriLinkageProperties)
-            		.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-            		.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
-            		.build());
+                    .flags(Transition.EMBEDDED)
+                    .method("«transition.event.httpMethod»")
+                    .target(«findTargetState(fromState, transition)»)
+                    .uriParameters(uriLinkageProperties)
+                    .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
+                    .label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
+                    .build());
     '''
 
     def produceUriLinkage(EList<UriLink> uriLinks) '''

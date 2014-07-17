@@ -122,7 +122,7 @@ public class TestHypermediaValidator {
 	
 		initial.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 				
-		ResourceStateMachine sm = new ResourceStateMachine(initial, exception, null);
+		ResourceStateMachine sm = new ResourceStateMachine(initial, exception, null, null);
 		Metadata metadata = new Metadata("");
 		metadata.setEntityMetadata(new EntityMetadata(""));
 		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);

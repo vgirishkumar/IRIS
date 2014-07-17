@@ -44,6 +44,7 @@
 		<module>../useragent-examples/useragent-swagger-ui</module>
 		<module>../interaction-examples/interaction-hateoas-simple</module>
 		<module>../interaction-examples/interaction-hateoas-banking</module>
+		<module>../interaction-examples/interaction-hateoas-dynamic</module>
 		<module>../interaction-examples/interaction-hateoas-restbucks</module>
 		<module>../interaction-examples/interaction-mashup-streaming</module>
 		<module>../interaction-examples/interaction-mashup-twitter</module>

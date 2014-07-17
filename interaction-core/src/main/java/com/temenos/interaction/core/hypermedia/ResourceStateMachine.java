@@ -40,7 +40,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
 
-import org.apache.wink.common.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -190,6 +189,10 @@ public class ResourceStateMachine {
 		this(initialState, null, transformer, resourceLocatorProvider);
 	}
 	
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
+		this(initialState, exceptionState, transformer, null);
+	}
+
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
 		if (initialState == null) throw new RuntimeException("Initial state must be supplied");
 		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
@@ -653,7 +656,7 @@ public class ResourceStateMachine {
 			}
 			for (Transition transition : results.keySet()) {
 				ResourceRequestResult result = results.get(transition);
-				if (result.getStatus() != HttpStatus.OK.getCode()) {
+				if (result.getStatus() != Status.OK.getStatusCode()) {
 					logger.error("Failed to embed resource for transition [" + transition.getId() + "]");
 				} else {
 					resourceResults.put(transition, result.getResource());
