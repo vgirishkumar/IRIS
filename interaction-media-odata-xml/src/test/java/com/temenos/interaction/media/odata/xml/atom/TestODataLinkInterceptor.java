@@ -22,8 +22,9 @@ package com.temenos.interaction.media.odata.xml.atom;
  */
 
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.any;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,15 +44,26 @@ import com.temenos.interaction.core.resource.RESTResource;
 
 public class TestODataLinkInterceptor {
 
+	private AtomXMLProvider createMockProviderFundsTransfers() {
+		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
+		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
+		return mockProviderHelper;
+	}
+
+	private AtomXMLProvider createMockProviderCustomers() {
+		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
+		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("Customers");
+		return mockProviderHelper;
+	}
+	
 	@Test
 	public void testLinkRelationCollectionToItem() {
 		Transition t = createMockTransition(
 				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
 				createMockResourceState("customer", "Customer", false));
 		
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customer", result.getRel());
 	}
@@ -62,9 +74,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
 				createMockResourceState("fundsTransfer", "FundsTransfer", false));
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("self", result.getRel());
 	}
@@ -75,9 +85,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("account", "Account", false), 
 				createMockResourceState("FundsTransfers", "FundsTransfer", true));
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", result.getRel());
 	}
@@ -88,9 +96,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("account", "Account", false), 
 				createMockResourceState("FundsTransfers_new", "FundsTransfer", false));
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer", result.getRel());
 	}
@@ -105,9 +111,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("account", "Account", false), 
 				targetState);
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("http://www.temenos.com/rels/new", result.getRel());
 	}
@@ -125,9 +129,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("account", "Account", false), 
 				targetState);
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("self", result.getRel());
 	}
@@ -145,9 +147,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
 				targetState);
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("self", result.getRel());
 	}
@@ -170,9 +170,7 @@ public class TestODataLinkInterceptor {
 		
 		List<Link> mockLinks = new ArrayList<Link>();
 		mockLinks.add(editLink);
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
 		Link result = linkInterceptor.addingLink(mockResource, editLink);
@@ -192,9 +190,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("account", "Account", false), 
 				targetState);
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("edit", result.getRel());
 	}
@@ -228,9 +224,7 @@ public class TestODataLinkInterceptor {
 		List<Link> mockLinks = new ArrayList<Link>();
 		mockLinks.add(selfLink);
 		mockLinks.add(editLink);
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
 		
@@ -269,9 +263,7 @@ public class TestODataLinkInterceptor {
 		List<Link> mockLinks = new ArrayList<Link>();
 		mockLinks.add(selfLink);
 		mockLinks.add(editLink);
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
 		
@@ -310,9 +302,7 @@ public class TestODataLinkInterceptor {
 		List<Link> mockLinks = new ArrayList<Link>();
 		mockLinks.add(editLink);
 		mockLinks.add(selfLink);
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
 		
@@ -350,9 +340,7 @@ public class TestODataLinkInterceptor {
 		List<Link> mockLinks = new ArrayList<Link>();
 		mockLinks.add(editLink);
 		mockLinks.add(edit2Link);
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
 		
@@ -391,9 +379,7 @@ public class TestODataLinkInterceptor {
 		List<Link> mockLinks = new ArrayList<Link>();
 		mockLinks.add(seeLink);
 		mockLinks.add(inputLink);
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("Customers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderCustomers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
 		
@@ -428,9 +414,7 @@ public class TestODataLinkInterceptor {
 		List<Link> mockLinks = new ArrayList<Link>();
 		mockLinks.add(seeLink);
 		mockLinks.add(inputLink);
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("Customers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderCustomers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
 		
@@ -448,9 +432,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
 				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true));
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", result.getRel());
 	}
@@ -461,9 +443,7 @@ public class TestODataLinkInterceptor {
 				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
 				createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
 
-		AtomXMLProvider mockProviderHelper = mock(AtomXMLProvider.class);
-		when(mockProviderHelper.getEntitySet(any(ResourceState.class))).thenReturn("FundsTransfers");
-		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(mockProviderHelper);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", result.getRel());
 	}

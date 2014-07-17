@@ -16,6 +16,11 @@
   <name>interaction-example-hateoas-banking</name>
   <url>http://www.temenos.com</url>
 
+  <properties>
+    <skipRIMGeneration>false</skipRIMGeneration>
+    <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
+  </properties>
+  
   <build>
     <plugins>
       <plugin>
@@ -58,6 +63,11 @@
           <targetDirectory>${basedir}/src-gen</targetDirectory> 
           -->
           <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
+          <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
+          
+          <!-- Control generation of Spring XML to load generated classes  -->
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>          
+          
         </configuration>
       </plugin>
 
@@ -238,23 +248,27 @@
 		</exclusions>
     </dependency>
 
-	<!-- Test dependencies -->
-    <dependency>
-    	<groupId>com.sun.jersey.test.framework</groupId>
-    	<artifactId>jersey-test-framework</artifactId>
-    	<scope>test</scope>
-    </dependency>
-
     <dependency>
     	<groupId>org.apache.wink</groupId>
     	<artifactId>wink-spring-support</artifactId>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>
-
+	<dependency>
+		<groupId>javax.servlet</groupId>
+		<artifactId>servlet-api</artifactId>
+		<scope>provided</scope>
+	</dependency>
     <dependency>
         <groupId>com.theoryinpractise</groupId>
         <artifactId>halbuilder-standard</artifactId>
+    </dependency>
+
+	<!-- Test dependencies -->
+    <dependency>
+    	<groupId>com.sun.jersey.test.framework</groupId>
+    	<artifactId>jersey-test-framework</artifactId>
+    	<scope>test</scope>
     </dependency>
 
     <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->

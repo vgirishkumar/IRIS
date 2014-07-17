@@ -60,10 +60,13 @@
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 
+	<!-- Import Portable Resource Definitions (PRD) -->
+	<import resource="classpath:IRIS-*-PRD.xml" />
+	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
     -->
-	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
+	<bean id="registrar" class="com.temenos.interaction.winkext.RegistrarWithSingletons">
 		<property name="singletons">
         	<set>
 				<ref local="serviceDocumentProvider" />
@@ -104,10 +107,13 @@
 	</bean>
  
     <!-- Behaviour -->
+    
+    <!-- 
     <bean id="behaviour" class="com.temenos.interaction.example.odata.notes.Behaviour" />
-    <bean id="interaction" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
+    <bean id="initialState" factory-bean="behaviour" factory-method="getSimpleODataInteractionModel" />
+     -->
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-        <constructor-arg name="initialState" ref="interaction" />
+        <constructor-arg name="initialState" ref="initialState" />
     	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
     </bean>
 

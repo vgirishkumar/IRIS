@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
-import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.BaseResponse;
 import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.EntityResponse;
@@ -63,12 +62,6 @@ public class GETNavPropertyCommand extends AbstractODataCommand implements Inter
 		if(entity == null) {
 			throw new InteractionException(Status.BAD_REQUEST, "'entity' must be provided");		
 		}
-		
-		EdmEntitySet entitySet = getEdmMetadata().getEdmEntitySet(entity);
-		if (entitySet == null) {
-			throw new InteractionException(Status.NOT_FOUND, "Entity set not found [" + entity + "]");	
-		}
-		assert(entity.equals(entitySet.getName()));
 
 		//Obtain the navigation property
 		String navProperty = CommandHelper.getViewActionProperty(ctx, "navproperty"); 

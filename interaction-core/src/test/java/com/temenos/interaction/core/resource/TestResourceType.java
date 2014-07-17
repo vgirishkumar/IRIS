@@ -118,6 +118,7 @@ public class TestResourceType {
 	@SuppressWarnings("rawtypes")
 	private<E> Type getTestTypeVariable(String typeName) {
 		final String fTypeName = typeName;
+		@SuppressWarnings("rawtypes")
 		Type t = new TypeVariable() {
 			@Override
 			public Type[] getBounds() {

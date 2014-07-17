@@ -49,6 +49,7 @@ import org.odata4j.edm.EdmProperty.CollectionKind;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
+import org.odata4j.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +75,7 @@ public class MetadataOData4j {
 	private final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 
 	private EdmDataServices edmDataServices;
+	private Map<String, EdmEntitySet> edmEntitySetMap;
 	private Metadata metadata;
 	private ResourceStateMachine hypermediaEngine;
 	private ResourceState serviceDocument;
@@ -91,6 +93,7 @@ public class MetadataOData4j {
 		assert(!(serviceDocument instanceof CollectionResourceState)) : "Initial state must be an individual resource state";
 		this.metadata = metadata;
 		this.hypermediaEngine = hypermediaEngine;
+		this.edmEntitySetMap= new HashMap<String, EdmEntitySet>(); 
 	}
 
 	/**
@@ -98,11 +101,51 @@ public class MetadataOData4j {
 	 * @return edmdataservices object
 	 */
 	public EdmDataServices getMetadata() {
-		if (edmDataServices == null) 
+		if (edmDataServices == null) {
 			edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+		}
 		return edmDataServices;
 	}
 
+	/**
+	 * required by GetEntitiesCommand
+	 * @param entityName
+	 * @return EdmEntitySet
+	 * 
+	 */
+	public EdmEntitySet getEdmEntitySet(String entityName) {
+		//make sure EdmDataServices loaded
+		if(null == edmDataServices) {
+			getMetadata();
+		}
+		EdmEntitySet edmEntitySet = edmEntitySetMap.get(entityName);
+		if (edmEntitySet == null ) {
+			throw new NotFoundException("Entity Set [" + entityName + "] not found");
+		}
+		return edmEntitySet;
+	}
+
+	/**
+	 * required by producer
+	 * @param entityName
+	 * @return EdmEntitySet
+	 * 
+	 */
+	public EdmEntitySet getEdmEntitySetByEntitySetName(String entitySetName) {
+		//make sure EdmDataServices loaded
+		if(null == edmDataServices) {
+			getMetadata();
+		}
+		for(String entityName : edmEntitySetMap.keySet()) {
+			EdmEntitySet edmEntitySet = edmEntitySetMap.get(entityName);
+			if(edmEntitySet.getName().equals(entitySetName)) {
+				return edmEntitySet;
+			}
+		}
+		
+		throw new NotFoundException("Entity Set [" + entitySetName + "] not found");
+	}
+	
 	/**
 	 * Create EDM metadata merged from multiple producers
 	 * @param producers Set of odata producers
@@ -244,13 +287,14 @@ public class MetadataOData4j {
 				if (entityType == null) 
 					throw new RuntimeException("Entity type not found for " + state.getEntityName());
 				Transition fromInitialState = serviceDocument.getTransition(state);
+				EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
 				if (fromInitialState != null) {
 					//Add entity set
-					EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
 					bEntitySetMap.put(state.getEntityName(), bEntitySet);
 				} else {
 					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
 				}
+				edmEntitySetMap.put(state.getEntityName(), bEntitySet.build());
 			}
 		}
 
@@ -477,5 +521,4 @@ public class MetadataOData4j {
 			bComplexTypeMap.get(complexTypeFullName).addProperties(bl);
 		}
 	}
-
 }

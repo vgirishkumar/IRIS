@@ -37,24 +37,27 @@
   <url>http://www.temenos.com</url>
 
   <properties>
-    <skipRIMGeneration>false</skipRIMGeneration>
+    <skipRIMGeneration>true</skipRIMGeneration>
+    <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
     <strictOdata>true</strictOdata>
   </properties>
 
   <build>
     <plugins>
-      <plugin>
+        <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>1.7</version>
         <executions>
           <execution>
-            <phase>generate-sources</phase>
-            <goals><goal>add-source</goal></goals>
+            <phase>generate-resources</phase>
+            <goals><goal>add-resource</goal></goals>
             <configuration>
-              <sources>
-                <source>${project.build.directory}/src-gen</source>
-              </sources>
+              <resources>
+                <resource>
+                	<directory>${project.build.directory}/src-gen</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -89,6 +92,9 @@
 		  -->
           <rimSourceFile>${basedir}/src/main/rim/interaction-odata-error.rim</rimSourceFile>
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
+          
+          <!-- Control generation of Spring XML to load generated classes  -->
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRD}</skipRIMGenerationSpringPRD>          
         </configuration>
       </plugin>
       
@@ -181,6 +187,7 @@
     								<versionRange>[1.7,)</versionRange>
     								<goals>
     									<goal>add-source</goal>
+    									<goal>add-resource</goal>
     								</goals>
     							</pluginExecutionFilter>
     							<action>
@@ -248,6 +255,12 @@
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-springdsl</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>	
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-winkext</artifactId>
     	<type>jar</type>
     	<scope>runtime</scope>
@@ -293,6 +306,12 @@
         <artifactId>interaction-media-odata-xml</artifactId>
         <scope>runtime</scope>
     </dependency>
+
+	<dependency>
+		<groupId>javax.servlet</groupId>
+		<artifactId>servlet-api</artifactId>
+		<scope>provided</scope>
+	</dependency>
 
     <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
     <dependency>

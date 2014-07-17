@@ -28,8 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
-
-import org.apache.wink.common.http.HttpStatus;
+import javax.ws.rs.core.Response.Status;
 
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
@@ -114,11 +113,11 @@ public class ResourceGETExpression implements Expression {
 		ResourceRequestResult result = results.values().iterator().next();
 		
 		//Ignore the resource and its links, just interested in the result status
-		if (HttpStatus.OK.getCode() == result.getStatus() 
+		if (Status.OK.getStatusCode() == result.getStatus() 
 				&& getFunction().equals(Function.OK)) {
 			return true;
 		}
-		if (HttpStatus.OK.getCode() != result.getStatus() 
+		if (Status.OK.getStatusCode() != result.getStatus() 
 				&& getFunction().equals(Function.NOT_FOUND)) {
 			return true;
 		}

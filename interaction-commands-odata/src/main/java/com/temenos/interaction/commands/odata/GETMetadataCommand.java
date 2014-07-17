@@ -39,22 +39,8 @@ public class GETMetadataCommand implements InteractionCommand {
 	// command configuration
 	// TODO remove this when we no longer use a MetaDataResource
 	private String resourceToProvide;
-	
-//	@Deprecated
-//	private EdmDataServices edmDataServices;
 	private MetadataOData4j metadataOData4j;
 
-	/**
-	 * Construct an instance of this command
-	 * @param resourceToProvide Configure this command to provide either an EntityResource for the
-	 * service document or a MetaDataResource for the metadata.
-	 * @param resourceMetadata Description of the resources and their types.
-	 */
-//	@Deprecated
-//	public GETMetadataCommand(String resourceToProvide, EdmDataServices resourceMetadata) {
-//		this.resourceToProvide = resourceToProvide;
-//		this.edmDataServices = resourceMetadata;
-//	}
 	
 	/**
 	 * Construct an instance of this command

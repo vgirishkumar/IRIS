@@ -17,6 +17,8 @@
   <url>http://www.temenos.com</url>
 
   <properties>
+    <skipRIMGeneration>true</skipRIMGeneration>
+    <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
     <jetty.version>9.0.5.v20130815</jetty.version>
   </properties>
 
@@ -28,28 +30,18 @@
         <version>1.7</version>
         <executions>
           <execution>
-            <phase>generate-sources</phase>
-            <goals><goal>add-source</goal></goals>
+            <phase>generate-resources</phase>
+            <goals><goal>add-resource</goal></goals>
             <configuration>
-              <sources>
-                <source>${project.build.directory}/src-gen</source>
-              </sources>
+              <resources>
+                <resource>
+                	<directory>${project.build.directory}/src-gen</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.1.1</version>
-        <configuration>
-          <packagingExcludes>WEB-INF/web.xml</packagingExcludes>
-          <webResources>
-            <resource>
-              <directory>target/swagger-gen</directory>
-            </resource>
-          </webResources>
-        </configuration>
-      </plugin>   
       <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-rim-plugin</artifactId>
@@ -67,10 +59,11 @@
           <targetDirectory>${basedir}/src-gen</targetDirectory> 
           -->
           <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
-          <!-- Override the default [swaggerTargetDirectory] of ${project.build.directory}/swagger-gen
-          <swaggerTargetDirectory>${basedir}/src/main/webapp/</swaggerTargetDirectory>
-          -->
-          <skipSwaggerGeneration>false</skipSwaggerGeneration>
+          <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
+          
+          <!-- Control generation of Spring XML to load generated classes  -->
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRD}</skipRIMGenerationSpringPRD>          
+          
         </configuration>
       </plugin>
 
@@ -101,7 +94,6 @@
 			<contextPath>/example</contextPath>
             <resourceBases>
               <resourceBase>${basedir}/src/main/webapp</resourceBase>
-              <resourceBase>${basedir}/target/swagger-gen</resourceBase>
             </resourceBases>
           </webApp>
 		</configuration>
@@ -154,6 +146,7 @@
     								<versionRange>[1.7,)</versionRange>
     								<goals>
     									<goal>add-source</goal>
+    									<goal>add-resource</goal>
     								</goals>
     							</pluginExecutionFilter>
     							<action>
@@ -263,6 +256,12 @@
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-springdsl</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>	
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-commands-odata</artifactId>
     	<type>jar</type>
     </dependency>
@@ -284,6 +283,12 @@
 			</exclusion>
 		</exclusions>
     </dependency>
+
+	<dependency>
+		<groupId>javax.servlet</groupId>
+		<artifactId>servlet-api</artifactId>
+		<scope>provided</scope>
+	</dependency>
 
 	<!-- Test dependencies -->
     <dependency>
