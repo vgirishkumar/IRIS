@@ -45,6 +45,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         for (resourceState : rim.states) {
             val stateName = resourceState.fullyQualifiedName.toString("_")
             fsa.generateFile("IRIS-" + stateName + "-PRD.xml", toSpringXML(rim, resourceState))
+            fsa.generateFile("IRIS-" + stateName + ".properties", toBeanMap(rim, resourceState))
         }
   
 	}
@@ -55,6 +56,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		return name.substring(0, name.indexOf('.'))
 	}
 	
+	def toBeanMap(ResourceInteractionModel rim, State state) '''
+		«stateVariableName(state)»=«produceMethods(rim, state)» «producePath(rim, state)»
+	'''
     	
 	def toSpringXML(ResourceInteractionModel rim, State state) '''
 		<?xml version="1.0" encoding="UTF-8"?>
@@ -72,7 +76,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				http://www.springframework.org/schema/beans
 				http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 				http://www.springframework.org/schema/context
-				http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+				http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+				default-lazy-init="true">
 
 		«IF state.type.isCollection»
 		<!-- super("«state.entity.name»", "«state.name»", createActions(state), "«producePath(rim, state)»", "createLinkRelations()", null,                     «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);  -->   
@@ -149,6 +154,14 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	}
 	
 	def produceResourceStateType(State state) '''«IF state.type.isCollection»com.temenos.interaction.core.hypermedia.CollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.ResourceState«ENDIF»'''
+	
+    def produceMethods(ResourceInteractionModel rim, State state) '''«
+		if (state.impl != null && state.impl.view != null) {
+		"GET"
+		} else if (state.impl != null && state.impl.actions != null) {
+		"POST"
+		}
+		»«IF state.methods != null && state.methods.size > 0»«FOR method : state.methods SEPARATOR ',' »«method.event.httpMethod»«ENDFOR»«ENDIF»'''
 	
     def producePath(ResourceInteractionModel rim, State state) '''«
     	// prepend the basepath

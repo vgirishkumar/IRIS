@@ -64,6 +64,7 @@ public class ResourceMetadataManager {
 	/**
 	 * Construct the metadata object
 	 */
+	@Deprecated
 	public ResourceMetadataManager(ResourceStateMachine hypermediaEngine)
 	{
 		metadata = parseMetadataXML();
@@ -96,14 +97,6 @@ public class ResourceMetadataManager {
 		termFactory = new TermFactory();
 	}
 
-	/*
-	 * construct only term factory
-	 */
- 	public ResourceMetadataManager(TermFactory termFactory)
-	{
-		this.termFactory = termFactory;
-	}
- 	
 	
 	/**
 	 * Return the entity model metadata

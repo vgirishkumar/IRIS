@@ -69,9 +69,11 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -85,7 +87,7 @@ public class TestHALProvider {
 	 */
 	@Test
 	public void testSize() {
-		HALProvider hp = new HALProvider(mock(Metadata.class), mock(ResourceStateMachine.class));
+		HALProvider hp = new HALProvider(mock(Metadata.class), mock(ResourceStateProvider.class));
 		assertEquals(-1, hp.getSize(null, null, null, null, null));
 	}
 
@@ -96,7 +98,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialise() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -123,7 +125,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialiseResolveEntityName() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -144,7 +146,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -165,7 +167,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialiseResolveEntityNameWithId() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children/{id}", "id", null));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
@@ -189,7 +191,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialiseResolveEntityNameWithIdODataPath() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children({id})/updated", "id", null));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
@@ -213,7 +215,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialiseResolveEntityNameUriInfo() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/children");
@@ -235,7 +237,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialiseResolveEntityNameUriInfoRelative() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/Orders()"));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("Orders()");
@@ -257,7 +259,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialiseResolveEntityNameUriInfoWithId() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children/{id}", "id", null));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/children/123");
@@ -282,7 +284,7 @@ public class TestHALProvider {
 	@Test
 	public void testDeserialiseResolveEntityNameUriInfoWithIdODataPath() throws IOException, URISyntaxException {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children({id})/updated", "id", null));
-		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), sm);
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/children(123)/updated");

@@ -106,21 +106,69 @@ public class GeneratorSpringPRDTest {
 			+ "	view: GetEntity" + LINE_SEP + "}" + LINE_SEP + "}" + LINE_SEP + "";
 
 	/**
-	 * Test generate one file.
+	 * Test generate files for spring and dispatcher registration.
 	 * 
 	 * @throws Exception
 	 *             the exception
 	 */
 	@Test
-	public void testGenerateOneFile() throws Exception {
+	public void testGenerateFiles() throws Exception {
 		DomainModel domainModel = parseHelper.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 		underTest.doGenerate(model.eResource(), fsa);
 
 		Map<String, Object> allFiles = fsa.getAllFiles();
-		assertEquals(1, fsa.getAllFiles().size());
+		assertEquals(2, fsa.getAllFiles().size());
 		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml"));
+		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A.properties"));
+	}
+
+	/**
+	 * Test generate files for spring and dispatcher registration.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test
+	public void testBeanMap() throws Exception {
+		DomainModel domainModel = parseHelper.parse(SINGLE_STATE_VIEW_COMMAND_ONLY_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		String output = allFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A.properties").toString();
+		assertEquals("Test_A=GET /A" + LINE_SEP, output);
+	}
+
+	private final static String SINGLE_STATE_METHODS_COMMAND_ONLY_RIM = "" + "rim Test {" + LINE_SEP + 
+			"	event GET {" + LINE_SEP + 
+			"		method: GET" + LINE_SEP + 
+			"	}" + LINE_SEP +
+			"	event POST {" + LINE_SEP + 
+			"		method: POST" + LINE_SEP + 
+			"	}" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command CreateEntity" + LINE_SEP +
+			"	initial resource A {" + LINE_SEP + 
+			"		type: collection" + LINE_SEP + 
+			"		entity: ENTITY" + LINE_SEP + 
+			"		GET: GetEntity"	+ LINE_SEP +
+			"		POST: CreateEntity" + LINE_SEP + 
+			"	}" + LINE_SEP + 
+			"}" + LINE_SEP + "";
+
+	@Test
+	public void testBeanMapMethods() throws Exception {
+		DomainModel domainModel = parseHelper.parse(SINGLE_STATE_METHODS_COMMAND_ONLY_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(model.eResource(), fsa);
+
+		Map<String, Object> allFiles = fsa.getAllFiles();
+		String output = allFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A.properties").toString();
+		assertEquals("Test_A=GET,POST /A" + LINE_SEP, output);
 	}
 
 	private final static String SINGLE_STATE_WITH_PACKAGE_RIM = "" + "domain blah {" + LINE_SEP + "rim Test {"
@@ -1160,7 +1208,6 @@ public class GeneratorSpringPRDTest {
 		underTest.doGenerate(model.eResource(), fsa);
 		
 		Map<String, Object> allFiles = fsa.getAllFiles();
-		assertEquals(3, allFiles.size());
 
 		// Verify keys
 		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_B-PRD.xml";
@@ -1346,7 +1393,6 @@ public class GeneratorSpringPRDTest {
 		underTest.doGenerate(model.eResource(), fsa);
 		
 		Map<String, Object> allFiles = fsa.getAllFiles();
-		assertEquals(3, allFiles.size());
 
 		// Verify keys
 		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_A-PRD.xml";
@@ -1477,7 +1523,6 @@ public class GeneratorSpringPRDTest {
 		underTest.doGenerate(model.eResource(), fsa);
 		
 		Map<String, Object> allFiles = fsa.getAllFiles();
-		assertEquals(3, allFiles.size());
 
 		// Verify keys
 		String expectedKey2 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_E-PRD.xml";

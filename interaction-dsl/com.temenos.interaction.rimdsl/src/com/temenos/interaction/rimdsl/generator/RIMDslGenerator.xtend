@@ -112,39 +112,38 @@ class RIMDslGenerator implements IGenerator {
                 »
                 «IF !resources.contains(state.name) && resources.add(state.name)»«ENDIF»
                 // create transitions
-                «FOR t : state.transitions»                
-                	«IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»                
-						ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
-					«ENDIF»
-	                «IF (t.state != null && t.state.name != null) || t.name != null || t.locator != null»
-		                             
-		                «IF(transitionProcessingRequired(t))»                				               	
-			                «IF t instanceof Transition»
-			                // create regular transition
-			                «produceTransitions(state, t as Transition)»
-			                «ENDIF»
-			
-			                «IF t instanceof TransitionForEach»
-			                // create foreach transition
-			                «produceTransitionsForEach(state, t as TransitionForEach)»
-			                «ENDIF»
-			
-			                «IF t instanceof TransitionAuto»
-			                // create AUTO transition
-			                «produceTransitionsAuto(state, t as TransitionAuto)»
-			                «ENDIF»
-			
-			                «IF t instanceof TransitionRedirect»
-			                // create REDIRECT transition
-			                «produceTransitionsRedirect(state, t as TransitionRedirect)»
-			                «ENDIF»
-			
-			                «IF t instanceof TransitionEmbedded»
-			                // create EMBEDDED transition
-			                «produceTransitionsEmbedded(state, t as TransitionEmbedded)»
-			                «ENDIF»
-	        	        «ENDIF»
-	                «ENDIF»
+                «FOR t : state.transitions»
+                    «IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»
+                    ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
+                    «ENDIF»
+                    «IF (t.state != null && t.state.name != null) || t.name != null || t.locator != null»
+                        «IF(transitionProcessingRequired(t))»                				               	
+                            «IF t instanceof Transition»
+                            // create regular transition
+                            «produceTransitions(state, t as Transition)»
+                            «ENDIF»
+
+                            «IF t instanceof TransitionForEach»
+                            // create foreach transition
+                            «produceTransitionsForEach(state, t as TransitionForEach)»
+                            «ENDIF»
+
+                            «IF t instanceof TransitionAuto»
+                            // create AUTO transition
+                            «produceTransitionsAuto(state, t as TransitionAuto)»
+                            «ENDIF»
+
+                            «IF t instanceof TransitionRedirect»
+                            // create REDIRECT transition
+                            «produceTransitionsRedirect(state, t as TransitionRedirect)»
+                            «ENDIF»
+
+                            «IF t instanceof TransitionEmbedded»
+                            // create EMBEDDED transition
+                            «produceTransitionsEmbedded(state, t as TransitionEmbedded)»
+                            «ENDIF»
+                        «ENDIF»
+                    «ENDIF»
                 «ENDFOR»
                 return true;
             }

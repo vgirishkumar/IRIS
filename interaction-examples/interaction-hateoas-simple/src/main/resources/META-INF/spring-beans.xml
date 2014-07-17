@@ -46,9 +46,9 @@
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
-        <constructor-arg ref="stateMachine" />
+		<constructor-arg><null /></constructor-arg>
 	</bean>
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+	<bean id="metadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
@@ -70,14 +70,33 @@
 				<ref local="halProvider" />
  			</set>
    		</property>
-		<property name="serviceRoot" ref="ServiceRoot" />
+		<property name="serviceRootFactory" ref="serviceRootFactory" />
 	</bean>
 
 	<bean id="halProvider" class="com.temenos.interaction.media.hal.HALProvider">
-    	<constructor-arg ref="edmMetadata" />
-        <constructor-arg ref="stateMachine" />
+    	<constructor-arg ref="metadata" />
+        <constructor-arg ref="resourceStateProvider" />
 	</bean>
 
+
+
+	<bean id="states" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="locations">
+            <list>
+                <value>classpath:IRIS-*.properties</value>
+            </list>
+        </property>
+	</bean>
+	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider">
+		<constructor-arg ref="states" />
+	</bean>
+	<bean id="serviceRootFactory" class="com.temenos.interaction.winkext.LazyServiceRootFactory">
+		<property name="commandController" ref="commands" />
+		<property name="metadata" ref="metadata" />
+		<property name="transformer"><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></property>
+		<property name="beanMap" ref="states" />
+		<property name="resourceStateProvider" ref="resourceStateProvider" />
+	</bean>
 
 <!-- Java generated from RIM
     <bean id="behaviour" class="SimpleModel.HomeBehaviour" />
@@ -85,21 +104,19 @@
  -->
 <!-- Original example of handcoded behaviour
     <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
--->
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
         <constructor-arg name="initialState" ref="SimpleModel_Home_home" />
         <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
     </bean>
+-->
 
-   <bean id="resourceFactory" class="com.temenos.interaction.core.hypermedia.ResourceFactory">
-    </bean>
-	
-    <!-- Resources -->
+	<!-- Resources 
     <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
         <constructor-arg ref="commands" />
     	<constructor-arg ref="stateMachine" />
-        <constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="metadata" />
     </bean>
+	-->
 
     <!-- Commands -->
     <bean id="GETServiceRoot" class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />

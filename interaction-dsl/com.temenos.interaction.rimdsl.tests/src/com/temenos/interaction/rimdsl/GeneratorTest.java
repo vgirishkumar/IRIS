@@ -369,15 +369,15 @@ public class GeneratorTest {
 		underTest.doGenerate(model.eResource(), fsa);
 		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
+		String output = fsa.getAllFiles().get(expectedKey).toString();
 		
 		final String NEW_STATEMENT = "conditionalLinkExpressions = new ArrayList<Expression>();";
 		final String ADD_TRANSITION = ".method(\"GET\")" + LINE_SEP +
-				"                            .target(sB)" + LINE_SEP +
-				"                            .uriParameters(uriLinkageProperties)" + LINE_SEP +
-				"                            .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)" + LINE_SEP +
-				"                            .label(\"B\")";
+				"                    .target(sB)" + LINE_SEP +
+				"                    .uriParameters(uriLinkageProperties)" + LINE_SEP +
+				"                    .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)" + LINE_SEP +
+				"                    .label(\"B\")";
 		
 		int indexOfNewStatement = output.indexOf(NEW_STATEMENT);
 		assertTrue(indexOfNewStatement > 0);
