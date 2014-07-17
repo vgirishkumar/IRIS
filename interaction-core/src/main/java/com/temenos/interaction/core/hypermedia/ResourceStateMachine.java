@@ -184,11 +184,15 @@ public class ResourceStateMachine {
 	 * @invariant initial state not null
 	 * @param initialState
 	 * @param transformer
-	 */
+	 */	
 	public ResourceStateMachine(ResourceState initialState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
 		this(initialState, null, transformer, resourceLocatorProvider);
 	}
 	
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
+		this(initialState, exceptionState, transformer, null);
+	}
+
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
 		if (initialState == null) throw new RuntimeException("Initial state must be supplied");
 		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
