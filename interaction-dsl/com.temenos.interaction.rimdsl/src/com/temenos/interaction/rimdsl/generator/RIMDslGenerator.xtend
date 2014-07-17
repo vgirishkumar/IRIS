@@ -462,9 +462,7 @@ class RIMDslGenerator implements IGenerator {
     	if(transition.locator == null) {
     		return transitionTargetStateVariableName(transition)
     	} else {
-    		val String path = if (fromState.path != null) { fromState.path.name } else { "/" + fromState.name }
-    		
-    		return "new DynamicResourceState(\"" + fromState.entity.name + "\", \"dynamic\", new ArrayList<Action>(), \"" + path + "/dynamic\", \"" + transition.locator.name + "\", " + toStringArray(transition.locator.args) + ")"
+    		return "new DynamicResourceState(\"" + fromState.entity.name + "\", \"dynamic\", \"" + transition.locator.name + "\", " + toStringArray(transition.locator.args) + ")"
     	}
     }
     
