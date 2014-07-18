@@ -178,4 +178,8 @@ public abstract class IMState {
 	    IMState otherState = (IMState) other;
 	    return name.equals(otherState.name);
 	}
+	
+	public int hashCode() {
+		return name.hashCode();
+	}
 }
