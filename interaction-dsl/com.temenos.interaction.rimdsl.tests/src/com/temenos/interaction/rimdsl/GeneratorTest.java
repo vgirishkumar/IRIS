@@ -635,8 +635,8 @@ public class GeneratorTest {
 		
 		// collection
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/accTransactionsResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String accTransactionsOutput = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
+		String accTransactionsOutput = fsa.getAllFiles().get(expectedKey).toString();
 		// the constructor part
 		assertTrue(accTransactionsOutput.contains("\"/accTransactions\", createLinkRelations()"));
 		// createLinkRelations method
