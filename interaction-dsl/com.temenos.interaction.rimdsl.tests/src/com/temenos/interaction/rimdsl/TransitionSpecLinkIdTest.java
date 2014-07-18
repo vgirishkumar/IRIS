@@ -40,7 +40,7 @@ import com.temenos.interaction.rimdsl.rim.State;
 
 @InjectWith(RIMDslInjectorProvider.class)
 @RunWith(XtextRunner.class)
-public class DrillDownSpecIdTest {
+public class TransitionSpecLinkIdTest {
 	
 	@Inject 
 	IGenerator underTest;

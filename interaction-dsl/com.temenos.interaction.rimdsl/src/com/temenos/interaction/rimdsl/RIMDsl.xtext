@@ -163,7 +163,7 @@ TransitionSpec:
                 // MAY define a 'title:'
                 & title=Title?
                 // MAY define an image id
-                & id=ImageId?
+                & id=LinkId?
         )
     '}'
     )
@@ -222,7 +222,7 @@ Title:
     'title:' name=DQ_STRING    
 ;
 
-ImageId:
+LinkId:
 	'id:' name=DQ_STRING
 ;
 
