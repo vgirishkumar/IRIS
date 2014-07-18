@@ -18,14 +18,14 @@ The project allow you to:
 
 * Configure settings.xml to add the following maven repository http://maven.oams.com/content/groups/all/
 * Java JDK 1.7 (JDK 1.6 by skipping some integration test modules)
-* Maven 3
+* Maven 3.0
 
 
 ## Requires (outside Temenos)
 
 * Configure settings.xml to add the following maven repository https://repository-temenostech.forge.cloudbees.com/snapshot/
 * Java JDK 1.7 (JDK 1.6 by skipping some integration test modules)
-* Maven 3
+* Maven 3.0
 
 
 ## Requires (standalone)
@@ -33,7 +33,7 @@ The project allow you to:
 * svn checkout http://cambridge.googlecode.com/svn/trunk/ cambridge-read-only
 * https://github.com/lucasgut/halbuilder-core.git
 * Java JDK 1.7 (JDK 1.6 by skipping some integration test modules)
-* Maven 3
+* Maven 3.0
 
 
 ## Build commands:
@@ -50,5 +50,4 @@ NB - Due to te InMemory database the integration tests need quite a bit of memor
 `mvn site` Build maven site
 
 `mvn site:deploy` Deploy maven site [default: C:\temp\iris\site]
-
 
