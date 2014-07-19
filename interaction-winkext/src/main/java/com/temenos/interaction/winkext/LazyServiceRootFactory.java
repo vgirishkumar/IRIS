@@ -22,7 +22,9 @@ package com.temenos.interaction.winkext;
  */
 
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -30,6 +32,7 @@ import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
@@ -43,12 +46,18 @@ import com.temenos.interaction.winkext.ServiceRootFactory;
 public class LazyServiceRootFactory implements ServiceRootFactory {
 
 	private ResourceStateProvider resourceStateProvider;
+	// resources by path
+	private Map<String, LazyResourceDelegate> resources = new HashMap<String, LazyResourceDelegate>();
+	private ResourceStateMachine hypermediaEngine;
 	
     /**
      * Map of ResourceState bean names, to paths.
      */
 	private Properties beanMap;
-	
+	private Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
+	private Map<String, String> resourcePathsByState = new HashMap<String, String>();
+
+	// members passed to lazy resources
 	private NewCommandController commandController;
 	private Metadata metadata;
 	private ResourceLocatorProvider resourceLocatorProvider;
@@ -56,20 +65,35 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 	private Transformer transformer;
 
 	public Set<HTTPResourceInteractionModel> getServiceRoots() {
+		hypermediaEngine = new ResourceStateMachine.Builder()
+				.initial(null)
+				.exception(exception)
+				.transformer(transformer)
+				.resourceLocatorProvider(resourceLocatorProvider)
+				.resourceStateProvider(resourceStateProvider)
+				.build();
+
 		Set<HTTPResourceInteractionModel> services = new HashSet<HTTPResourceInteractionModel>();
-		for (Object stateObj : beanMap.keySet()) {
-			String stateName = stateObj.toString();
-			String binding = beanMap.getProperty(stateName);
-			// split into methods and path
-			String[] strs = binding.split(" ");
-			String path = strs[1];
-			LazyResourceDelegate resource = new LazyResourceDelegate(commandController,
-					metadata,
-					resourceLocatorProvider,
-					exception,
-					transformer,
-					resourceStateProvider, stateName, path);
-			services.add(resource);
+		build(beanMap);
+		for (String stateName : resourceMethodsByState.keySet()) {
+			String path = resourcePathsByState.get(stateName);
+			LazyResourceDelegate resource = resources.get(path);
+			Set<String> methods = resourceMethodsByState.get(stateName);
+			if (resource == null) {
+				resource = new LazyResourceDelegate(hypermediaEngine,
+						resourceStateProvider,
+						commandController,
+						metadata,
+						stateName, 
+						path,
+						methods);
+			} else {
+				resource.addResource(stateName, methods);
+			}
+			resources.put(path, resource);
+		}
+		for (String path : resources.keySet()) {
+			services.add(resources.get(path));
 		}
 		return services;
 	}
@@ -131,4 +155,65 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 		this.resourceStateProvider = resourceStateProvider;
 	}
 
+	public ResourceStateMachine getHypermediaEngine() {
+		return hypermediaEngine;
+	}
+
+	public void setHypermediaEngine(ResourceStateMachine hypermediaEngine) {
+		this.hypermediaEngine = hypermediaEngine;
+	}
+
+	protected Map<String, Set<String>> getResourceStatesByPath(Properties beanMap) {
+		Map<String, Set<String>> resourceStatesByPath = new HashMap<String, Set<String>>();
+		for (Object key : beanMap.keySet()) {
+			String stateName = key.toString();
+			String binding = beanMap.getProperty(stateName);
+			// split into methods and path
+			String[] strs = binding.split(" ");
+			String path = strs[1];
+			
+			Set<String> states = resourceStatesByPath.get(stateName);
+			if (states == null) {
+				states = new HashSet<String>();
+			}
+			states.add(stateName);
+			resourceStatesByPath.put(path, states);
+			
+		}
+		return resourceStatesByPath;
+	}
+
+	protected void build(Properties beanMap) {
+		for (Object key : beanMap.keySet()) {
+			String stateName = key.toString();
+			String binding = beanMap.getProperty(stateName);
+			// split into methods and path
+			String[] strs = binding.split(" ");
+			String methodPart = strs[0];
+			String path = strs[1];
+			// path
+			resourcePathsByState.put(stateName, path);
+			// methods
+			Set<String> methods = resourceMethodsByState.get(stateName);
+			if (methods == null) {
+				methods = new HashSet<String>();
+			}
+			String[] methodsStrs = methodPart.split(",");
+			for (String method : methodsStrs) {
+				methods.add(method);
+			}
+			resourceMethodsByState.put(stateName, methods);
+			
+		}
+	}
+
+	protected Map<String, Set<String>> getResourceMethodsByState() {
+		return resourceMethodsByState;
+	}
+
+	protected Map<String, String> getResourcePathsByState() {
+		return resourcePathsByState;
+	}
+
+	
 }

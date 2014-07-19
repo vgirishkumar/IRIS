@@ -64,7 +64,6 @@ public class ResourceState implements Comparable<ResourceState> {
 
 	/* error state */
 	private ResourceState errorState;
-
 	
 	/**
 	 * Construct a pseudo ResourceState.  A transition to one's self will not create a new resource.
@@ -281,7 +280,6 @@ public class ResourceState implements Comparable<ResourceState> {
 		return new Transition.Builder()
 				.source(this)
 				.method("GET")
-				.path(getPath())
 				.uriParameters(uriLinkageMap)
 				.target(this)
 				.build();
@@ -295,6 +293,18 @@ public class ResourceState implements Comparable<ResourceState> {
 		assert(transition != null);
 		assert(transition.getSource() == null);
 		transition.setSource(this);
+		ResourceState targetState = transition.getTarget();
+		assert(targetState != null);
+		if (!(targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState)) {
+			intialiseTransition(transition);
+		}
+
+		//Add the transition
+		logger.debug("Putting transition: " + transition.getCommand() + " [" + transition + "]");
+		transitions.add(transition);
+	}
+	
+	protected void intialiseTransition(Transition transition) {
 		ResourceState targetState = transition.getTarget();
 		assert(targetState != null);
 
@@ -311,10 +321,12 @@ public class ResourceState implements Comparable<ResourceState> {
 		
 		//Apply link properties to action parameters
 		applyLinkPropertiesToActionParameters(uriLinkageMap, targetState);
-		
-		//Add the transition
-		logger.debug("Putting transition: " + transition.getCommand() + " [" + transition + "]");
-		transitions.add(transition);
+	}
+	
+	protected void initialiseLazyTargets() {
+		for (Transition t : transitions) {
+			intialiseTransition(t);
+		}
 	}
 	
 	public void setTransitions(List<Transition> transitions) {
@@ -334,7 +346,6 @@ public class ResourceState implements Comparable<ResourceState> {
 		assert resourceStateModel != null;
 		addTransition(new Transition.Builder()
 				.method(httpMethod)
-				.path(resourceStateModel.getInitial().getPath())
 				.target(resourceStateModel.getInitial())
 				.build());
 	}
@@ -441,7 +452,6 @@ public class ResourceState implements Comparable<ResourceState> {
 	public boolean isFinalState() {
 		return transitions.isEmpty();
 	}
-	
 	public boolean equals(Object other) {
 		//check for self-comparison
 	    if ( this == other ) return true;

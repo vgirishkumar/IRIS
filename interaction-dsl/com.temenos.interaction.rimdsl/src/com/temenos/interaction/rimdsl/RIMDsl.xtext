@@ -93,8 +93,6 @@ State:
                 & entity=Entity
                	// MUST define a 'view:' command or 'actions []' commands
                 & impl=ImplRef
-                // MAY define one or more methods
-                & methods+=MethodRef*
                 // MAY define relations [ "http://www.temenos.com/rels/input" , GloballyDefinedRelation ]
                 & ('relations' '[' ((relations+=RelationRef) (',' relations+=RelationRef)* ) ']')?
                 // MAY define a 'path:'
@@ -114,6 +112,8 @@ ImplRef:
 		('view:' view=ResourceCommand ) 
 			// actions [ SomeCommand, AnotherCommand ]
 			| ('actions' '[' ((actions+=ResourceCommand) (',' actions+=ResourceCommand)* ) ']')
+			// commands [ GET: SomeCommand ]
+            | ('commands' '[' ((methods+=MethodRef) (',' methods+=MethodRef)* ) ']')
 	)
 ;
 

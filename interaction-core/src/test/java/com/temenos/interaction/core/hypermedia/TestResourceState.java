@@ -116,7 +116,7 @@ public class TestResourceState {
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 		assertEquals("PUT", begin.getTransition(exists).getCommand().getMethod());
-		assertEquals("{id}", begin.getTransition(exists).getCommand().getPath());
+		assertEquals("{id}", begin.getTransition(exists).getTarget().getPath());
 	}
 
 	@Test
@@ -147,7 +147,7 @@ public class TestResourceState {
 		ResourceState begin = new ResourceState("SomeEntity", "initial", new ArrayList<Action>(), "/tests");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "/test/{id}");
 		begin.addTransition(new Transition.Builder().method("PUT").target(exists).uriParameters(uriLinkageMap).build());
-		assertEquals("/test/{id}", begin.getTransition(exists).getCommand().getPath());
+		assertEquals("/test/{id}", begin.getTransition(exists).getTarget().getPath());
 		assertTrue(begin.getTransition(exists).getCommand().getUriParameters().containsKey("id"));
 	}
 	
@@ -190,7 +190,7 @@ public class TestResourceState {
 		exists2.addTransition("GET", rsm1);
 		
 		assertEquals("GET", exists.getTransition(initial2).getCommand().getMethod());
-		assertEquals("/entity/2", exists.getTransition(initial2).getCommand().getPath());
+		assertEquals("/entity/2", exists.getTransition(initial2).getTarget().getPath());
 	}
 	
 	@Test

@@ -412,7 +412,6 @@ public class TestHALProvider {
 		Transition childToParent = new Transition.Builder()
 				.source(new ResourceState("PERSON", "child", new ArrayList<Action>(), "/child/{id}"))
 				.target(new ResourceState("PERSON", "parent", new ArrayList<Action>(), "/parent/{id}"))
-				.path("/path")
 				.build();
 		embedded.put(childToParent, parentEntityResource);
 		// child has a parent

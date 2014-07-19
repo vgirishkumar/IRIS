@@ -24,6 +24,7 @@ package com.temenos.interaction.springdsl;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -37,6 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
+import com.temenos.interaction.core.hypermedia.Transition;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 //ApplicationContext will be loaded from "classpath:/com/temenos/interaction/springdsl/TestSpringDSLResourceStateProvider-context.xml"
@@ -50,6 +52,15 @@ public class TestSpringDSLResourceStateProvider {
 	public void testGetResourceState() {
 		ResourceState actual = resourceStateProvider.getResourceState("SimpleModel_Home_home");
 		assertEquals("home", actual.getName());
+	}
+
+//	@Test
+	public void testGetResourceStateWithTransitionsInitialised() {
+		ResourceState actual = resourceStateProvider.getResourceState("SimpleModel_Home_TestTransition");
+		assertEquals("TestTransition", actual.getName());
+		List<Transition> transitions = actual.getTransitions();
+		assertEquals(1, transitions.size());
+		assertEquals("access a property from the real target to check it is loaded", "/", transitions.get(0).getTarget().getPath());
 	}
 
 	@Test

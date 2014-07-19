@@ -62,7 +62,6 @@ public class Transition {
 
 	// TransitionCommand parameters
 	private String method;
-	private String path;
 	private int flags;
 	// conditional link evaluation expression 
 	private Expression evaluation;
@@ -78,6 +77,10 @@ public class Transition {
 	
 	public ResourceState getTarget() {
 		return target;
+	}
+
+	public void setTarget(ResourceState target) {
+		this.target = target;
 	}
 
 	public TransitionCommandSpec getCommand() {
@@ -166,7 +169,6 @@ public class Transition {
 		private ResourceLocator locator;
 		private String label;
 		private String method;
-		private String path;
 		private int flags;
 		private Expression evaluation;
 		private Map<String, String> uriParameters;
@@ -196,11 +198,6 @@ public class Transition {
 			return this;
 		}
 
-		public Builder path(String path) {
-			this.path = path;
-			return this;
-		}
-
 		public Builder flags(int flags) {
 			this.flags = flags;
 			return this;
@@ -227,14 +224,12 @@ public class Transition {
 		this.locator = builder.locator;
 		this.label = builder.label;
 		this.method = builder.method;
-		this.path = builder.path;
 		this.flags = builder.flags;
 		this.evaluation = builder.evaluation;
 		this.uriParameters = builder.uriParameters;
 
 		// this one's a bit special
 		this.command = new TransitionCommandSpec(method, 
-				(path == null ? target.getPath() : path), 
 				flags, evaluation, uriParameters);
 	}
 }

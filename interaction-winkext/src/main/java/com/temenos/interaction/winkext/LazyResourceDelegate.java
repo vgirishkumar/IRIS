@@ -23,6 +23,10 @@ package com.temenos.interaction.winkext;
 
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
@@ -35,11 +39,9 @@ import org.apache.wink.common.DynamicResource;
 
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
-import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
@@ -47,14 +49,12 @@ import com.temenos.interaction.core.rim.ResourceInteractionModel;
 
 public class LazyResourceDelegate implements HTTPResourceInteractionModel, DynamicResource {
 
+	private ResourceStateMachine hypermediaEngine;
+	private ResourceStateProvider resourceStateProvider;
 	private NewCommandController commandController;
 	private Metadata metadata;
-	private ResourceLocatorProvider resourceLocatorProvider;
-	private ResourceState exception;
-	private Transformer transformer;
-	private ResourceStateProvider resourceStateProvider;
 
-	private String resourceName = null;
+	private Map<String, Set<String>> resourceNamesToMethods = new HashMap<String, Set<String>>();
 	private String path = null;
 	
 	private HTTPHypermediaRIM realResource = null;
@@ -62,40 +62,53 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	
 	/**
 	 * The class binding an instance of a ResourceState to a path
+	 * @param hypermediaEngine registry of all resources
 	 * @param resourceStateProvider interface that is used to lazily lookup/create ResourceState instance
 	 * @param resourceName the state name
 	 * @param path the resource path
 	 */
-	public LazyResourceDelegate(NewCommandController commandController,
-			Metadata metadata,
-			ResourceLocatorProvider resourceLocatorProvider,
-			ResourceState exception,
-			Transformer transformer,
+	public LazyResourceDelegate(ResourceStateMachine hypermediaEngine,
 			ResourceStateProvider resourceStateProvider, 
+			NewCommandController commandController,
+			Metadata metadata,
 			String resourceName, 
-			String path) {
+			String path,
+			Set<String> methods) {
+		this.hypermediaEngine = hypermediaEngine;
 		this.commandController = commandController;
 		this.metadata = metadata;
-		this.resourceLocatorProvider = resourceLocatorProvider;
-		this.exception = exception;
-		this.transformer = transformer;
 		this.resourceStateProvider = resourceStateProvider;
-		this.resourceName = resourceName;
+		this.resourceNamesToMethods.put(resourceName, methods);
 		this.path = path;
 	}
 
 	private HTTPHypermediaRIM getRealResource() {
 		if (realResource == null) {
-			ResourceState currentState = resourceStateProvider.getResourceState(resourceName);
-			ResourceStateMachine hypermediaEngine = new ResourceStateMachine(currentState, exception, transformer, resourceLocatorProvider);
-			realResource = new HTTPHypermediaRIM(commandController, hypermediaEngine, metadata);
+			for (String resourceName : resourceNamesToMethods.keySet()) {
+				ResourceState currentState = resourceStateProvider.getResourceState(resourceName);
+				for (String method : resourceNamesToMethods.get(resourceName)) {
+					hypermediaEngine.register(currentState, method);
+				}
+			}
+			realResource = new HTTPHypermediaRIM(null, commandController, hypermediaEngine, metadata, path, false);
 		}
 		return realResource;
 	}
 	
+	public void addResource(String name, Set<String> newMethods) {
+		synchronized (resourceNamesToMethods) {
+			Set<String> methods = resourceNamesToMethods.get(name);
+			if (methods == null) {
+				methods = new HashSet<String>();
+			}
+			methods.addAll(newMethods);
+			resourceNamesToMethods.put(name, methods);
+		}
+	}
+	
 	@Override
     public String getBeanName() {
-		return resourceName;
+		return resourceNamesToMethods.toString();
     }
 
 	@Override
@@ -133,7 +146,6 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 
 	@Override
     public HTTPResourceInteractionModel getParent() {
-//        return parent;
 		return null;
     }
 

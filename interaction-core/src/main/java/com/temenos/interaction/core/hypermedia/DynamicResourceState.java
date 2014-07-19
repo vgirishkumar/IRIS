@@ -42,7 +42,7 @@ public class DynamicResourceState extends ResourceState {
 	 * @param path
 	 */
 	public DynamicResourceState(String entityName, String name, String resourceLocatorName, String... resourceLocatorArgs) {
-		super(entityName, name, null, null);
+		super(entityName, name, null, "DYNAMIC");
 		this.resourceLocatorName = resourceLocatorName;
 		this.resourceLocatorArgs = resourceLocatorArgs;
 	}		

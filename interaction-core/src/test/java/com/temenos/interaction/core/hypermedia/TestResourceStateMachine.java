@@ -99,9 +99,8 @@ public class TestResourceStateMachine {
 	@Test
 	public void testCreateLinkHrefSimple() {
 		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class));
-		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
-			.path("/test").
-			build();
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test"))
+			.build();
 		Link result = engine.createLink(t, null, null);
 		assertEquals("/baseuri/test", result.getHref());
 	}
@@ -109,9 +108,8 @@ public class TestResourceStateMachine {
 	@Test
 	public void testCreateLinkHrefReplaceUsingEntity() {
 		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
-		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
-			.path("/test/{noteId}").
-			build();
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test/{noteId}"))
+			.build();
 		Link result = engine.createLink(t, createTestNote("123"), null);
 		assertEquals("/baseuri/test/123", result.getHref());
 	}
@@ -121,10 +119,9 @@ public class TestResourceStateMachine {
 		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
 		Map<String,String> uriParameters = new HashMap<String,String>();
 		uriParameters.put("test", "{noteId}");
-		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test"))
 			.uriParameters(uriParameters)
-			.path("/test").
-			build();
+			.build();
 		Link result = engine.createLink(t, createTestNote("123"), null);
 		assertEquals("/baseuri/test?test=123", result.getHref());
 	}
@@ -134,10 +131,9 @@ public class TestResourceStateMachine {
 		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
 		Map<String,String> uriParameters = new HashMap<String,String>();
 		uriParameters.put("test", "{noteId}");
-		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test"))
 			.uriParameters(uriParameters)
-			.path("/test").
-			build();
+			.build();
 		MultivaluedMap<String,String> queryParameters = new MultivaluedMapImpl<String>();
 		queryParameters.add("noteId", "123");
 		Link result = engine.createLink(t, null, queryParameters);
@@ -149,10 +145,9 @@ public class TestResourceStateMachine {
 		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
 		Map<String,String> uriParameters = new HashMap<String,String>();
 		uriParameters.put("filter", "{$filter}");
-		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test"))
 			.uriParameters(uriParameters)
-			.path("/test").
-			build();
+			.build();
 		MultivaluedMap<String,String> queryParameters = new MultivaluedMapImpl<String>();
 		queryParameters.add("$filter", "123");
 		Link result = engine.createLink(t, null, queryParameters);
@@ -162,8 +157,7 @@ public class TestResourceStateMachine {
 	@Test
 	public void testCreateLinkHrefAllQueryParameters() {
 		ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
-		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mock(ResourceState.class))
-			.path("/test").
+		Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test")).
 			build();
 		MultivaluedMap<String,String> queryParameters = new MultivaluedMapImpl<String>();
 		queryParameters.add("$filter", "123");
@@ -171,6 +165,12 @@ public class TestResourceStateMachine {
 		assertEquals("/baseuri/test?$filter=123", result.getHref());
 	}
 
+	private ResourceState mockTarget(String path) {
+		ResourceState target = mock(ResourceState.class);
+		when(target.getPath()).thenReturn(path);
+		return target;
+	}
+	
 	/*
 	 * Evaluate custom link relation, via the Link header.  See (see rfc5988)
 	 * We return a Link if the header is set and the @{link Transition} can be found.

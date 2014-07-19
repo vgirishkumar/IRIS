@@ -93,8 +93,12 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 	
 	@Override
 	public ResourceState getResourceState(String name) {
-		if (name != null)
-			return (ResourceState) applicationContext.getBean(name);
+		if (name != null) {
+			ResourceState resource = (ResourceState) applicationContext.getBean(name);
+			// initialise lazy resources
+//			resource.setResourceStateProvider(this);
+			return resource;
+		}
 		return null;
 	}
 

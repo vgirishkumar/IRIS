@@ -26,9 +26,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.List;
@@ -265,7 +262,10 @@ public class HypermediaITCase extends JerseyTest {
 			assertNotNull(deleteLink);
 
 			// execute delete with custom link relation (see rfc5988)
-			ClientResponse deleteResponse = Client.create().resource(deleteLink.getHref())
+			Client client = Client.create();
+			client.setFollowRedirects(false);
+			ClientResponse deleteResponse = client
+					.resource(deleteLink.getHref())
 					.header("Link", "<" + deleteLink.getHref() + ">; rel=\"" + deleteLink.getName() + "\"")
 					.accept(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
 			// 205 "Reset Content" instructs user agent to reload the resource
