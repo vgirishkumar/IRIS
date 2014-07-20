@@ -81,7 +81,8 @@
 	<bean id="atomProvider" class="com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider">
     	<constructor-arg name="metadataOData4j" ref="metadataOData4j" />
 		<constructor-arg name="metadata" ref="metadata" />
-        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
+		<constructor-arg name="resourceStateProvider" ref="resourceStateProvider" />
+		<constructor-arg name="serviceDocument" ref="serviceDocument" />
     	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
 	</bean>
     <bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
@@ -94,6 +95,7 @@
 	</bean>
 
 	<bean id="entityTransformer" class="com.temenos.interaction.commands.odata.OEntityTransformer" />
+	<bean id="serviceDocument" factory-bean="stateMachine" factory-method="getInitial" />
 
 	<!-- 
 		Import the main SpringDSL entry point for IRIS
