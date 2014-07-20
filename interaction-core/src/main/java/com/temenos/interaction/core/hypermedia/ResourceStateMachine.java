@@ -91,7 +91,7 @@ public class ResourceStateMachine {
 	}
 
 	public ResourceStateMachine(ResourceState initialState, ResourceLocatorProvider resourceLocatorProvider) {	
-		this(initialState, null, null, resourceLocatorProvider);
+		this(initialState, null, null, resourceLocatorProvider, null);
 	}
 	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState) {
@@ -99,7 +99,7 @@ public class ResourceStateMachine {
 	}
 	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, ResourceLocatorProvider resourceLocatorProvider) {
-		this(initialState, exceptionState, null, resourceLocatorProvider);
+		this(initialState, exceptionState, null, resourceLocatorProvider, null);
 	}
 	
 	public NewCommandController getCommandController() {
@@ -180,6 +180,9 @@ public class ResourceStateMachine {
 	public ResourceStateMachine(ResourceState initialState, Transformer transformer) {
 		this(initialState, null, transformer, null);
 	}
+	public ResourceStateMachine(ResourceState initialState, Transformer transformer, ResourceStateProvider resourceStateProvider) {
+		this(initialState, null, transformer, null, resourceStateProvider);
+	}
 	
 	/**
 	 * 
@@ -188,14 +191,18 @@ public class ResourceStateMachine {
 	 * @param transformer
 	 */	
 	public ResourceStateMachine(ResourceState initialState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
-		this(initialState, null, transformer, resourceLocatorProvider);
+		this(initialState, null, transformer, resourceLocatorProvider, null);
 	}
 	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
-		this(initialState, exceptionState, transformer, null);
+		this(initialState, exceptionState, transformer, null, null);
 	}
 
-	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer, ResourceStateProvider resourceStateProvider) {
+		this(initialState, exceptionState, transformer, null, resourceStateProvider);
+	}
+
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider, ResourceStateProvider resourceStateProvider) {
 		if (initialState == null) throw new RuntimeException("Initial state must be supplied");
 		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
 		assert(exceptionState == null || exceptionState.isException());
@@ -204,6 +211,7 @@ public class ResourceStateMachine {
 		this.exception = exceptionState;
 		this.transformer = transformer;
 		this.resourceLocatorProvider = resourceLocatorProvider;
+		this.resourceStateProvider = resourceStateProvider;
 		build();
 	}
 
@@ -247,9 +255,11 @@ public class ResourceStateMachine {
 	private void collectStates(Collection<ResourceState> result, ResourceState currentState) {
 		if (currentState == null)
 			return;
+		currentState = checkAndResolve(currentState);
 		if (result.contains(currentState)) return;
 		result.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
+			next = checkAndResolve(next);
 			if (!next.equals(initial)) {
 				collectStates(result, next);
 			}
@@ -955,7 +965,11 @@ public class ResourceStateMachine {
 		return resourceStateProvider;
 	}
 	
-	private ResourceState checkAndResolve(ResourceState targetState) {
+	public void setResourceStateProvider(ResourceStateProvider resourceStateProvider) {
+		this.resourceStateProvider = resourceStateProvider;
+	}
+
+	public ResourceState checkAndResolve(ResourceState targetState) {
 		if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
 			targetState = resourceStateProvider.getResourceState(targetState.getName());
 		}
