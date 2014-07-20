@@ -339,7 +339,7 @@ class RIMDslGenerator implements IGenerator {
                     .target(«findTargetState(fromState, transition)»)
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-                    .label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
+                    .label("«getTransitionLabel(transition)»")
                     .build());
 	'''
 	
@@ -356,7 +356,7 @@ class RIMDslGenerator implements IGenerator {
                     .target(«findTargetState(fromState, transition)»)
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-                    .label(« getTransitionLabel(transition) »)
+                    .label("«getTransitionLabel(transition)»")
                     .build());
     '''
     		
@@ -438,14 +438,8 @@ class RIMDslGenerator implements IGenerator {
 		}
 	}	
 
-    def getTransitionLabel(TransitionRef transition) {
-    	var String label = "\"\""
-    	
-    	if (transition.spec != null && transition.spec.title != null) { 
-    		label = "\"" + transition.spec.title.name + "\"" 
-		}
-		    	
-    	return label
+    def static getTransitionLabel(TransitionRef transition) {
+    	return if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }
     }
     
     def findTargetState(State fromState, TransitionRef transition) {

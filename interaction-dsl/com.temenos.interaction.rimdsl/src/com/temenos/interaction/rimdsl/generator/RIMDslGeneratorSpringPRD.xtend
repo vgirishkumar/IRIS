@@ -281,14 +281,14 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				<property name="evaluation"><null /></property>
 		«ENDIF»
 
-				<property name="label" value="«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»" />
+				<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
 			</bean><!-- end transition : «transitionTargetStateVariableName(transition)» -->
 
 		<!--
 			«stateVariableName(fromState)».addTransition(new Transition.Builder()
 				.method("«transition.event.httpMethod»").target(«transitionTargetStateVariableName(transition)»).uriParameters(uriLinkageProperties).
 				evaluation( conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null).
-				label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
+				label("«RIMDslGenerator::getTransitionLabel(transition)»")
 				.build());
 		-->
 	'''
@@ -349,7 +349,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF transition.spec == null»
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
-			<property name="label" value=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else if(transition.state != null) { "\"" + transition.state.name + "\"" } else { "\"\"" } » />
+			<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
 		</bean>
 
 		<!--
@@ -359,7 +359,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				.target(«transitionTargetStateVariableName(transition)»)
 				.uriParameters(uriLinkageProperties)
 				.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-				.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else if(transition.state != null) { "\"" + transition.state.name + "\"" } else { "\"\"" } »)
+				.label("«RIMDslGenerator::getTransitionLabel(transition)»")
 				.build());            		            	
 		-->
 	'''
@@ -435,7 +435,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF transition.spec == null»
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
-			<property name="label" value=«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }» />
+			<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
 		</bean>
 		<!--
 			«stateVariableName(fromState)».addTransition(new Transition.Builder()
@@ -444,7 +444,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				.target(«transitionTargetStateVariableName(transition)»)
 				.uriParameters(uriLinkageProperties)
 				.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-				.label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
+				.label("«RIMDslGenerator::getTransitionLabel(transition)»")
 				.build());
 		-->
     '''
