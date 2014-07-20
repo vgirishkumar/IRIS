@@ -44,15 +44,12 @@
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
-        <constructor-arg ref="stateMachine" />
+		<constructor-arg><null /></constructor-arg>
 	</bean>
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+	<bean id="metadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
-	
-	<!-- Import Portable Resource Definitions (PRD) -->
-	<import resource="classpath:IRIS-*-PRD.xml" />
 	
     <!-- Persistence manager -->
     <bean id="persistence" class="com.temenos.interaction.example.mashup.twitter.Persistence" >
@@ -72,7 +69,7 @@
 	</bean>
 
 	<bean id="halProvider" class="com.temenos.interaction.media.hal.HALProvider">
-    	<constructor-arg ref="edmMetadata" />
+    	<constructor-arg ref="metadata" />
         <constructor-arg ref="stateMachine" />
 	</bean>
 
@@ -87,7 +84,7 @@
     <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
         <constructor-arg ref="commands" />
     	<constructor-arg ref="stateMachine" />
-        <constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="metadata" />
     </bean>
 
     <!-- Commands -->
