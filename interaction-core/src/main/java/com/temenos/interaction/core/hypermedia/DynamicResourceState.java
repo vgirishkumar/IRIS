@@ -22,6 +22,7 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,7 +43,7 @@ public class DynamicResourceState extends ResourceState {
 	 * @param path
 	 */
 	public DynamicResourceState(String entityName, String name, String resourceLocatorName, String... resourceLocatorArgs) {
-		super(entityName, name, null, "DYNAMIC");
+		super(entityName, name, new ArrayList<Action>(), "DYNAMIC");
 		this.resourceLocatorName = resourceLocatorName;
 		this.resourceLocatorArgs = resourceLocatorArgs;
 	}		
