@@ -55,6 +55,14 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 	 * Map of request to state names
 	 */
 	private Map<String, String> resourceStatesByRequest = new HashMap<String, String>();
+	/**
+	 * Map of resource methods where state name is the key
+	 */
+	private Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
+	/**
+	 * Map to a resource path where the state name is the key
+	 */
+	private Map<String, String> resourcePathsByState = new HashMap<String, String>();
 	
 	public SpringDSLResourceStateProvider(Properties beanMap) {
 		this.beanMap = beanMap;
@@ -71,7 +79,18 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 			String methodPart = strs[0];
 			String path = strs[1];
 			// methods
-			String[] methods = methodPart.split(",");
+			String[] methodsStrs = methodPart.split(",");
+			// path
+			resourcePathsByState.put(stateName, path);
+			// methods
+			Set<String> methods = resourceMethodsByState.get(stateName);
+			if (methods == null) {
+				methods = new HashSet<String>();
+			}
+			for (String method : methodsStrs) {
+				methods.add(method);
+			}
+			resourceMethodsByState.put(stateName, methods);
 			for (String method : methods) {
 				String request = method + " " + path;
 				logger.debug("Binding ["+stateName+"] to ["+request+"]");
@@ -95,8 +114,6 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 	public ResourceState getResourceState(String name) {
 		if (name != null) {
 			ResourceState resource = (ResourceState) applicationContext.getBean(name);
-			// initialise lazy resources
-//			resource.setResourceStateProvider(this);
 			return resource;
 		}
 		return null;
@@ -112,6 +129,18 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 
 	@Override
 	public Map<String, Set<String>> getResourceStatesByPath() {
+		return resourceStatesByPath;
+	}
+
+	public Map<String, Set<String>> getResourceMethodsByState() {
+		return resourceMethodsByState;
+	}
+
+	public Map<String, String> getResourcePathsByState() {
+		return resourcePathsByState;
+	}
+
+	protected Map<String, Set<String>> getResourceStatesByPath(Properties beanMap) {
 		return resourceStatesByPath;
 	}
 

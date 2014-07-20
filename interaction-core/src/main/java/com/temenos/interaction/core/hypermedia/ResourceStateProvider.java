@@ -21,15 +21,49 @@ package com.temenos.interaction.core.hypermedia;
  * #L%
  */
 
-
 import java.util.Map;
 import java.util.Set;
 
 public interface ResourceStateProvider {
 
+	/**
+	 * Lookup and return a single {@link ResourceState} by name
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public ResourceState getResourceState(String name);
+
+	/**
+	 * Using the supplied event and path return the {@link ResourceState} that
+	 * is being requested.
+	 * 
+	 * @param event
+	 * @param resourcePath
+	 * @return
+	 */
 	public ResourceState determineState(Event event, String resourcePath);
+
+	/**
+	 * Return a map of resource state names where the path is the key.
+	 * 
+	 * @return
+	 */
 	public Map<String, Set<String>> getResourceStatesByPath();
-	
-	
+
+	/**
+	 * Return a map of resource methods accepted by a resources where the
+	 * resource state name is the key.
+	 * 
+	 * @return
+	 */
+	public Map<String, Set<String>> getResourceMethodsByState();
+
+	/**
+	 * Return a map to a resource path where the resource state name is the key.
+	 * 
+	 * @return
+	 */
+	public Map<String, String> getResourcePathsByState();
+
 }

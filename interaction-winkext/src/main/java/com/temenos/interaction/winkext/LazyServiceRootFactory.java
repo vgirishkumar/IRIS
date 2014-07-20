@@ -25,7 +25,6 @@ package com.temenos.interaction.winkext;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import com.temenos.interaction.core.command.NewCommandController;
@@ -50,13 +49,6 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 	private Map<String, LazyResourceDelegate> resources = new HashMap<String, LazyResourceDelegate>();
 	private ResourceStateMachine hypermediaEngine;
 	
-    /**
-     * Map of ResourceState bean names, to paths.
-     */
-	private Properties beanMap;
-	private Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
-	private Map<String, String> resourcePathsByState = new HashMap<String, String>();
-
 	// members passed to lazy resources
 	private NewCommandController commandController;
 	private Metadata metadata;
@@ -74,7 +66,8 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 				.build();
 
 		Set<HTTPResourceInteractionModel> services = new HashSet<HTTPResourceInteractionModel>();
-		build(beanMap);
+		Map<String, Set<String>> resourceMethodsByState = resourceStateProvider.getResourceMethodsByState();
+		Map<String, String> resourcePathsByState = resourceStateProvider.getResourcePathsByState();
 		for (String stateName : resourceMethodsByState.keySet()) {
 			String path = resourcePathsByState.get(stateName);
 			LazyResourceDelegate resource = resources.get(path);
@@ -97,14 +90,6 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 		}
 		return services;
 	}
-
-    public void setBeanMap(Properties beanMap) {
-    	this.beanMap = beanMap;
-    }
-    
-    public Properties getBeanMap() {
-    	return beanMap;
-    }
 
 	public NewCommandController getCommandController() {
 		return commandController;
@@ -161,58 +146,6 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 
 	public void setHypermediaEngine(ResourceStateMachine hypermediaEngine) {
 		this.hypermediaEngine = hypermediaEngine;
-	}
-
-	protected Map<String, Set<String>> getResourceStatesByPath(Properties beanMap) {
-		Map<String, Set<String>> resourceStatesByPath = new HashMap<String, Set<String>>();
-		for (Object key : beanMap.keySet()) {
-			String stateName = key.toString();
-			String binding = beanMap.getProperty(stateName);
-			// split into methods and path
-			String[] strs = binding.split(" ");
-			String path = strs[1];
-			
-			Set<String> states = resourceStatesByPath.get(stateName);
-			if (states == null) {
-				states = new HashSet<String>();
-			}
-			states.add(stateName);
-			resourceStatesByPath.put(path, states);
-			
-		}
-		return resourceStatesByPath;
-	}
-
-	protected void build(Properties beanMap) {
-		for (Object key : beanMap.keySet()) {
-			String stateName = key.toString();
-			String binding = beanMap.getProperty(stateName);
-			// split into methods and path
-			String[] strs = binding.split(" ");
-			String methodPart = strs[0];
-			String path = strs[1];
-			// path
-			resourcePathsByState.put(stateName, path);
-			// methods
-			Set<String> methods = resourceMethodsByState.get(stateName);
-			if (methods == null) {
-				methods = new HashSet<String>();
-			}
-			String[] methodsStrs = methodPart.split(",");
-			for (String method : methodsStrs) {
-				methods.add(method);
-			}
-			resourceMethodsByState.put(stateName, methods);
-			
-		}
-	}
-
-	protected Map<String, Set<String>> getResourceMethodsByState() {
-		return resourceMethodsByState;
-	}
-
-	protected Map<String, String> getResourcePathsByState() {
-		return resourcePathsByState;
 	}
 
 	

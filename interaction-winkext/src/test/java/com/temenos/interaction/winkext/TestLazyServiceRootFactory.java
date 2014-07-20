@@ -27,6 +27,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -50,7 +51,7 @@ public class TestLazyServiceRootFactory {
 		Properties beanMap = new Properties();
 		beanMap.put("SimpleModel_Home_home", "GET /test");
 		LazyServiceRootFactory factory = new LazyServiceRootFactory();
-		factory.setBeanMap(beanMap);
+		factory.setResourceStateProvider(mockResourceStateProvider(beanMap));
 		Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
 		assertEquals(1, serviceRoots.size());
 		assertEquals("/test", serviceRoots.iterator().next().getResourcePath());
@@ -62,7 +63,6 @@ public class TestLazyServiceRootFactory {
 		beanMap.put("SimpleModel_Home_home", "GET /test");
 		LazyServiceRootFactory factory = new LazyServiceRootFactory();
 		factory.setResourceStateProvider(mockResourceStateProvider(beanMap));
-		factory.setBeanMap(beanMap);
 		factory.setCommandController(mock(NewCommandController.class));
 		factory.setMetadata(mockMetadata());
 		Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
@@ -81,7 +81,6 @@ public class TestLazyServiceRootFactory {
 		beanMap.put("SimpleModel_Home_test", "PUT /test");
 		LazyServiceRootFactory factory = new LazyServiceRootFactory();
 		factory.setResourceStateProvider(mockResourceStateProvider(beanMap));
-		factory.setBeanMap(beanMap);
 		factory.setCommandController(mock(NewCommandController.class));
 		factory.setMetadata(mockMetadata());
 		Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
@@ -95,14 +94,37 @@ public class TestLazyServiceRootFactory {
 	}
 
 	private ResourceStateProvider mockResourceStateProvider(Properties beanMap) {
-		final Map<String, Set<String>> resourceStatesByPath = new LazyServiceRootFactory().getResourceStatesByPath(beanMap);
+		
+		final Map<String, Set<String>> resourceStatesByPath =  new HashMap<String, Set<String>>();
 		final Map<String, ResourceState> statesByName = new HashMap<String, ResourceState>();
+		final Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
+		final Map<String, String> resourcePathsByState = new HashMap<String, String>();
 		for (Object key : beanMap.keySet()) {
 			String stateName = key.toString();
 			String binding = beanMap.getProperty(stateName);
 			// split into methods and path
 			String[] strs = binding.split(" ");
+			String methodPart = strs[0];
 			String path = strs[1];
+			String[] methodsStrs = methodPart.split(",");
+			Set<String> stateNames = resourceStatesByPath.get(path);
+			if (stateNames == null) {
+				stateNames = new HashSet<String>();
+			}
+			stateNames.add(stateName.toString());
+			resourceStatesByPath.put(path, stateNames);
+			// path
+			resourcePathsByState.put(stateName, path);
+			// methods
+			Set<String> methods = resourceMethodsByState.get(stateName);
+			if (methods == null) {
+				methods = new HashSet<String>();
+			}
+			for (String method : methodsStrs) {
+				methods.add(method);
+			}
+			resourceMethodsByState.put(stateName, methods);
+
 			statesByName.put(stateName, new ResourceState("mock", stateName, new ArrayList<Action>(), path));
 		}
 		return new ResourceStateProvider() {
@@ -119,6 +141,16 @@ public class TestLazyServiceRootFactory {
 			@Override
 			public ResourceState determineState(Event event, String resourcePath) {
 				return null;
+			}
+
+			@Override
+			public Map<String, Set<String>> getResourceMethodsByState() {
+				return resourceMethodsByState;
+			}
+
+			@Override
+			public Map<String, String> getResourcePathsByState() {
+				return resourcePathsByState;
 			}
 		};
 	}
