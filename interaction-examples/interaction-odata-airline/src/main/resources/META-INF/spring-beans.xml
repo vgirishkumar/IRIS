@@ -46,9 +46,6 @@
 	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
         <constructor-arg ref="stateMachine" />
 	</bean>
-	<!-- 
-		<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
-	 -->
 	<bean id="metadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
 	<!-- Odata4j Metadata -->
