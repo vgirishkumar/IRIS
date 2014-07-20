@@ -323,12 +323,6 @@ public class ResourceState implements Comparable<ResourceState> {
 		applyLinkPropertiesToActionParameters(uriLinkageMap, targetState);
 	}
 	
-	protected void initialiseLazyTargets() {
-		for (Transition t : transitions) {
-			intialiseTransition(t);
-		}
-	}
-	
 	public void setTransitions(List<Transition> transitions) {
 		if (transitions != null) {
 			for (Transition t : transitions) {
