@@ -189,7 +189,7 @@ public class ResourceStateMachine {
 	 * @invariant initial state not null
 	 * @param initialState
 	 * @param transformer
-	 */	
+	 */
 	public ResourceStateMachine(ResourceState initialState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
 		this(initialState, null, transformer, resourceLocatorProvider, null);
 	}

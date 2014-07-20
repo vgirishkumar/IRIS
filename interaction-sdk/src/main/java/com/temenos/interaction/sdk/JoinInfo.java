@@ -63,4 +63,10 @@ public class JoinInfo {
 		}
 		return false;
 	}
+	public int hashCode() {
+		int hash = 0;
+		if ( name != null ) hash = name.hashCode();
+		if ( targetType != null ) hash += 4097 * targetType.hashCode();
+		return hash;
+	}
 }

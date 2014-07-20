@@ -63,4 +63,11 @@ public class FieldInfo {
 		}
 		return false;
 	}
+	
+	public int hashCode() {
+		int hash = 0;
+		if ( name != null ) hash = name.hashCode();
+		if ( type != null ) hash += 4097 * type.hashCode();
+		return hash;
+	}
 }

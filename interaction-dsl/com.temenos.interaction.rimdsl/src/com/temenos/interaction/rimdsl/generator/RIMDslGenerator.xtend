@@ -439,22 +439,12 @@ class RIMDslGenerator implements IGenerator {
 	}	
 
     def getTransitionLabel(TransitionRef transition) {
-    	var String label = ""
+    	var String label = "\"\""
     	
     	if (transition.spec != null && transition.spec.title != null) { 
     		label = "\"" + transition.spec.title.name + "\"" 
-    	} else {
-    		label = "\""
-    		  
-    		if(transition.locator == null) {
-    			label = label + transition.state.name
-    		} else { 
-    			label = label + "dynamic"
-    		}
-    		
-    		label = label + "\""
-    	}
-    	
+		}
+		    	
     	return label
     }
     
