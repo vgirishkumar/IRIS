@@ -34,6 +34,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -119,7 +120,9 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Ap
 	@Override
 	public ResourceState getResourceState(String name) {
 		if (name != null) {
-			ResourceState resource = (ResourceState) applicationContext.getBean(name);
+			String beanXml = "IRIS-"+name+"-PRD.xml";
+			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml}, applicationContext);
+			ResourceState resource = (ResourceState) context.getBean(name);
 			return resource;
 		}
 		return null;
