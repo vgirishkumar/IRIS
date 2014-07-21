@@ -92,6 +92,7 @@ public class ResourceGETExpression implements Expression {
 		} else {
 			target = ourTransition.getTarget();
 		}
+		target = hypermediaEngine.checkAndResolve(target);
     	assert(ourTransition != null);
 		if (target == null)
 			throw new IllegalArgumentException("Indicates a problem with the RIM, it allowed an invalid state to be supplied");

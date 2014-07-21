@@ -66,10 +66,12 @@ import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -92,12 +94,18 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	@Context
 	private Request requestContext;
 	private Metadata metadata = null;
-	private ResourceStateMachine hypermediaEngine;
+	private ResourceStateProvider resourceStateProvider;
     private RepresentationFactory representationFactory = new StandardRepresentationFactory();
 
-	public HALProvider(Metadata metadata, ResourceStateMachine hypermediaEngine) {
+	public HALProvider(Metadata metadata, ResourceStateProvider resourceStateProvider) {
 		this(metadata);
-		this.hypermediaEngine = hypermediaEngine;
+		this.resourceStateProvider = resourceStateProvider;
+	}
+
+	@Deprecated
+	public HALProvider(Metadata metadata, ResourceStateMachine rsm) {
+		this(metadata);
+		this.resourceStateProvider = new DefaultResourceStateProvider(rsm);
 	}
 
 	public HALProvider(Metadata metadata) {
@@ -494,14 +502,15 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			}
 			String httpMethod = requestContext.getMethod();
 			Event event = new Event(httpMethod, httpMethod);
-			ResourceState state = hypermediaEngine.determineState(event, resourcePath);
+			ResourceState state = resourceStateProvider.determineState(event, resourcePath);
 			if (state != null) {
 				entityName = state.getEntityName();
 			} else {
 				logger.error("No state found, dropping back to path matching");
-				Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
+				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();
 				for (String path : pathToResourceStates.keySet()) {
-					for (ResourceState s : pathToResourceStates.get(path)) {
+					for (String stateName : pathToResourceStates.get(path)) {
+						ResourceState s = resourceStateProvider.getResourceState(stateName);
 						String pathIdParameter = InteractionContext.DEFAULT_ID_PATH_ELEMENT;
 						if (s.getPathIdParameter() != null) {
 							pathIdParameter = s.getPathIdParameter();

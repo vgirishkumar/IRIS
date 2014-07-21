@@ -185,6 +185,10 @@ public class Link {
 		return false;
 	}
 	
+	public int hashCode() {
+		return this.toString().hashCode();
+	}
+	
 	public static class Builder {
 		private Transition transition;
 		private String id;

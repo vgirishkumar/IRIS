@@ -36,6 +36,8 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.LazyCollectionResourceState;
+import com.temenos.interaction.core.hypermedia.LazyResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
@@ -72,7 +74,13 @@ public class HypermediaValidator {
 		 * actions for the resource state.
 		 */
 		for (ResourceState currentState : hypermediaEngine.getStates()) {
-			logger.debug("Checking configuration for [" + currentState + "] " + currentState.getPath());
+			if (currentState instanceof LazyResourceState || currentState instanceof LazyCollectionResourceState) {
+				logger.debug("Skipping check for lazy resource state [" + currentState + "] " + currentState.getPath());
+				continue;
+			} else {
+				logger.debug("Checking configuration for [" + currentState + "] " + currentState.getPath());
+			}
+
 			if (metadata.getEntityMetadata(currentState.getEntityName()) == null) {
 				fireNoMetadataFound(hypermediaEngine, currentState);
 				valid = false;
@@ -179,7 +187,7 @@ public class HypermediaValidator {
 						sb.append("style=\"dotted\"");
 					} else {
 						sb.append("label=\"")
-						.append(transition.getCommand())
+						.append(transition.getCommand() + " " + transition.getTarget().getPath())
 						.append("\"");
 						
 					}
@@ -235,7 +243,7 @@ public class HypermediaValidator {
 					for(Transition transition : transitions) {
 						sb.append("    ").append(s.getEntityName() + s.getName()).append("->").append(targetState.getEntityName() + targetState.getName())
 							.append("[label=\"")
-							.append(transition.getCommand())
+							.append(transition.getCommand() + " " + transition.getTarget().getPath())
 							.append("\"]").append("\n");
 					}
 				}

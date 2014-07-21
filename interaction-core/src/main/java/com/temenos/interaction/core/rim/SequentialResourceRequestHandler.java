@@ -34,6 +34,9 @@ import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.LazyCollectionResourceState;
+import com.temenos.interaction.core.hypermedia.LazyResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -59,7 +62,13 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 			}
 	    	Event event = new Event("", method);
 			// determine action
-	    	InteractionCommand action = hypermediaEngine.buildWorkflow(t.getTarget().getActions());
+	    	ResourceState targetState = t.getTarget();
+			if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
+				targetState = rimHandler.getHypermediaEngine().getResourceStateProvider().getResourceState(targetState.getName());
+				t.setTarget(targetState);
+			}
+	    	
+	    	InteractionCommand action = hypermediaEngine.buildWorkflow(targetState.getActions());
 			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
 			newPathParameters.putAll(ctx.getPathParameters());
 			RESTResource currentResource = ctx.getResource();
@@ -70,7 +79,7 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 						newPathParameters.add(key, transitionProperties.get(key).toString());
 				}
 			}
-	    	InteractionContext newCtx = new InteractionContext(ctx, null, newPathParameters, null, t.getTarget());
+	    	InteractionContext newCtx = new InteractionContext(ctx, null, newPathParameters, null, targetState);
 	    	newCtx.setResource(null);
 			Response response = rimHandler.handleRequest(headers, 
 					newCtx, 

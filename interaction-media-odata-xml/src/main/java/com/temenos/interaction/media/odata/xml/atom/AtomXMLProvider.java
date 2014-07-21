@@ -79,11 +79,13 @@ import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
+import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
@@ -110,7 +112,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	private final MetadataOData4j metadataOData4j;
 	private final Metadata metadata;
-	private final ResourceStateMachine hypermediaEngine;
+	private final ResourceStateProvider resourceStateProvider;
 	private final ResourceState serviceDocument;
 	private final Transformer transformer;
 	private final LinkInterceptor linkInterceptor = new ODataLinkInterceptor(this);
@@ -127,14 +129,18 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * 		Transformer to convert an entity to a properties map
 	 */
 	public AtomXMLProvider(MetadataOData4j metadataOData4j, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
+		this(metadataOData4j, metadata, new DefaultResourceStateProvider(hypermediaEngine), hypermediaEngine.getResourceStateByName("ServiceDocument"), transformer);
+	}
+	
+	public AtomXMLProvider(MetadataOData4j metadataOData4j, Metadata metadata, ResourceStateProvider resourceStateProvider, ResourceState serviceDocument, Transformer transformer) {
 		this.metadataOData4j = metadataOData4j;
 		this.metadata = metadata;
-		this.hypermediaEngine = hypermediaEngine;
-		this.serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+		this.resourceStateProvider = resourceStateProvider;
+		assert(resourceStateProvider != null);
+		this.serviceDocument = serviceDocument;
 		if (serviceDocument == null)
 			throw new RuntimeException("No 'ServiceDocument' found.");
 		assert(metadata != null);
-		assert(hypermediaEngine != null);
 		this.transformer = transformer;
 		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 		feedWriter = new AtomFeedFormatWriter(serviceDocument);
@@ -531,14 +537,15 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			}
 			String httpMethod = requestContext.getMethod();
 			Event event = new Event(httpMethod, httpMethod);
-			state = hypermediaEngine.determineState(event, resourcePath);
+			state = resourceStateProvider.determineState(event, resourcePath);
 			if (state == null) {
 				logger.error("No state found, dropping back to path matching " + resourcePath);
 				// escape the braces in the regex
 				resourcePath = Pattern.quote(resourcePath);
-				Map<String, Set<ResourceState>> pathToResourceStates = hypermediaEngine.getResourceStatesByPath();
+				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();
 				for (String path : pathToResourceStates.keySet()) {
-					for (ResourceState s : pathToResourceStates.get(path)) {
+					for (String name : pathToResourceStates.get(path)) {
+						ResourceState s = resourceStateProvider.getResourceState(name);
 						String pattern = null;
 						if (s instanceof CollectionResourceState) {
 							pattern = resourcePath + "(|\\(\\))";

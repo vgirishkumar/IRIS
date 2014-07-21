@@ -46,16 +46,13 @@
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
-        <constructor-arg ref="stateMachine" />
+		<constructor-arg><null /></constructor-arg>
 	</bean>
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+	<bean id="metadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 	
-	<!-- Import Portable Resource Definitions (PRD) -->
-	<import resource="classpath:IRIS-*-PRD.xml" />
-
     <!-- Persistence manager -->
     <bean id="persistence" class="com.temenos.interaction.example.hateoas.simple.Persistence" >
         <constructor-arg ref="entityManagerFactory" />
@@ -70,36 +67,29 @@
 				<ref local="halProvider" />
  			</set>
    		</property>
-		<property name="serviceRoot" ref="ServiceRoot" />
+		<property name="serviceRootFactory" ref="serviceRootFactory" />
 	</bean>
 
 	<bean id="halProvider" class="com.temenos.interaction.media.hal.HALProvider">
-    	<constructor-arg ref="edmMetadata" />
-        <constructor-arg ref="stateMachine" />
+    	<constructor-arg ref="metadata" />
+        <constructor-arg ref="resourceStateProvider" />
 	</bean>
 
 
-<!-- Java generated from RIM
-    <bean id="behaviour" class="SimpleModel.HomeBehaviour" />
-    <bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
- -->
-<!-- Original example of handcoded behaviour
-    <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
--->
-    <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-        <constructor-arg name="initialState" ref="SimpleModel_Home_home" />
-        <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
-    </bean>
+	<!-- 
+		Import the main SpringDSL entry point for IRIS
+		
+		Initialises the ResourceStateProvider and understands how to construct
+		ResourceState instances using Spring
+	-->
+	<import resource="classpath:IRIS-SpringDSL-main.xml" />
 
-   <bean id="resourceFactory" class="com.temenos.interaction.core.hypermedia.ResourceFactory">
-    </bean>
-	
-    <!-- Resources -->
-    <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
-        <constructor-arg ref="commands" />
-    	<constructor-arg ref="stateMachine" />
-        <constructor-arg ref="edmMetadata" />
-    </bean>
+	<bean id="serviceRootFactory" class="com.temenos.interaction.winkext.LazyServiceRootFactory">
+		<property name="commandController" ref="commands" />
+		<property name="metadata" ref="metadata" />
+		<property name="transformer"><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></property>
+		<property name="resourceStateProvider" ref="resourceStateProvider" />
+	</bean>
 
     <!-- Commands -->
     <bean id="GETServiceRoot" class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />

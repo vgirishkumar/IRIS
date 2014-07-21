@@ -34,6 +34,7 @@ public class Action {
 	private final String name;
 	private final TYPE type;
 	private Properties properties;
+	private String method;
 	
 	public Action(String name, TYPE type) {
 		this.name = name;
@@ -44,6 +45,13 @@ public class Action {
 		this.name = name;
 		this.type = type;
 		this.properties = props;
+	}
+
+	public Action(String name, TYPE type, Properties props, String method) {
+		this.name = name;
+		this.type = type;
+		this.properties = props;
+		this.method = method;
 	}
 
 	public String getName() {
@@ -58,7 +66,11 @@ public class Action {
 		return properties;
 	}
 	
+	public String getMethod() {
+		return method;
+	}
+	
 	public String toString() {
-		return "Action(name=\"" + name + "\", type=\"" + type + "\")";
+		return "Action(name=\"" + name + "\", type=\"" + type + "\", method=\"" + method + "\")";
 	}
 }

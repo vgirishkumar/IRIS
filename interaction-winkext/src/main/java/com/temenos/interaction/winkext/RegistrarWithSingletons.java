@@ -58,6 +58,13 @@ public class RegistrarWithSingletons extends Registrar {
     }
     
     /**
+     * Using a ServiceRootFactory get a set of service roots to bind to this instance of wink.
+     */
+    public void setServiceRootFactory(ServiceRootFactory drs) {
+    	setServiceRoots(drs.getServiceRoots());
+    }
+        
+    /**
      * @precondition Set<HTTPResourceInteractionModel> != null
      * @param rootRIMs
      */
@@ -78,8 +85,10 @@ public class RegistrarWithSingletons extends Registrar {
     	}
     	addDynamicResource(rim);
     	Collection<ResourceInteractionModel> children = rim.getChildren();
-    	for (ResourceInteractionModel child : children) {
-    		addDynamicResource(child);
+    	if (children != null) {
+        	for (ResourceInteractionModel child : children) {
+        		addDynamicResource(child);
+        	}
     	}
     }
     
@@ -119,5 +128,14 @@ public class RegistrarWithSingletons extends Registrar {
         	resources.put(pathWithoutBrackets, drWithoutBrackets);
         	this.getInstances().add(drWithoutBrackets);
     	}
+    }
+    
+    /**
+     * Using the path lookup the resource; return null if a resource has not been previously registered.
+     * @param path
+     * @return
+     */
+    public HTTPResourceInteractionModel getDynamicResource(String path) {
+    	return resources.get(path);
     }
 }

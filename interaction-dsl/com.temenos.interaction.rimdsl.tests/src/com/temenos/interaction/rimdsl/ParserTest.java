@@ -206,6 +206,40 @@ public class ParserTest {
 	    assertNotNull(model.getStates().get(0).getImpl().getView());
 	}
 	
+	private final static String SINGLE_STATE_METHODS_COMMAND_ONLY_RIM = "" + 
+			"rim Test {" + LINE_SEP + 
+			"	event GET {" + LINE_SEP + 
+			"		method: GET" + LINE_SEP + 
+			"	}" + LINE_SEP +
+			"	event POST {" + LINE_SEP + 
+			"		method: POST" + LINE_SEP + 
+			"	}" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command CreateEntity" + LINE_SEP +
+			"	initial resource A {" + LINE_SEP + 
+			"		type: collection" + LINE_SEP + 
+			"		entity: ENTITY" + LINE_SEP + 
+			"		commands [ GET: GetEntity, POST: CreateEntity ]" + LINE_SEP +
+			"	}" + LINE_SEP + 
+			"}" + LINE_SEP + "";
+
+	@Test
+	public void testParseSingleStateMultipleCommands() throws Exception {
+		DomainModel domainModel = parser.parse(SINGLE_STATE_METHODS_COMMAND_ONLY_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be exactly one states
+		assertEquals(1, model.getStates().size());
+	    assertEquals("A", model.getStates().get(0).getName());
+
+	    // there should be an interaction for this state
+	    assertEquals("GET", model.getStates().get(0).getImpl().getMethods().get(0).getEvent().getHttpMethod());
+	    // there should be an action for this state
+	    assertEquals("GetEntity", model.getStates().get(0).getImpl().getMethods().get(0).getCommand().getCommand().getName());
+	}
+	
 	private final static String SINGLE_STATE_NO_COMMANDS_RIM = "" +
 	"rim Test {" + LINE_SEP +	
 	"initial resource A {" + LINE_SEP +

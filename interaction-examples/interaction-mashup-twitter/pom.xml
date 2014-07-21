@@ -120,11 +120,6 @@
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
-    	<artifactId>interaction-commands-odata</artifactId>
-    	<type>jar</type>
-    </dependency>
-    <dependency>
-    	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-winkext</artifactId>
     	<type>jar</type>
     	<scope>runtime</scope>

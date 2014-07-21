@@ -138,7 +138,7 @@ public class TestHypermediaValidator {
 				"    Gother[label=\"G.other /entities/{id}\"]\n" +
 				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n" +
 				"    Gother->final[label=\"\"]\n" +
-				"    Ginitial->Gother[label=\"PUT /entities/{id} (OK(other))\"]\n" +
+				"    Ginitial->Gother[label=\"PUT (OK(other)) /entities/{id}\"]\n" +
 				"}";
 		
 		String ENTITY_NAME = "G";

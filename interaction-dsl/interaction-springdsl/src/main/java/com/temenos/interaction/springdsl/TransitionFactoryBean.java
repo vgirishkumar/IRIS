@@ -36,7 +36,6 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 
 	// TransitionCommand parameters
 	private String method;
-	private String path;
 	private int flags;
 	// conditional link evaluation expression
 	private Expression evaluation;
@@ -49,7 +48,6 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 		builder.source(source);
 		builder.target(target);
 		builder.method(method);
-		builder.path(path);
 		builder.flags(flags);
 		builder.evaluation(evaluation);
 		builder.uriParameters(uriParameters);
@@ -96,14 +94,6 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 
 	public void setMethod(String method) {
 		this.method = method;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
 	}
 
 	public int getFlags() {

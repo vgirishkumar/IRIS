@@ -156,7 +156,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		this(parent, commandController, hypermediaEngine, metadata, currentState.getResourcePath(), false);		
 	}
 	
-	private HTTPHypermediaRIM(
+	public HTTPHypermediaRIM(
 			HTTPHypermediaRIM parent, 
 			NewCommandController commandController, 
 			ResourceStateMachine hypermediaEngine,
@@ -217,7 +217,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	public ResourceRequestHandler getResourceRequestHandler() {
 		return resourceRequestHandler;
 	}
-
+	
 	public String getResourcePath() {
 		return resourcePath;
 	}

@@ -43,14 +43,12 @@ public class TestTransition {
 		tb.source(begin)
 			.target(begin2)
 			.method("PUT")
-			.path("stuff")
 			.flags(Transition.FOR_EACH);
 		Transition t = tb.build();
 		Transition.Builder tb2 = new Transition.Builder();
 		tb2.source(begin)
 			.target(begin2)
 			.method("PUT")
-			.path("stuff")
 			.flags(Transition.FOR_EACH);
 		Transition t2 = tb2.build();
 		assertEquals(t, t2);
@@ -64,14 +62,12 @@ public class TestTransition {
 		tb.source(null)
 			.target(begin2)
 			.method("PUT")
-			.path("stuff")
 			.flags(Transition.FOR_EACH);
 		Transition t = tb.build();
 		Transition.Builder tb2 = new Transition.Builder();
 		tb2.source(null)
 			.target(begin2)
 			.method("PUT")
-			.path("stuff")
 			.flags(Transition.FOR_EACH);
 		Transition t2 = tb2.build();
 		assertEquals(t, t2);
@@ -88,14 +84,12 @@ public class TestTransition {
 		tb.source(begin)
 			.target(end)
 			.method("PUT")
-			.path("stuff")
 			.flags(Transition.FOR_EACH);
 		Transition t = tb.build();
 		Transition.Builder tb2 = new Transition.Builder();
 		tb2.source(begin)
 			.target(exists)
 			.method("PUT")
-			.path("stuff")
 			.flags(Transition.FOR_EACH);
 		Transition t2 = tb2.build();
 		assertFalse(t.equals(t2));
@@ -105,13 +99,11 @@ public class TestTransition {
 		tb3.source(begin)
 			.target(end)
 			.method("PUT")
-			.path("stuff")
 			.flags(Transition.FOR_EACH);
 		Transition t3 = tb3.build();
 		Transition.Builder tb4 = new Transition.Builder();
 		tb4.source(begin)
 			.target(end)
-			.path("stuffed")
 			.flags(Transition.AUTO);
 		Transition t4 = tb2.build();
 		assertFalse(t3.equals(t4));
@@ -129,7 +121,6 @@ public class TestTransition {
 		Transition t = new Transition.Builder()
 				.source(begin)
 				.method("PUT")
-				.path("stuff")
 				.flags(Transition.FOR_EACH)
 				.uriParameters(uriParameters)
 				.target(exists)
@@ -140,7 +131,6 @@ public class TestTransition {
 		Transition t2 = new Transition.Builder()
 				.source(begin)
 				.method("PUT")
-				.path("stuff")
 				.flags(Transition.FOR_EACH)
 				.uriParameters(uriParameters)
 				.target(exists)
@@ -157,7 +147,6 @@ public class TestTransition {
 		Transition t = new Transition.Builder()
 				.source(begin)
 				.method("PUT")
-				.path("stuff")
 				.flags(Transition.FOR_EACH)
 				.target(exists)
 				.label("label1")
@@ -165,7 +154,6 @@ public class TestTransition {
 		Transition t2 = new Transition.Builder()
 				.source(begin)
 				.method("PUT")
-				.path("stuff")
 				.flags(Transition.FOR_EACH)
 				.target(exists)
 				.label("differentlabel")
@@ -182,7 +170,6 @@ public class TestTransition {
 		Transition t = new Transition.Builder()
 				.source(begin)
 				.method("PUT")
-				.path("stuff")
 				.target(end)
 				.build();
 		assertEquals("entity.begin>PUT>entity.end", t.getId());
@@ -196,8 +183,7 @@ public class TestTransition {
 		Transition.Builder tb = new Transition.Builder();
 		tb.source(begin)
 			.target(end)
-			.method("PUT")
-			.path("stuff");
+			.method("PUT");
 		Transition t = tb.build();
 		assertEquals("entity.begin>PUT>entity.end", t.toString());
 	}
@@ -211,7 +197,6 @@ public class TestTransition {
 		tba.source(begin)
 			.target(end)
 			.method("GET")
-			.path("stuff")
 			.label("A");
 		Transition ta = tba.build();
 		assertEquals("A", ta.getLabel());
@@ -219,7 +204,6 @@ public class TestTransition {
 		tbb.source(begin)
 			.target(end)
 			.method("GET")
-			.path("stuff")
 			.label("B");
 		Transition tb = tbb.build();
 		assertEquals("B", tb.getLabel());
@@ -233,14 +217,12 @@ public class TestTransition {
 		Transition ta = new Transition.Builder()
 				.source(begin)
 				.method("GET")
-				.path("stuff")
 				.target(end)
 				.label("A")
 				.build();
 		Transition taPut = new Transition.Builder()
 				.source(begin)
 				.method("PUT")
-				.path("stuff")
 				.target(end)
 				.label("A")
 				.build();
@@ -249,7 +231,6 @@ public class TestTransition {
 		Transition tb = new Transition.Builder()
 				.source(begin)
 				.method("GET")
-				.path("stuff")
 				.target(end)
 				.label("B")
 				.build();
@@ -261,31 +242,31 @@ public class TestTransition {
 		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 		Transition t = new Transition.Builder()
-				.source(begin).method("GET").path("stuff").target(end).build();
+				.source(begin).method("GET").target(end).build();
 		assertFalse(t.isGetFromCollectionToEntityResource());
 
 		begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		end = new CollectionResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 		t = new Transition.Builder()
-				.source(begin).method("GET").path("stuff").target(end).build();
+				.source(begin).method("GET").target(end).build();
 		assertFalse(t.isGetFromCollectionToEntityResource());
 
 		begin = new CollectionResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 		t = new Transition.Builder()
-				.source(begin).method("GET").path("stuff").target(end).build();
+				.source(begin).method("GET").target(end).build();
 		assertTrue(t.isGetFromCollectionToEntityResource());
 
 		begin = new CollectionResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		end = new ResourceState("otherEntity", "end", new ArrayList<Action>(), "{id}");
 		t = new Transition.Builder()
-				.source(begin).method("GET").path("stuff").target(end).build();
+				.source(begin).method("GET").target(end).build();
 		assertFalse(t.isGetFromCollectionToEntityResource());
 
 		begin = new CollectionResourceState("otherEntity", "begin", new ArrayList<Action>(), "{id}");
 		end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
 		t = new Transition.Builder()
-				.source(begin).method("GET").path("stuff").target(end).build();
+				.source(begin).method("GET").target(end).build();
 		assertFalse(t.isGetFromCollectionToEntityResource());
 	}
 
@@ -299,14 +280,12 @@ public class TestTransition {
 		Transition ta = new Transition.Builder()
 				.source(begin)
 				.method("GET")
-				.path("stuff")
 				.uriParameters(params)
 				.target(end)
 				.build();
 		Transition taPut = new Transition.Builder()
 				.source(begin)
 				.method("PUT")
-				.path("stuff")
 				.target(end)
 				.build();
 		assertEquals("entity.begin>GET>entity.end", ta.getId());
@@ -316,7 +295,6 @@ public class TestTransition {
 		Transition tb = new Transition.Builder()
 				.source(begin)
 				.method("GET")
-				.path("stuff")
 				.uriParameters(params)
 				.target(end)
 				.build();

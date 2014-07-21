@@ -33,7 +33,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
@@ -204,8 +203,7 @@ public class TestMetadata {
 	public void testEntityList() {
 		String entity1 = "CountryList";
 		String entity2 = "CustomerInfo";
-		TermFactory termFactory = new TermFactory();
-		ResourceMetadataManager rmManager = new ResourceMetadataManager(termFactory);
+		ResourceMetadataManager rmManager = new ResourceMetadataManager();
 		Metadata metadata = new Metadata(rmManager);
 		EntityMetadata em1 = metadata.getEntityMetadata(entity1);
 		EntityMetadata em2 = metadata.getEntityMetadata(entity2);
@@ -218,8 +216,7 @@ public class TestMetadata {
 	public void testAllEntity() {
 		String entity1 = "CountryList";
 		String entity2 = "CustomerInfo";
-		TermFactory termFactory = new TermFactory();
-		ResourceMetadataManager rmManager = new ResourceMetadataManager(termFactory);
+		ResourceMetadataManager rmManager = new ResourceMetadataManager();
 		Metadata metadata = new Metadata(rmManager);
 		Map<String, EntityMetadata> mapEntity = metadata.getEntitiesMetadata();
 		
