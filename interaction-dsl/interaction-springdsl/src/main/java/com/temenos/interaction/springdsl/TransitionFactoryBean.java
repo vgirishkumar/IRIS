@@ -21,7 +21,6 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
-
 import java.util.Map;
 
 import org.springframework.beans.factory.FactoryBean;
@@ -37,19 +36,18 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 
 	// TransitionCommand parameters
 	private String method;
-	private String path;
 	private int flags;
-	// conditional link evaluation expression 
+	// conditional link evaluation expression
 	private Expression evaluation;
 	private Map<String, String> uriParameters;
 
 	@Override
 	public Transition getObject() throws Exception {
 		Transition.Builder builder = new Transition.Builder();
+		builder.label(label);
 		builder.source(source);
 		builder.target(target);
 		builder.method(method);
-		builder.path(path);
 		builder.flags(flags);
 		builder.evaluation(evaluation);
 		builder.uriParameters(uriParameters);
@@ -96,14 +94,6 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 
 	public void setMethod(String method) {
 		this.method = method;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
 	}
 
 	public int getFlags() {

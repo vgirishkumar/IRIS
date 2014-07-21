@@ -53,10 +53,9 @@ public class HypermediaTemplateHelper {
 	public static MultivaluedMap<String, String> getPathParametersForTargetState(Transition transition, Map<String, Object> transitionProperties) {
 		//Parse source and target parameters from the transition's 'path' and 'originalPath' attributes respectively
     	MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
-		TransitionCommandSpec cs = transition.getCommand();
-		String resourcePath = cs.getPath();
+		String resourcePath = transition.getTarget().getPath();
 		String[] sourceParameters = getPathTemplateParameters(resourcePath);
-		String[] targetParameters = getPathTemplateParameters(cs.getPath());
+		String[] targetParameters = getPathTemplateParameters(resourcePath);
 		
 		//Apply transition properties to parameters
 		for(int i=0; i < sourceParameters.length; i++) {

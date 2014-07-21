@@ -69,26 +69,37 @@ import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand
 public class ResourceStateMachine {
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
 	
-	public final ResourceState initial;
-	public final ResourceState exception;
-	public final Transformer transformer;
-	public NewCommandController commandController;
+	// members
+	ResourceState initial;
+	ResourceState exception;
+	Transformer transformer;
+	NewCommandController commandController;
+	ResourceStateProvider resourceStateProvider;
+	ResourceLocatorProvider resourceLocatorProvider;
 	
 	// optimised access
 	private Map<String,Transition> transitionsById = new HashMap<String,Transition>();
 	private Map<String,Transition> transitionsByRel = new HashMap<String,Transition>();
 	private List<ResourceState> allStates = new ArrayList<ResourceState>();
 	private Map<String, Set<String>> interactionsByPath = new HashMap<String, Set<String>>();
-	private Map<ResourceState, Set<String>> interactionsByState = new HashMap<ResourceState, Set<String>>();
+	private Map<String, Set<String>> interactionsByState = new HashMap<String, Set<String>>();
 	private Map<String, Set<ResourceState>> resourceStatesByPath = new HashMap<String, Set<ResourceState>>();
 	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
 	
 	public ResourceStateMachine(ResourceState initialState) {
-		this(initialState, null, null);
+		this(initialState, null, null, null);
 	}
 
+	public ResourceStateMachine(ResourceState initialState, ResourceLocatorProvider resourceLocatorProvider) {	
+		this(initialState, null, null, resourceLocatorProvider, null);
+	}
+	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState) {
-		this(initialState, exceptionState, null);
+		this(initialState, exceptionState, null, null);
+	}
+	
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, ResourceLocatorProvider resourceLocatorProvider) {
+		this(initialState, exceptionState, null, resourceLocatorProvider, null);
 	}
 	
 	public NewCommandController getCommandController() {
@@ -111,7 +122,7 @@ public class ResourceStateMachine {
 	
 	public List<Action> determineActions(Event event, ResourceState state) {
 		List<Action> actions = new ArrayList<Action>();
-		Set<String> interactions = getInteractionByState().get(state);
+		Set<String> interactions = getInteractionByState().get(state.getName());
 		// TODO turn interactions into Events
 		if (interactions.contains(event.getMethod())) {
 			for (Action a : state.getActions()) {
@@ -145,7 +156,7 @@ public class ResourceStateMachine {
 		Set<ResourceState> resourceStates = getResourceStatesByPath().get(resourcePath);
 		if (resourceStates != null) {
 			for (ResourceState s : resourceStates) {
-				Set<String> interactions = getInteractionByState().get(s);
+				Set<String> interactions = getInteractionByState().get(s.getName());
 				if (interactions.contains(event.getMethod())) {
 					if(state == null || interactions.size() == 1 || !event.getMethod().equals("GET")) {		//Avoid overriding existing view actions
 						if (state != null && state.getViewAction() != null) {
@@ -167,11 +178,31 @@ public class ResourceStateMachine {
 	 * @param transformer
 	 */
 	public ResourceStateMachine(ResourceState initialState, Transformer transformer) {
-		this(initialState, null, transformer);
+		this(initialState, null, transformer, null);
+	}
+	public ResourceStateMachine(ResourceState initialState, Transformer transformer, ResourceStateProvider resourceStateProvider) {
+		this(initialState, null, transformer, null, resourceStateProvider);
 	}
 	
+	/**
+	 * 
+	 * @invariant initial state not null
+	 * @param initialState
+	 * @param transformer
+	 */
+	public ResourceStateMachine(ResourceState initialState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider) {
+		this(initialState, null, transformer, resourceLocatorProvider, null);
+	}
 	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
+		this(initialState, exceptionState, transformer, null, null);
+	}
+
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer, ResourceStateProvider resourceStateProvider) {
+		this(initialState, exceptionState, transformer, null, resourceStateProvider);
+	}
+
+	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer, ResourceLocatorProvider resourceLocatorProvider, ResourceStateProvider resourceStateProvider) {
 		if (initialState == null) throw new RuntimeException("Initial state must be supplied");
 		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
 		assert(exceptionState == null || exceptionState.isException());
@@ -179,6 +210,8 @@ public class ResourceStateMachine {
 		this.initial.setInitial(true);
 		this.exception = exceptionState;
 		this.transformer = transformer;
+		this.resourceLocatorProvider = resourceLocatorProvider;
+		this.resourceStateProvider = resourceStateProvider;
 		build();
 	}
 
@@ -190,6 +223,17 @@ public class ResourceStateMachine {
 		collectInteractionsByState(interactionsByState);
 		collectResourceStatesByPath(resourceStatesByPath);
 		collectResourceStatesByName(resourceStatesByName);
+	}
+	
+	public void register(ResourceState state, String method) {
+		checkAndResolve(state);
+		collectStates(allStates, state);
+		collectTransitionsById(transitionsById, state);
+		collectTransitionsByRel(transitionsByRel, state);
+		collectInteractionsByPath(interactionsByPath, new ArrayList<ResourceState>(), state, method);
+		collectInteractionsByState(interactionsByState, new ArrayList<String>(), state);
+		collectResourceStatesByPath(resourceStatesByPath, new HashSet<ResourceState>(), state);
+		collectResourceStatesByName(resourceStatesByName, state);
 	}
 	
 	public ResourceState getInitial() {
@@ -209,9 +253,13 @@ public class ResourceStateMachine {
 	}
 
 	private void collectStates(Collection<ResourceState> result, ResourceState currentState) {
+		if (currentState == null)
+			return;
+		currentState = checkAndResolve(currentState);
 		if (result.contains(currentState)) return;
 		result.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
+			next = checkAndResolve(next);
 			if (!next.equals(initial)) {
 				collectStates(result, next);
 			}
@@ -221,24 +269,33 @@ public class ResourceStateMachine {
 
 	private void collectTransitionsById(Map<String,Transition> transitions) {
 		for (ResourceState s : getStates()) {
-			for (ResourceState target : s.getAllTargets()) {
-				for(Transition transition : s.getTransitions(target)) {
-					transitions.put(transition.getId(), transition);
-				}
+			collectTransitionsById(transitions, s);
+		}
+	}
+
+	private void collectTransitionsById(Map<String,Transition> transitions, ResourceState state) {
+		for (ResourceState target : state.getAllTargets()) {
+			for(Transition transition : state.getTransitions(target)) {
+				transitions.put(transition.getId(), transition);
 			}
 		}
 	}
 
 	private void collectTransitionsByRel(Map<String,Transition> transitions) {
 		for (ResourceState s : getStates()) {
-			for (ResourceState target : s.getAllTargets()) {
-				for(Transition transition : s.getTransitions(target)) {
-					transitions.put(transition.getTarget().getRel(), transition);
-				}
-			}
+			collectTransitionsByRel(transitions, s);
 		}
 	}
 
+	private void collectTransitionsByRel(Map<String,Transition> transitions, ResourceState state) {
+		for (ResourceState target : state.getAllTargets()) {
+			for(Transition transition : state.getTransitions(target)) {
+				transitions.put(transition.getTarget().getRel(), transition);
+			}
+		}
+	}
+	
+	
 	/**
 	 * Return a map of all the paths, and interactions with those states
 	 * mapped to that path
@@ -250,24 +307,28 @@ public class ResourceStateMachine {
 	
 	private void collectInteractionsByPath(Map<String, Set<String>> result) {
 		List<ResourceState> states = new ArrayList<ResourceState>();
-		collectInteractionsByPath(result, states, initial);
+		collectInteractionsByPath(result, states, initial, null);
 	}
 	
-	private void collectInteractionsByPath(Map<String, Set<String>> result, Collection<ResourceState> states, ResourceState currentState) {
+	private void collectInteractionsByPath(Map<String, Set<String>> result, Collection<ResourceState> states, ResourceState currentState, String method) {
 		if (currentState == null || states.contains(currentState)) return;
 		states.add(currentState);
 		// every state must have a 'GET' interaction
 		Set<String> interactions = result.get(currentState.getPath());
 		if (interactions == null)
 			interactions = new HashSet<String>();
-		interactions.add(HttpMethod.GET);
+		if (method != null) {
+			interactions.add(method);
+		} else {
+			interactions.add(HttpMethod.GET);
+		}
 		result.put(currentState.getPath(), interactions);
 		// add interactions by iterating through the transitions from this state
 		for (ResourceState next : currentState.getAllTargets()) {
 			List<Transition> transitions = currentState.getTransitions(next);
 			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
-				String path = command.getPath();
+				String path = t.getTarget().getPath();
 				
 				interactions = result.get(path);
 				if (interactions == null)
@@ -276,7 +337,7 @@ public class ResourceStateMachine {
 					interactions.add(command.getMethod());
 				
 				result.put(path, interactions);
-				collectInteractionsByPath(result, states, next);
+				collectInteractionsByPath(result, states, next, null);
 			}
 		}
 		
@@ -286,39 +347,46 @@ public class ResourceStateMachine {
 	 * Return a map of all the ResourceState's, and interactions with those states.
 	 * @return
 	 */
-	public Map<ResourceState, Set<String>> getInteractionByState() {
+	public Map<String, Set<String>> getInteractionByState() {
 		return interactionsByState;
 	}
 	
-	private void collectInteractionsByState(Map<ResourceState, Set<String>> result) {
-		List<ResourceState> states = new ArrayList<ResourceState>();
+	private void collectInteractionsByState(Map<String, Set<String>> result) {
+		List<String> states = new ArrayList<String>();
 		collectInteractionsByState(result, states, initial);
 	}
 	
-	private void collectInteractionsByState(Map<ResourceState, Set<String>> result, Collection<ResourceState> states, ResourceState currentState) {
-		if (currentState == null || states.contains(currentState)) return;
-		states.add(currentState);
+	private void collectInteractionsByState(Map<String, Set<String>> result, Collection<String> states, ResourceState currentState) {
+		if (currentState == null || states.contains(currentState.getName())) return;
+		states.add(currentState.getName());
 		// every state must have a 'GET' interaction
-		Set<String> interactions = result.get(currentState);
+		Set<String> interactions = result.get(currentState.getName());
 		if (interactions == null)
 			interactions = new HashSet<String>();
 		if (!currentState.isPseudoState()) {
 			interactions.add(HttpMethod.GET);
 		}
-		result.put(currentState, interactions);
+		if (currentState.getActions() != null) {
+			for (Action action : currentState.getActions()) {
+				if (action.getMethod() != null) {
+					interactions.add(action.getMethod());
+				}
+			}
+		}
+		result.put(currentState.getName(), interactions);
 		// add interactions by iterating through the transitions from this state
 		for (ResourceState next : currentState.getAllTargets()) {
 			List<Transition> transitions = currentState.getTransitions(next);
 			for(Transition t : transitions) {
 				TransitionCommandSpec command = t.getCommand();
 				
-				interactions = result.get(next);
+				interactions = result.get(next.getName());
 				if (interactions == null)
 					interactions = new HashSet<String>();
 				if (command.getMethod() != null && !command.isAutoTransition())
 					interactions.add(command.getMethod());
 				
-				result.put(next, interactions);
+				result.put(next.getName(), interactions);
 				collectInteractionsByState(result, states, next);
 			}
 		}
@@ -706,8 +774,7 @@ public class ResourceStateMachine {
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
 	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
-		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, pathParameters, null, false);
+		return createLink(transition, entity, pathParameters, null, false);
 	}
 
 	/*
@@ -722,17 +789,20 @@ public class ResourceStateMachine {
 		return createLink(transition, entity, transitionParameters, null);
 	}
 	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters) {
-		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, transitionParameters, queryParameters, false);
+		return createLink(transition, entity, transitionParameters, queryParameters, false);
 	}
 	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
-		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, transitionParameters, queryParameters, allQueryParameters);
-	}
-	private Link createLink(String resourcePath, Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
 		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, transitionParameters, queryParameters);
-		return createLink(resourcePath, transition, transitionProperties, entity, queryParameters, allQueryParameters);
+		return createLink(transition, transitionProperties, entity, queryParameters, allQueryParameters);
 	}
+	
+	private ResourceState getDynamicTarget(DynamicResourceState dynamic, Object... aliases) {		
+		// Use resource locator to resolve dynamic target
+		ResourceLocator locator = resourceLocatorProvider.get(dynamic.getResourceLocatorName());
+						
+		return locator.resolve(aliases);
+	}
+	
 
 	/*
 	 * Create a link using the supplied transition, entity and transition properties.
@@ -745,13 +815,27 @@ public class ResourceStateMachine {
 	 * @return link
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
-	private Link createLink(String resourcePath, Transition transition, Map<String, Object> transitionProperties, Object entity, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
+	private Link createLink(Transition transition, Map<String, Object> transitionProperties, Object entity, MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
 		assert(RequestContext.getRequestContext() != null);
 		TransitionCommandSpec cs = transition.getCommand();
 		UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
 		try {
-			String rel = transition.getTarget().getRel();
-			if (transition.getSource().equals(transition.getTarget())) {
+			ResourceState targetState = transition.getTarget();
+			// is this a lazy resource state
+			targetState = checkAndResolve(targetState);
+			if(targetState instanceof DynamicResourceState){
+				// We are dealing with a dynamic target
+				
+				// Identify real target state
+				DynamicResourceState dynamicResourceState = (DynamicResourceState)targetState;
+				List<Object> aliases = getResourceAliases(transitionProperties, dynamicResourceState);
+				targetState = getDynamicTarget(dynamicResourceState, aliases.toArray());
+			}
+			String targetResourcePath = targetState.getPath();
+
+			
+			String rel = targetState.getRel();
+			if (transition.getSource().equals(targetState)) {
 				rel = "self"; 
 			}
 			String method = cs.getMethod();
@@ -761,17 +845,17 @@ public class ResourceStateMachine {
 			if (uriParameters != null) {
 				for(String key : uriParameters.keySet()) {
 					String value = uriParameters.get(key);
-					if (!resourcePath.contains("{"+key+"}")) {
+					if (!targetResourcePath.contains("{"+key+"}")) {
 						linkTemplate.queryParam(key, HypermediaTemplateHelper.templateReplace(value, transitionProperties));
 					}
 				}
 			}
-			linkTemplate.path(resourcePath);
+			linkTemplate.path(targetResourcePath);
 			
 			// Pass any query parameters
 			if (queryParameters != null && allQueryParameters) {
 				for (String param : queryParameters.keySet()) {
-					if (!resourcePath.contains("{"+param+"}") && (uriParameters == null || !uriParameters.containsKey(param))) {
+					if (!targetResourcePath.contains("{"+param+"}") && (uriParameters == null || !uriParameters.containsKey(param))) {
 						linkTemplate.queryParam(param, queryParameters.getFirst(param));
 					}
 				}
@@ -798,6 +882,29 @@ public class ResourceStateMachine {
 			logger.error("An error occurred while creating link [" + transition + "]", e);
 			throw e;
 		}
+	}
+
+	/**
+	 * @param transitionProperties
+	 * @param dynamicResourceState
+	 * @return
+	 */
+	private List<Object> getResourceAliases(Map<String, Object> transitionProperties,
+			DynamicResourceState dynamicResourceState) {
+		List<Object> aliases = new ArrayList<Object>();
+		
+		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9]+)\\}*");
+		
+		for(String resourceLocatorArg: dynamicResourceState.getResourceLocatorArgs()) {
+			Matcher matcher = pattern.matcher(resourceLocatorArg);
+			matcher.find();
+			String key = matcher.group(1);
+			
+			if(transitionProperties.containsKey(key)) {
+				aliases.add(transitionProperties.get(key));	
+			}					
+		}
+		return aliases;
 	}
 	
 	/**
@@ -854,4 +961,81 @@ public class ResourceStateMachine {
 		return null;
 	}
 
+	public ResourceStateProvider getResourceStateProvider() {
+		return resourceStateProvider;
+	}
+	
+	public void setResourceStateProvider(ResourceStateProvider resourceStateProvider) {
+		this.resourceStateProvider = resourceStateProvider;
+	}
+
+	public ResourceState checkAndResolve(ResourceState targetState) {
+		if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
+			targetState = resourceStateProvider.getResourceState(targetState.getName());
+		}
+		for (Transition transition : targetState.getTransitions()) {
+			if (transition.getTarget() instanceof LazyResourceState || transition.getTarget() instanceof LazyCollectionResourceState) {
+				ResourceState tt = resourceStateProvider.getResourceState(transition.getTarget().getName());
+				transition.setTarget(tt);
+			}
+		}
+		return targetState;
+	}
+	
+	// Generated builder pattern from here
+	
+	public static class Builder {
+		private ResourceState initial;
+		private ResourceState exception;
+		private Transformer transformer;
+		private NewCommandController commandController;
+		private ResourceStateProvider resourceStateProvider;
+		private ResourceLocatorProvider resourceLocatorProvider;
+
+		public Builder initial(ResourceState initial) {
+			this.initial = initial;
+			return this;
+		}
+
+		public Builder exception(ResourceState exception) {
+			this.exception = exception;
+			return this;
+		}
+
+		public Builder transformer(Transformer transformer) {
+			this.transformer = transformer;
+			return this;
+		}
+
+		public Builder commandController(NewCommandController commandController) {
+			this.commandController = commandController;
+			return this;
+		}
+
+		public Builder resourceStateProvider(
+				ResourceStateProvider resourceStateProvider) {
+			this.resourceStateProvider = resourceStateProvider;
+			return this;
+		}
+
+		public Builder resourceLocatorProvider(
+				ResourceLocatorProvider resourceLocatorProvider) {
+			this.resourceLocatorProvider = resourceLocatorProvider;
+			return this;
+		}
+
+		public ResourceStateMachine build() {
+			return new ResourceStateMachine(this);
+		}
+	}
+
+	private ResourceStateMachine(Builder builder) {
+		this.initial = builder.initial;
+		this.exception = builder.exception;
+		this.transformer = builder.transformer;
+		this.commandController = builder.commandController;
+		this.resourceStateProvider = builder.resourceStateProvider;
+		this.resourceLocatorProvider = builder.resourceLocatorProvider;
+		build();
+	}
 }

@@ -46,13 +46,10 @@
 	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
         <constructor-arg ref="stateMachine" />
 	</bean>
-	<!-- 
-	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
-	 -->
-	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+	<bean id="metadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 	<!-- Odata4j Metadata -->
 	<bean id="metadataOData4j" class="com.temenos.interaction.odataext.entity.MetadataOData4j">
-        <constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="metadata" />
         <constructor-arg ref="stateMachine" />
     </bean>
     
@@ -70,9 +67,9 @@
 				<ref local="xhtmlProvider" />
  			</list>
    		</property>
+		<property name="serviceRootFactory" ref="serviceRootFactory" />
         <property name="serviceRoots">
             <list>
-                <ref local="ServiceRoot" />
                 <ref local="Metadata" />
             </list>
         </property>
@@ -89,7 +86,7 @@
 
 	<bean id="atomProvider" class="com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider">
 		<constructor-arg name="metadataOData4j" ref="metadataOData4j" />
-		<constructor-arg name="metadata" ref="edmMetadata" />
+		<constructor-arg name="metadata" ref="metadata" />
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
 		<constructor-arg ref="entityTransformer" />
 	</bean>
@@ -99,24 +96,31 @@
 	</bean>
     <bean id="errorProvider" class="com.temenos.interaction.media.odata.xml.error.ErrorProvider" />
  	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
-		<constructor-arg ref="edmMetadata" />
+		<constructor-arg ref="metadata" />
 	</bean>
 
-	<!-- Behaviour -->
-	<bean id="behaviour" class="AirlineModel.AirlineBehaviour" />
-	<bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
-    <bean id="exception" factory-bean="behaviour" factory-method="getExceptionResource" />
+	<!-- 
+		Import the main SpringDSL entry point for IRIS
+		
+		Initialises the ResourceStateProvider and understands how to construct
+		ResourceState instances using Spring
+	-->
+	<import resource="classpath:IRIS-SpringDSL-main.xml" />
+
+	<bean id="serviceRootFactory" class="com.temenos.interaction.winkext.LazyServiceRootFactory">
+		<property name="commandController" ref="commands" />
+		<property name="metadata" ref="metadata" />
+		<property name="transformer" ref="entityTransformer" />
+		<property name="resourceStateProvider" ref="resourceStateProvider" />
+	</bean>
+
+	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
 	<bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-		<constructor-arg ref="interaction" />
-    	<constructor-arg ref="exception" />
-		<constructor-arg ref="entityTransformer" />
-	</bean>
-
-	<!-- Resources -->
-	<bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
-		<constructor-arg ref="commands" />
-		<constructor-arg ref="stateMachine" />
-        <constructor-arg ref="edmMetadata" />
+        <constructor-arg name="initialState" ref="AirlineModel_Airline_ServiceDocument" />
+    	<constructor-arg name="exceptionState"><null /></constructor-arg>
+		<constructor-arg name="transformer" ref="entityTransformer" />
+    	<constructor-arg name="resourceLocatorProvider"><null /></constructor-arg>
+		<constructor-arg name="resourceStateProvider" ref="resourceStateProvider" />
 	</bean>
 
     <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
@@ -141,7 +145,7 @@
                 </constructor-arg>
             </bean>
         </constructor-arg>
-        <constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="metadata" />
     </bean>
 
 	<!-- Commands -->

@@ -90,19 +90,23 @@ class RIMDslGeneratorSwagger implements IGenerator {
 			interactions = new HashSet<String>();
 		interactions.add("GET");
 		result.put(sPath, interactions);
+		
 		// add interactions by iterating through the transitions from this state
 		for (TransitionRef t : currentState.transitions) {
-			var path = getPath(t.state)
-			interactions = result.get(path);
-			if (interactions == null)
-				interactions = new HashSet<String>();
-			if (t.event.httpMethod != null)
-				interactions.add(t.event.httpMethod);
-				
-			result.put(path, interactions);
+			if(t.state != null)
+			{
+				var path = getPath(t.state)
+				interactions = result.get(path);
+				if (interactions == null)
+					interactions = new HashSet<String>();
+				if (t.event.httpMethod != null)
+					interactions.add(t.event.httpMethod);
+					
+				result.put(path, interactions);				
+			}
+			 
 			collectInteractionsByPath(result, states, t.state);
-		}
-		
+		}		
 	}
   
 	def String getPath(State state) {
@@ -128,12 +132,14 @@ class RIMDslGeneratorSwagger implements IGenerator {
 		result.put(sPath + "GET", currentState);
 		// add interactions by iterating through the transitions from this state
 		for (TransitionRef t : currentState.transitions) {
-			var path = getPath(t.state)
-			if (t.event.httpMethod != null)
-				result.put(path + t.event.httpMethod, t.state);
-			collectStateByMethodPath(result, states, t.state);
-		}
-		
+			if(t.state != null) {
+				var path = getPath(t.state)
+				
+				if (t.event.httpMethod != null)
+					result.put(path + t.event.httpMethod, t.state);
+				collectStateByMethodPath(result, states, t.state);				
+			}
+		}		
 	}
 	
 }

@@ -42,7 +42,7 @@ resource note {
 resource deletedNote {
 	type: item
 	entity: Note
-	actions [ DELETENote ]
+	commands [ DELETE: DELETENote ]
 	relations [ "http://relations.rimdsl.org/delete" ]
 	path: "/notes/{noteID}"
 	GET ->> notes

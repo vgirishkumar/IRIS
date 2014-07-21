@@ -50,6 +50,9 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 
 	@Override
     public String getBeanName() {
+		if (resource instanceof DynamicResource) {
+			return ((DynamicResource)resource).getBeanName();
+		}
         return resource.getCurrentState().getId();
     }
 

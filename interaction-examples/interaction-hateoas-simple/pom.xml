@@ -17,6 +17,8 @@
   <url>http://www.temenos.com</url>
 
   <properties>
+    <skipRIMGeneration>true</skipRIMGeneration>
+    <skipRIMGenerationSpringPRD>false</skipRIMGenerationSpringPRD>
     <jetty.version>9.0.5.v20130815</jetty.version>
   </properties>
 
@@ -28,12 +30,14 @@
         <version>1.7</version>
         <executions>
           <execution>
-            <phase>generate-sources</phase>
-            <goals><goal>add-source</goal></goals>
+            <phase>generate-resources</phase>
+            <goals><goal>add-resource</goal></goals>
             <configuration>
-              <sources>
-                <source>${project.build.directory}/src-gen</source>
-              </sources>
+              <resources>
+                <resource>
+                	<directory>${project.build.directory}/src-gen</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -71,6 +75,11 @@
           <swaggerTargetDirectory>${basedir}/src/main/webapp/</swaggerTargetDirectory>
           -->
           <skipSwaggerGeneration>false</skipSwaggerGeneration>
+          <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
+          
+          <!-- Control generation of Spring XML to load generated classes  -->
+          <skipRIMGenerationSpringPRD>${skipRIMGenerationSpringPRDn}</skipRIMGenerationSpringPRD>          
+          
         </configuration>
       </plugin>
 
@@ -93,7 +102,8 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${jetty.version}</version>
 		<configuration>
-          <scanIntervalSeconds>10</scanIntervalSeconds>
+		 <jvmArgs>-Xmx2024m -Xms512m -XX:PermSize=256M -XX:MaxPermSize=512M</jvmArgs>
+          <scanIntervalSeconds>3</scanIntervalSeconds>
           <stopPort>8005</stopPort>
           <stopKey>STOP</stopKey>
           <webApp>
@@ -154,6 +164,7 @@
     								<versionRange>[1.7,)</versionRange>
     								<goals>
     									<goal>add-source</goal>
+    									<goal>add-resource</goal>
     								</goals>
     							</pluginExecutionFilter>
     							<action>
@@ -253,6 +264,12 @@
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-core</artifactId>
     	<type>jar</type>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-springdsl</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>

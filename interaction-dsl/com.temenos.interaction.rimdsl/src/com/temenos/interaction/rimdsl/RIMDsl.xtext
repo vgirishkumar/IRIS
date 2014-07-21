@@ -114,7 +114,15 @@ ImplRef:
 		('view:' view=ResourceCommand ) 
 			// actions [ SomeCommand, AnotherCommand ]
 			| ('actions' '[' ((actions+=ResourceCommand) (',' actions+=ResourceCommand)* ) ']')
+			// commands [ GET: SomeCommand ]
+            | ('commands' '[' ((methods+=MethodRef) (',' methods+=MethodRef)* ) ']')
 	)
+;
+
+// method reference
+MethodRef:
+	// Event : SomeCommand
+	event=[Event] ':' command=ResourceCommand
 ;
 
 // Order of transitions should be non deterministic
@@ -122,29 +130,34 @@ TransitionRef:
     Transition | TransitionForEach | TransitionAuto | TransitionRedirect | TransitionEmbedded
 ;
 
+// |Locator=ResourceLocator
+ResourceLocator:
+                'locator' name=ID '(' args+=DQ_STRING (',' args+=DQ_STRING)* ')' 
+;
+
 // create regular transitions
 Transition:
-    event=[Event] '->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
+    (event=[Event] | 'LINK') '->' (state=[State|QualifiedName]|locator=ResourceLocator|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create foreach transitions
 TransitionForEach:
-    event=[Event] '*->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
+    (event=[Event] | 'LINK') '*->' (state=[State|QualifiedName]|locator=ResourceLocator|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create AUTO transitions
 TransitionAuto:
-    event=[Event] '-->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
+    (event=[Event] | 'LINK') '-->' (state=[State|QualifiedName]|locator=ResourceLocator|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create REDIRECT transitions
 TransitionRedirect:
-    event=[Event] '->>' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
+    (event=[Event] | 'LINK') '->>' (state=[State|QualifiedName]|locator=ResourceLocator|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create embedded transitions
 TransitionEmbedded:
-    event=[Event] '+->' (state=[State|QualifiedName]|name=DQ_STRING) (spec=TransitionSpec)?
+    (event=[Event] | 'LINK') '+->' (state=[State|QualifiedName]|locator=ResourceLocator|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 TransitionSpec:

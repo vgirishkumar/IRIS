@@ -44,6 +44,7 @@
 		<module>../useragent-examples/useragent-swagger-ui</module>
 		<module>../interaction-examples/interaction-hateoas-simple</module>
 		<module>../interaction-examples/interaction-hateoas-banking</module>
+		<module>../interaction-examples/interaction-hateoas-dynamic</module>
 		<module>../interaction-examples/interaction-hateoas-restbucks</module>
 		<module>../interaction-examples/interaction-mashup-streaming</module>
 		<module>../interaction-examples/interaction-mashup-twitter</module>
@@ -423,6 +424,11 @@
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-web</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-test</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
 			<dependency>

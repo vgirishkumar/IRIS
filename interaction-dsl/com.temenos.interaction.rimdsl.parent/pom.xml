@@ -25,6 +25,7 @@
 	</licenses>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<license.licenseName>agpl_v3</license.licenseName>
 		<tycho-version>0.18.1</tycho-version>
 		<junit-version>4.8.1</junit-version>
@@ -62,6 +63,23 @@
 <!-- If we are going to use Maven dependencies we'll need this to resolve the OSGi bundles
 					<pomDependencies>consider</pomDependencies>
 -->
+				  <environments>
+					<environment>
+					  <os>win32</os>
+					  <ws>win32</ws>
+					  <arch>x86</arch>
+					</environment>
+					<environment>
+					  <os>linux</os>
+					  <ws>gtk</ws>
+					  <arch>x86_64</arch>
+					</environment>
+					<environment>
+					  <os>macosx</os>
+					  <ws>cocoa</ws>
+					  <arch>x86_64</arch>
+					</environment>
+				  </environments>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -365,8 +383,8 @@
 	<repositories>
         <!-- Repository to resolve the Eclipse Tycho dependencies --> 
 		<repository>
-			<id>p2.eclipse.juno</id>
-			<url>http://download.eclipse.org/releases/juno</url>
+			<id>p2.eclipse.kepler</id>
+			<url>http://download.eclipse.org/releases/kepler</url>
 			<layout>p2</layout>
 		</repository>
 		<!-- Repository to resolve the XText dependencies -->

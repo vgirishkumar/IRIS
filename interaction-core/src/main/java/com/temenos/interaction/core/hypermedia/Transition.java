@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 
+
 /*
  * #%L
  * interaction-core
@@ -55,12 +56,12 @@ public class Transition {
 	public static final int REDIRECT = 16;
 
 	private ResourceState source, target;
+	private ResourceLocator locator;
 	private final TransitionCommandSpec command;
 	private String label;
 
 	// TransitionCommand parameters
 	private String method;
-	private String path;
 	private int flags;
 	// conditional link evaluation expression 
 	private Expression evaluation;
@@ -76,6 +77,10 @@ public class Transition {
 	
 	public ResourceState getTarget() {
 		return target;
+	}
+
+	public void setTarget(ResourceState target) {
+		this.target = target;
 	}
 
 	public TransitionCommandSpec getCommand() {
@@ -113,6 +118,20 @@ public class Transition {
 				&& source instanceof CollectionResourceState
 				&& (target instanceof ResourceState && !(target instanceof CollectionResourceState));
 	}
+	
+	/**
+	 * @return the locator
+	 */
+	public ResourceLocator getLocator() {
+		return locator;
+	}
+
+	/**
+	 * @param locator the locator to set
+	 */
+	public void setLocator(ResourceLocator locator) {
+		this.locator = locator;
+	}	
 
 	public boolean equals(Object other) {
 		//check for self-comparison
@@ -147,9 +166,9 @@ public class Transition {
 	public static class Builder {
 		private ResourceState source;
 		private ResourceState target;
+		private ResourceLocator locator;
 		private String label;
 		private String method;
-		private String path;
 		private int flags;
 		private Expression evaluation;
 		private Map<String, String> uriParameters;
@@ -164,6 +183,11 @@ public class Transition {
 			return this;
 		}
 
+		public Builder locator(ResourceLocator locator) {
+			this.locator = locator;
+			return this;
+		}
+
 		public Builder label(String label) {
 			this.label = label;
 			return this;
@@ -171,11 +195,6 @@ public class Transition {
 
 		public Builder method(String method) {
 			this.method = method;
-			return this;
-		}
-
-		public Builder path(String path) {
-			this.path = path;
 			return this;
 		}
 
@@ -202,16 +221,15 @@ public class Transition {
 	private Transition(Builder builder) {
 		this.source = builder.source;
 		this.target = builder.target;
+		this.locator = builder.locator;
 		this.label = builder.label;
 		this.method = builder.method;
-		this.path = builder.path;
 		this.flags = builder.flags;
 		this.evaluation = builder.evaluation;
 		this.uriParameters = builder.uriParameters;
 
 		// this one's a bit special
 		this.command = new TransitionCommandSpec(method, 
-				(path == null ? target.getPath() : path), 
 				flags, evaluation, uriParameters);
 	}
 }

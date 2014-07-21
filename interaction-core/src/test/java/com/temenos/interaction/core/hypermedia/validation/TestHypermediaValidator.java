@@ -122,7 +122,7 @@ public class TestHypermediaValidator {
 	
 		initial.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 				
-		ResourceStateMachine sm = new ResourceStateMachine(initial, exception, null);
+		ResourceStateMachine sm = new ResourceStateMachine(initial, exception, null, null);
 		Metadata metadata = new Metadata("");
 		metadata.setEntityMetadata(new EntityMetadata(""));
 		HypermediaValidator v = HypermediaValidator.createValidator(sm, metadata);
@@ -138,7 +138,7 @@ public class TestHypermediaValidator {
 				"    Gother[label=\"G.other /entities/{id}\"]\n" +
 				"    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n" +
 				"    Gother->final[label=\"\"]\n" +
-				"    Ginitial->Gother[label=\"PUT /entities/{id} (OK(other))\"]\n" +
+				"    Ginitial->Gother[label=\"PUT (OK(other)) /entities/{id}\"]\n" +
 				"}";
 		
 		String ENTITY_NAME = "G";
