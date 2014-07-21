@@ -358,7 +358,7 @@ class RIMDslGenerator implements IGenerator {
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
                     .label(« getTransitionLabel(transition) »)
-                    «IF (transition.spec != null) && (transition.spec.id != null && transition.spec.id.name.length() > 0)».imageId("«transition.spec.id»")«ENDIF»
+                    «IF (transition.spec != null) && (transition.spec.id != null && transition.spec.id.name.length() > 0)».linkId("«transition.spec.id»")«ENDIF»
                     .build());
     '''
     		
