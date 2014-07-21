@@ -109,17 +109,25 @@
 	<import resource="classpath:IRIS-SpringDSL-main.xml" />
 
 	<bean id="serviceRootFactory" class="com.temenos.interaction.winkext.LazyServiceRootFactory">
-       	<property name="exception" ref="AirlineModel_Airline_AirlineException" />
+       	<property name="exception" ref="exceptionState" />
 		<property name="commandController" ref="commands" />
 		<property name="metadata" ref="metadata" />
 		<property name="transformer" ref="entityTransformer" />
 		<property name="resourceStateProvider" ref="resourceStateProvider" />
 	</bean>
 
+	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
+		<constructor-arg type="java.lang.String" value="AirlineModel_Airline_ServiceDocument" />
+	</bean>
+
+	<bean id="exceptionState" factory-bean="resourceStateProvider" factory-method="getResourceState">
+		<constructor-arg type="java.lang.String" value="AirlineModel_Airline_AirlineException" />
+	</bean>
+
 	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
 	<bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-        <constructor-arg name="initialState" ref="AirlineModel_Airline_ServiceDocument" />
-       	<constructor-arg name="exceptionState" ref="AirlineModel_Airline_AirlineException" />
+        <constructor-arg name="initialState" ref="serviceDocument" />
+       	<constructor-arg name="exceptionState" ref="exceptionState" />
 		<constructor-arg name="transformer" ref="entityTransformer" />
     	<constructor-arg name="resourceLocatorProvider"><null /></constructor-arg>
 		<constructor-arg name="resourceStateProvider" ref="resourceStateProvider" />

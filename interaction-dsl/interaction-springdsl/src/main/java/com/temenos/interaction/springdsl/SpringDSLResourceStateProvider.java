@@ -45,6 +45,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Ap
 
 	@Autowired 
 	private ApplicationContext applicationContext;
+	private Map<String, ResourceState> resources = new HashMap<String, ResourceState>();
 
     /**
      * Map of ResourceState bean names, to paths.
@@ -120,9 +121,13 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Ap
 	@Override
 	public ResourceState getResourceState(String name) {
 		if (name != null) {
-			String beanXml = "IRIS-"+name+"-PRD.xml";
-			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml}, applicationContext);
-			ResourceState resource = (ResourceState) context.getBean(name);
+			ResourceState resource = resources.get(name);
+			if (resource == null) {
+				String beanXml = "IRIS-"+name+"-PRD.xml";
+				ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml}, applicationContext);
+				resource = (ResourceState) context.getBean(name);
+				resources.put(name, resource);
+			}
 			return resource;
 		}
 		return null;

@@ -120,7 +120,7 @@ public class GeneratorSpringPRDTest {
 		Map<String, Object> allFiles = fsa.getAllFiles();
 		assertEquals(2, fsa.getAllFiles().size());
 		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml"));
-		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A.properties"));
+		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test.properties"));
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class GeneratorSpringPRDTest {
 		underTest.doGenerate(model.eResource(), fsa);
 
 		Map<String, Object> allFiles = fsa.getAllFiles();
-		String output = allFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A.properties").toString();
+		String output = allFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test.properties").toString();
 		assertEquals("Test_A=GET /A" + LINE_SEP, output);
 	}
 
@@ -165,7 +165,7 @@ public class GeneratorSpringPRDTest {
 		underTest.doGenerate(model.eResource(), fsa);
 
 		Map<String, Object> allFiles = fsa.getAllFiles();
-		String output = allFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A.properties").toString();
+		String output = allFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test.properties").toString();
 		assertEquals("Test_A=GET,POST /A" + LINE_SEP, output);
 	}
 

@@ -125,9 +125,13 @@
 		<property name="resourceStateProvider" ref="resourceStateProvider" />
 	</bean>
 
+	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
+		<constructor-arg type="java.lang.String" value="RestbucksModel_Restbucks_ServiceDocument" />
+	</bean>
+
 	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
 	<bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-        <constructor-arg name="initialState" ref="RestbucksModel_Restbucks_ServiceDocument" />
+        <constructor-arg name="initialState" ref="serviceDocument" />
     	<constructor-arg name="exceptionState"><null /></constructor-arg>
 		<constructor-arg name="transformer" ref="entityTransformer" />
     	<constructor-arg name="resourceLocatorProvider"><null /></constructor-arg>

@@ -46,9 +46,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         for (resourceState : rim.states) {
             val stateName = resourceState.fullyQualifiedName.toString("_")
             fsa.generateFile("IRIS-" + stateName + "-PRD.xml", toSpringXML(rim, resourceState))
-            fsa.generateFile("IRIS-" + stateName + ".properties", toBeanMap(rim, resourceState))
         }
-  
+        val rimName = rim.fullyQualifiedName.toString("_")
+        fsa.generateFile("IRIS-" + rimName + ".properties", toBeanMap(rim))
 	}
 
 	
@@ -57,8 +57,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		return name.substring(0, name.indexOf('.'))
 	}
 	
-	def toBeanMap(ResourceInteractionModel rim, State state) '''
+	def toBeanMap(ResourceInteractionModel rim) '''
+		«FOR state : rim.states»
 		«stateVariableName(state)»=«produceMethods(rim, state)» «producePath(rim, state)»
+		«ENDFOR»
 	'''
     	
 	def toSpringXML(ResourceInteractionModel rim, State state) '''
