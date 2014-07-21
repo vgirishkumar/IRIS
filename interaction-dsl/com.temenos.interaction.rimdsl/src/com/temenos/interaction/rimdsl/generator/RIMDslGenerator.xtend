@@ -112,39 +112,38 @@ class RIMDslGenerator implements IGenerator {
                 »
                 «IF !resources.contains(state.name) && resources.add(state.name)»«ENDIF»
                 // create transitions
-                «FOR t : state.transitions»                
-                	«IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»                
-						ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
-					«ENDIF»
-	                «IF (t.state != null && t.state.name != null) || t.name != null || t.locator != null»
-		                             
-		                «IF(transitionProcessingRequired(t))»                				               	
-			                «IF t instanceof Transition»
-			                // create regular transition
-			                «produceTransitions(state, t as Transition)»
-			                «ENDIF»
-			
-			                «IF t instanceof TransitionForEach»
-			                // create foreach transition
-			                «produceTransitionsForEach(state, t as TransitionForEach)»
-			                «ENDIF»
-			
-			                «IF t instanceof TransitionAuto»
-			                // create AUTO transition
-			                «produceTransitionsAuto(state, t as TransitionAuto)»
-			                «ENDIF»
-			
-			                «IF t instanceof TransitionRedirect»
-			                // create REDIRECT transition
-			                «produceTransitionsRedirect(state, t as TransitionRedirect)»
-			                «ENDIF»
-			
-			                «IF t instanceof TransitionEmbedded»
-			                // create EMBEDDED transition
-			                «produceTransitionsEmbedded(state, t as TransitionEmbedded)»
-			                «ENDIF»
-	        	        «ENDIF»
-	                «ENDIF»
+                «FOR t : state.transitions»
+                    «IF ((t.state != null && t.state.name != null) || t.name != null) && !resources.contains(transitionTargetStateVariableName(t)) && resources.add(transitionTargetStateVariableName(t))»
+                    ResourceState «transitionTargetStateVariableName(t)» = factory.getResourceState("«if (t.state != null && t.state.name != null) {t.state.fullyQualifiedName} else {t.name}»");
+                    «ENDIF»
+                    «IF (t.state != null && t.state.name != null) || t.name != null || t.locator != null»
+                        «IF(transitionProcessingRequired(t))»                				               	
+                            «IF t instanceof Transition»
+                            // create regular transition
+                            «produceTransitions(state, t as Transition)»
+                            «ENDIF»
+
+                            «IF t instanceof TransitionForEach»
+                            // create foreach transition
+                            «produceTransitionsForEach(state, t as TransitionForEach)»
+                            «ENDIF»
+
+                            «IF t instanceof TransitionAuto»
+                            // create AUTO transition
+                            «produceTransitionsAuto(state, t as TransitionAuto)»
+                            «ENDIF»
+
+                            «IF t instanceof TransitionRedirect»
+                            // create REDIRECT transition
+                            «produceTransitionsRedirect(state, t as TransitionRedirect)»
+                            «ENDIF»
+
+                            «IF t instanceof TransitionEmbedded»
+                            // create EMBEDDED transition
+                            «produceTransitionsEmbedded(state, t as TransitionEmbedded)»
+                            «ENDIF»
+                        «ENDIF»
+                    «ENDIF»
                 «ENDFOR»
                 return true;
             }
@@ -340,7 +339,7 @@ class RIMDslGenerator implements IGenerator {
                     .target(«findTargetState(fromState, transition)»)
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-                    .label("«if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }»")
+                    .label("«getTransitionLabel(transition)»")
                     .build());
 	'''
 	
@@ -357,7 +356,7 @@ class RIMDslGenerator implements IGenerator {
                     .target(«findTargetState(fromState, transition)»)
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-                    .label(« getTransitionLabel(transition) »)
+                    .label("«getTransitionLabel(transition)»")
                     «IF (transition.spec != null) && (transition.spec.id != null && transition.spec.id.name.length() > 0)».linkId("«transition.spec.id»")«ENDIF»
                     .build());
     '''
@@ -440,33 +439,15 @@ class RIMDslGenerator implements IGenerator {
 		}
 	}	
 
-    def getTransitionLabel(TransitionRef transition) {
-    	var String label = ""
-    	
-    	if (transition.spec != null && transition.spec.title != null) { 
-    		label = "\"" + transition.spec.title.name + "\"" 
-    	} else {
-    		label = "\""
-    		  
-    		if(transition.locator == null) {
-    			label = label + transition.state.name
-    		} else { 
-    			label = label + "dynamic"
-    		}
-    		
-    		label = label + "\""
-    	}
-    	
-    	return label
+    def static getTransitionLabel(TransitionRef transition) {
+    	return if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }
     }
     
     def findTargetState(State fromState, TransitionRef transition) {
     	if(transition.locator == null) {
     		return transitionTargetStateVariableName(transition)
     	} else {
-    		val String path = if (fromState.path != null) { fromState.path.name } else { "/" + fromState.name }
-    		
-    		return "new DynamicResourceState(\"" + fromState.entity.name + "\", \"dynamic\", new ArrayList<Action>(), \"" + path + "/dynamic\", \"" + transition.locator.name + "\", " + toStringArray(transition.locator.args) + ")"
+    		return "new DynamicResourceState(\"" + fromState.entity.name + "\", \"dynamic\", \"" + transition.locator.name + "\", " + toStringArray(transition.locator.args) + ")"
     	}
     }
     
