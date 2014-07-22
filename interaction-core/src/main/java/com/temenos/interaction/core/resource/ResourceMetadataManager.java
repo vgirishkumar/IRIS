@@ -56,6 +56,7 @@ public class ResourceMetadataManager {
 	/**
 	 * Construct the metadata object
 	 */
+	@Deprecated
 	public ResourceMetadataManager(String metdataXml, ResourceStateMachine hypermediaEngine)
 	{
 		metadata = parseMetadataXML(metdataXml);

@@ -46,7 +46,7 @@
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
-		<constructor-arg><null /></constructor-arg>
+		<constructor-arg name="hypermediaEngine"><null /></constructor-arg>
 	</bean>
 	<bean id="metadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
