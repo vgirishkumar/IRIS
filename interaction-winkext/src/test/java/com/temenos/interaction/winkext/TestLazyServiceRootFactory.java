@@ -22,8 +22,9 @@ package com.temenos.interaction.winkext;
  */
 
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -137,7 +138,12 @@ public class TestLazyServiceRootFactory {
 			public ResourceState getResourceState(String name) {
 				return statesByName.get(name);
 			}
-			
+
+			@Override
+			public boolean isLoaded(String name) {
+				return statesByName.get(name) != null;
+			}
+
 			@Override
 			public ResourceState determineState(Event event, String resourcePath) {
 				return null;

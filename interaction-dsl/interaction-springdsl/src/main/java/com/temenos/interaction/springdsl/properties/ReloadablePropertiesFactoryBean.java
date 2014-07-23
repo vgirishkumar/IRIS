@@ -103,10 +103,9 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 				continue;
 			}
 			try {
-				long l = file.lastModified();
-				long currentLastModified = lastModified[i];
-				if (l > lastModified[i]) {
-					lastModified[i] = l;
+				long currentLastModified = file.lastModified();
+				if (currentLastModified > lastModified[i]) {
+					lastModified[i] = currentLastModified;
 					Properties newProperties = new Properties();
 					propertiesPersister.load(newProperties, location.getInputStream());
 					if (currentLastModified == 0) {

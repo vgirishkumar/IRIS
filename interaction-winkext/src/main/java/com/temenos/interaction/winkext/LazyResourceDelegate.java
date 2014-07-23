@@ -83,7 +83,15 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	}
 
 	private HTTPHypermediaRIM getRealResource() {
-		if (realResource == null) {
+		// work out if a reload is required (could be more effecient here as every request goes through this loop)
+		boolean reload = false;
+		for (String resourceName : resourceNamesToMethods.keySet()) {
+			if (!resourceStateProvider.isLoaded(resourceName)) {
+				reload = true;
+			}			
+		}
+		
+		if (realResource == null || reload) {
 			for (String resourceName : resourceNamesToMethods.keySet()) {
 				ResourceState currentState = resourceStateProvider.getResourceState(resourceName);
 				for (String method : resourceNamesToMethods.get(resourceName)) {

@@ -123,13 +123,17 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 	}
 	
 	@Override
+	public boolean isLoaded(String name) {
+		return resources.containsKey(name);
+	}
+
+	@Override
 	public ResourceState getResourceState(String name) {
 		try {
 			if (name != null) {
 				ResourceState resource = resources.get(name);
 				if (resource == null) {
 					String beanXml = "IRIS-"+name+"-PRD.xml";
-//					ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml}, applicationContext);
 					ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
 					resource = (ResourceState) context.getBean(name);
 					resources.put(name, resource);
