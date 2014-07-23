@@ -260,7 +260,7 @@ public class ResourceStateMachine {
 		result.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
 			next = checkAndResolve(next);
-			if (!next.equals(initial)) {
+			if (next != null && !next.equals(initial)) {
 				collectStates(result, next);
 			}
 		}
@@ -489,7 +489,7 @@ public class ResourceStateMachine {
 		result.put(currentState.getResourcePath(), thisStateSet);
 		for (ResourceState next : currentState.getAllTargets()) {
 //			if (!next.equals(currentState) && !next.isPseudoState()) {
-			if (!next.equals(currentState)) {
+			if (next != null && !next.equals(currentState)) {
 				String path = next.getResourcePath();
 				if (result.get(path) != null) {
 					if (!result.get(path).contains(next)) {
@@ -555,7 +555,7 @@ public class ResourceStateMachine {
 		// add current state to results
 		result.put(currentState.getName(), currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
-			if (!next.equals(currentState)) {
+			if (next != null && !next.equals(currentState)) {
 				String name = next.getName();
 				logger.debug("Putting a ResourceState[" + name + "]: " + next);
 				result.put(name, next);
@@ -973,10 +973,14 @@ public class ResourceStateMachine {
 		if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
 			targetState = resourceStateProvider.getResourceState(targetState.getName());
 		}
-		for (Transition transition : targetState.getTransitions()) {
-			if (transition.getTarget() instanceof LazyResourceState || transition.getTarget() instanceof LazyCollectionResourceState) {
-				ResourceState tt = resourceStateProvider.getResourceState(transition.getTarget().getName());
-				transition.setTarget(tt);
+		if (targetState != null) {
+			for (Transition transition : targetState.getTransitions()) {
+				if (transition.getTarget() instanceof LazyResourceState || transition.getTarget() instanceof LazyCollectionResourceState) {
+					if (transition.getTarget() != null) {
+						ResourceState tt = resourceStateProvider.getResourceState(transition.getTarget().getName());
+						transition.setTarget(tt);
+					}
+				}
 			}
 		}
 		return targetState;

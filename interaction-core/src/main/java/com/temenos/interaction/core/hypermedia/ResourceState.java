@@ -421,7 +421,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	public List<Transition> getTransitions(ResourceState targetState) {
 		List<Transition> transitionList = new ArrayList<Transition>();
 		for (Transition t : transitions) {
-			if (t.getTarget().equals(targetState)) {
+			if (t.getTarget() != null && t.getTarget().equals(targetState)) {
 				transitionList.add(t);
 			}
 		}
