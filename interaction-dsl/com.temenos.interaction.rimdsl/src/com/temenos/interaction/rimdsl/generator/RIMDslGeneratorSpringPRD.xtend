@@ -58,7 +58,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	}
 	
 	def toBeanMap(ResourceInteractionModel rim) '''
-		# «System.currentTimeMillis»
+		# «System::currentTimeMillis»
 		«FOR state : rim.states»
 		«stateVariableName(state)»=«produceMethods(rim, state)» «producePath(rim, state)»
 		«ENDFOR»

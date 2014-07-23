@@ -138,7 +138,7 @@ public class GeneratorSpringPRDTest {
 
 		Map<String, Object> allFiles = fsa.getAllFiles();
 		String output = allFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test.properties").toString();
-		assertEquals("Test_A=GET /A" + LINE_SEP, output);
+		assertTrue(output.contains("Test_A=GET /A"));
 	}
 
 	private final static String SINGLE_STATE_METHODS_COMMAND_ONLY_RIM = "" + "rim Test {" + LINE_SEP + 
@@ -166,7 +166,7 @@ public class GeneratorSpringPRDTest {
 
 		Map<String, Object> allFiles = fsa.getAllFiles();
 		String output = allFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test.properties").toString();
-		assertEquals("Test_A=GET,POST /A" + LINE_SEP, output);
+		assertTrue(output.contains("Test_A=GET,POST /A"));
 	}
 
 	private final static String SINGLE_STATE_WITH_PACKAGE_RIM = "" + "domain blah {" + LINE_SEP + "rim Test {"
