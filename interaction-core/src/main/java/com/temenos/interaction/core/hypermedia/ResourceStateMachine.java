@@ -215,7 +215,7 @@ public class ResourceStateMachine {
 		build();
 	}
 
-	private void build() {
+	private synchronized void build() {
 		collectStates(allStates, initial);
 		collectTransitionsById(transitionsById);
 		collectTransitionsByRel(transitionsByRel);
@@ -225,7 +225,7 @@ public class ResourceStateMachine {
 		collectResourceStatesByName(resourceStatesByName);
 	}
 	
-	public void register(ResourceState state, String method) {
+	public synchronized void register(ResourceState state, String method) {
 		checkAndResolve(state);
 		collectStates(allStates, state);
 		collectTransitionsById(transitionsById, state);
