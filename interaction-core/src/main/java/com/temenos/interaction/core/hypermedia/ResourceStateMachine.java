@@ -235,7 +235,18 @@ public class ResourceStateMachine {
 		collectResourceStatesByPath(resourceStatesByPath, new HashSet<ResourceState>(), state);
 		collectResourceStatesByName(resourceStatesByName, state);
 	}
-	
+
+	public synchronized void unregister(ResourceState state) {
+		checkAndResolve(state);
+		allStates.remove(state);
+//		collectTransitionsById(transitionsById, state);
+//		collectTransitionsByRel(transitionsByRel, state);
+		interactionsByPath.remove(state.getPath());
+		interactionsByState.remove(state);
+		resourceStatesByPath.remove(state.getPath());
+		resourceStatesByName.remove(state.getName());
+	}
+
 	public ResourceState getInitial() {
 		return initial;
 	}

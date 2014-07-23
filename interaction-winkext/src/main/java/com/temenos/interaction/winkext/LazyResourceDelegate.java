@@ -95,6 +95,9 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 			for (String resourceName : resourceNamesToMethods.keySet()) {
 				ResourceState currentState = resourceStateProvider.getResourceState(resourceName);
 				for (String method : resourceNamesToMethods.get(resourceName)) {
+					if (reload) {
+						hypermediaEngine.unregister(currentState);
+					}
 					hypermediaEngine.register(currentState, method);
 				}
 			}
