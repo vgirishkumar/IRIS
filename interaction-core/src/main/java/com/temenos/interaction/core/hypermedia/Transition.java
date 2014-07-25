@@ -151,7 +151,7 @@ public class Transition {
 
 	public int hashCode() {
 		return (source != null ? source.getName().hashCode() : 0)
-				+ target.getName().hashCode()
+				+ (target != null ? target.getName().hashCode() : 0)
 				+ (label != null ? label.hashCode() : 0) + command.hashCode();
 	}
 

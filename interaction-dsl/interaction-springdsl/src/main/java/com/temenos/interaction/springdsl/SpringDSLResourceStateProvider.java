@@ -31,19 +31,16 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 
-public class SpringDSLResourceStateProvider implements ResourceStateProvider, ApplicationContextAware {
+public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
-	@Autowired 
-	private ApplicationContext applicationContext;
+	private Map<String, ResourceState> resources = new HashMap<String, ResourceState>();
 
     /**
      * Map of ResourceState bean names, to paths.
@@ -68,7 +65,12 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Ap
 	 */
 	private Map<String, String> resourcePathsByState = new HashMap<String, String>();
 	
+	public SpringDSLResourceStateProvider() {}
 	public SpringDSLResourceStateProvider(Properties beanMap) {
+		this.beanMap = beanMap;
+	}
+	
+	public void setResourceMap(Properties beanMap) {
 		this.beanMap = beanMap;
 	}
 	
@@ -116,11 +118,30 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Ap
 		initialised = true;
 	}
 	
+	protected void unload(String name) {
+		resources.remove(name);
+	}
+	
+	@Override
+	public boolean isLoaded(String name) {
+		return resources.containsKey(name);
+	}
+
 	@Override
 	public ResourceState getResourceState(String name) {
-		if (name != null) {
-			ResourceState resource = (ResourceState) applicationContext.getBean(name);
-			return resource;
+		try {
+			if (name != null) {
+				ResourceState resource = resources.get(name);
+				if (resource == null) {
+					String beanXml = "IRIS-"+name+"-PRD.xml";
+					ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
+					resource = (ResourceState) context.getBean(name);
+					resources.put(name, resource);
+				}
+				return resource;
+			}
+		} catch (BeansException e) {
+			logger.error("Failed to load ["+name+"]", e);
 		}
 		return null;
 	}
@@ -153,12 +174,6 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Ap
 	protected Map<String, Set<String>> getResourceStatesByPath(Properties beanMap) {
 		initialise();
 		return resourceStatesByPath;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext)
-			throws BeansException {
-		this.applicationContext = applicationContext;
 	}
 
 }

@@ -20,10 +20,8 @@
   #L%
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:util="http://www.springframework.org/schema/util"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/util 
 		http://www.springframework.org/schema/util/spring-util-3.0.xsd
@@ -32,20 +30,42 @@
 		http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<context:component-scan base-package="com.temenos.interaction.springdsl"/>
+	<context:component-scan base-package="com.temenos.interaction.springdsl" />
 
-	<!-- Import Portable Resource Definitions (PRD) -->
-	<import resource="classpath:IRIS-*-PRD.xml" />
-
-	<bean id="states" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-        <property name="locations">
-            <list>
-                <value>classpath:IRIS-*.properties</value>
-            </list>
-        </property>
+	<!-- Load the index of resources -->
+	<bean id="states" class="com.temenos.interaction.springdsl.properties.ReloadablePropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<value>classpath*:IRIS-*.properties</value>
+			</list>
+		</property>
+		<property name="listeners">
+			<list>
+				<bean class="com.temenos.interaction.springdsl.SpringDSLReloadablePropertiesListener" />
+			</list>
+		</property>
 	</bean>
+ 
+  	<!-- regularly reload property files. -->
+	<bean id="timer" class="org.springframework.scheduling.timer.TimerFactoryBean">
+		<property name="scheduledTimerTasks">
+			<bean id="reloadProperties" class="org.springframework.scheduling.timer.ScheduledTimerTask">
+				<property name="period" value="1000" />
+				<property name="runnable">
+					<bean class="com.temenos.interaction.springdsl.properties.ReloadConfiguration">
+						<property name="reconfigurableBeans">
+							<list>
+								<ref bean="states" />
+							</list>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
 	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider">
-		<constructor-arg ref="states" />
+		<property name="resourceMap" ref="states" />
 	</bean>
 
 </beans>

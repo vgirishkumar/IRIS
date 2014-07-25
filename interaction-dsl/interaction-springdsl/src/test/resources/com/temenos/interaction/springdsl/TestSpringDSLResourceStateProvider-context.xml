@@ -22,90 +22,12 @@
 		http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<bean id="resourceStateProvider"
-		class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider">
-		<constructor-arg>
-			<util:properties>
-				<prop key="SimpleModel_Home_home">GET,PUT /test</prop>
-			</util:properties>
-		</constructor-arg>
-	</bean>
+	<!-- 
+		Import the main SpringDSL entry point for IRIS
+		
+		Initialises the ResourceStateProvider and understands how to construct
+		ResourceState instances using Spring
+	-->
+	<import resource="classpath*:IRIS-SpringDSL-main.xml" />
 
-	<!-- begin spring bean for resource : SimpleModel_Home_home -->
-	<bean id="SimpleModel_Home_home" class="com.temenos.interaction.core.hypermedia.ResourceState">
-		<constructor-arg name="entityName" value="HOME" />
-		<constructor-arg name="name" value="home" />
-		<constructor-arg>
-			<list>
-				<bean class="com.temenos.interaction.core.hypermedia.Action">
-					<constructor-arg value="NoopGET" />
-					<constructor-arg value="VIEW" />
-				</bean>
-			</list>
-		</constructor-arg>
-		<constructor-arg name="path" value="/" />
-		<constructor-arg name="rels">
-			<null />
-		</constructor-arg>
-		<constructor-arg name="uriSpec">
-			<bean class="com.temenos.interaction.core.hypermedia.UriSpecification">
-				<constructor-arg name="name" value="home" />
-				<constructor-arg name="template" value="/" />
-			</bean>
-		</constructor-arg>
-		<constructor-arg name="errorState">
-			<null />
-		</constructor-arg>
-
-		<property name="initial" value="true" />
-	</bean>
-	
-	<!-- begin spring bean for resource : SimpleModel_Home_home -->
-	<bean id="SimpleModel_Home_TestTransition" class="com.temenos.interaction.core.hypermedia.ResourceState">
-		<constructor-arg name="entityName" value="HOME" />
-		<constructor-arg name="name" value="TestTransition" />
-		<constructor-arg>
-			<list>
-				<bean class="com.temenos.interaction.core.hypermedia.Action">
-					<constructor-arg value="NoopGET" />
-					<constructor-arg value="VIEW" />
-				</bean>
-			</list>
-		</constructor-arg>
-		<constructor-arg name="path" value="/test" />
-		<constructor-arg name="rels">
-			<null />
-		</constructor-arg>
-		<constructor-arg name="uriSpec">
-			<bean class="com.temenos.interaction.core.hypermedia.UriSpecification">
-				<constructor-arg name="name" value="test" />
-				<constructor-arg name="template" value="/test" />
-			</bean>
-		</constructor-arg>
-		<constructor-arg name="errorState">
-			<null />
-		</constructor-arg>
-
-		<!-- Start property transitions list -->
-		<property name="transitions">
-			<list>
-				<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
-					<property name="method" value="GET" />
-					<property name="target">
-						<bean class="com.temenos.interaction.core.hypermedia.LazyResourceState">
-							<constructor-arg name="name" value="SimpleModel_Home_home" />
-						</bean>
-					</property>
-					<property name="uriParameters">
-						<util:map></util:map>
-					</property>
-					<property name="evaluation">
-						<null />
-					</property>
-
-					<property name="label" value="link to home" />
-				</bean>
-			</list>
-		</property>
-	</bean>
-</beans><!-- end spring bean for resource : SimpleModel_Home_home -->
+</beans>

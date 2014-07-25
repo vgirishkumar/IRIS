@@ -27,6 +27,14 @@ import java.util.Set;
 public interface ResourceStateProvider {
 
 	/**
+	 * Return true if resource state for name can be found
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public boolean isLoaded(String name);
+
+	/**
 	 * Lookup and return a single {@link ResourceState} by name
 	 * 
 	 * @param name

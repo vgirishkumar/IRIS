@@ -22,7 +22,7 @@ package com.temenos.interaction.springdsl;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
@@ -54,13 +54,13 @@ public class TestSpringDSLResourceStateProvider {
 		assertEquals("home", actual.getName());
 	}
 
-//	@Test
+	@Test
 	public void testGetResourceStateWithTransitionsInitialised() {
 		ResourceState actual = resourceStateProvider.getResourceState("SimpleModel_Home_TestTransition");
 		assertEquals("TestTransition", actual.getName());
 		List<Transition> transitions = actual.getTransitions();
 		assertEquals(1, transitions.size());
-		assertEquals("access a property from the real target to check it is loaded", "/", transitions.get(0).getTarget().getPath());
+		assertEquals("access a property from the target to check it is lazy loaded", "LAZY", transitions.get(0).getTarget().getPath());
 	}
 
 	@Test
