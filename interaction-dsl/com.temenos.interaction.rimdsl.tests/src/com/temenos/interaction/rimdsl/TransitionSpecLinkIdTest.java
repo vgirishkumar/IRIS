@@ -40,7 +40,7 @@ import com.temenos.interaction.rimdsl.rim.State;
 
 @InjectWith(RIMDslInjectorProvider.class)
 @RunWith(XtextRunner.class)
-public class DrillDownIdTest {
+public class TransitionSpecLinkIdTest {
 	
 	@Inject 
 	IGenerator underTest;
@@ -48,51 +48,60 @@ public class DrillDownIdTest {
 	ParseHelper<DomainModel> parseHelper;
 	
 	private final static String LINE_SEP = System.getProperty("line.separator");
-	
+
+	// rim with drill down
 	private final static String SIMPLE_STATES_RIM_1 = "" +
-	"rim Simple {" + LINE_SEP +
-	"	command GetEntity" + LINE_SEP +
-	"	command GetException" + LINE_SEP +
-	"	command UpdateEntity" + LINE_SEP +
-			
-	"initial resource A {" + LINE_SEP +
-	"	type: collection" + LINE_SEP +
-	"	entity: ENTITY" + LINE_SEP +
-	"	view: GetEntity" + LINE_SEP +
-	"	id: \"123456\"" + LINE_SEP +
-	"}" + LINE_SEP +
-	"}" + LINE_SEP +
-	"";
+			"rim Simple {" + LINE_SEP +
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"	GET *-> B {" + LINE_SEP +
+			"		id: \"123456\" " + LINE_SEP +
+			"	}" + LINE_SEP +
+			"}" + LINE_SEP +
+			"resource B {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	actions [ UpdateEntity ]" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +
+			"";
 	
+	//rim without drill down
 	private final static String SIMPLE_STATES_RIM_2 = "" +
-	"rim Simple {" + LINE_SEP +
-	"	command GetEntity" + LINE_SEP +
-	"	command GetException" + LINE_SEP +
-	"	command UpdateEntity" + LINE_SEP +
-			
-	"initial resource A {" + LINE_SEP +
-	"	type: collection" + LINE_SEP +
-	"	entity: ENTITY" + LINE_SEP +
-	"	view: GetEntity" + LINE_SEP +
-	"}" + LINE_SEP +
-	"}" + LINE_SEP +
-	"";
+			"rim Simple {" + LINE_SEP +
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"	GET *-> B " + LINE_SEP +
+			"}" + LINE_SEP +
+			"resource B {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	actions [ UpdateEntity ]" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +
+			"";
+
 	
 	@Test
-	public void testForIdAvailable() throws Exception {
+	public void testForTransitionSpecWithIdAvailablity() throws Exception {
 		DomainModel domainModel = parseHelper.parse(SIMPLE_STATES_RIM_1);
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
 		State state = model.getStates().get(0);	
-		assertNotNull(state.getId());
-		assertEquals("123456", state.getId().getName());
+		assertNotNull(state.getTransitions().get(0).getSpec().getId());
+		assertEquals("123456", state.getTransitions().get(0).getSpec().getId().getName());
 	}
 	
 	@Test
-	public void testForIdNotAvailable() throws Exception {
+	public void testForTransitionSpecWithoutIdUnavailablity() throws Exception {
 		DomainModel domainModel = parseHelper.parse(SIMPLE_STATES_RIM_2);
 		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
-		State state = model.getStates().get(0);	
-		assertNull(state.getId());
+		assertEquals(1, model.getStates().get(0).getTransitions().size());
+		assertNotNull(model.getStates().get(0).getTransitions().get(0));
+		assertNull(model.getStates().get(0).getTransitions().get(0).getSpec());
 	}
 }
 

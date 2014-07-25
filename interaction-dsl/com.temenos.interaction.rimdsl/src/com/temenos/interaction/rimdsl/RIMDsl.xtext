@@ -101,8 +101,6 @@ State:
                 & transitions+=TransitionRef*
                 // MAY define an onerror transition
                 & ('onerror' '-->' errorState=[State|QualifiedName])?
-                // MAY define an image id
-                & id=ImageId?
     	)
     '}'
 ;
@@ -172,6 +170,8 @@ TransitionSpec:
                 & ('parameters' '[' ((uriLinks+=UriLink) (',' uriLinks+=UriLink)* ) ']')?
                 // MAY define a 'title:'
                 & title=Title?
+                // MAY define an image id
+                & id=LinkId?
         )
     '}'
     )
@@ -230,7 +230,7 @@ Title:
     'title:' name=DQ_STRING    
 ;
 
-ImageId:
+LinkId:
 	'id:' name=DQ_STRING
 ;
 
