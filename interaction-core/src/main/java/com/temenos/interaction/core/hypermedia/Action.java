@@ -39,6 +39,7 @@ public class Action {
 	public Action(String name, TYPE type) {
 		this.name = name;
 		this.type = type;
+		this.properties = new Properties();		// We should initialize to avoid NullPointerException
 	}
 
 	public Action(String name, TYPE type, Properties props) {
