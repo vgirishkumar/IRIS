@@ -1,0 +1,70 @@
+domain AirlineModel {
+rim Airline {
+
+	event DELETE {
+		method: DELETE
+	}
+	event GET {
+		method: GET
+	}
+	event POST {
+		method: POST
+	}
+	event PUT {
+		method: PUT
+	}
+
+	command CreateEntity
+	command DeleteEntity
+	command GETEntities
+	command GETEntity
+	command GETEntityPassengerWithEmbeddedFlight
+	command GETException
+	command GETNavProperty
+	command GETServiceDocument
+	command NoopGET
+	command UpdateEntity
+
+initial resource ServiceDocument {
+	type: item
+	entity: ServiceDocument
+	view: GETServiceDocument
+	path: "/"
+	GET -> Airports
+}
+
+resource Airports {
+	type: collection
+	entity: Airport
+	view: GETEntities
+	path: "/Airports()"
+	GET *-> airport {
+		title: "Airports"
+		parameters [ id="{code}" ]
+		id: "123"
+	}
+/*	
+	GET *-> flights {
+		title: "Flights"
+		parameters [ id="{code}" ]
+		id: "987654321"
+	}
+*/	
+}
+
+resource airport {
+	type: item
+	entity: Airport
+	view: GETEntity
+	path: "/Airports('{id}')"
+}
+/*
+resource flights {
+	type: item
+	entity: Flight
+	view: GETEntity
+	path: "/Airports('{id}')"
+}
+*/
+}
+}
