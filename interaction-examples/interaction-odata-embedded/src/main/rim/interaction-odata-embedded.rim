@@ -46,11 +46,13 @@ resource Airports {
 		parameters [ id="{code}" ]
 	}
 	GET *-> airport_departures {
+		id: "123456"
 		title: "departures"
 		parameters [ id="{code}" ]
 	}
 	GET *-> airport_arrivals {
 		title: "arrivals"
+		id: "654321"
 		parameters [ id="{code}" ]
 	}
 	PUT *-> airport_updated {
