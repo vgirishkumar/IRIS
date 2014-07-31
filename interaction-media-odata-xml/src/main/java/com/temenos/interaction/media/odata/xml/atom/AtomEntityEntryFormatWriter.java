@@ -21,7 +21,6 @@ package com.temenos.interaction.media.odata.xml.atom;
  * #L%
  */
 
-
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -88,8 +87,7 @@ public class AtomEntityEntryFormatWriter {
 			String entityName, 
 			Entity entity,
 			Collection<Link> links, 
-			Map<Transition,RESTResource> embeddedResources) 
-	{
+			Map<Transition,RESTResource> embeddedResources) {
 		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 		String absoluteId = uriInfo.getBaseUri() + uriInfo.getPath();
 		
@@ -116,8 +114,7 @@ public class AtomEntityEntryFormatWriter {
 
 	public void writeEntry(StreamWriter writer, String entitySetName, String entityName, Entity entity,
 			Collection<Link> entityLinks, Map<Transition,RESTResource> embeddedResources,
-			UriInfo uriInfo, String updated) 
-	{
+			UriInfo uriInfo, String updated) {
 		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
 		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 		String absoluteId = getAbsoluteId(baseUri, entitySetName, entity, entityMetadata);
@@ -132,8 +129,7 @@ public class AtomEntityEntryFormatWriter {
 			Entity entity,
 			Collection<Link> entityLinks, 
 			Map<Transition,RESTResource> embeddedResources,
-			String baseUri, String absoluteId, String updated) 
-	{
+			String baseUri, String absoluteId, String updated) {
 		assert(entityName != null);
 		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
 		String modelName = metadata.getModelName();
@@ -168,12 +164,13 @@ public class AtomEntityEntryFormatWriter {
 		            writer.writeAttribute("type", type);
 	            }
 	            writer.writeAttribute("title", link.getTitle());
-	            // TODO add support for hreflang
-//	            writer.writeAttribute("hreflang", href_lang);
 				if (embeddedResources != null && embeddedResources.get(link.getTransition()) != null) {
-		            // write the inlined entities inside the link element
 					String embeddedAbsoluteId = link.getHref();
 					writeLinkInline(writer, metadata, link, embeddedResources.get(link.getTransition()), link.getHref(), baseUri, embeddedAbsoluteId, updated);
+				}
+				String linkId = link.getLinkId();
+				if( linkId != null && linkId.length() > 0 ) {
+					writer.writeAttribute("id", linkId);
 				}
 	            writer.endLink();
 			}
@@ -227,9 +224,9 @@ public class AtomEntityEntryFormatWriter {
 					baseUri, absoluteId, updated);
 
 			writer.endEntry();
-		} else
-			throw new RuntimeException("Unknown OLink type "
-					+ linkToInline.getClass());
+		} else {
+			throw new RuntimeException("Unknown OLink type " + linkToInline.getClass());
+		}
 		writer.endElement();  // end inline
 	}
 	  
@@ -241,8 +238,7 @@ public class AtomEntityEntryFormatWriter {
 				absId += absId.isEmpty() ? (!baseUri.endsWith("/") ? baseUri + "/" : baseUri) + entitySetName : ",";
 				if(entityMetadata.isPropertyNumber(prop.getFullyQualifiedName())) {
 					absId += "(" + entityMetadata.getPropertyValueAsString(prop) + ")";
-				}
-				else {
+				} else {
 					absId += "('" + entityMetadata.getPropertyValueAsString(prop) + "')";
 				}
 			}
@@ -255,18 +251,14 @@ public class AtomEntityEntryFormatWriter {
 		// Loop round all properties writing out fields and MV and SV sets
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 		
-		for (String propertyName:properties.keySet())
-		{
+		for (String propertyName:properties.keySet()) {
 			// Work out what the property looks like by looking at the metadata
 			EntityProperty property = (EntityProperty) properties.get(propertyName);
 			boolean isComplex = entityMetadata.isPropertyComplex(property.getFullyQualifiedName());
-	   		if( !isComplex )
-	   		{
+	   		if( !isComplex ) {
 	   			// Simple field
 	   			writeProperty( writer, entityMetadata, property);
-	   		}
-	   		else
-	   		{
+	   		} else {
 	   			// Complex List
 	   			writePropertyComplexList( writer, entityMetadata, property, modelName);
 	   		}
