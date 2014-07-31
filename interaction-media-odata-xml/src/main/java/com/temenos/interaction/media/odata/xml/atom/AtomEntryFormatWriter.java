@@ -254,8 +254,14 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	  String title = olink.getTitle();
 	  String id = "";
 	  if(linkId != null ) {
-		  Iterator<Link> l = linkId.iterator();
-		  id = l.next().getLinkId();
+		  Iterator<Link> iterator = linkId.iterator();
+		  while(iterator.hasNext()) {
+			  Link tempLink = iterator.next();
+			  if(tempLink.getHref().endsWith(href)) {
+				  id = tempLink.getLinkId();
+				  break;
+			  }
+		  }
 	  }
       if (!"self".equals(rel) && !"edit".equals(rel)) {
     	  if(id != null && id.length() > 0 ) {
