@@ -43,13 +43,6 @@ resource Airports {
 		parameters [ id="{code}" ]
 		id: "123"
 	}
-/*	
-	GET *-> flights {
-		title: "Flights"
-		parameters [ id="{code}" ]
-		id: "987654321"
-	}
-*/	
 }
 
 resource airport {
@@ -58,13 +51,5 @@ resource airport {
 	view: GETEntity
 	path: "/Airports('{id}')"
 }
-/*
-resource flights {
-	type: item
-	entity: Flight
-	view: GETEntity
-	path: "/Airports('{id}')"
-}
-*/
 }
 }

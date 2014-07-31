@@ -127,4 +127,35 @@ public class TestTransitionCommandSpec {
 		assertEquals("AUTO", new TransitionCommandSpec("GET", Transition.AUTO).toString());
 	}
 
+	@Test
+	public void testLinkIdEquality() {
+		Map<String, String> params1 = new HashMap<String, String>();
+		params1.put("param", "hello");
+		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", 0, null, params1, "123456");
+		Map<String, String> params2 = new HashMap<String, String>();
+		params2.put("param", "hello");
+		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", 0, null, params2, "123456");
+		assertEquals(tcs, tcs2);
+		assertEquals(tcs.hashCode(), tcs2.hashCode());	
+	}
+	
+	@Test
+	public void testLinkIdInequality() {
+		Map<String, String> params1 = new HashMap<String, String>();
+		params1.put("param", "hello");
+		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", 0, null, params1, "123456");
+		Map<String, String> params2 = new HashMap<String, String>();
+		params2.put("param", "hello");
+		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", 0, null, params2, "654321");
+		assertFalse(tcs == tcs2);
+		assertFalse(tcs.hashCode() == tcs2.hashCode());		
+	}
+	
+	@Test
+	public void testLinkIdToString() {
+		assertEquals("null linkId=123456", new TransitionCommandSpec(null, 0,null,null,"123456").toString());
+		assertEquals("GET linkId=123456", new TransitionCommandSpec("GET", 0,null,null,"123456").toString());
+		assertEquals("*GET linkId=123456", new TransitionCommandSpec("GET", Transition.FOR_EACH, null, null, "123456").toString());
+		assertEquals("AUTO linkId=123456", new TransitionCommandSpec("GET", Transition.AUTO, null, null, "123456").toString());
+	}
 }
