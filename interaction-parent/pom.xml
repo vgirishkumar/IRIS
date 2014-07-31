@@ -55,7 +55,6 @@
 		<module>../interaction-examples/interaction-odata-error</module>
 		<module>../interaction-examples/interaction-odata-embedded</module>
 		<module>../interaction-examples/interaction-odata-multicompany</module>
-		<module>../interaction-examples/interaction-odata-linkid</module>
 		<module>../interaction-sdk-archetype</module>
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
