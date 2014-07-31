@@ -69,10 +69,10 @@ public class TestTransitionCommandSpec {
 	public void testEqualityWithParameters() {
 		Map<String, String> params1 = new HashMap<String, String>();
 		params1.put("param", "hello");
-		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", 0, null, params1);
+		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", 0, null, params1, null);
 		Map<String, String> params2 = new HashMap<String, String>();
 		params2.put("param", "hello");
-		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", 0, null, params2);
+		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", 0, null, params2, null);
 		assertEquals(tcs, tcs2);
 		assertEquals(tcs.hashCode(), tcs2.hashCode());
 	}
@@ -92,10 +92,10 @@ public class TestTransitionCommandSpec {
 	public void testInequalityWithUriLinkageParameters() {
 		Map<String, String> params1 = new HashMap<String, String>();
 		params1.put("param", "hello");
-		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", 0, null, params1);
+		TransitionCommandSpec tcs = new TransitionCommandSpec("GET", 0, null, params1, null);
 		Map<String, String> params2 = new HashMap<String, String>();
 		params2.put("param", "HELLO");
-		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", 0, null, params2);
+		TransitionCommandSpec tcs2 = new TransitionCommandSpec("GET", 0, null, params2, null);
 		assertFalse(tcs.equals(tcs2));
 		assertFalse(tcs.hashCode() == tcs2.hashCode());
 	}

@@ -248,7 +248,7 @@ public class Transition {
 		this.linkId = builder.linkId;
 
 		// this one's a bit special
-		this.command = new TransitionCommandSpec(method, 
-				flags, evaluation, uriParameters);
+		this.command = new TransitionCommandSpec(method,
+				flags, evaluation, uriParameters, linkId);
 	}
 }

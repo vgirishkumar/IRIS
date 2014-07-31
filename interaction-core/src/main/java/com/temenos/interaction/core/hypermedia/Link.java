@@ -51,6 +51,9 @@ public class Link {
 	private String method;
 	private String[] consumes;
 	private MultivaluedMap<String, String> extensions;
+	
+	//LinkId
+	private String linkId;
 
 	/**
 	 * Construct a simple link used for GET operations.
@@ -92,6 +95,7 @@ public class Link {
 		this.produces = produces;
 		this.method = method;
 		this.extensions = extensions;
+		this.linkId = transition != null ? transition.getLinkId() : null;
 	}
 
 	public Transition getTransition() {
@@ -114,6 +118,12 @@ public class Link {
 		return href;
 	}
 
+	public String getLinkId() {
+		if(linkId == null) {
+			linkId = transition != null ? transition.getLinkId() : null;	
+		} 
+		return linkId;
+	}
 	/**
 	 * Obtain the transition, i.e. the link relative to the REST service.
 	 * 
@@ -171,6 +181,10 @@ public class Link {
 				}
 			}
 		}
+		
+		if (linkId != null) {
+			buf.append("; linkId=\"").append(linkId).append("\"");
+		}
 		return buf.toString();
 	}
 
@@ -199,6 +213,7 @@ public class Link {
 		private String method;
 		private String[] consumes;
 		private MultivaluedMap<String, String> extensions;
+		private String linkId;
 
 		public Builder transition(Transition transition) {
 			this.transition = transition;
@@ -245,6 +260,11 @@ public class Link {
 			return this;
 		}
 
+		public Builder linkId(String linkId) {
+			this.linkId = linkId;
+			return this;
+		}
+
 		public Link build() {
 			return new Link(this);
 		}
@@ -260,5 +280,11 @@ public class Link {
 		this.method = builder.method;
 		this.consumes = builder.consumes;
 		this.extensions = builder.extensions;
+		if(builder.linkId == null) {
+			this.linkId = builder.transition != null ? builder.transition.getLinkId() : null;	
+		} else {
+			this.linkId = builder.linkId;
+		}
+		
 	}
 }
