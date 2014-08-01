@@ -231,7 +231,7 @@ public class ResourceStateMachine {
 		collectTransitionsById(transitionsById, state);
 		collectTransitionsByRel(transitionsByRel, state);
 		collectInteractionsByPath(interactionsByPath, new ArrayList<ResourceState>(), state, method);
-		collectInteractionsByState(interactionsByState, new ArrayList<String>(), state);
+		collectInteractionsByState(interactionsByState, new ArrayList<String>(), state, method);
 		collectResourceStatesByPath(resourceStatesByPath, new HashSet<ResourceState>(), state);
 		collectResourceStatesByName(resourceStatesByName, state);
 	}
@@ -364,10 +364,10 @@ public class ResourceStateMachine {
 	
 	private void collectInteractionsByState(Map<String, Set<String>> result) {
 		List<String> states = new ArrayList<String>();
-		collectInteractionsByState(result, states, initial);
+		collectInteractionsByState(result, states, initial, null);
 	}
 	
-	private void collectInteractionsByState(Map<String, Set<String>> result, Collection<String> states, ResourceState currentState) {
+	private void collectInteractionsByState(Map<String, Set<String>> result, Collection<String> states, ResourceState currentState, String method) {
 		if (currentState == null || states.contains(currentState.getName())) return;
 		states.add(currentState.getName());
 		// every state must have a 'GET' interaction
@@ -375,7 +375,11 @@ public class ResourceStateMachine {
 		if (interactions == null)
 			interactions = new HashSet<String>();
 		if (!currentState.isPseudoState()) {
-			interactions.add(HttpMethod.GET);
+			if (method != null) {
+				interactions.add(method);
+			} else {
+				interactions.add(HttpMethod.GET);
+			}
 		}
 		if (currentState.getActions() != null) {
 			for (Action action : currentState.getActions()) {
@@ -398,7 +402,7 @@ public class ResourceStateMachine {
 					interactions.add(command.getMethod());
 				
 				result.put(next.getName(), interactions);
-				collectInteractionsByState(result, states, next);
+				collectInteractionsByState(result, states, next, null);
 			}
 		}
 		
