@@ -103,7 +103,7 @@ public class Transition {
 
 	public String getId() {
 		String labelText = "";
-		if (label != null && !label.equals(target.getName())) {
+		if (label != null && target != null && !label.equals(target.getName())) {
 			labelText = "(" + label + ")";
 		}
 		if (source == null) {
@@ -111,7 +111,7 @@ public class Transition {
 					+ target.getId(); //transition to itself
 		} else {
 			return source.getId() + ">" + command.getMethod() + labelText + ">"
-					+ target.getId();
+					+ (target != null ? target.getId() : "");
 		}
 	}
 

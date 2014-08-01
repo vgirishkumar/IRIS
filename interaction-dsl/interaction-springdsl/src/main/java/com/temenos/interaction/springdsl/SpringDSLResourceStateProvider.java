@@ -134,9 +134,13 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 				ResourceState resource = resources.get(name);
 				if (resource == null) {
 					String beanXml = "IRIS-"+name+"-PRD.xml";
-					ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
-					resource = (ResourceState) context.getBean(name);
-					resources.put(name, resource);
+					if (this.getClass().getClassLoader().getResource(beanXml) != null) {
+						ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
+						resource = (ResourceState) context.getBean(name);
+						resources.put(name, resource);
+					} else {
+						logger.error("Unable to load resource ["+beanXml+"] not found");
+					}
 				}
 				return resource;
 			}
