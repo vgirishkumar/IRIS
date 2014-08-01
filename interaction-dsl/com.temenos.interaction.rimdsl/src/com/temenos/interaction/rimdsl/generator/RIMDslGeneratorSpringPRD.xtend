@@ -117,8 +117,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				<list>
 				<!-- create transitions  -->
 			«FOR t : state.transitions»
-    	    	«IF (t.state != null && t.state.name != null) 
-    	    		|| (t.name != null ) »
+				«IF (t.state != null && t.state.name != null) || (t.name != null ) »
+					<!-- begin transition : «transitionTargetStateVariableName(t)» -->
 					«IF t instanceof Transition»                
 			    	«produceTransitions(rim, state, t as Transition)»
 			    	«ENDIF»
@@ -134,6 +134,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 					«IF t instanceof TransitionEmbedded»                
 					«produceTransitionsEmbedded(rim, state, t as TransitionEmbedded)»
 					«ENDIF»
+					<!-- end transition : «transitionTargetStateVariableName(t)» -->
 				«ENDIF»
 			«ENDFOR»
 				</list>
@@ -269,7 +270,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		«ENDFOR»
     '''
 	def produceTransitions(ResourceInteractionModel rim, State fromState, Transition transition) '''
-			<!-- begin transition : «transitionTargetStateVariableName(transition)» -->
 			<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
 				<property name="method" value="«transition.event.httpMethod»" />
 				<property name="target"><bean class="«produceLazyResourceStateType(transition.state)»"><constructor-arg name="name" value="«transitionTargetStateVariableName(transition)»" /></bean></property>
@@ -285,7 +285,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		«ENDIF»
 
 				<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
-			</bean><!-- end transition : «transitionTargetStateVariableName(transition)» -->
+			</bean>
 
 		<!--
 			«stateVariableName(fromState)».addTransition(new Transition.Builder()
@@ -336,8 +336,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	'''
 	
 	def produceTransitionsForEach(ResourceInteractionModel rim, State fromState, TransitionForEach transition) '''
-		<!-- produceTransitionsForEach() -->  
-		<!-- 	create for each transition  -->
 		<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
 			<property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.FOR_EACH"/></property>
 			<property name="method" value="« transition.event.httpMethod»" />
@@ -368,8 +366,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	'''
 		
 	def produceTransitionsAuto(ResourceInteractionModel rim, State fromState, TransitionAuto transition) '''
-		<!-- produceTransitionsAuto() -->  
-		<!-- 	create AUTO transition  -->
 		<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
 			<property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.AUTO"/></property>
 			<property name="target"><bean class="«produceLazyResourceStateType(transition.state)»"><constructor-arg name="name" value="«transitionTargetStateVariableName(transition)»" /></bean></property>
@@ -396,8 +392,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     '''
 
 	def produceTransitionsRedirect(ResourceInteractionModel rim, State fromState, TransitionRedirect transition) '''
-		<!-- produceTransitionsRedirect() -->   
-		<!-- 	create REDIRECT transition --> 
 		<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
 			<property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.REDIRECT"/></property>
 			<property name="method" value="« transition.event.httpMethod»" />
@@ -423,8 +417,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
     '''
 
 	def produceTransitionsEmbedded(ResourceInteractionModel rim, State fromState, TransitionEmbedded transition) '''
-		<!-- produceTransitionsEmbedded() -->  
-		<!-- 	create EMBEDDED transition --> 
 		<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
 			<property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.EMBEDDED"/></property>
 			<property name="method" value="« transition.event.httpMethod»" />

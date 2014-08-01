@@ -354,6 +354,7 @@ public class GeneratorSpringPRDTest {
 			"	GET -> B { condition: OK(C) }" + LINE_SEP + 
 			"	GET -> C { condition: NOT_FOUND(B) }" + LINE_SEP + 
 			"	GET -> D { condition: OK(A) && NOT_FOUND(B) }" + LINE_SEP + 
+			"	GET +-> E { condition: OK(C) }" + LINE_SEP + 
 			"}" + LINE_SEP +
 
 			"resource B {" + 
@@ -367,6 +368,11 @@ public class GeneratorSpringPRDTest {
 			"	view: GetEntity" + LINE_SEP + 
 			"}" + LINE_SEP + 
 			"resource D {" + 
+			"	type: item" + LINE_SEP + 
+			"	entity: ENTITY" + LINE_SEP + 
+			"	view: GetEntity" + LINE_SEP + 
+			"}" + LINE_SEP + 
+			"resource E {" + 
 			"	type: item" + LINE_SEP + 
 			"	entity: ENTITY" + LINE_SEP + 
 			"	view: GetEntity" + LINE_SEP + 
@@ -403,7 +409,12 @@ public class GeneratorSpringPRDTest {
 		assertTrue(transitionD.contains("<constructor-arg name=\"function\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.OK\"/>"));
 		assertTrue(transitionD.contains("<constructor-arg name=\"target\"><bean class=\"com.temenos.interaction.core.hypermedia.LazyResourceState\"><constructor-arg name=\"name\" value=\"Test_B\" /></bean></constructor-arg>"));
 		assertTrue(transitionD.contains("<constructor-arg name=\"function\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.NOT_FOUND\"/>"));
-		
+
+		// find the embedded transition to E, depends on C being found
+		String transitionE = getTransitionBean(resourceA, "Test_E");
+		assertTrue(transitionE.contains("<constructor-arg name=\"target\"><bean class=\"com.temenos.interaction.core.hypermedia.LazyResourceState\"><constructor-arg name=\"name\" value=\"Test_C\" /></bean></constructor-arg>"));
+		assertTrue(transitionE.contains("<constructor-arg name=\"function\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.OK\"/>"));
+
 	}
 
 	private String getResourceBean(String output, String name) {
