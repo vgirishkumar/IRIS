@@ -23,6 +23,8 @@ package com.temenos.interaction.media.odata.xml.atom;
 
 
 import java.io.Writer;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
@@ -49,6 +51,7 @@ import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
 
+import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
 /**
@@ -116,6 +119,14 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	      List<OProperty<?>> entityProperties, List<OLink> entityLinks,
 	      String baseUri, String updated,
 	      EdmEntitySet ees, boolean isResponse) {
+	  return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse, null);
+  }
+  
+  //OData olink doesn't have option to provide linkid, so writing linkid explicitly 
+  public String writeEntry(XMLWriter2 writer, OEntity oe,
+	      List<OProperty<?>> entityProperties, List<OLink> entityLinks,
+	      String baseUri, String updated,
+	      EdmEntitySet ees, boolean isResponse, Collection<Link> linkId) {
 
 	    String relid = null;
 	    String absid = null;
@@ -173,20 +184,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	                href, baseUri, updated, isResponse);
 	            writer.endElement("link");
 	          } else {
-	            // deferred link.
-	            if (!"self".equals(link.getRelation()) &&
-	            		!"edit".equals(link.getRelation())) {
-		            writeElement(writer, "link", null,
-			                "rel", link.getRelation(),
-			                "type", type,
-			                "title", link.getTitle(),
-			                "href", href);
-	            } else {
-		            writeElement(writer, "link", null,
-			                "rel", link.getRelation(),
-			                "title", link.getTitle(),
-			                "href", href);
-	            }
+	        	  writeLink(writer, link, type, href, linkId);
 	          }
 	        }
 	      } else {
@@ -247,6 +245,39 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	    return absid;
   }  
 
+  /*
+   * helper function to write customized and generic link
+   */
+  private void writeLink(XMLWriter2 writer, OLink olink, String type, String href, Collection<Link> linkId) {
+	// deferred link.
+	  String rel = olink.getRelation();
+	  String title = olink.getTitle();
+	  String id = "";
+	  if(linkId != null ) {
+		  Iterator<Link> iterator = linkId.iterator();
+		  while(iterator.hasNext()) {
+			  Link tempLink = iterator.next();
+			  if(tempLink.getHref().endsWith(href)) {
+				  id = tempLink.getLinkId();
+				  break;
+			  }
+		  }
+	  }
+      if (!"self".equals(rel) && !"edit".equals(rel)) {
+    	  if(id != null && id.length() > 0 ) {
+    		  writeElement(writer, "link", null, "rel", rel, "type", type, "title", title, "href", href, "id", id);
+    	  } else {
+    		  writeElement(writer, "link", null, "rel", rel, "type", type, "title", title, "href", href);
+    	  }
+      } else {
+    	  if(id != null && id.length() > 0 ) {
+    		  writeElement(writer, "link", null, "rel", rel, "title", title, "href", href, "id", id);
+    	  } else {
+    		  writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
+    	  }
+      }
+  }
+  
   private OAtomEntity getAtomInfo(OEntity oe) {
 	    if (oe != null) {
 	      OAtomEntity atomEntity = oe.findExtension(OAtomEntity.class);

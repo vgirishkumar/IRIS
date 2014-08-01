@@ -26,6 +26,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.UriInfo;
 
@@ -66,10 +67,10 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 	  String entitySetName = ees.getName();
 	  List<Link> links = new ArrayList<Link>();
 	  links.add(new Link(entitySetName, "self", entitySetName, null, null));
-	  write(uriInfo, w, links, response, null);
+	  write(uriInfo, w, links, response, null, null);
   }
   
-  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, String modelName) {
+  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, String modelName, Map<OEntity, Collection<Link>> linkId) {
 	String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 	String absolutePath = AtomXMLProvider.getAbsolutePath(uriInfo);
 
@@ -106,9 +107,10 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     }
 
     for (OEntity entity : response.getEntities()) {
-      writer.startElement("entry");
-      entryWriter.writeEntry(writer, entity, entity.getProperties(), entity.getLinks(), baseUri, updated, ees, true);
-      writer.endElement("entry");
+    	Collection<Link> link =  linkId.get(entity);
+    	writer.startElement("entry");
+    	entryWriter.writeEntry(writer, entity, entity.getProperties(), entity.getLinks(), baseUri, updated, ees, true, link);
+    	writer.endElement("entry");
     }
 
     if (response.getSkipToken() != null) {

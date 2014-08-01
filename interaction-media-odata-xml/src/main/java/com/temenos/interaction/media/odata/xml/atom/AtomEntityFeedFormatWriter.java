@@ -75,8 +75,7 @@ public class AtomEntityFeedFormatWriter {
 			CollectionResource<Entity> collectionResource,
 			Integer inlineCount,
 			String skipToken,
-			String modelName) 
-	{
+			String modelName) {
 		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 		String entitySetName = collectionResource.getEntitySetName();
 		Collection<Link> links = collectionResource.getLinks();
@@ -104,7 +103,6 @@ public class AtomEntityFeedFormatWriter {
 
 	    assert(links != null);
 	    for (Link link : links) {
-	    	// href is relative path from base path
 	    	String href = link.getRelativeHref(baseUri);
 	    	String title = link.getTitle();
 			String rel = link.getRel();

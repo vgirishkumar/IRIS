@@ -351,6 +351,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
 			<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
+			<property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />
 		</bean>
 
 		<!--
@@ -361,6 +362,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				.uriParameters(uriLinkageProperties)
 				.evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
 				.label("«RIMDslGenerator::getTransitionLabel(transition)»")
+				.linkId("«RIMDslGenerator::getTransitionLinkId(transition)»")
 				.build());            		            	
 		-->
 	'''

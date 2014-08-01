@@ -67,6 +67,16 @@ public class Transition {
 	private Expression evaluation;
 	private Map<String, String> uriParameters;
 
+	private String linkId;
+	
+	public String getLinkId() {
+		return linkId;
+	}
+	
+	public void setLinkId(String linkId) {
+		this.linkId = linkId;
+	}
+	
 	public ResourceState getSource() {
 		return source;
 	}
@@ -146,13 +156,15 @@ public class Transition {
 				&& target.getName().equals(otherTrans.target.getName())
 				&& (label == null && otherTrans.label == null || label
 						.equals(otherTrans.label))
-				&& command.equals(otherTrans.command);
+				&& command.equals(otherTrans.command)
+				&& ((linkId == null && otherTrans.linkId == null) || (linkId.equals(otherTrans.linkId)));
 	}
 
 	public int hashCode() {
 		return (source != null ? source.getName().hashCode() : 0)
 				+ (target != null ? target.getName().hashCode() : 0)
-				+ (label != null ? label.hashCode() : 0) + command.hashCode();
+				+ (label != null ? label.hashCode() : 0) + command.hashCode()
+				+ (linkId != null ? linkId.hashCode() : 0);
 	}
 
 	public String toString() {
@@ -172,6 +184,7 @@ public class Transition {
 		private int flags;
 		private Expression evaluation;
 		private Map<String, String> uriParameters;
+		private String linkId;
 
 		public Builder source(ResourceState source) {
 			this.source = source;
@@ -213,6 +226,11 @@ public class Transition {
 			return this;
 		}
 
+		public Builder linkId(String linkId) {
+			this.linkId = linkId;
+			return this;
+		}
+
 		public Transition build() {
 			return new Transition(this);
 		}
@@ -227,9 +245,10 @@ public class Transition {
 		this.flags = builder.flags;
 		this.evaluation = builder.evaluation;
 		this.uriParameters = builder.uriParameters;
+		this.linkId = builder.linkId;
 
 		// this one's a bit special
-		this.command = new TransitionCommandSpec(method, 
-				flags, evaluation, uriParameters);
+		this.command = new TransitionCommandSpec(method,
+				flags, evaluation, uriParameters, linkId);
 	}
 }

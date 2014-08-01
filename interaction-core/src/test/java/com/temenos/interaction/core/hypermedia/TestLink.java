@@ -24,6 +24,7 @@ package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -176,4 +177,75 @@ public class TestLink {
 				.build();
 		assertNotSame(aLink, aLinkDiffTitle);
 	}
+	
+	@Test
+	public void testLinkIdEquals() {
+		Link aLink = new Link.Builder()
+				.id("id")
+				.href("href")
+				.title("title")
+				.linkId("123456")
+				.build();
+		Link aNOtherLink = new Link.Builder()
+				.id("id")
+				.href("href")
+				.title("title")
+				.linkId("123456")
+				.build();
+		assertEquals(aLink, aNOtherLink);
+		
+		aLink = new Link.Builder()
+				.linkId("123456")
+				.build();
+		aNOtherLink = new Link.Builder()
+				.linkId("123456")
+				.build();
+		assertEquals(aLink, aNOtherLink);
+		
+		aLink = new Link.Builder()
+				.linkId("123456")
+				.build();
+		aNOtherLink = new Link.Builder()
+				.linkId("654321")
+				.build();
+		assertNotSame(aLink, aNOtherLink);
+	}
+	
+	@Test
+	public void testLinkIdWithTransition() {
+		Transition t = mock(Transition.class);
+		when(t.getLabel()).thenReturn("arrivals");
+		when(t.getLinkId()).thenReturn("123456");
+		ResourceState state = mock(ResourceState.class);
+		when(state.getName()).thenReturn("FlightSchedules");
+		when(t.getTarget()).thenReturn(state);
+		Link link = new Link(t, "arrivals", "http://localhost:8080/example/Airport/arrivals", "GET");
+
+		assertEquals("arrivals", link.getTitle());
+		assertEquals("arrivals", link.getRel());
+		assertEquals("123456", link.getLinkId());
+	}
+	
+	@Test
+	public void testNullLinkId() {
+		Link link = new Link(null, "ServiceDocumentToEntitySet", "rel", 
+			"http://example.com/boo/moo",
+			null, null, "GET", null);
+		assertNull(link.getLinkId());
+	}
+	
+	@Test
+	public void testNullLinkIdWithTransition() {
+		Transition t = mock(Transition.class);
+		when(t.getLabel()).thenReturn("arrivals");
+		ResourceState state = mock(ResourceState.class);
+		when(state.getName()).thenReturn("FlightSchedules");
+		when(t.getTarget()).thenReturn(state);
+		Link link = new Link(t, "arrivals", "http://localhost:8080/example/Airport/arrivals", "GET");
+
+		assertEquals("arrivals", link.getTitle());
+		assertEquals("arrivals", link.getRel());
+		assertNull(link.getLinkId());
+	}
+
 }

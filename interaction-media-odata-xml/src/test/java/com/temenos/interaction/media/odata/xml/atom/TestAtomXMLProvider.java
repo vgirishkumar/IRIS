@@ -425,25 +425,6 @@ public class TestAtomXMLProvider {
 		InputStream content = null;
 		ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
 	}
-
-	/*
-	 * Wink does not seem to supply us with a Generic type so we must accept everything and hope for the best
-	@Test (expected = WebApplicationException.class)
-	public void testUnhandledGenericType() throws IOException {
-		EdmDataServices metadata = mock(EdmDataServices.class);
-		ResourceRegistry registry = mock(ResourceRegistry.class);
-
-		AtomXMLProvider ap = new AtomXMLProvider(metadata, registry);
-        // Wrap an unsupported entity resource into a JAX-RS GenericEntity instance
-		GenericEntity<EntityResource<String>> ge = new GenericEntity<EntityResource<String>>(new EntityResource<String>(null)) {};
-		// will throw exception if we check the class properly
-		Annotation[] annotations = null;
-		MediaType mediaType = null;
-		MultivaluedMap<String, String> headers = null;
-		InputStream content = null;
-		ap.readFrom(RESTResource.class, ge.getType(), annotations, mediaType, headers, content);
-	}
-	 */
 		
 	@Test
 	public void testWriteCollectionResourceEntity_AtomXML() throws Exception {
@@ -1091,7 +1072,7 @@ public class TestAtomXMLProvider {
 		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceState account = new ResourceState("Account", "customerAccount", new ArrayList<Action>(), "/CustomerAccounts('{id}')");
 		ResourceState currency = new ResourceState("Currency", "currency", new ArrayList<Action>(), "/Currencys('{id}')");
-		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(currency).label("currency").build());
+		account.addTransition(new Transition.Builder().method(HttpMethod.GET).target(currency).label("currency").linkId("123456").build());
 		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
 				.target(account)
 				.build());
@@ -1116,6 +1097,8 @@ public class TestAtomXMLProvider {
 		assertEquals("currency", theLink.getTitle());
 		
 		assertEquals("/Currencys('USD')", theLink.getHref());
+		
+		assertEquals("123456", theLink.getLinkId());
 	}
 
 	@Test
@@ -1124,7 +1107,7 @@ public class TestAtomXMLProvider {
 		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceState parent = new ResourceState("Flight", "parent", new ArrayList<Action>(), "/Flight('{id}')");
 		ResourceState child = new ResourceState("Flight", "child", new ArrayList<Action>(), "/Flight('id')/child')");
-		parent.addTransition(new Transition.Builder().method(HttpMethod.GET).target(child).label("My Child Link").build());
+		parent.addTransition(new Transition.Builder().method(HttpMethod.GET).target(child).label("My Child Link").linkId("123456").build());
 		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
 				.target(parent)
 				.build());
@@ -1156,7 +1139,6 @@ public class TestAtomXMLProvider {
 		Map<Transition,RESTResource> embeddedResources = accountEntityResource.getEmbedded();
 		assertNotNull(embeddedResources);
 		assertEquals(1, embeddedResources.size());
-		
 	}
 	
 	@Test
@@ -1499,6 +1481,53 @@ public class TestAtomXMLProvider {
 		p.setRequestContext(mock(Request.class));
 		ResourceState result = p.getCurrentState(serviceDocument, "Flights");
 		assertEquals(flights, result);
+	}
+	
+	@Test
+	public void testLinkId() {
+		ResourceState account = 
+				new ResourceState("Account", "customerAccount", new ArrayList<Action>(), "/CustomerAccounts('{id}')");
+		ResourceState fundsTransfers = 
+				new CollectionResourceState("FundsTransfer", "FundsTransfers", new ArrayList<Action>(), "/FundsTransfers");
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("DebitAcctNo", "{Acc}");
+		account.addTransition(new Transition.Builder()
+									.method(HttpMethod.GET)
+									.target(fundsTransfers)
+									.uriParameters(uriLinkageMap)
+									.label("Debit funds transfers")
+									.linkId("123456")
+									.build());
+		uriLinkageMap.clear();
+		uriLinkageMap.put("CreditAcctNo", "{Acc}");
+		account.addTransition(new Transition.Builder()
+									.method(HttpMethod.GET)
+									.target(fundsTransfers)
+									.uriParameters(uriLinkageMap)
+									.label("Credit funds transfers")
+									.linkId("654321")
+									.build());
+		
+		AtomXMLProvider provider = 
+				new AtomXMLProvider(createMockMetadataOData4j(createMockEdmDataServices("FundsTransfers")), 
+						createMockMetadata("MyModel"), mockResourceStateMachine(), mock(Transformer.class));
+		List<Transition> transitions = account.getTransitions(fundsTransfers);
+		assertEquals(2, transitions.size());
+
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link(transitions.get(0), transitions.get(0).getTarget().getRel(), transitions.get(0).getLabel().contains("Debit") ? "/FundsTransfers()?$filter=DebitAcctNo eq '123'" : "/FundsTransfers()?$filter=CreditAcctNo eq '123'", HttpMethod.GET));
+		links.add(new Link(transitions.get(1), transitions.get(1).getTarget().getRel(), transitions.get(1).getLabel().contains("Debit") ? "/FundsTransfers()?$filter=DebitAcctNo eq '123'" : "/FundsTransfers()?$filter=CreditAcctNo eq '123'", HttpMethod.GET));
+		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
+		entityResource.setLinks(links);
+		provider.processLinks(entityResource);
+		Collection<Link> processedLinks = entityResource.getLinks();
+		assertEquals(2, processedLinks.size());
+		Iterator<Link> iterator = processedLinks.iterator();
+		Link debitLink = iterator.next();
+		Link creditLink = iterator.next();
+		
+		assertEquals("123456", debitLink.getLinkId());
+		assertEquals("654321", creditLink.getLinkId());
 	}
 
 }

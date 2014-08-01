@@ -38,6 +38,7 @@ public class TransitionCommandSpec {
 	// conditional link evaluation expression 
 	private final Expression evaluation;
 	private final Map<String, String> uriParameters;
+	private final String linkId;
 	
 	protected TransitionCommandSpec(String method) {
 		this(method, 0);
@@ -48,14 +49,15 @@ public class TransitionCommandSpec {
 	}
 	
 	protected TransitionCommandSpec(String method, int flags, Expression evaluation) {
-		this(method, flags, evaluation, null);
+		this(method, flags, evaluation, null, null);
 	}
 
-	protected TransitionCommandSpec(String method, int flags, Expression evaluation, Map<String, String> uriParameters) {
+	protected TransitionCommandSpec(String method, int flags, Expression evaluation, Map<String, String> uriParameters, String linkId) {
 		this.method = method;
 		this.flags = flags;
 		this.evaluation = evaluation;
 		this.uriParameters = uriParameters != null ? new HashMap<String, String>(uriParameters) : null;
+		this.linkId = linkId;
 	}
 	
 	public int getFlags() {
@@ -74,6 +76,9 @@ public class TransitionCommandSpec {
 		return uriParameters;
 	}
 	
+	public String getLinkId() {
+		return linkId;
+	}
 	/**
 	 * Is this transition command to be applied to each item in a collection?
 	 * @return
@@ -104,13 +109,15 @@ public class TransitionCommandSpec {
 		TransitionCommandSpec otherObj = (TransitionCommandSpec) other;
 		return this.getFlags() == otherObj.getFlags() &&
 				((this.getMethod() == null && otherObj.getMethod() == null) || (this.getMethod() != null && this.getMethod().equals(otherObj.getMethod())) &&
-				((this.getUriParameters() == null && otherObj.getUriParameters() == null) || (this.getUriParameters() != null && this.getUriParameters().equals(otherObj.getUriParameters()))));
+				((this.getUriParameters() == null && otherObj.getUriParameters() == null) || (this.getUriParameters() != null && this.getUriParameters().equals(otherObj.getUriParameters())))) &&
+				((this.linkId == null && otherObj.linkId == null) || (this.linkId != null && this.getLinkId().equals(otherObj.getLinkId())));
 	}
 	
 	public int hashCode() {
 		return this.flags 
 				+ (this.method != null ? this.method.hashCode() : 0)
-				+ (this.uriParameters != null ? this.uriParameters.hashCode() : 0);
+				+ (this.uriParameters != null ? this.uriParameters.hashCode() : 0)
+				+ (this.linkId != null ? this.linkId.hashCode() : 0);
 	}
 	
 	public String toString() {
@@ -133,6 +140,10 @@ public class TransitionCommandSpec {
 				String value = uriParameters.get(key);
 				sb.append(key + "=" + value);
 			}
+		}
+		if(linkId != null && linkId.length() > 0 ) {
+			sb.append(" ");
+			sb.append("linkId=" + linkId);
 		}
 		return sb.toString();
 	}

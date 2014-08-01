@@ -569,6 +569,29 @@ public class TestAtomEntityEntryFormatWriter {
 		Assert.assertFalse(output.contains("<d:CustomerWithTermList_address m:type=\"Bag(CustomerServiceTestModel.CustomerWithTermList_address)\">"));
 		Assert.assertFalse(output.contains("<d:CustomerWithTermList_street m:type=\"CustomerServiceTestModel.CustomerWithTermList_street\">"));
 	}
+
+	@Test
+	public void testLinkId() throws URISyntaxException {
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/iris/test/"));
+		when(uriInfo.getPath()).thenReturn("simple");
+		List<Link> links = new ArrayList<Link>();
+		ResourceState mockResourceState = mock(ResourceState.class);
+		when(mockResourceState.getEntityName()).thenReturn("Entity");
+		Transition mockTransition = mock(Transition.class);
+		when(mockTransition.getLabel()).thenReturn("title");
+		when(mockTransition.getLinkId()).thenReturn("123456789");
+		when(mockTransition.getTarget()).thenReturn(mockResourceState);
+		links.add(new Link(mockTransition, "http://schemas.microsoft.com/ado/2007/08/dataservices/related/Entity", "href", "GET"));
+					
+		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+		StringWriter strWriter = new StringWriter();
+		writer.write(uriInfo, strWriter, simpleEntity.getName(), simpleEntity, links, new HashMap<Transition, RESTResource>());
+		
+		String output = strWriter.toString();
+		
+		Assert.assertFalse(output.contains("id=123456789"));
+	}
 	
 	private static Entity getSimpleEmptyEntity(String entityName) {
 		EntityProperties entityProperties = new EntityProperties();

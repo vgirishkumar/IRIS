@@ -300,4 +300,77 @@ public class TestTransition {
 				.build();
 		assertEquals("entity.begin>GET>entity.end", tb.getId());
 	}
+	
+	@Test
+	public void testGetLinkId() {
+		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+
+		Transition.Builder tba = new Transition.Builder();
+		tba.source(begin)
+			.target(end)
+			.method("GET")
+			.label("A")
+			.linkId("123456");
+		Transition ta = tba.build();
+		assertEquals("123456", ta.getLinkId());
+		Transition.Builder tbb = new Transition.Builder();
+		tbb.source(begin)
+			.target(end)
+			.method("GET")
+			.label("B")
+			.linkId("123456");
+		Transition tb = tbb.build();
+		assertEquals("123456", tb.getLinkId());
+	}
+	
+	@Test 
+	public void testEqualityLinkId() {
+		ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
+
+		Transition t = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.flags(Transition.FOR_EACH)
+				.target(exists)
+				.label("label1")
+				.linkId("123456")
+				.build();
+		Transition t2 = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.flags(Transition.FOR_EACH)
+				.target(exists)
+				.label("label1")
+				.linkId("123456")
+				.build();
+		assertTrue(t.equals(t2));
+		assertTrue(t.hashCode() == t2.hashCode());
+	}
+	
+	@Test 
+	public void testInequalityLinkId() {
+		ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
+
+		Transition t = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.flags(Transition.FOR_EACH)
+				.target(exists)
+				.label("label1")
+				.linkId("12345")
+				.build();
+		Transition t2 = new Transition.Builder()
+				.source(begin)
+				.method("PUT")
+				.flags(Transition.FOR_EACH)
+				.target(exists)
+				.label("label1")
+				.linkId("67890")
+				.build();
+		assertFalse(t.equals(t2));
+		assertFalse(t.hashCode() == t2.hashCode());
+	}
 }

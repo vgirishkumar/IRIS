@@ -357,6 +357,7 @@ class RIMDslGenerator implements IGenerator {
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
                     .label("«getTransitionLabel(transition)»")
+                    .linkId("«getTransitionLinkId(transition)»")
                     .build());
     '''
     		
@@ -440,6 +441,10 @@ class RIMDslGenerator implements IGenerator {
 
     def static getTransitionLabel(TransitionRef transition) {
     	return if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }
+    }
+    
+    def static getTransitionLinkId(TransitionRef transition) {
+    	return if (transition.spec != null && transition.spec.id != null && transition.spec.id.name.length() > 0) { transition.spec.id.name } else { null }
     }
     
     def findTargetState(State fromState, TransitionRef transition) {

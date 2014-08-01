@@ -197,8 +197,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EdmEntitySet entitySet = getEdmEntitySet(entityResource.getEntityName());
 				List<OLink> olinks = formOLinks(entityResource);
 				//Write entry
-			// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
-			OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
+				// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+				OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
 				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
@@ -227,17 +227,23 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EdmEntitySet entitySet = getEdmEntitySet(collectionResource.getEntityName());
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
+				Map<OEntity, Collection<Link>> linkId = new HashMap<OEntity, Collection<Link>>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
 		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
 					OEntity tempEntity = collectionEntity.getEntity();
 					List<OLink> olinks = formOLinks(collectionEntity);
+					Collection<Link> links = collectionEntity.getLinks();
 	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), olinks);
 					entities.add(entity);
+					linkId.put(entity, links);
 				}
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), processedLinks, Responses.entities(entities, entitySet, inlineCount, skipToken), metadata.getModelName());
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), 
+						processedLinks, 
+						Responses.entities(entities, entitySet, inlineCount, skipToken), 
+						metadata.getModelName(), linkId);
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
 				CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
 				
