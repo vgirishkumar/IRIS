@@ -1002,10 +1002,9 @@ public class ResourceStateMachine {
 					if (transition.getTarget() != null) {
 						ResourceState tt = resourceStateProvider.getResourceState(transition.getTarget().getName());
 						if (tt == null) {
-							logger.error("Dead link to ["+transition.getId()+"]");
-						} else {
-							transition.setTarget(tt);
+							logger.error("Invalid transition ["+transition.getId()+"]");
 						}
+						transition.setTarget(tt);
 					}
 				}
 			}
