@@ -216,20 +216,14 @@ public class ResourceStateMachine {
 	}
 
 	private synchronized void build() {
-		collectStates(allStates, initial);
-		collectTransitionsById(transitionsById);
-		collectTransitionsByRel(transitionsByRel);
-		collectInteractionsByPath(interactionsByPath);
-		collectInteractionsByState(interactionsByState);
-		collectResourceStatesByPath(resourceStatesByPath);
-		collectResourceStatesByName(resourceStatesByName);
+		register(initial, HttpMethod.GET);
 	}
 	
 	public synchronized void register(ResourceState state, String method) {
 		checkAndResolve(state);
 		collectStates(allStates, state);
-		collectTransitionsById(transitionsById, state);
-		collectTransitionsByRel(transitionsByRel, state);
+		collectTransitionsById(transitionsById, state, new ArrayList<ResourceState>());
+		collectTransitionsByRel(transitionsByRel, state, new ArrayList<ResourceState>());
 		collectInteractionsByPath(interactionsByPath, new ArrayList<ResourceState>(), state, method);
 		collectInteractionsByState(interactionsByState, new ArrayList<String>(), state, method);
 		collectResourceStatesByPath(resourceStatesByPath, new HashSet<ResourceState>(), state);
@@ -275,37 +269,39 @@ public class ResourceStateMachine {
 				collectStates(result, next);
 			}
 		}
-		
 	}
 
-	private void collectTransitionsById(Map<String,Transition> transitions) {
-		for (ResourceState s : getStates()) {
-			collectTransitionsById(transitions, s);
+	private void collectTransitionsById(Map<String,Transition> transitions, ResourceState currentState, Collection<ResourceState> processedStates) {
+		if (currentState == null || processedStates.contains(currentState)) {
+			return;
 		}
-	}
-
-	private void collectTransitionsById(Map<String,Transition> transitions, ResourceState state) {
-		for (ResourceState target : state.getAllTargets()) {
-			for(Transition transition : state.getTransitions(target)) {
-				transitions.put(transition.getId(), transition);
+		for(Transition transition : currentState.getTransitions()) {
+			transitions.put(transition.getId(), transition);
+		}
+		processedStates.add(currentState);
+		for (ResourceState next : currentState.getAllTargets()) {
+			next = checkAndResolve(next);
+			if (next != null && !next.equals(initial)) {
+				collectTransitionsById(transitions, next, processedStates);
 			}
 		}
 	}
 
-	private void collectTransitionsByRel(Map<String,Transition> transitions) {
-		for (ResourceState s : getStates()) {
-			collectTransitionsByRel(transitions, s);
+	private void collectTransitionsByRel(Map<String,Transition> transitions, ResourceState currentState, Collection<ResourceState> processedStates) {
+		if (currentState == null || processedStates.contains(currentState)) {
+			return;
 		}
-	}
-
-	private void collectTransitionsByRel(Map<String,Transition> transitions, ResourceState state) {
-		for (ResourceState target : state.getAllTargets()) {
-			for(Transition transition : state.getTransitions(target)) {
-				transitions.put(transition.getTarget().getRel(), transition);
+		for(Transition transition : currentState.getTransitions()) {
+			transitions.put(transition.getTarget().getRel(), transition);
+		}
+		processedStates.add(currentState);
+		for (ResourceState next : currentState.getAllTargets()) {
+			next = checkAndResolve(next);
+			if (next != null && !next.equals(initial)) {
+				collectTransitionsById(transitions, next, processedStates);
 			}
 		}
 	}
-	
 	
 	/**
 	 * Return a map of all the paths, and interactions with those states
@@ -314,11 +310,6 @@ public class ResourceStateMachine {
 	 */
 	public Map<String, Set<String>> getInteractionByPath() {
 		return interactionsByPath;
-	}
-	
-	private void collectInteractionsByPath(Map<String, Set<String>> result) {
-		List<ResourceState> states = new ArrayList<ResourceState>();
-		collectInteractionsByPath(result, states, initial, null);
 	}
 	
 	private void collectInteractionsByPath(Map<String, Set<String>> result, Collection<ResourceState> states, ResourceState currentState, String method) {
@@ -348,7 +339,7 @@ public class ResourceStateMachine {
 					interactions.add(command.getMethod());
 				
 				result.put(path, interactions);
-				collectInteractionsByPath(result, states, next, null);
+				collectInteractionsByPath(result, states, next, command.getMethod());
 			}
 		}
 		
@@ -360,11 +351,6 @@ public class ResourceStateMachine {
 	 */
 	public Map<String, Set<String>> getInteractionByState() {
 		return interactionsByState;
-	}
-	
-	private void collectInteractionsByState(Map<String, Set<String>> result) {
-		List<String> states = new ArrayList<String>();
-		collectInteractionsByState(result, states, initial, null);
 	}
 	
 	private void collectInteractionsByState(Map<String, Set<String>> result, Collection<String> states, ResourceState currentState, String method) {
@@ -402,7 +388,7 @@ public class ResourceStateMachine {
 					interactions.add(command.getMethod());
 				
 				result.put(next.getName(), interactions);
-				collectInteractionsByState(result, states, next, null);
+				collectInteractionsByState(result, states, next, command.getMethod());
 			}
 		}
 		
@@ -484,10 +470,6 @@ public class ResourceStateMachine {
 		return stateMap;
 	}
 
-	private void collectResourceStatesByPath(Map<String, Set<ResourceState>> result) {
-		collectResourceStatesByPath(result, initial);
-	}
-
 	private void collectResourceStatesByPath(Map<String, Set<ResourceState>> result, ResourceState begin) {
 		List<ResourceState> states = new ArrayList<ResourceState>();
 		collectResourceStatesByPath(result, states, begin);
@@ -553,10 +535,6 @@ public class ResourceStateMachine {
 		Map<String, ResourceState> stateMap = new HashMap<String, ResourceState>();
 		collectResourceStatesByName(stateMap, begin);
 		return stateMap;
-	}
-
-	private void collectResourceStatesByName(Map<String, ResourceState> result) {
-		collectResourceStatesByName(result, initial);
 	}
 
 	private void collectResourceStatesByName(Map<String, ResourceState> result, ResourceState begin) {
