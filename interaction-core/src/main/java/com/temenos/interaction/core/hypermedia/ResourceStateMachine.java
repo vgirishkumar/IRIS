@@ -629,7 +629,10 @@ public class ResourceStateMachine {
 						if (eLinks == null) {
 							eLinks = new ArrayList<Link>();
 						}
-						eLinks.add(createLink(transition, er.getEntity(), resourceProperties));
+						Link link = createLink(transition, er.getEntity(), resourceProperties);
+						if (link != null) {
+							eLinks.add(link);
+						}
 						er.setLinks(eLinks);
 					}
 				}
@@ -816,6 +819,11 @@ public class ResourceStateMachine {
 			ResourceState targetState = transition.getTarget();
 			// is this a lazy resource state
 			targetState = checkAndResolve(targetState);
+			if (targetState == null) {
+				// a dead link, target could not be found
+				logger.error("Dead link to ["+transition.getId()+"]");
+				return null;
+			}
 			if(targetState instanceof DynamicResourceState){
 				// We are dealing with a dynamic target
 				
@@ -971,6 +979,9 @@ public class ResourceStateMachine {
 				if (transition.getTarget() instanceof LazyResourceState || transition.getTarget() instanceof LazyCollectionResourceState) {
 					if (transition.getTarget() != null) {
 						ResourceState tt = resourceStateProvider.getResourceState(transition.getTarget().getName());
+						if (tt == null) {
+							logger.error("Invalid transition ["+transition.getId()+"]");
+						}
 						transition.setTarget(tt);
 					}
 				}

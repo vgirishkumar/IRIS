@@ -253,9 +253,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public Action getViewAction() {
 		Action action = null;
-		for (Action a : actions) {
-			if (a.getType().equals(Action.TYPE.VIEW)) {
-				action = a;
+		if (actions != null) {
+			for (Action a : actions) {
+				if (a.getType().equals(Action.TYPE.VIEW)) {
+					action = a;
+				}
 			}
 		}
 		return action;
