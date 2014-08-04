@@ -513,29 +513,24 @@ public class TestResourceStateMachine {
 		assertTrue(initialInteractions.contains("GET"));
 
 		Set<String> draftInteractions = sm.getInteractions(draft);
-		assertEquals("Number of interactions", 3, draftInteractions.size());
-		assertTrue(draftInteractions.contains("GET"));
+		assertEquals("Number of interactions", 2, draftInteractions.size());
 		assertTrue(draftInteractions.contains("PUT"));
 		assertTrue(draftInteractions.contains("DELETE"));
 
 		Set<String> publishInteractions = sm.getInteractions(published);
-		assertEquals("Number of interactions", 3, publishInteractions.size());
-		assertTrue(publishInteractions.contains("GET"));
+		assertEquals("Number of interactions", 2, publishInteractions.size());
 		assertTrue(publishInteractions.contains("PUT"));
 		assertTrue(publishInteractions.contains("DELETE"));
 
 		Set<String> deletedInteractions = sm.getInteractions(draftDeleted);
-		assertEquals("Number of interactions", 3, deletedInteractions.size());
-		assertTrue(deletedInteractions.contains("GET"));
+		assertEquals("Number of interactions", 2, deletedInteractions.size());
 		assertTrue(deletedInteractions.contains("PUT"));
 		assertTrue(deletedInteractions.contains("DELETE"));
 
 		Set<String> publishedDeletedInteractions = sm.getInteractions(publishedDeleted);
-		assertEquals("Number of interactions", 3, publishedDeletedInteractions.size());
-		assertTrue(publishedDeletedInteractions.contains("GET"));
+		assertEquals("Number of interactions", 2, publishedDeletedInteractions.size());
 		assertTrue(publishedDeletedInteractions.contains("PUT"));
 		assertTrue(publishedDeletedInteractions.contains("DELETE"));
-
 	}
 
 	@Test
@@ -651,6 +646,46 @@ public class TestResourceStateMachine {
 		assertEquals(2, stateMap.get("/entity/draft").size());
 		assertTrue(stateMap.get("/entity/draft").contains(draft));
 		assertTrue(stateMap.get("/entity/draft").contains(draftDeleted));
+	}
+	
+	@Test
+	public void testGetInteractionsByState() {
+		String entityName = "Note";
+		ResourceState initialState = new ResourceState(entityName, "notes", new ArrayList<Action>(), "/notes");
+		initialState.setInitial(true);
+		
+		ResourceState noteState = new ResourceState(entityName, "note", new ArrayList<Action>(), "/notes('{id}')");
+		initialState.addTransition(new Transition.Builder().method("GET").target(noteState).build());
+		
+		ResourceState noteCreateState = new ResourceState(entityName, "note_create", new ArrayList<Action>(), "/note('{id}')/create");
+		noteState.addTransition(new Transition.Builder().method("PUT").target(noteCreateState).build());
+		
+		ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+		
+		ResourceState noteDeleteState = new ResourceState(entityName, "note_delete", new ArrayList<Action>(), "/note('{id}')/delete");
+		noteState.addTransition(new Transition.Builder().method("DELETE").target(noteDeleteState).build());
+		ResourceState noteRestoreState = new ResourceState(entityName, "note_restore", new ArrayList<Action>(), "/note('{id}')/restore");
+		noteDeleteState.addTransition(new Transition.Builder().method("POST").target(noteRestoreState).build());
+		stateMachine.register(noteDeleteState, "DELETE");
+
+		Map<String, Set<String>> interactionsMap = stateMachine.getInteractionByState();
+		assertEquals("Number of interactions", 5, interactionsMap.size());
+		// notes interactions
+		Set<String> methods = interactionsMap.get("notes");
+		assertEquals("Number of methods", 1, methods.size());
+		assertTrue(methods.contains("GET"));
+		// note interactions
+		methods = interactionsMap.get("note");
+		assertEquals("Number of methods", 1, methods.size());
+		assertTrue(methods.contains("GET"));
+		// note_new interactions
+		methods = interactionsMap.get("note_create");
+		assertEquals("Number of methods", 1, methods.size());
+		assertTrue(methods.contains("PUT"));
+		// note_delete interactions
+		methods = interactionsMap.get("note_delete");
+		assertEquals("Number of methods", 1, methods.size());
+		assertTrue(methods.contains("DELETE"));		
 	}
 
 	@Test
@@ -1728,6 +1763,9 @@ public class TestResourceStateMachine {
 		initial.addTransition(new Transition.Builder().method("PUT").target(notes).build());
 		initial.addTransition(new Transition.Builder().method("POST").target(created).build());
 		
+		initial.addTransition(new Transition.Builder().method("GET").target(notes).build());
+		initial.addTransition(new Transition.Builder().method("GET").target(created).build());
+		
 		//Define resource state machine
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		NewCommandController mockCommandController = mock(NewCommandController.class);
@@ -1785,6 +1823,9 @@ public class TestResourceStateMachine {
 	
 		initial.addTransition(new Transition.Builder().method("PUT").target(notes).build());
 		initial.addTransition(new Transition.Builder().method("POST").target(created).build());
+		
+		initial.addTransition(new Transition.Builder().method("GET").target(notes).build());		
+		initial.addTransition(new Transition.Builder().method("GET").target(created).build());
 		
 		//Define resource state machine
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
