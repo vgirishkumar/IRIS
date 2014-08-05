@@ -131,7 +131,8 @@ public class ResourceStateMachine {
 //					assert(actions.size() == 0) : "Multiple view actions detected";
 					if (actions.size() == 0)
 						actions.add(a);
-				} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)) {
+				} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)
+						&& (a.getMethod() == null || event.getMethod().equals(a.getMethod()))) {
 					actions.add(a);
 				}
 			}
