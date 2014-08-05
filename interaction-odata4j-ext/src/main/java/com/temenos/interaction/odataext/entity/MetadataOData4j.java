@@ -358,6 +358,7 @@ public class MetadataOData4j {
 			Map<String, String> multipleNavPropsToEntity = new HashMap<String, String>();		//Map<TargetEntityName, TargetStateName>
 			for(Transition entityTransition : entityTransitions) {
 				if (entityTransition.getSource().getEntityName().equals(entityName) 
+						&& entityTransition.getTarget() != null
 						&& !entityTransition.getTarget().isPseudoState()
 						&& !entityTransition.getTarget().equals(serviceDocument)) {
 					String targetEntityName = entityTransition.getTarget().getEntityName();
@@ -378,6 +379,8 @@ public class MetadataOData4j {
 			for(Transition entityTransition : entityTransitions) {
 				ResourceState sourceState = entityTransition.getSource();
 				ResourceState targetState = entityTransition.getTarget();
+				if (targetState == null)
+					continue;
 				String npName = targetState.getName();
 				if (sourceState.getEntityName().equals(entityName) 
 						&& !entityTransition.getTarget().isPseudoState()
