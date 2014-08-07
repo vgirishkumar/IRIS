@@ -71,7 +71,7 @@ public class HypermediaValidator {
 	 * @precondition ResourceStateMachine must have had a CommandController set.
 	 */
 	public boolean validate() {
-		if (brpSafeMode){
+		if (skipValidation){
 			return true;
 		}
 		boolean valid = true;
