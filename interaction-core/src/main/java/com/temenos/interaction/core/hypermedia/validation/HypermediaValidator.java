@@ -44,7 +44,6 @@ import com.temenos.interaction.core.hypermedia.Transition;
 
 public class HypermediaValidator {
 
-	private static boolean skipValidation = System.getProperty("iris.skip.validation") != null;
 	
 	private final static Logger logger = LoggerFactory.getLogger(HypermediaValidator.class);
 
@@ -71,9 +70,6 @@ public class HypermediaValidator {
 	 * @precondition ResourceStateMachine must have had a CommandController set.
 	 */
 	public boolean validate() {
-		if (skipValidation){
-			return true;
-		}
 		boolean valid = true;
 		/*
 		 * Validate the resource by attempting to fetch a command for all the required
