@@ -38,6 +38,9 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
  * This class provides EDM metadata for the current service.
  */
 public class ResourceMetadataManager {
+	
+	private static boolean brpSafeMode = System.getProperty("brp.safe.mode") != null;
+	
 	private final static Logger logger = LoggerFactory.getLogger(ResourceMetadataManager.class);
 
 	private final static String METADATA_XML_FILE = "metadata.xml";
@@ -194,11 +197,14 @@ public class ResourceMetadataManager {
 		}
 		catch(Exception e) {
 			logger.error("Failed to parse " + metadataFilename + ": " + e.getMessage());
-			/*
-			 * Do not crash. Just return a null.
-			 */
-			return null;
-//			throw new RuntimeException("Failed to parse " + metadataFilename + ": " + e.getMessage());
+			if (brpSafeMode){
+				/*
+				 * Do not crash. Just return a null.
+				 */
+				return null;
+			}else{
+				throw new RuntimeException("Failed to parse " + metadataFilename + ": " + e.getMessage());
+			}
 		}
 	}
 }
