@@ -66,12 +66,6 @@ public class Metadata  {
 				resourceMetadataManager = new ResourceMetadataManager();
 			}
 			Metadata metadata = resourceMetadataManager.getMetadata(entityName);
-			/*
-			 * Protect against null.
-			 */
-			if (metadata == null){
-				return null;
-			}
 			entitiesMetadata.putAll(metadata.getEntitiesMetadata());
 			setModelName(metadata.getModelName());
 		} 
