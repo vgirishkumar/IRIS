@@ -82,9 +82,15 @@ public class HypermediaValidator {
 			}
 
 			if (metadata.getEntityMetadata(currentState.getEntityName()) == null) {
-				fireNoMetadataFound(hypermediaEngine, currentState);
-				valid = false;
-				continue;
+//				fireNoMetadataFound(hypermediaEngine, currentState);
+//				continue;
+				
+				/*
+				 * Do not crash when a resource is missing.
+				 * An return immediately (no need to check for other states. 
+				 */
+				return false;
+
 			}
 			
 			List<Action> actions = currentState.getActions();
