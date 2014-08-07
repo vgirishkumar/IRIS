@@ -310,11 +310,11 @@ public class ResourceStateMachine {
 		}
 		for (Transition transition : currentState.getTransitions()) {
 			if (transition == null) {
-				System.out.println("null transition");
+				logger.warn("collectTransitionsByRel : null transition detected");
 			} else if (transition.getTarget() == null) {
-				System.out.println("null target");
-			} else if (transition.getTarget() == null) {
-				System.out.println("null Rel");
+				logger.warn("collectTransitionsByRel : null target detected");
+			} else if (transition.getTarget().getRel() == null) {
+				logger.warn("collectTransitionsByRel : null relation detected");
 			} else {
 				transitions.put(transition.getTarget().getRel(), transition);
 			}
@@ -727,7 +727,7 @@ public class ResourceStateMachine {
 			if (links != null) {
 				for (Link link : links) {
 					if (link == null) {
-						System.out.println("null Link.");
+						logger.warn("embedResources : null Link detected.");
 					} else {
 						Transition t = link.getTransition();
 						/*
