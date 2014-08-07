@@ -194,7 +194,11 @@ public class ResourceMetadataManager {
 		}
 		catch(Exception e) {
 			logger.error("Failed to parse " + metadataFilename + ": " + e.getMessage());
-			throw new RuntimeException("Failed to parse " + metadataFilename + ": " + e.getMessage());
+			/*
+			 * Do not crash. Just return a null.
+			 */
+			return null;
+//			throw new RuntimeException("Failed to parse " + metadataFilename + ": " + e.getMessage());
 		}
 	}
 }
