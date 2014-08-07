@@ -94,6 +94,9 @@ import com.temenos.interaction.core.resource.RESTResource;
  */
 public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	private final static Logger logger = LoggerFactory.getLogger(HTTPHypermediaRIM.class);
+	
+	private static boolean skipValidation = System.getProperty("iris.skip.validation") != null;
+
 
 	private final HTTPHypermediaRIM parent;
 	private final NewCommandController commandController;
@@ -174,40 +177,42 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		assert(metadata != null);
 		assert(resourcePath != null);
 		hypermediaEngine.setCommandController(commandController);
-		HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, metadata);
-		validator.setLogicalConfigurationListener(new LogicalConfigurationListener() {
+		if (!skipValidation){
+			HypermediaValidator validator = HypermediaValidator.createValidator(hypermediaEngine, metadata);
+			validator.setLogicalConfigurationListener(new LogicalConfigurationListener() {
+				
+				@Override
+				public void noMetadataFound(ResourceStateMachine rsm,
+						ResourceState state) {
+					throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no metadata for entity ["+state.getEntityName()+"]");
+				}
+	
+				@Override
+				public void noActionsConfigured(ResourceStateMachine rsm,
+						ResourceState state) {
+					throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no actions configured");
+				}
+	
+				@Override
+				public void viewActionNotSeen(ResourceStateMachine rsm, ResourceState state) {
+					if (!state.isPseudoState()){
+						logger.warn("Invalid configuration of resource state [" + state + "] - no view command");
+					}					
+				}
+				
+				@Override
+				public void actionNotAvailable(ResourceStateMachine rsm,
+						ResourceState state, Action action) {
+					throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no command for action [" + action + "]");
+				}
+			});
 			
-			@Override
-			public void noMetadataFound(ResourceStateMachine rsm,
-					ResourceState state) {
-				throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no metadata for entity ["+state.getEntityName()+"]");
-			}
-
-			@Override
-			public void noActionsConfigured(ResourceStateMachine rsm,
-					ResourceState state) {
-				throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no actions configured");
-			}
-
-			@Override
-			public void viewActionNotSeen(ResourceStateMachine rsm, ResourceState state) {
-				if (!state.isPseudoState()){
-					logger.warn("Invalid configuration of resource state [" + state + "] - no view command");
-				}					
+			if (printGraph && hypermediaEngine.getInitial() != null) {
+				logger.info("State graph for [" + this.toString() + "] [" + validator.graph() + "]");
 			}
 			
-			@Override
-			public void actionNotAvailable(ResourceStateMachine rsm,
-					ResourceState state, Action action) {
-				throw new RuntimeException("Invalid configuration of resource state [" + state + "] - no command for action [" + action + "]");
-			}
-		});
-		
-		if (printGraph && hypermediaEngine.getInitial() != null) {
-			logger.info("State graph for [" + this.toString() + "] [" + validator.graph() + "]");
+			validator.validate();
 		}
-		
-		validator.validate();
 	}
 
 	public ResourceStateMachine getHypermediaEngine() {

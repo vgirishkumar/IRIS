@@ -44,7 +44,6 @@ import com.temenos.interaction.core.hypermedia.Transition;
 
 public class HypermediaValidator {
 
-	private static boolean brpSafeMode = System.getProperty("brp.safe.mode") != null;
 	
 	private final static Logger logger = LoggerFactory.getLogger(HypermediaValidator.class);
 
@@ -85,16 +84,8 @@ public class HypermediaValidator {
 			}
 
 			if (metadata.getEntityMetadata(currentState.getEntityName()) == null) {
-				if (brpSafeMode){
-					/*
-					 * Do not crash when a resource is missing.
-					 * An return immediately (no need to check for other states. 
-					 */
-					return false;
-				}else{
-					fireNoMetadataFound(hypermediaEngine, currentState);
-					continue;
-				}
+				fireNoMetadataFound(hypermediaEngine, currentState);
+				continue;
 			}
 			
 			List<Action> actions = currentState.getActions();
