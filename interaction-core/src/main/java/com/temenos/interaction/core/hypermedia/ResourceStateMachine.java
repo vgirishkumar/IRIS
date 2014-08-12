@@ -24,6 +24,7 @@ package com.temenos.interaction.core.hypermedia;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -267,8 +268,8 @@ public class ResourceStateMachine {
 		return transformer;
 	}
 
-	public Collection<ResourceState> getStates() {
-		return allStates;
+	public synchronized Collection<ResourceState> getStates() {		
+		return Collections.unmodifiableCollection(allStates);
 	}
 
 	private void collectStates(Collection<ResourceState> result, ResourceState currentState) {
