@@ -31,14 +31,9 @@
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 	<context:component-scan base-package="com.temenos.interaction.springdsl" />
-
+	
 	<!-- Load the index of resources -->
 	<bean id="states" class="com.temenos.interaction.springdsl.properties.ReloadablePropertiesFactoryBean">
-		<property name="locations">
-			<list>
-				<value>classpath*:IRIS-*.properties</value>
-			</list>
-		</property>
 		<property name="listeners">
 			<list>
 				<bean class="com.temenos.interaction.springdsl.SpringDSLReloadablePropertiesListener" />
