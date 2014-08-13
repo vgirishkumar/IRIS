@@ -88,5 +88,9 @@
 			<artifactId>powermock-api-mockito</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.temenos.interaction</groupId>
+			<artifactId>interaction-springdsl</artifactId>
+		</dependency>
 	</dependencies>
 </project>
