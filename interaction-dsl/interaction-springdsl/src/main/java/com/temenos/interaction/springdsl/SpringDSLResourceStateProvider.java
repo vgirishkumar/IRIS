@@ -22,7 +22,7 @@ package com.temenos.interaction.springdsl;
  */
 
 
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -39,10 +39,12 @@ import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 
-public class SpringDSLResourceStateProvider implements ResourceStateProvider {
+public class SpringDSLResourceStateProvider implements ResourceStateProvider, DynamicRegistrationResourceStateProvider {
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
 	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
+	
+	private RegisterState register;	
 
     /**
      * Map of ResourceState bean names, to paths.
@@ -53,19 +55,19 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 	/**
 	 * Map of paths to state names
 	 */
-	private Map<String, Set<String>> resourceStatesByPath = new HashMap<String, Set<String>>();
+	private ConcurrentMap<String, Set<String>> resourceStatesByPath = new ConcurrentHashMap<String, Set<String>>();
 	/**
 	 * Map of request to state names
 	 */
-	private Map<String, String> resourceStatesByRequest = new HashMap<String, String>();
+	private ConcurrentMap<String, String> resourceStatesByRequest = new ConcurrentHashMap<String, String>();
 	/**
 	 * Map of resource methods where state name is the key
 	 */
-	private Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
+	private ConcurrentMap<String, Set<String>> resourceMethodsByState = new ConcurrentHashMap<String, Set<String>>();
 	/**
 	 * Map to a resource path where the state name is the key
 	 */
-	private Map<String, String> resourcePathsByState = new HashMap<String, String>();
+	private ConcurrentMap<String, String> resourcePathsByState = new ConcurrentHashMap<String, String>();
 	
 	public SpringDSLResourceStateProvider() {}
 	public SpringDSLResourceStateProvider(Properties beanMap) {
@@ -118,6 +120,28 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 			resourceStatesByPath.put(path, stateNames);
 		}
 		initialised = true;
+	}
+	
+	void addState(String stateObj, Properties properties) {
+		if (initialised) {
+			String stateName = stateObj.toString();
+
+			// binding is [GET,PUT /thePath]
+			String binding = properties.getProperty(stateName);
+
+			// split into methods and path
+			String[] strs = binding.split(" ");
+			String methodPart = strs[0];
+			String path = strs[1];
+
+			// methods
+			String[] methods = methodPart.split(",");
+
+			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path
+					+ " using: " + register);
+
+			this.register.addService(stateName, path, new HashSet<String>(Arrays.asList(methods)));
+		}
 	}
 	
 	protected void unload(String name) {
@@ -181,5 +205,9 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 		initialise();
 		return resourceStatesByPath;
 	}
-
+		
+	@Override
+	public void setRegisterState(RegisterState registerState) {
+		this.register = registerState;		
+	}	
 }

@@ -44,7 +44,7 @@ public class SpringDSLReloadablePropertiesListener implements ReloadableProperti
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLReloadablePropertiesListener.class);
 
     private ApplicationContext ctx;
-	SpringDSLResourceStateProvider resourceStateProvider;
+	private SpringDSLResourceStateProvider resourceStateProvider;
 	
 	public SpringDSLReloadablePropertiesListener() {
 	}
@@ -59,8 +59,18 @@ public class SpringDSLReloadablePropertiesListener implements ReloadableProperti
 	}
 	
 	@Override
-	public void propertiesLoaded(PropertiesLoadedEvent event) {
+	public void propertiesLoaded(PropertiesLoadedEvent event) {		
 		logger.debug("propertiesLoaded " + event.getOldProperties());
+		
+
+		if (resourceStateProvider == null)
+			resourceStateProvider = ctx.getBean(SpringDSLResourceStateProvider.class);
+		for (Object key : event.getOldProperties().keySet()) {
+			String name = key.toString();
+			
+			resourceStateProvider.addState(name, event.getOldProperties());
+		}
+		
 	}
 
 	@Override
@@ -82,5 +92,4 @@ public class SpringDSLReloadablePropertiesListener implements ReloadableProperti
 	@Override
 	public void afterPropertiesSet() throws Exception {
 	}
-
 }
