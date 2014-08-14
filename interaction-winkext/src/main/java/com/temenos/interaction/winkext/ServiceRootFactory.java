@@ -25,15 +25,11 @@ package com.temenos.interaction.winkext;
 import java.util.Set;
 
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
-import com.temenos.interaction.springdsl.RIMRegistrar;
+import com.temenos.interaction.springdsl.RIMRegistration;
 
 public interface ServiceRootFactory {
 
 	public Set<HTTPResourceInteractionModel> getServiceRoots();
 
-	/**
-	 * @param registrarWithSingletons
-	 */
-	public void setRIMStateRegister(RIMRegistrar rimStateRegister);
-	
+	public void setRIMRegistration(RIMRegistration rimStateRegistration);	
 }

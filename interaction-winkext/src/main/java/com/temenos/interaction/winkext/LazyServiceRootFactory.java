@@ -39,15 +39,15 @@ import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.springdsl.DynamicRegistrationResourceStateProvider;
-import com.temenos.interaction.springdsl.RIMRegistrar;
-import com.temenos.interaction.springdsl.RegisterState;
+import com.temenos.interaction.springdsl.RIMRegistration;
+import com.temenos.interaction.springdsl.StateRegisteration;
 
 /**
  * A resource factory that uses the beans and configuration files from the SpringDSL implementation
  * to construct all the resources required for an hypermedia server instance.
  * @author aphethean
  */
-public class LazyServiceRootFactory implements ServiceRootFactory, RegisterState {
+public class LazyServiceRootFactory implements ServiceRootFactory, StateRegisteration {
 
 	private final Logger logger = LoggerFactory.getLogger(LazyServiceRootFactory.class);
 	
@@ -62,11 +62,11 @@ public class LazyServiceRootFactory implements ServiceRootFactory, RegisterState
 	private ResourceLocatorProvider resourceLocatorProvider;
 	private ResourceState exception;
 	private Transformer transformer;
-	private RIMRegistrar registrar;
+	private RIMRegistration rimRegistration;
 
 	public Set<HTTPResourceInteractionModel> getServiceRoots() {
 		if(resourceStateProvider instanceof DynamicRegistrationResourceStateProvider) {
-			((DynamicRegistrationResourceStateProvider)resourceStateProvider).setRegisterState(this);
+			((DynamicRegistrationResourceStateProvider)resourceStateProvider).setStateRegisteration(this);
 		}
 		
 		hypermediaEngine = new ResourceStateMachine.Builder()
@@ -104,7 +104,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, RegisterState
 	}
 	
 	@Override
-	public void addService(String stateName, String path, Set<String> methods) {
+	public void register(String stateName, String path, Set<String> methods) {
 		logger.info("Attempting to add service: " + stateName);
 		
 		LazyResourceDelegate resource = new LazyResourceDelegate(hypermediaEngine,
@@ -115,7 +115,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, RegisterState
 				path,
 				methods);
 		
-		registrar.addResource(resource);
+		rimRegistration.register(resource);
 		
 		logger.info("#####################################################");		
 		logger.info("####        New service registered              #####");
@@ -179,7 +179,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, RegisterState
 	}
 
 	@Override
-	public void setRIMStateRegister(RIMRegistrar registrar) {
-		this.registrar = registrar;		
+	public void setRIMRegistration(RIMRegistration rimRegistration) {
+		this.rimRegistration = rimRegistration;		
 	}	
 }

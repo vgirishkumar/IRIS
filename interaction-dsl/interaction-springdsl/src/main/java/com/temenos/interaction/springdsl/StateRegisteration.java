@@ -22,13 +22,18 @@ package com.temenos.interaction.springdsl;
  */
 
 
+import java.util.Set;
+
 /**
- * Resource state providers that implement this interface will provide a mechanism for dynamically registering 
- * resources i.e. at runtime after startup 
+ * Implementations of this interface provide a mechanism for registering states.
  *
  * @author mlambert
  *
  */
-public interface DynamicRegistrationResourceStateProvider {
-	void setStateRegisteration(StateRegisteration stateRegisteration);
+public interface StateRegisteration {
+	/**
+	 * Register a new state using the information given
+	 */
+	public void register(String stateName, String path, Set<String> methods);
+
 }

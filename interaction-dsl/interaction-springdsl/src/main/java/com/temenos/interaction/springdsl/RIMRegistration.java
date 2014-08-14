@@ -22,13 +22,23 @@ package com.temenos.interaction.springdsl;
  */
 
 
+import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+
+
 /**
- * Resource state providers that implement this interface will provide a mechanism for dynamically registering 
- * resources i.e. at runtime after startup 
+ * Implementations of this interface will provide a mechanism for registering resource interaction models 
+ * (RIMs) with a web service container e.g. Apache Wink.
  *
  * @author mlambert
  *
  */
-public interface DynamicRegistrationResourceStateProvider {
-	void setStateRegisteration(StateRegisteration stateRegisteration);
+public interface RIMRegistration {
+
+	/**
+	 * Registers a resource interaction model (RIM) with a web service container
+	 * 
+	 * @param resource
+	 * 				The resource to register
+	 */
+	void register(HTTPResourceInteractionModel resource);
 }

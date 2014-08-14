@@ -44,7 +44,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 
 	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
 	
-	private RegisterState register;	
+	private StateRegisteration stateRegisteration;	
 
     /**
      * Map of ResourceState bean names, to paths.
@@ -138,9 +138,9 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			String[] methods = methodPart.split(",");
 
 			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path
-					+ " using: " + register);
+					+ " using: " + stateRegisteration);
 
-			this.register.addService(stateName, path, new HashSet<String>(Arrays.asList(methods)));
+			this.stateRegisteration.register(stateName, path, new HashSet<String>(Arrays.asList(methods)));
 		}
 	}
 	
@@ -207,7 +207,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	}
 		
 	@Override
-	public void setRegisterState(RegisterState registerState) {
-		this.register = registerState;		
+	public void setStateRegisteration(StateRegisteration registerState) {
+		this.stateRegisteration = registerState;		
 	}	
 }

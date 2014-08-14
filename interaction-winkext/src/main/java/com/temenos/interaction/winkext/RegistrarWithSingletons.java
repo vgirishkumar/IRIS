@@ -39,14 +39,14 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.rim.ResourceInteractionModel;
-import com.temenos.interaction.springdsl.RIMRegistrar;
+import com.temenos.interaction.springdsl.RIMRegistration;
 
 /**
  * Extend the Wink Spring support to be able to bind Providers such as JAXB / JSON.
  * This class requires the wink-spring-support be a 'compile' time dependency.
  * @author aphethean
  */
-public class RegistrarWithSingletons extends Registrar implements RIMRegistrar {
+public class RegistrarWithSingletons extends Registrar implements RIMRegistration {
     private Set<Object> singletons = Collections.emptySet();
     
 	private final Logger logger = LoggerFactory.getLogger(RegistrarWithSingletons.class);    
@@ -74,7 +74,7 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistrar {
     	setServiceRoots(drs.getServiceRoots());
     	
     	// Allow for registration of new services after initialisation
-    	drs.setRIMStateRegister(this);
+    	drs.setRIMRegistration(this);
     }
         
     /**
@@ -105,7 +105,7 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistrar {
     	}
     }
     
-    void addDynamicResource(ResourceInteractionModel rim) {
+    private void addDynamicResource(ResourceInteractionModel rim) {
     	assert(this.getInstances() != null);
     	String rimKey = rim.getFQResourcePath();
     	if (resources.get(rimKey) != null)
@@ -153,7 +153,7 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistrar {
     }
 
 	@Override
-	public void addResource(HTTPResourceInteractionModel rim) {
+	public void register(HTTPResourceInteractionModel rim) {
 		logger.info("Attempting to add resource: " + rim.getResourcePath());		
 
     	assert(this.getInstances() != null);
