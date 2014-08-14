@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +42,7 @@ import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
-	private Map<String, ResourceState> resources = new HashMap<String, ResourceState>();
+	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
 
     /**
      * Map of ResourceState bean names, to paths.
@@ -130,14 +132,14 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 	@Override
 	public ResourceState getResourceState(String name) {
 		try {
-			if (name != null) {
+			if (name != null) {				
 				ResourceState resource = resources.get(name);
 				if (resource == null) {
 					String beanXml = "IRIS-"+name+"-PRD.xml";
 					if (this.getClass().getClassLoader().getResource(beanXml) != null) {
 						ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
 						resource = (ResourceState) context.getBean(name);
-						resources.put(name, resource);
+						resources.putIfAbsent(name, resource);
 					} else {
 						logger.error("Unable to load resource ["+beanXml+"] not found");
 					}
