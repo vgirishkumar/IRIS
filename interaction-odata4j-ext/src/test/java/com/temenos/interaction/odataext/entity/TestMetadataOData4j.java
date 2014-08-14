@@ -38,6 +38,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.odata4j.edm.EdmAssociation;
 import org.odata4j.edm.EdmComplexType;
 import org.odata4j.edm.EdmDataServices;
@@ -45,8 +46,8 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.edm.EdmProperty;
-import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmProperty.CollectionKind;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
 import org.odata4j.exceptions.NotFoundException;
 
@@ -94,10 +95,14 @@ public class TestMetadataOData4j {
 		Metadata metadata = parser.parse(is);
 		Assert.assertNotNull(metadata);
 		
-		//Convert metadata to odata4j metadata
-		metadataOdata4j = new MetadataOData4j(metadata, new ResourceStateMachine(new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/")));
+		// Create mock state machine with Customer entity sets
+		ResourceState defaultServiceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
+		defaultServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Customer", "Customer", new ArrayList<Action>(), "/Customer")).build());
+		defaultServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("CustomerWithTermList", "CustomerWithTermList", new ArrayList<Action>(), "/CustomerWithTermList")).build());
+		ResourceStateMachine defaultHypermediaEngine = new ResourceStateMachine(defaultServiceRoot);
+		metadataOdata4j = new MetadataOData4j(metadata, defaultHypermediaEngine);
 
-		// Create mock state machine with entity sets
+		// Create mock state machine with Flight, Airport and FlightSchedule entity sets
 		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule")).build());
 		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight")).build());
@@ -119,8 +124,13 @@ public class TestMetadataOData4j {
 		Metadata complexMetadata = parserCustomerComplex.parse(isCustomer);
 		Assert.assertNotNull(complexMetadata);
 				
-		//Convert metadata to odata4j metadata
-		metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, new ResourceStateMachine(new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/")));
+		// Create mock state machine with Customer entity sets
+		ResourceState nonExpandableServiceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
+		nonExpandableServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Customer", "Customer", new ArrayList<Action>(), "/Customer")).build());
+		nonExpandableServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("CustomerWithTermList", "CustomerWithTermList", new ArrayList<Action>(), "/CustomerWithTermList")).build());
+		ResourceStateMachine nonExpandableHypermediaEngine = new ResourceStateMachine(nonExpandableServiceRoot);
+			// Convert metadata to odata4j metadata
+			metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, nonExpandableHypermediaEngine);
 	}
 	
 	@Test(expected = AssertionError.class)
@@ -157,6 +167,81 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
 		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}
+	
+	@Test
+	public void testGetNonSrvDocEntitySetByEntitySetName() {
+		// Now try to get the EntitySet which is not part of the ServiceDocument ResourceStateMachine
+		String nonSrcDocEntityName = "NonSrvDocEntity"; 
+		String nonSrcDocEntitySetName = "NonSrvDocEntitys";
+		EdmEntitySet nonSrcDocEntitySet = null;
+		boolean notFound = false;
+		try {
+			// Get the EdmDataServices and verify its not there
+			EdmDataServices edmDataServices = metadataOdata4j.getMetadata();
+			nonSrcDocEntitySet = edmDataServices.getEdmEntitySet(nonSrcDocEntitySetName);
+		} catch (NotFoundException nfe) {
+			notFound = true;
+		}
+		Assert.assertTrue(notFound);
+		Assert.assertNull(nonSrcDocEntitySet);	// It should not have been found
+		
+		// Lets check if we really have it or not
+		nonSrcDocEntitySet = metadataOdata4j.getEdmEntitySetByEntitySetName(nonSrcDocEntitySetName);
+		Assert.assertNotNull(nonSrcDocEntitySet);	// This time it should load, prepare and return
+		
+		EdmType type = nonSrcDocEntitySet.getType();
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("CustomerServiceTestModel.NonSrvDocEntity"));
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		Assert.assertEquals(nonSrcDocEntityName, entityType.getName());
+		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
+		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
+		Assert.assertEquals(false, entityType.findProperty("NonSrvDocEntity_address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(CollectionKind.NONE, entityType.findProperty("NonSrvDocEntity_address").getCollectionKind());//address should not be of CollectionKind
+		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
+		
+		EdmComplexType addressType = (EdmComplexType) entityType.findProperty("NonSrvDocEntity_address").getType();
+		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
+		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
+		Assert.assertEquals(false, addressType.findProperty("NonSrvDocEntity_street").getType().isSimple());
+		Assert.assertEquals(CollectionKind.NONE, addressType.findProperty("NonSrvDocEntity_street").getCollectionKind());//street should not be of CollectionKind
+		
+		EdmComplexType streetType = (EdmComplexType) addressType.findProperty("NonSrvDocEntity_street").getType();
+		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
+		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
+	}
+	
+	@Test
+	public void testGetNonSrvDocEntitySetByEntityName() {
+		// Now try to get the EntitySet which is not part of the ServiceDocument ResourceStateMachine
+		String nonSrcDocEntityName = "NonSrvDocEntity";
+		EdmEntitySet nonSrcDocEntitySet = metadataOdata4j.getEdmEntitySet(nonSrcDocEntityName);
+		Assert.assertNotNull(nonSrcDocEntitySet);	// This time it should load, prepare and return
+		
+		EdmType type = nonSrcDocEntitySet.getType();
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("CustomerServiceTestModel.NonSrvDocEntity"));
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		Assert.assertEquals(nonSrcDocEntityName, entityType.getName());
+		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
+		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
+		Assert.assertEquals(false, entityType.findProperty("NonSrvDocEntity_address").getType().isSimple());//address should be Complex
+		Assert.assertEquals(CollectionKind.NONE, entityType.findProperty("NonSrvDocEntity_address").getCollectionKind());//address should not be of CollectionKind
+		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
+		
+		EdmComplexType addressType = (EdmComplexType) entityType.findProperty("NonSrvDocEntity_address").getType();
+		Assert.assertEquals(true, addressType.findProperty("town").getType().isSimple());
+		Assert.assertEquals(true, addressType.findProperty("postCode").getType().isSimple());
+		Assert.assertEquals(false, addressType.findProperty("NonSrvDocEntity_street").getType().isSimple());
+		Assert.assertEquals(CollectionKind.NONE, addressType.findProperty("NonSrvDocEntity_street").getCollectionKind());//street should not be of CollectionKind
+		
+		EdmComplexType streetType = (EdmComplexType) addressType.findProperty("NonSrvDocEntity_street").getType();
+		Assert.assertEquals(true, streetType.findProperty("streetType").isNullable());
+		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
+	}
+	
 	
 	@Test
 	public void testCustomerWithListTypeTAGEntity()
@@ -586,7 +671,7 @@ public class TestMetadataOData4j {
 	}
 	
 	/**
-	 * test for getEdmEntitySet function for missing entity set
+	 * test for getEdmEntitySet function for missing entity
 	 */
 	@Test (expected=NotFoundException.class)
 	public void testNullEdmEntitySet() {
@@ -594,7 +679,9 @@ public class TestMetadataOData4j {
 						new ArrayList<Action>(), "/", null, 
 						new UriSpecification("ROOT", "/"));
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
-		MetadataOData4j metadataOData4j = new MetadataOData4j(metadataAirline, rsm);
+		Metadata metadata = mock(Metadata.class);
+		when(metadata.getEntityMetadata(Mockito.anyString())).thenReturn(null);
+		MetadataOData4j metadataOData4j = new MetadataOData4j(metadata, rsm);
 		assertEquals("AnyEntity", metadataOData4j.getEdmEntitySet("AnyEntity").getName());
 	}
 	
@@ -621,4 +708,15 @@ public class TestMetadataOData4j {
 		thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));		
 		assertEquals(ees, mockMetadataOData4j.getEdmEntitySetByEntitySetName("Dummy"));
 	}
+	
+	/**
+	 * test to verify if we now make an exception and allowed
+	 * only ServiceDocument to be able to create its EntitySet
+	 * i.e. Only entity with no key 
+	 */
+	public void testAddingServiceDocumentAsEntityType() {
+		EdmEntitySet srvEES = metadataOdata4j.getEdmEntitySet("ServiceDocument");
+		assertNotNull(srvEES);
+	}
+	
 }

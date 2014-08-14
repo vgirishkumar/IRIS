@@ -104,7 +104,8 @@ public class Metadata  {
 	}
 	
 	public void setModelName(String modelName) {
-		this.modelName = modelName;
+		if (this.modelName == null || this.modelName.isEmpty())
+			this.modelName = modelName;
 	}
 	
 	/*

@@ -24,7 +24,6 @@ package com.temenos.interaction.commands.odata;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -40,8 +39,6 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
-import org.odata4j.edm.EdmSchema;
-import org.odata4j.edm.EdmType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +49,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
+import com.temenos.interaction.odataext.ODataHelper;
 
 public class CommandHelper {
 	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
@@ -140,9 +138,19 @@ public class CommandHelper {
 	 * @throws Exception Error creating key 
 	 */
 	public static OEntityKey createEntityKey(EdmDataServices edmDataServices, String entitySetName, String id) throws Exception {
+		return createEntityKey(edmDataServices.getEdmEntitySet(entitySetName), id);
+	}	
+	
+	/**
+	 * Create an OEntityKey instance for the specified entity id
+	 * @param entitySet entitySet
+	 * @param id Id
+	 * @return An OEntityKey instance
+	 * @throws Exception Error creating key 
+	 */
+	public static OEntityKey createEntityKey(EdmEntitySet entitySet, String id) throws Exception {
 		//Lookup type of entity key (simple keys only)
 		String keyType = null;
-		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entitySetName);
 		if(entitySet != null) {
 			EdmEntityType entityType = entitySet.getType();
 			List<String> keys = entityType.getKeys();
@@ -199,25 +207,7 @@ public class CommandHelper {
 	 * @throws Exception if entity set cannot be found
 	 */
 	public static EdmEntitySet getEntitySet(String entityName, EdmDataServices edmDataServices) throws Exception {
-		//Find entity type
-		EdmType entityType = null;
-		Iterator<EdmSchema> itSchema = edmDataServices.getSchemas().iterator();
-		while(entityType == null && itSchema.hasNext()) {
-			entityType = edmDataServices.findEdmEntityType(itSchema.next().getNamespace() + "." + entityName);
-		}
-		if(entityType == null || !(entityType instanceof EdmEntityType)) {
-			throw new Exception("Entity type does not exist");
-		}
-		
-		//Find entity set
-		EdmEntitySet entitySet = null;
-		try {
-			entitySet = edmDataServices.getEdmEntitySet((EdmEntityType) entityType);
-		} catch (Exception e) {
-			// don't throw any exception here if any
-			logger.error("Entity set does not exist for " + entityName);
-		}
-		return entitySet;
+		return ODataHelper.getEntitySet(entityName, edmDataServices);
 	}
 	
 	/**

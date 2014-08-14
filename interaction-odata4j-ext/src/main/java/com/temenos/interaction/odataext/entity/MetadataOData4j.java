@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.ws.rs.HttpMethod;
 
@@ -64,10 +66,17 @@ import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.odataext.ODataHelper;
 
 
 /**
- * This class converts a Metadata structure to odata4j's EdmDataServices.
+ * This class converts a EntityMetadata structure to odata4j's EdmDataServices.
+ * <p />
+ * This class is responsible for providing EdmMetadata for all the resources we are working on.
+ * To achieve this it will convert Resource/Entities present within ServiceDocument upon creation
+ * and save it as EdmDataServices and load non-ServiceDocument resource on demand at runtime and 
+ * maintain in its local cache
+ *
  */
 public class MetadataOData4j {
 	private final static Logger logger = LoggerFactory.getLogger(MetadataOData4j.class);
@@ -75,25 +84,27 @@ public class MetadataOData4j {
 	private final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 
 	private EdmDataServices edmDataServices;
-	private Map<String, EdmEntitySet> edmEntitySetMap;
+	private ConcurrentMap<String, EdmEntitySet> nonSrvDocEdmEntitySetMap;
 	private Metadata metadata;
 	private ResourceStateMachine hypermediaEngine;
 	private ResourceState serviceDocument;
+	private String SERVICE_DOCUMENT = "ServiceDocument";
 
 	/**
 	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
 	 * called 'ServiceDocument' and add an EntitySet to the metadata for any collection
 	 * resource with a transition from this 'ServiceDocument' resource.
 	 * @param metadata metadata
+	 * @param hypermediaEngine containing ResourceStateMachine with ServiceDocument as initial state only
 	 */
 	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine) {
-		serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+		serviceDocument = hypermediaEngine.getResourceStateByName(SERVICE_DOCUMENT);
 		if (serviceDocument == null)
-			throw new RuntimeException("No 'ServiceDocument' found.");
+			throw new RuntimeException("No "+  SERVICE_DOCUMENT + " found.");
 		assert(!(serviceDocument instanceof CollectionResourceState)) : "Initial state must be an individual resource state";
 		this.metadata = metadata;
 		this.hypermediaEngine = hypermediaEngine;
-		this.edmEntitySetMap= new HashMap<String, EdmEntitySet>(); 
+		this.nonSrvDocEdmEntitySetMap= new ConcurrentHashMap<String, EdmEntitySet>(); 
 	}
 
 	/**
@@ -114,13 +125,19 @@ public class MetadataOData4j {
 	 * 
 	 */
 	public EdmEntitySet getEdmEntitySet(String entityName) {
-		//make sure EdmDataServices loaded
-		if(null == edmDataServices) {
+		if (edmDataServices == null) 
 			getMetadata();
+		EdmEntitySet edmEntitySet = null;
+		try {
+			edmEntitySet = ODataHelper.getEntitySet(entityName, edmDataServices);
+		} catch (Exception e) {
+			// Ignore.... as we will be try lazy loading after this
+			logger.debug("EntitySet for [" + entityName + "] not found in EdmDataServices, try loading it seperately...");
 		}
-		EdmEntitySet edmEntitySet = edmEntitySetMap.get(entityName);
-		if (edmEntitySet == null ) {
-			throw new NotFoundException("Entity Set [" + entityName + "] not found");
+		// If its null
+		if (edmEntitySet == null) {
+			// Let's check if we have it in non-service doc resources
+			edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(entityName));
 		}
 		return edmEntitySet;
 	}
@@ -132,24 +149,73 @@ public class MetadataOData4j {
 	 * 
 	 */
 	public EdmEntitySet getEdmEntitySetByEntitySetName(String entitySetName) {
-		//make sure EdmDataServices loaded
-		if(null == edmDataServices) {
-			getMetadata();
+		EdmEntitySet edmEntitySet = getEdmEntitySetFromEdmDataServices(entitySetName);
+		if (edmEntitySet == null ) {
+			// this means the Entity is not part of ServiceDocument...lets load it
+			edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(entitySetName);
+			// If still not found then we have to give up
+			if (edmEntitySet == null ) 
+				throw new NotFoundException("Fail to find/load Entity Set for [" + entitySetName + "]");
 		}
-		for(String entityName : edmEntitySetMap.keySet()) {
-			EdmEntitySet edmEntitySet = edmEntitySetMap.get(entityName);
-			if(edmEntitySet.getName().equals(entitySetName)) {
-				return edmEntitySet;
-			}
-		}
-		
-		throw new NotFoundException("Entity Set [" + entitySetName + "] not found");
+		return edmEntitySet;
 	}
 	
 	/**
-	 * Create EDM metadata merged from multiple producers
-	 * @param producers Set of odata producers
-	 * @return Merged EDM metadata
+	 * Method to return EdmEntitySet from nonSrvDoc Map
+	 * @param entitySetName
+	 * @return
+	 */
+	private EdmEntitySet getEdmEntitySetFromNonSrvDocResrc(String entitySetName) {
+		// Find if we already have loaded this resource before
+		if (nonSrvDocEdmEntitySetMap.get(entitySetName) != null)
+			return nonSrvDocEdmEntitySetMap.get(entitySetName);
+		// Try to load 
+		return loadEdmEntitySetFromEntityName(getEntityName(entitySetName));
+	}
+	
+	/**
+	 * Method to load EdmEntitySet if not loaded as yet
+	 * @param entityName
+	 * @return
+	 */
+	private EdmEntitySet loadEdmEntitySetFromEntityName(String entityName) {
+		// Let's get the metadata for the resource
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+		if (entityMetadata == null) 
+			throw new NotFoundException("Fail to find/load Entity Metadata for [" + entityName + "]");
+		// Lets build the EdmEntitySet form EntityMetadata
+		EdmEntityType.Builder entityType = getEdmTypeBuilder(entityMetadata, null, false);
+		if (entityType != null) {
+			EdmEntitySet.Builder bEntitySetBuilder = EdmEntitySet.newBuilder().setName(getEdmEntitySetName(entityName)).setEntityType(entityType);
+			EdmEntitySet edmEntitySet = bEntitySetBuilder.build();
+			// Append to the map
+			nonSrvDocEdmEntitySetMap.put(getEdmEntitySetName(entityName), edmEntitySet);
+			return edmEntitySet;
+		} 
+		return null;
+	}
+	
+	/**
+	 * Method to search EdmEntitySet within EdmDataServices
+	 * @param entitySetName
+	 * @return
+	 */
+	private EdmEntitySet getEdmEntitySetFromEdmDataServices(String entitySetName) {
+		EdmEntitySet ees = null;
+		try {
+			ees = edmDataServices.findEdmEntitySet(entitySetName);
+		} catch (Exception e) {
+			logger.warn(e.getMessage());
+		}
+		return ees;
+	}
+	
+	/**
+	 * Create EDM metadata from Resource State Machine containing ServiceDocument
+	 * @param metadata
+	 * @param hypermediaEngine
+	 * @param serviceDocument
+	 * @return
 	 */
 	public EdmDataServices createOData4jMetadata(Metadata metadata, ResourceStateMachine hypermediaEngine, ResourceState serviceDocument) {
 		String serviceName = metadata.getModelName();
@@ -164,76 +230,16 @@ public class MetadataOData4j {
 		Map<String, EdmFunctionImport.Builder> bFunctionImportMap = new HashMap<String, EdmFunctionImport.Builder>();
 		List<EdmAssociation.Builder> bAssociations = new ArrayList<EdmAssociation.Builder>();
 
-		for(EntityMetadata entityMetadata : metadata.getEntitiesMetadata().values()) {
-			List<EdmProperty.Builder> bProperties = new ArrayList<EdmProperty.Builder>();
-			List<String> keys = new ArrayList<String>();
-			String complexTypePrefix = new StringBuilder(entityMetadata.getEntityName()).append("_").toString();
-			for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
-				//Entity properties, lets gather some information about the property
-				String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);							// Is vocabulary a group (Complex Type)
-				boolean termList = Boolean.parseBoolean(entityMetadata.getTermValue(propertyName, TermListType.TERM_NAME));	// Is vocabulary a List of (Complex Types)
-				String termComplexGroup = entityMetadata.getTermValue(propertyName, TermComplexGroup.TERM_NAME);					// Is vocabulary belongs to a group (ComplexType) 
-				boolean isNullable = entityMetadata.isPropertyNullable(propertyName);
-				if (termComplex.equals("false")) {
-					// This means we are dealing with plain property, either belongs to Entity or ComplexType (decide later, lets build it first)
-					EdmType edmType = termValueToEdmType(entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME));
-					EdmProperty.Builder ep = EdmProperty.newBuilder(entityMetadata.getSimplePropertyName(propertyName)).
-							setType(edmType).
-							setNullable(isNullable);
-					if (termComplexGroup == null) {
-						// Property belongs to an Entity Type, simply add it 
-						bProperties.add(ep);
-					} else {
-						// Property belongs to a group (complex type), first make sure we have a group 
-						// so add a group with Entity name space and group name
-						addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
-						// And then add the property into complex type
-						addPropertyToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), ep, bComplexTypeMap);
-					}
-				} else {
-					// This means vocabulary is a group (complex type), so add it in a map
-					String complexPropertyName = complexTypePrefix + entityMetadata.getSimplePropertyName(propertyName);
-					addComplexType(namespace, complexPropertyName, bComplexTypeMap);
-					if (termComplexGroup != null) {
-						// This mean group (complex type) belongs to a group (complex type), so make sure add the parent group and add
-						// nested group as group property
-						addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
-						addComplexTypeToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), complexPropertyName, isNullable, termList, bComplexTypeMap);
-					} else {
-						// This means group (complex type) belongs to an Entity, so simply build and add as a Entity prop
-						EdmProperty.Builder ep;
-						if (termList) {
-							ep = EdmProperty.newBuilder(complexPropertyName).
-									setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
-									setCollectionKind(CollectionKind.List).								
-									setNullable(isNullable);
-						} else {
-							ep = EdmProperty.newBuilder(complexPropertyName).
-									setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
-									setNullable(isNullable);
-						}
-						bProperties.add(ep);
-					}
-				}	
-
-				//Entity keys
-				if(entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true")) {
-					if(termComplex.equals("true")) {
-						keys.add(complexTypePrefix + entityMetadata.getSimplePropertyName(propertyName));
-					}
-					else {
-						keys.add(propertyName);
-					}
-				}
-			}
-
-			// Add entity type
-			if (keys.size() > 0) {
-				EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
-				bEntityTypeMap.put(entityMetadata.getEntityName(), bEntityType);
-			} else {
-				logger.error("Unable to add EntityType for [" + entityMetadata.getEntityName() + "] - no ID column defined");
-			}
+		// Only include states in ServiceDocument 
+		for (ResourceState state : hypermediaEngine.getStates()) {
+			// Skip Service Document
+			if (serviceDocument.equals(state))
+				continue;
+			EntityMetadata entityMetadata = metadata.getEntityMetadata(state.getEntityName());
+			// Always strictKeyCheck here because we will be building EdmDataServices from this
+			EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
+			if (bEntityType != null) 
+				bEntityTypeMap.put(state.getEntityName(), bEntityType);
 		}
 
 		// Add Navigation Properties
@@ -294,7 +300,6 @@ public class MetadataOData4j {
 				} else {
 					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
 				}
-				edmEntitySetMap.put(state.getEntityName(), bEntitySet.build());
 			}
 		}
 
@@ -344,6 +349,88 @@ public class MetadataOData4j {
 		return mdBuilder.build();
 	}
 
+	/**
+	 * Method to generate EdmEntityType.Builder from EntityMetadata
+	 * @param entityMetadata
+	 * @return
+	 */
+	private EdmEntityType.Builder getEdmTypeBuilder(EntityMetadata entityMetadata, Map<String, EdmComplexType.Builder> bComplexTypeMap, boolean strictKeyCheck) {
+		String namespace = metadata.getModelName() + Metadata.MODEL_SUFFIX;
+		bComplexTypeMap = bComplexTypeMap == null ? new HashMap<String, EdmComplexType.Builder>() : bComplexTypeMap;
+		List<EdmProperty.Builder> bProperties = new ArrayList<EdmProperty.Builder>();
+		List<String> keys = new ArrayList<String>();
+		String complexTypePrefix = new StringBuilder(entityMetadata.getEntityName()).append("_").toString();
+		for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
+			//Entity properties, lets gather some information about the property
+			String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);							// Is vocabulary a group (Complex Type)
+			boolean termList = Boolean.parseBoolean(entityMetadata.getTermValue(propertyName, TermListType.TERM_NAME));	// Is vocabulary a List of (Complex Types)
+			String termComplexGroup = entityMetadata.getTermValue(propertyName, TermComplexGroup.TERM_NAME);					// Is vocabulary belongs to a group (ComplexType) 
+			boolean isNullable = entityMetadata.isPropertyNullable(propertyName);
+			if (termComplex.equals("false")) {
+				// This means we are dealing with plain property, either belongs to Entity or ComplexType (decide later, lets build it first)
+				EdmType edmType = termValueToEdmType(entityMetadata.getTermValue(propertyName, TermValueType.TERM_NAME));
+				EdmProperty.Builder ep = EdmProperty.newBuilder(entityMetadata.getSimplePropertyName(propertyName)).
+						setType(edmType).
+						setNullable(isNullable);
+				if (termComplexGroup == null) {
+					// Property belongs to an Entity Type, simply add it 
+					bProperties.add(ep);
+				} else {
+					// Property belongs to a group (complex type), first make sure we have a group 
+					// so add a group with Entity name space and group name
+					addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
+					// And then add the property into complex type
+					addPropertyToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), ep, bComplexTypeMap);
+				}
+			} else {
+				// This means vocabulary is a group (complex type), so add it in a map
+				String complexPropertyName = complexTypePrefix + entityMetadata.getSimplePropertyName(propertyName);
+				addComplexType(namespace, complexPropertyName, bComplexTypeMap);
+				if (termComplexGroup != null) {
+					// This mean group (complex type) belongs to a group (complex type), so make sure add the parent group and add
+					// nested group as group property
+					addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
+					addComplexTypeToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), complexPropertyName, isNullable, termList, bComplexTypeMap);
+				} else {
+					// This means group (complex type) belongs to an Entity, so simply build and add as a Entity prop
+					EdmProperty.Builder ep;
+					if (termList) {
+						ep = EdmProperty.newBuilder(complexPropertyName).
+								setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
+								setCollectionKind(CollectionKind.List).								
+								setNullable(isNullable);
+					} else {
+						ep = EdmProperty.newBuilder(complexPropertyName).
+								setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
+								setNullable(isNullable);
+					}
+					bProperties.add(ep);
+				}
+			}	
+
+			//Entity keys
+			if(entityMetadata.getTermValue(propertyName, TermIdField.TERM_NAME).equals("true")) {
+				if(termComplex.equals("true")) {
+					keys.add(complexTypePrefix + entityMetadata.getSimplePropertyName(propertyName));
+				}
+				else {
+					keys.add(propertyName);
+				}
+			}
+		}
+
+		// Add entity type - sometimes we would like to create entityType even if it does not have key
+		// strictKeyCheck will help us in this regard where we can skip the type generated for 
+		// EdmDataServices but we can keep the one generated for an individual entity
+		if (keys.size() > 0 || !strictKeyCheck) {
+			EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
+			return bEntityType;
+		} else {
+			logger.error("Unable to add EntityType for [" + entityMetadata.getEntityName() + "] - no ID column defined");
+			return null;
+		}
+	}
+	
 	private Map<String, EdmAssociation.Builder> buildAssociations(String namespace, EdmEntityType.Builder entityType, Map<String, EdmEntityType.Builder> bEntityTypeMap, ResourceStateMachine hypermediaEngine, ResourceState serviceDocument) {
 		// Obtain the relation between entities and write navigation properties
 		Map<String, EdmAssociation.Builder> bAssociationMap = new HashMap<String, EdmAssociation.Builder>();
@@ -523,5 +610,30 @@ public class MetadataOData4j {
 			bl.add(ep);
 			bComplexTypeMap.get(complexTypeFullName).addProperties(bl);
 		}
+	}
+	
+	/**
+	 * By Odata convention EntitySetName should be plural of an EntityName. If EntityName 
+	 * provided in null or empty, this method would return empty string
+	 * @param entityName
+	 * @return
+	 */
+	private String getEdmEntitySetName(String entityName) {
+		if (entityName != null && !entityName.isEmpty())
+			return entityName + "s";
+		return "";
+	}
+	
+	/**
+	 * By Odata convention EntitySetName is a plural of an EntityName, this method would
+	 * return entity name by removing the trailing 's' from the provided entitySetName, 
+	 * otherwise will return empty string
+	 * @param entitySetName
+	 * @return
+	 */
+	private String getEntityName(String entitySetName) {
+		if (entitySetName != null && !entitySetName.isEmpty())
+			return entitySetName.substring(0, entitySetName.length() -1);
+		return "";
 	}
 }

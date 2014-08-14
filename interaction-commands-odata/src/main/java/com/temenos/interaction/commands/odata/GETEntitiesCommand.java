@@ -64,10 +64,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		String entityName = getEntityName(ctx);
 		logger.debug("Getting entities for " + entityName);
 		try {
-			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, getEdmMetadata());
-			if(entitySet == null) {
-				entitySet = getEdmEntitySet(entityName);
-			}
+			EdmEntitySet entitySet = getEdmEntitySet(entityName);
 			String entitySetName = entitySet.getName();
 			EntitiesResponse response = producer.getEntities(entitySetName, getQueryInfo(ctx));
 			    
