@@ -115,11 +115,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 				path,
 				methods);
 		
-		rimRegistration.register(resource);
-		
-		logger.info("#####################################################");		
-		logger.info("####        New service registered              #####");
-		logger.info("#####################################################");		
+		rimRegistration.register(resource);		
 	}
 
 	public NewCommandController getCommandController() {
