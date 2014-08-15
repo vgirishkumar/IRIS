@@ -57,22 +57,22 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 		
 		String entity = getEntityName(ctx);
 		logger.debug("Deleting entity for " + entity);
-		EdmEntitySet entitySet = getEdmMetadata().getEdmEntitySet(entity);
-		if (entitySet == null) {
-			throw new InteractionException(Status.NOT_FOUND, "Entity set not found [" + entity + "]");		
-		}
-		assert(entity.equals(entitySet.getName()));
-
-		// Create entity key (simple types only)
-		OEntityKey key;
+		OEntityKey key = null;
 		try {
-			key = CommandHelper.createEntityKey(getEdmMetadata(), entity, ctx.getId());
-		} catch(Exception e) {
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
-		}
+			EdmEntitySet entitySet = getEdmEntitySet(entity);
+			if (entitySet == null) {
+				throw new InteractionException(Status.NOT_FOUND, "Entity set not found [" + entity + "]");		
+			}
+			assert(entity.equals(entitySet.getName()));
+	
+			// Create entity key (simple types only)
+			try {
+				key = CommandHelper.createEntityKey(getEdmMetadata(), entity, ctx.getId());
+			} catch (Exception e) {
+				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			}
 		
-		// delete the entity
-		try {
+			// delete the entity
 			producer.deleteEntity(entity, key);
 		}
 		catch(ODataProducerException ope) {

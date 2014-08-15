@@ -28,6 +28,8 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.producer.ODataProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -35,6 +37,8 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public abstract class AbstractODataCommand {
+
+	private final Logger logger = LoggerFactory.getLogger(AbstractODataCommand.class);
 	/**
 	 * Use this property to configure an action to use this entity 
 	 * instead of the entity specified for the Resource.
@@ -76,17 +80,19 @@ public abstract class AbstractODataCommand {
 	 * @throws Exception
 	 */
 	public EdmEntitySet getEdmEntitySet(String entityName) throws Exception {
-		if (metadataOData4j == null) {
-			throw new Exception("MetadataOData4j not available");
-		}
-		try {
-			EdmEntitySet entitySet = metadataOData4j.getEdmEntitySet(entityName);
-			if( null == entitySet ) {
-				throw new Exception("Entity type does not exist");
+		// We should try to get EdmEntitySet from MetadataOdata4j
+		if (metadataOData4j != null) {
+			try {
+				EdmEntitySet entitySet = metadataOData4j.getEdmEntitySet(entityName);
+				if( null == entitySet ) {
+					throw new Exception("Entity type does not exist");
+				}
+				return entitySet;
+			} catch (Exception e) {
+				throw new InteractionException(Status.BAD_REQUEST,"Entity type does not exist");
 			}
-			return entitySet;
-		} catch (Exception e) {
-			throw new InteractionException(Status.BAD_REQUEST,"Entity type does not exist");
+		} else { // We fall back to default way of looking at EdmEntitySet
+			return CommandHelper.getEntitySet(entityName, getEdmMetadata());
 		}
 	}
 

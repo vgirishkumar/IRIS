@@ -100,7 +100,7 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 		try {
 			assert(entity != null);
 			assert(entity.getName() != null);
-			EdmEntitySet entitySet = getEdmMetadata().findEdmEntitySet(entity.getName());
+			EdmEntitySet entitySet = getEdmEntitySet(entity.getName());
 			EdmEntityType entityType = entitySet.getType();
 					
 			String id = null;
