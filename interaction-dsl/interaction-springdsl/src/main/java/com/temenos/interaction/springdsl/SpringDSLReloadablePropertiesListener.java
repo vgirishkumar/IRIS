@@ -28,6 +28,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 
 import com.temenos.interaction.springdsl.properties.PropertiesChangedEvent;
 import com.temenos.interaction.springdsl.properties.PropertiesLoadedEvent;
@@ -40,11 +42,12 @@ import com.temenos.interaction.springdsl.properties.ReloadablePropertiesListener
  * @author aphethean
  *
  */
-public class SpringDSLReloadablePropertiesListener implements ReloadablePropertiesListener, ApplicationContextAware, InitializingBean {
+public class SpringDSLReloadablePropertiesListener implements ReloadablePropertiesListener, ApplicationContextAware, InitializingBean, ApplicationListener<ContextRefreshedEvent> {
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLReloadablePropertiesListener.class);
+	private boolean applicationInitialized = false;
 
     private ApplicationContext ctx;
-	SpringDSLResourceStateProvider resourceStateProvider;
+	private SpringDSLResourceStateProvider resourceStateProvider;
 	
 	public SpringDSLReloadablePropertiesListener() {
 	}
@@ -60,7 +63,18 @@ public class SpringDSLReloadablePropertiesListener implements ReloadableProperti
 	
 	@Override
 	public void propertiesLoaded(PropertiesLoadedEvent event) {
-		logger.debug("propertiesLoaded " + event.getOldProperties());
+		if(applicationInitialized) {
+			logger.debug("propertiesLoaded " + event.getOldProperties());
+			
+
+			if (resourceStateProvider == null)
+				resourceStateProvider = ctx.getBean(SpringDSLResourceStateProvider.class);
+			for (Object key : event.getOldProperties().keySet()) {
+				String name = key.toString();
+				
+				resourceStateProvider.addState(name, event.getOldProperties());
+			}			
+		}		
 	}
 
 	@Override
@@ -83,4 +97,8 @@ public class SpringDSLReloadablePropertiesListener implements ReloadableProperti
 	public void afterPropertiesSet() throws Exception {
 	}
 
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		applicationInitialized = true;		
+	}
 }

@@ -1,8 +1,8 @@
-package com.temenos.interaction.winkext;
+package com.temenos.interaction.springdsl;
 
 /*
  * #%L
- * interaction-winkext
+ * interaction-springdsl
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -22,14 +22,23 @@ package com.temenos.interaction.winkext;
  */
 
 
-import java.util.Set;
-
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
-import com.temenos.interaction.springdsl.RIMRegistration;
 
-public interface ServiceRootFactory {
 
-	public Set<HTTPResourceInteractionModel> getServiceRoots();
+/**
+ * Implementations of this interface will provide a mechanism for registering resource interaction models 
+ * (RIMs) with a web service container e.g. Apache Wink.
+ *
+ * @author mlambert
+ *
+ */
+public interface RIMRegistration {
 
-	public void setRIMRegistration(RIMRegistration rimStateRegistration);	
+	/**
+	 * Registers a resource interaction model (RIM) with a web service container
+	 * 
+	 * @param resource
+	 * 				The resource to register
+	 */
+	void register(HTTPResourceInteractionModel resource);
 }

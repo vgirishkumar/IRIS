@@ -30,22 +30,32 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.wink.common.DynamicResource;
+import org.apache.wink.common.WinkApplication;
+import org.apache.wink.common.internal.registry.ProvidersRegistry;
+import org.apache.wink.server.internal.registry.ResourceRegistry;
 import org.apache.wink.spring.Registrar;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.core.rim.ResourceInteractionModel;
+import com.temenos.interaction.springdsl.RIMRegistration;
 
 /**
  * Extend the Wink Spring support to be able to bind Providers such as JAXB / JSON.
  * This class requires the wink-spring-support be a 'compile' time dependency.
  * @author aphethean
  */
-public class RegistrarWithSingletons extends Registrar {
+public class RegistrarWithSingletons extends Registrar implements RIMRegistration {
     private Set<Object> singletons = Collections.emptySet();
+    
+	private final Logger logger = LoggerFactory.getLogger(RegistrarWithSingletons.class);    
 
     // key = resourcePath
     private Map<String, DynamicResourceDelegate> resources = new HashMap<String, DynamicResourceDelegate>();
-        
+    
+    ResourceRegistry resourceRegistry;    
+    
     public RegistrarWithSingletons() {}
     
     @Override
@@ -62,6 +72,9 @@ public class RegistrarWithSingletons extends Registrar {
      */
     public void setServiceRootFactory(ServiceRootFactory drs) {
     	setServiceRoots(drs.getServiceRoots());
+    	
+    	// Allow for registration of new services after initialisation
+    	drs.setRIMRegistration(this);
     }
         
     /**
@@ -138,4 +151,52 @@ public class RegistrarWithSingletons extends Registrar {
     public HTTPResourceInteractionModel getDynamicResource(String path) {
     	return resources.get(path);
     }
+
+	@Override
+	public void register(HTTPResourceInteractionModel rim) {
+		logger.info("Attempting to add resource: " + rim.getResourcePath());		
+
+    	assert(this.getInstances() != null);
+    	String rimKey = rim.getFQResourcePath();
+    	if (resources.get(rimKey) != null)
+    		return;
+    	DynamicResource parent = null;
+    	// is this a root resource
+    	if (rim.getParent() != null) {
+    		// climb back up the graph adding parent if necessary
+        	String parentKey = rim.getParent().getFQResourcePath();
+    		if (resources.get(parentKey) == null) {
+    			addDynamicResource(rim.getParent());
+    		}
+    		parent = resources.get(parentKey);
+    	}
+    	
+    	//Register the resource
+    	HTTPResourceInteractionModel parentResource = parent != null ? (HTTPResourceInteractionModel) parent : null;
+    	HTTPResourceInteractionModel resource = (HTTPResourceInteractionModel) rim;
+    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parentResource, resource);
+    	resources.put(rimKey, dr);
+    	resourceRegistry.addResource(dr, WinkApplication.DEFAULT_PRIORITY);
+   	
+    	//Ensure OData collection resources are available with and without empty brackets (e.g. /customers() and /customers)
+    	if(rimKey.endsWith("()")) {
+    		String pathWithoutBrackets = rimKey.substring(0, rimKey.length() - 2);
+    		final DynamicResourceDelegate drWithoutBrackets = new DynamicResourceDelegate(parentResource, resource) {
+    			@Override
+    		    public String getPath() {
+    				String resourcePath = super.getResourcePath();
+    				return resourcePath.substring(0, resourcePath.length() - 2);
+    		    }
+        	};
+        	resources.put(pathWithoutBrackets, drWithoutBrackets);
+        	resourceRegistry.addResource(drWithoutBrackets, WinkApplication.DEFAULT_PRIORITY);
+    	}
+		
+	}
+	
+    public void register(ResourceRegistry resourceRegistry, ProvidersRegistry providersRegistry) {
+    	super.register(resourceRegistry, providersRegistry);
+    	this.resourceRegistry = resourceRegistry;
+    }
+	
 }
