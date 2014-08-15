@@ -4,7 +4,7 @@ package com.temenos.interaction.odataext.entity;
  * #%L
  * interaction-odata4j-ext
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,6 +39,9 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.odata4j.core.NamespacedAnnotation;
+import org.odata4j.core.ODataVersion;
+import org.odata4j.edm.EdmAnnotationAttribute;
 import org.odata4j.edm.EdmAssociation;
 import org.odata4j.edm.EdmComplexType;
 import org.odata4j.edm.EdmDataServices;
@@ -117,6 +120,7 @@ public class TestMetadataOData4j {
 		
 		//Convert metadata to odata4j metadata
 		metadataAirlineOdata4j = new MetadataOData4j(metadataAirline, hypermediaEngine);
+		metadataAirlineOdata4j.setOdataVersion(ODataVersion.V2);
 		
 		//Read the Complex metadata file
 		MetadataParser parserCustomerComplex = new MetadataParser();
@@ -133,7 +137,7 @@ public class TestMetadataOData4j {
 			metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, nonExpandableHypermediaEngine);
 	}
 	
-	@Test(expected = AssertionError.class)
+	@Test(expected = RuntimeException.class)
 	public void testAssertIndividualInitialState() {
 		CollectionResourceState serviceRoot = new CollectionResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
@@ -719,4 +723,21 @@ public class TestMetadataOData4j {
 		assertNotNull(srvEES);
 	}
 	
+	@Test
+	public void testAirlineEntitySemanticTypes()
+	{	
+		EdmDataServices edmDataServices = metadataAirlineOdata4j.getMetadata();
+		
+		EdmType type = edmDataServices.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		NamespacedAnnotation<?> ann = entityType.findProperty("country").findAnnotation("http://iris.temenos.com/odata-extensions", "semanticType");
+		Assert.assertEquals(EdmAnnotationAttribute.class, ann.getClass());
+		EdmAnnotationAttribute annEl = (EdmAnnotationAttribute)ann;
+		Assert.assertNotNull(annEl.getNamespace().getPrefix());
+		Assert.assertNotNull(annEl.getNamespace().getUri());
+		Assert.assertEquals("Geography:Country", ann.getValue());
+	}
+
 }
