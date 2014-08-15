@@ -23,6 +23,7 @@ package com.temenos.interaction.springdsl;
 
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -55,19 +56,19 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	/**
 	 * Map of paths to state names
 	 */
-	private ConcurrentMap<String, Set<String>> resourceStatesByPath = new ConcurrentHashMap<String, Set<String>>();
+	private Map<String, Set<String>> resourceStatesByPath = new HashMap<String, Set<String>>();
 	/**
 	 * Map of request to state names
 	 */
-	private ConcurrentMap<String, String> resourceStatesByRequest = new ConcurrentHashMap<String, String>();
+	private Map<String, String> resourceStatesByRequest = new HashMap<String, String>();
 	/**
 	 * Map of resource methods where state name is the key
 	 */
-	private ConcurrentMap<String, Set<String>> resourceMethodsByState = new ConcurrentHashMap<String, Set<String>>();
+	private Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
 	/**
 	 * Map to a resource path where the state name is the key
 	 */
-	private ConcurrentMap<String, String> resourcePathsByState = new ConcurrentHashMap<String, String>();
+	private Map<String, String> resourcePathsByState = new HashMap<String, String>();
 	
 	public SpringDSLResourceStateProvider() {}
 	public SpringDSLResourceStateProvider(Properties beanMap) {
