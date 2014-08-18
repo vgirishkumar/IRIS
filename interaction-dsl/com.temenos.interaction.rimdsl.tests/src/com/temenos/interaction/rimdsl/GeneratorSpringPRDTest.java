@@ -196,21 +196,6 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
 		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/A\" />"));
 		assertTrue(output.contains("<property name=\"transitions\">"));
-		
-		/*
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output.contains("package blah;"));
-		assertTrue(output.contains("public class TestBehaviour {"));
-		assertTrue(output.contains("getRIM"));
-		assertTrue(output.contains("factory.getResourceState(\"blah.Test.A\");"));
-
-		String expectedRSKey = IFileSystemAccess.DEFAULT_OUTPUT + "blah/Test/AResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedRSKey));
-		String outputRS = fsa.getFiles().get(expectedRSKey).toString();
-		assertTrue(outputRS.contains("package blah.Test;"));		 
-		 */
-
 	}
 
 	/**
@@ -239,10 +224,6 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("<constructor-arg value=\"VIEW\" />"));
 		assertTrue(output.contains("<constructor-arg name=\"path\" value=\"/A\" />"));
 		assertTrue(output.contains("<property name=\"transitions\">"));
-		
-		//String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
-		//assertTrue(fsa.getFiles().containsKey(expectedKey));
-		//assertTrue(fsa.getFiles().get(expectedKey).toString().contains("new Action(\"GetEntity\", Action.TYPE.VIEW, new Properties())"));
 	}
 
 	private final static String SINGLE_STATE_ACTION_COMMANDS_RIM = "" + "rim Test {" + LINE_SEP
@@ -272,14 +253,6 @@ public class GeneratorSpringPRDTest {
 		assertTrue(resourceA.contains("<constructor-arg value=\"VIEW\" />"));
 		assertTrue(resourceA.contains("<prop key=\"getkey\">getvalue</prop>"));
 		assertTrue(resourceA.contains("constructor-arg name=\"path\" value=\"/A\" />"));
-		
-		//int indexOfFirstNewProperties = output.indexOf("actionViewProperties = new Properties()");
-		//assertTrue(indexOfFirstNewProperties > 0);
-		//assertTrue(output.contains("actionViewProperties.put(\"getkey\", \"getvalue\""));
-		//assertTrue(output.contains("new Action(\"GetEntity\", Action.TYPE.VIEW, actionViewProperties)"));
-
-		// No onerror handler so should not define an error state
-		//assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, null);"));
 	}
 
 	private final static String MULTIPLE_STATES_MULTIPLE_ACTION_COMMANDS_RIM = "" + "rim Test {" + LINE_SEP
@@ -311,15 +284,7 @@ public class GeneratorSpringPRDTest {
 		assertTrue(resourceA.contains("<constructor-arg value=\"DoStuff\" />"));
 		assertTrue(resourceA.contains("<constructor-arg value=\"ENTRY\" />"));
 
-		//assertTrue(resourceB.contains("new Action(\"DoSomeMoreStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
-
-		//int indexOfFirstNewProperties = resourceA.indexOf("actionViewProperties = new Properties()");
-		//assertTrue(indexOfFirstNewProperties > 0);
-		//assertTrue(resourceA.contains("actionViewProperties.put(\"key\", \"value\""));
-		//assertTrue(resourceA.contains("new Action(\"DoStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
-
 		String resouceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_B-PRD.xml";
-		//assertTrue(fsa.getFiles().containsKey(resouceBKey));
 		String resourceB = fsa.getFiles().get(resouceBKey).toString();
 		assertTrue(resourceB.contains("<bean class=\"com.temenos.interaction.core.hypermedia.Action\">"));
 		assertTrue(resourceB.contains("constructor-arg value=\"DoSomeMoreStuff\" />"));
@@ -327,14 +292,6 @@ public class GeneratorSpringPRDTest {
 		assertTrue(resourceB.contains("<constructor-arg name=\"path\" value=\"/B\" />"));
 		assertTrue(resourceB.contains(""));
 		assertTrue(resourceB.contains(""));
-		//int indexOfSecondNewProperties = resourceB.indexOf("actionViewProperties = new Properties()", indexOfFirstNewProperties);
-		//assertTrue(indexOfSecondNewProperties > 0);
-		//assertTrue(resourceB.contains("actionViewProperties.put(\"keyB\", \"valueB\""));
-		//assertTrue(resourceB.contains("new Action(\"DoSomeStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
-		//assertTrue(resourceB.contains("actionViewProperties.put(\"keyB0\", \"valueB0\""));
-		//assertTrue(resourceB.contains("actionViewProperties.put(\"keyB1\", \"valueB1\""));
-		//assertTrue(resourceB.contains("new Action(\"DoSomeMoreStuff\", Action.TYPE.ENTRY, actionViewProperties)"));
-
 	}
 
 	private final static String TRANSITION_WITH_EXPRESSION_RIM = "" + 
@@ -463,10 +420,7 @@ public class GeneratorSpringPRDTest {
 		assertFalse(output.contains("<property name=\"target\" ref=\"B\" />"));
 		assertFalse(output.contains("<property name=\"uriParameters\" ref=\"uriLinkageMap\" />"));
 		assertFalse(output.contains("<property name=\"evaluation\" ref=\"conditionalLinkExpressions\" />"));
-		assertFalse(output.contains("<property name=\"label\" value=\"B\" />"));
-		
-		//assertFalse(output.contains("sA.addTransition(new Transition.Builder()"));
-		//assertFalse(output.contains("factory.getResourceState(\"\");"));
+		assertFalse(output.contains("<property name=\"label\" value=\"B\" />"));		
 	}
 
 	private final static String TRANSITION_WITH_STRING_TARGET_RIM = "" + 
@@ -502,8 +456,6 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("<property name=\"uriParameters\"><util:map></util:map></property>"));
 		assertTrue(output.contains("<property name=\"evaluation\"><null /></property>"));
 		assertTrue(output.contains("<property name=\"label\" value=\"B\" />"));
-		//assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
-		//assertTrue(output.contains("factory.getResourceState(\"B\");"));
 	}
 
 	private final static String AUTO_TRANSITION_WITH_URI_LINKAGE_RIM = "" + "rim Test {" + LINE_SEP + "	event GET {"
@@ -540,11 +492,6 @@ public class GeneratorSpringPRDTest {
 		assertTrue(output.contains("<property name=\"uriParameters\"><util:map>"));
 		assertTrue(output.contains("<entry key=\"id\" value=\"{MyId}\"/>"));
 		assertTrue(output.contains("</util:map>"));
-
-		//assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
-		//assertTrue(output.contains("screate_pseudo_state.addTransition(new Transition.Builder()"));
-		//assertTrue(output.contains("Transition.AUTO"));
-		//assertTrue(output.contains(".target(screated)"));
 	}
 
 	private final static String REDIRECT_TRANSITION_WITH_URI_LINKAGE_RIM = "" + "rim Test {" + LINE_SEP
@@ -574,10 +521,6 @@ public class GeneratorSpringPRDTest {
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
 		String output = fsa.getFiles().get(expectedKey).toString();
 
-		//assertTrue(output.contains("uriLinkageProperties.put(\"id\", \"{MyId}\");"));
-		//assertTrue(output.contains("sdelete_pseudo_state.addTransition(new Transition.Builder()"));
-		//assertTrue(output.contains("Transition.REDIRECT"));
-		//assertTrue(output.contains(".target(sdeleted)"));
 		assertTrue(output.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
 		assertTrue(output.contains("<property name=\"flags\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.Transition.REDIRECT\"/></property>"));
 		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
@@ -610,9 +553,6 @@ public class GeneratorSpringPRDTest {
 		assertTrue(allFiles.containsKey(expectedKey));
 		String output = allFiles.get(expectedKey).toString();
 
-		//assertTrue(output.contains("sA.addTransition(new Transition.Builder()"));
-		//assertTrue(output.contains(".target(sB)"));
-		//assertTrue(output.contains(".flags(Transition.EMBEDDED)"));
 		assertTrue(output.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
 		assertTrue(output.contains("<property name=\"flags\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.Transition.EMBEDDED\"/></property>"));
 		assertTrue(output.contains("<property name=\"method\" value=\"GET\" />"));
@@ -794,25 +734,10 @@ public class GeneratorSpringPRDTest {
 		assertTrue(resourceA.contains("<property name=\"uriParameters\"><util:map></util:map></property>"));
 		assertTrue(resourceA.contains("<property name=\"label\" value=\"B\" />"));
 
-		//
-		//assertTrue(resourceA.contains("sA.addTransition(new Transition.Builder()"));
-		//assertTrue(resourceA.contains(".flags(Transition.FOR_EACH)"));
-		//assertTrue(resourceA.contains(".method(\"GET\")"));
-		//assertTrue(resourceA.contains(".target(sB)"));
-		//assertTrue(resourceA.contains(".uriParameters(uriLinkageProperties)"));
-		//assertTrue(resourceA.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
-		//assertTrue(resourceA.contains(".label(\"B\")"));
-
 		String resourceBKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_B-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(resourceBKey));
 		String resourceB = fsa.getFiles().get(resourceBKey).toString();
 		
-		//assertTrue(resourceB.contains("sB.addTransition(new Transition.Builder()"));
-		//assertTrue(resourceB.contains(".method(\"PUT\")"));
-		//assertTrue(resourceB.contains(".target(sB_pseudo)"));
-		//assertTrue(resourceB.contains(".uriParameters(uriLinkageProperties)"));
-		//assertTrue(resourceB.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
-		//assertTrue(resourceB.contains(".label(\"B_pseudo\")"));		
 		assertTrue(resourceB.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
 		assertTrue(resourceB.contains("<property name=\"method\" value=\"PUT\" />"));
 		assertTrue(resourceB.contains("<property name=\"target\"><bean class=\"com.temenos.interaction.core.hypermedia.LazyResourceState\"><constructor-arg name=\"name\" value=\"Test_B_pseudo\" /></bean></property>"));
@@ -823,11 +748,6 @@ public class GeneratorSpringPRDTest {
 		String resourceB_pseudoKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_B_pseudo-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(resourceB_pseudoKey));
 		String resourceB_pseudo = fsa.getFiles().get(resourceB_pseudoKey).toString();
-		//assertTrue(resourceB_pseudo.contains("sB_pseudo.addTransition(new Transition.Builder()"));
-		//assertTrue(resourceB_pseudo.contains(".flags(Transition.AUTO)"));
-		//assertTrue(resourceB_pseudo.contains(".target(sA)"));
-		//assertTrue(resourceB_pseudo.contains(".uriParameters(uriLinkageProperties)"));
-		//assertTrue(resourceB_pseudo.contains(".evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)"));
 		assertTrue(resourceB_pseudo.contains("<bean class=\"com.temenos.interaction.springdsl.TransitionFactoryBean\">"));
 		assertTrue(resourceB_pseudo.contains("<property name=\"flags\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.Transition.AUTO\"/></property>"));
 		assertTrue(resourceB_pseudo.contains("<property name=\"target\"><bean class=\"com.temenos.interaction.core.hypermedia.LazyCollectionResourceState\"><constructor-arg name=\"name\" value=\"Test_A\" /></bean></property>"));
@@ -864,16 +784,8 @@ public class GeneratorSpringPRDTest {
 		Set<String> keys = allFiles.keySet();
 		
 		// collection
-		/*
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"Test.AE\"));"));
-		 
-		 */
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_AE-PRD.xml";
 		assertTrue(fsa.getAllFiles().containsKey(expectedKey));
-//		assertTrue(fsa.getFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "TestServiceDocumentIRIS-PRD.xml"));
 		assertTrue(fsa.getAllFiles().containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml"));
 		String output = fsa.getAllFiles().get(expectedKey).toString();
 		assertTrue(output
@@ -924,17 +836,8 @@ public class GeneratorSpringPRDTest {
 		Map<String, Object> allFiles = fsa.getAllFiles();
 		
 		// collection
-		/*
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/Test/AResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"ErrorTest.Error.AE\"));"));
-		 
-		 */
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-ErrorTest_Test_A-PRD.xml";
 		assertTrue(allFiles.containsKey(expectedKey));
-//		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/ErrorServiceDocumentIRIS-PRD.xml"));
-//		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/TestServiceDocumentIRIS-PRD.xml"));
 		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-ErrorTest_Error_AE-PRD.xml"));
 		assertTrue(allFiles.containsKey(IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-ErrorTest_Test_A-PRD.xml"));
 
@@ -972,15 +875,6 @@ public class GeneratorSpringPRDTest {
 
 		Map<String, Object> allFiles = fsa.getAllFiles();
 		Set<String> keys = allFiles.keySet();
-
-		/*
-		// collection
-		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "Test/AResourceState.java";
-		assertTrue(fsa.getFiles().containsKey(expectedKey));
-		String output = fsa.getFiles().get(expectedKey).toString();
-		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/{companyid}/A\", createLinkRelations(), null, null);"));		 
-		 */
-		
 		
 		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Test_A-PRD.xml";
 		assertTrue(fsa.getFiles().containsKey(expectedKey));
@@ -1056,11 +950,6 @@ public class GeneratorSpringPRDTest {
 
 		String expectedKey3 = IFileSystemAccess.DEFAULT_OUTPUT + "IRIS-Simple_E-PRD.xml";
 		assertTrue(allFiles.containsKey(expectedKey3));
-
-		/*
-		String expectedKey4 = IFileSystemAccess.DEFAULT_OUTPUT + "SimpleServiceDocumentIRIS-PRD.xml";
-		assertTrue(allFiles.containsKey(expectedKey4));
-		*/
 	}
 
 	/**
@@ -1068,7 +957,6 @@ public class GeneratorSpringPRDTest {
 	 * @param startElement
 	 */
 	private void assertProperty(StartElement startElement, String expectedPropertyName, String expectedPropertyValue, String expectedPropertyRef) {
-		// item = new Item();
 		System.out.println("start property...");
 		// attribute
 		String actualPropertyName = null;
@@ -1111,8 +999,6 @@ public class GeneratorSpringPRDTest {
 	 * 
 	 */
 	private void resetState() {
-		// constructorValue1 = null;
-		// constructorValue2 = null;
 		beanClass = null;
 		beanId = null;
 	}
@@ -1226,8 +1112,6 @@ public class GeneratorSpringPRDTest {
 		Reader reader = new StringReader(root);
 
 		XMLInputFactory factory = XMLInputFactory.newInstance();
-		// XMLStreamReader xmlStreamReader =
-		// factory.createXMLStreamReader(reader);
 		XMLEventReader eventReader = factory.createXMLEventReader(reader);
 		String tagContent = null;
 
@@ -1241,7 +1125,6 @@ public class GeneratorSpringPRDTest {
 				System.out.println("startElement = " + startElement.getName().getLocalPart());
 
 				if (startElement.getName().getLocalPart() == "bean") {
-					// item = new Item();
 					System.out.println("start bean...");
 					// attribute
 					Iterator<Attribute> attributes = startElement.getAttributes();
@@ -1287,9 +1170,7 @@ public class GeneratorSpringPRDTest {
 				}
 
 				if (startElement.getName().getLocalPart() == "property") {
-					if (processState == PROCESSING_STATE.ACTION) {
-//						assertProperty(startElement, "blah", "blah", null);
-					} else if (processState == PROCESSING_STATE.FACTORY_BEAN) {
+					if (processState == PROCESSING_STATE.FACTORY_BEAN) {
 						assertProperty(startElement, "method", "GET", null);
 					}
 					continue;
@@ -1312,14 +1193,6 @@ public class GeneratorSpringPRDTest {
 					if (event.asStartElement().getName().getLocalPart().equals("thetext")) {
 						event = eventReader.nextEvent();
 						System.out.println("thetext: " + event.asCharacters().getData());
-						/*
-						 * if(item.getFirstText() == null){
-						 * System.out.println("thetext: " +
-						 * event.asCharacters().getData());
-						 * item.setFirstText("notnull"); continue; }else{
-						 * continue; }
-						 */
-
 					}
 				}
 			}
@@ -1329,7 +1202,6 @@ public class GeneratorSpringPRDTest {
 				EndElement endElement = event.asEndElement();
 				if (endElement.getName().getLocalPart() == "item") {
 					System.out.println("--end of an item\n");
-					// item = null;
 				}
 			}
 			// reach the end of an item
@@ -1337,7 +1209,6 @@ public class GeneratorSpringPRDTest {
 				EndElement endElement = event.asEndElement();
 				if (endElement.getName().getLocalPart() == "item") {
 					System.out.println("--end of an item\n");
-					// item = null;
 				}
 			}
 
@@ -1411,8 +1282,6 @@ public class GeneratorSpringPRDTest {
 		Reader reader = new StringReader(root);
 
 		XMLInputFactory factory = XMLInputFactory.newInstance();
-		// XMLStreamReader xmlStreamReader =
-		// factory.createXMLStreamReader(reader);
 		XMLEventReader eventReader = factory.createXMLEventReader(reader);
 
 		while (eventReader.hasNext()) {
@@ -1425,7 +1294,6 @@ public class GeneratorSpringPRDTest {
 				System.out.println("startElement = " + startElement.getName().getLocalPart());
 
 				if (startElement.getName().getLocalPart() == "bean") {
-					// item = new Item();
 					System.out.println("start bean...");
 
 					// attribute
@@ -1457,7 +1325,6 @@ public class GeneratorSpringPRDTest {
 
 				if (startElement.getName().getLocalPart() == "property") {
 					if (processState == PROCESSING_STATE.ACTION) {
-//						assertProperty(startElement, "blah", "blah", null);
 					} else if (processState == PROCESSING_STATE.FACTORY_BEAN) {
 						assertProperty(startElement, "method", "GET", null);
 					}
@@ -1481,14 +1348,6 @@ public class GeneratorSpringPRDTest {
 					if (event.asStartElement().getName().getLocalPart().equals("thetext")) {
 						event = eventReader.nextEvent();
 						System.out.println("thetext: " + event.asCharacters().getData());
-						/*
-						 * if(item.getFirstText() == null){
-						 * System.out.println("thetext: " +
-						 * event.asCharacters().getData());
-						 * item.setFirstText("notnull"); continue; }else{
-						 * continue; }
-						 */
-
 					}
 				}
 			}
@@ -1498,7 +1357,6 @@ public class GeneratorSpringPRDTest {
 				EndElement endElement = event.asEndElement();
 				if (endElement.getName().getLocalPart() == "item") {
 					System.out.println("--end of an item\n");
-					// item = null;
 				}
 			}
 			// reach the end of an item
@@ -1506,7 +1364,6 @@ public class GeneratorSpringPRDTest {
 				EndElement endElement = event.asEndElement();
 				if (endElement.getName().getLocalPart() == "item") {
 					System.out.println("--end of an item\n");
-					// item = null;
 				}
 			}
 
@@ -1542,8 +1399,6 @@ public class GeneratorSpringPRDTest {
 
 
 		XMLInputFactory factory = XMLInputFactory.newInstance();
-		// XMLStreamReader xmlStreamReader =
-		// factory.createXMLStreamReader(reader);
 		XMLEventReader eventReader = factory.createXMLEventReader(reader);
 		String tagContent = null;
 
@@ -1557,7 +1412,6 @@ public class GeneratorSpringPRDTest {
 				System.out.println("startElement = " + startElement.getName().getLocalPart());
 
 				if (startElement.getName().getLocalPart() == "bean") {
-					// item = new Item();
 					System.out.println("start bean...");
 					// attribute
 					Iterator<Attribute> attributes = startElement.getAttributes();
@@ -1587,9 +1441,7 @@ public class GeneratorSpringPRDTest {
 				}
 
 				if (startElement.getName().getLocalPart() == "property") {
-					if (processState == PROCESSING_STATE.ACTION) {
-//						assertProperty(startElement, "blah", "blah", null);
-					} else if (processState == PROCESSING_STATE.FACTORY_BEAN) {
+					if (processState == PROCESSING_STATE.FACTORY_BEAN) {
 						assertProperty(startElement, "method", "GET", null);
 					}
 					continue;
@@ -1612,14 +1464,6 @@ public class GeneratorSpringPRDTest {
 					if (event.asStartElement().getName().getLocalPart().equals("thetext")) {
 						event = eventReader.nextEvent();
 						System.out.println("thetext: " + event.asCharacters().getData());
-						/*
-						 * if(item.getFirstText() == null){
-						 * System.out.println("thetext: " +
-						 * event.asCharacters().getData());
-						 * item.setFirstText("notnull"); continue; }else{
-						 * continue; }
-						 */
-
 					}
 				}
 			}
@@ -1629,7 +1473,6 @@ public class GeneratorSpringPRDTest {
 				EndElement endElement = event.asEndElement();
 				if (endElement.getName().getLocalPart() == "item") {
 					System.out.println("--end of an item\n");
-					// item = null;
 				}
 			}
 			// reach the end of an item
@@ -1637,7 +1480,6 @@ public class GeneratorSpringPRDTest {
 				EndElement endElement = event.asEndElement();
 				if (endElement.getName().getLocalPart() == "item") {
 					System.out.println("--end of an item\n");
-					// item = null;
 				}
 			}
 
