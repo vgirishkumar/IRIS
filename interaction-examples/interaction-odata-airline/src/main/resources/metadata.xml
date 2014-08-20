@@ -3,7 +3,7 @@
   #%L
   interaction-example-odata-airline
   %%
-  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+  Copyright (C) 2012 - 2014 Temenos Holdings N.V.
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -60,7 +60,9 @@
 			<Term Name="TERM_MANDATORY">true</Term>
 			<Term Name="TERM_ID_FIELD">true</Term>
 		</Property>
-		<Property Name="country" />
+		<Property Name="country">
+			<Term Name="TERM_SEMANTIC_TYPE">Geography:Country</Term>
+		</Property>
 	</Entity>
 	<Entity Name="Flight">
 		<Property Name="flightID">

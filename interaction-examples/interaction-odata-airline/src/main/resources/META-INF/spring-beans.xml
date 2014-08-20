@@ -3,7 +3,7 @@
   #%L
   interaction-example-odata-airline
   %%
-  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+  Copyright (C) 2012 - 2014 Temenos Holdings N.V.
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -43,7 +43,7 @@
 	</bean>
 
 	<!-- Metadata -->	
-	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
         <constructor-arg ref="stateMachine" />
 	</bean>
 	<!-- 
@@ -51,10 +51,11 @@
 	 -->
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
 
-	<!-- Odata4j Metadata -->
+	<!-- Odata4j Metadata Translator -->
 	<bean id="metadataOData4j" class="com.temenos.interaction.odataext.entity.MetadataOData4j">
         <constructor-arg ref="edmMetadata" />
         <constructor-arg ref="stateMachine" />
+        <property name="odataVersion" value="V2"/>
     </bean>
     	
 	<!-- Import Resource manager context -->

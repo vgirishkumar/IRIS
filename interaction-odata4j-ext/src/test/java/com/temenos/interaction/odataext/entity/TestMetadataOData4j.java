@@ -4,7 +4,7 @@ package com.temenos.interaction.odataext.entity;
  * #%L
  * interaction-odata4j-ext
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,26 +21,37 @@ package com.temenos.interaction.odataext.entity;
  * #L%
  */
 
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.odata4j.core.NamespacedAnnotation;
+import org.odata4j.core.ODataVersion;
+import org.odata4j.edm.EdmAnnotationAttribute;
 import org.odata4j.edm.EdmAssociation;
 import org.odata4j.edm.EdmComplexType;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmNavigationProperty;
+import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmProperty.CollectionKind;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
+import org.odata4j.exceptions.NotFoundException;
 
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
@@ -104,6 +115,7 @@ public class TestMetadataOData4j {
 		
 		//Convert metadata to odata4j metadata
 		metadataAirlineOdata4j = new MetadataOData4j(metadataAirline, hypermediaEngine);
+		metadataAirlineOdata4j.setOdataVersion(ODataVersion.V2);
 		
 		//Read the Complex metadata file
 		MetadataParser parserCustomerComplex = new MetadataParser();
@@ -115,7 +127,7 @@ public class TestMetadataOData4j {
 		metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, new ResourceStateMachine(new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/")));
 	}
 	
-	@Test(expected = AssertionError.class)
+	@Test(expected = RuntimeException.class)
 	public void testAssertIndividualInitialState() {
 		CollectionResourceState serviceRoot = new CollectionResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
@@ -550,4 +562,23 @@ public class TestMetadataOData4j {
 		assertEquals("1", flightScheduleNavProperty.getFromRole().getMultiplicity().getSymbolString());
 		assertEquals("*", flightScheduleNavProperty.getToRole().getMultiplicity().getSymbolString());
 	}
+	
+	@Test
+	public void testAirlineEntitySemanticTypes()
+	{	
+		EdmDataServices edmDataServices = metadataAirlineOdata4j.getMetadata();
+System.err.println(metadataAirlineOdata4j);		
+		EdmType type = edmDataServices.findEdmEntityType(AIRLINE_NAMESPACE + ".Airport");
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		NamespacedAnnotation<?> ann = entityType.findProperty("country").findAnnotation("http://iris.temenos.com/odata-extensions", "semanticType");
+		Assert.assertNotNull("No annotations found", ann);
+		Assert.assertEquals(EdmAnnotationAttribute.class, ann.getClass());
+		EdmAnnotationAttribute annEl = (EdmAnnotationAttribute)ann;
+		Assert.assertNotNull(annEl.getNamespace().getPrefix());
+		Assert.assertNotNull(annEl.getNamespace().getUri());
+		Assert.assertEquals("Geography:Country", ann.getValue());
+	}
+
 }
