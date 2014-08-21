@@ -327,7 +327,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			<constructor-arg name="name" value="dynamic" />
 			<constructor-arg name="resourceLocatorName" value="«transition.locator.name»" />
 			<constructor-arg name="resourceLocatorArgs">
-				<list>"«FOR i:1..transition.locator.args.size»«transition.locator.args.get(i - 1)»«IF i < transition.locator.args.size»,«ENDIF»«ENDFOR»"</list>
+				 <value type="java.lang.String[]">«FOR i:1..transition.locator.args.size»«transition.locator.args.get(i - 1)»«IF i < transition.locator.args.size»,«ENDIF»«ENDFOR»</value>
 			</constructor-arg>
 		</bean>	
 	'''
