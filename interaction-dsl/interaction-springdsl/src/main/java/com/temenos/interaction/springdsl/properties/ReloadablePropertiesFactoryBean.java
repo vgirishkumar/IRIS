@@ -21,16 +21,18 @@ package com.temenos.interaction.springdsl.properties;
  * #L%
  */
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
@@ -41,31 +43,13 @@ import org.springframework.util.PropertiesPersister;
  * changed, the properties are read again from the file. 
  * Credit to: http://www.wuenschenswert.net/wunschdenken/archives/127
  */
-public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DisposableBean {
+public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DisposableBean, ApplicationContextAware {
+	private ApplicationContext ctx;
 
-	private Log log = LogFactory.getLog(getClass());
-
-	// add missing getter for locations
-
-	private Resource[] locations;
-	private long[] lastModified;
+	private Map<Resource,Long> locations = new HashMap<Resource,Long>();
 	private List<ReloadablePropertiesListener> preListeners;
 	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
-
-	public void setLocation(Resource location) {
-		setLocations(new Resource[] { location });
-	}
-
-	public void setLocations(Resource[] locations) {
-		this.locations = locations;
-		lastModified = new long[locations.length];
-		super.setLocations(locations);
-	}
-
-	protected Resource[] getLocations() {
-		return locations;
-	}
-
+	
 	public void setListeners(List<ReloadablePropertiesListener> listeners) {
 		// early type check, and avoid aliassing
 		this.preListeners = new ArrayList<ReloadablePropertiesListener>();
@@ -92,38 +76,75 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	}
 
 	protected void reload(boolean forceReload) throws IOException {
+		Resource[] tmpLocations = ctx.getResources("classpath*:IRIS-*.properties");
+		
 		boolean reload = forceReload;
-		for (int i = 0; i < locations.length; i++) {
-			Resource location = locations[i];
-			File file;
-			try {
-				file = location.getFile();
-			} catch (IOException e) {
-				// not a file resource
-				continue;
+		
+		if(locations == null) {
+			// Uninitalized - Load everything
+			locations = new HashMap<Resource, Long>();
+			
+			for(Resource location : tmpLocations) {
+				addNewLocation(location);
+				
+				reload = true;
 			}
-			try {
-				long currentLastModified = file.lastModified();
-				if (currentLastModified > lastModified[i]) {
-					lastModified[i] = currentLastModified;
-					Properties newProperties = new Properties();
-					propertiesPersister.load(newProperties, location.getInputStream());
-					if (currentLastModified == 0) {
-						reloadableProperties.notifyPropertiesLoaded(location, newProperties);
-					} else {
+		} else {
+			// Process new and modified
+			for(Resource location : tmpLocations) {
+				
+				if(locations.containsKey(location)) {
+					// Existing location
+					
+					long lastModified = location.getFile().lastModified();
+					
+					if( lastModified > locations.get(location)) {
+						// Identified modification
+						
+						// Update entry in locations
+						locations.put(location, lastModified);						
+						
+						// Load properties file						
+						Properties newProperties = new Properties();
+						propertiesPersister.load(newProperties, location.getInputStream());
+						
+						// Notify subscribers that properties have been modified
 						reloadableProperties.notifyPropertiesChanged(location, newProperties);
+						
+						reload = true;
 					}
-					reloadableProperties.notifyPropertiesChanged(newProperties);
-					reload = true;
+				} else {
+					// New location
+					addNewLocation(location);
+					
+					reload = true;					
 				}
-			} catch (Exception e) {
-				// cannot access file. assume unchanged.
-				if (log.isDebugEnabled())
-					log.debug("can't determine modification time of " + file + " for " + location, e);
-			}
+			}						
 		}
+		
+		// Set locations on parent ready for merging of properties with overrides
+		super.setLocations(tmpLocations);
+		
+		// TODO Handle removing states
+		
 		if (reload)
 			doReload();
+	}
+
+	/**
+	 * @param location
+	 * @throws IOException
+	 */
+	private void addNewLocation(Resource location) throws IOException {
+		// Add entry to locations
+		locations.put(location, location.getFile().lastModified());
+		
+		// Load properties file
+		Properties newProperties = new Properties();
+		propertiesPersister.load(newProperties, location.getInputStream());	
+		
+		// Notify subscribers that new properties have been loaded
+		reloadableProperties.notifyPropertiesLoaded(location, newProperties);
 	}
 
 	private void doReload() throws IOException {
@@ -134,9 +155,13 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	class ReloadablePropertiesImpl extends ReloadablePropertiesBase implements ReconfigurableBean {
 		private static final long serialVersionUID = -3401718333944329073L;
 
-		public void reloadConfiguration() throws Exception {
+		public void reloadConfiguration() throws Exception {			
 			ReloadablePropertiesFactoryBean.this.reload(false);
 		}
 	}
 
+	@Override
+	public void setApplicationContext(ApplicationContext ctx) throws BeansException {
+		this.ctx = ctx;		
+	}
 }

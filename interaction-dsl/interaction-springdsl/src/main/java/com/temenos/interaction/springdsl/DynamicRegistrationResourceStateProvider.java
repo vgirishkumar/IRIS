@@ -1,8 +1,8 @@
-package com.temenos.interaction.winkext;
+package com.temenos.interaction.springdsl;
 
 /*
  * #%L
- * interaction-winkext
+ * interaction-springdsl
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -22,14 +22,13 @@ package com.temenos.interaction.winkext;
  */
 
 
-import java.util.Set;
-
-import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
-import com.temenos.interaction.springdsl.RIMRegistration;
-
-public interface ServiceRootFactory {
-
-	public Set<HTTPResourceInteractionModel> getServiceRoots();
-
-	public void setRIMRegistration(RIMRegistration rimStateRegistration);	
+/**
+ * Resource state providers that implement this interface will provide a mechanism for dynamically registering 
+ * resources i.e. at runtime after startup 
+ *
+ * @author mlambert
+ *
+ */
+public interface DynamicRegistrationResourceStateProvider {
+	void setStateRegisteration(StateRegisteration stateRegisteration);
 }

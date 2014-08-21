@@ -22,6 +22,7 @@ package com.temenos.interaction.springdsl;
  */
 
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,10 +40,12 @@ import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 
-public class SpringDSLResourceStateProvider implements ResourceStateProvider {
+public class SpringDSLResourceStateProvider implements ResourceStateProvider, DynamicRegistrationResourceStateProvider {
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
 	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
+	
+	private StateRegisteration stateRegisteration;	
 
     /**
      * Map of ResourceState bean names, to paths.
@@ -120,6 +123,28 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 		initialised = true;
 	}
 	
+	void addState(String stateObj, Properties properties) {
+		if (initialised) {
+			String stateName = stateObj.toString();
+
+			// binding is [GET,PUT /thePath]
+			String binding = properties.getProperty(stateName);
+
+			// split into methods and path
+			String[] strs = binding.split(" ");
+			String methodPart = strs[0];
+			String path = strs[1];
+
+			// methods
+			String[] methods = methodPart.split(",");
+
+			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path
+					+ " using: " + stateRegisteration);
+
+			this.stateRegisteration.register(stateName, path, new HashSet<String>(Arrays.asList(methods)));
+		}
+	}
+	
 	protected void unload(String name) {
 		resources.remove(name);
 	}
@@ -181,5 +206,9 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider {
 		initialise();
 		return resourceStatesByPath;
 	}
-
+		
+	@Override
+	public void setStateRegisteration(StateRegisteration registerState) {
+		this.stateRegisteration = registerState;		
+	}	
 }

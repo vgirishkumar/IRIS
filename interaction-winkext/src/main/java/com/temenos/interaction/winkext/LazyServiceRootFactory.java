@@ -27,6 +27,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
@@ -35,15 +38,19 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
-import com.temenos.interaction.winkext.ServiceRootFactory;
+import com.temenos.interaction.springdsl.DynamicRegistrationResourceStateProvider;
+import com.temenos.interaction.springdsl.RIMRegistration;
+import com.temenos.interaction.springdsl.StateRegisteration;
 
 /**
  * A resource factory that uses the beans and configuration files from the SpringDSL implementation
  * to construct all the resources required for an hypermedia server instance.
  * @author aphethean
  */
-public class LazyServiceRootFactory implements ServiceRootFactory {
+public class LazyServiceRootFactory implements ServiceRootFactory, StateRegisteration {
 
+	private final Logger logger = LoggerFactory.getLogger(LazyServiceRootFactory.class);
+	
 	private ResourceStateProvider resourceStateProvider;
 	// resources by path
 	private Map<String, LazyResourceDelegate> resources = new HashMap<String, LazyResourceDelegate>();
@@ -55,8 +62,13 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 	private ResourceLocatorProvider resourceLocatorProvider;
 	private ResourceState exception;
 	private Transformer transformer;
+	private RIMRegistration rimRegistration;
 
 	public Set<HTTPResourceInteractionModel> getServiceRoots() {
+		if(resourceStateProvider instanceof DynamicRegistrationResourceStateProvider) {
+			((DynamicRegistrationResourceStateProvider)resourceStateProvider).setStateRegisteration(this);
+		}
+		
 		hypermediaEngine = new ResourceStateMachine.Builder()
 				.initial(null)
 				.exception(exception)
@@ -90,6 +102,21 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 		}
 		return services;
 	}
+	
+	@Override
+	public void register(String stateName, String path, Set<String> methods) {
+		logger.info("Attempting to add service: " + stateName);
+		
+		LazyResourceDelegate resource = new LazyResourceDelegate(hypermediaEngine,
+				resourceStateProvider,
+				commandController,
+				metadata,
+				stateName, 
+				path,
+				methods);
+		
+		rimRegistration.register(resource);		
+	}
 
 	public NewCommandController getCommandController() {
 		return commandController;
@@ -111,8 +138,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 		return resourceLocatorProvider;
 	}
 
-	public void setResourceLocatorProvider(
-			ResourceLocatorProvider resourceLocatorProvider) {
+	public void setResourceLocatorProvider(ResourceLocatorProvider resourceLocatorProvider) {
 		this.resourceLocatorProvider = resourceLocatorProvider;
 	}
 
@@ -148,5 +174,8 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 		this.hypermediaEngine = hypermediaEngine;
 	}
 
-	
+	@Override
+	public void setRIMRegistration(RIMRegistration rimRegistration) {
+		this.rimRegistration = rimRegistration;		
+	}	
 }

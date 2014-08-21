@@ -1,8 +1,8 @@
-package com.temenos.interaction.winkext;
+package com.temenos.interaction.springdsl;
 
 /*
  * #%L
- * interaction-winkext
+ * interaction-springdsl
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -24,12 +24,16 @@ package com.temenos.interaction.winkext;
 
 import java.util.Set;
 
-import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
-import com.temenos.interaction.springdsl.RIMRegistration;
+/**
+ * Implementations of this interface provide a mechanism for registering states.
+ *
+ * @author mlambert
+ *
+ */
+public interface StateRegisteration {
+	/**
+	 * Register a new state using the information given
+	 */
+	public void register(String stateName, String path, Set<String> methods);
 
-public interface ServiceRootFactory {
-
-	public Set<HTTPResourceInteractionModel> getServiceRoots();
-
-	public void setRIMRegistration(RIMRegistration rimStateRegistration);	
 }
