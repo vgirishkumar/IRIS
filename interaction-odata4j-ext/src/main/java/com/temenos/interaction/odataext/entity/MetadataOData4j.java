@@ -4,7 +4,7 @@ package com.temenos.interaction.odataext.entity;
  * #%L
  * interaction-odata4j-ext
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,10 @@ package com.temenos.interaction.odataext.entity;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +35,8 @@ import java.util.Set;
 import javax.ws.rs.HttpMethod;
 
 import org.odata4j.core.ODataVersion;
+import org.odata4j.core.PrefixedNamespace;
+import org.odata4j.edm.EdmAnnotation;
 import org.odata4j.edm.EdmAssociation;
 import org.odata4j.edm.EdmAssociationEnd;
 import org.odata4j.edm.EdmComplexType;
@@ -58,6 +62,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermSemanticType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -77,6 +82,7 @@ public class MetadataOData4j {
 	private Metadata metadata;
 	private ResourceStateMachine hypermediaEngine;
 	private ResourceState serviceDocument;
+	private ODataVersion odataVersion = ODataVersion.V1;
 
 	/**
 	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
@@ -88,9 +94,29 @@ public class MetadataOData4j {
 		serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
 		if (serviceDocument == null)
 			throw new RuntimeException("No 'ServiceDocument' found.");
-		assert(!(serviceDocument instanceof CollectionResourceState)) : "Initial state must be an individual resource state";
+
+		if (serviceDocument instanceof CollectionResourceState)
+			throw new RuntimeException("Initial state must be an individual resource state");
+
 		this.metadata = metadata;
 		this.hypermediaEngine = hypermediaEngine;
+	}
+
+	/**
+	 * @return the odataVersion
+	 */
+	public ODataVersion getOdataVersion() {
+		return odataVersion;
+	}
+
+	/**
+	 * Change the version of OData that will be used. OData V2 is needed to permit annotations
+	 * (used for Semantic Types)
+	 * @param odataVersion the odataVersion to set.
+	 */
+	public void setOdataVersion(ODataVersion odataVersion) {
+		logger.debug("OData version set to " + odataVersion);
+		this.odataVersion = odataVersion;
 	}
 
 	/**
@@ -100,6 +126,7 @@ public class MetadataOData4j {
 	public EdmDataServices getMetadata() {
 		if (edmDataServices == null) 
 			edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+
 		return edmDataServices;
 	}
 
@@ -112,6 +139,12 @@ public class MetadataOData4j {
 		String serviceName = metadata.getModelName();
 		String namespace = serviceName + Metadata.MODEL_SUFFIX;
 		Builder mdBuilder = EdmDataServices.newBuilder();
+		
+		mdBuilder.setVersion(odataVersion);
+		logger.debug("Using OData version " + odataVersion);
+		if (odataVersion != ODataVersion.V1)
+			mdBuilder.addNamespaces(Collections.singletonList(new PrefixedNamespace(TermSemanticType.NAMESPACE, TermSemanticType.PREFIX)));
+		
 		List<EdmSchema.Builder> bSchemas = new ArrayList<EdmSchema.Builder>();
 		EdmSchema.Builder bSchema = new EdmSchema.Builder();
 		List<EdmEntityContainer.Builder> bEntityContainers = new ArrayList<EdmEntityContainer.Builder>();
@@ -137,6 +170,16 @@ public class MetadataOData4j {
 					EdmProperty.Builder ep = EdmProperty.newBuilder(entityMetadata.getSimplePropertyName(propertyName)).
 							setType(edmType).
 							setNullable(isNullable);
+					
+					if (odataVersion != ODataVersion.V1) {
+						// Add an annotation if a semantic type is defined for the property
+						List<EdmAnnotation<?>> annotations = new LinkedList<EdmAnnotation<?>>();
+						String semanticType = entityMetadata.getTermValue(propertyName, TermSemanticType.TERM_NAME);
+						if (semanticType != null)
+							annotations.add((EdmAnnotation.attribute(TermSemanticType.NAMESPACE, TermSemanticType.PREFIX, TermSemanticType.CSDL_NAME, semanticType)));
+						ep.setAnnotations(annotations);
+					}
+					
 					if (termComplexGroup == null) {
 						// Property belongs to an Entity Type, simply add it 
 						bProperties.add(ep);
@@ -294,7 +337,6 @@ public class MetadataOData4j {
 		bSchemas.add(bSchema);
 
 		mdBuilder.addSchemas(bSchemas);
-		mdBuilder.setVersion(ODataVersion.V1);
 
 		//Build the EDM metadata
 		return mdBuilder.build();
@@ -477,5 +519,14 @@ public class MetadataOData4j {
 			bComplexTypeMap.get(complexTypeFullName).addProperties(bl);
 		}
 	}
-
+	
+	/**
+	 * XML representation for debugging
+	 */
+	@Override
+	public String toString() {
+		java.io.StringWriter wr = new java.io.StringWriter();
+		org.odata4j.format.xml.EdmxFormatWriter.write(edmDataServices, wr);
+		return wr.toString();
+	}
 }
