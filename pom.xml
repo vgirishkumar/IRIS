@@ -4,7 +4,7 @@
 
     <groupId>com.temenos.interaction</groupId>
     <artifactId>interaction</artifactId>
-    <version>0.4.2-SNAPSHOT</version>
+    <version>0.4.2</version>
     <packaging>pom</packaging>
 
     <name>IRIS</name>
@@ -41,7 +41,16 @@
 
 	<build>
 		<plugins>
-			<!--  Skip the deployment -->
+		
+			<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <version>2.1</version>
+  <configuration>
+    <source>1.6</source>
+    <target>1.6</target>
+  </configuration>
+</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
