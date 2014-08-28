@@ -996,13 +996,13 @@ public class GeneratorSpringPRDTest {
 		String resourceA = getResourceBean(output, "Dynamic_A");
 
 		String transitionFindSource = getTransitionBean(resourceA, "findsource");
-		
+				
 		assertTrue(transitionFindSource.contains("<bean class=\"com.temenos.interaction.core.hypermedia.DynamicResourceState\">"));		
 		assertTrue(transitionFindSource.contains("<constructor-arg name=\"entityName\" value=\"ENTITY\" />"));
 		assertTrue(transitionFindSource.contains("<constructor-arg name=\"name\" value=\"dynamic\" />"));
 		assertTrue(transitionFindSource.contains("<constructor-arg name=\"resourceLocatorName\" value=\"findsource\" />"));
 		assertTrue(transitionFindSource.contains("<constructor-arg name=\"resourceLocatorArgs\">"));
-		assertTrue(transitionFindSource.contains("<list>\"{reference}\"</list>"));		
+		assertTrue(transitionFindSource.contains("<value type=\"java.lang.String[]\">{reference}</value>"));		
 		assertTrue(transitionFindSource.contains("</constructor-arg>"));
 		assertTrue(transitionFindSource.contains("</bean>"));		
 	}	
