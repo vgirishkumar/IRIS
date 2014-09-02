@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
+import com.temenos.interaction.core.hypermedia.ResourceParameterResolver;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
@@ -60,6 +61,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 	private NewCommandController commandController;
 	private Metadata metadata;
 	private ResourceLocatorProvider resourceLocatorProvider;
+	private ResourceParameterResolver parameterResolver;
 	private ResourceState exception;
 	private Transformer transformer;
 	private RIMRegistration rimRegistration;
@@ -75,6 +77,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 				.transformer(transformer)
 				.resourceLocatorProvider(resourceLocatorProvider)
 				.resourceStateProvider(resourceStateProvider)
+				.parameterResolver(parameterResolver)
 				.build();
 
 		Set<HTTPResourceInteractionModel> services = new HashSet<HTTPResourceInteractionModel>();
@@ -134,12 +137,12 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 		this.metadata = metadata;
 	}
 
-	public ResourceLocatorProvider getResourceLocatorProvider() {
-		return resourceLocatorProvider;
-	}
-
 	public void setResourceLocatorProvider(ResourceLocatorProvider resourceLocatorProvider) {
 		this.resourceLocatorProvider = resourceLocatorProvider;
+	}
+
+	public void setResourceParameterResolver(ResourceParameterResolver parameterResolver) {
+		this.parameterResolver = parameterResolver;
 	}
 
 	public ResourceState getException() {

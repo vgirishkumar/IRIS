@@ -55,10 +55,14 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 		 */
 		Link selfLink = null;
 		for (Link link : resource.getLinks()) {
-			// prefer edit
-			if ((selfLink == null && ("self".equals(link.getRel()) || "edit".equals(link.getRel())))
-					|| (selfLink != null && !"edit".equals(selfLink.getRel()) && "edit".equals(link.getRel()))) {
-				selfLink = link;
+			if(link == null) {
+				logger.warn("Found a null link for " + resource);				
+			} else {
+				// prefer edit
+				if ((selfLink == null && ("self".equals(link.getRel()) || "edit".equals(link.getRel())))
+						|| (selfLink != null && !"edit".equals(selfLink.getRel()) && "edit".equals(link.getRel()))) {
+					selfLink = link;
+				}				
 			}
 		}
 		if (selfLink != null && !selfLink.equals(linkToAdd)
@@ -74,17 +78,19 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 		if (result != null) {
 			Link firstInstance = null;
 			for (Link link : resource.getLinks()) {
-				// is this the first instance of this rel/href combination
-				if (firstInstance != null
-						&& !firstInstance.equals(result)
-						&& rel.equals(link.getRel())
-						&& result.getHref().equals(link.getHref())) {
-					result = null;
-					break;
-				}
-				if (result.getRel().equals(link.getRel())
-						&& result.getHref().equals(link.getHref())) {
-					firstInstance = link;
+				if(link != null) {
+					// is this the first instance of this rel/href combination
+					if (firstInstance != null
+							&& !firstInstance.equals(result)
+							&& rel.equals(link.getRel())
+							&& result.getHref().equals(link.getHref())) {
+						result = null;
+						break;
+					}
+					if (result.getRel().equals(link.getRel())
+							&& result.getHref().equals(link.getHref())) {
+						firstInstance = link;
+					}
 				}
 			}
 		}
