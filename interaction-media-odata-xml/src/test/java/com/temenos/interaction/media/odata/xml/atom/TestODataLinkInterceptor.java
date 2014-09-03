@@ -57,6 +57,75 @@ public class TestODataLinkInterceptor {
 	}
 	
 	@Test
+	public void testNullLinkToAddAddLinkArg() {		
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+		RESTResource resource = mock(RESTResource.class);
+		
+		List<Link> links = new ArrayList<Link>();
+		links.add(mock(Link.class));		
+		when(resource.getLinks()).thenReturn(links);
+		
+		Link result = linkInterceptor.addingLink(resource, null);
+		
+		assertNull(result);		
+	}
+	
+	@Test
+	public void testNullResourceAddLinkArg() {
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+		
+		Transition t = createMockTransition(
+				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
+				createMockResourceState("customer", "Customer", false));
+
+	
+		linkInterceptor.addingLink(null, new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
+	}
+	
+	@Test
+	public void testResourceWithNullLinkAddLinkArg() {		
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+		RESTResource resource = mock(RESTResource.class);
+		
+		List<Link> links = new ArrayList<Link>();
+		links.add(mock(Link.class));
+		links.add(null);
+		links.add(mock(Link.class));		
+		when(resource.getLinks()).thenReturn(links); 
+						
+		Transition t = createMockTransition(
+				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
+				createMockResourceState("customer", "Customer", false));
+		
+		Link link = new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET);
+		Link result = linkInterceptor.addingLink(resource, link);		
+		
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customer", result.getRel());
+	}
+
+	@Test
+	public void testNullLinkToAddAndResourceWithNullLinkAddLinkArgs() {		
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+		RESTResource resource = mock(RESTResource.class);
+		
+		Transition t = createMockTransition(
+				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
+				createMockResourceState("customer", "Customer", false));
+		
+		List<Link> links = new ArrayList<Link>();
+		Link link = new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET);
+		links.add(link);
+		links.add(null);
+		links.add(mock(Link.class));		
+		when(resource.getLinks()).thenReturn(links); 
+						
+
+		Link result = linkInterceptor.addingLink(resource, null);		
+
+		assertNull(result);
+	}
+	
+	@Test
 	public void testLinkRelationCollectionToItem() {
 		Transition t = createMockTransition(
 				createMockResourceState("FundsTransfers", "FundsTransfer", true), 
