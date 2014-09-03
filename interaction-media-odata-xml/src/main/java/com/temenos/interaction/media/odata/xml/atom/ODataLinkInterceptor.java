@@ -43,25 +43,40 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 	}
 	
 	@Override
-	public Link addingLink(RESTResource resource, Link linkToAdd) {
-		assert(resource != null);
-		logger.debug("Link rel["+linkToAdd.getRel()+"] title["+linkToAdd.getTitle()+"] href["+linkToAdd.getHref()+"]");
+	public Link addingLink(RESTResource resource, Link linkToAdd) {	
+		if(resource == null) {
+			return null;
+		}
+		
+		Link result = null;
+		String rel = "";
+		
+		if(linkToAdd != null) {
+			logger.debug("Link rel["+linkToAdd.getRel()+"] title["+linkToAdd.getTitle()+"] href["+linkToAdd.getHref()+"]");
 
-		Link result = linkToAdd;
-		String rel = getODataLinkRelation(result, providerHelper.getEntitySet(result.getTransition().getTarget()));
+			result = linkToAdd;
+			
+			rel = getODataLinkRelation(result, providerHelper.getEntitySet(result.getTransition().getTarget()));			
+		} else {
+			logger.warn("Link to add was null for " + resource.getEntityName());
+		}
 		
 		/*
 		 * Identify 'self' link
 		 */
 		Link selfLink = null;
 		for (Link link : resource.getLinks()) {
-			// prefer edit
-			if ((selfLink == null && ("self".equals(link.getRel()) || "edit".equals(link.getRel())))
-					|| (selfLink != null && !"edit".equals(selfLink.getRel()) && "edit".equals(link.getRel()))) {
-				selfLink = link;
+			if(link == null) {
+				logger.warn("Found null link for " + resource.getEntityName());				
+			} else {
+				// prefer edit
+				if ((selfLink == null && ("self".equals(link.getRel()) || "edit".equals(link.getRel())))
+						|| (selfLink != null && !"edit".equals(selfLink.getRel()) && "edit".equals(link.getRel()))) {
+					selfLink = link;
+				}				
 			}
 		}
-		if (selfLink != null && !selfLink.equals(linkToAdd)
+		if (selfLink != null && linkToAdd != null && !selfLink.equals(linkToAdd)
 				&& (linkToAdd.getRel().equals("item") || linkToAdd.getRel().equals("collection") 
 						|| linkToAdd.getRel().equals("self") || linkToAdd.getRel().equals("edit"))
 				&& linkToAdd.getHref().equals(selfLink.getHref())) {
@@ -74,17 +89,19 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 		if (result != null) {
 			Link firstInstance = null;
 			for (Link link : resource.getLinks()) {
-				// is this the first instance of this rel/href combination
-				if (firstInstance != null
-						&& !firstInstance.equals(result)
-						&& rel.equals(link.getRel())
-						&& result.getHref().equals(link.getHref())) {
-					result = null;
-					break;
-				}
-				if (result.getRel().equals(link.getRel())
-						&& result.getHref().equals(link.getHref())) {
-					firstInstance = link;
+				if(link != null) {
+					// is this the first instance of this rel/href combination
+					if (firstInstance != null
+							&& !firstInstance.equals(result)
+							&& rel.equals(link.getRel())
+							&& result.getHref().equals(link.getHref())) {
+						result = null;
+						break;
+					}
+					if (result.getRel().equals(link.getRel())
+							&& result.getHref().equals(link.getHref())) {
+						firstInstance = link;
+					}
 				}
 			}
 		}
@@ -108,7 +125,6 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 	 * @return odata link rel
 	 */
 	public String getODataLinkRelation(Link link, String entitySetName) {
-//		assert(entitySetName != null);
 		String rel = link.getRel();
 		Transition transition = link.getTransition();
 		if(transition == null) {
