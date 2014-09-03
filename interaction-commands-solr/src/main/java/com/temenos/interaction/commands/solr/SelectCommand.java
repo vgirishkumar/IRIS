@@ -22,8 +22,6 @@ package com.temenos.interaction.commands.solr;
  */
 
 
-import java.util.Properties;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.solr.client.solrj.SolrQuery;
@@ -33,6 +31,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -41,17 +40,19 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	private final static Logger logger = LoggerFactory.getLogger(SelectCommand.class);
 
 	@Autowired
+	@Qualifier("customersSolrServer")
 	private SolrServer solrCustomerServer;
 
 	@Autowired
+	@Qualifier("accountsSolrServer")
 	private SolrServer solrAccountServer;
 
 	public SelectCommand() {}
 	
 	private static final String SOLR_CORE = "core";
 	private static final String SOLR_QUERY = "q";
-	private static final String SOLR_CORE_CUSTOMERS = "customer_search";
-	private static final String SOLR_CORE_ACCOUNTS = "account_search";
+	public static final String SOLR_CORE_CUSTOMERS = "customer_search";
+	public static final String SOLR_CORE_ACCOUNTS = "account_search";
 	
 	/**
 	 * Instantiates a new select command.
@@ -68,42 +69,36 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 		String queryStr = queryParams.getFirst("q");
+		String selectedCore = queryParams.getFirst("core");
+		
 		SolrServer solrServer = null;
 		SolrQuery query = new SolrQuery();
 		String entityName = ctx.getCurrentState().getEntityName();
-		if (entityName != null){
-	       Properties properties = ctx.getCurrentState().getViewAction().getProperties();
-	        if (properties != null)
-	        {
-	        	String core = properties.getProperty(SOLR_CORE);
-	        	// Check for Customers Solr core in RIM
-	        	if (core.equalsIgnoreCase(SOLR_CORE_CUSTOMERS) ) {
-	        		solrServer = solrCustomerServer;
-	        		query.setQuery(getCustomerQuery(queryStr));
-	        	}
-	        	// Check for Account Solr core in RIM
-	        	else if (core.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
-	        		solrServer = solrAccountServer;
-	        		query.setQuery(getAccountQuery(queryStr));
-	        	}
-	        	else
-	        	{
-					logger.error("Solr core not defined!");
-					return Result.FAILURE;	        	
-				}
-			}
-		}
-        else
-        {
-        	// Default Solr core
+
+		if (selectedCore == null)
+		{
+    		// Default to customer_search core
+    		solrServer = solrCustomerServer;
+    		query.setQuery(getCustomerQuery(queryStr));	
+		} 
+		else if (selectedCore.equalsIgnoreCase(SOLR_CORE_CUSTOMERS) ) {
     		solrServer = solrCustomerServer;
     		query.setQuery(getCustomerQuery(queryStr));
-        }
-	
+    	}
+    	else if (selectedCore.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
+    		solrServer = solrAccountServer;
+    		query.setQuery(getAccountQuery(queryStr));
+    	}
+    	else
+    	{
+    		// Default to customer_search core
+    		solrServer = solrCustomerServer;
+    		query.setQuery(getCustomerQuery(queryStr));
+		}
+			
         try {
 			QueryResponse rsp = solrServer.query(query);
 			//SolrDocumentList list = rsp.getResults();
-			//System.out.println("Found : " +rsp.getResults().size() );
 			 
 			ctx.setResource(buildCollectionResource(entityName, rsp.getResults()));
 			return Result.SUCCESS;
@@ -117,11 +112,14 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	private String getCustomerQuery(String query)
 	{
 		StringBuilder sb = new StringBuilder();
+		sb.append(" name:*" + query + "*");
+		/*
 		sb.append("id:\"" + query + "\"");
-		sb.append(" name:\"*" + query + "*\"");
+
 		sb.append(" mnemonic:\"*" + query + "*\"");
 		sb.append(" address:\"*" + query + "*\"");
 		sb.append(" postcode:\"*" + query + "*\"");
+		*/
 		return sb.toString();
 		
 	}	
