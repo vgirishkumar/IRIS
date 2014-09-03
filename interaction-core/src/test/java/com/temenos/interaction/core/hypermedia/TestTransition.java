@@ -25,6 +25,8 @@ package com.temenos.interaction.core.hypermedia;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,14 +47,44 @@ public class TestTransition {
 			.method("PUT")
 			.flags(Transition.FOR_EACH);
 		Transition t = tb.build();
+		
+		t.equals(null);
+		
 		Transition.Builder tb2 = new Transition.Builder();
 		tb2.source(begin)
 			.target(begin2)
+			.method("PUT")
+			.flags(Transition.FOR_EACH);		
+		Transition t2 = tb2.build();
+		assertEquals(t, t2);
+		assertEquals(t.hashCode(), t2.hashCode());		
+	}
+	
+	@Test
+	public void testEqualityNullTarget() {
+		ResourceState begin = new ResourceState("entity", "", new ArrayList<Action>(), "/");
+		Transition.Builder tb = new Transition.Builder();
+		tb.source(begin)
+			.target(null)
+			.method("PUT")
+			.flags(Transition.FOR_EACH);
+		Transition t = tb.build();
+		Transition.Builder tb2 = new Transition.Builder();
+		tb2.source(begin)
+			.target(null)
 			.method("PUT")
 			.flags(Transition.FOR_EACH);
 		Transition t2 = tb2.build();
 		assertEquals(t, t2);
 		assertEquals(t.hashCode(), t2.hashCode());
+		
+		t2.setTarget(mock(ResourceState.class));
+		assertFalse(t.equals(t2));
+
+		t2.setTarget(null);		
+		t.setSource(mock(ResourceState.class));
+		
+		assertFalse(t.equals(t2));		
 	}
 	
 	@Test
@@ -72,7 +104,79 @@ public class TestTransition {
 		Transition t2 = tb2.build();
 		assertEquals(t, t2);
 		assertEquals(t.hashCode(), t2.hashCode());
+		
+		t2.setSource(mock(ResourceState.class));
+		assertFalse(t.equals(t2));
+
+		t2.setSource(null);		
+		t.setSource(mock(ResourceState.class));
+		
+		assertFalse(t.equals(t2));		
 	}
+	
+	
+	@Test
+	public void testEqualityNullSourceName() {
+		ResourceState begin2 = new ResourceState("entity", "", new ArrayList<Action>(), "/");
+		Transition.Builder tb = new Transition.Builder();
+
+		ResourceState state = mock(ResourceState.class);
+		when(state.getName()).thenReturn("target");		
+		
+		tb.source(state)
+			.target(begin2)
+			.method("PUT")
+			.flags(Transition.FOR_EACH);
+		Transition t = tb.build();
+		Transition.Builder tb2 = new Transition.Builder();
+		
+		ResourceState state2 = mock(ResourceState.class);
+		
+		tb2.source(state2)
+			.target(begin2)
+			.method("PUT")
+			.flags(Transition.FOR_EACH);
+		Transition t2 = tb2.build();
+		
+		assertFalse(t.equals(t2));
+		
+		t2.setSource(state);
+		t.setSource(state2);
+		
+		assertFalse(t.equals(t2));		
+	}
+	
+	@Test
+	public void testEqualityNullTargetName() {
+		ResourceState begin = new ResourceState("entity", "", new ArrayList<Action>(), "/");
+		Transition.Builder tb = new Transition.Builder();
+
+		ResourceState state = mock(ResourceState.class);
+		when(state.getName()).thenReturn("target");		
+		
+		tb.target(state)
+			.source(begin)
+			.method("PUT")
+			.flags(Transition.FOR_EACH);
+		Transition t = tb.build();
+		Transition.Builder tb2 = new Transition.Builder();
+		
+		ResourceState state2 = mock(ResourceState.class);
+		
+		tb2.target(state2)
+			.source(begin)
+			.method("PUT")
+			.flags(Transition.FOR_EACH);
+		Transition t2 = tb2.build();
+		
+		assertFalse(t.equals(t2));
+		
+		t2.setTarget(state);
+		t.setTarget(state2);
+		
+		assertFalse(t.equals(t2));		
+	}	
+	
 
 	@Test 
 	public void testInequality() {
@@ -134,29 +238,6 @@ public class TestTransition {
 				.flags(Transition.FOR_EACH)
 				.uriParameters(uriParameters)
 				.target(exists)
-				.build();
-		assertFalse(t.equals(t2));
-		assertFalse(t.hashCode() == t2.hashCode());
-	}
-
-	@Test 
-	public void testInequalityLabel() {
-		ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
-		ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
-
-		Transition t = new Transition.Builder()
-				.source(begin)
-				.method("PUT")
-				.flags(Transition.FOR_EACH)
-				.target(exists)
-				.label("label1")
-				.build();
-		Transition t2 = new Transition.Builder()
-				.source(begin)
-				.method("PUT")
-				.flags(Transition.FOR_EACH)
-				.target(exists)
-				.label("differentlabel")
 				.build();
 		assertFalse(t.equals(t2));
 		assertFalse(t.hashCode() == t2.hashCode());
@@ -372,5 +453,101 @@ public class TestTransition {
 				.build();
 		assertFalse(t.equals(t2));
 		assertFalse(t.hashCode() == t2.hashCode());
+		
+		t.setLinkId(null);		
+		assertFalse(t.equals(t2));
+		
+		t.setLinkId("12345");
+		t2.setLinkId(null);		
+		assertFalse(t.equals(t2));
+		
+		t.setLinkId(null);
+		assertFalse(t.equals(t2));
 	}
+	
+	@Test	
+	public void testEqualityCommand() {
+		ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
+		String label = "label1";
+		
+		Transition t = new Transition.Builder()
+			.source(begin)
+			.method("PUT")
+			.flags(Transition.FOR_EACH)
+			.target(exists)
+			.label(label)
+			.linkId("12345")
+			.build();
+		
+		Transition t2 = new Transition.Builder()
+			.source(begin)
+			.method("PUT")
+			.flags(Transition.FOR_EACH)
+			.target(exists)
+			.label(label)
+			.linkId("12345")
+			.build();
+		
+		assertTrue(t.equals(t2));		
+	}
+	
+	@Test	
+	public void testInequalityLabel() {
+		ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
+		ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
+		String label = "label1";
+		
+		Transition t = new Transition.Builder()
+			.source(begin)
+			.method("PUT")
+			.flags(Transition.FOR_EACH)
+			.target(exists)
+			.label(null)
+			.linkId("12345")
+			.build();
+		
+		Transition t2 = new Transition.Builder()
+			.source(begin)
+			.method("PUT")
+			.flags(Transition.FOR_EACH)
+			.target(exists)
+			.label(label)
+			.linkId("12345")
+			.build();
+		
+		assertFalse(t.equals(t2));
+		assertFalse(t.hashCode() == t2.hashCode());		
+		
+		t = new Transition.Builder()
+			.source(begin)
+			.method("PUT")
+			.flags(Transition.FOR_EACH)
+			.target(exists)
+			.label(label)
+			.linkId("12345")
+			.build();
+
+		t2 = new Transition.Builder()
+		.source(begin)
+		.method("PUT")
+		.flags(Transition.FOR_EACH)
+		.target(exists)
+		.label(null)
+		.linkId("12345")
+		.build();
+	
+		assertFalse(t.equals(t2));
+		
+		t = new Transition.Builder()
+		.source(begin)
+		.method("PUT")
+		.flags(Transition.FOR_EACH)
+		.target(exists)
+		.label(null)
+		.linkId("12345")
+		.build();		
+		
+		assertTrue(t.equals(t2));		
+	}	
 }

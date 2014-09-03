@@ -1,6 +1,9 @@
 package com.temenos.interaction.core.hypermedia;
 
 import java.util.Map;
+import java.util.Objects;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 
@@ -150,20 +153,34 @@ public class Transition {
 		if (!(other instanceof Transition))
 			return false;
 		Transition otherTrans = (Transition) other;
-		// only compare the ResourceState name to avoid recursion
-		return ((source == null && otherTrans.source == null) || (source != null && otherTrans.source != null)
-				&& source.getName().equals(otherTrans.source.getName()))
-				&& target.getName().equals(otherTrans.target.getName())
-				&& (label == null && otherTrans.label == null || label
-						.equals(otherTrans.label))
-				&& command.equals(otherTrans.command)
-				&& ((linkId == null && otherTrans.linkId == null) || (linkId.equals(otherTrans.linkId)));
+		
+		// Don't compare transitions to avoid recursion
+		return isSameStateName(source, otherTrans.source)
+				&& isSameStateName(target, otherTrans.target)
+				&& StringUtils.equals(label, otherTrans.label)
+				&& Objects.equals(command, otherTrans.command)
+				&& StringUtils.equals(linkId, otherTrans.linkId);
 	}
 
+	private static boolean isSameStateName(ResourceState state1, ResourceState state2) {
+		boolean same = false;
+		
+		if(state1 == null && state2 == null) {
+			same = true;
+		} else {
+			if(state1 != null && state2 != null) {
+				same = StringUtils.equals(state1.getName(), state2.getName());
+			}
+		}
+		
+		return same;
+	}
+	
 	public int hashCode() {
 		return (source != null ? source.getName().hashCode() : 0)
 				+ (target != null ? target.getName().hashCode() : 0)
-				+ (label != null ? label.hashCode() : 0) + command.hashCode()
+				+ (label != null ? label.hashCode() : 0) 
+				+ (command != null ? command.hashCode() : 0)
 				+ (linkId != null ? linkId.hashCode() : 0);
 	}
 
