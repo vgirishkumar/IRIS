@@ -99,6 +99,7 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
 @Consumes({MediaType.APPLICATION_ATOM_XML})
 @Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
+	private static final String UTF_8 = "UTF-8";
 	private final static Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
 	private final static Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
 
@@ -199,14 +200,14 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				//Write entry
 				// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
 				OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), Responses.entity(oentity), entitySet, olinks);
+				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), Responses.entity(oentity), entitySet, olinks);
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
 				//Write entry
 				Entity entity = entityResource.getEntity();
 				String entityName = entityResource.getEntityName();
 				// Write Entity object with Abdera implementation
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, entity, processedLinks, entityResource.getEmbedded());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), entityName, entity, processedLinks, entityResource.getEmbedded());
 			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
 				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
 				//Links and entity properties
@@ -221,7 +222,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 						}
 					}
 				}
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
+				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
 				EdmEntitySet entitySet = getEdmEntitySet(collectionResource.getEntityName());
@@ -240,7 +241,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				// TODO implement collection properties and get transient values for inlinecount and skiptoken
 				Integer inlineCount = null;
 				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), 
+				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), 
 						processedLinks, 
 						Responses.entities(entities, entitySet, inlineCount, skipToken), 
 						metadata.getModelName(), linkId);
@@ -252,7 +253,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				String skipToken = null;
 				//Write feed
 				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
-				entityFeedWriter.write(uriInfo, new OutputStreamWriter(entityStream, "UTF-8"), collectionResource, inlineCount, skipToken, metadata.getModelName());
+				entityFeedWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), collectionResource, inlineCount, skipToken, metadata.getModelName());
 			} else {
 				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -478,7 +479,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			// Lets parse the request content
 			Reader reader = new InputStreamReader(verifiedStream);
 			assert(entitySetName != null) : "Must have found a resource or thrown exception";
-			Entry e = new AtomEntryFormatParserExt(getEdmDataService(), entitySetName, entityKey, null).parse(reader);
+			Entry e = new AtomEntryFormatParserExt(metadataOData4j, entitySetName, entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} catch (IllegalStateException e) {
