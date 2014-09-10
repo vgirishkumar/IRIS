@@ -672,7 +672,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			//logger.error("Unable to find entity set for [" +entityName + "]");
 		}
 		if(entitySet == null) {
-			return metadataOData4j.getEdmEntitySet(entityName);
+			return metadataOData4j.getEdmEntitySetByEntityName(entityName);
 		}
 		return entitySet;
 	}

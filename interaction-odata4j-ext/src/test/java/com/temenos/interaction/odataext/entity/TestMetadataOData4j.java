@@ -220,7 +220,7 @@ public class TestMetadataOData4j {
 	public void testGetNonSrvDocEntitySetByEntityName() {
 		// Now try to get the EntitySet which is not part of the ServiceDocument ResourceStateMachine
 		String nonSrcDocEntityName = "NonSrvDocEntity";
-		EdmEntitySet nonSrcDocEntitySet = metadataOdata4j.getEdmEntitySet(nonSrcDocEntityName);
+		EdmEntitySet nonSrcDocEntitySet = metadataOdata4j.getEdmEntitySetByEntityName(nonSrcDocEntityName);
 		Assert.assertNotNull(nonSrcDocEntitySet);	// This time it should load, prepare and return
 		
 		EdmType type = nonSrcDocEntitySet.getType();
@@ -669,9 +669,9 @@ public class TestMetadataOData4j {
 	public void testGetEdmEntitySet() {
 		EdmEntitySet ees = createMockEdmEntitySet();
 		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
-		when(mockMetadataOData4j.getEdmEntitySet("Flight")).thenReturn(ees);		
-		assertEquals(ees, mockMetadataOData4j.getEdmEntitySet("Flight"));
-		assertEquals("Flight", mockMetadataOData4j.getEdmEntitySet("Flight").getName());	
+		when(mockMetadataOData4j.getEdmEntitySetByEntityName("Flight")).thenReturn(ees);		
+		assertEquals(ees, mockMetadataOData4j.getEdmEntitySetByEntityName("Flight"));
+		assertEquals("Flight", mockMetadataOData4j.getEdmEntitySetByEntityName("Flight").getName());	
 	}
 	
 	/**
@@ -686,7 +686,7 @@ public class TestMetadataOData4j {
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getEntityMetadata(Mockito.anyString())).thenReturn(null);
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadata, rsm);
-		assertEquals("AnyEntity", metadataOData4j.getEdmEntitySet("AnyEntity").getName());
+		assertEquals("AnyEntity", metadataOData4j.getEdmEntitySetByEntityName("AnyEntity").getName());
 	}
 	
 	/**
@@ -719,7 +719,7 @@ public class TestMetadataOData4j {
 	 * i.e. Only entity with no key 
 	 */
 	public void testAddingServiceDocumentAsEntityType() {
-		EdmEntitySet srvEES = metadataOdata4j.getEdmEntitySet("ServiceDocument");
+		EdmEntitySet srvEES = metadataOdata4j.getEdmEntitySetByEntityName("ServiceDocument");
 		assertNotNull(srvEES);
 	}
 	

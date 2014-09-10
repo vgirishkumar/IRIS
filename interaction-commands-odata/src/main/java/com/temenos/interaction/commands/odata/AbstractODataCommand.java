@@ -83,7 +83,7 @@ public abstract class AbstractODataCommand {
 		// We should try to get EdmEntitySet from MetadataOdata4j
 		if (metadataOData4j != null) {
 			try {
-				EdmEntitySet entitySet = metadataOData4j.getEdmEntitySet(entityName);
+				EdmEntitySet entitySet = metadataOData4j.getEdmEntitySetByEntityName(entityName);
 				if( null == entitySet ) {
 					throw new Exception("Entity type does not exist");
 				}

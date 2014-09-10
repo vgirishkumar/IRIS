@@ -139,11 +139,11 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 
 	  }
 	
-	private EdmEntitySet getEdmEntitySet(String entityName) {
+	private EdmEntitySet getEdmEntitySet(String entitySetName) {
 		if(metadataOData4j == null) {
-			return metadata.getEdmEntitySet(entityName);
+			return metadata.getEdmEntitySet(entitySetName);
 		} else {
-			return metadataOData4j.getEdmEntitySet(entityName);
+			return metadataOData4j.getEdmEntitySetByEntitySetName(entitySetName);
 		}							
 	}
 	
@@ -151,7 +151,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		if(metadataOData4j == null) {
 			return metadata.getEdmEntitySet(type);
 		} else {
-			return metadataOData4j.getEdmEntitySet(type.getName());
+			return metadataOData4j.getEdmEntitySetByType(type);
 		}							
 	}
 	

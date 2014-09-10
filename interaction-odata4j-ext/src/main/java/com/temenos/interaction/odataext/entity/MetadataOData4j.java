@@ -151,7 +151,7 @@ public class MetadataOData4j {
 		return edmDataServices;
 	}
 	
-	public EdmEntitySet getEdmEntitySet(EdmEntityType type) {
+	public EdmEntitySet getEdmEntitySetByType(EdmEntityType type) {
 		EdmEntitySet edmEntitySet = null;
 		try {
 			edmEntitySet = edmDataServices.getEdmEntitySet(type);
@@ -162,7 +162,7 @@ public class MetadataOData4j {
 		// If its null
 		if (edmEntitySet == null) {
 			// Let's check if we have it in non-service doc resources
-			//edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(entityName));
+			edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(type.getName()));
 		}
 		
 		return edmEntitySet;
@@ -175,7 +175,7 @@ public class MetadataOData4j {
 	 * @return EdmEntitySet
 	 * 
 	 */
-	public EdmEntitySet getEdmEntitySet(String entityName) {
+	public EdmEntitySet getEdmEntitySetByEntityName(String entityName) {
 		EdmEntitySet edmEntitySet = null;
 		try {
 			edmEntitySet = ODataHelper.getEntitySet(entityName, getMetadata());
@@ -681,7 +681,7 @@ public class MetadataOData4j {
 	 */
 	private String getEdmEntitySetName(String entityName) {
 		if (entityName != null && !entityName.isEmpty())
-			return entityName;
+			return entityName + "s";
 		return "";
 	}
 	
