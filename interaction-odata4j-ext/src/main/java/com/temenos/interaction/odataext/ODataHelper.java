@@ -67,8 +67,7 @@ public class ODataHelper {
 		try {
 			entitySet = edmDataServices.getEdmEntitySet((EdmEntityType) entityType);
 		} catch (Exception e) {
-			// don't throw any exception here if any
-			logger.error("Entity set does not exist for " + entityName);
+			logger.debug("Entity set does not exist for " + entityName, e);
 		}
 		return entitySet;
 	}

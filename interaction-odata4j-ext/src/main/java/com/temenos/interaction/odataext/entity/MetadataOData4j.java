@@ -284,16 +284,33 @@ public class MetadataOData4j {
 		Map<String, EdmEntitySet.Builder> bEntitySetMap = new HashMap<String, EdmEntitySet.Builder>();
 		Map<String, EdmFunctionImport.Builder> bFunctionImportMap = new HashMap<String, EdmFunctionImport.Builder>();
 		List<EdmAssociation.Builder> bAssociations = new ArrayList<EdmAssociation.Builder>();
-  
-		for (Map.Entry<String, EntityMetadata> entry: metadata.getEntitiesMetadata().entrySet()) {			
-			EntityMetadata entityMetadata = entry.getValue();
+		
+		// Process meta data present in the service document
+		for (ResourceState state : hypermediaEngine.getStates()) {
+			// Skip Service Document
+			if (serviceDocument.equals(state))
+				continue;
+			
+			EntityMetadata entityMetadata = metadata.getEntityMetadata(state.getEntityName());
 			
 			// Always strictKeyCheck here because we will be building EdmDataServices from this
 			EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
-			if (bEntityType != null) 
-				bEntityTypeMap.put(entry.getKey(), bEntityType);
+			if (bEntityType != null) {
+				bEntityTypeMap.put(state.getEntityName(), bEntityType);					
+			}
 		}
-
+		
+		// Process meta data not present in the service document 
+        for (Map.Entry<String, EntityMetadata> entry: metadata.getEntitiesMetadata().entrySet()) {            
+            EntityMetadata entityMetadata = entry.getValue();
+            
+            // Always strictKeyCheck here because we will be building EdmDataServices from this
+            EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
+            if (bEntityType != null) {
+            	bEntityTypeMap.put(entry.getKey(), bEntityType);
+            }        
+        }
+		
 		// Add Navigation Properties
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
 			// build associations
@@ -342,6 +359,7 @@ public class MetadataOData4j {
 		for (ResourceState state : allTargets) {
 			if (state instanceof CollectionResourceState) {
 				EdmEntityType.Builder entityType = bEntityTypeMap.get(state.getEntityName());
+				
 				if (entityType == null) 
 					throw new RuntimeException("Entity type not found for " + state.getEntityName());
 				Transition fromInitialState = serviceDocument.getTransition(state);
