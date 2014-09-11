@@ -65,13 +65,21 @@ import org.odata4j.stax2.XMLEventWriter2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.util.StaxUtil;
 
-public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
-	public AtomFeedFormatParserExt(EdmDataServices metadata,
-			String entitySetName, OEntityKey entityKey,
-			FeedCustomizationMapping fcMapping) {
-		super(metadata, entitySetName, entityKey, fcMapping);
+public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
+	private MetadataOData4j metadataOData4j;
+
+	public AtomFeedFormatParserExt(MetadataOData4j metadataOData4j, String entitySetName, OEntityKey entityKey, FeedCustomizationMapping fcMapping) {
+		super(metadataOData4j.getMetadata(), entitySetName, entityKey, fcMapping);
+		
+		this.metadataOData4j = metadataOData4j;
 	}
+	
+	public AtomFeedFormatParserExt(EdmDataServices metadata, String entitySetName, OEntityKey entityKey, FeedCustomizationMapping fcMapping) {
+		super(metadata, entitySetName, entityKey, fcMapping);		
+	}
+	
 
 	public static class DataServicesAtomEntry extends AtomEntry {
 	    public final String etag;
@@ -131,6 +139,43 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 
 	  }
 	
+	private EdmEntitySet getEdmEntitySet(String entitySetName) {
+		EdmEntitySet result = null;
+		
+		if(metadataOData4j == null) {
+			result = metadata.getEdmEntitySet(entitySetName);
+		} else {
+			result = metadataOData4j.getEdmEntitySetByEntitySetName(entitySetName);
+		}			
+		
+		return result;
+	}
+	
+	private EdmEntitySet getEdmEntitySet(EdmEntityType type) {
+		EdmEntitySet result = null;
+		
+		if(metadataOData4j == null) {
+			result = metadata.getEdmEntitySet(type);
+		} else {
+			result = metadataOData4j.getEdmEntitySetByType(type);
+		}			
+		
+		return result;
+	}
+	
+	
+	private EdmEntityType findEdmEntityType(String entityTypeName) {
+		EdmEntityType result = null;
+		
+		if(metadataOData4j == null) {
+			result = (EdmEntityType)metadata.findEdmEntityType(entityTypeName);
+		} else {
+			result = metadataOData4j.getEdmEntityTypeByTypeName(entityTypeName);
+		}
+		
+		return result; 		
+	}
+	
 	private AtomEntry parseEntry(XMLEventReader2 reader, StartElement2 entryElement, EdmEntitySet entitySet) {
 
 	    String id = null;
@@ -161,7 +206,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 
 	        if (rt instanceof DataServicesAtomEntry) {
 	          DataServicesAtomEntry dsae = (DataServicesAtomEntry) rt;
-	          OEntity entity = entityFromAtomEntry(metadata, entitySet, dsae, fcMapping);
+	          OEntity entity = entityFromAtomEntry(entitySet, dsae, fcMapping);
 	          dsae.setEntity(entity);
 	        }
 	        return rt;
@@ -179,7 +224,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 	        categoryTerm = getAttributeValueIfExists(event.asStartElement(), "term");
 	        categoryScheme = getAttributeValueIfExists(event.asStartElement(), "scheme");
 	        if (categoryTerm != null)
-	          entitySet = metadata.getEdmEntitySet((EdmEntityType) metadata.findEdmEntityType(categoryTerm));
+	          entitySet = getEdmEntitySet(findEdmEntityType(categoryTerm));
 	      } else if (isStartElement(event, ATOM_LINK)) {
 	        AtomLink link = parseAtomLink(reader, event.asStartElement(), entitySet);
 	        atomLinks.add(link);
@@ -252,7 +297,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 	      navProperty = entitySet.getType().findNavigationProperty(navPropertyName);
 	    EdmEntitySet targetEntitySet = null;
 	    if (navProperty != null)
-	      targetEntitySet = metadata.getEdmEntitySet(navProperty.getToRole().getType());
+	      targetEntitySet = getEdmEntitySet(navProperty.getToRole().getType());
 
 	    // expected cases:
 	    // 1.  </link>                  - no inlined content, i.e. deferred
@@ -277,7 +322,6 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 	  }
 	
 	private OEntity entityFromAtomEntry(
-		      EdmDataServices metadata,
 		      EdmEntitySet entitySet,
 		      DataServicesAtomEntry dsae,
 		      FeedCustomizationMapping mapping) {
@@ -296,7 +340,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		    EdmEntityType entityType = entitySet.getType();
 		    if (dsae.categoryTerm != null) {
 		      // The type of an entity set is polymorphic...
-		      entityType = (EdmEntityType) metadata.findEdmEntityType(dsae.categoryTerm);
+		      entityType = findEdmEntityType(dsae.categoryTerm);
 		      if (entityType == null) {
 		        throw new RuntimeException("Unable to resolve entity type " + dsae.categoryTerm);
 		      }
@@ -353,7 +397,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		                  ? fromRoleEntitySet.getType().findNavigationProperty(link.getNavProperty())
 		                  : null;
 		              final EdmEntitySet toRoleEntitySet = metadata != null && navProperty != null
-		                  ? metadata.getEdmEntitySet(navProperty.getToRole().getType())
+		                  ? getEdmEntitySet(navProperty.getToRole().getType())
 		                  : null;
 
 		              // convert the atom feed entries to OEntitys
@@ -363,7 +407,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		                  .select(new Func1<DataServicesAtomEntry, OEntity>() {
 		                    public OEntity apply(
 		                        DataServicesAtomEntry input) {
-		                      return entityFromAtomEntry(metadata, toRoleEntitySet, input, mapping);
+		                      return entityFromAtomEntry(toRoleEntitySet, input, mapping);
 		                    }
 		                  }).toList();
 		            } // else empty feed.
@@ -384,9 +428,9 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		                  ? fromRoleEntitySet.getType().findNavigationProperty(link.getNavProperty())
 		                  : null;
 		              EdmEntitySet toRoleEntitySet = metadata != null && navProperty != null
-		                  ? metadata.getEdmEntitySet(navProperty.getToRole().getType())
+		                  ? getEdmEntitySet(navProperty.getToRole().getType())
 		                  : null;
-		              relatedEntity = entityFromAtomEntry(metadata, toRoleEntitySet,
+		              relatedEntity = entityFromAtomEntry(toRoleEntitySet,
 		                  (DataServicesAtomEntry) link.inlineEntry,
 		                  mapping);
 		            }
@@ -403,7 +447,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 	private EdmEntitySet getEntitySet() {
 	    EdmEntitySet entitySet = null;
 	    if (!metadata.getSchemas().isEmpty()) {
-	      entitySet = metadata.findEdmEntitySet(entitySetName);
+	      entitySet = getEdmEntitySet(entitySetName);
 	      if (entitySet == null) {
 	        // panic! could not determine the entity-set, is it a function?
 	        EdmFunctionImport efi = metadata.findEdmFunctionImport(entitySetName);
@@ -455,17 +499,24 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 					}
 				} else if( structuralType instanceof EdmComplexType ) {
 					//  Assume for now we're creating a bag
-					EdmProperty property = (EdmProperty) structuralType.findProperty(name);
+					EdmProperty property = structuralType.findProperty(name);
 					if (property != null)
 						et = property.getType();	// Simple Property Of Bag
 					else 
 						et = structuralType;		// This is for <d:element>
 				} else {
-					EdmProperty property = (EdmProperty) structuralType.findProperty(name);
-					if (property != null)
+					EdmProperty property = structuralType.findProperty(name);
+					if (property != null) {
 						et = property.getType();
-					else
-						et = EdmSimpleType.STRING; // we must support open types
+					} else {
+						property = structuralType.findProperty(structuralType.getName() + "_" + name);
+						
+						if(property == null) {
+							et = EdmSimpleType.STRING; // we must support open types							
+						} else {
+							et = property.getType();
+						}
+					}
 				}
 
 				if( isCollection )

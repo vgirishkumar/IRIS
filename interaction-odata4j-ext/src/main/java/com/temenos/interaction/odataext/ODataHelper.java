@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Helper class which can be used by any OData dependent project.
+ * 
  * @author sjunejo
  *
  */
@@ -58,7 +59,7 @@ public class ODataHelper {
 			entityType = edmDataServices.findEdmEntityType(itSchema.next().getNamespace() + "." + entityName);
 		}
 		if(entityType == null || !(entityType instanceof EdmEntityType)) {
-			throw new Exception("Entity type does not exist");
+			throw new Exception(String.format("Entity type %s does not exist", entityName));
 		}
 		
 		//Find entity set
@@ -66,8 +67,7 @@ public class ODataHelper {
 		try {
 			entitySet = edmDataServices.getEdmEntitySet((EdmEntityType) entityType);
 		} catch (Exception e) {
-			// don't throw any exception here if any
-			logger.error("Entity set does not exist for " + entityName);
+			logger.debug("Entity set does not exist for " + entityName, e);
 		}
 		return entitySet;
 	}

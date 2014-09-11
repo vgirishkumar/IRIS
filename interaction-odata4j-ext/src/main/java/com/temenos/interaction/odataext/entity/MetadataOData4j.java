@@ -81,7 +81,13 @@ import com.temenos.interaction.odataext.ODataHelper;
  * To achieve this it will convert Resource/Entities present within ServiceDocument upon creation
  * and save it as EdmDataServices and load non-ServiceDocument resource on demand at runtime and 
  * maintain in its local cache
- *
+ * 
+ * Note:
+ *  IRIS expects the following naming conventions
+ *  
+ * 	Entity name: 	Car
+ *  Entity type: 	Car
+ *  Entity set: 	Cars
  */
 public class MetadataOData4j {
 	private final static Logger logger = LoggerFactory.getLogger(MetadataOData4j.class);
@@ -132,7 +138,7 @@ public class MetadataOData4j {
 		logger.debug("OData Version set to " + odataVersion);
 		this.odataVersion = odataVersion;
 	}
-
+	
 	/**
 	 * Returns odata4j metadata
 	 * @return edmdataservices object
@@ -141,21 +147,53 @@ public class MetadataOData4j {
 		if (edmDataServices == null) {
 			edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
 		}
+		
 		return edmDataServices;
 	}
-
+	
+	public EdmEntityType getEdmEntityTypeByTypeName(String typeName) {
+		EdmEntityType result = (EdmEntityType)edmDataServices.findEdmEntityType(typeName);
+		
+		if(result == null) {
+			String tmpTypeName = typeName.substring(typeName.indexOf(".") + 1);
+			EdmEntitySet edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(tmpTypeName));
+			
+			if(edmEntitySet != null) {
+				result = edmEntitySet.getType();
+			}
+		}
+		
+		return result;
+	}
+	
+	public EdmEntitySet getEdmEntitySetByType(EdmEntityType type) {
+		EdmEntitySet edmEntitySet = null;
+		try {
+			edmEntitySet = edmDataServices.getEdmEntitySet(type);
+		} catch (Exception e) {
+			// Ignore.... as we will be try lazy loading after this
+			logger.debug("EntitySet for [" + type + "] not found in EdmDataServices, try loading it seperately...");
+		}
+		// If its null
+		if (edmEntitySet == null) {
+			// Let's check if we have it in non-service doc resources
+			edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(type.getName()));
+		}
+		
+		return edmEntitySet;
+		
+	}
+	
 	/**
 	 * required by GetEntitiesCommand
 	 * @param entityName
 	 * @return EdmEntitySet
 	 * 
 	 */
-	public EdmEntitySet getEdmEntitySet(String entityName) {
-		if (edmDataServices == null) 
-			getMetadata();
+	public EdmEntitySet getEdmEntitySetByEntityName(String entityName) {
 		EdmEntitySet edmEntitySet = null;
 		try {
-			edmEntitySet = ODataHelper.getEntitySet(entityName, edmDataServices);
+			edmEntitySet = ODataHelper.getEntitySet(entityName, getMetadata());
 		} catch (Exception e) {
 			// Ignore.... as we will be try lazy loading after this
 			logger.debug("EntitySet for [" + entityName + "] not found in EdmDataServices, try loading it seperately...");
@@ -229,7 +267,7 @@ public class MetadataOData4j {
 	private EdmEntitySet getEdmEntitySetFromEdmDataServices(String entitySetName) {
 		EdmEntitySet ees = null;
 		try {
-			ees = edmDataServices.findEdmEntitySet(entitySetName);
+			ees = getMetadata().findEdmEntitySet(entitySetName);
 		} catch (Exception e) {
 			logger.warn(e.getMessage());
 		}
@@ -261,19 +299,33 @@ public class MetadataOData4j {
 		Map<String, EdmEntitySet.Builder> bEntitySetMap = new HashMap<String, EdmEntitySet.Builder>();
 		Map<String, EdmFunctionImport.Builder> bFunctionImportMap = new HashMap<String, EdmFunctionImport.Builder>();
 		List<EdmAssociation.Builder> bAssociations = new ArrayList<EdmAssociation.Builder>();
-
-		// Only include states in ServiceDocument 
+		
+		// Process meta data present in the service document
 		for (ResourceState state : hypermediaEngine.getStates()) {
 			// Skip Service Document
 			if (serviceDocument.equals(state))
 				continue;
+			
 			EntityMetadata entityMetadata = metadata.getEntityMetadata(state.getEntityName());
+			
 			// Always strictKeyCheck here because we will be building EdmDataServices from this
 			EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
-			if (bEntityType != null) 
-				bEntityTypeMap.put(state.getEntityName(), bEntityType);
+			if (bEntityType != null) {
+				bEntityTypeMap.put(state.getEntityName(), bEntityType);					
+			}
 		}
-
+		
+		// Process meta data not present in the service document 
+        for (Map.Entry<String, EntityMetadata> entry: metadata.getEntitiesMetadata().entrySet()) {            
+            EntityMetadata entityMetadata = entry.getValue();
+            
+            // Always strictKeyCheck here because we will be building EdmDataServices from this
+            EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
+            if (bEntityType != null) {
+            	bEntityTypeMap.put(entry.getKey(), bEntityType);
+            }        
+        }
+		
 		// Add Navigation Properties
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
 			// build associations
@@ -322,6 +374,7 @@ public class MetadataOData4j {
 		for (ResourceState state : allTargets) {
 			if (state instanceof CollectionResourceState) {
 				EdmEntityType.Builder entityType = bEntityTypeMap.get(state.getEntityName());
+				
 				if (entityType == null) 
 					throw new RuntimeException("Entity type not found for " + state.getEntityName());
 				Transition fromInitialState = serviceDocument.getTransition(state);

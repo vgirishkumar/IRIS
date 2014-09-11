@@ -1153,7 +1153,7 @@ public class TestAtomXMLProvider {
 		EdmDataServices edmDataServices = createMockEdmDataServices("FundsTransfers");
 		when(edmDataServices.getEdmEntitySet(any(EdmEntityType.class))).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));
 		MetadataOData4j mockMetadataOData4j = createMockMetadataOData4j(edmDataServices);
-		when(mockMetadataOData4j.getEdmEntitySet(anyString())).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));;
+		when(mockMetadataOData4j.getEdmEntitySetByEntityName(anyString())).thenThrow(new NotFoundException("EntitySet for entity type Dummy has not been found"));;
 		AtomXMLProvider provider = 
 				new AtomXMLProvider(mockMetadataOData4j, createMockMetadata("MyModel"), new ResourceStateMachine(serviceRoot), mock(Transformer.class));
 		Transition t = fundsTransfer.getTransition(fundsTransfersIAuth);

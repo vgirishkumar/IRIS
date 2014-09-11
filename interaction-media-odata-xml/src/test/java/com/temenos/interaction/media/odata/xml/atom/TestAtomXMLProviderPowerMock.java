@@ -105,7 +105,7 @@ public class TestAtomXMLProviderPowerMock {
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withParameterTypes(EdmDataServices.class, String.class, OEntityKey.class, FeedCustomizationMapping.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices),
@@ -153,7 +153,7 @@ public class TestAtomXMLProviderPowerMock {
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withParameterTypes(EdmDataServices.class, String.class, OEntityKey.class, FeedCustomizationMapping.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices),
@@ -201,7 +201,7 @@ public class TestAtomXMLProviderPowerMock {
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withParameterTypes(EdmDataServices.class, String.class, OEntityKey.class, FeedCustomizationMapping.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, new OEntityTransformer());
@@ -236,7 +236,7 @@ public class TestAtomXMLProviderPowerMock {
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withParameterTypes(EdmDataServices.class, String.class, OEntityKey.class, FeedCustomizationMapping.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(metadata), mock(Metadata.class), rsm, new OEntityTransformer());
@@ -275,7 +275,7 @@ public class TestAtomXMLProviderPowerMock {
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withParameterTypes(EdmDataServices.class, String.class, OEntityKey.class, FeedCustomizationMapping.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, new OEntityTransformer());
@@ -323,7 +323,7 @@ public class TestAtomXMLProviderPowerMock {
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withParameterTypes(EdmDataServices.class, String.class, OEntityKey.class, FeedCustomizationMapping.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(metadata), createAirlineMetadata(), rsm, new OEntityTransformer());
@@ -367,7 +367,7 @@ public class TestAtomXMLProviderPowerMock {
 		OEntity mockOEntity = mock(OEntity.class);
 		when(mockEntry.getEntity()).thenReturn(mockOEntity);
 		when(mockParser.parse(any(Reader.class))).thenReturn(mockEntry);
-		whenNew(AtomEntryFormatParserExt.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
+		whenNew(AtomEntryFormatParserExt.class).withParameterTypes(EdmDataServices.class, String.class, OEntityKey.class, FeedCustomizationMapping.class).withArguments(any(EdmDataServices.class), anyString(), any(OEntityKey.class), any(FeedCustomizationMapping.class)).thenReturn(mockParser);
 		
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(metadata), createAirlineMetadata(), rsm, new OEntityTransformer());
