@@ -140,26 +140,40 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 	  }
 	
 	private EdmEntitySet getEdmEntitySet(String entitySetName) {
+		EdmEntitySet result = null;
+		
 		if(metadataOData4j == null) {
-			return metadata.getEdmEntitySet(entitySetName);
+			result = metadata.getEdmEntitySet(entitySetName);
 		} else {
-			return metadataOData4j.getEdmEntitySetByEntitySetName(entitySetName);
-		}							
+			result = metadataOData4j.getEdmEntitySetByEntitySetName(entitySetName);
+		}			
+		
+		return result;
 	}
 	
 	private EdmEntitySet getEdmEntitySet(EdmEntityType type) {
+		EdmEntitySet result = null;
+		
 		if(metadataOData4j == null) {
-			return metadata.getEdmEntitySet(type);
+			result = metadata.getEdmEntitySet(type);
 		} else {
-			return metadataOData4j.getEdmEntitySetByType(type);
-		}							
+			result = metadataOData4j.getEdmEntitySetByType(type);
+		}			
+		
+		return result;
 	}
 	
 	
 	private EdmEntityType findEdmEntityType(String entityTypeName) {
-		EdmDataServices metaData = metadataOData4j == null ? super.metadata : metadataOData4j.getMetadata();
+		EdmEntityType result = null;
 		
-		return (EdmEntityType)metaData.findEdmEntityType(entityTypeName);		
+		if(metadataOData4j == null) {
+			result = (EdmEntityType)metadata.findEdmEntityType(entityTypeName);
+		} else {
+			result = metadataOData4j.getEdmEntityTypeByTypeName(entityTypeName);
+		}
+		
+		return result; 		
 	}
 	
 	private AtomEntry parseEntry(XMLEventReader2 reader, StartElement2 entryElement, EdmEntitySet entitySet) {

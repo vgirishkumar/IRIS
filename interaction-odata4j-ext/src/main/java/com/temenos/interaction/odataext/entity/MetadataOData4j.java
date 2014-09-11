@@ -151,6 +151,21 @@ public class MetadataOData4j {
 		return edmDataServices;
 	}
 	
+	public EdmEntityType getEdmEntityTypeByTypeName(String typeName) {
+		EdmEntityType result = (EdmEntityType)edmDataServices.findEdmEntityType(typeName);
+		
+		if(result == null) {
+			String tmpTypeName = typeName.substring(typeName.indexOf(".") + 1);
+			EdmEntitySet edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(tmpTypeName));
+			
+			if(edmEntitySet != null) {
+				result = edmEntitySet.getType();
+			}
+		}
+		
+		return result;
+	}
+	
 	public EdmEntitySet getEdmEntitySetByType(EdmEntityType type) {
 		EdmEntitySet edmEntitySet = null;
 		try {
