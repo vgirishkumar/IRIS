@@ -12,6 +12,7 @@
 		<module>../useragent-examples/useragent-generic-javascript</module>
 		<module>../useragent-examples/useragent-hal-inspector</module>
 		<module>../useragent-examples/useragent-swagger-ui</module>
+		<module>../useragent-examples/useragent-javascript-tester</module>
 	</modules>
 
 </project>
