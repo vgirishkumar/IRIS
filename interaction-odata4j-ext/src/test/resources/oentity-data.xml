@@ -32,7 +32,7 @@
   		<d:ID m:type="Edm.Int32">1</d:ID>    
       	<d:FirstName>Joe</d:FirstName>
       	<d:LastName>Blogs</d:LastName>
-      	<d:Address>
+      	<d:Address  m:type="hothouse-modelsModel.oentity_Address">
 	      		<d:Number>10</d:Number> 
 	      		<d:Road>Downing Street</d:Road>
 	      		<d:Town>London</d:Town> 

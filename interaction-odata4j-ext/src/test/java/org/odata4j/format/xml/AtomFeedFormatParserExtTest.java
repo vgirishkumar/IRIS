@@ -24,6 +24,7 @@ package org.odata4j.format.xml;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -36,7 +37,9 @@ import org.junit.Test;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmComplexType;
 import org.odata4j.edm.EdmDataServices;
+import org.odata4j.edm.EdmType;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomFeedFormatParser.AtomFeed;
 import org.odata4j.internal.FeedCustomizationMapping;
@@ -106,6 +109,10 @@ public class AtomFeedFormatParserExtTest {
 			
 			OProperty address = entity.getProperty("Address");
 			assertNotNull(address);
+			
+			EdmType addressType = address.getType();
+			assertTrue(addressType instanceof EdmComplexType);
+			assertTrue("hothouse-modelsModel.oentity_Address".equals(addressType.getFullyQualifiedTypeName()));		
 			
 			List<OProperty> addressInfo = (List<OProperty>)address.getValue();			
 			assertNotNull(addressInfo);

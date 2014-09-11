@@ -68,16 +68,18 @@ import org.odata4j.stax2.util.StaxUtil;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
-	private MetadataOData4j metadataOData4j;
+	private static MetadataOData4j metadataOData4j;
 
-	public AtomFeedFormatParserExt(MetadataOData4j metadataOData4j, String entitySetName, OEntityKey entityKey, FeedCustomizationMapping fcMapping) {
-		super(metadataOData4j.getMetadata(), entitySetName, entityKey, fcMapping);
+	public AtomFeedFormatParserExt(MetadataOData4j metadataOData, String entitySetName, OEntityKey entityKey, FeedCustomizationMapping fcMapping) {
+		super(metadataOData.getMetadata(), entitySetName, entityKey, fcMapping);
 		
-		this.metadataOData4j = metadataOData4j;
+		metadataOData4j = metadataOData;
 	}
 	
 	public AtomFeedFormatParserExt(EdmDataServices metadata, String entitySetName, OEntityKey entityKey, FeedCustomizationMapping fcMapping) {
-		super(metadata, entitySetName, entityKey, fcMapping);		
+		super(metadata, entitySetName, entityKey, fcMapping);
+		
+		metadataOData4j = null;
 	}
 	
 
@@ -170,7 +172,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		if(metadataOData4j == null) {
 			result = (EdmEntityType)metadata.findEdmEntityType(entityTypeName);
 		} else {
-			result = metadataOData4j.getEdmEntityTypeByTypeName(entityTypeName);
+			result = (EdmEntityType)metadataOData4j.getEdmEntityTypeByTypeName(entityTypeName);
 		}
 		
 		return result; 		
@@ -492,8 +494,13 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 						isCollection = true;
 						type = type.substring( type.indexOf("(" ) + 1, type.length() -1 );
 						et = metadata.resolveType( type );
+						if(et == null) {
+							et = metadataOData4j.getEdmEntityTypeByTypeName(type);
+						}
+					} else if (et == null) {
+						et = metadataOData4j.getEdmEntityTypeByTypeName(type);
 					}
-					if (et == null) {
+					if (et == null) {						
 						// property arrived with an unknown type
 						throw new RuntimeException("unknown property type: " + type);
 					}
