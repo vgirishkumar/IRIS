@@ -210,5 +210,10 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	@Override
 	public void setStateRegisteration(StateRegisteration registerState) {
 		this.stateRegisteration = registerState;		
+	}
+	
+	@Override
+	public ResourceState getInitialResourceState() {
+		throw new UnsupportedOperationException();
 	}	
 }

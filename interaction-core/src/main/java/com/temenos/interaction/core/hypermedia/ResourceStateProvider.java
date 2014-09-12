@@ -74,4 +74,6 @@ public interface ResourceStateProvider {
 	 */
 	public Map<String, String> getResourcePathsByState();
 
+	public abstract ResourceState getInitialResourceState();
+
 }

@@ -1,0 +1,272 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  #%L
+  interaction-odata4j-ext
+  %%
+  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<entry xmlns="http://www.w3.org/2005/Atom" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xml:base="http://localhost:9090/ODataContrib/ODataContrib.svc/">
+    <id>http://localhost:9090/ODataContrib/ODataContrib.svc/FtCommissionTypes('SCTRDEFAULT')</id>
+    <title type="text" />
+    <updated>2013-07-26T14:39:02Z</updated>
+    <author>
+        <name />
+    </author>
+    <link rel="http://www.xyz.com/reverse" type="application/atom+xml;type=entry" title="reverse" href="FtCommissionTypes('SCTRDEFAULT')/reverse" />
+    <link rel="http://www.xyz.com/edit" type="application/atom+xml;type=entry" title="update" href="FtCommissionTypes('SCTRDEFAULT')" />
+    <link rel="http://www.xyz.com/review" type="application/atom+xml;type=entry" title="review" href="FtCommissionTypes('SCTRDEFAULT')/review" />
+    <link rel="http://www.xyz.com/hold" type="application/atom+xml;type=entry" title="hold" href="FtCommissionTypes('SCTRDEFAULT')/hold" />
+    <category term="hothouse-modelsModel.FtCommissionType" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/xml">
+        <m:properties>
+            <d:CommissionType>SCTRDEFAULT</d:CommissionType>
+            <d:CcyConvDependent></d:CcyConvDependent>
+            <d:CategoryAccount>52603</d:CategoryAccount>
+            <d:TxnCodeCr>640</d:TxnCodeCr>
+            <d:TxnCodeDr>639</d:TxnCodeDr>
+            <d:TaxCode></d:TaxCode>
+            <d:CalculationBasis>PERCENTAGE</d:CalculationBasis>
+            <d:MthlyAmortisation>NO</d:MthlyAmortisation>
+            <d:AmortisnPeriod></d:AmortisnPeriod>
+            <d:ChargePeriod></d:ChargePeriod>
+            <d:MinimumPeriod></d:MinimumPeriod>
+            <d:AccrualFqu></d:AccrualFqu>
+            <d:AccrueAmort></d:AccrueAmort>
+            <d:SwiftNarr></d:SwiftNarr>
+            <d:DefaultCcy></d:DefaultCcy>
+            <d:ChargeRoutine></d:ChargeRoutine>
+            <d:ExcludeFromEir></d:ExcludeFromEir>
+            <d:Reserved2></d:Reserved2>
+            <d:Reserved1></d:Reserved1>
+            <d:RecordStatus></d:RecordStatus>
+            <d:CurrNo>2</d:CurrNo>
+            <d:Authoriser>27790_SEAT.USER_OFS_SEAT</d:Authoriser>
+            <d:CoCode>GB0010001</d:CoCode>
+            <d:DeptCode>1</d:DeptCode>
+            <d:AuditorCode></d:AuditorCode>
+            <d:AuditDateTime m:type="Edm.DateTime" m:null="true" />
+            <d:FtCommissionType_ShortDescrMvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_ShortDescrMvGroup)">
+                <d:element>
+                    <d:ShortDescr>Sec Default</d:ShortDescr>
+                </d:element>
+            </d:FtCommissionType_ShortDescrMvGroup>
+            <d:FtCommissionType_DateTimeMvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_DateTimeMvGroup)">
+                <d:element>
+                    <d:DateTime>1201020844</d:DateTime>
+                </d:element>
+            </d:FtCommissionType_DateTimeMvGroup>
+            <d:FtCommissionType_InputterMvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_InputterMvGroup)">
+                <d:element>
+                    <d:Inputter>27790_SEAT.USER__OFS_SEAT</d:Inputter>
+                </d:element>
+            </d:FtCommissionType_InputterMvGroup>
+            <d:FtCommissionType_DescriptionMvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_DescriptionMvGroup)">
+                <d:element>
+                    <d:Description>Security Trading Default Charges</d:Description>
+                </d:element>
+            </d:FtCommissionType_DescriptionMvGroup>
+            <d:FtCommissionType_CurrencyMvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_CurrencyMvGroup)">
+                <d:element>
+                    <d:Currency>USD</d:Currency>
+                    <d:FlatAmt></d:FlatAmt>
+                    <d:RoundType></d:RoundType>
+                    <d:RoundUnit></d:RoundUnit>
+                    <d:OverallMinPct></d:OverallMinPct>
+                    <d:OverallMaxPct></d:OverallMaxPct>
+                    <d:OverallMinAmt></d:OverallMinAmt>
+                    <d:OverallMaxAmt></d:OverallMaxAmt>
+                    <d:AccrualMinAmt></d:AccrualMinAmt>
+                    <d:FtCommissionType_CalcTypeSvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_CalcTypeSvGroup)">
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.55</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>500000.00</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.35</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>750000.00</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.25</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt></d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                    </d:FtCommissionType_CalcTypeSvGroup>
+                </d:element>
+                <d:element>
+                    <d:Currency>GBP</d:Currency>
+                    <d:FlatAmt></d:FlatAmt>
+                    <d:RoundType></d:RoundType>
+                    <d:RoundUnit></d:RoundUnit>
+                    <d:OverallMinPct></d:OverallMinPct>
+                    <d:OverallMaxPct></d:OverallMaxPct>
+                    <d:OverallMinAmt></d:OverallMinAmt>
+                    <d:OverallMaxAmt></d:OverallMaxAmt>
+                    <d:AccrualMinAmt></d:AccrualMinAmt>
+                    <d:FtCommissionType_CalcTypeSvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_CalcTypeSvGroup)">
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.5</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>500000.00</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.4</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>750000.00</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.275</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt></d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                    </d:FtCommissionType_CalcTypeSvGroup>
+                </d:element>
+                <d:element>
+                    <d:Currency>CHF</d:Currency>
+                    <d:FlatAmt></d:FlatAmt>
+                    <d:RoundType></d:RoundType>
+                    <d:RoundUnit></d:RoundUnit>
+                    <d:OverallMinPct></d:OverallMinPct>
+                    <d:OverallMaxPct></d:OverallMaxPct>
+                    <d:OverallMinAmt></d:OverallMinAmt>
+                    <d:OverallMaxAmt></d:OverallMaxAmt>
+                    <d:AccrualMinAmt></d:AccrualMinAmt>
+                    <d:FtCommissionType_CalcTypeSvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_CalcTypeSvGroup)">
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.55</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>200000.00</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.4</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>750000.00</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.3</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt></d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                    </d:FtCommissionType_CalcTypeSvGroup>
+                </d:element>
+                <d:element>
+                    <d:Currency>EUR</d:Currency>
+                    <d:FlatAmt></d:FlatAmt>
+                    <d:RoundType></d:RoundType>
+                    <d:RoundUnit></d:RoundUnit>
+                    <d:OverallMinPct></d:OverallMinPct>
+                    <d:OverallMaxPct></d:OverallMaxPct>
+                    <d:OverallMinAmt></d:OverallMinAmt>
+                    <d:OverallMaxAmt></d:OverallMaxAmt>
+                    <d:AccrualMinAmt></d:AccrualMinAmt>
+                    <d:FtCommissionType_CalcTypeSvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_CalcTypeSvGroup)">
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.55</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>500000.00</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.375</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>1000000.00</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.255</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt></d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                    </d:FtCommissionType_CalcTypeSvGroup>
+                </d:element>
+                <d:element>
+                    <d:Currency>JPY</d:Currency>
+                    <d:FlatAmt></d:FlatAmt>
+                    <d:RoundType></d:RoundType>
+                    <d:RoundUnit></d:RoundUnit>
+                    <d:OverallMinPct></d:OverallMinPct>
+                    <d:OverallMaxPct></d:OverallMaxPct>
+                    <d:OverallMinAmt></d:OverallMinAmt>
+                    <d:OverallMaxAmt></d:OverallMaxAmt>
+                    <d:AccrualMinAmt></d:AccrualMinAmt>
+                    <d:FtCommissionType_CalcTypeSvGroup m:type="Bag(hothouse-modelsModel.FtCommissionType_CalcTypeSvGroup)">
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.55</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>100000000</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.385</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt>250000000</d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                        <d:element>
+                            <d:CalcType>LEVEL</d:CalcType>
+                            <d:Percentage>0.3</d:Percentage>
+                            <d:UnitCharge></d:UnitCharge>
+                            <d:UptoAmt></d:UptoAmt>
+                            <d:MinimumAmt></d:MinimumAmt>
+                            <d:MaximumAmt></d:MaximumAmt>
+                        </d:element>
+                    </d:FtCommissionType_CalcTypeSvGroup>
+                </d:element>
+            </d:FtCommissionType_CurrencyMvGroup>
+        </m:properties>
+    </content>
+</entry>
