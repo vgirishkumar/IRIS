@@ -36,11 +36,6 @@ public class DefaultResourceStateProvider implements ResourceStateProvider {
 	}
 	
 	@Override
-	public ResourceState getInitialResourceState() {
-		return hypermediaEngine.getInitial();
-	}
-
-	@Override
 	public boolean isLoaded(String name) {
 		return hypermediaEngine.getResourceStateByName(name) != null;
 	}

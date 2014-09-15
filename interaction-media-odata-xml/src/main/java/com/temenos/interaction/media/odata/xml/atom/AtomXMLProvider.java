@@ -451,7 +451,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				throw new IllegalStateException("No resource found");
 			}
 
-			ResourceState currentState = getCurrentState(resourceStateProvider.getInitialResourceState(), resourcePath);
+			ResourceState currentState = getCurrentState(serviceDocument, resourcePath);
 			if (currentState == null)
 				throw new IllegalStateException("No state found");
 			String pathIdParameter = getPathIdParameter(currentState);

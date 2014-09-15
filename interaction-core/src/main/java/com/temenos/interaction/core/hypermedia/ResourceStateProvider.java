@@ -73,7 +73,4 @@ public interface ResourceStateProvider {
 	 * @return
 	 */
 	public Map<String, String> getResourcePathsByState();
-
-	public abstract ResourceState getInitialResourceState();
-
 }
