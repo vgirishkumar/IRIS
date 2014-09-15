@@ -21,6 +21,7 @@ package org.odata4j.jersey.consumer;
  * #L%
  */
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.ws.rs.ext.RuntimeDelegate;
@@ -30,17 +31,22 @@ import org.core4j.Func;
 import org.core4j.Func1;
 import org.core4j.ReadOnlyIterator;
 import org.odata4j.consumer.AbstractODataConsumer;
+import org.odata4j.consumer.ConsumerCreateEntityRequest;
+import org.odata4j.consumer.ConsumerEntityModificationRequest;
 import org.odata4j.consumer.ConsumerGetEntityRequest;
 import org.odata4j.consumer.ConsumerQueryEntitiesRequest;
 import org.odata4j.consumer.ODataClient;
 import org.odata4j.consumer.ODataClientRequest;
 import org.odata4j.consumer.ODataClientResponse;
 import org.odata4j.consumer.behaviors.OClientBehavior;
+import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.ODataConstants.Charsets;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityGetRequest;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OModifyRequest;
 import org.odata4j.core.OQueryRequest;
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmNavigationProperty;
 import org.odata4j.exceptions.ODataProducerException;
@@ -51,6 +57,13 @@ import org.odata4j.format.xml.AtomEntryFormatParserExt;
 import org.odata4j.format.xml.AtomFeedFormatParserExt;
 import org.odata4j.internal.EntitySegment;
 import org.odata4j.internal.InternalUtil;
+
+import com.temenos.interaction.adapter.EdmDataServicesAdapter;
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 /**
  * Extended OData Jersey consumer with additional support for e.g. Bag types.
@@ -78,7 +91,7 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 	}
 
 	@Override
-	public <T> OEntityGetRequest<T> getEntity(Class<T> entityType, String entitySetName, OEntityKey key) {
+	public <T> OEntityGetRequest<T> getEntity(Class<T> entityType, final String entitySetName, OEntityKey key) {
 		return new ConsumerGetEntityRequest<T>(getClient(), null, getServiceRootUri(), getMetadata(), entitySetName, OEntityKey.create(key), null) {
 			  @SuppressWarnings("unchecked")
 			  @Override
@@ -90,17 +103,43 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 			      return null;
 
 			    //  the first segment contains the entitySetName we start from
-			    EdmEntitySet entitySet = getMetadata().getEdmEntitySet(getSegments().get(0).segment);
-			    for (EntitySegment segment : getSegments().subList(1, getSegments().size())) {
-			      EdmNavigationProperty navProperty = entitySet.getType().findNavigationProperty(segment.segment);
-			      entitySet = getMetadata().getEdmEntitySet(navProperty.getToRole().getType());
+
+			    EdmEntitySet entitySet = null;
+			    
+			    try {
+			    	entitySet = getMetadata().getEdmEntitySet(getSegments().get(0).segment);
+			    	
+			    } catch(Exception e) {}
+			    
+			    Entry entry = null;
+			    		
+			    if(entitySet == null) {			    
+					MetadataOData4j metadataOData4j = getMetadataOData4j();
+					entitySet = metadataOData4j.getEdmEntitySetByEntitySetName(entitySetName);
+					
+				    for (EntitySegment segment : getSegments().subList(1, getSegments().size())) {
+						EdmNavigationProperty navProperty = entitySet.getType().findNavigationProperty(segment.segment);
+						entitySet = getMetadata().getEdmEntitySet(navProperty.getToRole().getType());
+					}
+
+					OEntityKey key = Enumerable.create(getSegments()).last().key;
+
+					// Use the extended atom entry parser
+					entry = new AtomEntryFormatParserExt(metadataOData4j, entitySet.getName(), key, null)
+							.parse(getClient().getFeedReader(response));					
+			    } else {
+				    for (EntitySegment segment : getSegments().subList(1, getSegments().size())) {
+						EdmNavigationProperty navProperty = entitySet.getType().findNavigationProperty(segment.segment);
+						entitySet = getMetadata().getEdmEntitySet(navProperty.getToRole().getType());
+					}
+
+					OEntityKey key = Enumerable.create(getSegments()).last().key;
+
+					// Use the extended atom entry parser
+					entry = new AtomEntryFormatParserExt(getMetadata(), entitySet.getName(), key, null)
+							.parse(getClient().getFeedReader(response));
 			    }
-
-			    OEntityKey key = Enumerable.create(getSegments()).last().key;
-
-			    //Use the extended atom entry parser
-				Entry entry = new AtomEntryFormatParserExt(getMetadata(), entitySet.getName(), key, null).parse(getClient().getFeedReader(response));
-
+			    
 			    response.close();
 			    return (T) InternalUtil.toEntity(OEntity.class, entry.getEntity());
 			  }
@@ -207,4 +246,30 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 	    }
 
 	  }
+
+
+	@Override
+	public OCreateRequest<OEntity> createEntity(String entitySetName) {
+		EdmDataServices edmDataServices = new EdmDataServicesAdapter(getMetadataOData4j());
+		
+		return new ConsumerCreateEntityRequest<OEntity>(getClient(), getServiceRootUri(), edmDataServices, entitySetName, null);
+	}
+
+	@Override
+	public OModifyRequest<OEntity> updateEntity(OEntity entity) {
+		EdmDataServices edmDataServices = new EdmDataServicesAdapter(getMetadataOData4j());
+		
+	    return new ConsumerEntityModificationRequest<OEntity>(entity, getClient(), getServiceRootUri(), edmDataServices,
+	            entity.getEntitySet().getName(), entity.getEntityKey(), entity.getEntityTag());		
+	}
+	  
+	private MetadataOData4j getMetadataOData4j() {
+		String model = getMetadata().getSchemas().get(0).getEntityContainers().get(0).getName();
+		Metadata tmpMetadata = new Metadata(model);
+		
+		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
+		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
+	     
+		return new MetadataOData4j(tmpMetadata, hypermediaEngine);
+	}	  
 }
