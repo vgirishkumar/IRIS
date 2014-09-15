@@ -47,7 +47,6 @@ import org.odata4j.stax2.XMLEventReader2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -86,17 +85,13 @@ public class AtomFeedFormatParserExtTest {
 		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
 		
-		MetadataParser metaParser = new MetadataParser();		
-		InputStream xml = getClass().getClassLoader().getResourceAsStream("oentity-metadata.xml");		
-		Metadata metadata = metaParser.parse(xml);
-		xml.close();
-		
+		Metadata metadata = new Metadata("hothouse-models");		
 		MetadataOData4j metadataOData4j = new MetadataOData4j(metadata, hypermediaEngine);
 
 		FeedCustomizationMapping fcMapping = new FeedCustomizationMapping();
 		AtomFeedFormatParserExt parser = new AtomFeedFormatParserExt(metadataOData4j, "oentitys", OEntityKey.create(1),  fcMapping);
 		
-  		xml = getClass().getClassLoader().getResourceAsStream("oentity-data.xml");  		
+  		InputStream xml = getClass().getClassLoader().getResourceAsStream("data-oentity.xml");  		
 		AtomFeed feed = parser.parse(new InputStreamReader(xml));
 		xml.close();
 				
