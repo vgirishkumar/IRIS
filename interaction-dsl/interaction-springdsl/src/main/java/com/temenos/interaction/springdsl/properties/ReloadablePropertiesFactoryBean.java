@@ -21,6 +21,7 @@ package com.temenos.interaction.springdsl.properties;
  * #L%
  */
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -95,8 +96,8 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 				
 				if(locations.containsKey(location)) {
 					// Existing location
-					
-					long lastModified = location.getFile().lastModified();
+					File file = new File(location.getURL().getFile());
+					long lastModified = file.lastModified();
 					
 					if( lastModified > locations.get(location)) {
 						// Identified modification
@@ -137,7 +138,8 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	 */
 	private void addNewLocation(Resource location) throws IOException {
 		// Add entry to locations
-		locations.put(location, location.getFile().lastModified());
+		File file = new File(location.getURL().getFile());
+		locations.put(location, file.lastModified());
 		
 		// Load properties file
 		Properties newProperties = new Properties();
