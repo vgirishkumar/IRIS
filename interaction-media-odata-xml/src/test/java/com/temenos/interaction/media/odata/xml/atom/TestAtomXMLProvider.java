@@ -66,6 +66,8 @@ import org.custommonkey.xmlunit.IgnoreTextAndAttributeValuesDifferenceListener;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 import org.odata4j.core.ImmutableList;
+import org.odata4j.core.OCollection;
+import org.odata4j.core.OComplexObject;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -105,6 +107,7 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.hypermedia.UriSpecification;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -145,6 +148,113 @@ public class TestAtomXMLProvider {
 		MetadataOData4j mockMetadataOData4j = mock(MetadataOData4j.class);
 		when(mockMetadataOData4j.getMetadata()).thenReturn(mockEDS);
 		return mockMetadataOData4j;
+	}
+	
+	@Test
+	public void testReadEntityResourceOEntity_XML() throws Exception {		
+
+		ResourceState initial = new ResourceState("initial_state", "initial_state", new ArrayList<Action>(), "/", null, new UriSpecification("Initial", "/initial"));
+		ResourceState serviceDoc = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
+		initial.addTransition(new Transition.Builder().method("GET").target(serviceDoc).build());
+		CollectionResourceState resourceType = new CollectionResourceState("FtCommissionType", "FtCommissionTypes", new ArrayList<Action>(), "/oentitys", null, null);
+		initial.addTransition(new Transition.Builder().method("GET").target(resourceType).build());
+		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(initial);
+				
+		Metadata metadata = new Metadata("hothouse-models");
+		
+		MetadataOData4j metadataOData4j = new MetadataOData4j(metadata, new ResourceStateMachine(serviceDoc));
+		
+		AtomXMLProvider ap = new AtomXMLProvider(metadataOData4j, metadata, hypermediaEngine, new OEntityTransformer());
+		
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/oentitys");		
+		ap.setUriInfo(mockUriInfo);
+		
+		Request request = mock(Request.class);
+		when(request.getMethod()).thenReturn("GET");
+		ap.setRequestContext(request);
+				
+  		InputStream xml = getClass().getClassLoader().getResourceAsStream("issue193_entry_with_bag.xml");
+		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};		
+		EntityResource<OEntity> entity = ap.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, xml);
+		xml.close();
+		
+		assertNotNull(entity);
+		
+		OEntity oEntity = entity.getEntity();
+		assertNotNull(oEntity);
+		
+		assertEquals("FtCommissionTypes", oEntity.getEntitySetName());
+		
+		List<OProperty<?>> properties = oEntity.getProperties();
+		assertNotNull(properties);
+		
+		boolean ftCommissionType_ShortDescrMvGroupFound = false;
+		boolean ftCommissionType_CurrencyMvGroupFound = false;
+		boolean txnCodeDrFound = false;
+		boolean currencyFound = false;
+		boolean upToAmtFound = false;
+		
+		for(OProperty<?> property: properties) {
+			if("TxnCodeDr".equals(property.getName())) {
+				assertEquals("639", property.getValue());				
+				txnCodeDrFound = true;
+			}
+			
+			if("FtCommissionType_ShortDescrMvGroup".equals(property.getName())) {
+				OCollection<OComplexObject> tmpComplexType = (OCollection<OComplexObject>)property.getValue(); 
+				assertNotNull(tmpComplexType.getType());
+				OComplexObject tmpOComplexObj = tmpComplexType.iterator().next();
+				assertEquals("Sec Default", tmpOComplexObj.getProperty("ShortDescr").getValue());
+				
+				ftCommissionType_ShortDescrMvGroupFound = true; 
+			}
+			
+			if("FtCommissionType_CurrencyMvGroup".equals(property.getName())) {
+				OCollection<OComplexObject> tmpComplexType = (OCollection<OComplexObject>)property.getValue();
+				Iterator<OComplexObject> tmpComplexTypeIter = tmpComplexType.iterator();
+				
+				while(tmpComplexTypeIter.hasNext()) {
+					OComplexObject tmpOComplexObj = tmpComplexTypeIter.next();
+					List<OProperty<?>> tmpProperties = tmpOComplexObj.getProperties();
+					
+					for(OProperty<?> tmpProperty: tmpProperties) {
+						if("Currency".equals(tmpProperty.getName()) && !currencyFound) {
+							assertEquals("USD", tmpProperty.getValue());
+							currencyFound = true;	
+						}
+						
+						if("FtCommissionType_CalcTypeSvGroup".equals(tmpProperty.getName())) {
+							ftCommissionType_CurrencyMvGroupFound = true;
+							
+							OCollection<OComplexObject> tmpComplexType2 = (OCollection<OComplexObject>)tmpProperty.getValue();
+							Iterator<OComplexObject> tmpComplexTypeIter2 = tmpComplexType2.iterator();
+							
+							while(tmpComplexTypeIter2.hasNext() && !upToAmtFound) {
+								OComplexObject tmpOComplexObj2 = tmpComplexTypeIter2.next();
+								List<OProperty<?>> tmpProperties2 = tmpOComplexObj2.getProperties();
+								
+								for(OProperty<?> tmpProperty2: tmpProperties2) {
+									if("UptoAmt".equals(tmpProperty2.getName())) {
+										upToAmtFound = true;
+										
+										assertEquals("500000.00", tmpProperty2.getValue());
+									}
+								}
+								
+							}
+						}						
+					}
+				}
+			}
+		}
+		
+		assertTrue(ftCommissionType_ShortDescrMvGroupFound);
+		assertTrue(ftCommissionType_CurrencyMvGroupFound);
+		assertTrue(txnCodeDrFound);
+		assertTrue(currencyFound);
+		assertTrue(upToAmtFound);
 	}
 	
 	@Test

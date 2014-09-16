@@ -96,6 +96,7 @@ public class MetadataOData4j {
 
 	private EdmDataServices edmDataServices;
 	private ConcurrentMap<String, EdmEntitySet> nonSrvDocEdmEntitySetMap;
+	private ConcurrentMap<String, EdmComplexType> nonSrvDocEdmComplexTypeMap;
 	private Metadata metadata;
 	private ResourceStateMachine hypermediaEngine;
 	private ResourceState serviceDocument;
@@ -120,6 +121,7 @@ public class MetadataOData4j {
 		this.metadata = metadata;
 		this.hypermediaEngine = hypermediaEngine;
 		this.nonSrvDocEdmEntitySetMap= new ConcurrentHashMap<String, EdmEntitySet>(); 
+		this.nonSrvDocEdmComplexTypeMap = new ConcurrentHashMap<String, EdmComplexType>();
 	}
 
 	/**
@@ -151,17 +153,25 @@ public class MetadataOData4j {
 		return edmDataServices;
 	}
 	
-	public EdmEntityType getEdmEntityTypeByTypeName(String typeName) {
-		EdmEntityType result = (EdmEntityType)edmDataServices.findEdmEntityType(typeName);
+	public EdmType getEdmEntityTypeByTypeName(String typeName) {
+		EdmType result = null;
+		
+		if(nonSrvDocEdmComplexTypeMap.containsKey(typeName)) {
+			result = nonSrvDocEdmComplexTypeMap.get(typeName);
+		}
+		
+		if(result == null) {
+			result = (EdmEntityType)edmDataServices.findEdmEntityType(typeName);
+		}
 		
 		if(result == null) {
 			String tmpTypeName = typeName.substring(typeName.indexOf(".") + 1);
 			EdmEntitySet edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(tmpTypeName));
-			
+
 			if(edmEntitySet != null) {
 				result = edmEntitySet.getType();
 			}
-		}
+		}		
 		
 		return result;
 	}
@@ -248,10 +258,18 @@ public class MetadataOData4j {
 		if (entityMetadata == null) 
 			throw new NotFoundException("Fail to find/load Entity Metadata for [" + entityName + "]");
 		// Lets build the EdmEntitySet form EntityMetadata
-		EdmEntityType.Builder entityType = getEdmTypeBuilder(entityMetadata, null, false);
+		Map<String, EdmComplexType.Builder> complexTypes = new HashMap<String, EdmComplexType.Builder>();
+		EdmEntityType.Builder entityType = getEdmTypeBuilder(entityMetadata, complexTypes, false);
+		
 		if (entityType != null) {
-			EdmEntitySet.Builder bEntitySetBuilder = EdmEntitySet.newBuilder().setName(getEdmEntitySetName(entityName)).setEntityType(entityType);
+			
+			EdmEntitySet.Builder bEntitySetBuilder = EdmEntitySet.newBuilder().setName(getEdmEntitySetName(entityName)).setEntityType(entityType);			
 			EdmEntitySet edmEntitySet = bEntitySetBuilder.build();
+			
+			for(Map.Entry<String, EdmComplexType.Builder> entry: complexTypes.entrySet()) {
+				this.nonSrvDocEdmComplexTypeMap.put(entry.getKey(), entry.getValue().build());
+			}
+			
 			// Append to the map
 			nonSrvDocEdmEntitySetMap.put(getEdmEntitySetName(entityName), edmEntitySet);
 			return edmEntitySet;
@@ -314,18 +332,7 @@ public class MetadataOData4j {
 				bEntityTypeMap.put(state.getEntityName(), bEntityType);					
 			}
 		}
-		
-		// Process meta data not present in the service document 
-        for (Map.Entry<String, EntityMetadata> entry: metadata.getEntitiesMetadata().entrySet()) {            
-            EntityMetadata entityMetadata = entry.getValue();
-            
-            // Always strictKeyCheck here because we will be building EdmDataServices from this
-            EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
-            if (bEntityType != null) {
-            	bEntityTypeMap.put(entry.getKey(), bEntityType);
-            }        
-        }
-		
+			
 		// Add Navigation Properties
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
 			// build associations

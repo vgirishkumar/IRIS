@@ -69,12 +69,12 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 		logger.debug("Getting entity for " + entityName);
 		try {
 			EdmEntitySet entitySet = getEdmEntitySet(entityName);
-			String entitySetName = entitySet.getName();
 
 			//Create entity key (simple types only)
-			OEntityKey key = CommandHelper.createEntityKey(getEdmMetadata(), entitySetName, ctx.getId());
+			OEntityKey key = CommandHelper.createEntityKey(entitySet, ctx.getId());
 			
 			//Get the entity
+			String entitySetName = entitySet.getName();			
 			EntityResponse er = getProducer().getEntity(entitySetName, key, getEntityQueryInfo(ctx));
 			OEntity entity = er.getEntity();
 			EntityResource<OEntity> oer = CommandHelper.createEntityResource(entity);
