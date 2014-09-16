@@ -74,6 +74,7 @@ public class DefaultResourceStateProvider implements ResourceStateProvider {
 	public Map<String, String> getResourcePathsByState() {
 		Map<String, String> results = new HashMap<String, String>();
 		Map<String, ResourceState> statesByName = hypermediaEngine.getResourceStateByName();
+		
 		for (String key : statesByName.keySet()) {
 			ResourceState resourceState = statesByName.get(key);
 			results.put(key, resourceState.getPath());

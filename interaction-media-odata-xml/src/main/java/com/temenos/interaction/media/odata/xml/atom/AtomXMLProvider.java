@@ -445,7 +445,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			Matcher m = p.matcher(absoluteUri);
 			while (m.find()) {
 				resourcePath = m.group();
-			}			
+			}
 			if (resourcePath == null)
 				throw new IllegalStateException("No resource found");
 			ResourceState currentState = getCurrentState(serviceDocument, resourcePath);

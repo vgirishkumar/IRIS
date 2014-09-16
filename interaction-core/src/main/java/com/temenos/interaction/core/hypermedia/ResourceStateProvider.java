@@ -73,4 +73,5 @@ public interface ResourceStateProvider {
 	 * @return
 	 */
 	public Map<String, String> getResourcePathsByState();
+
 }
