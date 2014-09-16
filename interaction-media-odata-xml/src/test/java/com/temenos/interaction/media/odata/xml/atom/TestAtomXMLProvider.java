@@ -175,10 +175,23 @@ public class TestAtomXMLProvider {
 		when(request.getMethod()).thenReturn("GET");
 		ap.setRequestContext(request);
 				
-  		InputStream xml = getClass().getClassLoader().getResourceAsStream("issue193_entry_with_bag.xml");
-		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};		
-		EntityResource<OEntity> entity = ap.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, xml);
-		xml.close();
+  		InputStream in = null;
+  		
+  		EntityResource<OEntity> entity;
+		try {
+			in = getClass().getClassLoader().getResourceAsStream("issue193_entry_with_Bag.xml");
+			
+			GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {
+			};
+			entity = ap.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_ATOM_XML_TYPE, null, in);
+		} finally {
+			if(in != null) {
+				in.close();	
+			}
+				
+		}
+		
+		
 		
 		assertNotNull(entity);
 		
