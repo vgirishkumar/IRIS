@@ -168,7 +168,9 @@ public class MetadataOData4j {
 			String tmpTypeName = typeName.substring(typeName.indexOf(".") + 1);
 			EdmEntitySet edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(tmpTypeName));
 
-			result = edmEntitySet.getType();
+			if(edmEntitySet != null) {
+				result = edmEntitySet.getType();
+			}
 		}		
 		
 		return result;
