@@ -4,7 +4,7 @@ package com.temenos.interaction.core.entity.vocabulary.terms;
  * #%L
  * interaction-core
  * %%
- * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,30 +21,19 @@ package com.temenos.interaction.core.entity.vocabulary.terms;
  * #L%
  */
 
-import com.temenos.interaction.core.entity.vocabulary.Term;
-
 /**
- * This Term describes the semantic type of a property, 
- * e.g. currency code, person name, money amount, etc. 
+ * All Term which can be used as annotations should extend this class
+ * 
+ * @author sjunejo
+ *
  */
-public class TermSemanticType extends AbstractOdataAnnotation implements Term {
+
+public abstract class AbstractOdataAnnotation {
+
+	/* Annotaion name space */
+	public final static String NAMESPACE = "http://iris.temenos.com/odata-extensions";
+	/* Annotaion prefix */
+	public final static String PREFIX = "iris-ext";
 	
-	public final static String TERM_NAME = "TERM_SEMANTIC_TYPE";
-	public final static String CSDL_NAME = "semanticType";
 	
-	private String value;
-	
-	public TermSemanticType(String val) {
-		this.value = val;
-	}
-	
-	@Override
-	public String getValue() {
-		return value;
-	}
-	
-	@Override
-	public String getName() {
-		return TERM_NAME;
-	}	
 }

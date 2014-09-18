@@ -102,8 +102,10 @@ public class TestMetadataOData4j {
 		ResourceState defaultServiceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		defaultServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Customer", "Customer", new ArrayList<Action>(), "/Customer")).build());
 		defaultServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("CustomerWithTermList", "CustomerWithTermList", new ArrayList<Action>(), "/CustomerWithTermList")).build());
+		defaultServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("EntityWithRestriction", "EntityWithRestriction", new ArrayList<Action>(), "/EntityWithRestriction")).build());
 		ResourceStateMachine defaultHypermediaEngine = new ResourceStateMachine(defaultServiceRoot);
 		metadataOdata4j = new MetadataOData4j(metadata, defaultHypermediaEngine);
+		metadataOdata4j.setOdataVersion(ODataVersion.V2);
 
 		// Create mock state machine with Flight, Airport and FlightSchedule entity sets
 		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
@@ -738,6 +740,36 @@ public class TestMetadataOData4j {
 		Assert.assertNotNull(annEl.getNamespace().getPrefix());
 		Assert.assertNotNull(annEl.getNamespace().getUri());
 		Assert.assertEquals("Geography:Country", ann.getValue());
+	}
+	
+	@Test
+	public void testEntityWithDisplayAndFilterOnlyProperties()
+	{	
+		EdmDataServices edmDataServices = metadataOdata4j.getMetadata();
+		
+		EdmType type = edmDataServices.findEdmEntityType("CustomerServiceTestModel.EntityWithRestriction");
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		// Verify DisplayOnly properties
+		NamespacedAnnotation<?> ann = entityType.findAnnotation("http://iris.temenos.com/odata-extensions", "displayOnly");
+		Assert.assertEquals(EdmAnnotationAttribute.class, ann.getClass());
+		EdmAnnotationAttribute annEl = (EdmAnnotationAttribute)ann;
+		Assert.assertNotNull(annEl.getNamespace().getPrefix());
+		Assert.assertNotNull(annEl.getNamespace().getUri());
+		Assert.assertTrue(ann.getValue().toString().contains("sector"));
+		Assert.assertTrue(ann.getValue().toString().contains("EntityWithRestriction_address.number"));
+		Assert.assertTrue(ann.getValue().toString().contains("EntityWithRestriction_street.streetType"));
+		
+		// Filter Only properties
+		ann = entityType.findAnnotation("http://iris.temenos.com/odata-extensions", "filterOnly");
+		Assert.assertEquals(EdmAnnotationAttribute.class, ann.getClass());
+		annEl = (EdmAnnotationAttribute)ann;
+		Assert.assertNotNull(annEl.getNamespace().getPrefix());
+		Assert.assertNotNull(annEl.getNamespace().getUri());
+		Assert.assertTrue(ann.getValue().toString().contains("industry"));
+		Assert.assertTrue(ann.getValue().toString().contains("EntityWithRestriction_address.town"));
+		Assert.assertTrue(ann.getValue().toString().contains("EntityWithRestriction_address.postCode"));
 	}
 
 }

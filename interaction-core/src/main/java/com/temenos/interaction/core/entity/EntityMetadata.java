@@ -46,6 +46,8 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermRestriction;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermRestriction.Restriction;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
@@ -417,4 +419,25 @@ public class EntityMetadata  {
 		return !(getTermValue(fullyQualifiedPropertyName, TermMandatory.TERM_NAME).equals("true") || 
 				getTermValue(fullyQualifiedPropertyName, TermIdField.TERM_NAME).equals("true"));
 	}
+	
+	/**
+	 * Method to find out if property is display only
+	 * @param fullyQualifiedPropertyName
+	 * @return
+	 */
+	public boolean isPropertyDisplayOnly(String fullyQualifiedPropertyName) {
+		return getTermValue(fullyQualifiedPropertyName, TermRestriction.TERM_NAME)
+				.equals(Restriction.DISPLAYONLY.getValue()); 
+	}
+	
+	/**
+	 * Method to find out if property is filter only
+	 * @param fullyQualifiedPropertyName
+	 * @return
+	 */
+	public boolean isPropertyFilterOnly(String fullyQualifiedPropertyName) {
+		return getTermValue(fullyQualifiedPropertyName, TermRestriction.TERM_NAME)
+				.equals(Restriction.FILTEREONLY.getValue()); 
+	}
+	
 }

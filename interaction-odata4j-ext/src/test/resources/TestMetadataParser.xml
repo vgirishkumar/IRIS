@@ -111,4 +111,45 @@
 			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
 		</Property>
 	</Entity>
+	<Entity Name="EntityWithRestriction">
+		<Term Name="TEST_ENTITY_ALIAS">MyCustomer</Term>
+		<Property Name="name" >
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="address">
+			<Term Name="TERM_LIST_TYPE">true</Term>
+			<Property Name="number">
+				<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
+				<Term Name="TERM_RESTRICTION">displayOnly</Term>
+			</Property>
+			<Property Name="street">
+				<Term Name="TERM_LIST_TYPE">true</Term>
+				<Property Name="streetType">
+					<Term Name="TERM_RESTRICTION">displayonly</Term>
+				</Property>
+			</Property>
+			<Property Name="town">
+				<Term Name="TERM_RESTRICTION">filterOnly</Term>
+			</Property>
+			<Property Name="postCode">
+				<Term Name="TERM_RESTRICTION">filteronly</Term>
+			</Property>
+		</Property>
+		<Property Name="dateOfBirth" >
+			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+		<Property Name="sector">
+			<Term Name="TERM_RESTRICTION">displayOnly</Term>
+		</Property>
+		<Property Name="industry">
+			<Term Name="TERM_RESTRICTION">filterOnly</Term>
+		</Property>
+		<Property Name="loyal" >
+			<Term Name="TERM_VALUE_TYPE">BOOLEAN</Term>
+		</Property>
+		<Property Name="loyalty_rating" >
+			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+		</Property>
+	</Entity>
 </Metadata>

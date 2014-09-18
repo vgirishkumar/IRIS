@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.ws.rs.HttpMethod;
 
+import org.apache.commons.lang.StringUtils;
 import org.odata4j.core.ODataVersion;
 import org.odata4j.core.PrefixedNamespace;
 import org.odata4j.edm.EdmAnnotation;
@@ -61,10 +62,13 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.vocabulary.terms.AbstractOdataAnnotation;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermRestriction;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermRestriction.Restriction;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermSemanticType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
@@ -263,7 +267,7 @@ public class MetadataOData4j {
 		
 		if (entityType != null) {
 			
-			EdmEntitySet.Builder bEntitySetBuilder = EdmEntitySet.newBuilder().setName(getEdmEntitySetName(entityName)).setEntityType(entityType);			
+			EdmEntitySet.Builder bEntitySetBuilder = EdmEntitySet.newBuilder().setName(getEdmEntitySetName(entityName)).setEntityType(entityType);
 			EdmEntitySet edmEntitySet = bEntitySetBuilder.build();
 			
 			for(Map.Entry<String, EdmComplexType.Builder> entry: complexTypes.entrySet()) {
@@ -307,7 +311,7 @@ public class MetadataOData4j {
 		mdBuilder.setVersion(odataVersion);
 		logger.info("Using OData version " + odataVersion);
 		if (odataVersion==ODataVersion.V2)
-			mdBuilder.addNamespaces(Collections.singletonList(new PrefixedNamespace(TermSemanticType.NAMESPACE, TermSemanticType.PREFIX)));
+			mdBuilder.addNamespaces(Collections.singletonList(new PrefixedNamespace(AbstractOdataAnnotation.NAMESPACE, AbstractOdataAnnotation.PREFIX)));
 		
 		List<EdmSchema.Builder> bSchemas = new ArrayList<EdmSchema.Builder>();
 		EdmSchema.Builder bSchema = new EdmSchema.Builder();
@@ -450,6 +454,14 @@ public class MetadataOData4j {
 		bComplexTypeMap = bComplexTypeMap == null ? new HashMap<String, EdmComplexType.Builder>() : bComplexTypeMap;
 		List<EdmProperty.Builder> bProperties = new ArrayList<EdmProperty.Builder>();
 		List<String> keys = new ArrayList<String>();
+		
+		// Build Annotations for EntityType for Odata clients to find out which properties are FlterOnly and DisplayOnly
+		// So for clients; 
+		//		DisplayProperties 	= AllProperties - FilterOnlyProperties
+		//		FilterProperties 	= AllProperties - DisplayOnlyProperties
+		List<String> displayOnlyProps = new ArrayList<String>();
+		List<String> filterOnlyProps = new ArrayList<String>();
+		
 		String complexTypePrefix = new StringBuilder(entityMetadata.getEntityName()).append("_").toString();
 		for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
 			//Entity properties, lets gather some information about the property
@@ -464,7 +476,8 @@ public class MetadataOData4j {
 						setType(edmType).
 						setNullable(isNullable);
 
-				if (odataVersion != ODataVersion.V1) {
+				// Adding Semantic Type
+				if (annotationAllowed()) {
 					// Add an annotation if a semantic type is defined for the property
 					List<EdmAnnotation<?>> annotations = new LinkedList<EdmAnnotation<?>>();
 					String semanticType = entityMetadata.getTermValue(propertyName, TermSemanticType.TERM_NAME);
@@ -474,14 +487,28 @@ public class MetadataOData4j {
 				}
 
 				if (termComplexGroup == null) {
-					// Property belongs to an Entity Type, simply add it 
+					if (annotationAllowed()) {
+						if (entityMetadata.isPropertyDisplayOnly(propertyName))
+							displayOnlyProps.add(propertyName);
+						else if (entityMetadata.isPropertyFilterOnly(propertyName))
+							filterOnlyProps.add(propertyName);
+					}
+					// Property belongs to an Entity Type, simply add it
 					bProperties.add(ep);
 				} else {
 					// Property belongs to a group (complex type), first make sure we have a group 
 					// so add a group with Entity name space and group name
 					addComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), bComplexTypeMap);
 					// And then add the property into complex type
-					addPropertyToComplexType(namespace, complexTypePrefix + entityMetadata.getSimplePropertyName(termComplexGroup), ep, bComplexTypeMap);
+					String complexTypeName = new StringBuilder(complexTypePrefix).append(entityMetadata.getSimplePropertyName(termComplexGroup)).toString();
+					addPropertyToComplexType(namespace, complexTypeName, ep, bComplexTypeMap);
+					if (annotationAllowed()) {
+						String fullyQualifiedName = new StringBuilder(complexTypeName).append(".").append(entityMetadata.getSimplePropertyName(propertyName)).toString();
+						if (entityMetadata.isPropertyDisplayOnly(propertyName))
+							displayOnlyProps.add(fullyQualifiedName);
+						else if (entityMetadata.isPropertyFilterOnly(propertyName))
+							filterOnlyProps.add(fullyQualifiedName);
+					}
 				}
 			} else {
 				// This means vocabulary is a group (complex type), so add it in a map
@@ -525,6 +552,18 @@ public class MetadataOData4j {
 		// EdmDataServices but we can keep the one generated for an individual entity
 		if (keys.size() > 0 || !strictKeyCheck) {
 			EdmEntityType.Builder bEntityType = EdmEntityType.newBuilder().setNamespace(namespace).setAlias(entityMetadata.getEntityName()).setName(entityMetadata.getEntityName()).addKeys(keys).addProperties(bProperties);
+			
+			if (annotationAllowed()) {
+				// Append additional metadata as annotations
+				List<EdmAnnotation<?>> edmEntityTypeAnnotations = new LinkedList<EdmAnnotation<?>>();
+				if (displayOnlyProps.size() > 0) 
+					edmEntityTypeAnnotations.add((EdmAnnotation.attribute(TermRestriction.NAMESPACE, TermRestriction.PREFIX, Restriction.DISPLAYONLY.getValue(), getPropertiesAsCSV(displayOnlyProps))));
+				if (filterOnlyProps.size() > 0)
+					edmEntityTypeAnnotations.add((EdmAnnotation.attribute(TermRestriction.NAMESPACE, TermRestriction.PREFIX, Restriction.FILTEREONLY.getValue(), getPropertiesAsCSV(filterOnlyProps))));
+				
+				bEntityType.setAnnotations(edmEntityTypeAnnotations);
+			}
+		
 			return bEntityType;
 		} else {
 			logger.error("Unable to add EntityType for [" + entityMetadata.getEntityName() + "] - no ID column defined");
@@ -746,5 +785,21 @@ public class MetadataOData4j {
 		java.io.StringWriter wr = new java.io.StringWriter();
 		org.odata4j.format.xml.EdmxFormatWriter.write(edmDataServices, wr);
 		return wr.toString();
+	}
+	
+	/*
+	 * Method to check if we should embed annotation in the metadata
+	 */
+	private boolean annotationAllowed() {
+		return !ODataVersion.V1.equals(this.odataVersion);
+	}
+	
+	/**
+	 * Convert List<String> to single , seperated string
+	 * @param properties
+	 * @return
+	 */
+	private String getPropertiesAsCSV(List<String> properties) {
+		return StringUtils.join(properties.toArray(), ",");
 	}
 }

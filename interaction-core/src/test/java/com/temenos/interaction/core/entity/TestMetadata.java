@@ -231,5 +231,58 @@ public class TestMetadata {
 		Assert.assertTrue(mapEntity.containsKey(entity1));
 		Assert.assertTrue(mapEntity.containsKey(entity2));
 	}
-
+	
+	
+	@Test
+	public void testEntityWithDiaplyAndFilterOnlyTerms() {
+		String entityName = "DisplayAndFilterOnly";
+		ResourceMetadataManager rmManager = new ResourceMetadataManager();
+		Metadata metadata = new Metadata(rmManager);
+		EntityMetadata em = metadata.getEntityMetadata(entityName);
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("Sector"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("Sector"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("AccountOfficer"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("AccountOfficer"));
+		
+		Assert.assertTrue(em.isPropertyFilterOnly("Industry"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("Industry"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("Nationality"));
+		Assert.assertTrue(em.isPropertyDisplayOnly("Nationality"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("Residence"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("Residence"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("Hdr1"));
+		Assert.assertTrue(em.isPropertyDisplayOnly("Hdr1"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("CusNo"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("CusNo"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("Mnem"));
+		Assert.assertTrue(em.isPropertyDisplayOnly("Mnem"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("ShortNameMvGroup.LanguageCode"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("ShortNameMvGroup.LanguageCode"));
+		
+		Assert.assertTrue(em.isPropertyFilterOnly("ShortNameMvGroup.ShortName"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("ShortNameMvGroup.ShortName"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("Natlty"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("Natlty"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("Res"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("Res"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("AcOfcr"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("AcOfcr"));
+		
+		Assert.assertFalse(em.isPropertyFilterOnly("Ind"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("Ind"));
+		
+		Assert.assertTrue(em.isPropertyFilterOnly("Sect"));
+		Assert.assertFalse(em.isPropertyDisplayOnly("Sect"));
+	}
 }

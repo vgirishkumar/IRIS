@@ -30,6 +30,8 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermRange;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermResourceManager;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermRestriction;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermRestriction.Restriction;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermSemanticType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
@@ -55,6 +57,9 @@ public class TermFactory {
 		}
 		else if(name.equalsIgnoreCase(TermSemanticType.TERM_NAME)) {
 			term = new TermSemanticType(value);
+		}
+		else if (name.equalsIgnoreCase(TermRestriction.TERM_NAME)) {
+			term = new TermRestriction(value);
 		}
 		else if(name.equalsIgnoreCase(TermMandatory.TERM_NAME)) {
 			term = new TermMandatory(value.equalsIgnoreCase("true"));
@@ -108,6 +113,8 @@ public class TermFactory {
 					name.equalsIgnoreCase(TermComplexType.TERM_NAME) ||
 					name.equalsIgnoreCase(TermIdField.TERM_NAME)) {
 				return "false";
+			} else if (name.equalsIgnoreCase(TermRestriction.TERM_NAME)) {
+				return Restriction.NORESTRICTION.getValue();
 			}
 		}
 		return null;
