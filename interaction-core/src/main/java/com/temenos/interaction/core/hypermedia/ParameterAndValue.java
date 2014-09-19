@@ -22,13 +22,21 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
-
-/**
- * Implementations of this interface provide a way of resolving a aliases to resource parameters and values
- *
- * @author mlambert
- *
- */
-public interface ResourceParameterResolver {
-	public ParameterAndValue[] resolve(Object... aliases);
+public class ParameterAndValue {
+	private String parameter;
+	private String value;
+		
+	public ParameterAndValue(String parameter, String value) {
+		super();
+		this.parameter = parameter;
+		this.value = value;
+	}
+	public String getParameter() {
+		return parameter;
+	}
+	public String getValue() {
+		return value;
+	}
+	
+	
 }

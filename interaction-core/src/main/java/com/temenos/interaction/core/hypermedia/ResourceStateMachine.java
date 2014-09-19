@@ -77,7 +77,7 @@ public class ResourceStateMachine {
 	NewCommandController commandController;
 	ResourceStateProvider resourceStateProvider;
 	ResourceLocatorProvider resourceLocatorProvider;
-	ResourceParameterResolver parameterResolver;
+	ResourceParameterResolverProvider parameterResolverProvider;
 
 	// optimised access
 	private Map<String, Transition> transitionsById = new HashMap<String, Transition>();
@@ -874,14 +874,6 @@ public class ResourceStateMachine {
 		return createLink(transition, transitionProperties, entity, queryParameters, allQueryParameters);
 	}
 
-	private ResourceState getDynamicTarget(DynamicResourceState dynamic, Object... aliases) {
-		// Use resource locator to resolve dynamic target
-		ResourceLocator locator = resourceLocatorProvider.get(dynamic.getResourceLocatorName());
-
-		return locator.resolve(aliases);
-	}
-			
-
 	/*
 	 * Create a link using the supplied transition, entity and transition
 	 * properties. This method is intended for re-using transition properties
@@ -916,6 +908,12 @@ public class ResourceStateMachine {
 			}
 			
 			UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
+
+			TransitionCommandSpec cs = transition.getCommand();			
+			String method = cs.getMethod();
+			
+			URI href;
+			String rel = "";
 			
 			if (targetState instanceof DynamicResourceState) {
 				// We are dealing with a dynamic target
@@ -923,59 +921,76 @@ public class ResourceStateMachine {
 				// Identify real target state
 				DynamicResourceState dynamicResourceState = (DynamicResourceState) targetState;
 				Object[] aliases = getResourceAliases(transitionProperties, dynamicResourceState).toArray();
-				targetState = getDynamicTarget(dynamicResourceState, aliases);
+				
+				// Use resource locator to resolve dynamic target
+				String locatorName = dynamicResourceState.getResourceLocatorName();
+				
+				ResourceLocator locator = resourceLocatorProvider.get(locatorName);
+				targetState = locator.resolve(aliases);				
 				
 				if(targetState == null) {
-					// a dead link, target could not be found
+					// A dead link, target could not be found
 					logger.error("Dead link - Failed to resolve resource using " + dynamicResourceState.getResourceLocatorName() + " resource locator");
 					
 					return null;					
-				} else {																	
-					// Add dynamic query parametes 
-					if(parameterResolver != null)  {
-						MultivaluedMap<String, String> dynamicQueryParameters = parameterResolver.addDynamicParameters(aliases);
-						
-						addQueryParams(dynamicQueryParameters, true, linkTemplate, targetState.getPath(), transition.getCommand().getUriParameters());
+				}
+				
+				if (targetState.getRel().contains("http://temenostech.temenos.com/rels/new")) {
+					method = "POST";
+				}
+
+				String targetResourcePath = targetState.getPath();				
+				linkTemplate.path(targetResourcePath);
+				
+				if(parameterResolverProvider != null) {
+					// Add query parameters
+					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
+					
+					ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
+					
+					for (ParameterAndValue paramAndValue : paramsAndValues) {
+						linkTemplate.queryParam(paramAndValue.getParameter(), paramAndValue.getValue());						
 					}
 				}
-			}
-			
-			String targetResourcePath = targetState.getPath();
-
-			String rel = targetState.getRel();
-			if (transition.getSource().equals(targetState)) {
-				rel = "self";
-			}
-			
-			TransitionCommandSpec cs = transition.getCommand();			
-			String method = cs.getMethod();
-
-			
-			// Pass uri parameters as query parameters if they are not
-			// replaceable in the path, and replace any token.
-			
-			Map<String, String> uriParameters = transition.getCommand().getUriParameters();
-			if (uriParameters != null) {
-				for (String key : uriParameters.keySet()) {
-					String value = uriParameters.get(key);
-					if (!targetResourcePath.contains("{" + key + "}")) {
-						linkTemplate.queryParam(key, HypermediaTemplateHelper.templateReplace(value, transitionProperties));
-					}
-				}
-			}
-			linkTemplate.path(targetResourcePath);
-
-			// Pass any query parameters
-			addQueryParams(queryParameters, allQueryParameters, linkTemplate, targetResourcePath, uriParameters);						
-
-			// Build href from template
-			URI href;
-			if (entity != null && transformer == null) {
-				logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
-				href = linkTemplate.build(entity);
+				
+				href = linkTemplate.buildFromMap(transitionProperties);				
 			} else {
-				href = linkTemplate.buildFromMap(transitionProperties);
+				// We are NOT dealing with a dynamic target
+				String targetResourcePath = targetState.getPath();
+
+				rel = targetState.getRel();
+				if (transition.getSource().equals(targetState)) {
+					rel = "self";
+				}
+				
+				
+				// Pass uri parameters as query parameters if they are not
+				// replaceable in the path, and replace any token.
+				
+				Map<String, String> uriParameters = transition.getCommand().getUriParameters();
+				if (uriParameters != null) {
+					for (String key : uriParameters.keySet()) {
+						String value = uriParameters.get(key);
+						if (!targetResourcePath.contains("{" + key + "}")) {
+							linkTemplate.queryParam(key, HypermediaTemplateHelper.templateReplace(value, transitionProperties));
+						}
+					}
+				}
+				
+				linkTemplate.path(targetResourcePath);
+
+				// Pass any query parameters
+				addQueryParams(queryParameters, allQueryParameters, linkTemplate, targetResourcePath, uriParameters);						
+
+				// Build href from template
+				if (entity != null && transformer == null) {
+					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
+					href = linkTemplate.build(entity);
+				} else {					
+					href = linkTemplate.buildFromMap(transitionProperties);
+				}				
 			}
+			
 
 			// Create the link
 			Link link = new Link(transition, rel, href.toASCIIString(), method);
@@ -984,10 +999,12 @@ public class ResourceStateMachine {
 					+ ")]");
 			return link;
 		} catch (IllegalArgumentException e) {
-			logger.error("An error occurred while creating link [" + transition + "]", e);
-			throw e;
+			logger.warn("Dead link [" + transition + "]", e);
+			
+			return null;
+			 
 		} catch (UriBuilderException e) {
-			logger.error("An error occurred while creating link [" + transition + "]", e);
+			logger.error("Dead link [" + transition + "]", e);
 			throw e;
 		}
 	}
@@ -1123,7 +1140,7 @@ public class ResourceStateMachine {
 		private NewCommandController commandController;
 		private ResourceStateProvider resourceStateProvider;
 		private ResourceLocatorProvider resourceLocatorProvider;
-		private ResourceParameterResolver parameterResolver;
+		private ResourceParameterResolverProvider parameterResolverProvider;
 
 		public Builder initial(ResourceState initial) {
 			this.initial = initial;
@@ -1155,8 +1172,8 @@ public class ResourceStateMachine {
 			return this;
 		}
 		
-		public Builder parameterResolver(ResourceParameterResolver parameterResolver) {
-			this.parameterResolver = parameterResolver;
+		public Builder parameterResolverProvider(ResourceParameterResolverProvider parameterResolverProvider) {
+			this.parameterResolverProvider = parameterResolverProvider;
 			return this;
 		}
 
@@ -1172,7 +1189,7 @@ public class ResourceStateMachine {
 		this.commandController = builder.commandController;
 		this.resourceStateProvider = builder.resourceStateProvider;
 		this.resourceLocatorProvider = builder.resourceLocatorProvider;
-		this.parameterResolver = builder.parameterResolver;
+		this.parameterResolverProvider = builder.parameterResolverProvider;
 		build();
 	}
 }
