@@ -131,7 +131,12 @@ public class AtomEntityEntryFormatWriter {
 			Map<Transition,RESTResource> embeddedResources,
 			String baseUri, String absoluteId, String updated) {
 		assert(entityName != null);
-		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+		
+		// entity name could be different between entity resource and underlying entity 
+		// e.g., for Errors entity, entity resource would have the request entity name 
+		String entityMetadataName = entity != null ? entity.getName() : entityName;
+		
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityMetadataName);
 		String modelName = metadata.getModelName();
 		writer.writeId(absoluteId);
 		OAtomEntity oae = getAtomInfo(entity);
