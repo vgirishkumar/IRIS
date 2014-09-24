@@ -937,10 +937,15 @@ public class ResourceStateMachine {
 				
 				if (targetState.getRel().contains("http://temenostech.temenos.com/rels/new")) {
 					method = "POST";
-				}
+				}				
 
 				String targetResourcePath = targetState.getPath();				
 				linkTemplate.path(targetResourcePath);
+				
+				rel = targetState.getRel();
+				if (transition.getSource().equals(targetState)) {
+					rel = "self";
+				}								
 				
 				if(parameterResolverProvider != null) {
 					// Add query parameters
@@ -961,8 +966,7 @@ public class ResourceStateMachine {
 				rel = targetState.getRel();
 				if (transition.getSource().equals(targetState)) {
 					rel = "self";
-				}
-				
+				}				
 				
 				// Pass uri parameters as query parameters if they are not
 				// replaceable in the path, and replace any token.
