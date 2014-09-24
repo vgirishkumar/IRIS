@@ -1,4 +1,4 @@
-package com.temenos.interaction.springdsl.properties;
+package com.temenos.interaction.loader.properties;
 
 /*
  * #%L
@@ -23,20 +23,17 @@ package com.temenos.interaction.springdsl.properties;
 
 import java.util.Properties;
 
-public class PropertiesReloadedEvent {
-	final ReloadableProperties target;
-	final Properties oldProperties;
 
-	public PropertiesReloadedEvent(ReloadableProperties target, Properties oldProperties) {
-		this.target = target;
-		this.oldProperties = oldProperties;
-	}
+/**
+ * For Properties maps that notify about changes. Would extend interface
+ * java.util.Properties if it were an interface. Classes implementing this
+ * interface should consider extending {@link DelegatingProperties}. Credit to:
+ * http://www.wuenschenswert.net/wunschdenken/archives/127
+ */
+public interface ReloadableProperties {
+	public Properties getProperties();
 
-	public ReloadableProperties getTarget() {
-		return target;
-	}
+	void addReloadablePropertiesListener(ReloadablePropertiesListener l);
 
-	public Properties getOldProperties() {
-		return oldProperties;
-	}
+	boolean removeReloadablePropertiesListener(ReloadablePropertiesListener l);
 }

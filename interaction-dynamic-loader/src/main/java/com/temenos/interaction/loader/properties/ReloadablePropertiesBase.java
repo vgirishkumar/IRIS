@@ -1,4 +1,4 @@
-package com.temenos.interaction.springdsl.properties;
+package com.temenos.interaction.loader.properties;
 
 /*
  * #%L
@@ -24,7 +24,6 @@ package com.temenos.interaction.springdsl.properties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import org.springframework.core.io.Resource;
 
@@ -33,7 +32,6 @@ import org.springframework.core.io.Resource;
  * Useful base class for implementing {@link ReloadableProperties}. Credit to:
  * http://www.wuenschenswert.net/wunschdenken/archives/127
  */
-@SuppressWarnings("unchecked")
 public class ReloadablePropertiesBase extends DelegatingProperties implements ReloadableProperties {
 	private static final long serialVersionUID = 1882584866192427533L;
 	private List<ReloadablePropertiesListener> listeners = new ArrayList<ReloadablePropertiesListener>();
@@ -53,18 +51,6 @@ public class ReloadablePropertiesBase extends DelegatingProperties implements Re
 		return getDelegate();
 	}
 	
-	public Properties getProperties(Set<Object> keys) {
-		Properties result = new Properties();
-		for (Object key : keys) {
-			Object value = null;
-			if (internalProperties != null) {
-				value = internalProperties.get(key);
-			}
-			result.put(key, value);
-		}
-		return result;
-	}
-
 	public void addReloadablePropertiesListener(ReloadablePropertiesListener l) {
 		listeners.add(l);
 	}
@@ -73,17 +59,10 @@ public class ReloadablePropertiesBase extends DelegatingProperties implements Re
 		return listeners.remove(l);
 	}
 
-	protected void notifyPropertiesChanged(Properties newProperties) {
-		PropertiesReloadedEvent event = new PropertiesReloadedEvent(this, newProperties);
-		for (ReloadablePropertiesListener listener : listeners) {
-			listener.propertiesReloaded(event);
-		}
-	}
-
 	protected void notifyPropertiesLoaded(Resource resource, Properties newProperties) {
 		PropertiesLoadedEvent event = new PropertiesLoadedEvent(this, resource, newProperties);
 		for (ReloadablePropertiesListener listener : listeners) {
-			listener.propertiesLoaded(event);
+			listener.propertiesChanged(event);
 		}
 	}
 	

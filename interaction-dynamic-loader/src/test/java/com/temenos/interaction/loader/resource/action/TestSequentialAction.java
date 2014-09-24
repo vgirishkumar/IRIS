@@ -1,4 +1,4 @@
-package com.temenos.interaction.springdsl.properties;
+package com.temenos.interaction.loader.resource.action;
 
 /*
  * #%L
@@ -21,32 +21,34 @@ package com.temenos.interaction.springdsl.properties;
  * #L%
  */
 
-import java.util.Properties;
 
-import org.springframework.core.io.Resource;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-public class PropertiesLoadedEvent {
+import java.util.ArrayList;
+import java.util.List;
 
-	final ReloadableProperties target;
-	final Resource resource;
-	final Properties oldProperties;
-	
-	public PropertiesLoadedEvent(ReloadableProperties target, Resource resource, Properties oldProperties) {
-		this.target = target;
-		this.resource = resource;
-		this.oldProperties = oldProperties;
-	}
+import org.junit.Test;
 
-	public Resource getResource() {
-		return resource;
-	}
+import com.temenos.interaction.loader.properties.PropertiesEvent;
 
-	public ReloadableProperties getTarget() {
-		return target;
-	}
+public class TestSequentialAction {
 
-	public Properties getOldProperties() {
-		return oldProperties;
+	@Test
+	public void test() {
+		List<Action> actions = new ArrayList<Action>();
+		Action action1 = mock(Action.class);
+		actions.add(action1);
+		Action action2 = mock(Action.class);
+		actions.add(action2);
+		
+		SequentialAction action = new SequentialAction(actions);
+		PropertiesEvent event = mock(PropertiesEvent.class);
+		
+		action.execute(event);
+		
+		verify(action1).execute(event);
+		verify(action2).execute(event);		
 	}
 
 }
