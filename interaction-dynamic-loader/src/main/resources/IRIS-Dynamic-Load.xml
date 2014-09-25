@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  interaction-example-hateoas-simple
+  %%
+  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<context:component-scan base-package="com.temenos.interaction.springdsl" />
+	
+	<bean id="irisResourceLoadedAction" class="com.temenos.interaction.loader.resource.action.IRISResourceLoadedAction" />
+	<bean id="irisResourceChangedAction" class="com.temenos.interaction.loader.resource.action.IRISResourceChangedAction" />
+	
+	<bean id="irisResourceModificationAction" class="com.temenos.interaction.loader.resource.action.ResourceModificationAction">
+		<property name="resourcePattern" value="classpath*:IRIS-*.properties"/>
+		<property name="loadedAction" ref="irisResourceLoadedAction"/>
+		<property name="changedAction" ref="irisResourceChangedAction"/>
+	</bean>
+	
+	<bean id="irisResourceModificationNotifier" class="com.temenos.interaction.loader.resource.notification.ResourceModificationNotifier"/>
+
+	<bean id="modificationListener" class="com.temenos.interaction.loader.resource.notification.ResourceModificationListener">
+		<property name="notifier" ref="irisResourceModificationNotifier"/>
+	</bean>
+
+	<!-- Load the index of resources --> 
+	<bean id="states" class="com.temenos.interaction.loader.properties.ReloadablePropertiesFactoryBean">
+		<property name="listeners">
+			<list>
+				<ref bean="modificationListener" />		
+			</list>		
+		</property>
+	</bean>
+	 	
+  	<!-- regularly reload property files. -->
+	<bean id="timer" class="org.springframework.scheduling.timer.TimerFactoryBean">
+		<property name="scheduledTimerTasks">
+			<bean id="reloadProperties" class="org.springframework.scheduling.timer.ScheduledTimerTask">
+				<property name="period" value="5000" />
+				<property name="runnable">
+					<bean class="com.temenos.interaction.loader.properties.ReloadConfiguration">
+						<property name="reconfigurableBeans">
+							<list>
+								<ref bean="states" />
+							</list>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>	
+</beans>

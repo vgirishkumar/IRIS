@@ -32,49 +32,21 @@
 
 	<context:component-scan base-package="com.temenos.interaction.springdsl" />
 	
-	<bean id="irisResourceLoadedAction" class="com.temenos.interaction.loader.resource.action.IRISResourceLoadedAction" />
-	<bean id="irisResourceChangedAction" class="com.temenos.interaction.loader.resource.action.IRISResourceChangedAction" />
-	
-	<bean id="irisResourceModificationAction" class="com.temenos.interaction.loader.resource.action.ResourceModificationAction">
-		<property name="resourcePattern" value="classpath*:IRIS-*.properties"/>
-		<property name="loadedAction" ref="irisResourceLoadedAction"/>
-		<property name="changedAction" ref="irisResourceChangedAction"/>
+	<bean id="defaultProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+  		<property name="singleton" value="true"/>
+  		<property name="ignoreResourceNotFound" value="true"/>
+  		<property name="locations">
+    		<list>
+      			<value>classpath*:IRIS-*.properties</value>
+    		</list>
+  		</property>
 	</bean>
 	
-	<bean id="irisResourceModificationNotifier" class="com.temenos.interaction.loader.resource.notification.ResourceModificationNotifier"/>
-
-	<bean id="modificationListener" class="com.temenos.interaction.loader.resource.notification.ResourceModificationListener">
-		<property name="notifier" ref="irisResourceModificationNotifier"/>
+	<bean id="resourceMap" class="com.temenos.interaction.springdsl.ResourceMapFactory">
+		<property name="defaultProperties" ref="defaultProperties"/>
 	</bean>
-	
-	<!-- Load the index of resources --> 
-	<bean id="states" class="com.temenos.interaction.loader.properties.ReloadablePropertiesFactoryBean">
-		<property name="listeners">
-			<list>
-				<ref bean="modificationListener"/>
-			</list>
-		</property>
-	</bean>
- 	
-  	<!-- regularly reload property files. -->
-	<bean id="timer" class="org.springframework.scheduling.timer.TimerFactoryBean">
-		<property name="scheduledTimerTasks">
-			<bean id="reloadProperties" class="org.springframework.scheduling.timer.ScheduledTimerTask">
-				<property name="period" value="5000" />
-				<property name="runnable">
-					<bean class="com.temenos.interaction.loader.properties.ReloadConfiguration">
-						<property name="reconfigurableBeans">
-							<list>
-								<ref bean="states" />
-							</list>
-						</property>
-					</bean>
-				</property>
-			</bean>
-		</property>
-	</bean> 
-	
+				 		
 	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider">
-		<property name="resourceMap" ref="states" />		
-	</bean>
+		<property name="resourceMap" ref="resourceMap"/>
+	</bean>		
 </beans>

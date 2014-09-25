@@ -39,13 +39,15 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
 
+import com.temenos.interaction.springdsl.DynamicProperties;
+
 /**
  * A properties factory bean that creates a reconfigurable Properties object.
  * When the Properties' reloadConfiguration method is called, and the file has
  * changed, the properties are read again from the file. 
  * Credit to: http://www.wuenschenswert.net/wunschdenken/archives/127
  */
-public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DisposableBean, ApplicationContextAware {
+public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DynamicProperties, DisposableBean, ApplicationContextAware {
 	private ApplicationContext ctx;
 
 	private Map<Resource,Long> locations = new HashMap<Resource,Long>();
@@ -87,7 +89,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		boolean reload = forceReload;
 		
 		if(locations == null) {
-			// Uninitalized - Load everything
+			// Uninitialized - Load everything
 			locations = new HashMap<Resource, Long>();
 			
 			for(Resource location : tmpLocations) {

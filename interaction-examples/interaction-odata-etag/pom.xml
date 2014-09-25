@@ -277,12 +277,7 @@
     	<artifactId>interaction-springdsl</artifactId>
     	<type>jar</type>
     	<scope>runtime</scope>
-    </dependency>	
-    <dependency>
-    	<groupId>com.temenos.interaction</groupId>
-    	<artifactId>interaction-dynamic-loader</artifactId>
-    	<scope>runtime</scope>    	
-    </dependency>    
+    </dependency>	    
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-winkext</artifactId>
