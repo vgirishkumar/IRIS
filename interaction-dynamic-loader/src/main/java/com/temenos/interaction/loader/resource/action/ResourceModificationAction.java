@@ -41,7 +41,18 @@ public class ResourceModificationAction {
 	
 	public void setResourcePattern(String resourcePatternStr) {
 		this.resourcePatternStr = resourcePatternStr;
-		this.resourcePattern = Pattern.compile(resourcePatternStr.replace("*", ".*"));
+		
+		String tmp = resourcePatternStr;
+
+		if(resourcePatternStr.indexOf(":") > -1) {
+			// Ignore pattern prefixes like classpath*: as actual the file name in events will not contain them
+			tmp = tmp.substring(resourcePatternStr.indexOf(":") + 1);
+		}
+		
+		// Switch from Spring regex to Java regex
+		tmp = tmp.replace("*", ".*");
+
+		this.resourcePattern = Pattern.compile(tmp);
 	}
 	
 	public String getResourcePattern() {

@@ -79,7 +79,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		reloadableProperties = null;
 	}
 
-	protected void reload(boolean forceReload) throws IOException {
+	protected void reload(boolean forceReload) throws IOException {		
 		List<Resource> tmpLocations = new ArrayList<Resource>();
 		
 		for (ReloadablePropertiesListener listener : preListeners) {
@@ -135,8 +135,10 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		
 		// TODO Handle removing states
 		
-		if (reload)
+		if (reload) {
 			doReload();
+			logger.info("Finished Refreshing IRIS");	
+		}
 	}
 
 	/**

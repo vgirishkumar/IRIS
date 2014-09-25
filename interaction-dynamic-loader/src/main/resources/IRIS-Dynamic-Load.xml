@@ -60,7 +60,7 @@
 	<bean id="timer" class="org.springframework.scheduling.timer.TimerFactoryBean">
 		<property name="scheduledTimerTasks">
 			<bean id="reloadProperties" class="org.springframework.scheduling.timer.ScheduledTimerTask">
-				<property name="period" value="5000" />
+				<property name="period" value="10000" />
 				<property name="runnable">
 					<bean class="com.temenos.interaction.loader.properties.ReloadConfiguration">
 						<property name="reconfigurableBeans">
