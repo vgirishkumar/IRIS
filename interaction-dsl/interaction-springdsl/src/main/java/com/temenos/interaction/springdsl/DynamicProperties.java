@@ -1,4 +1,4 @@
-package com.temenos.interaction.springdsl.properties;
+package com.temenos.interaction.springdsl;
 
 /*
  * #%L
@@ -21,19 +21,10 @@ package com.temenos.interaction.springdsl.properties;
  * #L%
  */
 
-import java.util.Properties;
-
 
 /**
- * For Properties maps that notify about changes. Would extend interface
- * java.util.Properties if it were an interface. Classes implementing this
- * interface should consider extending {@link DelegatingProperties}. Credit to:
- * http://www.wuenschenswert.net/wunschdenken/archives/127
+ * Marker interface for dynamic properties
+ * 
+ * @author mlambert
  */
-public interface ReloadableProperties {
-	public Properties getProperties();
-
-	void addReloadablePropertiesListener(ReloadablePropertiesListener l);
-
-	boolean removeReloadablePropertiesListener(ReloadablePropertiesListener l);
-}
+public interface DynamicProperties {}

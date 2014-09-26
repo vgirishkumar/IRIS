@@ -259,7 +259,7 @@
     	<artifactId>interaction-springdsl</artifactId>
     	<type>jar</type>
     	<scope>runtime</scope>
-    </dependency>	
+    </dependency>    	
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-commands-odata</artifactId>
@@ -349,7 +349,6 @@
     	<groupId>net.sf.ehcache</groupId>
     	<artifactId>ehcache-core</artifactId>
     </dependency>
-
   </dependencies>
   
 </project>

@@ -123,7 +123,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		initialised = true;
 	}
 	
-	void addState(String stateObj, Properties properties) {
+	public void addState(String stateObj, Properties properties) {
 		if (initialised) {
 			String stateName = stateObj.toString();
 
@@ -145,7 +145,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		}
 	}
 	
-	protected void unload(String name) {
+	public void unload(String name) {
 		resources.remove(name);
 	}
 	

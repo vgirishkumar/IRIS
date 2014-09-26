@@ -1,4 +1,4 @@
-package com.temenos.interaction.springdsl.properties;
+package com.temenos.interaction.loader.properties;
 
 /*
  * #%L
@@ -21,32 +21,14 @@ package com.temenos.interaction.springdsl.properties;
  * #L%
  */
 
+
 import java.util.Properties;
 
 import org.springframework.core.io.Resource;
 
-public class PropertiesChangedEvent {
+public interface PropertiesEvent {
 
-	final ReloadableProperties target;
-	final Resource resource;
-	final Properties newProperties;
-	
-	public PropertiesChangedEvent(ReloadableProperties target, Resource resource, Properties newProperties) {
-		this.target = target;
-		this.resource = resource;
-		this.newProperties = newProperties;
-	}
-
-	public Resource getResource() {
-		return resource;
-	}
-
-	public ReloadableProperties getTarget() {
-		return target;
-	}
-
-	public Properties getNewProperties() {
-		return newProperties;
-	}
-
+	public Resource getResource();
+	public void accept(PropertiesEventVisitor visitor);
+	public Properties getNewProperties();
 }

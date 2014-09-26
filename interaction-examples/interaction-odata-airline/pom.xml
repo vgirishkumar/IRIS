@@ -274,7 +274,7 @@
     	<artifactId>interaction-springdsl</artifactId>
     	<type>jar</type>
     	<scope>runtime</scope>
-    </dependency>
+    </dependency>    
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-winkext</artifactId>
@@ -369,6 +369,5 @@
         <groupId>com.temenos.interaction</groupId>
         <artifactId>useragent-odata-html5</artifactId>
     </dependency>
-    
   </dependencies>
 </project>

@@ -110,6 +110,8 @@
 		ResourceState instances using Spring
 	-->
 	<import resource="classpath:IRIS-SpringDSL-main.xml" />
+	
+	<import resource="classpath:IRIS-Dynamic-Load.xml" />
 
 	<bean id="serviceRootFactory" class="com.temenos.interaction.winkext.LazyServiceRootFactory">
 		<property name="commandController" ref="commands" />

@@ -1,4 +1,4 @@
-package com.temenos.interaction.springdsl.properties;
+package com.temenos.interaction.loader.resource.action;
 
 /*
  * #%L
@@ -21,11 +21,9 @@ package com.temenos.interaction.springdsl.properties;
  * #L%
  */
 
-/**
- *
- */
-public interface ReloadablePropertiesListener {
-	void propertiesLoaded(PropertiesLoadedEvent event);
-	void propertiesChanged(PropertiesChangedEvent event);
-	void propertiesReloaded(PropertiesReloadedEvent event);
+
+import com.temenos.interaction.loader.properties.PropertiesEvent;
+
+public interface Action {
+	void execute(PropertiesEvent event);
 }

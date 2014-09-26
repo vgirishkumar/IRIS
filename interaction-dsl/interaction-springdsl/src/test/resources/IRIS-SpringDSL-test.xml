@@ -32,21 +32,16 @@
 
 	<context:component-scan base-package="com.temenos.interaction.springdsl" />
 	
-	<bean id="defaultProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-  		<property name="singleton" value="true"/>
-  		<property name="ignoreResourceNotFound" value="true"/>
-  		<property name="locations">
-    		<list>
-      			<value>classpath*:IRIS-*.properties</value>
-    		</list>
-  		</property>
+	<bean id="resourceMap"  class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="properties">
+			<props>
+				<prop key="SimpleModel_Home_home">GET,PUT /test</prop>
+			</props>
+		</property>
 	</bean>
 	
-	<bean id="resourceMap" class="com.temenos.interaction.springdsl.ResourceMapFactory">
-		<property name="defaultProperties" ref="defaultProperties"/>
-	</bean>
-				 		
 	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider">
-		<property name="resourceMap" ref="resourceMap"/>
-	</bean>		
+		<property name="resourceMap" ref="resourceMap" />		
+	</bean>
+
 </beans>

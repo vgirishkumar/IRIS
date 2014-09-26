@@ -1,4 +1,4 @@
-package com.temenos.interaction.springdsl.properties;
+package com.temenos.interaction.loader.resource.action;
 
 /*
  * #%L
@@ -21,27 +21,25 @@ package com.temenos.interaction.springdsl.properties;
  * #L%
  */
 
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReloadConfiguration implements Runnable {
-  List<ReconfigurableBean> reconfigurableBeans;
+import com.temenos.interaction.loader.properties.PropertiesEvent;
 
-  public void setReconfigurableBeans(List<ReconfigurableBean> reconfigurableBeans) {
-    // early type check, and avoid aliassing
-    this.reconfigurableBeans = new ArrayList<ReconfigurableBean>();
-    for (Object o: reconfigurableBeans) {
-      this.reconfigurableBeans.add((ReconfigurableBean) o);
-    }
-  }
+public class SequentialAction implements Action {
+	List<Action> actions = new ArrayList<Action>();
+	
+	public SequentialAction(List<Action> actions) {
+		this.actions = actions;
+	}
 
-  public void run() {
-    for (ReconfigurableBean bean: reconfigurableBeans) {
-      try {
-        bean.reloadConfiguration();
-      } catch (Exception e) {
-        throw new RuntimeException("while reloading configuration of "+bean, e);
-      }
-    }
-  }
+
+	@Override
+	public void execute(PropertiesEvent event) {
+		for (Action action : actions) {
+			action.execute(event);
+		}
+	}
+
 }

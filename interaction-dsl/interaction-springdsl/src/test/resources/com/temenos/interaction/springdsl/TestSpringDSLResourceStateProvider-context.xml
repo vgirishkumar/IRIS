@@ -28,6 +28,6 @@
 		Initialises the ResourceStateProvider and understands how to construct
 		ResourceState instances using Spring
 	-->
-	<import resource="classpath*:IRIS-SpringDSL-main.xml" />
+	<import resource="classpath*:IRIS-SpringDSL-test.xml" />
 
 </beans>

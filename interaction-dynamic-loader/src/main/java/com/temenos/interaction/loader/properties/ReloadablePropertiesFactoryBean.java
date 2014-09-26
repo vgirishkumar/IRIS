@@ -1,4 +1,4 @@
-package com.temenos.interaction.springdsl.properties;
+package com.temenos.interaction.loader.properties;
 
 /*
  * #%L
@@ -24,6 +24,7 @@ package com.temenos.interaction.springdsl.properties;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,13 +39,15 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
 
+import com.temenos.interaction.springdsl.DynamicProperties;
+
 /**
  * A properties factory bean that creates a reconfigurable Properties object.
  * When the Properties' reloadConfiguration method is called, and the file has
  * changed, the properties are read again from the file. 
  * Credit to: http://www.wuenschenswert.net/wunschdenken/archives/127
  */
-public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DisposableBean, ApplicationContextAware {
+public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DynamicProperties, DisposableBean, ApplicationContextAware {
 	private ApplicationContext ctx;
 
 	private Map<Resource,Long> locations = new HashMap<Resource,Long>();
@@ -54,8 +57,8 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	public void setListeners(List<ReloadablePropertiesListener> listeners) {
 		// early type check, and avoid aliassing
 		this.preListeners = new ArrayList<ReloadablePropertiesListener>();
-		for (Object o : listeners) {
-			preListeners.add((ReloadablePropertiesListener) o);
+		for (ReloadablePropertiesListener l : listeners) {
+			preListeners.add(l);
 		}
 	}
 
@@ -76,13 +79,17 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		reloadableProperties = null;
 	}
 
-	protected void reload(boolean forceReload) throws IOException {
-		Resource[] tmpLocations = ctx.getResources("classpath*:IRIS-*.properties");
+	protected void reload(boolean forceReload) throws IOException {		
+		List<Resource> tmpLocations = new ArrayList<Resource>();
+		
+		for (ReloadablePropertiesListener listener : preListeners) {
+			tmpLocations.addAll(Arrays.asList(ctx.getResources(listener.getResourcePattern())));
+		}
 		
 		boolean reload = forceReload;
 		
 		if(locations == null) {
-			// Uninitalized - Load everything
+			// Uninitialized - Load everything
 			locations = new HashMap<Resource, Long>();
 			
 			for(Resource location : tmpLocations) {
@@ -124,12 +131,14 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		}
 		
 		// Set locations on parent ready for merging of properties with overrides
-		super.setLocations(tmpLocations);
+		super.setLocations(tmpLocations.toArray(new Resource[0]));
 		
 		// TODO Handle removing states
 		
-		if (reload)
+		if (reload) {
 			doReload();
+			logger.info("Finished Refreshing IRIS");	
+		}
 	}
 
 	/**
@@ -153,7 +162,6 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		reloadableProperties.setProperties(mergeProperties());
 	}
 
-	@SuppressWarnings("unchecked")
 	class ReloadablePropertiesImpl extends ReloadablePropertiesBase implements ReconfigurableBean {
 		private static final long serialVersionUID = -3401718333944329073L;
 
