@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.notification;
+package com.temenos.interaction.loader.xml.resource.notification;
 
 /*
  * #%L
@@ -31,10 +31,10 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.resource.action.ResourceModificationAction;
+import com.temenos.interaction.loader.FileEvent;
+import com.temenos.interaction.loader.xml.resource.action.ResourceModificationAction;
 
-public class ResourceModificationNotifier implements ApplicationContextAware {
+public class XmlModificationNotifier implements ApplicationContextAware {
     private ApplicationContext ctx;
     private Collection<ResourceModificationAction> rmas;
     
@@ -57,7 +57,7 @@ public class ResourceModificationNotifier implements ApplicationContextAware {
     	return resourcePatterns;
     }
     
-	public void execute(PropertiesEvent event) {
+	public void execute(FileEvent event) {
 		if(rmas == null) {
 			throw new IllegalStateException();
 		}

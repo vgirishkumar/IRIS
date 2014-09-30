@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.properties;
+package com.temenos.interaction.loader.xml;
 
 /*
  * #%L
@@ -21,38 +21,22 @@ package com.temenos.interaction.loader.properties;
  * #L%
  */
 
-import java.util.Properties;
 
 import org.springframework.core.io.Resource;
 
-public class PropertiesLoadedEvent implements PropertiesEvent {
+import com.temenos.interaction.loader.FileEvent;
 
-	private final ReloadableProperties target;
+public class XmlChangedEvent implements FileEvent {
 	private final Resource resource;
-	private final Properties newProperties;
-	
-	public PropertiesLoadedEvent(ReloadableProperties target, Resource resource, Properties newProperties) {
-		this.target = target;
+		
+	/**
+	 * @param resource
+	 */
+	public XmlChangedEvent(Resource resource) {
 		this.resource = resource;
-		this.newProperties = newProperties;
 	}
 
-	@Override
 	public Resource getResource() {
 		return resource;
-	}
-
-	public ReloadableProperties getTarget() {
-		return target;
-	}
-
-	@Override
-	public void accept(PropertiesEventVisitor visitor) {
-		visitor.visit(this);		
-	}
-
-	@Override
-	public Properties getNewProperties() {
-		return newProperties;
 	}
 }

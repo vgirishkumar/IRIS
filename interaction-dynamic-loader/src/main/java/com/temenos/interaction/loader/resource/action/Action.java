@@ -1,5 +1,7 @@
 package com.temenos.interaction.loader.resource.action;
 
+
+
 /*
  * #%L
  * interaction-springdsl
@@ -22,8 +24,7 @@ package com.temenos.interaction.loader.resource.action;
  */
 
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
 
-public interface Action {
-	void execute(PropertiesEvent event);
+public interface Action<FileEvent> {
+	void execute(FileEvent event);
 }

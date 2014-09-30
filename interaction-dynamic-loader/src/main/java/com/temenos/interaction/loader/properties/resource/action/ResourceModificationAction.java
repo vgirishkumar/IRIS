@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.action;
+package com.temenos.interaction.loader.properties.resource.action;
 
 /*
  * #%L
@@ -22,51 +22,26 @@ package com.temenos.interaction.loader.resource.action;
  */
 
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.springframework.core.io.Resource;
-
+import com.temenos.interaction.loader.FileEvent;
 import com.temenos.interaction.loader.properties.PropertiesChangedEvent;
 import com.temenos.interaction.loader.properties.PropertiesEvent;
 import com.temenos.interaction.loader.properties.PropertiesEventVisitor;
 import com.temenos.interaction.loader.properties.PropertiesLoadedEvent;
+import com.temenos.interaction.loader.resource.action.AbstractResourceModificationAction;
+import com.temenos.interaction.loader.resource.action.Action;
 
-public class ResourceModificationAction {
-	private Pattern resourcePattern;
-	private Action changedAction;
-	private Action loadedAction;
-	private String resourcePatternStr;
+public class ResourceModificationAction extends AbstractResourceModificationAction {
+	private Action<FileEvent> changedAction;
+	private Action<FileEvent> loadedAction;
 	
-	
-	public void setResourcePattern(String resourcePatternStr) {
-		this.resourcePatternStr = resourcePatternStr;
-		
-		String tmp = resourcePatternStr;
-
-		if(resourcePatternStr.indexOf(":") > -1) {
-			// Ignore pattern prefixes like classpath*: as actual the file name in events will not contain them
-			tmp = tmp.substring(resourcePatternStr.indexOf(":") + 1);
-		}
-		
-		// Switch from Spring regex to Java regex
-		tmp = tmp.replace("*", ".*");
-
-		this.resourcePattern = Pattern.compile(tmp);
-	}
-	
-	public String getResourcePattern() {
-		return resourcePatternStr;
-	}
-
-	public void setChangedAction(Action changedAction) {
+	public void setChangedAction(Action<FileEvent> changedAction) {
 		this.changedAction = changedAction;
 	}
 	
-	public void setLoadedAction(Action loadedAction) {
+	public void setLoadedAction(Action<FileEvent> loadedAction) {
 		this.loadedAction = loadedAction;
 	}
-			
+				
 	public void notify(PropertiesEvent event ) {
 		event.accept(new PropertiesEventVisitor() {
 			
@@ -87,23 +62,6 @@ public class ResourceModificationAction {
 					}
 				}								
 			}
-
-			private boolean matches(PropertiesEvent event) {
-				Resource resource = event.getResource(); 
-				String filename = resource.getFilename();
-
-				boolean result = false;
-				
-				if(filename != null) {
-					Matcher matcher = resourcePattern.matcher(filename);
-
-					if(matcher.find()) {
-						result = true;
-					}
-				}
-				
-				return result;
-			}			
 		});								
 	}
 }

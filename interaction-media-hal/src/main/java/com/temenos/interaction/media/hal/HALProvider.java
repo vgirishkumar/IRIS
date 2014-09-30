@@ -466,6 +466,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			}
 			// get the entity name
 			String entityName = getEntityName(resourcePath);
+			
+			if(entityName == null) {
+				throw new IllegalStateException("Entity name could not be found [" + resourcePath + "]");
+			}
+			
 			EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
 			if (entityMetadata == null)
 				throw new IllegalStateException("Entity metadata could not be found [" + entityName + "]");

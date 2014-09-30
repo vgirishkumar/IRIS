@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.notification;
+package com.temenos.interaction.loader.properties.resource.notification;
 
 /*
  * #%L
@@ -22,12 +22,14 @@ package com.temenos.interaction.loader.resource.notification;
  */
 
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -36,13 +38,15 @@ import org.springframework.context.ApplicationContext;
 
 import com.temenos.interaction.loader.properties.PropertiesChangedEvent;
 import com.temenos.interaction.loader.properties.PropertiesLoadedEvent;
-import com.temenos.interaction.loader.resource.action.ResourceModificationAction;
+import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
+import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationListener;
+import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationNotifier;
 
-public class TestResourceModificationListener {
+public class TestPropertiesModificationListener {
 
 	@Test
 	public void testGetPattern() {
-		ResourceModificationNotifier rmn = new ResourceModificationNotifier();
+		PropertiesModificationNotifier rmn = new PropertiesModificationNotifier();
 		
 		Map<String, ResourceModificationAction> map = new TreeMap<String, ResourceModificationAction>();
 		ResourceModificationAction rma = mock(ResourceModificationAction.class);
@@ -57,18 +61,19 @@ public class TestResourceModificationListener {
 		when(ctx.getBeansOfType(ResourceModificationAction.class)).thenReturn(map);
 		rmn.setApplicationContext(ctx);
 		
-		ResourceModificationListener listener = new ResourceModificationListener();
+		PropertiesModificationListener listener = new PropertiesModificationListener();
 		listener.setNotifier(rmn);
 		
-		String pattern = listener.getResourcePattern();
+		List<String> patterns = Arrays.asList(listener.getResourcePatterns());
 		
-		assertEquals("classpath*:IRIS-*.properties, classpath*:MyFile.xml", pattern);
+		assertTrue(patterns.contains("classpath*:IRIS-*.properties"));
+		assertTrue(patterns.contains("classpath*:MyFile.xml"));
 	}
 	
 	@Test
 	public void testExecute() {
-		ResourceModificationListener listener = new ResourceModificationListener();		
-		ResourceModificationNotifier notifier = mock(ResourceModificationNotifier.class);
+		PropertiesModificationListener listener = new PropertiesModificationListener();		
+		PropertiesModificationNotifier notifier = mock(PropertiesModificationNotifier.class);
 		listener.setNotifier(notifier);
 		
 		// Spoof app ctx initialization

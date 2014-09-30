@@ -60,6 +60,7 @@ import org.odata4j.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.adapter.EdmDataServicesAdapter;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.AbstractOdataAnnotation;
@@ -98,7 +99,6 @@ public class MetadataOData4j {
 
 	private final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 
-	private EdmDataServices edmDataServices;
 	private ConcurrentMap<String, EdmEntitySet> nonSrvDocEdmEntitySetMap;
 	private ConcurrentMap<String, EdmComplexType> nonSrvDocEdmComplexTypeMap;
 	private Metadata metadata;
@@ -106,6 +106,7 @@ public class MetadataOData4j {
 	private ResourceState serviceDocument;
 	private String SERVICE_DOCUMENT = "ServiceDocument";
 	private ODataVersion odataVersion = ODataVersion.V1;
+	private EdmDataServicesAdapter edmDataServices;
 
 	/**
 	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
@@ -146,15 +147,24 @@ public class MetadataOData4j {
 	}
 	
 	/**
-	 * Returns odata4j metadata
-	 * @return edmdataservices object
+	 * Returns all metadata - i.e. including meta data relating to resources not in the service document
+	 * 
+	 * @return
 	 */
 	public EdmDataServices getMetadata() {
 		if (edmDataServices == null) {
-			edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+			edmDataServices = new EdmDataServicesAdapter(this);
 		}
 		
 		return edmDataServices;
+	}
+
+	/**
+	 * Returns EDM metadata ONLY - i.e. only meta data relating to resources in the service document
+	 * @return edmdataservices object
+	 */	
+	public EdmDataServices getEdmMetadata() {
+		return createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
 	}
 	
 	public EdmType getEdmEntityTypeByTypeName(String typeName) {
@@ -165,10 +175,10 @@ public class MetadataOData4j {
 		}
 		
 		if(result == null) {
-			result = (EdmEntityType)edmDataServices.findEdmEntityType(typeName);
+			result = (EdmEntityType)getEdmMetadata().findEdmEntityType(typeName);
 		}
 		
-		if(result == null) {
+		if(result == null && !typeName.endsWith("ServiceDocument")) {
 			String tmpTypeName = typeName.substring(typeName.indexOf(".") + 1);
 			EdmEntitySet edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(tmpTypeName));
 
@@ -183,7 +193,7 @@ public class MetadataOData4j {
 	public EdmEntitySet getEdmEntitySetByType(EdmEntityType type) {
 		EdmEntitySet edmEntitySet = null;
 		try {
-			edmEntitySet = edmDataServices.getEdmEntitySet(type);
+			edmEntitySet = getEdmMetadata().getEdmEntitySet(type);
 		} catch (Exception e) {
 			// Ignore.... as we will be try lazy loading after this
 			logger.debug("EntitySet for [" + type + "] not found in EdmDataServices, try loading it seperately...");
@@ -218,6 +228,26 @@ public class MetadataOData4j {
 			edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(entityName));
 		}
 		return edmEntitySet;
+	}
+	
+	/**
+	 * 
+	 * @param entityName
+	 */
+	public void unloadMetadata(String entityName) {		
+		String entitySetName = getEdmEntitySetName(entityName);
+		
+		if(nonSrvDocEdmEntitySetMap.containsKey(entitySetName)) {
+			// Non service document resource - Remove nonSrvDocEdmEntitySetMap entry so that it's meta data cannot be referenced
+			nonSrvDocEdmEntitySetMap.remove(entitySetName);
+		} else {
+			/* Service document resource - Unload the internal reference to the real EDM data services so that it is completely rebuilt
+			 * on the next request to it
+			 */
+			if(edmDataServices != null) {
+				edmDataServices.unload();
+			}
+		}
 	}
 
 	/**
@@ -783,7 +813,7 @@ public class MetadataOData4j {
 	@Override
 	public String toString() {
 		java.io.StringWriter wr = new java.io.StringWriter();
-		org.odata4j.format.xml.EdmxFormatWriter.write(edmDataServices, wr);
+		org.odata4j.format.xml.EdmxFormatWriter.write(getEdmMetadata(), wr);
 		return wr.toString();
 	}
 	

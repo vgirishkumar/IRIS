@@ -381,10 +381,34 @@ public class TestJPAResponderGen {
 		assertTrue(status);
 		
 		assertTrue(generator.generatedClasses.size() == 4);
-		assertTrue(generator.generatedClasses.get(0).contains("public class Flight"));
-		assertTrue(generator.generatedClasses.get(1).contains("public class Airport"));
-		assertTrue(generator.generatedClasses.get(2).contains("public class FlightSchedule"));
-		assertTrue(generator.generatedClasses.get(3).contains("public class Passenger"));
+		
+		boolean foundFlight = false;
+		boolean foundAirport = false;
+		boolean foundFlightSchedule = false;
+		boolean foundPassenger = false;
+		
+		for(String clazz: generator.generatedClasses) {
+			if(clazz.contains("public class Flight")) {
+				foundFlight = true;
+			}
+			
+			if(clazz.contains("public class Airport")) {
+				foundAirport = true;
+			}
+			
+			if(clazz.contains("public class FlightSchedule")) {
+				foundFlightSchedule = true;
+			}
+			
+			if(clazz.contains("public class Passenger")) {
+				foundPassenger = true;
+			}
+		}
+		
+		assertTrue(foundFlight);
+		assertTrue(foundAirport);
+		assertTrue(foundFlightSchedule);
+		assertTrue(foundPassenger);
 
 		assertTrue(generator.generateResponderDML.contains("INSERT INTO `Flight`("));
 		assertTrue(generator.generateResponderDML.contains("INSERT INTO `Airport`("));
