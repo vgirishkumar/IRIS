@@ -25,8 +25,8 @@ package com.temenos.interaction.loader.properties.resource.action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.loader.action.Action;
 import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.resource.action.Action;
 import com.temenos.interaction.springdsl.SpringDSLResourceStateProvider;
 
 /**

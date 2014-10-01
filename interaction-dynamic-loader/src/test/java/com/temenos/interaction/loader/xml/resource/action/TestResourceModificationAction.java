@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 import org.junit.Test;
 import org.springframework.core.io.Resource;
 
-import com.temenos.interaction.loader.resource.action.Action;
+import com.temenos.interaction.core.loader.action.Action;
 import com.temenos.interaction.loader.xml.XmlChangedEvent;
 
 public class TestResourceModificationAction {

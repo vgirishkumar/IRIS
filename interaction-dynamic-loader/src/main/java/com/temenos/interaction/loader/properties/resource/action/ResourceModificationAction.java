@@ -21,14 +21,13 @@ package com.temenos.interaction.loader.properties.resource.action;
  * #L%
  */
 
-
+import com.temenos.interaction.core.loader.action.Action;
 import com.temenos.interaction.loader.FileEvent;
 import com.temenos.interaction.loader.properties.PropertiesChangedEvent;
 import com.temenos.interaction.loader.properties.PropertiesEvent;
 import com.temenos.interaction.loader.properties.PropertiesEventVisitor;
 import com.temenos.interaction.loader.properties.PropertiesLoadedEvent;
 import com.temenos.interaction.loader.resource.action.AbstractResourceModificationAction;
-import com.temenos.interaction.loader.resource.action.Action;
 
 public class ResourceModificationAction extends AbstractResourceModificationAction {
 	private Action<FileEvent> changedAction;

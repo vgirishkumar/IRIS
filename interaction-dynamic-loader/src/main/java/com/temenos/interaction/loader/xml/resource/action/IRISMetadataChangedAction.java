@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.loader.resource.action.Action;
+import com.temenos.interaction.core.loader.action.Action;
 import com.temenos.interaction.loader.xml.XmlChangedEvent;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 

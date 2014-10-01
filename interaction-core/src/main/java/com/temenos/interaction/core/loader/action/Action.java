@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.action;
+package com.temenos.interaction.core.loader.action;
 
 
 

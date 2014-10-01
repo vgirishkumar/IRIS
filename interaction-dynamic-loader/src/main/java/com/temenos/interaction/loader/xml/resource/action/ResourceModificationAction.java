@@ -22,9 +22,9 @@ package com.temenos.interaction.loader.xml.resource.action;
  */
 
 
+import com.temenos.interaction.core.loader.action.Action;
 import com.temenos.interaction.loader.FileEvent;
 import com.temenos.interaction.loader.resource.action.AbstractResourceModificationAction;
-import com.temenos.interaction.loader.resource.action.Action;
 
 public class ResourceModificationAction extends AbstractResourceModificationAction {
 	private Action<FileEvent> changedAction;

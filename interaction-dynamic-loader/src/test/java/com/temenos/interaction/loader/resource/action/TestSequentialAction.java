@@ -30,9 +30,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.temenos.interaction.core.loader.action.Action;
 import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.resource.action.Action;
-import com.temenos.interaction.loader.resource.action.SequentialAction;
 
 public class TestSequentialAction {
 
