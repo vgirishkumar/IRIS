@@ -168,25 +168,29 @@ public class MetadataOData4j {
 	}
 	
 	public EdmType getEdmEntityTypeByTypeName(String typeName) {
-		EdmType result = null;
-		
-		if(nonSrvDocEdmComplexTypeMap.containsKey(typeName)) {
-			result = nonSrvDocEdmComplexTypeMap.get(typeName);
-		}
+		// Check if type is in the service document / EDM meta data
+		EdmType result = (EdmEntityType)getEdmMetadata().findEdmEntityType(typeName);
+
+        if(result == null && nonSrvDocEdmComplexTypeMap.containsKey(typeName)) {
+        	// Check if the type is a complex type in non service document meta data
+            result = nonSrvDocEdmComplexTypeMap.get(typeName);
+        }		
 		
 		if(result == null) {
-			result = (EdmEntityType)getEdmMetadata().findEdmEntityType(typeName);
-		}
-		
-		if(result == null && !typeName.endsWith("ServiceDocument")) {
+			// Check if the type is non service document meta data  
 			String tmpTypeName = typeName.substring(typeName.indexOf(".") + 1);
 			EdmEntitySet edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(tmpTypeName));
-
+			
 			if(edmEntitySet != null) {
-				result = edmEntitySet.getType();
+				try {
+					result = edmEntitySet.getType();
+				} catch(IllegalArgumentException e) {
+					// Expected for cases where entity type does not have keys i.e. ServiceDocument, Metadata, etc..
+					logger.debug("Failed to get type for" + typeName, e);
+				}
 			}
-		}		
-		
+		}
+				
 		return result;
 	}
 	
