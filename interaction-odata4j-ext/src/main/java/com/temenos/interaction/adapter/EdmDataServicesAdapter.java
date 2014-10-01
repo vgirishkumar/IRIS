@@ -67,10 +67,17 @@ public class EdmDataServicesAdapter extends EdmDataServices {
 		
 		return edmDataServices;
 	}
-	
-	public void unload() {
+		
+	public void unload(String entitySetName) {
 		synchronized (this) {
-			edmDataServices = null;
+			if(edmDataServices != null) {
+				// EDM data services has already been initialized
+				
+				if(edmDataServices.getEdmEntitySet(entitySetName) != null) {
+					// EDM data services, i.e. service document, contains entity set therefore it needs to be rebuilt
+					edmDataServices = null;
+				}				
+			}
 		}
 	}
 	

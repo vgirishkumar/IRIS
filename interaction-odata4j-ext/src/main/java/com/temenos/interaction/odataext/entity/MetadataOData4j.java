@@ -106,7 +106,7 @@ public class MetadataOData4j {
 	private ResourceState serviceDocument;
 	private String SERVICE_DOCUMENT = "ServiceDocument";
 	private ODataVersion odataVersion = ODataVersion.V1;
-	private EdmDataServicesAdapter edmDataServices;
+	private EdmDataServicesAdapter edmDataServicesAdapter;
 
 	/**
 	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
@@ -152,11 +152,11 @@ public class MetadataOData4j {
 	 * @return
 	 */
 	public EdmDataServices getMetadata() {
-		if (edmDataServices == null) {
-			edmDataServices = new EdmDataServicesAdapter(this);
+		if (edmDataServicesAdapter == null) {
+			edmDataServicesAdapter = new EdmDataServicesAdapter(this);
 		}
 		
-		return edmDataServices;
+		return edmDataServicesAdapter;
 	}
 
 	/**
@@ -241,11 +241,11 @@ public class MetadataOData4j {
 			// Non service document resource - Remove nonSrvDocEdmEntitySetMap entry so that it's meta data cannot be referenced
 			nonSrvDocEdmEntitySetMap.remove(entitySetName);
 		} else {
-			/* Service document resource - Unload the internal reference to the real EDM data services so that it is completely rebuilt
-			 * on the next request to it
+			/* This may be a service document resource, if it is - Unload the internal reference to the real EDM data services 
+			 * so that it is completely rebuilt on the next request to it
 			 */
-			if(edmDataServices != null) {
-				edmDataServices.unload();
+			if(edmDataServicesAdapter != null) {
+				edmDataServicesAdapter.unload(entitySetName);
 			}
 		}
 	}
