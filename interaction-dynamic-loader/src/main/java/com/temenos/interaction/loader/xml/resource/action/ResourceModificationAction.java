@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.properties;
+package com.temenos.interaction.loader.xml.resource.action;
 
 /*
  * #%L
@@ -22,11 +22,20 @@ package com.temenos.interaction.loader.properties;
  */
 
 
-import java.util.Properties;
-
 import com.temenos.interaction.loader.FileEvent;
+import com.temenos.interaction.loader.resource.action.AbstractResourceModificationAction;
+import com.temenos.interaction.loader.resource.action.Action;
 
-public interface PropertiesEvent extends FileEvent {
-	public void accept(PropertiesEventVisitor visitor);
-	public Properties getNewProperties();
+public class ResourceModificationAction extends AbstractResourceModificationAction {
+	private Action<FileEvent> changedAction;
+		
+	public void setChangedAction(Action<FileEvent> changedAction) {
+		this.changedAction = changedAction;
+	}
+	
+	public void notify(FileEvent event ) {
+		if(matches(event)) {
+			changedAction.execute(event);
+		}
+	}
 }

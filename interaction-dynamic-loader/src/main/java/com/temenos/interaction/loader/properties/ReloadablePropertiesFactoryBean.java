@@ -50,9 +50,11 @@ import com.temenos.interaction.springdsl.DynamicProperties;
 public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DynamicProperties, DisposableBean, ApplicationContextAware {
 	private ApplicationContext ctx;
 
-	private Map<Resource,Long> locations = new HashMap<Resource,Long>();
+	private Map<Resource,Long> locations;
 	private List<ReloadablePropertiesListener> preListeners;
 	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
+	private ReloadablePropertiesBase reloadableProperties;	
+	private Properties properties;
 	
 	public void setListeners(List<ReloadablePropertiesListener> listeners) {
 		// early type check, and avoid aliassing
@@ -61,14 +63,21 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			preListeners.add(l);
 		}
 	}
-
-	private ReloadablePropertiesBase reloadableProperties;
+	
+	/**
+	 * @param properties the properties to set
+	 */
+	public void setProperties(Properties properties) {
+		this.properties = properties;
+	}
 
 	protected Object createInstance() throws IOException {
 		// would like to uninherit from AbstractFactoryBean (but it's final!)
 		if (!isSingleton())
 			throw new RuntimeException("ReloadablePropertiesFactoryBean only works as singleton");
 		reloadableProperties = new ReloadablePropertiesImpl();
+		reloadableProperties.setProperties(properties);
+		
 		if (preListeners != null)
 			reloadableProperties.setListeners(preListeners);
 		reload(true);
@@ -83,7 +92,11 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		List<Resource> tmpLocations = new ArrayList<Resource>();
 		
 		for (ReloadablePropertiesListener listener : preListeners) {
-			tmpLocations.addAll(Arrays.asList(ctx.getResources(listener.getResourcePattern())));
+			String[] patterns = listener.getResourcePatterns();
+			
+			for(String pattern: patterns) {
+				tmpLocations.addAll(Arrays.asList(ctx.getResources(pattern)));	
+			}			
 		}
 		
 		boolean reload = forceReload;

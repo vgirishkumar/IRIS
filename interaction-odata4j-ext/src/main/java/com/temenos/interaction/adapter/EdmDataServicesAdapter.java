@@ -45,6 +45,7 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
  */
 public class EdmDataServicesAdapter extends EdmDataServices {
 	private MetadataOData4j metadataOData4j;
+	private EdmDataServices edmDataServices;
 	
 	/**
 	 * @param version
@@ -57,14 +58,37 @@ public class EdmDataServicesAdapter extends EdmDataServices {
 		this.metadataOData4j = metadataOData4j;
 	}
 	
+	private EdmDataServices getEdmMetadata() {
+		synchronized (this) {
+			if(edmDataServices == null) {
+				edmDataServices = metadataOData4j.getEdmMetadata();
+			}
+		}
+		
+		return edmDataServices;
+	}
+		
+	public void unload(String entitySetName) {
+		synchronized (this) {
+			if(edmDataServices != null) {
+				// EDM data services has already been initialized
+				
+				if(edmDataServices.getEdmEntitySet(entitySetName) != null) {
+					// EDM data services, i.e. service document, contains entity set therefore it needs to be rebuilt
+					edmDataServices = null;
+				}				
+			}
+		}
+	}
+	
 	@Override
 	public EdmComplexType findEdmComplexType(String arg0) {
-		return metadataOData4j.getMetadata().findEdmComplexType(arg0);
+		return getEdmMetadata().findEdmComplexType(arg0);
 	}
 
 	@Override
 	public EdmEntitySet findEdmEntitySet(String arg0) {					
-		return metadataOData4j.getMetadata().findEdmEntitySet(arg0);
+		return getEdmMetadata().findEdmEntitySet(arg0);
 	}
 
 	@Override
@@ -74,27 +98,27 @@ public class EdmDataServicesAdapter extends EdmDataServices {
 
 	@Override
 	public EdmFunctionImport findEdmFunctionImport(String arg0) {					
-		return metadataOData4j.getMetadata().findEdmFunctionImport(arg0);
+		return getEdmMetadata().findEdmFunctionImport(arg0);
 	}
 
 	@Override
 	public EdmPropertyBase findEdmProperty(String arg0) {					
-		return metadataOData4j.getMetadata().findEdmProperty(arg0);
+		return getEdmMetadata().findEdmProperty(arg0);
 	}
 
 	@Override
 	public EdmSchema findSchema(String arg0) {					
-		return metadataOData4j.getMetadata().findSchema(arg0);
+		return getEdmMetadata().findSchema(arg0);
 	}
 
 	@Override
 	public Iterable<EdmAssociation> getAssociations() {					
-		return metadataOData4j.getMetadata().getAssociations();
+		return getEdmMetadata().getAssociations();
 	}
 
 	@Override
 	public Iterable<EdmComplexType> getComplexTypes() {					
-		return metadataOData4j.getMetadata().getComplexTypes();
+		return getEdmMetadata().getComplexTypes();
 	}
 
 	@Override
@@ -109,42 +133,42 @@ public class EdmDataServicesAdapter extends EdmDataServices {
 
 	@Override
 	public Iterable<EdmEntitySet> getEntitySets() {					
-		return metadataOData4j.getMetadata().getEntitySets();
+		return getEdmMetadata().getEntitySets();
 	}
 
 	@Override
 	public Iterable<EdmEntityType> getEntityTypes() {					
-		return metadataOData4j.getMetadata().getEntityTypes();
+		return getEdmMetadata().getEntityTypes();
 	}
 
 	@Override
 	public ImmutableList<PrefixedNamespace> getNamespaces() {					
-		return metadataOData4j.getMetadata().getNamespaces();
+		return getEdmMetadata().getNamespaces();
 	}
 
 	@Override
 	public ImmutableList<EdmSchema> getSchemas() {					
-		return metadataOData4j.getMetadata().getSchemas();
+		return getEdmMetadata().getSchemas();
 	}
 
 	@Override
 	public Iterable<EdmStructuralType> getStructuralTypes() {					
-		return metadataOData4j.getMetadata().getStructuralTypes();
+		return getEdmMetadata().getStructuralTypes();
 	}
 
 	@Override
 	public Iterable<EdmStructuralType> getSubTypes(EdmStructuralType t) {					
-		return metadataOData4j.getMetadata().getSubTypes(t);
+		return getEdmMetadata().getSubTypes(t);
 	}
 
 	@Override
 	public String getVersion() {					
-		return metadataOData4j.getMetadata().getVersion();
+		return getEdmMetadata().getVersion();
 	}
 
 	@Override
 	public EdmType resolveType(String fqTypeName) {					
-		return metadataOData4j.getMetadata().resolveType(fqTypeName);
+		return getEdmMetadata().resolveType(fqTypeName);
 	}
 
 }

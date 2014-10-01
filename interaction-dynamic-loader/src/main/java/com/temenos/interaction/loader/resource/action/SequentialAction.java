@@ -25,21 +25,19 @@ package com.temenos.interaction.loader.resource.action;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
+import com.temenos.interaction.loader.FileEvent;
 
-public class SequentialAction implements Action {
+public class SequentialAction implements Action<FileEvent> {
 	List<Action> actions = new ArrayList<Action>();
 	
 	public SequentialAction(List<Action> actions) {
 		this.actions = actions;
 	}
 
-
 	@Override
-	public void execute(PropertiesEvent event) {
+	public void execute(FileEvent event) {
 		for (Action action : actions) {
 			action.execute(event);
 		}
 	}
-
 }

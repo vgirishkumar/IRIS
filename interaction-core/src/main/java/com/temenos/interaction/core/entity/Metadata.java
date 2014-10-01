@@ -22,8 +22,8 @@ package com.temenos.interaction.core.entity;
  */
 
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.temenos.interaction.core.resource.ResourceMetadataManager;
 
@@ -34,7 +34,7 @@ public class Metadata  {
 	public final static String MODEL_SUFFIX = "Model";
 
 	//Map of <Entity name, Entity metadata>
-	private Map<String, EntityMetadata> entitiesMetadata = new HashMap<String, EntityMetadata>();
+	private Map<String, EntityMetadata> entitiesMetadata = new ConcurrentHashMap<String, EntityMetadata>();
 	private String modelName;
 
 	private ResourceMetadataManager resourceMetadataManager;
@@ -115,6 +115,9 @@ public class Metadata  {
 		this.resourceMetadataManager = rmManager;
 	}
 	
+	public void unload( String entityName) {
+		entitiesMetadata.remove(entityName);
+	}
 
 	/*
 	 * return metadata

@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.notification;
+package com.temenos.interaction.loader.properties.resource.notification;
 
 /*
  * #%L
@@ -22,7 +22,6 @@ package com.temenos.interaction.loader.resource.notification;
  */
 
 import static org.junit.Assert.assertTrue;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,13 +34,14 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
 import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.resource.action.ResourceModificationAction;
+import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
+import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationNotifier;
 
-public class TestResourceModificationNotifier {
+public class TestPropertiesModificationNotifier {
 
 	@Test
 	public void testExecute() {
-		ResourceModificationNotifier rmn = new ResourceModificationNotifier();
+		PropertiesModificationNotifier rmn = new PropertiesModificationNotifier();
 		
 		Map<String, ResourceModificationAction> map = new HashMap<String, ResourceModificationAction>();
 		ResourceModificationAction rma = mock(ResourceModificationAction.class);
@@ -65,7 +65,7 @@ public class TestResourceModificationNotifier {
 
 	@Test
 	public void testGetPattern() {
-		ResourceModificationNotifier rmn = new ResourceModificationNotifier();
+		PropertiesModificationNotifier rmn = new PropertiesModificationNotifier();
 		
 		Map<String, ResourceModificationAction> map = new HashMap<String, ResourceModificationAction>();
 		ResourceModificationAction rma = mock(ResourceModificationAction.class);

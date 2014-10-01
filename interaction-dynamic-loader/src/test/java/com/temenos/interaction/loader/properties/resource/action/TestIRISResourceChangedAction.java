@@ -1,8 +1,8 @@
-package com.temenos.interaction.loader.resource.action;
+package com.temenos.interaction.loader.properties.resource.action;
 
 /*
  * #%L
- * interaction-springdsl
+ * interaction-dynamic-loader
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -24,33 +24,39 @@ package com.temenos.interaction.loader.resource.action;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Properties;
 
 import org.junit.Test;
 
 import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.resource.action.Action;
-import com.temenos.interaction.loader.resource.action.SequentialAction;
+import com.temenos.interaction.springdsl.SpringDSLResourceStateProvider;
 
-public class TestSequentialAction {
+
+/**
+ * TODO: Document me!
+ *
+ * @author mlambert
+ *
+ */
+public class TestIRISResourceChangedAction {
 
 	@Test
 	public void test() {
-		List<Action> actions = new ArrayList<Action>();
-		Action action1 = mock(Action.class);
-		actions.add(action1);
-		Action action2 = mock(Action.class);
-		actions.add(action2);
+		IRISResourceChangedAction action = new IRISResourceChangedAction();
 		
-		SequentialAction action = new SequentialAction(actions);
+		SpringDSLResourceStateProvider resourceStateProvider = mock(SpringDSLResourceStateProvider.class);
+		action.setResourceStateProvider(resourceStateProvider);
+		
+		Properties props = new Properties();
+		props.put("test", "n/a");
 		PropertiesEvent event = mock(PropertiesEvent.class);
+		when(event.getNewProperties()).thenReturn(props);
 		
 		action.execute(event);
 		
-		verify(action1).execute(event);
-		verify(action2).execute(event);		
+		verify(resourceStateProvider).unload("test");		
 	}
 
 }

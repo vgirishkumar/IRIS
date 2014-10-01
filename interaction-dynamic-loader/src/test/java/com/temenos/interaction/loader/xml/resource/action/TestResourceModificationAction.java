@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.action;
+package com.temenos.interaction.loader.xml.resource.action;
 
 /*
  * #%L
@@ -31,15 +31,14 @@ import static org.mockito.Mockito.when;
 import org.junit.Test;
 import org.springframework.core.io.Resource;
 
-import com.temenos.interaction.loader.properties.PropertiesChangedEvent;
-import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.properties.PropertiesLoadedEvent;
+import com.temenos.interaction.loader.resource.action.Action;
+import com.temenos.interaction.loader.xml.XmlChangedEvent;
 
 public class TestResourceModificationAction {
 
 	@Test
 	public void testExplicitFilename() {
-		String resourcePattern = "myfile.properties";
+		String resourcePattern = "meta-file.xml";
 		
 		Action action = mock(Action.class);		
 		ResourceModificationAction rma = new ResourceModificationAction();
@@ -49,16 +48,16 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn(resourcePattern);
 		
-		PropertiesChangedEvent event = new PropertiesChangedEvent(null, resource, null);
+		XmlChangedEvent event = new XmlChangedEvent(resource);
 		
 		rma.notify(event);
 		
 		verify(action).execute(event);
 		
 		Resource resource2 = mock(Resource.class);
-		when(resource2.getFilename()).thenReturn("myfile2.properties");
+		when(resource2.getFilename()).thenReturn("myfile2.xml");
 		
-		PropertiesChangedEvent event2 = new PropertiesChangedEvent(null, resource2, null);
+		XmlChangedEvent event2 = new XmlChangedEvent(resource2);
 
 		rma.notify(event2);
 		
@@ -67,7 +66,7 @@ public class TestResourceModificationAction {
 
 	@Test
 	public void testMatchesFilenamePattern() {
-		String resourcePattern = "IRIS-*.properties";
+		String resourcePattern = "meta-*.xml";
 		
 		Action action = mock(Action.class);
 		
@@ -76,18 +75,18 @@ public class TestResourceModificationAction {
 		rma.setChangedAction(action);
 		
 		Resource resource = mock(Resource.class);
-		when(resource.getFilename()).thenReturn("IRIS-blah.properties");
+		when(resource.getFilename()).thenReturn("meta-blah.xml");
 		
-		PropertiesChangedEvent event = new PropertiesChangedEvent(null, resource, null);
+		XmlChangedEvent event = new XmlChangedEvent(resource);
 		
 		rma.notify(event);
 		
 		verify(action).execute(event);
 		
 		Resource resource2 = mock(Resource.class);
-		when(resource2.getFilename()).thenReturn("metadata-blah.properties");
+		when(resource2.getFilename()).thenReturn("IRIS-blah.xml");
 		
-		PropertiesChangedEvent event2 = new PropertiesChangedEvent(null, resource2, null);
+		XmlChangedEvent event2 = new XmlChangedEvent(resource2);
 				
 		rma.notify(event2);
 		
@@ -96,62 +95,56 @@ public class TestResourceModificationAction {
 	
 	@Test
 	public void testMatchesEventType() {
-		String resourcePattern = "IRIS-*.properties";
+		String resourcePattern = "meta-*.xml";
 		
 		Action changedAction = mock(Action.class);
-		Action loadedAction = mock(Action.class);
 		
 		ResourceModificationAction rma = new ResourceModificationAction();
 		rma.setResourcePattern(resourcePattern);
 		rma.setChangedAction(changedAction);
-		rma.setLoadedAction(loadedAction);
 		
 		Resource resource = mock(Resource.class);
-		when(resource.getFilename()).thenReturn("IRIS-blah.properties");				
+		when(resource.getFilename()).thenReturn("meta-blah.xml");				
 		
-		PropertiesEvent event = new PropertiesChangedEvent(null, resource, null);
+		XmlChangedEvent event = new XmlChangedEvent(resource);
 				
 		rma.notify(event);
 		
 		Resource resource2 = mock(Resource.class);
-		when(resource2.getFilename()).thenReturn("IRIS-blah.properties");
-		PropertiesEvent event2 = new PropertiesLoadedEvent(null, resource2, null);		
+		when(resource2.getFilename()).thenReturn("meta-blah.xml");
+		XmlChangedEvent event2 = new XmlChangedEvent(resource2);		
 		
 		rma.notify(event2);
 		
-		verify(changedAction, times(1)).execute(event);
-		verify(loadedAction, times(1)).execute(event2);		
+		verify(changedAction, times(1)).execute(event);		
 	}	
 	
 	@Test
 	public void testNotify() {
-		String resourcePattern = "IRIS-*.properties";
+		String resourcePattern = "meta-*.xml";
 		
 		Action changedAction = mock(Action.class);
-		Action loadedAction = mock(Action.class);
 		
 		ResourceModificationAction rma = new ResourceModificationAction();
 		rma.setResourcePattern(resourcePattern);
 		rma.setChangedAction(changedAction);
-		rma.setLoadedAction(loadedAction);
 		
 		Resource resource = mock(Resource.class);
-		when(resource.getFilename()).thenReturn("IRIS-blah.properties");
+		when(resource.getFilename()).thenReturn("IRIS-blah.xml");
 		
-		PropertiesEvent event = new PropertiesLoadedEvent(null, resource, null);
+		XmlChangedEvent event = new XmlChangedEvent(resource);
 		
 		rma.notify(event);
 		
 		verify(changedAction, never()).execute(event);		
 		
 		Resource resource2 = mock(Resource.class);
-		when(resource2.getFilename()).thenReturn("metadata-blah.properties");
+		when(resource2.getFilename()).thenReturn("metadata-blah.xml");
 		
-		PropertiesEvent event2 = new PropertiesLoadedEvent(null, resource2, null);
+		XmlChangedEvent event2 = new XmlChangedEvent(resource2);
 		
 		rma.notify(event2);
 		
 		verify(changedAction, never()).execute(event2);
-		verify(loadedAction, never()).execute(event2);
 	}
 }

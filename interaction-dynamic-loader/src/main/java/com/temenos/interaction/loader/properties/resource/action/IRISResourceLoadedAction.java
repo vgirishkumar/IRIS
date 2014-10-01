@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.action;
+package com.temenos.interaction.loader.properties.resource.action;
 
 /*
  * #%L
@@ -24,39 +24,37 @@ package com.temenos.interaction.loader.resource.action;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import com.temenos.interaction.loader.properties.PropertiesEvent;
+import com.temenos.interaction.loader.resource.action.Action;
 import com.temenos.interaction.springdsl.SpringDSLResourceStateProvider;
 
-public class IRISResourceLoadedAction implements Action, ApplicationContextAware {
+/**
+ * This class performs the necessary updates to load a new IRIS in memory resource from an underlying resource
+ *
+ * @author mlambert
+ *
+ */
+public class IRISResourceLoadedAction implements Action<PropertiesEvent> {
 	private final Logger logger = LoggerFactory.getLogger(IRISResourceLoadedAction.class);	
-	private SpringDSLResourceStateProvider resourceStateProvider;
 	
-	private ApplicationContext ctx;
-
-	@Override
-	public void execute(PropertiesEvent event) {
-			if (resourceStateProvider == null)
-				resourceStateProvider = ctx.getBean(SpringDSLResourceStateProvider.class);
-			
-			logger.debug("properties loadeded: " + event.getNewProperties());
-			
-
-			if (resourceStateProvider == null)
-				resourceStateProvider = ctx.getBean(SpringDSLResourceStateProvider.class);
-			for (Object key : event.getNewProperties().keySet()) {
-				String name = key.toString();
-				
-				resourceStateProvider.addState(name, event.getNewProperties());
-			}						
-		}
-
-	@Override
-	public void setApplicationContext(ApplicationContext ctx) throws BeansException {
-		this.ctx = ctx;
+	private SpringDSLResourceStateProvider resourceStateProvider;
 		
-	}		
+	/**
+	 * @param resourceStateProvider the resourceStateProvider to set
+	 */
+	public void setResourceStateProvider(SpringDSLResourceStateProvider resourceStateProvider) {
+		this.resourceStateProvider = resourceStateProvider;
+	}
+
+	@Override
+	public void execute(PropertiesEvent event) {			
+		logger.debug("Properties loaded: " + event.getNewProperties());
+
+		for (Object key : event.getNewProperties().keySet()) {
+			String name = key.toString();
+
+			resourceStateProvider.addState(name, event.getNewProperties());
+		}
+	}
 }

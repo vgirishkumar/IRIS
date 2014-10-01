@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.notification;
+package com.temenos.interaction.loader.properties.resource.notification;
 
 /*
  * #%L
@@ -22,39 +22,23 @@ package com.temenos.interaction.loader.resource.notification;
  */
 
 
-import java.util.Iterator;
-
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 import com.temenos.interaction.loader.properties.PropertiesEvent;
 import com.temenos.interaction.loader.properties.ReloadablePropertiesListener;
 
-public class ResourceModificationListener implements ReloadablePropertiesListener, ApplicationListener<ContextRefreshedEvent> {
+public class PropertiesModificationListener implements ReloadablePropertiesListener, ApplicationListener<ContextRefreshedEvent> {
 	private boolean applicationInitialized = false;	
-	private ResourceModificationNotifier notifier;
+	private PropertiesModificationNotifier notifier;
 	
-	public void setNotifier(ResourceModificationNotifier notifier) {
+	public void setNotifier(PropertiesModificationNotifier notifier) {
 		this.notifier = notifier;
 	}
 
 	@Override
-	public String getResourcePattern() {
-		StringBuilder builder = new StringBuilder();
-		
-		Iterator<String> patterns = notifier.getPatterns().iterator();
-		
-		while(patterns.hasNext()) {
-			String pattern = patterns.next();
-			
-			builder.append(pattern);
-			
-			if(patterns.hasNext()) {
-				builder.append(", ");
-			}
-		}
-		
-		return builder.toString();
+	public String[] getResourcePatterns() {				
+		return notifier.getPatterns().toArray(new String[0]);
 	}
 
 	@Override

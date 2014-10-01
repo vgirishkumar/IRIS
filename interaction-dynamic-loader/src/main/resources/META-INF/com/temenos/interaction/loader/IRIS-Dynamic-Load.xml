@@ -32,28 +32,50 @@
 
 	<context:component-scan base-package="com.temenos.interaction.springdsl" />
 	
-	<bean id="irisResourceLoadedAction" class="com.temenos.interaction.loader.resource.action.IRISResourceLoadedAction" />
-	<bean id="irisResourceChangedAction" class="com.temenos.interaction.loader.resource.action.IRISResourceChangedAction" />
+	<bean id="irisResourceLoadedAction" class="com.temenos.interaction.loader.properties.resource.action.IRISResourceLoadedAction">
+		<property name="resourceStateProvider" ref="resourceStateProvider" />
+	</bean>
 	
-	<bean id="irisResourceModificationAction" class="com.temenos.interaction.loader.resource.action.ResourceModificationAction">
+	<bean id="irisResourceChangedAction" class="com.temenos.interaction.loader.properties.resource.action.IRISResourceChangedAction">
+		<property name="resourceStateProvider" ref="resourceStateProvider" />		
+	</bean>
+	
+	<bean id="irisResourceModificationAction" class="com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction">
 		<property name="resourcePattern" value="classpath*:IRIS-*.properties"/>
 		<property name="loadedAction" ref="irisResourceLoadedAction"/>
 		<property name="changedAction" ref="irisResourceChangedAction"/>
 	</bean>
 	
-	<bean id="irisResourceModificationNotifier" class="com.temenos.interaction.loader.resource.notification.ResourceModificationNotifier"/>
+	<bean id="irisMetadataChangedAction" class="com.temenos.interaction.loader.xml.resource.action.IRISMetadataChangedAction">
+		<property name="metadata" ref="metadata" />
+		<property name="metadataOData4j" ref="metadataOData4j" />				
+	</bean>
+	
+	<bean id="irisMetadataModificationAction" class="com.temenos.interaction.loader.xml.resource.action.ResourceModificationAction">
+		<property name="resourcePattern" value="classpath*:metadata-*.xml"/>
+		<property name="changedAction" ref="irisMetadataChangedAction"/>
+	</bean>
+		
+	<bean id="irisPropertiesModificationNotifier" class="com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationNotifier"/>
 
-	<bean id="modificationListener" class="com.temenos.interaction.loader.resource.notification.ResourceModificationListener">
-		<property name="notifier" ref="irisResourceModificationNotifier"/>
+	<bean id="propertiesModificationListener" class="com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationListener">
+		<property name="notifier" ref="irisPropertiesModificationNotifier"/>
 	</bean>
 
 	<!-- Load the index of resources --> 
-	<bean id="states" class="com.temenos.interaction.loader.properties.ReloadablePropertiesFactoryBean">
+	<bean id="stateLoading" class="com.temenos.interaction.loader.properties.ReloadablePropertiesFactoryBean">
+		<property name="properties" ref="defaultResources"/>	
 		<property name="listeners">
 			<list>
-				<ref bean="modificationListener" />		
+				<ref bean="propertiesModificationListener" />		
 			</list>		
 		</property>
+	</bean>
+	
+	<bean id="irisXmlModificationNotifier" class="com.temenos.interaction.loader.xml.resource.notification.XmlModificationNotifier"/>	
+
+	<bean id="metaLoading" class="com.temenos.interaction.loader.xml.ReloadableXmlListener">
+		<property name="notifier" ref="irisXmlModificationNotifier"/>
 	</bean>
 	 	
   	<!-- regularly reload property files. -->
@@ -65,7 +87,8 @@
 					<bean class="com.temenos.interaction.loader.properties.ReloadConfiguration">
 						<property name="reconfigurableBeans">
 							<list>
-								<ref bean="states" />
+								<ref bean="stateLoading" />
+								<ref bean="metaLoading" />
 							</list>
 						</property>
 					</bean>

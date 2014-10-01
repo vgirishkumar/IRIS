@@ -180,21 +180,14 @@ public class TestMetadataOData4j {
 		String nonSrcDocEntityName = "NonSrvDocEntity"; 
 		String nonSrcDocEntitySetName = "NonSrvDocEntitys";
 		EdmEntitySet nonSrcDocEntitySet = null;
-		boolean notFound = false;
+
 		try {
 			// Get the EdmDataServices and verify its not there
 			EdmDataServices edmDataServices = metadataOdata4j.getMetadata();
 			nonSrcDocEntitySet = edmDataServices.getEdmEntitySet(nonSrcDocEntitySetName);
 		} catch (NotFoundException nfe) {
-			notFound = true;
 		}
-		Assert.assertTrue(notFound);
-		Assert.assertNull(nonSrcDocEntitySet);	// It should not have been found
-		
-		// Lets check if we really have it or not
-		nonSrcDocEntitySet = metadataOdata4j.getEdmEntitySetByEntitySetName(nonSrcDocEntitySetName);
-		Assert.assertNotNull(nonSrcDocEntitySet);	// This time it should load, prepare and return
-		
+						
 		EdmType type = nonSrcDocEntitySet.getType();
 		Assert.assertNotNull(type);
 		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("CustomerServiceTestModel.NonSrvDocEntity"));

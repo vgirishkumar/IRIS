@@ -32,7 +32,7 @@
 
 	<context:component-scan base-package="com.temenos.interaction.springdsl" />
 	
-	<bean id="defaultProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+	<bean id="defaultResources" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
   		<property name="singleton" value="true"/>
   		<property name="ignoreResourceNotFound" value="true"/>
   		<property name="locations">
@@ -42,11 +42,7 @@
   		</property>
 	</bean>
 	
-	<bean id="resourceMap" class="com.temenos.interaction.springdsl.ResourceMapFactory">
-		<property name="defaultProperties" ref="defaultProperties"/>
-	</bean>
-				 		
 	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider">
-		<property name="resourceMap" ref="resourceMap"/>
+		<property name="resourceMap" ref="defaultResources"/>
 	</bean>		
 </beans>

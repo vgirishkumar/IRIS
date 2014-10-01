@@ -41,6 +41,10 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 			<artifactId>mockito-all</artifactId>
 			<version>1.9.5</version>
 			<scope>test</scope>
-		</dependency>  	
+		</dependency>
+		<dependency>
+			<groupId>com.temenos.interaction</groupId>
+			<artifactId>interaction-odata4j-ext</artifactId>
+		</dependency>
   </dependencies>
 </project>
