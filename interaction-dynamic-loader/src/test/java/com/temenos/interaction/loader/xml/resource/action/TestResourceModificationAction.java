@@ -31,8 +31,8 @@ import static org.mockito.Mockito.when;
 import org.junit.Test;
 import org.springframework.core.io.Resource;
 
-import com.temenos.interaction.core.loader.action.Action;
-import com.temenos.interaction.loader.xml.XmlChangedEvent;
+import com.temenos.interaction.core.loader.Action;
+import com.temenos.interaction.loader.xml.XmlChangedEventImpl;
 
 public class TestResourceModificationAction {
 
@@ -48,7 +48,7 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn(resourcePattern);
 		
-		XmlChangedEvent event = new XmlChangedEvent(resource);
+		XmlChangedEventImpl event = new XmlChangedEventImpl(resource);
 		
 		rma.notify(event);
 		
@@ -57,7 +57,7 @@ public class TestResourceModificationAction {
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("myfile2.xml");
 		
-		XmlChangedEvent event2 = new XmlChangedEvent(resource2);
+		XmlChangedEventImpl event2 = new XmlChangedEventImpl(resource2);
 
 		rma.notify(event2);
 		
@@ -77,7 +77,7 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn("meta-blah.xml");
 		
-		XmlChangedEvent event = new XmlChangedEvent(resource);
+		XmlChangedEventImpl event = new XmlChangedEventImpl(resource);
 		
 		rma.notify(event);
 		
@@ -86,7 +86,7 @@ public class TestResourceModificationAction {
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("IRIS-blah.xml");
 		
-		XmlChangedEvent event2 = new XmlChangedEvent(resource2);
+		XmlChangedEventImpl event2 = new XmlChangedEventImpl(resource2);
 				
 		rma.notify(event2);
 		
@@ -106,13 +106,13 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn("meta-blah.xml");				
 		
-		XmlChangedEvent event = new XmlChangedEvent(resource);
+		XmlChangedEventImpl event = new XmlChangedEventImpl(resource);
 				
 		rma.notify(event);
 		
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("meta-blah.xml");
-		XmlChangedEvent event2 = new XmlChangedEvent(resource2);		
+		XmlChangedEventImpl event2 = new XmlChangedEventImpl(resource2);		
 		
 		rma.notify(event2);
 		
@@ -132,7 +132,7 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn("IRIS-blah.xml");
 		
-		XmlChangedEvent event = new XmlChangedEvent(resource);
+		XmlChangedEventImpl event = new XmlChangedEventImpl(resource);
 		
 		rma.notify(event);
 		
@@ -141,7 +141,7 @@ public class TestResourceModificationAction {
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("metadata-blah.xml");
 		
-		XmlChangedEvent event2 = new XmlChangedEvent(resource2);
+		XmlChangedEventImpl event2 = new XmlChangedEventImpl(resource2);
 		
 		rma.notify(event2);
 		

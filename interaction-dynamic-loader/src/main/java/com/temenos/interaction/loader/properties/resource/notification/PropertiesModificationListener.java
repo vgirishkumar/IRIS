@@ -25,7 +25,7 @@ package com.temenos.interaction.loader.properties.resource.notification;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesEvent;
 import com.temenos.interaction.loader.properties.ReloadablePropertiesListener;
 
 public class PropertiesModificationListener implements ReloadablePropertiesListener, ApplicationListener<ContextRefreshedEvent> {

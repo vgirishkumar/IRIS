@@ -29,8 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.loader.action.Action;
-import com.temenos.interaction.loader.xml.XmlChangedEvent;
+import com.temenos.interaction.core.loader.Action;
+import com.temenos.interaction.loader.xml.XmlChangedEventImpl;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 /**
@@ -39,7 +39,7 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
  * @author mlambert
  *
  */
-public class IRISMetadataChangedAction implements Action<XmlChangedEvent> {
+public class IRISMetadataChangedAction implements Action<XmlChangedEventImpl> {
 	private Metadata metadata;
 	private MetadataOData4j metadataOData4j;
 	private Pattern pattern = Pattern.compile(".*-(.*).xml");
@@ -61,7 +61,7 @@ public class IRISMetadataChangedAction implements Action<XmlChangedEvent> {
 	}
 	
 	@Override
-	public void execute(XmlChangedEvent event) {
+	public void execute(XmlChangedEventImpl event) {
 		String filename = event.getResource().getFilename();
 
 		// Unload all meta data relating to the entity

@@ -31,7 +31,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesEvent;
 import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
 
 public class PropertiesModificationNotifier implements ApplicationContextAware {

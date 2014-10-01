@@ -33,7 +33,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesEvent;
 import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
 import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationNotifier;
 

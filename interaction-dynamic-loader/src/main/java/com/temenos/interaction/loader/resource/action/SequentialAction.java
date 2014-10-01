@@ -25,8 +25,8 @@ package com.temenos.interaction.loader.resource.action;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.temenos.interaction.core.loader.action.Action;
-import com.temenos.interaction.loader.FileEvent;
+import com.temenos.interaction.core.loader.Action;
+import com.temenos.interaction.core.loader.FileEvent;
 
 public class SequentialAction implements Action<FileEvent> {
 	List<Action> actions = new ArrayList<Action>();

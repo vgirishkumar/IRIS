@@ -1,4 +1,6 @@
-package com.temenos.interaction.loader.properties;
+package com.temenos.interaction.core.loader;
+
+
 
 /*
  * #%L
@@ -22,11 +24,7 @@ package com.temenos.interaction.loader.properties;
  */
 
 
-import java.util.Properties;
 
-import com.temenos.interaction.loader.FileEvent;
-
-public interface PropertiesEvent extends FileEvent {
-	public void accept(PropertiesEventVisitor visitor);
-	public Properties getNewProperties();
+public interface Action<FileEvent> {
+	void execute(FileEvent event);
 }

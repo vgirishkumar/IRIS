@@ -1,10 +1,8 @@
-package com.temenos.interaction.core.loader.action;
-
-
+package com.temenos.interaction.core.loader;
 
 /*
  * #%L
- * interaction-springdsl
+ * interaction-core
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -25,6 +23,8 @@ package com.temenos.interaction.core.loader.action;
 
 
 
-public interface Action<FileEvent> {
-	void execute(FileEvent event);
+public interface PropertiesResourceModificationAction<Resource> {
+
+	public abstract void notify(PropertiesEvent event);
+
 }

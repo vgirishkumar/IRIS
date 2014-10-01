@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.resource.action;
+package com.temenos.interaction.loader.xml;
 
 /*
  * #%L
@@ -22,34 +22,26 @@ package com.temenos.interaction.loader.resource.action;
  */
 
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import org.springframework.core.io.Resource;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.temenos.interaction.core.loader.FileEvent;
+import com.temenos.interaction.core.loader.XmlChangedEvent;
 
-import org.junit.Test;
-
-import com.temenos.interaction.core.loader.Action;
-import com.temenos.interaction.core.loader.PropertiesEvent;
-
-public class TestSequentialAction {
-
-	@Test
-	public void test() {
-		List<Action> actions = new ArrayList<Action>();
-		Action action1 = mock(Action.class);
-		actions.add(action1);
-		Action action2 = mock(Action.class);
-		actions.add(action2);
+public class XmlChangedEventImpl implements FileEvent<Resource>, XmlChangedEvent {
+	private final Resource resource;
 		
-		SequentialAction action = new SequentialAction(actions);
-		PropertiesEvent event = mock(PropertiesEvent.class);
-		
-		action.execute(event);
-		
-		verify(action1).execute(event);
-		verify(action2).execute(event);		
+	/**
+	 * @param resource
+	 */
+	public XmlChangedEventImpl(Resource resource) {
+		this.resource = resource;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.temenos.interaction.loader.xml.XmlChangedEvent#getResource()
+	 */
+	@Override
+	public Resource getResource() {
+		return resource;
+	}
 }

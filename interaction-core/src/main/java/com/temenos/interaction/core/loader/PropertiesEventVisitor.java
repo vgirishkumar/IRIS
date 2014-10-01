@@ -1,10 +1,8 @@
-package com.temenos.interaction.loader;
-
-import org.springframework.core.io.Resource;
+package com.temenos.interaction.core.loader;
 
 /*
  * #%L
- * interaction-dynamic-loader
+ * interaction-springdsl
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -24,6 +22,7 @@ import org.springframework.core.io.Resource;
  */
 
 
-public interface FileEvent {
-	public Resource getResource();
+public interface PropertiesEventVisitor {
+	void visit(PropertiesLoadedEvent event);	
+	void visit(PropertiesChangedEvent event);	
 }

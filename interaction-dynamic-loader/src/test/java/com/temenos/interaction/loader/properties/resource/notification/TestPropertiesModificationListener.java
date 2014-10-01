@@ -36,8 +36,8 @@ import java.util.TreeMap;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
-import com.temenos.interaction.loader.properties.PropertiesChangedEvent;
-import com.temenos.interaction.loader.properties.PropertiesLoadedEvent;
+import com.temenos.interaction.loader.properties.PropertiesChangedEventImpl;
+import com.temenos.interaction.loader.properties.PropertiesLoadedEventImpl;
 import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
 import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationListener;
 import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationNotifier;
@@ -79,10 +79,10 @@ public class TestPropertiesModificationListener {
 		// Spoof app ctx initialization
 		listener.onApplicationEvent(null);
 		
-		PropertiesChangedEvent changedEvent = mock(PropertiesChangedEvent.class);
+		PropertiesChangedEventImpl changedEvent = mock(PropertiesChangedEventImpl.class);
 		listener.propertiesChanged(changedEvent);
 		
-		PropertiesLoadedEvent loadedEvent = mock(PropertiesLoadedEvent.class);
+		PropertiesLoadedEventImpl loadedEvent = mock(PropertiesLoadedEventImpl.class);
 		listener.propertiesChanged(loadedEvent);
 						
 		verify(notifier, times(1)).execute(loadedEvent);		

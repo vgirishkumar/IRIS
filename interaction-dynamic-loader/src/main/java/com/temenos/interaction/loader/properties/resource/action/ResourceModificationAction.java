@@ -21,26 +21,30 @@ package com.temenos.interaction.loader.properties.resource.action;
  * #L%
  */
 
-import com.temenos.interaction.core.loader.action.Action;
-import com.temenos.interaction.loader.FileEvent;
-import com.temenos.interaction.loader.properties.PropertiesChangedEvent;
-import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.properties.PropertiesEventVisitor;
-import com.temenos.interaction.loader.properties.PropertiesLoadedEvent;
+import com.temenos.interaction.core.loader.Action;
+import com.temenos.interaction.core.loader.PropertiesChangedEvent;
+import com.temenos.interaction.core.loader.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesEventVisitor;
+import com.temenos.interaction.core.loader.PropertiesLoadedEvent;
+import com.temenos.interaction.core.loader.PropertiesResourceModificationAction;
 import com.temenos.interaction.loader.resource.action.AbstractResourceModificationAction;
 
-public class ResourceModificationAction extends AbstractResourceModificationAction {
-	private Action<FileEvent> changedAction;
-	private Action<FileEvent> loadedAction;
+public class ResourceModificationAction<Resource> extends AbstractResourceModificationAction implements PropertiesResourceModificationAction<Resource> {
+	private Action<PropertiesChangedEvent<Resource>> changedAction;
+	private Action<PropertiesLoadedEvent<Resource>> loadedAction;
 	
-	public void setChangedAction(Action<FileEvent> changedAction) {
+	public void setChangedAction(Action<PropertiesChangedEvent<Resource>> changedAction) {
 		this.changedAction = changedAction;
 	}
 	
-	public void setLoadedAction(Action<FileEvent> loadedAction) {
+	public void setLoadedAction(Action<PropertiesLoadedEvent<Resource>> loadedAction) {
 		this.loadedAction = loadedAction;
 	}
 				
+	/* (non-Javadoc)
+	 * @see com.temenos.interaction.loader.properties.resource.action.PropertiesResourceModificationAction#notify(com.temenos.interaction.core.loader.PropertiesEvent)
+	 */
+	@Override
 	public void notify(PropertiesEvent event ) {
 		event.accept(new PropertiesEventVisitor() {
 			
