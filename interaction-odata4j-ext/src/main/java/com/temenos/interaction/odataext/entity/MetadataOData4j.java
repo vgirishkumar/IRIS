@@ -60,7 +60,6 @@ import org.odata4j.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.adapter.EdmDataServicesAdapter;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.AbstractOdataAnnotation;
@@ -107,6 +106,7 @@ public class MetadataOData4j {
 	private String SERVICE_DOCUMENT = "ServiceDocument";
 	private ODataVersion odataVersion = ODataVersion.V1;
 	private EdmDataServicesAdapter edmDataServicesAdapter;
+	private EdmDataServices edmDataServices;
 
 	/**
 	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
@@ -163,8 +163,18 @@ public class MetadataOData4j {
 	 * Returns EDM metadata ONLY - i.e. only meta data relating to resources in the service document
 	 * @return edmdataservices object
 	 */	
-	public EdmDataServices getEdmMetadata() {
-		return createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+	EdmDataServices getEdmMetadata() {
+		EdmDataServices result = null;
+		
+		synchronized(this) {
+			if(edmDataServices == null) {
+				edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+			}
+			
+			result = edmDataServices;
+		}
+		
+		return result;		
 	}
 	
 	public EdmType getEdmEntityTypeByTypeName(String typeName) {
@@ -221,7 +231,7 @@ public class MetadataOData4j {
 	public EdmEntitySet getEdmEntitySetByEntityName(String entityName) {
 		EdmEntitySet edmEntitySet = null;
 		try {
-			edmEntitySet = ODataHelper.getEntitySet(entityName, getMetadata());
+			edmEntitySet = ODataHelper.getEntitySet(entityName, getEdmMetadata());
 		} catch (Exception e) {
 			// Ignore.... as we will be try lazy loading after this
 			logger.debug("EntitySet for [" + entityName + "] not found in EdmDataServices, try loading it seperately...");
@@ -248,8 +258,15 @@ public class MetadataOData4j {
 			/* This may be a service document resource, if it is - Unload the internal reference to the real EDM data services 
 			 * so that it is completely rebuilt on the next request to it
 			 */
-			if(edmDataServicesAdapter != null) {
-				edmDataServicesAdapter.unload(entitySetName);
+			synchronized (this) {
+				if (edmDataServices != null) {
+					// EDM data services has already been initialized
+
+					if (edmDataServices.getEdmEntitySet(entitySetName) != null) {
+						// EDM data services, i.e. service document, contains entity set therefore it needs to be rebuilt
+						edmDataServices = null;
+					}
+				}
 			}
 		}
 	}
@@ -323,7 +340,7 @@ public class MetadataOData4j {
 	private EdmEntitySet getEdmEntitySetFromEdmDataServices(String entitySetName) {
 		EdmEntitySet ees = null;
 		try {
-			ees = getMetadata().findEdmEntitySet(entitySetName);
+			ees = getEdmMetadata().findEdmEntitySet(entitySetName);
 		} catch (Exception e) {
 			logger.warn(e.getMessage());
 		}

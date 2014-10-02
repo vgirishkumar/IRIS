@@ -36,11 +36,10 @@ import java.util.TreeMap;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
+import com.temenos.interaction.core.loader.PropertiesResourceModificationAction;
 import com.temenos.interaction.loader.properties.PropertiesChangedEventImpl;
 import com.temenos.interaction.loader.properties.PropertiesLoadedEventImpl;
 import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
-import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationListener;
-import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationNotifier;
 
 public class TestPropertiesModificationListener {
 
@@ -48,7 +47,7 @@ public class TestPropertiesModificationListener {
 	public void testGetPattern() {
 		PropertiesModificationNotifier rmn = new PropertiesModificationNotifier();
 		
-		Map<String, ResourceModificationAction> map = new TreeMap<String, ResourceModificationAction>();
+		Map<String, PropertiesResourceModificationAction> map = new TreeMap<String, PropertiesResourceModificationAction>();
 		ResourceModificationAction rma = mock(ResourceModificationAction.class);
 		when(rma.getResourcePattern()).thenReturn("classpath*:IRIS-*.properties");		
 		map.put("a", rma);
@@ -58,7 +57,7 @@ public class TestPropertiesModificationListener {
 		when(rma2.getResourcePattern()).thenReturn("classpath*:MyFile.xml");		
 		
 		ApplicationContext ctx = mock(ApplicationContext.class);
-		when(ctx.getBeansOfType(ResourceModificationAction.class)).thenReturn(map);
+		when(ctx.getBeansOfType(PropertiesResourceModificationAction.class)).thenReturn(map);
 		rmn.setApplicationContext(ctx);
 		
 		PropertiesModificationListener listener = new PropertiesModificationListener();

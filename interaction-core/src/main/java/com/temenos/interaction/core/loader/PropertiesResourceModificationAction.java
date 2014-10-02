@@ -1,5 +1,6 @@
 package com.temenos.interaction.core.loader;
 
+
 /*
  * #%L
  * interaction-core
@@ -24,7 +25,7 @@ package com.temenos.interaction.core.loader;
 
 
 public interface PropertiesResourceModificationAction<Resource> {
-
+    public String getResourcePattern();
 	public abstract void notify(PropertiesEvent event);
 
 }
