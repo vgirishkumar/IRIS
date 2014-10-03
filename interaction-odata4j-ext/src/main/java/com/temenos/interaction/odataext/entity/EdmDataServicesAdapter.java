@@ -42,7 +42,7 @@ import org.odata4j.edm.EdmType;
  * @author mlambert
  *
  */
-class EdmDataServicesAdapter extends EdmDataServices {
+public final class EdmDataServicesAdapter extends EdmDataServices {
 	private MetadataOData4j metadataOData4j;
 	
 	/**
@@ -50,7 +50,7 @@ class EdmDataServicesAdapter extends EdmDataServices {
 	 * @param schemas
 	 * @param namespaces
 	 */
-	public EdmDataServicesAdapter(MetadataOData4j metadataOData4j) {
+	EdmDataServicesAdapter(MetadataOData4j metadataOData4j) {
 		super(null, null, null);
 		
 		this.metadataOData4j = metadataOData4j;
