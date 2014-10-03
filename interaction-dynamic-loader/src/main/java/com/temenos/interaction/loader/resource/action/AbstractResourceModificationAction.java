@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.core.io.Resource;
 
-import com.temenos.interaction.loader.FileEvent;
+import com.temenos.interaction.core.loader.FileEvent;
 
 /**
  * TODO: Document me!
@@ -59,7 +59,7 @@ public class AbstractResourceModificationAction {
 		return resourcePatternStr;
 	}
 	
-	protected final boolean matches(FileEvent event) {
+	protected final boolean matches(FileEvent<Resource> event) {
 		Resource resource = event.getResource(); 
 		String filename = resource.getFilename();
 

@@ -33,9 +33,9 @@ import java.util.Set;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesResourceModificationAction;
 import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
-import com.temenos.interaction.loader.properties.resource.notification.PropertiesModificationNotifier;
 
 public class TestPropertiesModificationNotifier {
 
@@ -43,7 +43,7 @@ public class TestPropertiesModificationNotifier {
 	public void testExecute() {
 		PropertiesModificationNotifier rmn = new PropertiesModificationNotifier();
 		
-		Map<String, ResourceModificationAction> map = new HashMap<String, ResourceModificationAction>();
+		Map<String, PropertiesResourceModificationAction> map = new HashMap<String, PropertiesResourceModificationAction>();
 		ResourceModificationAction rma = mock(ResourceModificationAction.class);
 		map.put("a", rma);
 		
@@ -51,7 +51,7 @@ public class TestPropertiesModificationNotifier {
 		map.put("b", rma2);
 		
 		ApplicationContext ctx = mock(ApplicationContext.class);
-		when(ctx.getBeansOfType(ResourceModificationAction.class)).thenReturn(map);
+		when(ctx.getBeansOfType(PropertiesResourceModificationAction.class)).thenReturn(map);
 		rmn.setApplicationContext(ctx);
 		
 		rmn.getPatterns(); // Simulate registration of the notifier with IRIS
@@ -67,7 +67,7 @@ public class TestPropertiesModificationNotifier {
 	public void testGetPattern() {
 		PropertiesModificationNotifier rmn = new PropertiesModificationNotifier();
 		
-		Map<String, ResourceModificationAction> map = new HashMap<String, ResourceModificationAction>();
+		Map<String, PropertiesResourceModificationAction> map = new HashMap<String, PropertiesResourceModificationAction>();
 		ResourceModificationAction rma = mock(ResourceModificationAction.class);
 		when(rma.getResourcePattern()).thenReturn("classpath*:IRIS-*.properties");		
 		map.put("a", rma);
@@ -77,7 +77,7 @@ public class TestPropertiesModificationNotifier {
 		when(rma2.getResourcePattern()).thenReturn("classpath*:MyFile.xml");		
 		
 		ApplicationContext ctx = mock(ApplicationContext.class);
-		when(ctx.getBeansOfType(ResourceModificationAction.class)).thenReturn(map);
+		when(ctx.getBeansOfType(PropertiesResourceModificationAction.class)).thenReturn(map);
 		rmn.setApplicationContext(ctx);
 		
 		Set<String> patterns = rmn.getPatterns();

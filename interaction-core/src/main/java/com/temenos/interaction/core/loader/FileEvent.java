@@ -1,8 +1,9 @@
-package com.temenos.interaction.loader.xml;
+package com.temenos.interaction.core.loader;
+
 
 /*
  * #%L
- * interaction-springdsl
+ * interaction-dynamic-loader
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -22,21 +23,6 @@ package com.temenos.interaction.loader.xml;
  */
 
 
-import org.springframework.core.io.Resource;
-
-import com.temenos.interaction.loader.FileEvent;
-
-public class XmlChangedEvent implements FileEvent {
-	private final Resource resource;
-		
-	/**
-	 * @param resource
-	 */
-	public XmlChangedEvent(Resource resource) {
-		this.resource = resource;
-	}
-
-	public Resource getResource() {
-		return resource;
-	}
+public interface FileEvent<T> {
+	public T getResource();
 }

@@ -1,8 +1,8 @@
-package com.temenos.interaction.loader.xml.resource.action;
+package com.temenos.interaction.core.loader;
 
 /*
  * #%L
- * interaction-springdsl
+ * interaction-core
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -22,20 +22,12 @@ package com.temenos.interaction.loader.xml.resource.action;
  */
 
 
-import com.temenos.interaction.core.loader.Action;
-import com.temenos.interaction.core.loader.FileEvent;
-import com.temenos.interaction.loader.resource.action.AbstractResourceModificationAction;
+import java.util.Properties;
 
-public class ResourceModificationAction extends AbstractResourceModificationAction {
-	private Action<FileEvent> changedAction;
-		
-	public void setChangedAction(Action<FileEvent> changedAction) {
-		this.changedAction = changedAction;
-	}
-	
-	public void notify(FileEvent event ) {
-		if(matches(event)) {
-			changedAction.execute(event);
-		}
-	}
+public interface PropertiesLoadedEvent<T> extends FileEvent<T> {
+
+	public abstract void accept(PropertiesEventVisitor visitor);
+
+	public abstract Properties getNewProperties();
+
 }

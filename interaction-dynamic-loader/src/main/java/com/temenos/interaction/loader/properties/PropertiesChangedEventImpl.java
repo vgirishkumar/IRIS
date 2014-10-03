@@ -25,18 +25,26 @@ import java.util.Properties;
 
 import org.springframework.core.io.Resource;
 
-public class PropertiesChangedEvent implements PropertiesEvent {
+import com.temenos.interaction.core.loader.PropertiesChangedEvent;
+import com.temenos.interaction.core.loader.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesEventVisitor;
+
+public class PropertiesChangedEventImpl implements PropertiesEvent, PropertiesChangedEvent {
 
 	final ReloadableProperties target;
 	final Resource resource;
 	final Properties newProperties;
 	
-	public PropertiesChangedEvent(ReloadableProperties target, Resource resource, Properties newProperties) {
+	public PropertiesChangedEventImpl(ReloadableProperties target, Resource resource, Properties newProperties) {
 		this.target = target;
 		this.resource = resource;
 		this.newProperties = newProperties; 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.temenos.interaction.loader.properties.PropertiesChangedEvent#getResource()
+	 */
+	@Override
 	public Resource getResource() {
 		return resource;
 	}
@@ -45,10 +53,17 @@ public class PropertiesChangedEvent implements PropertiesEvent {
 		return target;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.temenos.interaction.loader.properties.PropertiesChangedEvent#getNewProperties()
+	 */
+	@Override
 	public Properties getNewProperties() {
 		return newProperties;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.temenos.interaction.loader.properties.PropertiesChangedEvent#accept(com.temenos.interaction.core.loader.PropertiesEventVisitor)
+	 */
 	@Override
 	public void accept(PropertiesEventVisitor visitor) {
 		visitor.visit(this);		

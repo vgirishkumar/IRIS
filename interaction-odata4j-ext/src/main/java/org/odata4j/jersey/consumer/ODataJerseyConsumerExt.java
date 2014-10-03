@@ -58,7 +58,6 @@ import org.odata4j.format.xml.AtomFeedFormatParserExt;
 import org.odata4j.internal.EntitySegment;
 import org.odata4j.internal.InternalUtil;
 
-import com.temenos.interaction.adapter.EdmDataServicesAdapter;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -250,14 +249,14 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 
 	@Override
 	public OCreateRequest<OEntity> createEntity(String entitySetName) {
-		EdmDataServices edmDataServices = new EdmDataServicesAdapter(getMetadataOData4j());
+		EdmDataServices edmDataServices = getMetadataOData4j().getMetadata();
 		
 		return new ConsumerCreateEntityRequest<OEntity>(getClient(), getServiceRootUri(), edmDataServices, entitySetName, null);
 	}
 
 	@Override
 	public OModifyRequest<OEntity> updateEntity(OEntity entity) {
-		EdmDataServices edmDataServices = new EdmDataServicesAdapter(getMetadataOData4j());
+		EdmDataServices edmDataServices = getMetadataOData4j().getMetadata();
 		
 	    return new ConsumerEntityModificationRequest<OEntity>(entity, getClient(), getServiceRootUri(), edmDataServices,
 	            entity.getEntitySet().getName(), entity.getEntityKey(), entity.getEntityTag());		

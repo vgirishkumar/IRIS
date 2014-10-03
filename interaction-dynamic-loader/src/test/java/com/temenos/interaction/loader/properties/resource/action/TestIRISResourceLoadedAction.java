@@ -30,7 +30,7 @@ import java.util.Properties;
 
 import org.junit.Test;
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesEvent;
 import com.temenos.interaction.springdsl.SpringDSLResourceStateProvider;
 
 

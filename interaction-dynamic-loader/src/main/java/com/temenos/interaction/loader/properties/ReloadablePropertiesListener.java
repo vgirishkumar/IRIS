@@ -1,5 +1,7 @@
 package com.temenos.interaction.loader.properties;
 
+import com.temenos.interaction.core.loader.PropertiesEvent;
+
 /*
  * #%L
  * interaction-springdsl

@@ -80,7 +80,7 @@ public class ReloadableXmlListener implements ReconfigurableBean, ApplicationCon
 						// Update entry in locations
 						locations.put(location, lastModified);
 						
-						notifier.execute(new XmlChangedEvent(location));
+						notifier.execute(new XmlChangedEventImpl(location));
 					} else {
 						locations.put(location, file.lastModified());
 					}

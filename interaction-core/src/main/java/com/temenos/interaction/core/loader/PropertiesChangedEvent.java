@@ -1,8 +1,8 @@
-package com.temenos.interaction.loader.properties;
+package com.temenos.interaction.core.loader;
 
 /*
  * #%L
- * interaction-springdsl
+ * interaction-core
  * %%
  * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
@@ -22,7 +22,11 @@ package com.temenos.interaction.loader.properties;
  */
 
 
-public interface PropertiesEventVisitor {
-	void visit(PropertiesLoadedEvent event);	
-	void visit(PropertiesChangedEvent event);	
+import java.util.Properties;
+
+public interface PropertiesChangedEvent<T> extends FileEvent<T> {
+	public Properties getNewProperties();
+
+	public void accept(PropertiesEventVisitor visitor);
+
 }

@@ -1,6 +1,4 @@
-package com.temenos.interaction.loader.resource.action;
-
-
+package com.temenos.interaction.core.loader;
 
 /*
  * #%L
@@ -24,7 +22,7 @@ package com.temenos.interaction.loader.resource.action;
  */
 
 
-
-public interface Action<FileEvent> {
-	void execute(FileEvent event);
+public interface PropertiesEventVisitor {
+	void visit(PropertiesLoadedEvent event);	
+	void visit(PropertiesChangedEvent event);	
 }

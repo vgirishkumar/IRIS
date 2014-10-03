@@ -60,14 +60,14 @@ public class ReloadablePropertiesBase extends DelegatingProperties implements Re
 	}
 
 	protected void notifyPropertiesLoaded(Resource resource, Properties newProperties) {
-		PropertiesLoadedEvent event = new PropertiesLoadedEvent(this, resource, newProperties);
+		PropertiesLoadedEventImpl event = new PropertiesLoadedEventImpl(this, resource, newProperties);
 		for (ReloadablePropertiesListener listener : listeners) {
 			listener.propertiesChanged(event);
 		}
 	}
 	
 	protected void notifyPropertiesChanged(Resource resource, Properties newProperties) {
-		PropertiesChangedEvent event = new PropertiesChangedEvent(this, resource, newProperties);
+		PropertiesChangedEventImpl event = new PropertiesChangedEventImpl(this, resource, newProperties);
 		for (ReloadablePropertiesListener listener : listeners) {
 			listener.propertiesChanged(event);
 		}
