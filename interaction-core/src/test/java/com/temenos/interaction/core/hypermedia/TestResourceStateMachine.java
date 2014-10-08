@@ -1712,9 +1712,11 @@ public class TestResourceStateMachine {
 		ResourceState parentResource = new ResourceState(ENTITY, "parentResource", new ArrayList<Action>(), "/path");
 		ResourceState childResource1 = new ResourceState("PROFILE", "childResource1", mockActions, "/root/profile", "profile".split(" "));
 		ResourceState childResource2 = new ResourceState("PREFERENCE", "childResource2", mockActions, "/root/preferences", "preferences".split(" "));
+		ResourceState childResource3 = new ResourceState("POSTPREF", "postpref", mockActions, "/root/postpref", "postpref".split(" "));
 		/* create the transitions (links) */
 		parentResource.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(childResource1).build());
 		parentResource.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(childResource2).build());
+		parentResource.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("POST").target(childResource3).build());
 		
 		// the mock resources
 		EntityResource<Object> testResponseEntity = new EntityResource<Object>(ENTITY, createTestNote("rootobject"));
@@ -1728,9 +1730,9 @@ public class TestResourceStateMachine {
 
 		assertNotNull(embeddedResources);
 		assertFalse(embeddedResources.isEmpty());
-		assertEquals(2, embeddedResources.size());
+		assertEquals(3, embeddedResources.size());
 		/*
-		 * expect 2 resources - profile and preferences
+		 * expect 2 resources - profile, preferences and postpref
 		 */
 		List<RESTResource> resources = new ArrayList<RESTResource>(embeddedResources.values());
 		// sort the resources so we have a predictable order for this test
@@ -1740,11 +1742,12 @@ public class TestResourceStateMachine {
 				return o1.getEntityName().compareTo(o2.getEntityName());
 			}
 		});
+		// postpref resources
+		assertEquals("POSTPREF", resources.get(0).getEntityName());
 		// preferences resources
-		assertEquals("PREFERENCE", resources.get(0).getEntityName());
+		assertEquals("PREFERENCE", resources.get(1).getEntityName());
 		// profile resource
-		assertEquals("PROFILE", resources.get(1).getEntityName());
-				
+		assertEquals("PROFILE", resources.get(2).getEntityName());
 	}
 
 	

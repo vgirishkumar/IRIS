@@ -37,6 +37,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
 
@@ -762,10 +763,10 @@ public class ResourceStateMachine {
 			}
 			for (Transition transition : results.keySet()) {
 				ResourceRequestResult result = results.get(transition);
-				if (result.getStatus() != Status.OK.getStatusCode()) {
-					logger.error("Failed to embed resource for transition [" + transition.getId() + "]");
-				} else {
+				if (Family.SUCCESSFUL.equals(Status.fromStatusCode(result.getStatus()).getFamily())) {
 					resourceResults.put(transition, result.getResource());
+				} else {
+					logger.error("Failed to embed resource for transition [" + transition.getId() + "]");
 				}
 			}
 			resource.setEmbedded(resourceResults);
