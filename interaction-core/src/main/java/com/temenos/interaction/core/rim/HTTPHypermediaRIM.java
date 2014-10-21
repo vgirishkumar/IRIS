@@ -581,11 +581,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			ResourceState currentState = ctx.getCurrentState();
 			assert(currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
 			List<Transition> autoTransitions = getLinks(resource, Transition.AUTO);
-			Transition autoTransition = autoTransitions.size() > 0 ? autoTransitions.iterator().next() : null;
-			if (autoTransition != null) {
+
+			if (!autoTransitions.isEmpty()) {
+				Transition autoTransition = autoTransitions.get(0);				
 				if (autoTransitions.size() > 1)
-					logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
-				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
+					logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");				
+				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";				
 				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 				Response autoResponse = getResource(headers, autoTransition, ctx);
@@ -602,6 +603,32 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(resource != null);
+			ResourceState currentState = ctx.getCurrentState();			
+			List<Transition> autoTransitions = getLinks(resource, Transition.AUTO);
+			
+			if (!autoTransitions.isEmpty()) {
+				Transition autoTransition = null;
+				
+				for(Transition tmpTransition : autoTransitions) {					
+					if(currentState != tmpTransition.getTarget()) {
+						autoTransition = tmpTransition;
+					}
+				}
+				
+				if(autoTransition != null) {
+					if (autoTransitions.size() > 1)
+						logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");								
+					Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
+					responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
+					Response autoResponse = getResource(headers, autoTransition, ctx);
+		        	if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
+		        		logger.warn("Auto transition target did not return HttpStatus.OK status ["+autoResponse.getStatus()+"]");
+		        		responseBuilder.status(autoResponse.getStatus());
+		        	}
+		        	resource = (RESTResource) ((GenericEntity<?>)autoResponse.getEntity()).getEntity();
+				}
+			}
+			
 			StreamingOutput streamEntity = null;
 			if (resource instanceof EntityResource<?>) {
 				Object entity = ((EntityResource<?>)resource).getEntity();
@@ -683,7 +710,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		try {
 			ResourceRequestConfig config = new ResourceRequestConfig.Builder()
 					.transition(resourceTransition)
-					.selfTransition(resourceTransition)
 					.build();
 	    	Event event = new Event("", "GET");
 	    	InteractionCommand action = hypermediaEngine.buildWorkflow(targetState.getActions());
@@ -704,7 +730,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 					newCtx, 
 					event, 
 					action, 
-					null, 
+					(EntityResource<?>)currentResource, 
 					config);
         	RESTResource resource = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
         	resource.setEntityName(targetState.getEntityName());

@@ -674,6 +674,11 @@ public class ResourceStateMachine {
 		 */
 		List<Transition> transitions = state.getTransitions();
 		for (Transition transition : transitions) {
+			if(transition.getTarget() == null) {
+				logger.warn("Skipping invalid transition: " + transition);
+				continue;
+			}
+			
 			TransitionCommandSpec cs = transition.getCommand();
 			/*
 			 * build link and add to list of links
@@ -701,7 +706,9 @@ public class ResourceStateMachine {
 				}
 
 				if (addLink) {
-					links.add(createLink(transition, entity, resourceProperties));
+					Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, resourceProperties, null);
+					
+					links.add(createLink(transition, transitionProperties, entity, null, false, ctx));
 				}
 			}
 		}
@@ -872,7 +879,7 @@ public class ResourceStateMachine {
 			MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
 		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, transitionParameters,
 				queryParameters);
-		return createLink(transition, transitionProperties, entity, queryParameters, allQueryParameters);
+		return createLink(transition, transitionProperties, entity, queryParameters, allQueryParameters, null);
 	}
 
 	/*
@@ -893,7 +900,7 @@ public class ResourceStateMachine {
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
 	private Link createLink(Transition transition, Map<String, Object> transitionProperties, Object entity,
-			MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
+			MultivaluedMap<String, String> queryParameters, boolean allQueryParameters, InteractionContext ctx) {
 		assert (RequestContext.getRequestContext() != null);
 		
 		try {
@@ -921,7 +928,7 @@ public class ResourceStateMachine {
 
 				// Identify real target state
 				DynamicResourceState dynamicResourceState = (DynamicResourceState) targetState;
-				Object[] aliases = getResourceAliases(transitionProperties, dynamicResourceState).toArray();
+				Object[] aliases = getResourceAliases(transitionProperties, dynamicResourceState, ctx).toArray();
 				
 				// Use resource locator to resolve dynamic target
 				String locatorName = dynamicResourceState.getResourceLocatorName();
@@ -1028,10 +1035,11 @@ public class ResourceStateMachine {
 	/**
 	 * @param transitionProperties
 	 * @param dynamicResourceState
+	 * @param ctx 
 	 * @return
 	 */
 	private List<Object> getResourceAliases(Map<String, Object> transitionProperties,
-			DynamicResourceState dynamicResourceState) {
+			DynamicResourceState dynamicResourceState, InteractionContext ctx) {
 		List<Object> aliases = new ArrayList<Object>();
 
 		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9]+)\\}*");
@@ -1043,6 +1051,12 @@ public class ResourceStateMachine {
 
 			if (transitionProperties.containsKey(key)) {
 				aliases.add(transitionProperties.get(key));
+			} else if(ctx != null) {
+				Object value = ctx.getAttribute(key);
+				
+				if(value != null) {
+					aliases.add(value);
+				}
 			}
 		}
 		return aliases;
