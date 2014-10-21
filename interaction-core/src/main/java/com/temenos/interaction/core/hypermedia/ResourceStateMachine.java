@@ -881,6 +881,39 @@ public class ResourceStateMachine {
 				queryParameters);
 		return createLink(transition, transitionProperties, entity, queryParameters, allQueryParameters, null);
 	}
+	
+	public ResourceStateAndParameters resolveDynamicState(DynamicResourceState dynamicResourceState, Map<String, Object> transitionProperties, InteractionContext ctx) {
+		Object[] aliases = getResourceAliases(transitionProperties, dynamicResourceState, ctx).toArray();
+		
+		// Use resource locator to resolve dynamic target
+		String locatorName = dynamicResourceState.getResourceLocatorName();
+		
+		ResourceLocator locator = resourceLocatorProvider.get(locatorName);
+
+		ResourceStateAndParameters result = new ResourceStateAndParameters();
+		
+		ResourceState tmpState = locator.resolve(aliases);
+		
+		if(tmpState == null) {
+			// A dead link, target could not be found
+			logger.error("Dead link - Failed to resolve resource using " + dynamicResourceState.getResourceLocatorName() + " resource locator");
+			
+			return null;
+		}
+		
+		result.setState(tmpState);		
+		
+		if(parameterResolverProvider != null) {
+			// Add query parameters
+			ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
+			
+			ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
+			result.setParams(paramsAndValues);
+		}
+				
+		return result;
+		
+	}
 
 	/*
 	 * Create a link using the supplied transition, entity and transition
@@ -927,20 +960,13 @@ public class ResourceStateMachine {
 				// We are dealing with a dynamic target
 
 				// Identify real target state
-				DynamicResourceState dynamicResourceState = (DynamicResourceState) targetState;
-				Object[] aliases = getResourceAliases(transitionProperties, dynamicResourceState, ctx).toArray();
+				ResourceStateAndParameters stateAndParams = resolveDynamicState((DynamicResourceState)targetState, transitionProperties, ctx);				
 				
-				// Use resource locator to resolve dynamic target
-				String locatorName = dynamicResourceState.getResourceLocatorName();
-				
-				ResourceLocator locator = resourceLocatorProvider.get(locatorName);
-				targetState = locator.resolve(aliases);				
-				
-				if(targetState == null) {
-					// A dead link, target could not be found
-					logger.error("Dead link - Failed to resolve resource using " + dynamicResourceState.getResourceLocatorName() + " resource locator");
-					
-					return null;					
+				if(stateAndParams == null) {
+					// Bail out as we failed to resolve resource
+					return null;
+				} else {
+					targetState = stateAndParams.getState();
 				}
 				
 				if (targetState.getRel().contains("http://temenostech.temenos.com/rels/new")) {
@@ -955,13 +981,9 @@ public class ResourceStateMachine {
 					rel = "self";
 				}								
 				
-				if(parameterResolverProvider != null) {
-					// Add query parameters
-					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
-					
-					ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
-					
-					for (ParameterAndValue paramAndValue : paramsAndValues) {
+				if(stateAndParams.getParams() != null) {
+					// Add query parameters					
+					for (ParameterAndValue paramAndValue : stateAndParams.getParams()) {
 						linkTemplate.queryParam(paramAndValue.getParameter(), paramAndValue.getValue());						
 					}
 				}

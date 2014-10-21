@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,11 +68,13 @@ import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.DynamicResourceState;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.LinkHeader;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateAndParameters;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
@@ -617,7 +620,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				
 				if(autoTransition != null) {
 					if (autoTransitions.size() > 1)
-						logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");								
+						logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
+					
 					Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
 					responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 					Response autoResponse = getResource(headers, autoTransition, ctx);
@@ -707,6 +711,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     private Response getResource(HttpHeaders headers, Transition resourceTransition, InteractionContext ctx) {
 		ResourceState targetState = resourceTransition.getTarget();
 		
+		if(targetState instanceof DynamicResourceState) {
+			Map<String, Object> transitionProperties = new HashMap<String, Object>();
+			ResourceStateAndParameters stateAndParams = hypermediaEngine.resolveDynamicState((DynamicResourceState) targetState, transitionProperties, ctx);
+			targetState = stateAndParams.getState();
+		}
+				
 		try {
 			ResourceRequestConfig config = new ResourceRequestConfig.Builder()
 					.transition(resourceTransition)
