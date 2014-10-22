@@ -962,7 +962,7 @@ public class ResourceStateMachine {
 				// Identify real target state
 				ResourceStateAndParameters stateAndParams = resolveDynamicState((DynamicResourceState)targetState, transitionProperties, ctx);				
 				
-				if(stateAndParams == null) {
+				if(stateAndParams.getState() == null) {
 					// Bail out as we failed to resolve resource
 					return null;
 				} else {
