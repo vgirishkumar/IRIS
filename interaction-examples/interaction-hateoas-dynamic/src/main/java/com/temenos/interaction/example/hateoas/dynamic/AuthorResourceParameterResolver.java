@@ -22,30 +22,14 @@ package com.temenos.interaction.example.hateoas.dynamic;
  */
 
 
-import java.util.HashMap;
-import java.util.Map;
+import com.temenos.interaction.core.hypermedia.ParameterAndValue;
+import com.temenos.interaction.core.hypermedia.ResourceParameterResolver;
 
-import com.temenos.interaction.core.hypermedia.ResourceLocator;
-import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
-
-/**
- * A mock resource locator provider
- *
- * @author mlambert
- *
- */
-public class NoteResourceLocatorProvider implements ResourceLocatorProvider {
-	private Map<String, ResourceLocator> aliasToResourceLocator = new HashMap<String, ResourceLocator>();
-	
-	/**
-	 * @param aliasToResourceLocator
-	 */
-	public NoteResourceLocatorProvider(Map<String, ResourceLocator> aliasToResourceLocator) {
-		this.aliasToResourceLocator = aliasToResourceLocator;
-	}
+public class AuthorResourceParameterResolver implements
+		ResourceParameterResolver {
 
 	@Override
-	public ResourceLocator get(String name) {
-		return aliasToResourceLocator.get(name);			
+	public ParameterAndValue[] resolve(Object... aliases) {
+		return new ParameterAndValue[]{ new ParameterAndValue("id", "AU001") };
 	}
 }

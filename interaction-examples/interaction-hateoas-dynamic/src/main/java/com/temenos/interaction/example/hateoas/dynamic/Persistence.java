@@ -33,6 +33,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import javax.persistence.Query;
 
+import com.temenos.interaction.example.hateoas.dynamic.model.Author;
 import com.temenos.interaction.example.hateoas.dynamic.model.Note;
 
 public class Persistence {
@@ -66,7 +67,7 @@ public class Persistence {
 			logger.severe("Error while loading entity [" + id + "]: " + e.getMessage());
 		}
 		return note;
-    }
+    }	
 
 	public Note removeNote(Long id) {
 		Note note = null;
@@ -93,4 +94,13 @@ public class Persistence {
 		return note;
     }
 
+	public Author getAuthor(String id) {
+		Author author = null;
+		try {
+			author = entityManager.find(Author.class, id);
+		} catch(Exception e) {
+			logger.severe("Error while loading entity [" + id + "]: " + e.getMessage());
+		}
+		return author;
+    }	
 }

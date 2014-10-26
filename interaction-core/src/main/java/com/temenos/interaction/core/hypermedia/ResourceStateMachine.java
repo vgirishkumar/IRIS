@@ -257,6 +257,10 @@ public class ResourceStateMachine {
 		resourceStatesByPath.remove(state.getPath());
 		resourceStatesByName.remove(state.getName());
 	}
+	
+	public void setParameterResolverProvider(ResourceParameterResolverProvider parameterResolverProvider) {
+		this.parameterResolverProvider = parameterResolverProvider;
+	}
 
 	public ResourceState getInitial() {
 		return initial;
@@ -904,11 +908,14 @@ public class ResourceStateMachine {
 		result.setState(tmpState);		
 		
 		if(parameterResolverProvider != null) {
-			// Add query parameters
-			ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
-			
-			ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
-			result.setParams(paramsAndValues);
+			try {
+				// Add query parameters
+				ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
+				ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
+				result.setParams(paramsAndValues);
+			} catch (IllegalArgumentException e) {
+				// noop - No parameter resolver configured for this resource
+			}
 		}
 				
 		return result;

@@ -20,3 +20,9 @@ INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(5,'Grains/Cereals', 'AU00
 INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(6,'Meat/Poultry', 'AU001');
 INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(7,'Produce', 'SY002');
 INSERT INTO `Note`(`NoteID`,`Body`,`Reference`) VALUES(8,'Seafood', 'SY002');
+
+DELETE FROM `Author`
+
+INSERT INTO `Author`(`AuthorID`,`Name`) VALUES('AU001', 'Bob');
+INSERT INTO `Author`(`AuthorID`,`Name`) VALUES('AU002', 'Jane');
+INSERT INTO `Author`(`AuthorID`,`Name`) VALUES('AU003', 'Roger');
