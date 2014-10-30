@@ -1,8 +1,8 @@
 package com.temenos.interaction.core.hypermedia;
 
 import java.util.Map;
-import java.util.Objects;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.temenos.interaction.core.hypermedia.expression.Expression;
@@ -158,7 +158,7 @@ public class Transition {
 		return isSameStateName(source, otherTrans.source)
 				&& isSameStateName(target, otherTrans.target)
 				&& StringUtils.equals(label, otherTrans.label)
-				&& Objects.equals(command, otherTrans.command)
+				&& ObjectUtils.equals(command, otherTrans.command)
 				&& StringUtils.equals(linkId, otherTrans.linkId);
 	}
 
