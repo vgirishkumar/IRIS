@@ -700,16 +700,19 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
+		ResourceState approvePsuedoState = new ResourceState(initialState, "approve", mockActions());
 		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
 		individualMachine.addTransition(new Transition.Builder().method("GET").target(initialState).build());
 		
 		// create new machine
 		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
-		// an auto transition to the new resource
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "{id}");
-		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
 		
+		// The state should transition from create -> approve -> machine; this tests multi state auto transitions  
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "{id}");		
+		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(approvePsuedoState).uriParameters(uriLinkageMap).build());
+		approvePsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
+				
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
@@ -875,8 +878,8 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		EntityResource<?> createdResource = (EntityResource<?>) ((GenericEntity<?>)response.getEntity()).getEntity();
 		List<Link> links = new ArrayList<Link>(createdResource.getLinks());
-		assertEquals(2, links.size());
-		assertEquals("/baseuri/machines/123", links.get(1).getHref());
+		assertEquals(1, links.size());
+		assertEquals("/baseuri/machines/123", links.get(0).getHref());
 	}
 
 	private EntityResource<Object> mockEntityResourceWithId(final String id) {

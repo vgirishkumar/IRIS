@@ -257,6 +257,10 @@ public class ResourceStateMachine {
 		resourceStatesByPath.remove(state.getPath());
 		resourceStatesByName.remove(state.getName());
 	}
+	
+	public void setParameterResolverProvider(ResourceParameterResolverProvider parameterResolverProvider) {
+		this.parameterResolverProvider = parameterResolverProvider;
+	}
 
 	public ResourceState getInitial() {
 		return initial;
@@ -674,6 +678,11 @@ public class ResourceStateMachine {
 		 */
 		List<Transition> transitions = state.getTransitions();
 		for (Transition transition : transitions) {
+			if(transition.getTarget() == null) {
+				logger.warn("Skipping invalid transition: " + transition);
+				continue;
+			}
+			
 			TransitionCommandSpec cs = transition.getCommand();
 			/*
 			 * build link and add to list of links
@@ -701,7 +710,9 @@ public class ResourceStateMachine {
 				}
 
 				if (addLink) {
-					links.add(createLink(transition, entity, resourceProperties));
+					Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, resourceProperties, null);
+					
+					links.add(createLink(transition, transitionProperties, entity, null, false, ctx));
 				}
 			}
 		}
@@ -872,7 +883,41 @@ public class ResourceStateMachine {
 			MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
 		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, transitionParameters,
 				queryParameters);
-		return createLink(transition, transitionProperties, entity, queryParameters, allQueryParameters);
+		return createLink(transition, transitionProperties, entity, queryParameters, allQueryParameters, null);
+	}
+	
+	public ResourceStateAndParameters resolveDynamicState(DynamicResourceState dynamicResourceState, Map<String, Object> transitionProperties, InteractionContext ctx) {
+		Object[] aliases = getResourceAliases(transitionProperties, dynamicResourceState, ctx).toArray();
+		
+		// Use resource locator to resolve dynamic target
+		String locatorName = dynamicResourceState.getResourceLocatorName();
+		
+		ResourceLocator locator = resourceLocatorProvider.get(locatorName);
+
+		ResourceStateAndParameters result = new ResourceStateAndParameters();
+		
+		ResourceState tmpState = locator.resolve(aliases);
+		
+		if(tmpState == null) {
+			// A dead link, target could not be found
+			logger.error("Dead link - Failed to resolve resource using " + dynamicResourceState.getResourceLocatorName() + " resource locator");
+		} else {		
+			result.setState(tmpState);		
+			
+			if(parameterResolverProvider != null) {
+				try {
+					// Add query parameters
+					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
+					ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
+					result.setParams(paramsAndValues);
+				} catch (IllegalArgumentException e) {
+					// noop - No parameter resolver configured for this resource
+				}
+			}
+		}
+				
+		return result;
+		
 	}
 
 	/*
@@ -893,7 +938,7 @@ public class ResourceStateMachine {
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
 	private Link createLink(Transition transition, Map<String, Object> transitionProperties, Object entity,
-			MultivaluedMap<String, String> queryParameters, boolean allQueryParameters) {
+			MultivaluedMap<String, String> queryParameters, boolean allQueryParameters, InteractionContext ctx) {
 		assert (RequestContext.getRequestContext() != null);
 		
 		try {
@@ -920,20 +965,13 @@ public class ResourceStateMachine {
 				// We are dealing with a dynamic target
 
 				// Identify real target state
-				DynamicResourceState dynamicResourceState = (DynamicResourceState) targetState;
-				Object[] aliases = getResourceAliases(transitionProperties, dynamicResourceState).toArray();
+				ResourceStateAndParameters stateAndParams = resolveDynamicState((DynamicResourceState)targetState, transitionProperties, ctx);				
 				
-				// Use resource locator to resolve dynamic target
-				String locatorName = dynamicResourceState.getResourceLocatorName();
-				
-				ResourceLocator locator = resourceLocatorProvider.get(locatorName);
-				targetState = locator.resolve(aliases);				
-				
-				if(targetState == null) {
-					// A dead link, target could not be found
-					logger.error("Dead link - Failed to resolve resource using " + dynamicResourceState.getResourceLocatorName() + " resource locator");
-					
-					return null;					
+				if(stateAndParams.getState() == null) {
+					// Bail out as we failed to resolve resource
+					return null;
+				} else {
+					targetState = stateAndParams.getState();
 				}
 				
 				if (targetState.getRel().contains("http://temenostech.temenos.com/rels/new")) {
@@ -948,13 +986,9 @@ public class ResourceStateMachine {
 					rel = "self";
 				}								
 				
-				if(parameterResolverProvider != null) {
-					// Add query parameters
-					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
-					
-					ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
-					
-					for (ParameterAndValue paramAndValue : paramsAndValues) {
+				if(stateAndParams.getParams() != null) {
+					// Add query parameters					
+					for (ParameterAndValue paramAndValue : stateAndParams.getParams()) {
 						linkTemplate.queryParam(paramAndValue.getParameter(), paramAndValue.getValue());						
 					}
 				}
@@ -1028,10 +1062,11 @@ public class ResourceStateMachine {
 	/**
 	 * @param transitionProperties
 	 * @param dynamicResourceState
+	 * @param ctx 
 	 * @return
 	 */
 	private List<Object> getResourceAliases(Map<String, Object> transitionProperties,
-			DynamicResourceState dynamicResourceState) {
+			DynamicResourceState dynamicResourceState, InteractionContext ctx) {
 		List<Object> aliases = new ArrayList<Object>();
 
 		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9]+)\\}*");
@@ -1043,6 +1078,12 @@ public class ResourceStateMachine {
 
 			if (transitionProperties.containsKey(key)) {
 				aliases.add(transitionProperties.get(key));
+			} else if(ctx != null) {
+				Object value = ctx.getAttribute(key);
+				
+				if(value != null) {
+					aliases.add(value);
+				}
 			}
 		}
 		return aliases;
