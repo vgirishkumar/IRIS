@@ -901,20 +901,18 @@ public class ResourceStateMachine {
 		if(tmpState == null) {
 			// A dead link, target could not be found
 			logger.error("Dead link - Failed to resolve resource using " + dynamicResourceState.getResourceLocatorName() + " resource locator");
+		} else {		
+			result.setState(tmpState);		
 			
-			return null;
-		}
-		
-		result.setState(tmpState);		
-		
-		if(parameterResolverProvider != null) {
-			try {
-				// Add query parameters
-				ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
-				ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
-				result.setParams(paramsAndValues);
-			} catch (IllegalArgumentException e) {
-				// noop - No parameter resolver configured for this resource
+			if(parameterResolverProvider != null) {
+				try {
+					// Add query parameters
+					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
+					ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
+					result.setParams(paramsAndValues);
+				} catch (IllegalArgumentException e) {
+					// noop - No parameter resolver configured for this resource
+				}
 			}
 		}
 				
