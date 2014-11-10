@@ -89,7 +89,8 @@ public class AtomEntityEntryFormatWriter {
 			Collection<Link> links, 
 			Map<Transition,RESTResource> embeddedResources) {
 		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
-		String absoluteId = uriInfo.getBaseUri() + uriInfo.getPath();
+		
+		String absoluteId = getAbsoluteId(uriInfo, links);
 		
 		DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
 		String updated = InternalUtil.toString(utc);
@@ -97,7 +98,6 @@ public class AtomEntityEntryFormatWriter {
 		Abdera abdera = new Abdera();
 		StreamWriter writer = abdera.newStreamWriter();
 		writer.setOutputStream(new WriterOutputStream(w));
-		//writer.setOutputStream(System.out,"UTF-8");
 		writer.setAutoflush(false);
 		writer.setAutoIndent(true);
 		writer.startDocument();
@@ -110,6 +110,28 @@ public class AtomEntityEntryFormatWriter {
 		writer.endEntry();
 		writer.endDocument();
 		writer.flush();
+	}
+
+	/**
+	 * @param uriInfo
+	 * @param links
+	 * @return
+	 */
+	private String getAbsoluteId(UriInfo uriInfo, Collection<Link> links) {
+		String absoluteId = "";
+		
+		for(Link link: links) {
+			if("self".equals(link.getRel())) {
+				absoluteId = link.getHref();
+				break; 
+			}
+		}
+		
+		if(absoluteId.isEmpty()) {
+			absoluteId = uriInfo.getBaseUri() + uriInfo.getPath();
+		}
+		
+		return absoluteId;
 	}
 
 	public void writeEntry(StreamWriter writer, String entitySetName, String entityName, Entity entity,
