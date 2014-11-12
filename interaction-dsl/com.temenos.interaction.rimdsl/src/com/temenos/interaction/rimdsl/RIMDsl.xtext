@@ -101,6 +101,8 @@ State:
                 & transitions+=TransitionRef*
                 // MAY define an onerror transition
                 & ('onerror' '-->' errorState=[State|QualifiedName])?
+                // MAY define a cache maxage
+                & ( 'cache:' cache=INT )?
     	)
     '}'
 ;

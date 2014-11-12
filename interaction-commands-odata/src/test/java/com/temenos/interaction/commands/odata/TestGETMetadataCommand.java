@@ -32,6 +32,7 @@ import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 import org.odata4j.core.ImmutableList;
@@ -44,6 +45,7 @@ import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.producer.ODataProducer;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
@@ -52,7 +54,6 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
-import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class TestGETMetadataCommand {
@@ -60,7 +61,7 @@ public class TestGETMetadataCommand {
 	@SuppressWarnings("unchecked")
 	private InteractionContext createInteractionContext() {
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
         return ctx;
 	}
 

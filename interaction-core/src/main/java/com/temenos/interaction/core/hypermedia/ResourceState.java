@@ -59,6 +59,8 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final List<Action> actions;
 	/* the UriSpecification is used to append the path parameter template to the path */
 	private final UriSpecification uriSpecification;
+	/* The max-age to impose on fetched entities */
+	private int maxAge;
 	
 	private List<Transition> transitions = new ArrayList<Transition>();
 
@@ -226,6 +228,14 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public void setException(boolean flag) {
 		exception = flag;
+	}
+
+	public void setMaxAge(int age) {
+		maxAge = age;
+	}
+	
+	public int getMaxAge() {
+		return maxAge;
 	}
 	
 	public ResourceState getErrorState() {
