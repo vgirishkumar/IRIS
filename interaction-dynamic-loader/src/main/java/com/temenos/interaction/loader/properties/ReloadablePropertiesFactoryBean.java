@@ -22,7 +22,9 @@ package com.temenos.interaction.loader.properties;
  */
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +38,7 @@ import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
 
@@ -44,18 +47,20 @@ import com.temenos.interaction.springdsl.DynamicProperties;
 /**
  * A properties factory bean that creates a reconfigurable Properties object.
  * When the Properties' reloadConfiguration method is called, and the file has
- * changed, the properties are read again from the file. 
- * Credit to: http://www.wuenschenswert.net/wunschdenken/archives/127
+ * changed, the properties are read again from the file. Credit to:
+ * http://www.wuenschenswert.net/wunschdenken/archives/127
  */
-public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DynamicProperties, DisposableBean, ApplicationContextAware {
+public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DynamicProperties,
+		DisposableBean, ApplicationContextAware {
 	private ApplicationContext ctx;
 
-	private Map<Resource,Long> locations;
+	private Map<Resource, Long> locations;
 	private List<ReloadablePropertiesListener> preListeners;
 	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
-	private ReloadablePropertiesBase reloadableProperties;	
+	private ReloadablePropertiesBase reloadableProperties;
 	private Properties properties;
-	
+	private long lastCheck = 0;
+
 	public void setListeners(List<ReloadablePropertiesListener> listeners) {
 		// early type check, and avoid aliassing
 		this.preListeners = new ArrayList<ReloadablePropertiesListener>();
@@ -63,7 +68,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			preListeners.add(l);
 		}
 	}
-	
+
 	/**
 	 * @param properties the properties to set
 	 */
@@ -88,7 +93,98 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		reloadableProperties = null;
 	}
 
-	protected void reload(boolean forceReload) throws IOException {		
+	protected void getMoreRecentThan(File root, final long timestamp, final List<Resource> resources,
+			final List<simplePattern> patterns) {
+		File file = root;// new File(root.getURL().getFile());
+
+		file.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File pathname) {
+				if (pathname.isDirectory()) {
+					getMoreRecentThan(pathname, timestamp, resources, patterns);
+				} else {
+					if (pathname.lastModified() > timestamp) {
+						for (simplePattern pattern : patterns) {
+							if (pattern.matches(pathname.getName())) {
+								try {
+									resources.add(new UrlResource(pathname.toURI()));
+								} catch (MalformedURLException e) {
+									logger.error("MalformedURL for " + pathname.getAbsolutePath());
+								}
+							}
+						}
+
+					}
+				}
+				return false;
+			}
+		});
+
+	}
+
+	protected void reload(boolean forceReload) throws IOException {
+		long l = System.currentTimeMillis();
+		boolean oldReload = System.getProperty("old.reload") != null;
+		if (oldReload){
+			reload_eld(forceReload);
+		}else{
+			reload_new(forceReload);
+		}
+		l = System.currentTimeMillis() -l;
+		logger.info("Reload time " + (oldReload?"(old) : ":"(new) : ") + l + " ms.");
+	}
+	
+	protected void reload_new(boolean forceReload) throws IOException {
+
+
+		if (forceReload){
+			/*
+			 * Take all file independently of the timestamp.
+			 */
+			lastCheck = 0;
+		}
+		/*
+		 * Let's do it as we could miss a file being modified during the scan.
+		 */
+		long tmpLastCheck = lastCheck;
+		/*
+		 * Some file systems (FAT, NTFS) do have a write time resolution of 2
+		 * seconds see
+		 * http://msdn.microsoft.com/en-us/library/ms724290%28VS.85%29.aspx So
+		 * better give a 4 seconds latency.
+		 */
+		lastCheck = System.currentTimeMillis() - 4000;
+
+		List<Resource> changedPaths = new ArrayList<Resource>();
+		List<Resource> classPaths = Arrays.asList(ctx.getResources("classpath*:"));
+		List<simplePattern> lstPatterns = new ArrayList<simplePattern>();
+		for (ReloadablePropertiesListener listener : preListeners) {
+			String[] sPatterns = listener.getResourcePatterns();
+			for (String pattern : sPatterns) {
+				lstPatterns.add(new simplePattern(pattern));
+			}
+		}
+		for (Resource res : classPaths) {
+			getMoreRecentThan(new File(res.getURL().getFile()), tmpLastCheck, changedPaths, lstPatterns);
+		}
+
+		for (Resource location : changedPaths) {
+			Properties newProperties = new Properties();
+			propertiesPersister.load(newProperties, location.getInputStream());
+
+			// Update (merge in) the new properties
+			if (reloadableProperties.updateProperties(newProperties)) {
+				reloadableProperties.notifyPropertiesLoaded(location, newProperties);
+			} else {
+				logger.info("Refreshing : " + location.getFilename());
+				// Notify subscribers that properties have been modified
+				reloadableProperties.notifyPropertiesChanged(location, newProperties);
+			}
+		}
+
+	}
+	
+	protected void reload_eld(boolean forceReload) throws IOException {
 		List<Resource> tmpLocations = new ArrayList<Resource>();
 		
 		for (ReloadablePropertiesListener listener : preListeners) {
@@ -185,6 +281,23 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 
 	@Override
 	public void setApplicationContext(ApplicationContext ctx) throws BeansException {
-		this.ctx = ctx;		
+		this.ctx = ctx;
 	}
+
+	class simplePattern {
+		private final String startsWith;
+		private final String endsWith;
+
+		private simplePattern(String pattern) {
+			pattern = pattern.replace("classpath*:", "");
+			int idx = pattern.indexOf("*");
+			startsWith = pattern.substring(0, idx);
+			endsWith = pattern.substring(idx + 1);
+		}
+
+		private boolean matches(String s) {
+			return s.startsWith(startsWith) && s.endsWith(endsWith);
+		}
+	}
+
 }
