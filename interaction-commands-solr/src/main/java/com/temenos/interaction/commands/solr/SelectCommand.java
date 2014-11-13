@@ -1,6 +1,15 @@
 package com.temenos.interaction.commands.solr;
 
 /*
+ * The SOLR search command. Can be called with the following parameters.
+ * 
+ *      'core'      Name of the core to search. Defaults to the customer core.
+ *      'q'         SOLR query term to search for.
+ *      'feldname'  Name of field to search. Defaults to 'text' i.e. all fields (See schema.xml for details).
+ * 
+ */
+
+/*
  * #%L
  * interaction-commands-solr
  * %%
@@ -21,13 +30,13 @@ package com.temenos.interaction.commands.solr;
  * #L%
  */
 
-
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,89 +56,93 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	@Qualifier("accountsSolrServer")
 	private SolrServer solrAccountServer;
 
-	public SelectCommand() {}
-	
-	private static final String SOLR_CORE = "core";
-	private static final String SOLR_QUERY = "q";
+	public SelectCommand() {
+	}
+
+	// Keys for the key/value pairs which can be passed in as part of the search
+	// URL.
+	private static final String CORE_KEY = "core";
+	private static final String QUERY_KEY = "q";
+	private static final String FIELD_NAME_KEY = "fieldname";
+
 	public static final String SOLR_CORE_CUSTOMERS = "customer_search";
 	public static final String SOLR_CORE_ACCOUNTS = "account_search";
-	
+
 	/**
 	 * Instantiates a new select command.
-	 *
-	 * @param solrCustomerServer the solr customer server
-	 * @param solrAccountServer the solr account server
+	 * 
+	 * @param solrCustomerServer
+	 *            the solr customer server
+	 * @param solrAccountServer
+	 *            the solr account server
 	 */
 	public SelectCommand(SolrServer solrCustomerServer, SolrServer solrAccountServer) {
 		this.solrCustomerServer = solrCustomerServer;
 		this.solrAccountServer = solrAccountServer;
 	}
-	
+
 	public Result execute(InteractionContext ctx) {
 
+		// Validate passed parameters
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-		String queryStr = queryParams.getFirst("q");
-		String selectedCore = queryParams.getFirst("core");
-		
-		SolrServer solrServer = null;
-		SolrQuery query = new SolrQuery();
+
+		String queryValue = queryParams.getFirst(QUERY_KEY);
+		if (null == queryValue) {
+			logger.warn("Search called with no query string.");
+			return Result.FAILURE;
+		}
+
+		String coreName = queryParams.getFirst(CORE_KEY);
+		String fieldName = queryParams.getFirst(FIELD_NAME_KEY);
 		String entityName = ctx.getCurrentState().getEntityName();
 
-		if (selectedCore == null)
-		{
-    		// Default to customer_search core
-    		solrServer = solrCustomerServer;
-    		query.setQuery(getCustomerQuery(queryStr));	
-		} 
-		else if (selectedCore.equalsIgnoreCase(SOLR_CORE_CUSTOMERS) ) {
-    		solrServer = solrCustomerServer;
-    		query.setQuery(getCustomerQuery(queryStr));
-    	}
-    	else if (selectedCore.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
-    		solrServer = solrAccountServer;
-    		query.setQuery(getAccountQuery(queryStr));
-    	}
-    	else
-    	{
-    		// Default to customer_search core
-    		solrServer = solrCustomerServer;
-    		query.setQuery(getCustomerQuery(queryStr));
+		// TODO remove before production.
+		logger.info("Calling search on core " + coreName + " entity " + entityName + " query " + queryValue
+				+ " field name " + fieldName);
+
+		// Connect to SOLR server
+		SolrServer solrServer = null;
+		if (null == coreName) {
+			// Default to customer_search core
+			solrServer = solrCustomerServer;
+		} else if (coreName.equalsIgnoreCase(SOLR_CORE_CUSTOMERS)) {
+			solrServer = solrCustomerServer;
+		} else if (coreName.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
+			solrServer = solrAccountServer;
+		} else {
+			// Unknown core. fail
+			return Result.FAILURE;
 		}
-			
-        try {
+
+		// Set up query
+		SolrQuery query = new SolrQuery();
+		query.setQuery(buildQuery(fieldName, queryValue));
+
+		try {
 			QueryResponse rsp = solrServer.query(query);
-			//SolrDocumentList list = rsp.getResults();
-			 
+			// SolrDocumentList list = rsp.getResults();
+
 			ctx.setResource(buildCollectionResource(entityName, rsp.getResults()));
 			return Result.SUCCESS;
+		} catch (SolrException e) {
+			logger.error("An unexpected error occurred while querying Solr", e);
 		} catch (SolrServerException e) {
 			logger.error("An unexpected error occurred while querying Solr", e);
 		}
-	    
+
 		return Result.FAILURE;
 	}
 
-	private String getCustomerQuery(String query)
-	{
-		StringBuilder sb = new StringBuilder();
-		sb.append(" name:*" + query + "*");
-		/*
-		sb.append("id:\"" + query + "\"");
+	// Build a Solr query string.
+	private String buildQuery(String fieldName, String query) {
+		// If field name not passed use the 'text' field which contains all
+		// other fields.
+		if (null == fieldName) {
+			fieldName = "text";
+		}
 
-		sb.append(" mnemonic:\"*" + query + "*\"");
-		sb.append(" address:\"*" + query + "*\"");
-		sb.append(" postcode:\"*" + query + "*\"");
-		*/
-		return sb.toString();
-		
-	}	
-	
-	private String getAccountQuery(String query)
-	{
-		StringBuilder sb = new StringBuilder();
-		sb.append("id:\"" + query + "\"");
-		sb.append(" name:\"*" + query + "*\"");
-		sb.append(" mnemonic:\"*" + query + "*\"");
-		return sb.toString();
+		// Quote the query in case it contains any spaces etc.
+		String queryStr = new String(fieldName + ":\"*" + query + "*\"");
+		return (queryStr);
 	}
 }
