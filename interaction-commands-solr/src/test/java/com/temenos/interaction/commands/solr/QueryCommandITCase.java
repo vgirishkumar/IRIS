@@ -5,13 +5,7 @@ package com.temenos.interaction.commands.solr;
  * and only accessible by the test's local (jUnit) JVM. No external server is required. The working directory must be set to 
  * the location of the SOLR configuration files. Currently this is:
  * 
- *        Hothouse\Jenkins
- * 
- * Note : If SOLR test documents are changed this will not clear existing SOLR index files. Jenkins clears these on every run.
- *        If testing a local machine this may have to be done manually. Delete:
- *        
- *          Hothouse\Jenkins\target
- *        
+ *        Hothouse\Jenkins        
  */
 
 /* 
@@ -40,10 +34,12 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrInputDocument;
@@ -67,6 +63,10 @@ import com.temenos.interaction.core.resource.CollectionResource;
  * The Class QueryCommandITCase.
  */
 public class QueryCommandITCase {
+	
+	// Names of cores
+	private static final String CUSTOMER_CORE_NAME = "customer_search";
+	private static final String ACCOUNT_CORE_NAME = "account_search";
 
 	private SolrServer customerSolrServer;
 	private SolrServer accountSolrServer;
@@ -88,13 +88,13 @@ public class QueryCommandITCase {
 		System.setProperty("solr.solr.home", getSolrHome());
 
 		// Populate Customer Solr core
-		TestHarness customerTestHarness = initCustomerSolrCore("customer_search");
+		TestHarness customerTestHarness = initSolrCore(CUSTOMER_CORE_NAME);
 		customerSolrServer = new EmbeddedSolrServer(customerTestHarness.getCoreContainer(), customerTestHarness
 				.getCore().getName());
 		initCustomerTestData();
 
 		// Populate Account Solr core
-		TestHarness accountTestHarness = initCustomerSolrCore("account_search");
+		TestHarness accountTestHarness = initSolrCore(ACCOUNT_CORE_NAME);
 		accountSolrServer = new EmbeddedSolrServer(accountTestHarness.getCoreContainer(), accountTestHarness.getCore()
 				.getName());
 		initAccountTestData();
@@ -104,19 +104,49 @@ public class QueryCommandITCase {
 	/**
 	 * @return
 	 */
-	private TestHarness initCustomerSolrCore(String solr_core) {
-		SolrConfig customerSolrConfig = TestHarness
-				.createConfig(getSolrHome(), solr_core, getSolrConfigFile(solr_core));
+	private TestHarness initSolrCore(String solrCore) {
+		File dataDir = getSolrDataDir(solrCore);
+		
+		// Clear any junk from the index.
+		clearDataDir(dataDir);
+		
+		SolrConfig solrConfig = TestHarness
+				.createConfig(getSolrHome(), solrCore, getSolrConfigFile(solrCore));
 
-		TestHarness h = new TestHarness(new File("./target/" + solr_core + "-test/data").getAbsolutePath(),
-				customerSolrConfig, getSolrSchemaFile(solr_core));
+		TestHarness h = new TestHarness(dataDir.getAbsolutePath(),
+				solrConfig, getSolrSchemaFile(solrCore));
 		return h;
 	}
 
+	/**
+	 * Find location of the Solr data.
+	 * 
+	 * @param solrCore
+	 * @return
+	 */
+	private File getSolrDataDir(String solrCore) {
+			return (new File("./target/" + solrCore + "-test/data"));
+	}
+	
+	/**
+	 * Clear out any existing data in index.
+	 */
+	private void clearDataDir(File dataDir) {
+		try {
+			FileUtils.deleteDirectory(dataDir);
+		} catch (IOException e) {
+			// No problem. Probably did not exist.
+		}
+	}
+	
 	@After
 	public void tearDown() {
 		customerSolrServer.shutdown();
 		accountSolrServer.shutdown();
+		
+		// Tidy all indexes
+		clearDataDir(getSolrDataDir(CUSTOMER_CORE_NAME));
+		clearDataDir(getSolrDataDir(ACCOUNT_CORE_NAME));		
 	}
 
 	/**
@@ -276,7 +306,7 @@ public class QueryCommandITCase {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testCustomerSelectBySimilarName() {
+	public void testCustomerSelectBySimilarNames() {
 		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN");
@@ -296,7 +326,7 @@ public class QueryCommandITCase {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testGoodCoreName() {
+	public void testSpecificCoreName() {
 		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "John");
@@ -315,7 +345,7 @@ public class QueryCommandITCase {
 	 * Test fails if query not present
 	 */
 	@Test
-	public void testFailsOnNoQuery() {
+	public void testFailsOnMissingQuery() {
 		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN4");
