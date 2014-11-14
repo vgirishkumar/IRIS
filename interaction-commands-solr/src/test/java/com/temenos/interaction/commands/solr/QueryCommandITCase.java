@@ -1,11 +1,14 @@
 package com.temenos.interaction.commands.solr;
 
 /*
- * Unit tests for the SOLR Select command. These are self contained. They start a local embedded SOLR server. This is contained,
- * and only accessible by the test's local (jUnit) JVM. No external server is required. The working directory must be set to 
- * the location of the SOLR configuration files. Currently this is:
+ * Unit tests for the SOLR Select command. These are self contained. They start a local embedded SOLR server. This is contained
+ * in, and only accessible by, the test's local (jUnit) JVM. No external server is required. The working directory must be set
+ * to the location of the SOLR configuration files. Currently this is:
  * 
- *        Hothouse\Jenkins        
+ *        Hothouse\Jenkins  
+ *        
+ * Due to mocking of the server connection there are some features (e.g. failure on bad core names) that cannot be tested here.
+ * These should be tested by HotHouse integration tests,
  */
 
 /* 
@@ -65,11 +68,11 @@ import com.temenos.interaction.core.resource.CollectionResource;
 public class QueryCommandITCase {
 	
 	// Names of cores
-	private static final String CUSTOMER_CORE_NAME = "customer_search";
-	private static final String ACCOUNT_CORE_NAME = "account_search";
+	private static final String ENTITY1_CORE_NAME = "test_entity1_search";
+	private static final String ENTITY2_CORE_NAME = "test_entity2_search";
 
-	private SolrServer customerSolrServer;
-	private SolrServer accountSolrServer;
+	private SolrServer entity1SolrServer;
+	private SolrServer entity2SolrServer;
 
 	private String getSolrHome() {
 		return "solr";
@@ -87,17 +90,17 @@ public class QueryCommandITCase {
 	public void setUp() throws Exception {
 		System.setProperty("solr.solr.home", getSolrHome());
 
-		// Populate Customer Solr core
-		TestHarness customerTestHarness = initSolrCore(CUSTOMER_CORE_NAME);
-		customerSolrServer = new EmbeddedSolrServer(customerTestHarness.getCoreContainer(), customerTestHarness
+		// Populate Entity1 Solr core
+		TestHarness entity1TestHarness = initSolrCore(ENTITY1_CORE_NAME);
+		entity1SolrServer = new EmbeddedSolrServer(entity1TestHarness.getCoreContainer(), entity1TestHarness
 				.getCore().getName());
-		initCustomerTestData();
+		initEntity1TestData();
 
-		// Populate Account Solr core
-		TestHarness accountTestHarness = initSolrCore(ACCOUNT_CORE_NAME);
-		accountSolrServer = new EmbeddedSolrServer(accountTestHarness.getCoreContainer(), accountTestHarness.getCore()
+		// Populate Entity2 Solr core
+		TestHarness entity2TestHarness = initSolrCore(ENTITY2_CORE_NAME);
+		entity2SolrServer = new EmbeddedSolrServer(entity2TestHarness.getCoreContainer(), entity2TestHarness.getCore()
 				.getName());
-		initAccountTestData();
+		initEntity2TestData();
 
 	}
 
@@ -141,42 +144,42 @@ public class QueryCommandITCase {
 	
 	@After
 	public void tearDown() {
-		customerSolrServer.shutdown();
-		accountSolrServer.shutdown();
+		entity1SolrServer.shutdown();
+		entity2SolrServer.shutdown();
 		
 		// Tidy all indexes
-		clearDataDir(getSolrDataDir(CUSTOMER_CORE_NAME));
-		clearDataDir(getSolrDataDir(ACCOUNT_CORE_NAME));		
+		clearDataDir(getSolrDataDir(ENTITY1_CORE_NAME));
+		clearDataDir(getSolrDataDir(ENTITY2_CORE_NAME));		
 	}
 
 	/**
-	 * Inits the customer test data.
+	 * Inits the entity1 test data.
 	 * 
 	 * @throws Exception
 	 *             the exception
 	 */
-	private void initCustomerTestData() throws Exception {
-		customerSolrServer.add(createCustomer("1111", "JOHN1", "A Jones", "111 Somewhere", "AA IWSH", "UK"), 0);
-		customerSolrServer.add(createCustomer("2222", "JOHN2", "B Jillian", "222 Somewhere", "BB IWSH", "UK"), 0);
-		customerSolrServer.add(createCustomer("3333", "JOHN3", "Ima Twin", "333 Somewhere", "CC IWSH", "UK"), 0);
-		customerSolrServer.add(createCustomer("4444", "JOHN4", "Ima Twin", "444 Somewhere", "DD IWSH", "FR"), 0);
-		customerSolrServer.commit(true, true);
+	private void initEntity1TestData() throws Exception {
+		entity1SolrServer.add(createEntity1("1111", "JOHN1", "A Jones", "111 Somewhere", "AA IWSH", "UK"), 0);
+		entity1SolrServer.add(createEntity1("2222", "JOHN2", "B Jillian", "222 Somewhere", "BB IWSH", "UK"), 0);
+		entity1SolrServer.add(createEntity1("3333", "JOHN3", "Ima Twin", "333 Somewhere", "CC IWSH", "UK"), 0);
+		entity1SolrServer.add(createEntity1("4444", "JOHN4", "Ima Twin", "444 Somewhere", "DD IWSH", "FR"), 0);
+		entity1SolrServer.commit(true, true);
 	}
 
 	/**
-	 * Inits the account test data.
+	 * Inits the entity2 test data.
 	 * 
 	 * @throws Exception
 	 *             the exception
 	 */
-	private void initAccountTestData() throws Exception {
-		accountSolrServer.add(createAccount("1111", "JOHN1", "Fred Jones"), 0);
-		accountSolrServer.add(createAccount("2222", "JOHN2", "John Jillian"), 0);
-		accountSolrServer.commit(true, true);
+	private void initEntity2TestData() throws Exception {
+		entity2SolrServer.add(createEntity2("1111", "JOHN1", "Fred Jones"), 0);
+		entity2SolrServer.add(createEntity2("2222", "JOHN2", "John Jillian"), 0);
+		entity2SolrServer.commit(true, true);
 	}
 
 	/**
-	 * Creates the customer.
+	 * Creates the entity1.
 	 * 
 	 * @param id
 	 *            the id
@@ -192,7 +195,7 @@ public class QueryCommandITCase {
 	 *            the country
 	 * @return the solr input document
 	 */
-	private SolrInputDocument createCustomer(String id, String mnemonic, String name, String address, String postcode,
+	private SolrInputDocument createEntity1(String id, String mnemonic, String name, String address, String postcode,
 			String country) {
 		SolrInputDocument doc = new SolrInputDocument();
 		doc.addField("id", id, 1.0f);
@@ -205,7 +208,7 @@ public class QueryCommandITCase {
 	}
 
 	/**
-	 * Creates the account.
+	 * Creates the entity2.
 	 * 
 	 * @param id
 	 *            the id
@@ -215,7 +218,7 @@ public class QueryCommandITCase {
 	 *            the name
 	 * @return the solr input document
 	 */
-	private SolrInputDocument createAccount(String id, String mnemonic, String name) {
+	private SolrInputDocument createEntity2(String id, String mnemonic, String name) {
 		SolrInputDocument doc = new SolrInputDocument();
 		doc.addField("id", id, 1.0f);
 		doc.addField("mnemonic", mnemonic, 1.0f);
@@ -224,12 +227,12 @@ public class QueryCommandITCase {
 	}
 
 	/**
-	 * Test select for single customers. Search on all fields.
+	 * Test select for single entity1s. Search on all fields.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testCustomerSelectAllFields() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+	public void testEntity1SelectAllFields() {
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 
@@ -243,12 +246,12 @@ public class QueryCommandITCase {
 	}
 
 	/**
-	 * Test select for duplicate customers. Search on all fields.
+	 * Test select for duplicate entity1s. Search on all fields.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testDuplicateCustomerSelectAllFields() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+	public void testDuplicateEntity1SelectAllFields() {
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "Ima Twin");
 
@@ -262,12 +265,12 @@ public class QueryCommandITCase {
 	}
 
 	/**
-	 * Test select for single customers. Search on a named field.
+	 * Test select for single entity1s. Search on a named field.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testCustomerSelectByName() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+	public void testEntity1SelectByName() {
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 		queryParams.add("fieldname", "name");
@@ -282,12 +285,12 @@ public class QueryCommandITCase {
 	}
 
 	/**
-	 * Test customer select.
+	 * Test entity1 select.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testCustomerSelectByMnenomic() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+	public void testEntity1SelectByMnenomic() {
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN4");
 		queryParams.add("fieldname", "mnemonic");
@@ -302,12 +305,12 @@ public class QueryCommandITCase {
 	}
 
 	/**
-	 * Test select for several customers with similar names.
+	 * Test select for several entity1s with similar names.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testCustomerSelectBySimilarNames() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+	public void testEntity1SelectBySimilarNames() {
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN");
 		queryParams.add("fieldname", "mnemonic");
@@ -327,10 +330,13 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSpecificCoreName() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+		// Specify a core as the default
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "John");
-		queryParams.add("core", "account_search");
+		
+		// Specify a different core for the query
+		queryParams.add("core", ENTITY2_CORE_NAME);
 		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
@@ -346,7 +352,7 @@ public class QueryCommandITCase {
 	 */
 	@Test
 	public void testFailsOnMissingQuery() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN4");
 		queryParams.add("fieldname", "rubbish");
@@ -368,7 +374,7 @@ public class QueryCommandITCase {
 	 */
 	@Test
 	public void testFailsOnBadFieldName() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN4");
 		queryParams.add("fieldname", "rubbish");
@@ -386,28 +392,6 @@ public class QueryCommandITCase {
 	}
 
 	/**
-	 * Test fails on unknown core.
-	 */
-	@Test
-	public void testFailsOnBadCoreName() {
-		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add("q", "JOHN4");
-		queryParams.add("core", "rubbish");
-
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-
-		InteractionCommand.Result result = null;
-		try {
-			result = command.execute(ctx);
-		} catch (Exception e) {
-			fail("Threw on bad core name");
-		}
-		assertEquals("Did not fail on bad core name", Result.FAILURE, result);
-	}
-
-	/**
 	 * Test terms.
 	 */
 	// Looks like dead code. Skip it.
@@ -415,7 +399,7 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTerms() {
-		TermsCommand command = new TermsCommand(customerSolrServer);
+		TermsCommand command = new TermsCommand(entity1SolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "j");
 		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),

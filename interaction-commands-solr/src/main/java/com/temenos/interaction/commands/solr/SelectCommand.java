@@ -3,7 +3,7 @@ package com.temenos.interaction.commands.solr;
 /*
  * The SOLR search command. Can be called with the following parameters.
  * 
- *      'core'      Name of the core to search. Defaults to the customer core.
+ *      'core'      Name of the core to search. Defaults to the entity1 core.
  *      'q'         SOLR query term to search for.
  *      'feldname'  Name of field to search. Defaults to 'text' i.e. all fields (See schema.xml for details).
  * 
@@ -30,17 +30,19 @@ package com.temenos.interaction.commands.solr;
  * #L%
  */
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -48,16 +50,16 @@ import com.temenos.interaction.core.command.InteractionContext;
 public class SelectCommand extends AbstractSolrCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(SelectCommand.class);
 
-	@Autowired
-	@Qualifier("customersSolrServer")
-	private SolrServer solrCustomerServer;
+	// Somewhere to store references to the embedded Solr servers used during
+	// testing.
+	private SolrServer testEntity1SolrServer = null;
+	private SolrServer testEntity2SolrServer = null;
 
-	@Autowired
-	@Qualifier("accountsSolrServer")
-	private SolrServer solrAccountServer;
-
-	public SelectCommand() {
-	}
+	// Root of the Solr URL
+	private String solrRootURL;
+	
+	// Name of core to use if none explicitly specified. Probably used only in testing.
+	private String defaultCoreName;
 
 	// Keys for the key/value pairs which can be passed in as part of the search
 	// URL.
@@ -65,20 +67,41 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	private static final String QUERY_KEY = "q";
 	private static final String FIELD_NAME_KEY = "fieldname";
 
-	public static final String SOLR_CORE_CUSTOMERS = "customer_search";
-	public static final String SOLR_CORE_ACCOUNTS = "account_search";
-
 	/**
 	 * Instantiates a new select command.
 	 * 
-	 * @param solrCustomerServer
-	 *            the solr customer server
-	 * @param solrAccountServer
-	 *            the solr account server
+	 * For production we pass in, and connect to, the URL of an external server
+	 * for each search request.
+	 * 
+	 * In future we may introduce connection pooling.
 	 */
-	public SelectCommand(SolrServer solrCustomerServer, SolrServer solrAccountServer) {
-		this.solrCustomerServer = solrCustomerServer;
-		this.solrAccountServer = solrAccountServer;
+	public SelectCommand(String solrRootURL, String defaultCoreName) {
+		this.solrRootURL = solrRootURL;
+		commonConstructor(defaultCoreName);
+	}
+
+	/**
+	 * Instantiates a new select command for unittests.
+	 * 
+	 * Unit tests use an embedded Solr server. It has no URL so just pass in the
+	 * server references. 
+	 * 
+	 * NOT TO BE USED FOR PRODUCTION CODE.
+	 * 
+	 * @param solrServer
+	 *            the solr server
+	 */
+	public SelectCommand(SolrServer entity1Server, SolrServer entity2Server, String defaultCoreName) {
+		testEntity1SolrServer = entity1Server;
+		testEntity2SolrServer = entity2Server;
+		commonConstructor(defaultCoreName);
+	}
+	
+	/*
+	 * Common construction code
+	 */
+	private void commonConstructor(String defaultCoreName) {
+		this.defaultCoreName = defaultCoreName;
 	}
 
 	public Result execute(InteractionContext ctx) {
@@ -100,37 +123,61 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 		logger.info("Calling search on core " + coreName + " entity " + entityName + " query " + queryValue
 				+ " field name " + fieldName);
 
-		// Connect to SOLR server
-		SolrServer solrServer = null;
-		if (null == coreName) {
-			// Default to customer_search core
-			solrServer = solrCustomerServer;
-		} else if (coreName.equalsIgnoreCase(SOLR_CORE_CUSTOMERS)) {
-			solrServer = solrCustomerServer;
-		} else if (coreName.equalsIgnoreCase(SOLR_CORE_ACCOUNTS)) {
-			solrServer = solrAccountServer;
+		// If not given an explicit core name work out which core we should use.
+		if (null == coreName) {		
+			if (null != entityName) {
+				// If we have an entity name use a core with the same name
+				coreName = entityName;
+			} else {
+				// Use the default core name
+				coreName = defaultCoreName;
+			}
+		}
+
+		// Set up a client side stub connecting to a Solr server
+		SolrServer solrServer;
+		if (null != testEntity1SolrServer) {
+			// Use one of the test servers
+			if (defaultCoreName == coreName) {
+				solrServer = testEntity1SolrServer;
+			} else {
+				solrServer = testEntity2SolrServer;
+			}
 		} else {
-			// Unknown core. fail
-			return Result.FAILURE;
+			// Connect to an external SOLR server
+			try {
+				URL coreURL = new URL(solrRootURL + "/" + coreName);
+				solrServer = new HttpSolrServer(coreURL.toString());
+			} catch (MalformedURLException e) {
+				logger.error("Malformed URL when connecting to Solr Server." + e);
+				return (Result.FAILURE);
+			}
 		}
 
 		// Set up query
 		SolrQuery query = new SolrQuery();
 		query.setQuery(buildQuery(fieldName, queryValue));
 
+		Result res = Result.FAILURE;
 		try {
 			QueryResponse rsp = solrServer.query(query);
 			// SolrDocumentList list = rsp.getResults();
 
 			ctx.setResource(buildCollectionResource(entityName, rsp.getResults()));
-			return Result.SUCCESS;
+			res = Result.SUCCESS;
 		} catch (SolrException e) {
-			logger.error("An unexpected error occurred while querying Solr", e);
+			logger.error("An unexpected internal error occurred while querying Solr " + e);
 		} catch (SolrServerException e) {
-			logger.error("An unexpected error occurred while querying Solr", e);
+			logger.error("An unexpected error occurred while querying Solr " + e);
 		}
 
-		return Result.FAILURE;
+		// If we connected to an external server disconnect.
+		if (null == testEntity1SolrServer) {
+			// If we started a server connection close it down.
+			solrServer.shutdown();
+		}
+
+		return (res);
 	}
 
 	// Build a Solr query string.
