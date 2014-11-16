@@ -934,7 +934,24 @@ public class TestAtomXMLProvider {
 	    }
 	}
 
-	private final static String COLLECTION_LINK_ITEM = "<?xml version='1.0' encoding='utf-8'?>"
+	private final static String ENTITY_COLLECTION_LINK_ITEM = "<?xml version='1.0' encoding='utf-8'?>"
+			+ "<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" "
+				+ "xml:base=\"http://localhost:8080/responder/rest/\">"
+			+ "<title type=\"text\">Flight</title>"
+			+ "<id>http://localhost:8080/responder/rest/FundsTransfers</id>"
+			+ "<updated>2014-02-20T08:56:32Z</updated>"
+				+ "<entry><id>http://localhost:8080/responder/rest/Flight('1')</id>"
+				+ "<title type=\"text\" />"
+				+ "<updated>2014-02-20T08:56:32Z</updated>"
+				+ "<author><name /></author>"
+				+ "<link rel=\"self\" title=\"Link to entity\" href=\"Flights('1')\"  profile=\"item\" />"
+				+ "<category term=\"FlightModelModel.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" />"
+				+ "<content type=\"application/xml\">"
+				+ "<m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content>"
+				+ "</entry>"
+			+ "</feed>";
+
+	private final static String OENTITY_COLLECTION_LINK_ITEM = "<?xml version='1.0' encoding='utf-8'?>"
 			+ "<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" "
 				+ "xml:base=\"http://localhost:8080/responder/rest/\">"
 			+ "<title type=\"text\">Flight</title>"
@@ -949,8 +966,7 @@ public class TestAtomXMLProvider {
 				+ "<content type=\"application/xml\">"
 				+ "<m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content>"
 				+ "</entry>"
-			+ "</feed>";
-
+			+ "</feed>";	
 	private ResourceStateMachine createCollectionToItemRSM(Transformer transformer) {
 		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceState flights = new CollectionResourceState("Flight", "Flights", new ArrayList<Action>(), "/Flights");
@@ -1005,7 +1021,7 @@ public class TestAtomXMLProvider {
 
 		//Check response
 		XMLUnit.setIgnoreWhitespace(true);
-		Diff myDiff = XMLUnit.compareXML(COLLECTION_LINK_ITEM, responseString);
+		Diff myDiff = XMLUnit.compareXML(ENTITY_COLLECTION_LINK_ITEM, responseString);
 	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
 	    if(!myDiff.similar()) {
 	    	fail(myDiff.toString());
@@ -1054,14 +1070,31 @@ public class TestAtomXMLProvider {
 
 		//Check response
 		XMLUnit.setIgnoreWhitespace(true);
-		Diff myDiff = XMLUnit.compareXML(COLLECTION_LINK_ITEM, responseString);
+		Diff myDiff = XMLUnit.compareXML(OENTITY_COLLECTION_LINK_ITEM, responseString);
 		myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
 	    if(!myDiff.similar()) {
 	    	fail(myDiff.toString());
 	    }
 	}
 
-	private final static String COMPANY_COLLECTION_LINK_ITEM = "<?xml version='1.0' encoding='utf-8'?>"
+	private final static String ENTITY_COMPANY_COLLECTION_LINK_ITEM = "<?xml version='1.0' encoding='utf-8'?>"
+			+ "<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" "
+				+ "xml:base=\"http://localhost:8080/responder/rest/MockCompany001/\">"
+			+ "<title type=\"text\">Flight</title>"
+			+ "<id>http://localhost:8080/responder/rest/MockCompany001/FundsTransfers</id>"
+			+ "<updated>2014-02-20T08:56:32Z</updated>"
+				+ "<entry><id>http://localhost:8080/responder/rest/MockCompany001/Flight('1')</id>"
+				+ "<title type=\"text\" />"
+				+ "<updated>2014-02-20T08:56:32Z</updated>"
+				+ "<author><name /></author>"
+				+ "<link rel=\"self\" title=\"Link to entity\" href=\"Flights('1')\" profile=\"item\" />"
+				+ "<category term=\"FlightModelModel.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" />"
+				+ "<content type=\"application/xml\">"
+				+ "<m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content>"
+				+ "</entry>"
+			+ "</feed>";
+	
+	private final static String OENTITY_COMPANY_COLLECTION_LINK_ITEM = "<?xml version='1.0' encoding='utf-8'?>"
 			+ "<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:m=\"http://schemas.microsoft.com/ado/2007/08/dataservices/metadata\" xmlns:d=\"http://schemas.microsoft.com/ado/2007/08/dataservices\" "
 				+ "xml:base=\"http://localhost:8080/responder/rest/MockCompany001/\">"
 			+ "<title type=\"text\">Flight</title>"
@@ -1076,7 +1109,7 @@ public class TestAtomXMLProvider {
 				+ "<content type=\"application/xml\">"
 				+ "<m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content>"
 				+ "</entry>"
-			+ "</feed>";
+			+ "</feed>";	
 
 	private ResourceStateMachine createCompanyCollectionToItemRSM(Transformer transformer) {
 		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/{companyid}");
@@ -1133,7 +1166,7 @@ public class TestAtomXMLProvider {
 
 		//Check response
 		XMLUnit.setIgnoreWhitespace(true);
-		Diff myDiff = XMLUnit.compareXML(COMPANY_COLLECTION_LINK_ITEM, responseString);
+		Diff myDiff = XMLUnit.compareXML(ENTITY_COMPANY_COLLECTION_LINK_ITEM, responseString);
 	    myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
 	    if(!myDiff.similar()) {
 	    	fail(myDiff.toString());
@@ -1183,7 +1216,7 @@ public class TestAtomXMLProvider {
 
 		//Check response
 		XMLUnit.setIgnoreWhitespace(true);
-		Diff myDiff = XMLUnit.compareXML(COMPANY_COLLECTION_LINK_ITEM, responseString);
+		Diff myDiff = XMLUnit.compareXML(OENTITY_COMPANY_COLLECTION_LINK_ITEM, responseString);
 		myDiff.overrideDifferenceListener(new IgnoreNamedElementsXMLDifferenceListener("updated"));
 	    if(!myDiff.similar()) {
 	    	fail(myDiff.toString());

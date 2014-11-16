@@ -186,6 +186,12 @@ public class AtomEntityEntryFormatWriter {
 			    String href = link.getRelativeHref(baseUri);
 			    String rel = link.getRel();
 	            writer.startLink(href, rel);
+	            
+	            if("self".equals(link.getRel())) {
+	            	ResourceState target = link.getTransition().getTarget();	            	
+	            	writer.writeAttribute("profile", target.getRel());
+	            }
+	            
 	            if (!"self".equals(link.getRel()) &&
 	            		!"edit".equals(link.getRel())) {
 		            writer.writeAttribute("type", type);
