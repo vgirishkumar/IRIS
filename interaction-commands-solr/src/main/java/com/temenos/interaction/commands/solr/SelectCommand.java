@@ -55,17 +55,18 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	private SolrServer testEntity1SolrServer = null;
 	private SolrServer testEntity2SolrServer = null;
 
+	// Type of entity used during testing.
+	private String testEntityType;
+
 	// Root of the Solr URL
 	private String solrRootURL;
-	
-	// Name of core to use if none explicitly specified. Probably used only in testing.
-	private String defaultCoreName;
 
 	// Keys for the key/value pairs which can be passed in as part of the search
 	// URL.
 	private static final String CORE_KEY = "core";
 	private static final String QUERY_KEY = "q";
 	private static final String FIELD_NAME_KEY = "fieldname";
+	private static final String COMPANY_NAME_KEY = "companyid";
 
 	/**
 	 * Instantiates a new select command.
@@ -75,33 +76,25 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	 * 
 	 * In future we may introduce connection pooling.
 	 */
-	public SelectCommand(String solrRootURL, String defaultCoreName) {
+	public SelectCommand(String solrRootURL) {
 		this.solrRootURL = solrRootURL;
-		commonConstructor(defaultCoreName);
 	}
 
 	/**
 	 * Instantiates a new select command for unittests.
 	 * 
 	 * Unit tests use an embedded Solr server. It has no URL so just pass in the
-	 * server references. 
+	 * server references.
 	 * 
 	 * NOT TO BE USED FOR PRODUCTION CODE.
 	 * 
 	 * @param solrServer
 	 *            the solr server
 	 */
-	public SelectCommand(SolrServer entity1Server, SolrServer entity2Server, String defaultCoreName) {
+	public SelectCommand(SolrServer entity1Server, SolrServer entity2Server, String entityType) {
 		testEntity1SolrServer = entity1Server;
 		testEntity2SolrServer = entity2Server;
-		commonConstructor(defaultCoreName);
-	}
-	
-	/*
-	 * Common construction code
-	 */
-	private void commonConstructor(String defaultCoreName) {
-		this.defaultCoreName = defaultCoreName;
+		testEntityType = entityType;
 	}
 
 	public Result execute(InteractionContext ctx) {
@@ -114,31 +107,56 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 			logger.warn("Search called with no query string.");
 			return Result.FAILURE;
 		}
-
+		
+		// Dump query parameters
+		/* Iterator<String> it = ctx.getQueryParameters().keySet().iterator();
+		while (it.hasNext()) {
+			String theKey = (String) it.next();
+			logger.info("    Key " + theKey + " = Value " + ctx.getQueryParameters().getFirst(theKey));
+		}	
+		*/
+		
 		String coreName = queryParams.getFirst(CORE_KEY);
 		String fieldName = queryParams.getFirst(FIELD_NAME_KEY);
-		String entityName = ctx.getCurrentState().getEntityName();
+		String entityType = ctx.getCurrentState().getEntityName();
+
+		String companyName = ctx.getPathParameters().getFirst(COMPANY_NAME_KEY);
+		if (null == companyName) {
+			logger.warn("Search called with no company string.");
+			return Result.FAILURE;
+		}
 
 		// TODO remove before production.
-		logger.info("Calling search on core " + coreName + " entity " + entityName + " query " + queryValue
-				+ " field name " + fieldName);
+		logger.info("Calling search on company " + companyName + " core " + coreName + " entity " + entityType
+				+ " query " + queryValue + " field name " + fieldName);
 
-		// If not given an explicit core name work out which core we should use.
-		if (null == coreName) {		
-			if (null != entityName) {
-				// If we have an entity name use a core with the same name
-				coreName = entityName;
+		// Validate entity type
+		if (null == entityType) {
+			if (null == testEntity1SolrServer) {
+				// In production there must always be a valid entity name
+				logger.error("Select invoked with null entity type.");
+				return (Result.FAILURE);
 			} else {
-				// Use the default core name
-				coreName = defaultCoreName;
+				// For test this expected. Use core or passed entity type.
+				if (null == coreName) {
+					entityType = testEntityType;
+				} else {
+					entityType = coreName;
+				}
 			}
+		}
+
+		// Work out which core should be used.
+		if (null == coreName) {
+			// Use a core with the same name as the entity type.
+			coreName = entityType;
 		}
 
 		// Set up a client side stub connecting to a Solr server
 		SolrServer solrServer;
 		if (null != testEntity1SolrServer) {
 			// Use one of the test servers
-			if (defaultCoreName == coreName) {
+			if (testEntityType == entityType) {
 				solrServer = testEntity1SolrServer;
 			} else {
 				solrServer = testEntity2SolrServer;
@@ -146,10 +164,11 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 		} else {
 			// Connect to an external SOLR server
 			try {
-				URL coreURL = new URL(solrRootURL + "/" + coreName);
+				URL coreURL = new URL(solrRootURL + "/" + companyName + "_" + coreName);
+				logger.info("Connecting to external Solr server " + coreURL + ".");
 				solrServer = new HttpSolrServer(coreURL.toString());
 			} catch (MalformedURLException e) {
-				logger.error("Malformed URL when connecting to Solr Server." + e);
+				logger.error("Malformed URL when connecting to Solr Server. " + e);
 				return (Result.FAILURE);
 			}
 		}
@@ -163,7 +182,7 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 			QueryResponse rsp = solrServer.query(query);
 			// SolrDocumentList list = rsp.getResults();
 
-			ctx.setResource(buildCollectionResource(entityName, rsp.getResults()));
+			ctx.setResource(buildCollectionResource(entityType, rsp.getResults()));
 			res = Result.SUCCESS;
 		} catch (SolrException e) {
 			logger.error("An unexpected internal error occurred while querying Solr " + e);
@@ -190,6 +209,9 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 
 		// Quote the query in case it contains any spaces etc.
 		String queryStr = new String(fieldName + ":\"*" + query + "*\"");
+		
+		logger.info("Executing query " + queryStr + ".");
+		
 		return (queryStr);
 	}
 }

@@ -33,7 +33,6 @@ package com.temenos.interaction.commands.solr;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -66,10 +65,13 @@ import com.temenos.interaction.core.resource.CollectionResource;
  * The Class QueryCommandITCase.
  */
 public class QueryCommandITCase {
-	
-	// Names of cores
-	private static final String ENTITY1_CORE_NAME = "test_entity1_search";
-	private static final String ENTITY2_CORE_NAME = "test_entity2_search";
+
+	// Names of entities. Will be the same as core names
+	private static final String ENTITY1_TYPE = "test_entity1_search";
+	private static final String ENTITY2_TYPE = "test_entity2_search";
+
+	// Name of company
+	private static final String COMPANY_NAME = "TestBank";
 
 	private SolrServer entity1SolrServer;
 	private SolrServer entity2SolrServer;
@@ -91,13 +93,13 @@ public class QueryCommandITCase {
 		System.setProperty("solr.solr.home", getSolrHome());
 
 		// Populate Entity1 Solr core
-		TestHarness entity1TestHarness = initSolrCore(ENTITY1_CORE_NAME);
-		entity1SolrServer = new EmbeddedSolrServer(entity1TestHarness.getCoreContainer(), entity1TestHarness
-				.getCore().getName());
+		TestHarness entity1TestHarness = initSolrCore(COMPANY_NAME + "/" + ENTITY1_TYPE);
+		entity1SolrServer = new EmbeddedSolrServer(entity1TestHarness.getCoreContainer(), entity1TestHarness.getCore()
+				.getName());
 		initEntity1TestData();
 
 		// Populate Entity2 Solr core
-		TestHarness entity2TestHarness = initSolrCore(ENTITY2_CORE_NAME);
+		TestHarness entity2TestHarness = initSolrCore(COMPANY_NAME + "/" + ENTITY2_TYPE);
 		entity2SolrServer = new EmbeddedSolrServer(entity2TestHarness.getCoreContainer(), entity2TestHarness.getCore()
 				.getName());
 		initEntity2TestData();
@@ -109,15 +111,13 @@ public class QueryCommandITCase {
 	 */
 	private TestHarness initSolrCore(String solrCore) {
 		File dataDir = getSolrDataDir(solrCore);
-		
+
 		// Clear any junk from the index.
 		clearDataDir(dataDir);
-		
-		SolrConfig solrConfig = TestHarness
-				.createConfig(getSolrHome(), solrCore, getSolrConfigFile(solrCore));
 
-		TestHarness h = new TestHarness(dataDir.getAbsolutePath(),
-				solrConfig, getSolrSchemaFile(solrCore));
+		SolrConfig solrConfig = TestHarness.createConfig(getSolrHome(), solrCore, getSolrConfigFile(solrCore));
+
+		TestHarness h = new TestHarness(dataDir.getAbsolutePath(), solrConfig, getSolrSchemaFile(solrCore));
 		return h;
 	}
 
@@ -128,9 +128,9 @@ public class QueryCommandITCase {
 	 * @return
 	 */
 	private File getSolrDataDir(String solrCore) {
-			return (new File("./target/" + solrCore + "-test/data"));
+		return (new File("./target/" + COMPANY_NAME + '/' + solrCore + "-test/data"));
 	}
-	
+
 	/**
 	 * Clear out any existing data in index.
 	 */
@@ -141,15 +141,15 @@ public class QueryCommandITCase {
 			// No problem. Probably did not exist.
 		}
 	}
-	
+
 	@After
 	public void tearDown() {
 		entity1SolrServer.shutdown();
 		entity2SolrServer.shutdown();
-		
+
 		// Tidy all indexes
-		clearDataDir(getSolrDataDir(ENTITY1_CORE_NAME));
-		clearDataDir(getSolrDataDir(ENTITY2_CORE_NAME));		
+		clearDataDir(getSolrDataDir(ENTITY1_TYPE));
+		clearDataDir(getSolrDataDir(ENTITY2_TYPE));
 	}
 
 	/**
@@ -232,12 +232,16 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntity1SelectAllFields() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
+
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 
@@ -251,12 +255,15 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDuplicateEntity1SelectAllFields() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "Ima Twin");
 
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 
@@ -270,13 +277,16 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntity1SelectByName() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 		queryParams.add("fieldname", "name");
 
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 
@@ -290,13 +300,16 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntity1SelectByMnenomic() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN4");
 		queryParams.add("fieldname", "mnemonic");
 
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 
@@ -310,13 +323,16 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntity1SelectBySimilarNames() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN");
 		queryParams.add("fieldname", "mnemonic");
 
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 
@@ -331,14 +347,17 @@ public class QueryCommandITCase {
 	@Test
 	public void testSpecificCoreName() {
 		// Specify a core as the default
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "John");
-		
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
 		// Specify a different core for the query
-		queryParams.add("core", ENTITY2_CORE_NAME);
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		queryParams.add("core", ENTITY2_TYPE);
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 
@@ -352,20 +371,18 @@ public class QueryCommandITCase {
 	 */
 	@Test
 	public void testFailsOnMissingQuery() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
+		
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add("q", "JOHN4");
-		queryParams.add("fieldname", "rubbish");
 
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
 
-		InteractionCommand.Result result = null;
-		try {
-			result = command.execute(ctx);
-		} catch (Exception e) {
-			fail("Threw on no query");
-		}
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
+
+		InteractionCommand.Result result = command.execute(ctx);
+
 		assertEquals("Did not fail on no query", Result.FAILURE, result);
 	}
 
@@ -374,21 +391,41 @@ public class QueryCommandITCase {
 	 */
 	@Test
 	public void testFailsOnBadFieldName() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_CORE_NAME);
+		
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add("q", "JOHN4");
+		queryParams.add("q", "A Jones");
 		queryParams.add("fieldname", "rubbish");
 
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
 
-		InteractionCommand.Result result = null;
-		try {
-			result = command.execute(ctx);
-		} catch (Exception e) {
-			fail("Threw on bad field name");
-		}
-		assertEquals("Did not fail on bad field name", Result.FAILURE, result);
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
+
+		InteractionCommand.Result result = command.execute(ctx);
+
+		assertEquals("Did not fail on bad fieldname", Result.FAILURE, result);
+	}
+	
+	/**
+	 * Test fails if company not present
+	 */
+	@Test
+	public void testFailsOnMissingComapny() {
+		
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("q", "A Jones");
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
+
+		InteractionCommand.Result result = command.execute(ctx);
+
+		assertEquals("Did not fail on missing company", Result.FAILURE, result);
 	}
 
 	/**
@@ -410,6 +447,33 @@ public class QueryCommandITCase {
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(5, cr.getEntities().size());
 
+	}
+	
+	/**
+	 * Check that select still works if there are additional (ignored) parameters.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testWorksWithAdditionalParams() {
+		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("q", "A Jones");
+		
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+		
+		// Extra params
+		queryParams.add("filter", "rubbish");
+		queryParams.add("rubbish", "rubbish");
+
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
+				mock(ResourceState.class), mock(Metadata.class));
+
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		assertEquals(1, cr.getEntities().size());
 	}
 
 }
