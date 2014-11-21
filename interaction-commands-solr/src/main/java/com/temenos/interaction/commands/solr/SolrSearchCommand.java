@@ -47,8 +47,8 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 
-public class SelectCommand extends AbstractSolrCommand implements InteractionCommand {
-	private final static Logger logger = LoggerFactory.getLogger(SelectCommand.class);
+public class SolrSearchCommand extends AbstractSolrCommand implements InteractionCommand {
+	private final static Logger logger = LoggerFactory.getLogger(SolrSearchCommand.class);
 
 	// Somewhere to store references to the embedded Solr servers used during
 	// testing.
@@ -76,7 +76,7 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	 * 
 	 * In future we may introduce connection pooling.
 	 */
-	public SelectCommand(String solrRootURL) {
+	public SolrSearchCommand(String solrRootURL) {
 		this.solrRootURL = solrRootURL;
 	}
 
@@ -91,7 +91,7 @@ public class SelectCommand extends AbstractSolrCommand implements InteractionCom
 	 * @param solrServer
 	 *            the solr server
 	 */
-	public SelectCommand(SolrServer entity1Server, SolrServer entity2Server, String entityType) {
+	public SolrSearchCommand(SolrServer entity1Server, SolrServer entity2Server, String entityType) {
 		testEntity1SolrServer = entity1Server;
 		testEntity2SolrServer = entity2Server;
 		testEntityType = entityType;

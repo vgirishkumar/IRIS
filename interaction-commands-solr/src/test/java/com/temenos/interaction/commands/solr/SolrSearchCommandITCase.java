@@ -62,9 +62,9 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.CollectionResource;
 
 /**
- * The Class QueryCommandITCase.
+ * The Class SolrSearchCommandITCase.
  */
-public class QueryCommandITCase {
+public class SolrSearchCommandITCase {
 
 	// Names of entities. Will be the same as core names
 	private static final String ENTITY1_TYPE = "test_entity1_search";
@@ -232,7 +232,7 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntity1SelectAllFields() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 
@@ -255,7 +255,7 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDuplicateEntity1SelectAllFields() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "Ima Twin");
 
@@ -277,7 +277,7 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntity1SelectByName() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 		queryParams.add("fieldname", "name");
@@ -300,7 +300,7 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntity1SelectByMnenomic() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN4");
 		queryParams.add("fieldname", "mnemonic");
@@ -323,7 +323,7 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntity1SelectBySimilarNames() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "JOHN");
 		queryParams.add("fieldname", "mnemonic");
@@ -347,7 +347,7 @@ public class QueryCommandITCase {
 	@Test
 	public void testSpecificCoreName() {
 		// Specify a core as the default
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "John");
 
@@ -372,7 +372,7 @@ public class QueryCommandITCase {
 	@Test
 	public void testFailsOnMissingQuery() {
 		
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
@@ -392,7 +392,7 @@ public class QueryCommandITCase {
 	@Test
 	public void testFailsOnBadFieldName() {
 		
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 		queryParams.add("fieldname", "rubbish");
@@ -414,7 +414,7 @@ public class QueryCommandITCase {
 	@Test
 	public void testFailsOnMissingComapny() {
 		
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 
@@ -428,26 +428,6 @@ public class QueryCommandITCase {
 		assertEquals("Did not fail on missing company", Result.FAILURE, result);
 	}
 
-	/**
-	 * Test terms.
-	 */
-	// Looks like dead code. Skip it.
-	@Ignore
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testTerms() {
-		TermsCommand command = new TermsCommand(entity1SolrServer);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add("q", "j");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
-
-		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
-		assertEquals(5, cr.getEntities().size());
-
-	}
 	
 	/**
 	 * Check that select still works if there are additional (ignored) parameters.
@@ -455,7 +435,7 @@ public class QueryCommandITCase {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testWorksWithAdditionalParams() {
-		SelectCommand command = new SelectCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "A Jones");
 		
