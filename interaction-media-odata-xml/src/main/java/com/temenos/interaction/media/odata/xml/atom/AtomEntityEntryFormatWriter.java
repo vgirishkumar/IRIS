@@ -42,9 +42,12 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.odata4j.core.OAtomEntity;
+import org.odata4j.core.OEntity;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
 import org.odata4j.internal.InternalUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
@@ -68,6 +71,7 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
  * 
  */
 public class AtomEntityEntryFormatWriter {
+	private final static Logger logger = LoggerFactory.getLogger(AtomEntityEntryFormatWriter.class);
 	// Constants for OData
 	public static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 	public static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
@@ -135,7 +139,12 @@ public class AtomEntityEntryFormatWriter {
 			String baseUri, String absoluteId, String updated) 
 	{
 		assert(entityName != null);
-		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+		
+		// entity name could be different between entity resource and underlying entity 
+		// e.g., for Errors entity, entity resource would have the request entity name 
+		String entityMetadataName = entity != null ? entity.getName() : entityName;
+		
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityMetadataName);
 		String modelName = metadata.getModelName();
 		writer.writeId(absoluteId);
 		OAtomEntity oae = getAtomInfo(entity);
@@ -193,6 +202,26 @@ public class AtomEntityEntryFormatWriter {
 		writer.endContent();
 	}
 
+	private void writeEntityResource(StreamWriter writer, EntityResource<Entity> entityResource, String baseUri, String absoluteId, String updated) {
+		String entityName = entityResource.getEntityName();
+		Entity entity = null;
+		try {
+			if(entityResource.getEntity() instanceof OEntity) {
+				entity = (Entity)entityResource.getEntity();
+			} else {
+				entity = entityResource.getEntity();
+			}
+		} catch(Exception e) { 
+			logger.error(e.getMessage());
+		}
+
+		Collection<Link> linkCollection = entityResource.getLinks();
+		Map<Transition, RESTResource> embeddedResources = entityResource.getEmbedded();
+		writer.startEntry();
+		writeEntry(writer, entityName, entity, linkCollection, embeddedResources, baseUri, absoluteId, updated);
+		writer.endEntry();
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected void writeLinkInline(StreamWriter writer, Metadata metadata, Link linkToInline, RESTResource embeddedResource,
 			String href, String baseUri, String absoluteId, String updated) {
@@ -212,21 +241,13 @@ public class AtomEntityEntryFormatWriter {
 				writer.endLink();
 				
 				for (EntityResource<Entity> entityResource : entities) {
-					writer.startEntry();
-					writeEntry(writer, entityResource.getEntityName(), entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(),
-							baseUri, absoluteId, updated);
-					writer.endEntry();
+					writeEntityResource(writer, entityResource, baseUri, absoluteId, updated);
 				}
 				writer.endFeed();
 			}
 		} else if (embeddedResource instanceof EntityResource) {
 			EntityResource<Entity> entityResource = (EntityResource<Entity>) embeddedResource;
-			Entity entity = entityResource.getEntity();
-			writer.startEntry();
-			writeEntry(writer, entityResource.getEntityName(), entity, entityResource.getLinks(), entityResource.getEmbedded(),
-					baseUri, absoluteId, updated);
-
-			writer.endEntry();
+			writeEntityResource(writer, entityResource, baseUri, absoluteId, updated);
 		} else
 			throw new RuntimeException("Unknown OLink type "
 					+ linkToInline.getClass());
