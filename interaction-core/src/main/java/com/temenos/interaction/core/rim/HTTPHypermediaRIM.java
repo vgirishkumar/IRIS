@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.HttpStatusTypes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -302,12 +303,23 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	}
 	
 	private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event, EntityResource<?> resource) {
-    	// determine action
+		
+		// determine action
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
     			
 	    // create the interaction context
 		InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);			
     	
+		// look for cached response
+		Cache cache = hypermediaEngine.getCache();
+		if ( cache != null &&
+				event.isSafe() ) {
+			Response.ResponseBuilder cached = cache.get( ctx.getUriInfo().getRequestUri().toString() );
+			if ( cached != null )
+				return cached.build();
+		} else {
+			logger.info( "Cannot cache " + uriInfo.getRequestUri() );
+		}
     	long begin = System.currentTimeMillis();
     	Response response = handleRequest(headers, ctx, event, action, resource, null);
     	long end = System.currentTimeMillis();
@@ -315,6 +327,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		logger.info("iris_request EntityName=" +  getFQResourcePath() + " MethodType=" + event.getMethod() + " URI=" + uriInfo.getRequestUri() + 
 				" RequestTime=" + String.valueOf(end-begin));
 		
+
 		return response;
 	}
 
@@ -327,7 +340,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         		status = HttpStatusTypes.METHOD_NOT_ALLOWED;
         	}
         		
-        	return buildResponse(headers, ctx.getPathParameters(), status, null, getInteractions(), null);    			    			    		    		
+        	return buildResponse(headers, ctx.getPathParameters(), status, null, getInteractions(), null, event.isSafe());    			    			    		    		
     	}
     	
     	// determine current state, target state, and link used
@@ -384,7 +397,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	}
     	
     	// build response
-    	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx);
+    	return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx, event.isSafe());
     }
 	
 	private ResourceState initialiseInteractionContext(HttpHeaders headers, Event event, InteractionContext ctx, EntityResource<?> resource) {
@@ -535,14 +548,19 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	decodeQueryParams(queryParameters);
     	// create the interaction context
     	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
-    	InteractionContext ctx = new InteractionContext(headers, pathParameters, queryParameters, currentState, metadata);
-    	
+    	InteractionContext ctx = new InteractionContext(uriInfo, headers, pathParameters, queryParameters, currentState, metadata);
     	return ctx;
 	}
 
-    private Response buildResponse(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, StatusType status, RESTResource resource, Set<String> interactions, InteractionContext ctx) {	
+	// param cacheable true if this response is to an in-principle cacheable request (i.e. a GET). This method will 
+	// determine itself whether the particular resource returned can be considered for caching
+    private Response buildResponse(HttpHeaders headers, MultivaluedMap<String, String> pathParameters, StatusType status, RESTResource resource, Set<String> interactions, InteractionContext ctx, boolean cacheable) {	
 		assert (status != null);  // not a valid get command
 
+		// The key that this should be cached under, if any
+		Object cacheKey = null;
+		int cacheMaxAge = 0;
+		
 		// Build the Response (representation will be created by the jax-rs Provider)
 		ResponseBuilder responseBuilder = Response.status(status);
 		
@@ -651,6 +669,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			}
     		responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
    			responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
+   			
+   			// If this was for a safe event, and there is a maxAge, apply it.
+   			cacheMaxAge = currentState.getMaxAge();
+   			if ( cacheMaxAge > 0 && cacheable ) {
+   				cacheKey = ctx.getRequestUri();
+   				logger.info( "Setting maxAge header " + currentState.getMaxAge() + " for " + cacheKey + " in state " + currentState.getName() );
+   				
+   				responseBuilder = HeaderHelper.maxAgeHeader(responseBuilder, cacheMaxAge);
+   			}
+   			
 		} else if((status.getFamily() == Response.Status.Family.CLIENT_ERROR || status.getFamily() == Response.Status.Family.SERVER_ERROR) && ctx != null) {
 			if(ctx.getCurrentState().getErrorState() != null) {
 				//Resource has an onerror handler
@@ -674,7 +702,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			}
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
     	}
-
+		
 		// add any headers added in the commands
 		if (ctx != null && ctx.getResponseHeaders() != null) {
 			Map<String,String> responseHeaders = ctx.getResponseHeaders();
@@ -683,9 +711,17 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			}
 		}
 		
-		logger.info("Building response " + status.getStatusCode() + " " + status.getReasonPhrase());
-		
-		return responseBuilder.build();
+	    // cache the response if it is valid to do so
+	    Cache cache = hypermediaEngine.getCache();
+	    if ( cache != null && cacheKey != null && cacheMaxAge > 0 ) {
+	    	logger.info( "Cache " + cacheKey );
+	    	cache.put( cacheKey, responseBuilder, cacheMaxAge );
+	    }
+
+	    logger.info("Building response " + status.getStatusCode() + " " + status.getReasonPhrase());
+	    Response response = responseBuilder.build();
+
+		return response;
     }
     
     private List<Transition> getLinks(RESTResource resource, int transitionType) {
@@ -909,7 +945,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);
     	
     	// TODO add support for OPTIONS /resource/* which will provide information about valid interactions for any entity
-		return buildResponse(headers, ctx.getPathParameters(), Status.NO_CONTENT, null, getInteractions(), null);
+		return buildResponse(headers, ctx.getPathParameters(), Status.NO_CONTENT, null, getInteractions(), null, false);
     }
     
     /**

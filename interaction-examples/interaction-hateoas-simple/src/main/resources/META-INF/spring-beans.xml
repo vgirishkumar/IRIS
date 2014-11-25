@@ -75,6 +75,8 @@
         <constructor-arg ref="resourceStateProvider" />
 	</bean>
 
+	<bean id="httpCache" class="com.temenos.interaction.core.cache.HashMapCache" />
+
 
 	<!-- 
 		Import the main SpringDSL entry point for IRIS
@@ -89,6 +91,7 @@
 		<property name="metadata" ref="metadata" />
 		<property name="transformer"><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></property>
 		<property name="resourceStateProvider" ref="resourceStateProvider" />
+ 		<property name="cacheImpl" ref="httpCache" />
 	</bean>
 
     <!-- Commands -->

@@ -30,10 +30,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
-import com.temenos.interaction.core.hypermedia.ResourceParameterResolver;
 import com.temenos.interaction.core.hypermedia.ResourceParameterResolverProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -63,6 +63,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 	private Metadata metadata;
 	private ResourceLocatorProvider resourceLocatorProvider;
 	private ResourceParameterResolverProvider parameterResolverProvider;
+	private Cache cacheImpl;
 	private ResourceState exception;
 	private Transformer transformer;
 	private RIMRegistration rimRegistration;
@@ -79,6 +80,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 				.resourceLocatorProvider(resourceLocatorProvider)
 				.resourceStateProvider(resourceStateProvider)
 				.parameterResolverProvider(parameterResolverProvider)
+				.responseCache(cacheImpl)
 				.build();
 
 		Set<HTTPResourceInteractionModel> services = new HashSet<HTTPResourceInteractionModel>();
@@ -176,6 +178,14 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 
 	public void setHypermediaEngine(ResourceStateMachine hypermediaEngine) {
 		this.hypermediaEngine = hypermediaEngine;
+	}
+	
+	public Cache getCacheImpl() {
+		return cacheImpl;
+	}
+	
+	public void setCacheImpl(Cache cache) {
+		cacheImpl = cache;
 	}
 
 	@Override

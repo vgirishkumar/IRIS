@@ -106,6 +106,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF state.isException»
 			<property name="exception" value="true" />
 			«ENDIF»
+			«IF state.cache > 0»
+			<property name="maxAge" value="«state.cache»" />
+			«ENDIF»
 
 			<!-- Start property transitions list -->
 			<property name="transitions">
@@ -310,7 +313,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		<bean class="com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression">
 			<constructor-arg name="target"><bean class="«produceLazyResourceStateType(expressionTargetState(expression))»"><constructor-arg name="name" value="«stateVariableName(expressionTargetState(expression))»" /></bean></constructor-arg>
 		    <constructor-arg name="function">«produceFunction(expression)»</constructor-arg>
-		</bean>
+        </bean>
 	'''
 	
 	def produceFunction(Function expression) '''

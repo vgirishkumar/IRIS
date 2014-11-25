@@ -35,6 +35,7 @@ public class Action {
 	private final TYPE type;
 	private Properties properties;
 	private String method;
+	private int maxage;
 	
 	public Action(String name, TYPE type) {
 		this.name = name;
@@ -69,6 +70,14 @@ public class Action {
 	
 	public String getMethod() {
 		return method;
+	}
+	
+	public void setMaxage( int a ) {
+		maxage = a;
+	}
+	
+	public int getMaxage() {
+		return maxage;
 	}
 	
 	public String toString() {

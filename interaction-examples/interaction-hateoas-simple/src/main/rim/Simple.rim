@@ -37,6 +37,7 @@ resource note {
 	view: GETNote
 	path: "/notes/{noteID}"
 	DELETE -> deletedNote
+	cache: 120
 }
 
 resource deletedNote {
