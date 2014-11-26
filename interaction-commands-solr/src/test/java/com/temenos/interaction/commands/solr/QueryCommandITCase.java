@@ -22,13 +22,14 @@ package com.temenos.interaction.commands.solr;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -41,8 +42,8 @@ import org.junit.Test;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -108,7 +109,7 @@ public class QueryCommandITCase {
 		SelectCommand command = new SelectCommand(server);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "John*");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 		
@@ -123,7 +124,7 @@ public class QueryCommandITCase {
 		TermsCommand command = new TermsCommand(server);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "j");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 		

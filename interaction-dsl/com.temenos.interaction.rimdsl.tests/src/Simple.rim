@@ -29,7 +29,7 @@ domain SimpleModel {
 			view: GETNote
 			path: "/notes/{noteID}"
 			DELETE -> deletedNote
-		}
+			cache: 300 }
 
 		resource deletedNote {
 			type: item
