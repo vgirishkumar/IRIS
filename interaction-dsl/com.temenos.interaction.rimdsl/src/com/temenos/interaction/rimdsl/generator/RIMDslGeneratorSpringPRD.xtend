@@ -111,7 +111,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF state.isException»
 			<property name="exception" value="true" />
 			«ENDIF»
-
+			«IF state.cache > 0»
+			<property name="maxAge" value="«state.cache»" />
+			«ENDIF»
 			<!-- Start property transitions list -->
 			<property name="transitions">
 				<list>

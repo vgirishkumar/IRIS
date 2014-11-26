@@ -38,6 +38,9 @@
   <logger name="com.temenos.interaction.core.rim">
     <level value="DEBUG" />
   </logger>
+  <logger name="com.temenos.interaction.core.cache">
+    <level value="DEBUG" />
+  </logger>
 
   <!-- Log all resource endpoints -->
   <logger name="org.apache.wink.server.internal.log.Resources">

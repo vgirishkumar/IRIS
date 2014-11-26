@@ -36,6 +36,7 @@ import java.util.Properties;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 import org.odata4j.core.OEntities;
@@ -234,7 +235,7 @@ public class TestCommandHelper {
 		properties.put("filter", "customer eq '{id}'");
 		when(resourceState.getViewAction()).thenReturn(new Action("GETEntitiesCommand", Action.TYPE.VIEW, properties));
 		
-        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
         return ctx;
 	}
 
@@ -250,7 +251,7 @@ public class TestCommandHelper {
 		properties.put("filter", "customer eq '{code}'");
 		when(resourceState.getViewAction()).thenReturn(new Action("GETEntitiesCommand", Action.TYPE.VIEW, properties));
 		
-        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams, resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams, queryParams, resourceState, mock(Metadata.class));
         return ctx;
 	}
 
@@ -269,7 +270,7 @@ public class TestCommandHelper {
 		actionViewProperties.put("filter", propRef);
 		when(resourceState.getViewAction()).thenReturn(new Action("GetMyEntities", Action.TYPE.VIEW, actionViewProperties));
 		
-        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), queryParams, resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), queryParams, resourceState, mock(Metadata.class));
         return ctx;
 	}
 }
