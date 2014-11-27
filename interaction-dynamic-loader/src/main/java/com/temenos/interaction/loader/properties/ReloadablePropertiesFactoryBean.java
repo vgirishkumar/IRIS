@@ -60,6 +60,8 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	private ReloadablePropertiesBase reloadableProperties;
 	private Properties properties;
 	private long lastCheck = 0;
+	private List<Resource> resourcesPath = null;
+	private File lastChangeFile = null;
 
 	public void setListeners(List<ReloadablePropertiesListener> listeners) {
 		// early type check, and avoid aliassing
@@ -122,11 +124,13 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 
 	}
 
+	
+	
 	protected void reload(boolean forceReload) throws IOException {
 		long l = System.currentTimeMillis();
 		boolean oldReload = System.getProperty("old.reload") != null;
 		if (oldReload){
-			reload_eld(forceReload);
+			reload_old(forceReload);
 		}else{
 			reload_new(forceReload);
 		}
@@ -134,15 +138,54 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		logger.info("Reload time " + (oldReload?"(old) : ":"(new) : ") + l + " ms.");
 	}
 	
+	private List<Resource> initializeResourcesPath() throws IOException {
+		List<Resource> ret = new ArrayList<Resource>();
+		List<Resource> tmp = Arrays.asList(ctx.getResources("classpath*:"));
+		for (Resource oneResource : tmp){
+			String sPath = oneResource.getURI().getPath().replace('\\', '/');
+			int pos = sPath.indexOf("models-gen/src/generated/iris");
+			if (pos > 0){
+				ret.add(oneResource);
+				/*
+				 * now let's look at the lastChange file
+				 */
+				String sRoot = sPath.substring(0, pos + "models-gen".length());
+				File f = new File(sRoot, "lastChange");
+				if (f.exists()){
+					lastChangeFile = f;
+				}
+			}
+		}
+		return ret;
+		
+	}
+	
+	
 	protected void reload_new(boolean forceReload) throws IOException {
 
 
+		if (resourcesPath == null){
+			/*
+			 * initiate it once for all.
+			 */
+			resourcesPath = initializeResourcesPath();
+		}
+		
 		if (forceReload){
 			/*
 			 * Take all file independently of the timestamp.
 			 */
 			lastCheck = 0;
 		}
+
+
+		if (lastChangeFile != null && lastChangeFile.exists()){
+			long lastChange = lastChangeFile.lastModified();
+			if (lastChange < lastCheck){
+				return;
+			}
+		}
+
 		/*
 		 * Let's do it as we could miss a file being modified during the scan.
 		 */
@@ -155,8 +198,8 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		 */
 		lastCheck = System.currentTimeMillis() - 4000;
 
+		
 		List<Resource> changedPaths = new ArrayList<Resource>();
-		List<Resource> classPaths = Arrays.asList(ctx.getResources("classpath*:"));
 		List<simplePattern> lstPatterns = new ArrayList<simplePattern>();
 		for (ReloadablePropertiesListener listener : preListeners) {
 			String[] sPatterns = listener.getResourcePatterns();
@@ -164,7 +207,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 				lstPatterns.add(new simplePattern(pattern));
 			}
 		}
-		for (Resource res : classPaths) {
+		for (Resource res : resourcesPath) {
 			getMoreRecentThan(new File(res.getURL().getFile()), tmpLastCheck, changedPaths, lstPatterns);
 		}
 
@@ -184,7 +227,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 
 	}
 	
-	protected void reload_eld(boolean forceReload) throws IOException {
+	protected void reload_old(boolean forceReload) throws IOException {
 		List<Resource> tmpLocations = new ArrayList<Resource>();
 		
 		for (ReloadablePropertiesListener listener : preListeners) {
