@@ -22,6 +22,7 @@ package com.temenos.interaction.loader.properties;
  */
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -66,7 +67,22 @@ public class ReloadablePropertiesBase extends DelegatingProperties implements Re
 		}
 	}
 	
+	protected boolean updateProperties(Properties newProperties){
+		synchronized (this) {
+			boolean bNew = false;
+			Iterator<Object> iter = newProperties.keySet().iterator();
+			while(iter.hasNext()){
+				Object key = iter.next();
+				Object value = newProperties.get(key);
+				bNew = internalProperties.put(key,  value) == null;
+			}	
+			return bNew;
+		}
+	}
+	
+	
 	protected void notifyPropertiesChanged(Resource resource, Properties newProperties) {
+	
 		PropertiesChangedEventImpl event = new PropertiesChangedEventImpl(this, resource, newProperties);
 		for (ReloadablePropertiesListener listener : listeners) {
 			listener.propertiesChanged(event);
