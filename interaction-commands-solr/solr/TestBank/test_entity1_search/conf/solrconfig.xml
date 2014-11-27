@@ -35,7 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>LUCENE_42</luceneMatchVersion>
+  <luceneMatchVersion>LUCENE_40</luceneMatchVersion>
 
   <!-- <lib/> directives can be used to instruct Solr to load an Jars
        identified and use them to resolve any "plugins" specified in
@@ -75,11 +75,7 @@
   <lib dir="../../../contrib/clustering/lib/" regex=".*\.jar" />
   <lib dir="../../../dist/" regex="solr-clustering-\d.*\.jar" />
 
-  <lib dir="../../../contrib/langid/lib/" regex=".*\.jar" />
   <lib dir="../../../dist/" regex="solr-langid-\d.*\.jar" />
-
-  <lib dir="../../../contrib/velocity/lib" regex=".*\.jar" />
-  <lib dir="../../../dist/" regex="solr-velocity-\d.*\.jar" />
 
   <!-- If a 'dir' option (with or without a regex) is used and nothing
        is found that matches, it will be ignored
@@ -317,10 +313,11 @@
          uncommitted changes to the index, so use of a hard autoCommit
          is recommended (see below).
          "dir" - the target directory for transaction logs, defaults to the
-                solr data directory.  --> 
+                solr data directory. 
     <updateLog>
       <str name="dir">${solr.ulog.dir:}</str>
     </updateLog>
+    -->
  
     <!-- AutoCommit
 
@@ -869,12 +866,6 @@
   <requestHandler name="/browse" class="solr.SearchHandler">
      <lst name="defaults">
        <str name="echoParams">explicit</str>
-
-       <!-- VelocityResponseWriter settings -->
-       <str name="wt">velocity</str>
-       <str name="v.template">browse</str>
-       <str name="v.layout">layout</str>
-       <str name="title">Solritas</str>
 
        <!-- Query settings -->
        <str name="defType">edismax</str>
@@ -1663,13 +1654,7 @@
       If you expect a MIME type of "application/json" just remove this override.
      -->
     <str name="content-type">text/plain; charset=UTF-8</str>
-  </queryResponseWriter>
-  
-  <!--
-     Custom response writers can be declared as needed...
-    -->
-    <queryResponseWriter name="velocity" class="solr.VelocityResponseWriter" startup="lazy"/>
-  
+  </queryResponseWriter> 
 
   <!-- XSLT response writer transforms the XML output by any xslt file found
        in Solr's conf/xslt directory.  Changes to xslt files are checked for

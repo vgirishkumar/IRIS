@@ -49,7 +49,6 @@ import org.apache.solr.core.SolrConfig;
 import org.apache.solr.util.TestHarness;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
@@ -315,29 +314,6 @@ public class SolrSearchCommandITCase {
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
-	}
-
-	/**
-	 * Test select for several entity1s with similar names.
-	 */
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testEntity1SelectBySimilarNames() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add("q", "JOHN");
-		queryParams.add("fieldname", "mnemonic");
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		pathParams.add("companyid", COMPANY_NAME);
-
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams,
-				mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
-
-		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
-		assertEquals(4, cr.getEntities().size());
 	}
 
 	/**
