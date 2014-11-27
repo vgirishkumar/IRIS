@@ -638,6 +638,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				responseBuilder.header(name, responseHeaders.get(name));
 			}
 		}
+		
+	    // cache the response if it is valid to do so
+	    Cache cache = hypermediaEngine.getCache();
+	    if ( cache != null && cacheKey != null && cacheMaxAge > 0 ) {
+	    	logger.info( "Cache " + cacheKey );
+	    	cache.put( cacheKey, responseBuilder, cacheMaxAge );
+	    }
+		
 		logger.info("Building response " + status.getStatusCode() + " " + status.getReasonPhrase());
 		return responseBuilder.build();
     }

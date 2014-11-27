@@ -55,6 +55,8 @@
     <bean id="persistence" class="com.temenos.interaction.example.hateoas.simple.Persistence" >
         <constructor-arg ref="entityManagerFactory" />
     </bean>
+    
+    <bean id="httpCache" class="com.temenos.interaction.core.cache.HashMapCache" />
 	
     <!--
 	  An extension of org.apache.wink.spring.Registrar with support for singletons.
@@ -81,6 +83,7 @@
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg ref="interaction" />
         <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
+        <property name="cache" ref="httpCache" />
     </bean>
 
     <!-- Resources -->
