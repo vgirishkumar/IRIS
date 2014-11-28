@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -76,6 +77,7 @@ public class ResourceStateMachine {
 	ResourceState exception;
 	Transformer transformer;
 	NewCommandController commandController;
+	Cache responseCache;
 	ResourceStateProvider resourceStateProvider;
 	ResourceLocatorProvider resourceLocatorProvider;
 	ResourceParameterResolverProvider parameterResolverProvider;
@@ -112,6 +114,14 @@ public class ResourceStateMachine {
 
 	public void setCommandController(NewCommandController commandController) {
 		this.commandController = commandController;
+	}
+	
+	public Cache getCache() {
+		return responseCache;
+	}
+	
+	public void setCache(Cache cache) {
+		responseCache = cache;
 	}
 
 	// TODO support Event
@@ -1188,6 +1198,7 @@ public class ResourceStateMachine {
 		private ResourceStateProvider resourceStateProvider;
 		private ResourceLocatorProvider resourceLocatorProvider;
 		private ResourceParameterResolverProvider parameterResolverProvider;
+		private Cache responseCache;
 
 		public Builder initial(ResourceState initial) {
 			this.initial = initial;
@@ -1224,6 +1235,11 @@ public class ResourceStateMachine {
 			return this;
 		}
 
+		public Builder responseCache(Cache cache) {
+			this.responseCache = cache;
+			return this;
+		}
+		
 		public ResourceStateMachine build() {
 			return new ResourceStateMachine(this);
 		}
@@ -1237,6 +1253,7 @@ public class ResourceStateMachine {
 		this.resourceStateProvider = builder.resourceStateProvider;
 		this.resourceLocatorProvider = builder.resourceLocatorProvider;
 		this.parameterResolverProvider = builder.parameterResolverProvider;
+		this.responseCache = builder.responseCache;
 		build();
 	}
 }

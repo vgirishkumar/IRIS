@@ -22,7 +22,7 @@ package com.temenos.interaction.commands.odata;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -35,6 +35,7 @@ import java.util.Properties;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 import org.odata4j.core.OEntity;
@@ -178,7 +179,7 @@ public class TestGETNavPropertyCommand {
 		properties.put("navproperty", "mock");
 		when(resourceState.getViewAction()).thenReturn(new Action("NavPropertyCommand", Action.TYPE.VIEW, properties));
 		
-        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
         return ctx;
 	}
 

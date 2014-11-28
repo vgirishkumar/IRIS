@@ -51,6 +51,7 @@ public class GETNotesCommand implements InteractionCommand {
 		}
 		CollectionResource<Note> notesResource = new CollectionResource<Note>("note", noteEntities);
 		ctx.setResource(notesResource);
+		
 		return Result.SUCCESS;
 	}
 

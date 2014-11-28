@@ -64,6 +64,10 @@ public class HeaderHelper {
     	return rb;
     }
     
+    public static ResponseBuilder maxAgeHeader(ResponseBuilder rb, int maxAge) {
+    	return rb.header(HttpHeaders.CACHE_CONTROL, "max-age=" + maxAge );
+    }
+    
     /**
      * Returns the first HTTP header entry for the specified header
      * @param headers HTTP headers

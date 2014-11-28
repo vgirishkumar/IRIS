@@ -314,17 +314,18 @@ public class GeneratorSpringPRDTest {
 			"initial resource A {" + LINE_SEP + 
 			"	type: collection" + LINE_SEP + 
 			"	entity: ENTITY" + LINE_SEP + 
-			"	view: GetEntities" + LINE_SEP + 
+			"	view: GetEntities" + LINE_SEP +
 			"	GET -> B { condition: OK(C) }" + LINE_SEP + 
 			"	GET -> C { condition: NOT_FOUND(B) }" + LINE_SEP + 
 			"	GET -> D { condition: OK(A) && NOT_FOUND(B) }" + LINE_SEP + 
 			"	GET +-> E { condition: OK(C) }" + LINE_SEP + 
+			"   cache: 300" + LINE_SEP +
 			"}" + LINE_SEP +
 
 			"resource B {" + 
 			"	type: item" + LINE_SEP + 
 			"	entity: ENTITY" + LINE_SEP + 
-			"	view: GetEntity" + LINE_SEP + 
+			"	view: GetEntity" + LINE_SEP +
 			"}" + LINE_SEP + 
 			"resource C {" + 
 			"	type: item" + LINE_SEP + 
@@ -356,6 +357,8 @@ public class GeneratorSpringPRDTest {
 
 		// find the first resource (Test_A)
 		String resourceA = getResourceBean(output, "Test_A");
+		System.err.println(output);
+		assertTrue(resourceA.contains("<property name=\"maxAge\" value=\"300\" />"));
 		
 		// find the transition to B, depends on C being found
 		String transitionB = getTransitionBean(resourceA, "Test_B");
@@ -378,7 +381,6 @@ public class GeneratorSpringPRDTest {
 		String transitionE = getTransitionBean(resourceA, "Test_E");
 		assertTrue(transitionE.contains("<constructor-arg name=\"target\"><bean class=\"com.temenos.interaction.core.hypermedia.LazyResourceState\"><constructor-arg name=\"name\" value=\"Test_C\" /></bean></constructor-arg>"));
 		assertTrue(transitionE.contains("<constructor-arg name=\"function\"><util:constant static-field=\"com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function.OK\"/>"));
-
 	}
 
 	private String getResourceBean(String output, String name) {
