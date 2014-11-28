@@ -22,13 +22,14 @@ package com.temenos.interaction.commands.webhook;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import java.util.Map;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.client.MockHttpServer;
 import org.junit.Test;
@@ -91,7 +92,7 @@ public class TestWebhookCommand {
 		
 		MultivaluedMap<String, String> pathParams = mock(MultivaluedMap.class);
 		MultivaluedMap<String, String> queryParams = mock(MultivaluedMap.class);
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams, queryParams, mock(ResourceState.class), mock(Metadata.class));
 		ctx.setResource(before);
 		c.execute(ctx);
 
@@ -110,7 +111,7 @@ public class TestWebhookCommand {
 		EntityProperties fields = new EntityProperties();
 		EntityResource<Entity> before = new EntityResource<Entity>(new Entity("blah", fields));
 		
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
 		ctx.setResource(before);
 		InteractionCommand.Result result = c.execute(ctx);
 		
@@ -125,7 +126,7 @@ public class TestWebhookCommand {
 		EntityProperties fields = new EntityProperties();
 		EntityResource<Entity> before = new EntityResource<Entity>(new Entity("blah", fields));
 		
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), mock(ResourceState.class), mock(Metadata.class));
 		ctx.setResource(before);
 		InteractionCommand.Result result = c.execute(ctx);
 		

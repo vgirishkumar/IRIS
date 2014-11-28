@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,7 @@ public class InteractionContext {
 	public final static String DEFAULT_ID_PATH_ELEMENT = "id";
 	
 	/* Execution context */
+	private final UriInfo uriInfo;
 	private final HttpHeaders headers;
 	private final MultivaluedMap<String, String> queryParameters;
 	private final MultivaluedMap<String, String> pathParameters;
@@ -70,6 +72,7 @@ public class InteractionContext {
 	private String preconditionIfMatch = null;
 	private List<String> preferredLanguages = new ArrayList<String>();
 	private Map<String, String> responseHeaders = new HashMap<String, String>();
+ 
 
 	/**
 	 * Construct the context for execution of an interaction.
@@ -78,10 +81,12 @@ public class InteractionContext {
 	 * @invariant pathParameters not null
 	 * @invariant queryParameters not null
 	 * @invariant currentState not null
+	 * @param uri used to relate responses to initial uri for caching purposes
 	 * @param pathParameters
 	 * @param queryParameters
 	 */
-	public InteractionContext(final HttpHeaders headers, final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState, final Metadata metadata) {
+	public InteractionContext(final UriInfo uri, final HttpHeaders headers, final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState, final Metadata metadata) {
+		this.uriInfo = uri;
 		this.headers = headers;
 		this.pathParameters = pathParameters;
 		this.queryParameters = queryParameters;
@@ -89,19 +94,21 @@ public class InteractionContext {
 		this.metadata = metadata;
 		assert(pathParameters != null);
 		assert(queryParameters != null);
-// TODO, should be able to enable this assertion, its just that alot of tests currently mock this 'new InteractionContext'
+// TODO, should be able to enable this assertion, its just that a lot of tests currently mock this 'new InteractionContext'
 //		assert(currentState != null);
 		assert(metadata != null);
 	}
 
 	/**
 	 * Shallow copy constructor with extra parameters to override final attributes.
+	 * Note uriInfo not retained since responses produced will not be valid for original request.
 	 * @param ctx interaction context
 	 * @param pathParameters new path parameters or null to not override
 	 * @param queryParameters new query parameters or null to not override
 	 * @param currentState new current state or null to not override
 	 */
 	public InteractionContext(InteractionContext ctx, final HttpHeaders headers, final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState) {
+		this.uriInfo = null;
 		this.headers = headers != null ? headers : ctx.getHeaders();
 		this.pathParameters = pathParameters != null ? pathParameters : ctx.pathParameters;
 		this.queryParameters = queryParameters != null ? queryParameters : ctx.queryParameters;
@@ -113,6 +120,14 @@ public class InteractionContext {
 		this.linkUsed = ctx.linkUsed;
 		this.exception = ctx.exception;
 		this.attributes = ctx.attributes;
+	}
+	
+	/** 
+	 * Uri for the request, used for caching
+	 * @return
+	 */
+	public Object getRequestUri() {
+		return (this.uriInfo==null?null:this.uriInfo.getRequestUri());
 	}
 	
 	/**
@@ -131,6 +146,14 @@ public class InteractionContext {
 		return pathParameters;
 	}
 
+	/**
+	 * The Uri of the current request
+	 * @return
+	 */
+	public UriInfo getUriInfo() {
+		return uriInfo;
+	}
+	
 	/**
 	 * The HTTP headers of the current request.
 	 * @return
@@ -200,7 +223,8 @@ public class InteractionContext {
             			List<String> idFields = entityMetadata.getIdFields();
             			// TODO add support for composite ids
             			assert(idFields.size() == 1) : "ERROR we currently only support simple ids";
-            			id = pathParameters.getFirst(idFields.get(0));
+            			if ( idFields.size() == 1 )
+            				id = pathParameters.getFirst(idFields.get(0));
             		}
         		}
         	}
