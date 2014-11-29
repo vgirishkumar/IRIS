@@ -42,12 +42,12 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	}
 		
 	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
-        // generate resource classes
-        for (resourceState : rim.states) {
-            val stateName = resourceState.fullyQualifiedName.toString("_")
-            fsa.generateFile("IRIS-" + stateName + "-PRD.xml", toSpringXML(rim, resourceState))
-        }
         val rimName = rim.fullyQualifiedName.toString("_")
+        		
+        // generate resource state files
+        
+        fsa.generateFile("IRIS-" + rimName + "-PRD.xml", toSpringXML(rim))
+
         fsa.generateFile("IRIS-" + rimName + ".properties", toBeanMap(rim))
 	}
 
@@ -63,28 +63,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		«stateVariableName(state)»=«produceMethods(rim, state)» «producePath(rim, state)»
 		«ENDFOR»
 	'''
-    	
-	def toSpringXML(ResourceInteractionModel rim, State state) '''
-		<?xml version="1.0" encoding="UTF-8"?>
-		<!--
-		  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
-		 -->
-
-		<beans xmlns="http://www.springframework.org/schema/beans"
-			xmlns:context="http://www.springframework.org/schema/context"
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			xmlns:util="http://www.springframework.org/schema/util"
-			xsi:schemaLocation="
-				http://www.springframework.org/schema/util 
-				http://www.springframework.org/schema/util/spring-util-3.0.xsd
-				http://www.springframework.org/schema/beans
-				http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-				http://www.springframework.org/schema/context
-				http://www.springframework.org/schema/context/spring-context-3.0.xsd"
-				default-lazy-init="true">
-
+	
+	def toSpringBean(ResourceInteractionModel rim, State state)'''
 		<!-- Define Spring bean for resource : «state.name» -->
-		<!-- begin spring bean for resource : «stateVariableName(state)» -->
+		<!-- begin spring bean for state : «stateVariableName(state)» -->
 		<bean id="«stateVariableName(state)»" class="«produceResourceStateType(state)»">
 			<constructor-arg name="entityName" value="«state.entity.name»" />
 			<constructor-arg name="name" value="« state.name »" />
@@ -109,7 +91,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF state.cache > 0»
 			<property name="maxAge" value="«state.cache»" />
 			«ENDIF»
-
 			<!-- Start property transitions list -->
 			<property name="transitions">
 				<list>
@@ -137,8 +118,33 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«ENDFOR»
 				</list>
 			</property>
-		</bean>
-		</beans><!-- end spring bean for resource : «stateVariableName(state)» -->
+		</bean>	
+		<!-- end spring bean for state : «stateVariableName(state)» -->		
+	'''
+    	
+	def toSpringXML(ResourceInteractionModel rim) '''
+		<?xml version="1.0" encoding="UTF-8"?>
+		<!--
+		  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+		 -->
+
+		<beans xmlns="http://www.springframework.org/schema/beans"
+			xmlns:context="http://www.springframework.org/schema/context"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns:util="http://www.springframework.org/schema/util"
+			xsi:schemaLocation="
+				http://www.springframework.org/schema/util 
+				http://www.springframework.org/schema/util/spring-util-3.0.xsd
+				http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+				http://www.springframework.org/schema/context
+				http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+				default-lazy-init="true">
+
+		«FOR state : rim.states»
+			«toSpringBean(rim, state)»
+		«ENDFOR»		
+		</beans>
 	'''
 
 	def String transitionTargetStateVariableName(TransitionRef t) {
@@ -151,7 +157,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 
 	def String stateVariableName(State state) {
 		if (state != null && state.name != null) {
-			return "" + (state.fullyQualifiedName).toString("_");
+			val stateNameStr = state.fullyQualifiedName.toString("_");						
+			return stateNameStr.replace("_" + state.name, "-" + state.name);
 		}
 		return null;
 	}
@@ -313,7 +320,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		<bean class="com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression">
 			<constructor-arg name="target"><bean class="«produceLazyResourceStateType(expressionTargetState(expression))»"><constructor-arg name="name" value="«stateVariableName(expressionTargetState(expression))»" /></bean></constructor-arg>
 		    <constructor-arg name="function">«produceFunction(expression)»</constructor-arg>
-        </bean>
+		</bean>
 	'''
 	
 	def produceFunction(Function expression) '''

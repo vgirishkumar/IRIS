@@ -155,16 +155,22 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	}
 
 	@Override
-	public ResourceState getResourceState(String name) {
+	public ResourceState getResourceState(String resourceState) {
 		try {
-			if (name != null) {				
-				ResourceState resource = resources.get(name);
+			if (resourceState != null) {
+				String resourceName = resourceState;
+				
+				if(resourceName.contains("-")) {
+					resourceName = resourceName.substring(0, resourceName.indexOf("-"));
+				}
+				
+				ResourceState resource = resources.get(resourceState);
 				if (resource == null) {
-					String beanXml = "IRIS-"+name+"-PRD.xml";
+					String beanXml = "IRIS-" + resourceName + "-PRD.xml";
 					if (this.getClass().getClassLoader().getResource(beanXml) != null) {
 						ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
-						resource = (ResourceState) context.getBean(name);
-						resources.putIfAbsent(name, resource);
+						resource = (ResourceState) context.getBean(resourceState);
+						resources.putIfAbsent(resourceState, resource);
 					} else {
 						logger.error("Unable to load resource ["+beanXml+"] not found");
 					}
@@ -172,7 +178,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 				return resource;
 			}
 		} catch (BeansException e) {
-			logger.error("Failed to load ["+name+"]", e);
+			logger.error("Failed to load ["+resourceState+"]", e);
 		}
 		return null;
 	}

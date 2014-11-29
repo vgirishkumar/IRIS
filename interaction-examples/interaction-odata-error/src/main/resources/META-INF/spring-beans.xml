@@ -117,7 +117,7 @@
 	</bean>
 
 	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
-		<constructor-arg type="java.lang.String" value="AirlineModel_Airline_ServiceDocument" />
+		<constructor-arg type="java.lang.String" value="AirlineModel_Airline-ServiceDocument" />
 	</bean>
 
 	<bean id="exceptionState" factory-bean="resourceStateProvider" factory-method="getResourceState">
