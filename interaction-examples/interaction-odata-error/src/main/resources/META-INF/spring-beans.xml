@@ -121,7 +121,7 @@
 	</bean>
 
 	<bean id="exceptionState" factory-bean="resourceStateProvider" factory-method="getResourceState">
-		<constructor-arg type="java.lang.String" value="AirlineModel_Airline_AirlineException" />
+		<constructor-arg type="java.lang.String" value="AirlineModel_Airline-AirlineException" />
 	</bean>
 
 	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
