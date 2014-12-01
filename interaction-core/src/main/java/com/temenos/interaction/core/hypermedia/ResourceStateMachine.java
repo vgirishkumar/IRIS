@@ -988,13 +988,7 @@ public class ResourceStateMachine {
 					method = "POST";
 				}				
 
-				String targetResourcePath = targetState.getPath();				
-				linkTemplate.path(targetResourcePath);
-				
-				rel = targetState.getRel();
-				if (transition.getSource().equals(targetState)) {
-					rel = "self";
-				}								
+				rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
 				
 				if(stateAndParams.getParams() != null) {
 					// Add query parameters					
@@ -1006,30 +1000,11 @@ public class ResourceStateMachine {
 				href = linkTemplate.buildFromMap(transitionProperties);				
 			} else {
 				// We are NOT dealing with a dynamic target
-				String targetResourcePath = targetState.getPath();
-
-				rel = targetState.getRel();
-				if (transition.getSource().equals(targetState)) {
-					rel = "self";
-				}				
 				
-				// Pass uri parameters as query parameters if they are not
-				// replaceable in the path, and replace any token.
+				rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
 				
-				Map<String, String> uriParameters = transition.getCommand().getUriParameters();
-				if (uriParameters != null) {
-					for (String key : uriParameters.keySet()) {
-						String value = uriParameters.get(key);
-						if (!targetResourcePath.contains("{" + key + "}")) {
-							linkTemplate.queryParam(key, HypermediaTemplateHelper.templateReplace(value, transitionProperties));
-						}
-					}
-				}
-				
-				linkTemplate.path(targetResourcePath);
-
 				// Pass any query parameters
-				addQueryParams(queryParameters, allQueryParameters, linkTemplate, targetResourcePath, uriParameters);						
+				addQueryParams(queryParameters, allQueryParameters, linkTemplate, targetState.getPath(), transition.getCommand().getUriParameters());						
 
 				// Build href from template
 				if (entity != null && transformer == null) {
@@ -1056,6 +1031,32 @@ public class ResourceStateMachine {
 			logger.error("Dead link [" + transition + "]", e);
 			throw e;
 		}
+	}
+	
+	private String configureLink(UriBuilder linkTemplate, Transition transition, Map<String, Object> transitionProperties, ResourceState targetState) {
+		String targetResourcePath = targetState.getPath();
+		linkTemplate.path(targetResourcePath);
+		
+		String rel = targetState.getRel();
+		
+		if (transition.getSource().equals(targetState)) {
+			rel = "self";
+		}				
+		
+		// Pass uri parameters as query parameters if they are not
+		// replaceable in the path, and replace any token.
+		
+		Map<String, String> uriParameters = transition.getCommand().getUriParameters();
+		if (uriParameters != null) {
+			for (String key : uriParameters.keySet()) {
+				String value = uriParameters.get(key);
+				if (!targetResourcePath.contains("{" + key + "}")) {
+					linkTemplate.queryParam(key, HypermediaTemplateHelper.templateReplace(value, transitionProperties));
+				}
+			}
+		}
+		
+		return rel;
 	}
 
 	private void addQueryParams(MultivaluedMap<String, String> queryParameters,	boolean allQueryParameters, 
