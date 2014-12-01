@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -86,6 +87,7 @@ public class ResourceStateMachine {
 	private Map<String, Set<String>> interactionsByState = new HashMap<String, Set<String>>();
 	private Map<String, Set<ResourceState>> resourceStatesByPath = new HashMap<String, Set<ResourceState>>();
 	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
+	private Cache responseCache;
 
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null, null, null);
@@ -110,6 +112,15 @@ public class ResourceStateMachine {
 
 	public void setCommandController(NewCommandController commandController) {
 		this.commandController = commandController;
+	}
+
+	/** optional; cache for responses to GET request as configured for the particular resource */
+	public void setCache(Cache cache) {
+		this.responseCache = cache;
+	}
+
+	public Cache getCache() {
+		return responseCache;
 	}
 
 	// TODO support Event
@@ -1095,6 +1106,7 @@ public class ResourceStateMachine {
 		private NewCommandController commandController;
 		private ResourceStateProvider resourceStateProvider;
 		private ResourceLocatorProvider resourceLocatorProvider;
+		private Cache responseCache;
 
 		public Builder initial(ResourceState initial) {
 			this.initial = initial;
@@ -1125,6 +1137,11 @@ public class ResourceStateMachine {
 			this.resourceLocatorProvider = resourceLocatorProvider;
 			return this;
 		}
+		
+		public Builder responseCache(Cache cache) {
+			this.responseCache = cache;
+			return this;
+		}
 
 		public ResourceStateMachine build() {
 			return new ResourceStateMachine(this);
@@ -1138,6 +1155,7 @@ public class ResourceStateMachine {
 		this.commandController = builder.commandController;
 		this.resourceStateProvider = builder.resourceStateProvider;
 		this.resourceLocatorProvider = builder.resourceLocatorProvider;
+		this.responseCache = builder.responseCache;
 		build();
 	}
 }

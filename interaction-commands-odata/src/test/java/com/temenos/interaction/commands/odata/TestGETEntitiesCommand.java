@@ -23,9 +23,12 @@ package com.temenos.interaction.commands.odata;
 
 
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,7 @@ import java.util.List;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 import org.odata4j.core.ImmutableList;
@@ -121,7 +125,7 @@ public class TestGETEntitiesCommand {
 	private InteractionContext createInteractionContext(String entity, MultivaluedMap<String, String> queryParams) {
 		ResourceState resourceState = mock(ResourceState.class);
 		when(resourceState.getEntityName()).thenReturn(entity);
-        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), queryParams ,resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), queryParams ,resourceState, mock(Metadata.class));
         return ctx;
 	}
 

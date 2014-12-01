@@ -30,6 +30,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
@@ -63,6 +64,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 	private ResourceState exception;
 	private Transformer transformer;
 	private RIMRegistration rimRegistration;
+	private Cache cacheImpl;
 
 	public Set<HTTPResourceInteractionModel> getServiceRoots() {
 		if(resourceStateProvider instanceof DynamicRegistrationResourceStateProvider) {
@@ -75,6 +77,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 				.transformer(transformer)
 				.resourceLocatorProvider(resourceLocatorProvider)
 				.resourceStateProvider(resourceStateProvider)
+				.responseCache(cacheImpl)
 				.build();
 
 		Set<HTTPResourceInteractionModel> services = new HashSet<HTTPResourceInteractionModel>();
@@ -178,4 +181,12 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 	public void setRIMRegistration(RIMRegistration rimRegistration) {
 		this.rimRegistration = rimRegistration;		
 	}	
+
+	public Cache getCacheImpl() {
+		return cacheImpl;
+	}
+
+	public void setCacheImpl(Cache cache) {
+		cacheImpl = cache;
+	}
 }

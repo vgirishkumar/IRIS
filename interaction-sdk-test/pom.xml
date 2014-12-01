@@ -13,7 +13,7 @@
 	<name>interaction-sdk-test</name>
 
 	<properties>
-		<archetypeVersion>0.5.3-SNAPSHOT</archetypeVersion>
+		<archetypeVersion>0.5.4-SNAPSHOT</archetypeVersion>
 		<flightResponderVersion>1.0-SNAPSHOT</flightResponderVersion>
 		<insertFile>${basedir}/src/test/resources/responder_insert.sql</insertFile>
 	</properties>

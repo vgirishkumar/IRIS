@@ -28,6 +28,7 @@ import java.io.File;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -181,8 +182,7 @@ public class QueryCommandITCase {
 		queryParams.add("q", "A Jones");
 
 	
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 
@@ -202,7 +202,7 @@ public class QueryCommandITCase {
 		queryParams.add("q", "JOHN4");
 
 	
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
@@ -223,7 +223,7 @@ public class QueryCommandITCase {
 		queryParams.add("q", "4444");
 
 	
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
@@ -245,7 +245,7 @@ public class QueryCommandITCase {
 		queryParams.add("q", "444 Somewhere");
 
 	
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
@@ -264,7 +264,7 @@ public class QueryCommandITCase {
 		SelectCommand command = new SelectCommand(customerSolrServer, accountSolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "John*");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
@@ -283,8 +283,7 @@ public class QueryCommandITCase {
 		TermsCommand command = new TermsCommand(customerSolrServer);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("q", "j");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(),
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), queryParams, mock(ResourceState.class), mock(Metadata.class));
 		InteractionCommand.Result result = command.execute(ctx);
 		assertEquals(Result.SUCCESS, result);
 

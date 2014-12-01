@@ -100,6 +100,9 @@ class RIMDslGenerator implements IGenerator {
                 «IF state.isException»
                 setException(true);
                 «ENDIF»
+                «IF state.cache > 0»
+                setMaxAge(«state.cache»);
+                «ENDIF»
                 this.factory = factory;
             }
             

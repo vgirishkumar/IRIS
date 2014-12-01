@@ -30,6 +30,7 @@ import java.util.ArrayList;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
@@ -49,7 +50,7 @@ public class TestInteractionContext {
 	public void testResolveIdDefault() {
 		MultivaluedMap<String, String> pathParameters = new com.temenos.interaction.core.MultivaluedMapImpl();
 		pathParameters.add("id", "123");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParameters, new MultivaluedMapImpl(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParameters, new MultivaluedMapImpl(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
 		assertEquals("123", ctx.getId());
 	}
 	
@@ -58,7 +59,7 @@ public class TestInteractionContext {
 	public void testResolveIdNoDefaultNull() {
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("test", "123");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParameters, new MultivaluedMapImpl(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParameters, new MultivaluedMapImpl(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
 		assertNull(ctx.getId());
 	}
 	
@@ -68,7 +69,7 @@ public class TestInteractionContext {
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("TheTestParameterKey", "123");
 		ResourceState state = new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource", "TheTestParameterKey");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParameters, new MultivaluedMapImpl(), state, mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParameters, new MultivaluedMapImpl(), state, mock(Metadata.class));
 		assertEquals("123", ctx.getId());
 	}
 	
@@ -86,7 +87,7 @@ public class TestInteractionContext {
 		
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
 		pathParameters.add("myId", "123");
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParameters, 
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParameters, 
 				new MultivaluedMapImpl(), 
 				new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"),
 				metadata);
@@ -95,7 +96,7 @@ public class TestInteractionContext {
 
 	@Test
 	public void testAttributes() {
-		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), new MultivaluedMapImpl<String>(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), new MultivaluedMapImpl<String>(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
 		ctx.setAttribute("abc", "test");
 		
 		assertEquals(ctx.getAttribute("abc"), "test");
