@@ -86,6 +86,8 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 	 * Unit tests use an embedded Solr server. It has no URL so just pass in the
 	 * server references.
 	 * 
+	 * The third argument tells the test which entity type to associate witht he first test server.
+	 * 
 	 * NOT TO BE USED FOR PRODUCTION CODE.
 	 * 
 	 * @param solrServer
@@ -208,7 +210,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 		}
 
 		// Quote the query in case it contains any spaces etc.
-		String queryStr = new String(fieldName + ":\"*" + query + "*\"");
+		String queryStr = new String(fieldName + ":" + query);
 		
 		logger.info("Executing query " + queryStr + ".");
 		
