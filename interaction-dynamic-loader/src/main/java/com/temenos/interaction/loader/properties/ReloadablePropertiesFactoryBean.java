@@ -21,10 +21,14 @@ package com.temenos.interaction.loader.properties;
  * #L%
  */
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -37,11 +41,13 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
 
+import com.temenos.interaction.loader.xml.XmlChangedEventImpl;
+import com.temenos.interaction.loader.xml.resource.notification.XmlModificationNotifier;
 import com.temenos.interaction.springdsl.DynamicProperties;
 
 /**
@@ -59,9 +65,10 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
 	private ReloadablePropertiesBase reloadableProperties;
 	private Properties properties;
-	private long lastCheck = 0;
+	private long lastFileTimeStamp = 0;
 	private List<Resource> resourcesPath = null;
 	private File lastChangeFile = null;
+	private XmlModificationNotifier xmlNotifier = null;
 
 	public void setListeners(List<ReloadablePropertiesListener> listeners) {
 		// early type check, and avoid aliassing
@@ -91,6 +98,10 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		return reloadableProperties;
 	}
 
+	public void setXmlNotifier(XmlModificationNotifier xmlNotifier){
+		this.xmlNotifier = xmlNotifier;
+	}
+	
 	public void destroy() throws Exception {
 		reloadableProperties = null;
 	}
@@ -108,11 +119,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 					if (pathname.lastModified() > timestamp) {
 						for (simplePattern pattern : patterns) {
 							if (pattern.matches(pathname.getName())) {
-								try {
-									resources.add(new UrlResource(pathname.toURI()));
-								} catch (MalformedURLException e) {
-									logger.error("MalformedURL for " + pathname.getAbsolutePath());
-								}
+								resources.add(new FileSystemResource(pathname));
 							}
 						}
 
@@ -135,7 +142,9 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			reload_new(forceReload);
 		}
 		l = System.currentTimeMillis() -l;
-		logger.info("Reload time " + (oldReload?"(old) : ":"(new) : ") + l + " ms.");
+		if (l > 2000){
+			logger.warn("Reload time " + (oldReload?"(old) : ":"(new) : ") + l + " ms.");
+		}
 	}
 	
 	private List<Resource> initializeResourcesPath() throws IOException {
@@ -160,6 +169,57 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		
 	}
 	
+	private List<Resource> getLastChangeAndClear(File f){
+		List<Resource> ret = new ArrayList<Resource>();
+		RandomAccessFile raf = null;
+		FileLock lock = null;
+		BufferedReader bufR = null;
+		FileChannel fc = null;
+		try{
+			fc = new RandomAccessFile(f, "rws").getChannel();
+			lock = fc.lock();
+			bufR = new BufferedReader(new FileReader(f));
+			String sLine = null;
+			boolean bFirst = true;
+			while((sLine = bufR.readLine()) != null){
+				if (bFirst){
+					if (sLine.startsWith("RefreshAll")){
+						ret = null;
+						break;
+					}
+					bFirst = false;
+				}
+				Resource toAdd  = new FileSystemResource(new File(sLine));
+				if (!ret.contains(toAdd)){
+					ret.add(toAdd);
+				}
+			}
+			/*
+			 * Empty the file
+			 */
+			fc.truncate(0);
+		}catch(Exception e){
+			logger.error("Failed to get the lastChanges contents.", e);
+		}finally{
+			try {
+				bufR.close();
+			} catch (IOException e) {
+				logger.error("Failed close bufferedReader on lastChange file.", e);
+			}
+			try {
+				fc.close();
+			} catch (IOException e) {
+				logger.error("Failed close filechannel on lastChange file.", e);
+			}
+
+			/*
+			 * No need to release the lock as it is done when closing the FileChannel
+			 */
+			
+		}
+		return ret;
+	}
+	
 	
 	protected void reload_new(boolean forceReload) throws IOException {
 
@@ -171,58 +231,100 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			resourcesPath = initializeResourcesPath();
 		}
 		
-		if (forceReload){
-			/*
-			 * Take all file independently of the timestamp.
-			 */
-			lastCheck = 0;
-		}
-
-
-		if (lastChangeFile != null && lastChangeFile.exists()){
-			long lastChange = lastChangeFile.lastModified();
-			if (lastChange < lastCheck){
-				return;
-			}
-		}
-
 		/*
 		 * Let's do it as we could miss a file being modified during the scan.
 		 */
-		long tmpLastCheck = lastCheck;
-		/*
-		 * Some file systems (FAT, NTFS) do have a write time resolution of 2
-		 * seconds see
-		 * http://msdn.microsoft.com/en-us/library/ms724290%28VS.85%29.aspx So
-		 * better give a 4 seconds latency.
-		 */
-		lastCheck = System.currentTimeMillis() - 4000;
-
+		long tmpLastCheck = lastFileTimeStamp;
+		
 		
 		List<Resource> changedPaths = new ArrayList<Resource>();
-		List<simplePattern> lstPatterns = new ArrayList<simplePattern>();
-		for (ReloadablePropertiesListener listener : preListeners) {
-			String[] sPatterns = listener.getResourcePatterns();
-			for (String pattern : sPatterns) {
-				lstPatterns.add(new simplePattern(pattern));
+		
+		if (lastChangeFile != null && lastChangeFile.exists()){
+			long lastChange = lastChangeFile.lastModified();
+			if (lastChange <= lastFileTimeStamp){
+				return;
 			}
-		}
-		for (Resource res : resourcesPath) {
-			getMoreRecentThan(new File(res.getURL().getFile()), tmpLastCheck, changedPaths, lstPatterns);
+			if (lastChangeFile.length() > 0){
+				/*
+				 * Mhh, there is something in it !
+				 * So we get the lock, read the contents, and update only the resources in
+				 * this file.
+				 * If the contents starts with "RefreshAll" (without the quotes), then
+				 * just look at the timestamp of all resources.
+				 * @see com.odcgroup.workbench.generation.cartridge.ng.SimplerEclipseResourceFileSystemNotifier
+				 */
+				List<Resource> lastChangeFileContents = getLastChangeAndClear(lastChangeFile);
+				if (lastChangeFileContents != null){
+					/*
+					 * If null, this means the file was starting with "RefreshAll" (see previous comment)					 */
+					changedPaths = lastChangeFileContents;
+				}
+			}
+			lastFileTimeStamp = lastChangeFile.lastModified();
+		}else{
+			/*
+			 * We do not have the file (yet) (old EDS ?), so use the old strategy
+			 *
+			 * Some file systems (FAT, NTFS) do have a write time resolution of 2
+			 * seconds see
+			 * http://msdn.microsoft.com/en-us/library/ms724290%28VS.85%29.aspx So
+			 * better give a 2 seconds latency.
+			 */
+			lastFileTimeStamp = System.currentTimeMillis() - 2000;
 		}
 
+		
+		if (forceReload){
+			if (tmpLastCheck == 0){
+				return;  // First time, no need to do anything.
+			}else{
+				tmpLastCheck = 0;
+				changedPaths.clear();
+			}
+		}
+		
+		
+		if (changedPaths.size() == 0){ // Only if nothing interesting was in the lastChange file.
+			List<simplePattern> lstPatterns = new ArrayList<simplePattern>();
+			for (ReloadablePropertiesListener listener : preListeners) {
+				String[] sPatterns = listener.getResourcePatterns();
+				for (String pattern : sPatterns) {
+					String orPatterns[] = pattern.split("\\|");
+					for (String orPattern : orPatterns ){
+						lstPatterns.add(new simplePattern(orPattern));
+					}
+				}
+			}
+			for (Resource res : resourcesPath) {
+				getMoreRecentThan(new File(res.getURL().getFile()), tmpLastCheck, changedPaths, lstPatterns);
+			}
+		}
+		long l = System.currentTimeMillis();
+		
 		for (Resource location : changedPaths) {
-			Properties newProperties = new Properties();
-			propertiesPersister.load(newProperties, location.getInputStream());
-
-			// Update (merge in) the new properties
-			if (reloadableProperties.updateProperties(newProperties)) {
-				reloadableProperties.notifyPropertiesLoaded(location, newProperties);
-			} else {
+			if (location.getFilename().endsWith(".xml")){
+				xmlNotifier.execute(new XmlChangedEventImpl(location));
 				logger.info("Refreshing : " + location.getFilename());
-				// Notify subscribers that properties have been modified
-				reloadableProperties.notifyPropertiesChanged(location, newProperties);
+			}else{
+				Properties newProperties = new Properties();
+				/*
+				 * Ensure this property has been loaded.
+				 */
+				propertiesPersister.load(newProperties, location.getInputStream());
+				if (reloadableProperties.updateProperties(newProperties)) {
+					logger.info("Loading new : " + location.getFilename());
+					reloadableProperties.notifyPropertiesLoaded(location, newProperties);
+				}else{
+					logger.info("Refreshing : " + location.getFilename());
+					/*
+					 *  Notify subscribers that properties have been modified
+					 */
+					reloadableProperties.notifyPropertiesChanged(location, newProperties);
+				}
 			}
+		}
+		if (changedPaths.size() > 0){
+			logger.info( changedPaths.size() + " resources reloaded in " + (System.currentTimeMillis() -l) + " ms.");
 		}
 
 	}
