@@ -59,7 +59,7 @@ public class XmlModificationNotifier implements ApplicationContextAware {
     
 	public void execute(FileEvent event) {
 		if(rmas == null) {
-			throw new IllegalStateException();
+			rmas = ctx.getBeansOfType(ResourceModificationAction.class).values();
 		}
 		
 		Iterator<ResourceModificationAction> rmaIter = rmas.iterator();

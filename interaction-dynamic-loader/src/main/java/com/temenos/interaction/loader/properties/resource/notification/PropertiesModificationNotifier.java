@@ -59,7 +59,7 @@ public class PropertiesModificationNotifier implements ApplicationContextAware {
     
 	public void execute(PropertiesEvent event) {
 		if(rmas == null) {
-			throw new IllegalStateException();
+			rmas = ctx.getBeansOfType(PropertiesResourceModificationAction.class).values();
 		}
 		
 		Iterator<PropertiesResourceModificationAction> rmaIter = rmas.iterator();
