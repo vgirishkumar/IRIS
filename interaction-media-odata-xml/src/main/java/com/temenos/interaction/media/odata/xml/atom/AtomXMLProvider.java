@@ -36,7 +36,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -545,25 +544,30 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			String httpMethod = requestContext.getMethod();
 			Event event = new Event(httpMethod, httpMethod);
 			state = resourceStateProvider.determineState(event, resourcePath);
-			if (state == null) {
-				logger.error("No state found, dropping back to path matching " + resourcePath);
-				// escape the braces in the regex
-				resourcePath = Pattern.quote(resourcePath);
-				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();
-				for (String path : pathToResourceStates.keySet()) {
-					for (String name : pathToResourceStates.get(path)) {
-						ResourceState s = resourceStateProvider.getResourceState(name);
-						String pattern = null;
-						if (s instanceof CollectionResourceState) {
-							pattern = resourcePath + "(|\\(\\))";
-							Matcher matcher = Pattern.compile(pattern).matcher(path);
-							if (matcher.matches()) {
-								state = s;
-							}
-						}
-					}
-				}
-			}
+			/*
+			 * Looping through all the resources is not an option.
+			 * Better return null and say we haven't found the state.
+			 */
+			
+//			if (state == null) {
+//				logger.error("No state found, dropping back to path matching " + resourcePath);
+//				// escape the braces in the regex
+//				resourcePath = Pattern.quote(resourcePath);
+//				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();
+//				for (String path : pathToResourceStates.keySet()) {
+//					for (String name : pathToResourceStates.get(path)) {
+//						ResourceState s = resourceStateProvider.getResourceState(name);
+//						String pattern = null;
+//						if (s instanceof CollectionResourceState) {
+//							pattern = resourcePath + "(|\\(\\))";
+//							Matcher matcher = Pattern.compile(pattern).matcher(path);
+//							if (matcher.matches()) {
+//								state = s;
+//							}
+//						}
+//					}
+//				}
+//			}
 		}
 		return state;
 	}
