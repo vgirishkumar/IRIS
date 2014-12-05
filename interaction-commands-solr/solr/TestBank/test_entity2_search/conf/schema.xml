@@ -47,9 +47,6 @@
    
 
   <field name="_version_" type="long" indexed="true" stored="true"/>
-  
-  <dynamicField name="*_mnemonic" type="text_general" indexed="true" stored="true"/>
-
   <!-- catchall field, containing all other searchable text fields (implemented
        via copyField further on in this schema  -->
   <field name="text" type="text_general" indexed="true" stored="false" multiValued="true"/>
@@ -59,9 +56,7 @@
  <!-- copyField commands copy one field to another at the time a document
       is added to the index.  It's used either to index the same field differently,
       or to add multiple fields to the same field for easier/faster searching.  --> 
- <copyField source="mnemonic" dest="text"/>
- <copyField source="name" dest="text"/>
- <copyField source="table" dest="text"/>
+ <copyField source="*" dest="text"/>
  
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
