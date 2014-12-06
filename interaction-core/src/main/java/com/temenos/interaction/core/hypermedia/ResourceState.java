@@ -415,11 +415,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	public Transition getTransition(ResourceState targetState) {
 		Transition foundTransition = null;
 		for (Transition t : transitions) {
-			if (t.getTarget().equals(targetState)) {
-				if (foundTransition != null)
-					logger.error("Duplicate transition definition [" + t + "]");
-				assert(foundTransition == null);  // transition must be defined more than once
+			ResourceState currTarget = t.getTarget();
+			
+			if (currTarget != null && currTarget.equals(targetState)) {
 				foundTransition = t;
+				break; // We've found what we're looking for so stop searching
 			}
 		}
 		return foundTransition;

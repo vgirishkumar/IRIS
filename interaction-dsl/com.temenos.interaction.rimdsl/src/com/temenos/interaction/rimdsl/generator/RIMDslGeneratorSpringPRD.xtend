@@ -151,14 +151,28 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		if (t.state != null) {
 			return stateVariableName(t.state);
 		} else {
-       		return "" + (t.name).replaceAll("\\.", "_");
+			var targetState = "";
+			
+			if(t.name != null && t.name.length != 0 && t.name.lastIndexOf(".") > 1) {
+				// Construct string of format: domain_resource-state
+				targetState = t.name.substring(0, t.name.lastIndexOf(".")) + "-" + t.name.substring(t.name.lastIndexOf(".") + 1);
+				targetState = targetState.replaceAll("\\.", "_"); 
+			} 
+			
+       		return targetState;
 		}
 	}
-
+ 
 	def String stateVariableName(State state) {
 		if (state != null && state.name != null) {
-			val stateNameStr = state.fullyQualifiedName.toString("_");						
-			return stateNameStr.replace("_" + state.name, "-" + state.name);
+			val stateNameStr = state.fullyQualifiedName.toString("_");
+			
+			val prefixEndIdx = stateNameStr.lastIndexOf("_" + state.name);
+			
+			var result = stateNameStr.substring(0, prefixEndIdx);
+			result = result + "-" + state.name;						
+			
+			return result;
 		}
 		return null;
 	}
