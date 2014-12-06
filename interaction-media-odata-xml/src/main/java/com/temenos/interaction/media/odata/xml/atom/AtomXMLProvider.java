@@ -545,6 +545,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			String httpMethod = requestContext.getMethod();
 			Event event = new Event(httpMethod, httpMethod);
 			state = resourceStateProvider.determineState(event, resourcePath);
+
 			if (state == null) {
 				logger.error("No state found, dropping back to path matching " + resourcePath);
 				// escape the braces in the regex

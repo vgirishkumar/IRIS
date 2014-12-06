@@ -83,44 +83,51 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		if (initialised)
 			return;
 		for (Object stateObj : beanMap.keySet()) {
-			String stateName = stateObj.toString();
-			// binding is [GET,PUT /thePath]
-			String binding = beanMap.getProperty(stateName.toString());
-			// split into methods and path
-			String[] strs = binding.split(" ");
-			String methodPart = strs[0];
-			String path = strs[1];
-			// methods
-			String[] methodsStrs = methodPart.split(",");
-			// path
-			resourcePathsByState.put(stateName, path);
-			// methods
-			Set<String> methods = resourceMethodsByState.get(stateName);
-			if (methods == null) {
-				methods = new HashSet<String>();
-			}
-			for (String method : methodsStrs) {
-				methods.add(method);
-			}
-			resourceMethodsByState.put(stateName, methods);
-			for (String method : methods) {
-				String request = method + " " + path;
-				logger.debug("Binding ["+stateName+"] to ["+request+"]");
-				String found = resourceStatesByRequest.get(request);
-				if (found != null) {
-					logger.error("Multiple states bound to the same request ["+request+"], overriding ["+found+"] with ["+stateName+"]");
-				}
-				resourceStatesByRequest.put(request, stateName);
-			}
-			
-			Set<String> stateNames = resourceStatesByPath.get(path);
-			if (stateNames == null) {
-				stateNames = new HashSet<String>();
-			}
-			stateNames.add(stateName.toString());
-			resourceStatesByPath.put(path, stateNames);
+			storeState(stateObj, null);
 		}
 		initialised = true;
+	}
+	
+	private void storeState(Object stateObj, String binding){
+		String stateName = stateObj.toString();
+		// binding is [GET,PUT /thePath]
+		if (binding == null){
+			binding = beanMap.getProperty(stateName.toString());
+		}
+		// split into methods and path
+		String[] strs = binding.split(" ");
+		String methodPart = strs[0];
+		String path = strs[1];
+		// methods
+		String[] methodsStrs = methodPart.split(",");
+		// path
+		resourcePathsByState.put(stateName, path);
+		// methods
+		Set<String> methods = resourceMethodsByState.get(stateName);
+		if (methods == null) {
+			methods = new HashSet<String>();
+		}
+		for (String method : methodsStrs) {
+			methods.add(method);
+		}
+		resourceMethodsByState.put(stateName, methods);
+		for (String method : methods) {
+			String request = method + " " + path;
+			logger.debug("Binding ["+stateName+"] to ["+request+"]");
+			String found = resourceStatesByRequest.get(request);
+			if (found != null) {
+				logger.error("Multiple states bound to the same request ["+request+"], overriding ["+found+"] with ["+stateName+"]");
+			}
+			resourceStatesByRequest.put(request, stateName);
+		}
+		
+		Set<String> stateNames = resourceStatesByPath.get(path);
+		if (stateNames == null) {
+			stateNames = new HashSet<String>();
+		}
+		stateNames.add(stateName.toString());
+		resourceStatesByPath.put(path, stateNames);
+		
 	}
 	
 	public void addState(String stateObj, Properties properties) {
@@ -141,7 +148,16 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path
 					+ " using: " + stateRegisteration);
 
-			this.stateRegisteration.register(stateName, path, new HashSet<String>(Arrays.asList(methods)));
+			/*
+			 * Thierry : Let's load it here. There is a lot of chance that if someone is 
+			 * adding a new state, he will then browse it.
+			 * This will speed up the first call to this resource.
+			 */
+			ResourceState state = getResourceState(stateName);
+			if (state != null){
+				storeState(stateName, binding);
+				this.stateRegisteration.register(stateName, path, new HashSet<String>(Arrays.asList(methods)));
+			}
 		}
 	}
 	
@@ -188,8 +204,13 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		initialise();
 		String request = event.getMethod() + " " + resourcePath;
 		String stateName = resourceStatesByRequest.get(request);
-		logger.debug("Found state ["+stateName+"] for ["+request+"]");
-		return getResourceState(stateName);
+		if (stateName != null){
+			logger.debug("Found state ["+stateName+"] for ["+request+"]");
+			return getResourceState(stateName);
+		}else{
+			logger.error("NOT Found state ["+stateName+"] for ["+request+"]");
+			return null;
+		}
 	}
 
 	@Override
