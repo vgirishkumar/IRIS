@@ -157,7 +157,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				// Construct string of format: domain_resource-state
 				targetState = t.name.substring(0, t.name.lastIndexOf(".")) + "-" + t.name.substring(t.name.lastIndexOf(".") + 1);
 				targetState = targetState.replaceAll("\\.", "_"); 
-			} 
+			} else if(t.name != null) {
+				targetState = t.name;
+			}
 			
        		return targetState;
 		}
