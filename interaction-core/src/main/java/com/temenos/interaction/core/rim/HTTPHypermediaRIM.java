@@ -78,6 +78,8 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateAndParameters;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.hypermedia.TransitionCommandSpec;
+import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.hypermedia.validation.LogicalConfigurationListener;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -578,7 +580,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				assert(resource instanceof EntityResource) : "Must be an EntityResource for an auto transition";
 				entity = ((EntityResource<?>)resource).getEntity();
 			}
-			List<Transition> autoTransitions = getLinks(resource, Transition.AUTO);
+			List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
 			Transition autoTransition = autoTransitions.size() > 0 ? autoTransitions.iterator().next() : null;
 			if (autoTransition != null) {
 				if (autoTransitions.size() > 1)
@@ -601,7 +603,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.equals(Response.Status.CREATED)) {
 			ResourceState currentState = ctx.getCurrentState();
 			assert(currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
-			List<Transition> autoTransitions = getLinks(resource, Transition.AUTO);
+			List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
 
 			if (!autoTransitions.isEmpty()) {
 				Transition autoTransition = autoTransitions.get(0);				
@@ -625,7 +627,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(resource != null);
 			ResourceState currentState = ctx.getCurrentState();			
-			List<Transition> autoTransitions = getLinks(resource, Transition.AUTO);
+			List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
 			
 			if (!autoTransitions.isEmpty()) {
 				Transition autoTransition = null;
@@ -724,18 +726,30 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		return response;
     }
     
-    private List<Transition> getLinks(RESTResource resource, int transitionType) {
-    	List<Transition> transitions = new ArrayList<Transition>();
+    private List<Transition> getTransitions(InteractionContext ctx, ResourceState state, int transitionType) {
+    	List<Transition> result = new ArrayList<Transition>();
+    	    	
+    	List<Transition> transitions = state.getTransitions();
     	
-    	if (resource != null && resource.getLinks() != null) {
-        	for(Link link : resource.getLinks()) {
-    			if ((link.getTransition().getCommand().getFlags() & transitionType) == transitionType) {
-    				transitions.add(link.getTransition());
-    			}
-    		}
+    	if(transitions != null) {
+        	for(Transition transition: transitions) {    	
+        		TransitionCommandSpec commandSpec = transition.getCommand();
+        		
+        		if ((commandSpec.getFlags() & transitionType) == transitionType) {
+        			
+    				// evaluate the conditional expression
+    				Expression conditionalExp = commandSpec.getEvaluation();
+    				
+    				if (conditionalExp != null && !conditionalExp.evaluate(this, ctx)) {
+    					continue;								
+    				}
+    				
+    				result.add(transition);				
+        		}
+        	}    		
     	}
     	
-		return transitions;
+		return result;
     }
 
     /*
