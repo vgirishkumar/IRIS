@@ -41,7 +41,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.odata4j.core.OAtomEntity;
-import org.odata4j.core.OEntity;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
 import org.odata4j.internal.InternalUtil;
@@ -228,22 +227,15 @@ public class AtomEntityEntryFormatWriter {
 	}
 
 	private void writeEntityResource(StreamWriter writer, EntityResource<Entity> entityResource, String baseUri, String absoluteId, String updated) {
-		String entityName = entityResource.getEntityName();
 		Entity entity = null;
 		try {
-			if(entityResource.getEntity() instanceof OEntity) {
-				entity = (Entity)entityResource.getEntity();
-			} else {
 				entity = entityResource.getEntity();
-			}
 		} catch(Exception e) { 
 			logger.error(e.getMessage());
 		}
 
-		Collection<Link> linkCollection = entityResource.getLinks();
-		Map<Transition, RESTResource> embeddedResources = entityResource.getEmbedded();
 		writer.startEntry();
-		writeEntry(writer, entityName, entity, linkCollection, embeddedResources, baseUri, absoluteId, updated);
+		writeEntry(writer, entityResource.getEntityName(), entity, entityResource.getLinks(), entityResource.getEmbedded(), baseUri, absoluteId, updated);
 		writer.endEntry();
 	}
 	
