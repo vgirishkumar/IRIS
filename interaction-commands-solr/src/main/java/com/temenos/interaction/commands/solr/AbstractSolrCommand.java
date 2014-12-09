@@ -38,11 +38,13 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public abstract class AbstractSolrCommand {
+	
+	private static final int MAX_ENTITIES_RETURNED = 50;
 
 	public CollectionResource<Entity> buildCollectionResource(String entityName, SolrDocumentList docs) {
 		List<EntityResource<Entity>> results = new ArrayList<EntityResource<Entity>>();
 		long numFound = docs.getNumFound();
-		for (int i = 0; i < 10 && i < numFound; i++) {
+		for (int i = 0; i < MAX_ENTITIES_RETURNED && i < numFound; i++) {
 			EntityProperties properties = new EntityProperties();
 			SolrDocument doc = docs.get(i);
 			Collection<String> fields = doc.getFieldNames();
