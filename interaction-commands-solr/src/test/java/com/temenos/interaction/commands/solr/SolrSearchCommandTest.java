@@ -62,9 +62,9 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.CollectionResource;
 
 /**
- * The Class SolrSearchCommandITCase.
+ * The Class SolrSearchCommandTest.
  */
-public class SolrSearchCommandITCase {
+public class SolrSearchCommandTest {
 
 	// Names of entities. Will be the same as core names
 	private static final String ENTITY1_TYPE = "test_entity1_search";

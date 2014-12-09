@@ -1035,12 +1035,12 @@ public class TestResourceStateMachine {
 		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockNotFound, "/pconfirmed", "confirmed".split(" "));
 		
 		// create transitions that indicate state
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(cancelled).build());
+		initial.addTransition(new Transition.Builder().target(room).build());
+		initial.addTransition(new Transition.Builder().target(cancelled).build());
 		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(paid).build());
 		// expressions can be added to the resource with the condition or anywhere in the resource state graph
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pwaiting).build());
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pconfirmed).build());
+		initial.addTransition(new Transition.Builder().target(pwaiting).build());
+		initial.addTransition(new Transition.Builder().target(pconfirmed).build());
 
 		// pseudo states that do the processing
 		ResourceState cancel = new ResourceState(cancelled, "psuedo_cancel", new ArrayList<Action>(), null, "cancel".split(" "));
@@ -1065,7 +1065,7 @@ public class TestResourceStateMachine {
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
-		assertEquals(9, unsortedLinks.size());
+		assertEquals(8, unsortedLinks.size());
 		/*
 		 * expect 4 links
 		 * 'self'
@@ -1188,12 +1188,12 @@ public class TestResourceStateMachine {
 		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockFound, "/pconfirmed", "confirmed".split(" "));
 		
 		// create transitions that indicate state
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(room).build());
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(cancelled).build());
+		initial.addTransition(new Transition.Builder().target(room).build());
+		initial.addTransition(new Transition.Builder().target(cancelled).build());
 		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(paid).build());
 		// TODO, expressions should also be followed in determining resource state graph
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pwaiting).build());
-		initial.addTransition(new Transition.Builder().flags(Transition.AUTO).target(pconfirmed).build());
+		initial.addTransition(new Transition.Builder().target(pwaiting).build());
+		initial.addTransition(new Transition.Builder().target(pconfirmed).build());
 
 		// pseudo states that do the processing
 		ResourceState cancel = new ResourceState(cancelled, "psuedo_cancel", new ArrayList<Action>(), null, "cancel".split(" "));
@@ -1222,7 +1222,7 @@ public class TestResourceStateMachine {
 
 		assertNotNull(unsortedLinks);
 		assertFalse(unsortedLinks.isEmpty());
-		assertEquals(8, unsortedLinks.size());
+		assertEquals(7, unsortedLinks.size());
 		/*
 		 * expect 3 links
 		 * 'self'

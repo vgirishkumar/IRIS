@@ -694,6 +694,12 @@ public class ResourceStateMachine {
 			}
 			
 			TransitionCommandSpec cs = transition.getCommand();
+			
+			if(cs.isAutoTransition()) {
+				// Au revoir - Auto transitions should not be seen by user agents
+				continue;
+			}
+			
 			/*
 			 * build link and add to list of links
 			 */
