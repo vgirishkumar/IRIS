@@ -731,8 +731,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	    	
     	List<Transition> transitions = state.getTransitions();
     	
+    	boolean continueSeaching = true;
+    	
     	if(transitions != null) {
-        	for(Transition transition: transitions) {    	
+        	for( int i=0; i < transitions.size() && continueSeaching; i++) {
+        		Transition transition = transitions.get(i);
         		TransitionCommandSpec commandSpec = transition.getCommand();
         		
         		if ((commandSpec.getFlags() & transitionType) == transitionType) {
@@ -740,9 +743,21 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     				// evaluate the conditional expression
     				Expression conditionalExp = commandSpec.getEvaluation();
     				
-    				if (conditionalExp != null && !conditionalExp.evaluate(this, ctx)) {
-    					continue;								
+    				if (conditionalExp != null) {
+    					// There is a conditional expression
+    					
+    					if( !conditionalExp.evaluate(this, ctx)) {
+	    					// Expression is not satisfied so skip it
+	    					continue;
+    					}
+    					
+    					if(Transition.AUTO == transitionType) {
+    						// Auto transition expression satisfied - Short circuit, we are only interested in this transition
+    						result.clear();    						
+    						continueSeaching = false;
+    					}
     				}
+    				
     				
     				result.add(transition);				
         		}
