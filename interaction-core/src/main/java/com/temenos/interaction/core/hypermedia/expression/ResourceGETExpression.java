@@ -109,7 +109,7 @@ public class ResourceGETExpression implements Expression {
 				.injectLinks(false)
 				.embedResources(false)
 				.build();
-		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, null, config);
+		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, (EntityResource<?>)ctx.getResource(), config);
 		assert(results.values() != null && results.values().size() == 1);
 		ResourceRequestResult result = results.values().iterator().next();
 		
