@@ -177,6 +177,12 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 
 		// Set up query
 		SolrQuery query = new SolrQuery();
+		// query.setTermsLimit(100);
+		// query.setTermsMaxCount(100);
+		
+		// By default SolrQuery only returns 10 rows. This si true even if more rows are available. Since we will be 
+		// reading more than this increase the number of rows returned.
+		query.setRows(MAX_ENTITIES_RETURNED);
 		query.setQuery(buildQuery(fieldName, queryValue));
 
 		Result res = Result.FAILURE;

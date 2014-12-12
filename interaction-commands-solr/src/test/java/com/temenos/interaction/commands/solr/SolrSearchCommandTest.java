@@ -33,6 +33,7 @@ package com.temenos.interaction.commands.solr;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -163,6 +164,19 @@ public class SolrSearchCommandTest {
 		entity1SolrServer.add(createEntity1("2222", "JOHN2", "B Jillian", "222 Somewhere", "BB IWSH", "UK"), 0);
 		entity1SolrServer.add(createEntity1("3333", "JOHN3", "Ima Twin", "333 Somewhere", "CC IWSH", "UK"), 0);
 		entity1SolrServer.add(createEntity1("4444", "JOHN4", "Ima Twin", "444 Somewhere", "DD IWSH", "FR"), 0);
+		entity1SolrServer.commit(true, true);
+	}
+
+	/*
+	 * Add a large numbers of extra instances of the test data
+	 */
+	private void addEntity1TestData(int count) throws Exception {
+		for (int i = 0; i < count; i++) {
+			// Write something like a unique entity.
+			entity1SolrServer.add(
+					createEntity1("" + i + i + i + i, "JOHN" + i, "Ima number " + i, "" + i + i + " Somewhere",
+							"DD IWSH", "FR"), 0);
+		}
 		entity1SolrServer.commit(true, true);
 	}
 
@@ -533,6 +547,38 @@ public class SolrSearchCommandTest {
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
+	}
+
+	/**
+	 * Test for a large number of entries
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testEntity1SelectLarge() {
+
+		try {
+			// Add twice as many test entities as the max number returned.
+			addEntity1TestData(SolrSearchCommand.MAX_ENTITIES_RETURNED * 2);
+		} catch (Exception e) {
+			fail("Adding extra entities threw. " + e);
+		}
+
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		// Get all the entries
+		queryParams.add("q", "*");
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		assertEquals(SolrSearchCommand.MAX_ENTITIES_RETURNED, cr.getEntities().size());
 	}
 
 }
