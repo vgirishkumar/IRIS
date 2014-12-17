@@ -171,24 +171,55 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	}
 
 	@Override
-	public ResourceState getResourceState(String name) {
+	public ResourceState getResourceState(String resourceState) {
+
 		try {
-			if (name != null) {				
-				ResourceState resource = resources.get(name);
+			if (resourceState != null) {
+				String resourceName = resourceState;
+				
+				if(resourceName.contains("-")) {
+					resourceName = resourceName.substring(0, resourceName.indexOf("-"));
+				}
+				
+				ResourceState resource = resources.get(resourceState);
 				if (resource == null) {
-					String beanXml = "IRIS-"+name+"-PRD.xml";
+					String beanXml = "IRIS-" + resourceName + "-PRD.xml";
 					if (this.getClass().getClassLoader().getResource(beanXml) != null) {
 						ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
-						resource = (ResourceState) context.getBean(name);
-						resources.putIfAbsent(name, resource);
+						resource = (ResourceState) context.getBean(resourceState);
+						resources.putIfAbsent(resourceState, resource);
 					} else {
-						logger.error("Unable to load resource ["+beanXml+"] not found");
+						/*
+						 * so there is no - 
+						 * 
+						 */
+						int pos = resourceName.lastIndexOf("_");
+						if (pos > 3){
+							resourceName = resourceName.substring(0, pos);
+							beanXml = "IRIS-" + resourceName + "-PRD.xml";
+							if (this.getClass().getClassLoader().getResource(beanXml) != null) {
+								ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
+								pos = resourceState.lastIndexOf("-");
+								if (pos < 0){
+									pos = resourceState.lastIndexOf("_");
+									if (pos > 0){
+										resourceState = resourceState.substring(0, pos) + "-" + resourceState.substring(pos+1);
+									}
+								}
+								resource = (ResourceState) context.getBean(resourceState);
+								resources.putIfAbsent(resourceState, resource);
+							}else{
+								logger.error("Unable to load resource ["+beanXml+"] not found");
+							}
+						}else{
+							logger.error("Unable to load resource ["+beanXml+"] not found");
+						}
 					}
 				}
 				return resource;
 			}
 		} catch (BeansException e) {
-			logger.error("Failed to load ["+name+"]", e);
+			logger.error("Failed to load ["+resourceState+"]", e);
 		}
 		return null;
 	}
