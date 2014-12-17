@@ -43,6 +43,7 @@
 		<module>../useragent-examples/useragent-generic-javascript</module>
 		<module>../useragent-examples/useragent-hal-inspector</module>
 		<module>../useragent-examples/useragent-swagger-ui</module>
+		<module>../useragent-examples/useragent-javascript-tester</module>
 		<module>../interaction-examples/interaction-hateoas-simple</module>
 		<module>../interaction-examples/interaction-hateoas-banking</module>
 		<module>../interaction-examples/interaction-hateoas-dynamic</module>
@@ -344,6 +345,11 @@
 			<dependency>
 				<groupId>com.temenos.interaction</groupId>
 				<artifactId>useragent-odata-html5</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.temenos.interaction</groupId>
+				<artifactId>useragent-javascript-tester</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

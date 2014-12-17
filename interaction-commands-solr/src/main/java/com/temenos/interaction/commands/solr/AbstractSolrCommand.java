@@ -39,7 +39,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 
 public abstract class AbstractSolrCommand {
 	
-	private static final int MAX_ENTITIES_RETURNED = 50;
+	static final int MAX_ENTITIES_RETURNED = 50;
 
 	public CollectionResource<Entity> buildCollectionResource(String entityName, SolrDocumentList docs) {
 		List<EntityResource<Entity>> results = new ArrayList<EntityResource<Entity>>();
