@@ -62,6 +62,13 @@ public class TestSpringDSLResourceStateProvider {
 		assertEquals(1, transitions.size());
 		assertEquals("access a property from the target to check it is lazy loaded", "LAZY", transitions.get(0).getTarget().getPath());
 	}
+	
+	@Test
+	public void testGetResourceStateMultipleStatesPerFile() {
+		ResourceState actual = resourceStateProvider.getResourceState("SimpleModel_Home-home");
+		assertEquals("home", actual.getName());
+	}
+	
 
 	@Test
 	public void testGetResourceStatesByPath() {

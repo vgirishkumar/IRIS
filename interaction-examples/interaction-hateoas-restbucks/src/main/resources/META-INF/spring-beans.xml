@@ -126,7 +126,7 @@
 	</bean>
 
 	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
-		<constructor-arg type="java.lang.String" value="RestbucksModel_Restbucks_ServiceDocument" />
+		<constructor-arg type="java.lang.String" value="RestbucksModel_Restbucks-ServiceDocument" />
 	</bean>
 
 	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
