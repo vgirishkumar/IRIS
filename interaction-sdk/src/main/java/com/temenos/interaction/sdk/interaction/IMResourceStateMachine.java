@@ -35,6 +35,7 @@ import javax.ws.rs.HttpMethod;
 import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.interaction.state.IMCollectionState;
 import com.temenos.interaction.sdk.interaction.state.IMEntityState;
+import com.temenos.interaction.sdk.interaction.state.IMMetadataState;
 import com.temenos.interaction.sdk.interaction.state.IMNavigationState;
 import com.temenos.interaction.sdk.interaction.state.IMPseudoState;
 import com.temenos.interaction.sdk.interaction.state.IMState;
@@ -256,17 +257,35 @@ public class IMResourceStateMachine {
 		this.addStateTransition(sourceStateName, transitiveTargetStateName, pseudoStateId, method, null, title, null, action, relations, false, boundToCollection);
 		return (IMPseudoState) getResourceState(sourceStateName + "_" + pseudoStateId);
 	}
+
+	/**
+	 * Add a transition to a metadata state. This will normally be included inline
+	 */
+	public void addMetadataStateTransition(String sourceStateName, String targetStateName, String method, String action, String relations, String entity) {
+		String path = getCollectionState().getPath() + "/metadata";
+		if(!resourceStates.containsKey(targetStateName)) {
+			IMState targetState = new IMMetadataState(targetStateName, path, relations, action, entity);
+			resourceStates.put(targetStateName, targetState);
+		}
+		//Add transition
+		IMState sourceState = getResourceState(sourceStateName);
+		IMState targetState = getResourceState(targetStateName);
+
+		sourceState.addTransition("Inline Metadata", targetState, method, false);
+	}
 	
 	/*
 	 * Add a transition triggering a state change in the underlying resource manager
-	 * @param title				Transition label
 	 * @param sourceStateName	Source state
 	 * @param targetStateName	Target state
 	 * @param pseudoStateId		Pseudo state identifier 
 	 * @param method			HTTP command
 	 * @param stateId			State Id or null if this is the same state as the initial collection/entity state
+	 * @param title				Transition label
+	 * @param view				Action to view
 	 * @param action			Action to execute
 	 * @param relations			Relations
+	 * @param auto				True if the transition is an auto-transition (-->)
 	 * @param boundToCollection	true if the target state should be bound to a collection state
 	 */
 	protected void addStateTransition(String sourceStateName, String targetStateName, String pseudoStateId, String method, String stateId, String title, String view, String action, String relations, boolean auto, boolean boundToCollection) {
