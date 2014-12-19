@@ -261,10 +261,10 @@ public class IMResourceStateMachine {
 	/**
 	 * Add a transition to a metadata state. This will normally be included inline
 	 */
-	public void addMetadataStateTransition(String sourceStateName, String targetStateName, String method, String action, String relations) {
+	public void addMetadataStateTransition(String sourceStateName, String targetStateName, String method, String action, String relations, String entity) {
 		String path = getCollectionState().getPath() + "/metadata";
 		if(!resourceStates.containsKey(targetStateName)) {
-			IMState targetState = new IMMetadataState(targetStateName, path, relations, action, "T24FieldMetadata");
+			IMState targetState = new IMMetadataState(targetStateName, path, relations, action, entity);
 			resourceStates.put(targetStateName, targetState);
 		}
 		//Add transition
