@@ -160,4 +160,21 @@ public class ErrorHandlingITCase {
 			assertEquals("Resource manager: entity not found or currently unavailable.", error.getMessage());
 		}
 	}
+	
+	@Test
+	public void flightError404WithOtherErrorHandlerInSeperateRIM() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
+		try {
+			consumer.
+					getEntity(EXTENDED_ENTITYSET_NAME, 123).
+					nav("error404WithOtherErrorHandler").
+					execute();
+			fail("error404 should have returned an odata error response.");
+		}
+		catch(ODataProducerException ope) {
+			OError error = ope.getOError();
+			assertEquals("404", error.getCode());
+			assertEquals("Resource manager: entity not found or currently unavailable. For ErrorHanlder in seperate RIM", error.getMessage());
+		}
+	}
 }

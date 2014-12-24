@@ -1190,6 +1190,18 @@ public class ResourceStateMachine {
 					}
 				}
 			}
+			// Target can have errorState which is not a normal transition, so resolve and add it here
+			if (targetState.getErrorState() != null) {
+				ResourceState errorState = targetState.getErrorState();
+				if ( 	(errorState instanceof LazyResourceState ||
+						errorState instanceof LazyCollectionResourceState)
+						&& 
+						errorState.getId().startsWith(".")) {
+					// We should resolve and overwrite the one already there  
+					errorState = resourceStateProvider.getResourceState(errorState.getName());
+					targetState.setErrorState(errorState);
+				}
+			}
 		}
 		return targetState;
 	}

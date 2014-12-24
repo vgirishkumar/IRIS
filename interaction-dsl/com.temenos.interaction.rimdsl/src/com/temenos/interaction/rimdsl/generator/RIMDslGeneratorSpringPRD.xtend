@@ -80,8 +80,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				«produceRelations(state)»
 			</constructor-arg>
 			<constructor-arg name="uriSpec">«IF state.path != null »<bean class="com.temenos.interaction.core.hypermedia.UriSpecification"><constructor-arg name="name" value="«state.name»" /><constructor-arg name="template" value="«producePath(rim, state)»" /></bean>«ELSE»<null />«ENDIF»</constructor-arg>
-			<constructor-arg name="errorState"><null /></constructor-arg>
-
+			<constructor-arg name="errorState"«IF state.errorState != null»«IF rim.states.contains(state.errorState)» ref="«stateVariableName(state.errorState)»" />«ELSE»>«produceErrorState(state.errorState)»</constructor-arg>«ENDIF»«ELSE»><null /></constructor-arg>«ENDIF»
+			
 			«IF state.isInitial»
 			<property name="initial" value="true" />
 			«ENDIF»
@@ -446,6 +446,13 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		«ENDIF»
 		</util:map>
     '''
-
+    /**
+     * Produces a LAZY resource for error as it is in different RIM, 'ref' can not be used
+     */
+	def produceErrorState(State errorState) '''
+		<bean class="«produceLazyResourceStateType(errorState)»">
+			<constructor-arg name="name" value="«stateVariableName(errorState)»" />
+		</bean>
+	'''
 }
 
