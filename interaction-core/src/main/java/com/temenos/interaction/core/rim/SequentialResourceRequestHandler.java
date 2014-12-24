@@ -71,9 +71,8 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 	    	InteractionCommand action = hypermediaEngine.buildWorkflow(targetState.getActions());
 			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
 			newPathParameters.putAll(ctx.getPathParameters());
-			RESTResource currentResource = ctx.getResource();
-			if (currentResource != null) {
-				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(t, ((EntityResource<?>)currentResource).getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
+			if (resource != null) {
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(t, ((EntityResource<?>)resource).getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
 				for (String key : transitionProperties.keySet()) {
 					if (transitionProperties.get(key) != null)
 						newPathParameters.add(key, transitionProperties.get(key).toString());

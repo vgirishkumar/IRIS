@@ -20,6 +20,7 @@ rim Simple {
 	command GETNotes
 	command GETNote
 	command DELETENote
+	command MatchCommand
 
 resource notes {
 	type: collection
@@ -28,7 +29,9 @@ resource notes {
 	path: "/notes"
     POST -> createNote
 	GET *-> note
-	DELETE *-> deletedNote
+	DELETE *-> deletedNote {
+		condition: NOT_FOUND(NoteImportant)
+	}
 }
 
 resource note {
@@ -61,5 +64,14 @@ resource createNote {
 	}
 }
 
-}
+		resource NoteImportant {
+		   type: item
+		   entity: Note 
+		   view: MatchCommand {
+		      properties [ Expression="{body}='IMPORTANT'" ]
+		   }
+		   path: "/notes/{noteID}/NoteImportant"
+		}
+
+	}
 }

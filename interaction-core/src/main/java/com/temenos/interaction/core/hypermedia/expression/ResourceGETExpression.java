@@ -82,7 +82,7 @@ public class ResourceGETExpression implements Expression {
 	}
 	
 	@Override
-	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
+	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx, EntityResource<?> resource) {
 		ResourceStateMachine hypermediaEngine = rimHandler.getHypermediaEngine();
 		ResourceState target = null;
 		Transition ourTransition = transition;
@@ -109,7 +109,9 @@ public class ResourceGETExpression implements Expression {
 				.injectLinks(false)
 				.embedResources(false)
 				.build();
-		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, (EntityResource<?>)ctx.getResource(), config);
+		if (resource == null && ctx.getResource() instanceof EntityResource)
+			resource = (EntityResource<?>) ctx.getResource();
+		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, resource, config);
 		assert(results.values() != null && results.values().size() == 1);
 		ResourceRequestResult result = results.values().iterator().next();
 		

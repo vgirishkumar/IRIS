@@ -746,7 +746,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     				if (conditionalExp != null) {
     					// There is a conditional expression
     					
-    					if( !conditionalExp.evaluate(this, ctx)) {
+    					if( !conditionalExp.evaluate(this, ctx, null)) {
 	    					// Expression is not satisfied so skip it
 	    					continue;
     					}

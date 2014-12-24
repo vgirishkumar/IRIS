@@ -158,7 +158,9 @@ public class HypermediaITCase extends JerseyTest {
 		for (Map.Entry<String, ReadableRepresentation> entry : subresources) {
 			ReadableRepresentation item = entry.getValue();
 			List<Link> itemLinks = item.getLinks();
-			assertEquals(2, itemLinks.size());
+			if (!item.getProperties().get("noteID").equals("9")) {
+				assertEquals(2, itemLinks.size());
+			}
 			for (Link link : itemLinks) {
 				if (link.getRel().contains("self")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"),
@@ -171,6 +173,66 @@ public class HypermediaITCase extends JerseyTest {
 				}
 			}
 		}
+	}
+
+	@Test
+	public void testConditionalCollectionLinks() {
+		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON)
+				.get(ClientResponse.class);
+		assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus())
+				.getFamily());
+
+		RepresentationFactory representationFactory = new StandardRepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response
+				.getEntityInputStream()));
+
+		// the links from the collection
+		List<Link> links = resource.getLinks();
+		assertEquals(2, links.size());
+		for (Link link : links) {
+			if (link.getRel().equals("self")) {
+				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
+			} else if (link.getName().equals("Note.notes>POST>Note.createNote")) {
+				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes", link.getHref());
+			} else {
+				fail("unexpected link [" + link.getName() + "]");
+			}
+		}
+
+		// the items, and links on each item
+		Collection<Map.Entry<String, ReadableRepresentation>> subresources = resource.getResources();
+		assertNotNull(subresources);
+		/*
+		 * Test that there are actually some subresource returned. If the 'self'
+		 * link rel in the HALProvider is broken then we won't get any
+		 * subresources here.
+		 */
+		assertTrue(subresources.size() > 0);
+		List<Link> testLinks = null;
+		for (Map.Entry<String, ReadableRepresentation> entry : subresources) {
+			ReadableRepresentation item = entry.getValue();
+			List<Link> itemLinks = item.getLinks();
+			if (item.getProperties().get("noteID").equals("9")) {
+				// the links for out note number 9, i.e. the IMPORTANT links
+				testLinks = itemLinks;
+			} else {
+				assertEquals(2, itemLinks.size());
+			}
+		}
+
+		assertNotNull(testLinks);
+		assertEquals(1, testLinks.size());
+		for (Link link : testLinks) {
+			if (link.getRel().contains("self")) {
+				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/9", link.getHref());
+// in the test we assert we cannot delete IMPORTANT notes
+//			} else if (link.getName().contains("Note.deletedNote")) {
+//				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/9", link.getHref());
+			} else {
+				fail("unexpected link [" + link.getName() + "]");
+			}
+		}
+	
 	}
 
 	/**

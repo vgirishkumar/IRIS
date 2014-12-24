@@ -98,6 +98,7 @@
     <bean id="GETServiceRoot" class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
 	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand" />
 	<bean id="NoopPUT" class="com.temenos.interaction.core.command.NoopPUTCommand" />
+	<bean id="MatchCommand" class="com.temenos.interaction.core.command.MatchCommand" />
 	<bean id="GETPreferences" class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
 	<bean id="GETNotes" class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand">
 		<constructor-arg ref="persistence" />
@@ -119,6 +120,7 @@
 				<entry key="GETServiceRoot" value-ref="GETServiceRoot" />
 				<entry key="NoopGET" value-ref="NoopGET" />
 				<entry key="NoopPUT" value-ref="NoopPUT" />
+				<entry key="MatchCommand" value-ref="MatchCommand" />
 				<entry key="GETPreferences" value-ref="GETPreferences" />
 				<entry key="GETNotes" value-ref="GETNotes" />
 				<entry key="GETNote" value-ref="GETNote" />

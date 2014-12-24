@@ -712,7 +712,15 @@ public class ResourceStateMachine {
 						}
 						Link link = createLink(transition, er.getEntity(), resourceProperties);
 						if (link != null) {
-							eLinks.add(link);
+							boolean addLink = true;
+							// evaluate the conditional expression
+							Expression conditionalExp = transition.getCommand().getEvaluation();
+							if (conditionalExp != null) {
+								addLink = conditionalExp.evaluate(rimHander, ctx, er);
+							}
+							if (addLink) {
+								eLinks.add(link);
+							}
 						}
 						er.setLinks(eLinks);
 					}
@@ -722,7 +730,7 @@ public class ResourceStateMachine {
 				// evaluate the conditional expression
 				Expression conditionalExp = cs.getEvaluation();
 				if (conditionalExp != null) {
-					addLink = conditionalExp.evaluate(rimHander, ctx);
+					addLink = conditionalExp.evaluate(rimHander, ctx, (EntityResource<?>) ctx.getResource());
 				}
 
 				if (addLink) {

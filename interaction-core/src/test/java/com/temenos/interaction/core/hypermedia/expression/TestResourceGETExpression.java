@@ -146,10 +146,10 @@ public class TestResourceGETExpression {
 		
 		
 		ResourceGETExpression rgeOK = new ResourceGETExpression(rsm.getResourceStateByName("pwaiting"), Function.OK);
-		boolean result1 = rgeOK.evaluate(rimHandler, ctx);
+		boolean result1 = rgeOK.evaluate(rimHandler, ctx, null);
 		assertFalse("We did a GET on 'pwaiting' and it was NOT_FOUND(404), therefore OK link condition evaluates to 'false'", result1);
 		ResourceGETExpression rgeNOT_FOUND = new ResourceGETExpression(rsm.getResourceStateByName("pwaiting"), Function.NOT_FOUND);
-		boolean result2 = rgeNOT_FOUND.evaluate(rimHandler, ctx);
+		boolean result2 = rgeNOT_FOUND.evaluate(rimHandler, ctx, null);
 		assertTrue("We did a GET on 'pwaiting' and it was NOT_FOUND(404), therefore NOT_FOUND link condition evaluates to 'true'", result2);
 	}
 
@@ -162,10 +162,10 @@ public class TestResourceGETExpression {
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
 		
 		ResourceGETExpression rgeOK = new ResourceGETExpression(rsm.getResourceStateByName("pconfirmed"), Function.OK);
-		boolean result1 = rgeOK.evaluate(rimHandler, ctx);
+		boolean result1 = rgeOK.evaluate(rimHandler, ctx, null);
 		assertTrue("We did a GET on 'pconfirmed' and it was OK(200), therefore OK link condition evaluates to 'true'", result1);
 		ResourceGETExpression rgeNOT_FOUND = new ResourceGETExpression(rsm.getResourceStateByName("pconfirmed"), Function.NOT_FOUND);
-		boolean result2 = rgeNOT_FOUND.evaluate(rimHandler, ctx);
+		boolean result2 = rgeNOT_FOUND.evaluate(rimHandler, ctx, null);
 		assertFalse("We did a GET on 'pconfirmed' and it was OK(200), therefore NOT_FOUND link condition evaluates to 'false'", result2);
 	}
 	
