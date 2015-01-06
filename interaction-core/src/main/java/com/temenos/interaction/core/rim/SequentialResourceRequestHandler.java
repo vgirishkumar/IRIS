@@ -78,7 +78,11 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 						newPathParameters.add(key, transitionProperties.get(key).toString());
 				}
 			}
-	    	InteractionContext newCtx = new InteractionContext(ctx, null, newPathParameters, null, targetState);
+			
+			MultivaluedMap<String, String> newQueryParameters = new MultivaluedMapImpl<String>();
+			newQueryParameters.putAll(ctx.getQueryParameters());
+			
+	    	InteractionContext newCtx = new InteractionContext(ctx, null, newPathParameters, newQueryParameters, targetState);
 	    	newCtx.setResource(null);
 			Response response = rimHandler.handleRequest(headers, 
 					newCtx, 

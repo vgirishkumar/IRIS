@@ -103,6 +103,7 @@ public class InteractionContext {
 	 * Shallow copy constructor with extra parameters to override final attributes.
 	 * Note uriInfo not retained since responses produced will not be valid for original request.
 	 * @param ctx interaction context
+	 * @param headers HttpHeaders
 	 * @param pathParameters new path parameters or null to not override
 	 * @param queryParameters new query parameters or null to not override
 	 * @param currentState new current state or null to not override
