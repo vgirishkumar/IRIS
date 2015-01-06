@@ -782,8 +782,16 @@ public class ResourceStateMachine {
 			}
 
 			ResourceRequestConfig config = configBuilder.build();
-			Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(rimHandler, headers,
-					ctx, null, config);
+			
+			
+			EntityResource<?> entityResource = null; 
+					
+			if (resource instanceof EntityResource<?>) {
+				entityResource = (EntityResource<?>)resource;
+			}
+			
+			Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(rimHandler, headers, ctx, entityResource, config);
+			
 			if (config.getTransitions() != null && config.getTransitions().size() > 0
 					&& config.getTransitions().size() != results.keySet().size()) {
 				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state ["
