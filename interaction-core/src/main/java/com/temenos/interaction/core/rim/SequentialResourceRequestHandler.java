@@ -49,8 +49,11 @@ import com.temenos.interaction.core.resource.RESTResource;
 public class SequentialResourceRequestHandler implements ResourceRequestHandler {
 
 	@Override
-	public Map<Transition, ResourceRequestResult> getResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, 
-			InteractionContext ctx, EntityResource<?> resource, ResourceRequestConfig config) {
+	public Map<Transition, ResourceRequestResult> getResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, InteractionContext ctx, EntityResource<?> resource, ResourceRequestConfig config) {
+		return getResources(rimHandler, headers, ctx, resource, null, config);
+	}
+
+	public Map<Transition, ResourceRequestResult> getResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, InteractionContext ctx, EntityResource<?> resource, Object entity, ResourceRequestConfig config) {	
 		assert(config != null);
 		assert(config.getTransitions() != null);
 		ResourceStateMachine hypermediaEngine = rimHandler.getHypermediaEngine();
@@ -69,18 +72,36 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 			}
 	    	
 	    	InteractionCommand action = hypermediaEngine.buildWorkflow(targetState.getActions());
+	    	
 			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
 			newPathParameters.putAll(ctx.getPathParameters());
+			
 			if (resource != null) {
 				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(t, ((EntityResource<?>)resource).getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
+				
 				for (String key : transitionProperties.keySet()) {
-					if (transitionProperties.get(key) != null)
+					if (transitionProperties.get(key) != null) {
 						newPathParameters.add(key, transitionProperties.get(key).toString());
+					}
+				}				
+			}
+
+			MultivaluedMap<String, String> newQueryParameters = new MultivaluedMapImpl<String>();
+			newQueryParameters.putAll(ctx.getQueryParameters());
+						
+			if (entity != null) {
+				/* Handle cases where we may be embedding a resource that has filter criteria whose values are contained in the current resource's 
+				 * entity properties.				
+				 */				
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(t, entity, ctx.getPathParameters(), ctx.getQueryParameters());
+				
+				for (String key : transitionProperties.keySet()) {
+					if (transitionProperties.get(key) != null) {
+						newQueryParameters.add(key, transitionProperties.get(key).toString());
+					}
 				}
 			}
 			
-			MultivaluedMap<String, String> newQueryParameters = new MultivaluedMapImpl<String>();
-			newQueryParameters.putAll(ctx.getQueryParameters());
 			
 	    	InteractionContext newCtx = new InteractionContext(ctx, null, newPathParameters, newQueryParameters, targetState);
 	    	newCtx.setResource(null);

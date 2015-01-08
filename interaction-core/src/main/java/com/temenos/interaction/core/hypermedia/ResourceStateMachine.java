@@ -59,6 +59,7 @@ import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 import com.temenos.interaction.core.rim.ResourceRequestConfig;
 import com.temenos.interaction.core.rim.ResourceRequestHandler;
 import com.temenos.interaction.core.rim.ResourceRequestResult;
+import com.temenos.interaction.core.rim.SequentialResourceRequestHandler;
 import com.temenos.interaction.core.web.RequestContext;
 import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand;
 
@@ -783,14 +784,21 @@ public class ResourceStateMachine {
 
 			ResourceRequestConfig config = configBuilder.build();
 			
-			
-			EntityResource<?> entityResource = null; 
+			Map<Transition, ResourceRequestResult> results = null;
 					
-			if (resource instanceof EntityResource<?>) {
-				entityResource = (EntityResource<?>)resource;
+			if (resource instanceof EntityResource<?> && resourceRequestHandler instanceof SequentialResourceRequestHandler) {
+				/* Handle cases where we may be embedding a resource that has filter criteria whose values are contained in the current resource's 
+				 * entity properties.				
+				 */
+				Object tmpEntity = ((EntityResource)resource).getEntity();
+				
+				results = ((SequentialResourceRequestHandler)resourceRequestHandler).getResources(rimHandler, headers, ctx, null, tmpEntity, config);
+				
+			} else {
+				results = resourceRequestHandler.getResources(rimHandler, headers, ctx, null, config);
 			}
 			
-			Map<Transition, ResourceRequestResult> results = resourceRequestHandler.getResources(rimHandler, headers, ctx, entityResource, config);
+			
 			
 			if (config.getTransitions() != null && config.getTransitions().size() > 0
 					&& config.getTransitions().size() != results.keySet().size()) {
