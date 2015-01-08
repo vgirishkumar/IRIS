@@ -365,7 +365,7 @@ public class AtomEntityEntryFormatWriter {
 			writer.endElement();
 		}
 		// For List<ComplexTypes> we should end the complex node here
-		if (entityMetadata.isPropertyList(property.getFullyQualifiedName())) {
+		if (!propertiesList.isEmpty() && entityMetadata.isPropertyList(property.getFullyQualifiedName())) {
 			writer.endElement();
 		}
 	}

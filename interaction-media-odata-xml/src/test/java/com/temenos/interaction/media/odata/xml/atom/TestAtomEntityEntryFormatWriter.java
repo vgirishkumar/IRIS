@@ -48,6 +48,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
+import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -61,6 +62,7 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceMetadataManager;
@@ -72,6 +74,7 @@ public class TestAtomEntityEntryFormatWriter {
 	public final static String METADATA_CUSTOMER = "Customer";
 	public final static String METADATA_CUSTOMER_ALL_TERM = "CustomerAllTermList";
 	public final static String METADATA_CUSTOMER_WITH_TERM = "CustomerWithTermList";
+	private static final String FIELD_METADTATA = "T24FieldMetadata";
 	private static Entity simpleEntity;
 	private static Entity simpleEmptyEntity;
 	private static Entity simpleEmptyDOBEntity;
@@ -114,6 +117,7 @@ public class TestAtomEntityEntryFormatWriter {
 		metadata.getEntityMetadata(METADATA_CUSTOMER);
 		metadata.getEntityMetadata(METADATA_CUSTOMER_ALL_TERM);
 		metadata.getEntityMetadata(METADATA_CUSTOMER_WITH_TERM);
+		metadata.getEntityMetadata(FIELD_METADTATA);
 		
 		Assert.assertNotNull(metadata);
 	
@@ -134,6 +138,7 @@ public class TestAtomEntityEntryFormatWriter {
 	public static void tearDown() {
 		simpleEntity = null;
 		complexEntity = null;
+		complexEntity2 = null;
 	}
 	
 	private final static String SIMPLE_ENTRY_OUTPUT = "<?xml version='1.0' encoding='UTF-8'?>" +
@@ -591,6 +596,114 @@ public class TestAtomEntityEntryFormatWriter {
 		String output = strWriter.toString();
 		
 		Assert.assertFalse(output.contains("id=123456789"));
+	}
+	
+	@Test
+	public void testComplexEntityWithInlineMetadata() {
+		// Get UriInfo and Links
+		UriInfo uriInfo = mock(UriInfo.class);
+		try {
+			when(uriInfo.getBaseUri()).thenReturn(new URI("http", "//www.temenos.com/iris/test", "simple"));
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+		
+		// EmbeddedResources
+		Map<Transition, RESTResource> embeddedResources = new HashMap<Transition, RESTResource>();
+		
+		// Self link
+		List<Link> links = new ArrayList<Link>();
+		ResourceState mockResourceState = mock(ResourceState.class);
+		when(mockResourceState.getEntityName()).thenReturn("CustomerAllTermList");
+		Transition mockTransition = mock(Transition.class);
+		when(mockTransition.getLabel()).thenReturn("title");
+		when(mockTransition.getTarget()).thenReturn(mockResourceState);
+		links.add(new Link(mockTransition, "self", "href", "POST"));
+		
+		// Inline metadata
+		ResourceState mockInlineResourceState = mock(ResourceState.class);
+		when(mockInlineResourceState.getEntityName()).thenReturn(FIELD_METADTATA);
+		Transition mockInlineMetadataTransition = mock(Transition.class);
+		when(mockInlineMetadataTransition.getLabel()).thenReturn("inline metadata");
+		when(mockInlineMetadataTransition.getTarget()).thenReturn(mockInlineResourceState);
+		links.add(new Link(mockInlineMetadataTransition, "inline metaedata", "href", "POST"));
+		
+		CollectionResource<Entity> embeddedEntityResource = getFieldMetadata();
+		embeddedEntityResource.setEntityName(embeddedEntityResource.getEntityName());
+		embeddedResources.put(mockInlineMetadataTransition, embeddedEntityResource);
+		
+		AtomEntityEntryFormatWriter writer = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+		StringWriter strWriter = new StringWriter();
+		writer.write(uriInfo, strWriter, complexEntity2.getName(), complexEntity2, links, embeddedResources);
+		
+		String output = strWriter.toString();
+		//System.out.println(strWriter);
+		
+		String relContent = extractLinkRelFromString(output);
+		Assert.assertEquals("self", relContent);
+		Assert.assertTrue(output.contains("<link href=\"href\" rel=\"inline metaedata\" type=\"application/atom+xml;type=entry\" title=\"inline metadata\">"));
+		Assert.assertTrue(output.contains("<m:inline>"));
+		Assert.assertTrue(output.contains("<feed>"));
+		Assert.assertTrue(output.contains("<d:FieldValue>industry-1000</d:FieldValue>"));
+		Assert.assertTrue(output.contains("<d:Enrichment>industry-1000-Enrichment</d:Enrichment>"));
+		Assert.assertTrue(output.contains("<d:FieldValue>industry-1001</d:FieldValue>"));
+		Assert.assertTrue(output.contains("<d:Enrichment>industry-1001-Enrichment</d:Enrichment>"));
+		Assert.assertTrue(output.contains("<d:FieldValue>sector-1000</d:FieldValue>"));
+		Assert.assertTrue(output.contains("<d:Enrichment>sector-1000-Enrichment</d:Enrichment>"));
+		Assert.assertTrue(output.contains("<d:FieldValue>sector-1001</d:FieldValue>"));
+		Assert.assertTrue(output.contains("<d:Enrichment>sector-1001-Enrichment</d:Enrichment>"));
+		Assert.assertTrue(output.contains("<d:streetType>Mayland's Avenue</d:streetType>"));
+	}
+	
+	private CollectionResource<Entity> getFieldMetadata() {
+		String entityName = "CustomerAllTermList";
+		List<EntityResource<Entity>> entityResources = new ArrayList<EntityResource<Entity>>();
+		
+		// Metadat 1
+		Entity entity1 = createT24FieldMetadata(entityName, "industry");
+		entityResources.add(CommandHelper.createEntityResource(entity1));
+	
+		// Metadat 2
+		Entity entity2 = createT24FieldMetadata(entityName, "sector");
+		entityResources.add(CommandHelper.createEntityResource(entity2));
+		
+		return new CollectionResource<Entity>(FIELD_METADTATA, entityResources) {};
+	}
+	
+	private Entity createT24FieldMetadata(String entityName, String fieldName) {
+		String fullyQualifiedName = entityName + "." + fieldName;
+		
+		EntityProperties entityProperties = new EntityProperties();
+		entityProperties.setProperty(new EntityProperty("Id", fullyQualifiedName));
+		entityProperties.setProperty(new EntityProperty("Entity", entityName));
+		entityProperties.setProperty(new EntityProperty("Property", fieldName));
+		entityProperties.setProperty(new EntityProperty("Visible", true));
+		entityProperties.setProperty(new EntityProperty("Mandatory", false));
+		entityProperties.setProperty(new EntityProperty("MandatorySelection", false));
+		entityProperties.setProperty(new EntityProperty("ReadOnly", false));
+		entityProperties.setProperty(new EntityProperty("Copy", true));
+		entityProperties.setProperty(new EntityProperty("PrimaryKey", false));
+		
+		List<EntityProperties> possibleValues = new ArrayList<EntityProperties>();
+		entityProperties.setProperty(new EntityProperty("PossibleValuesMvGroup", possibleValues));
+		
+		// Now List of Enrichments
+		List<EntityProperties> enrichments = new ArrayList<EntityProperties>();
+			EntityProperties enrichmentValueElem = new EntityProperties();
+			enrichmentValueElem.setProperty(new EntityProperty("FieldNumber", "1"));
+			enrichmentValueElem.setProperty(new EntityProperty("FieldValue", fieldName + "-1000"));
+			enrichmentValueElem.setProperty(new EntityProperty("Enrichment", fieldName + "-1000-Enrichment"));
+			enrichments.add(enrichmentValueElem);
+			
+			EntityProperties enrichmentValueElem2 = new EntityProperties();
+			enrichmentValueElem2.setProperty(new EntityProperty("FieldNumber", "2"));
+			enrichmentValueElem2.setProperty(new EntityProperty("FieldValue", fieldName + "-1001"));
+			enrichmentValueElem2.setProperty(new EntityProperty("Enrichment", fieldName + "-1001-Enrichment"));
+			enrichments.add(enrichmentValueElem2);
+		
+		entityProperties.setProperty(new EntityProperty("EnrichmentsMvGroup", enrichments));
+				
+		return new Entity(FIELD_METADTATA, entityProperties);
 	}
 	
 	private static Entity getSimpleEmptyEntity(String entityName) {
