@@ -807,8 +807,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 					action, 
 					(EntityResource<?>)currentResource, 
 					config);
-        	RESTResource resource = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
-        	resource.setEntityName(targetState.getEntityName());
         	
 			return response;
 			
