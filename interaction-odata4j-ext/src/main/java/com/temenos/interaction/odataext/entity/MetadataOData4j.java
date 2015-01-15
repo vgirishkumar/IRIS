@@ -576,7 +576,7 @@ public class MetadataOData4j {
 					if (termList) {
 						ep = EdmProperty.newBuilder(complexPropertyName).
 								setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
-								setCollectionKind(CollectionKind.Bag).								
+								setCollectionKind(CollectionKind.List).								
 								setNullable(isNullable);
 					} else {
 						ep = EdmProperty.newBuilder(complexPropertyName).
@@ -791,7 +791,7 @@ public class MetadataOData4j {
 			if (isList) {
 				ep = EdmProperty.newBuilder(nestedComplexType)
 						.setType(bComplexTypeMap.get(nestComplexTypeFullName))
-						.setCollectionKind(CollectionKind.Bag)
+						.setCollectionKind(CollectionKind.List)
 						.setNullable(isNullable);
 			} else {
 				ep = EdmProperty.newBuilder(nestedComplexType)
