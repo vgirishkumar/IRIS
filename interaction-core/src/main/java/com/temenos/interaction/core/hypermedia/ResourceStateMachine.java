@@ -731,7 +731,13 @@ public class ResourceStateMachine {
 				// evaluate the conditional expression
 				Expression conditionalExp = cs.getEvaluation();
 				if (conditionalExp != null) {
-					addLink = conditionalExp.evaluate(rimHander, ctx, (EntityResource<?>) ctx.getResource());
+					EntityResource<?> entityResource = null;
+					
+					if(ctx.getResource() instanceof EntityResource<?>) {
+						entityResource = (EntityResource<?>) ctx.getResource();
+					}
+					
+					addLink = conditionalExp.evaluate(rimHander, ctx, entityResource);
 				}
 
 				if (addLink) {
