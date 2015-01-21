@@ -24,7 +24,9 @@ package com.temenos.interaction.commands.odata;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -54,7 +56,7 @@ import com.temenos.interaction.odataext.ODataHelper;
 public class CommandHelper {
 	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
 	private static Pattern parameterPattern = Pattern.compile("\\{(.*?)\\}");
-
+	
 	/**
 	 * To handle generic case where user do not know the type, here we will be looking for a type
 	 * and then generate EntityResource<E>
@@ -277,4 +279,45 @@ public class CommandHelper {
 			return actionProperties.get(propertyName).toString();		//e.g. fld eq '{code}'
 		}		
 	}
+	
+	/**
+	 * Create a map containing the values we wish to pass as custom options to the OData producer 
+	 * 
+	 * @param ctx interaction context
+	 * 
+	 * @return Map containing the values we wish to pass as custom options to the OData producer
+	 */
+	static Map<String, String> populateCustomOptionsMap(InteractionContext ctx) {
+		Map<String, String> customOptions = new HashMap<String,String>();
+		
+		// Capture all path parameters
+		MultivaluedMap<String, String> pathParams = ctx.getPathParameters();
+		
+		if(pathParams != null) {
+			for(Map.Entry<String,List<String>> entry: pathParams.entrySet()) {
+				String parmName = entry.getKey();
+				List<String> paramValues = entry.getValue();
+				
+				if(!paramValues.isEmpty()) {
+					customOptions.put(parmName, paramValues.get(0));
+				}
+			}
+		}
+		
+		// Capture all query parameters 
+		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+		
+		if(queryParams != null) {
+			for(Map.Entry<String,List<String>> entry: queryParams.entrySet()) {
+				String parmName = entry.getKey();
+				List<String> paramValues = entry.getValue();
+				
+				if(!paramValues.isEmpty()) {
+					customOptions.put(parmName, paramValues.get(0));
+				}
+			}
+		}
+		
+		return customOptions;
+	}	
 }

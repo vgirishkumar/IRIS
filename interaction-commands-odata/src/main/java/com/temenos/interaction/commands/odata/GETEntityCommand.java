@@ -22,8 +22,6 @@ package com.temenos.interaction.commands.odata;
  */
 
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -112,17 +110,8 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 		String select = queryParams.getFirst("$select");
 		
 		// Capture all query parameters 
-		Map<String, String> customOptions = new HashMap<String,String>();
-		
-		for(Map.Entry<String,List<String>> entry: queryParams.entrySet()) {
-			String parmName = entry.getKey();
-			List<String> paramValues = entry.getValue();
-			
-			if(!paramValues.isEmpty()) {
-				customOptions.put(parmName, paramValues.get(0));
-			}
-		}
-	      
+		Map<String, String> customOptions = CommandHelper.populateCustomOptionsMap(ctx);
+			      
 		return new EntityQueryInfo(
 				OptionsQueryParser.parseFilter(filter),
 				customOptions,
