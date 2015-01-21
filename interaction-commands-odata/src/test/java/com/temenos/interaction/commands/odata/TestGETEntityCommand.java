@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -62,6 +63,7 @@ import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
+import org.odata4j.producer.QueryInfo;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.CommandHelper;
@@ -74,7 +76,7 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 
-public class TestJUnitGETEntityCommand {
+public class TestGETEntityCommand {
 
 	class MyEdmType extends EdmType {
 		public MyEdmType(String name) {
@@ -262,6 +264,42 @@ public class TestJUnitGETEntityCommand {
     		assertEquals("Entity does not exist.", ie.getMessage());
         }
 	}
+	
+	@Test	
+	public void testExecuteWithQueryParams() throws InteractionException {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("$filter", "a eq 'b'");
+		queryParams.add("MYPARAM", "MYVALUE");
+		
+		InteractionContext mockContext = createInteractionContext("MyEntity", queryParams, "1");
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETEntityCommand command = new GETEntityCommand(mockProducer);
+			
+		command.execute(mockContext);
+		
+		verify(mockProducer).getEntity(any(String.class), any(OEntityKey.class), argThat(new ArgumentMatcher<EntityQueryInfo>() {
+		
+			@Override
+			public boolean matches(Object argument) {
+				boolean result = false;
+				
+				if(argument instanceof QueryInfo) {
+					QueryInfo queryInfo = (QueryInfo)argument;
+																	
+					Map<String,String> customOptions = queryInfo.customOptions;
+					
+					if("a eq 'b'".equals(customOptions.get("$filter"))) {
+						if("MYVALUE".equals(customOptions.get("MYPARAM"))) {
+							result = true;
+						}
+					}
+				}
+				
+				return result;
+			}			
+		}));	
+	}
+	
 
 	@Test
 	public void testDeleteEntityNotFound() {
@@ -337,6 +375,19 @@ public class TestJUnitGETEntityCommand {
 		}
         return mockProducer;
 	}
+	
+	private InteractionContext createInteractionContext(String entity, MultivaluedMap<String, String> queryParams, String id) {
+		ResourceState resourceState = mock(ResourceState.class);
+		when(resourceState.getEntityName()).thenReturn(entity);
+        InteractionContext ctx = mock(InteractionContext.class);
+        when(ctx.getCurrentState()).thenReturn(resourceState);
+        when(ctx.getQueryParameters()).thenReturn(queryParams);
+        //new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), queryParams ,resourceState, mock(Metadata.class));
+        when(ctx.getId()).thenReturn(id);
+        
+        return ctx;
+	}
+	
 	
 	@SuppressWarnings("unchecked")
 	private InteractionContext createInteractionContext(String entity, String id) {
