@@ -57,8 +57,8 @@ public final class EdmDataServicesAdapter extends EdmDataServices {
 	}
 			
 	@Override
-	public EdmComplexType findEdmComplexType(String arg0) {
-		return metadataOData4j.getEdmMetadata().findEdmComplexType(arg0);
+	public EdmComplexType findEdmComplexType(String typeName) {
+		return metadataOData4j.findEdmComplexType(typeName);
 	}
 
 	@Override
