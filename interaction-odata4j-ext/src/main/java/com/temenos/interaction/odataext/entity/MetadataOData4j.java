@@ -177,6 +177,29 @@ public class MetadataOData4j {
 		return result;		
 	}
 	
+	public EdmComplexType findEdmComplexType(String typeName) {
+		EdmComplexType result = getEdmMetadata().findEdmComplexType(typeName);
+		
+		if(result == null && nonSrvDocEdmComplexTypeMap.containsKey(typeName)) {
+			// Check if the type is a complex type in non service document meta data
+			result = (EdmComplexType)nonSrvDocEdmComplexTypeMap.get(typeName);
+		}
+		
+		if(result == null) {
+			// Check if the type is non service document meta data  
+			String tmpTypeName = typeName.substring(typeName.indexOf(".") + 1, typeName.indexOf("_"));
+			
+			EdmEntitySet edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(tmpTypeName));
+			
+			if(edmEntitySet != null) {
+				result = (EdmComplexType)nonSrvDocEdmComplexTypeMap.get(typeName);
+			}
+		}
+		
+		return result;
+	}
+	
+	
 	public EdmType getEdmEntityTypeByTypeName(String typeName) {
 		// Check if type is in the service document / EDM meta data
 		EdmType result = (EdmEntityType)getEdmMetadata().findEdmEntityType(typeName);
@@ -327,6 +350,7 @@ public class MetadataOData4j {
 			
 			// Append to the map
 			nonSrvDocEdmEntitySetMap.put(getEdmEntitySetName(entityName), edmEntitySet);
+			
 			return edmEntitySet;
 		} 
 		return null;

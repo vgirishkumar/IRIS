@@ -241,6 +241,13 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}
 	
+	@Test
+	public void testFindEdmComplexType() {
+		EdmComplexType complexType = metadataOdata4j.findEdmComplexType("CustomerServiceTestModel.NonSrvDocEntity_street");
+		Assert.assertEquals(true, complexType.findProperty("streetType").isNullable());
+		Assert.assertEquals(true, complexType.findProperty("streetType").getType().isSimple());
+	}
+	
 	
 	@Test
 	public void testCustomerWithListTypeTAGEntity()
