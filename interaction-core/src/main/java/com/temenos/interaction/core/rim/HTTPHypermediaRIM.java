@@ -73,6 +73,7 @@ import com.temenos.interaction.core.hypermedia.DynamicResourceState;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.LinkHeader;
+import com.temenos.interaction.core.hypermedia.ParameterAndValue;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateAndParameters;
@@ -776,10 +777,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     private Response getResource(HttpHeaders headers, Transition resourceTransition, InteractionContext ctx) {
 		ResourceState targetState = resourceTransition.getTarget();
 		
+		MultivaluedMap<String, String> newQueryParameters = null;
 		if(targetState instanceof DynamicResourceState) {
 			Map<String, Object> transitionProperties = new HashMap<String, Object>();
 			ResourceStateAndParameters stateAndParams = hypermediaEngine.resolveDynamicState((DynamicResourceState) targetState, transitionProperties, ctx);
 			targetState = stateAndParams.getState();
+			newQueryParameters = ParameterAndValue.getParamAndValueAsMultiValueMap(stateAndParams.getParams());
+		} else {
+			// Simply pass the query parameters as is
+			newQueryParameters = ctx.getQueryParameters();
 		}
 				
 		try {
@@ -800,7 +806,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				}
 			}
 			
-	    	InteractionContext newCtx = new InteractionContext(ctx, headers, newPathParameters, ctx.getQueryParameters(), targetState);
+	    	InteractionContext newCtx = new InteractionContext(ctx, headers, newPathParameters, newQueryParameters, targetState);
 			Response response = handleRequest(headers, 
 					newCtx, 
 					event, 
@@ -816,7 +822,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
     }
     
-     //helper function 
+    //helper function 
 	private Object getEntityResource(RESTResource currentResource) {
 		try {
 			//sometime some resource throw ClassCastException
