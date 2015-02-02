@@ -321,7 +321,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			if ( cached != null )
 				return cached.build();
 		} else {
-			logger.info( "Cannot cache " + uriInfo.getRequestUri() );
+			logger.debug( "Cannot cache " + uriInfo.getRequestUri() );
 		}
     	long begin = System.currentTimeMillis();
     	Response response = handleRequest(headers, ctx, event, action, resource, null);
