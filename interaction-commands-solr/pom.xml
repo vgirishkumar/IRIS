@@ -92,8 +92,13 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <scope>test</scope>
+        </dependency>        
+        
+        <!--  Support for parsing OData requests. -->
+        <dependency>
+            <groupId>org.odata4j</groupId>
+            <artifactId>odata4j-core</artifactId>
         </dependency>
-
     </dependencies>
 
 	<repositories>
