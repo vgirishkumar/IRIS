@@ -84,12 +84,12 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 			ctx.setResource(oer);		
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("GET entity on [" + entityName + ", " + ctx.getId() + "] failed: " + ope.getMessage());
-			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+			logger.debug("GET entity on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
+			throw new InteractionException(ope.getHttpStatus(), ope);
 		}
 		catch(Exception e) {
-			logger.error("Failed to GET entity [" + entityName + ", " + ctx.getId() + "]: " + e.getMessage());
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			logger.error("Failed to GET entity [" + entityName + ", " + ctx.getId() + "]: ", e);
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		return Result.SUCCESS;
 	}

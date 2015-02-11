@@ -69,19 +69,19 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 			try {
 				key = CommandHelper.createEntityKey(getEdmMetadata(), entity, ctx.getId());
 			} catch (Exception e) {
-				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 			}
 		
 			// delete the entity
 			producer.deleteEntity(entity, key);
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("Failed to delete entity [" + key.toKeyString() + "]: " + ope.getMessage());
-			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+			logger.debug("Failed to delete entity [" + key.toKeyString() + "]: ", ope);
+			throw new InteractionException(ope.getHttpStatus(), ope);
 		}
 		catch(Exception e) {
-			logger.debug("Error while deleting entity [" + key.toKeyString() + "]: " + e.getMessage());
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			logger.debug("Error while deleting entity [" + key.toKeyString() + "]: ", e);
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		
 		return Result.SUCCESS;

@@ -85,7 +85,7 @@ public abstract class AbstractODataCommand {
 				}
 				return entitySet;
 			} catch (Exception e) {
-				throw new InteractionException(Status.BAD_REQUEST,"Entity type does not exist");
+				throw new InteractionException(Status.BAD_REQUEST,"Entity type does not exist", e);
 			}
 		} else { // We fall back to default way of looking at EdmEntitySet
 			return CommandHelper.getEntitySet(entityName, getEdmMetadata());
