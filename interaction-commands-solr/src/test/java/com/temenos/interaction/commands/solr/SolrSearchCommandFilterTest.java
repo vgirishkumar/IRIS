@@ -5,26 +5,27 @@ package com.temenos.interaction.commands.solr;
  */
 
 /* 
- * #%L
- * interaction-commands-solr
- * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
- * %%
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * #L%
- */
+* #%L
+* interaction-commands-solr
+* %%
+* Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+* %%
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Affero General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU Affero General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* #L%
+*/
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -192,5 +193,32 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 		}
 		assertTrue(threw);
 	}
+	
+	/*
+	 * Test does not throw on valid filter containing dangerous 'and', 'or' and 'eq' string.
+	 */
+	@Test
+	public void testKeywordFilter() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$filter", "Landlord eq aequorin");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+
+		boolean threw = false;
+		try {
+			command.execute(ctx);
+		} catch (Exception e) {
+			threw = true;
+		}
+		assertFalse(threw);
+	}
+
 
 }

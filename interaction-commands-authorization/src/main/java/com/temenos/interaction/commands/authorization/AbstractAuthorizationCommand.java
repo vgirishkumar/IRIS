@@ -1,15 +1,8 @@
 package com.temenos.interaction.commands.authorization;
 
 /*
- * Interface for authentication beans.
- * 
- * TODO. THIS IS A PLACEHOLDER TO TEST SMSCommand PLUMBING. Feel free to re-design this interface as SMS work 
- * progresses.
- */
-
-/*
  * #%L
- * interaction-sms
+ * interaction-authorization
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -28,24 +21,17 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
-import static org.junit.Assert.assertTrue;
+import com.temenos.interaction.core.command.InteractionCommand;
 
-import com.temenos.interaction.core.command.InteractionContext;
+public abstract class AbstractAuthorizationCommand {
+	// Somewhere to store the child command that will be called.
+	InteractionCommand command = null;
 
-public interface AuthorizationBean {
+	// Somewhere to store the bean that interfaces to a given authentication
+	// mechanism.
+	AuthorizationBean authorizationBean = null;
 
-	/*
-	 * Get the filter (row filter) for the current principle
-	 *
-	 * Return a 'and' separated list of rows to return e.g. "name eq Tim and id eq 1234"
-	 * For now only 'eq' is supported.
-	 */
-	public String getFilter(InteractionContext ctx);
-
-	/*
-	 * Get the select for the current principle.
-	 * 
-	 * Return a comma separated list of columns to display e.g. "name, id".
-	 */
-	public String getSelect(InteractionContext ctx);
+	// Odata option keys. Must comply with the OData standard.
+	public static final String FILTER_KEY = "$filter";
+	public static final String SELECT_KEY = "$select";
 }

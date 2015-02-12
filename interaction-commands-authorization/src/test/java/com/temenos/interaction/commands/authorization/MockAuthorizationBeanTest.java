@@ -2,13 +2,11 @@ package com.temenos.interaction.commands.authorization;
 
 /*
  * Base class for the authorization bean tests.
- * 
- * A bit pointless for the mock bean but will form a template for other authorization bean tests.
  */
 
 /* 
  * #%L
- * interaction-commands-sms
+ * interaction-commands-authorization
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -28,16 +26,17 @@ package com.temenos.interaction.commands.authorization;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -69,7 +68,7 @@ public class MockAuthorizationBeanTest {
 		assertEquals("filter", bean.getFilter(ctx));
 		assertEquals("select", bean.getSelect(ctx));
 	}
-	
+
 	/**
 	 * Test null parameters.
 	 */
@@ -88,4 +87,26 @@ public class MockAuthorizationBeanTest {
 		assertEquals(null, bean.getSelect(ctx));
 	}
 
+	/**
+	 * Test passed in parameters override construction time parameters.
+	 */
+	@Test
+	public void testPassedParameters() {
+
+		// Create the bean
+		MockAuthorizationBean bean = new MockAuthorizationBean("badFilter", "badSelect");
+
+		// Create parameter list with different filter and select parameters.
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add(MockAuthorizationBean.TEST_FILTER_KEY, "goodFilter");
+		queryParams.add(MockAuthorizationBean.TEST_SELECT_KEY, "goodSelect");
+
+		// Create a minimal context
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), null,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+
+		// Check that the expected parameter is present
+		assertEquals("goodFilter", bean.getFilter(ctx));
+		assertEquals("goodSelect", bean.getSelect(ctx));
+	}
 }

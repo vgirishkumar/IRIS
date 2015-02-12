@@ -1,13 +1,13 @@
 package com.temenos.interaction.commands.authorization;
 
 /*
- * Mock authorization bean. Used in testing. Instead of extracting real SMS permissions for the current principle returns
- * pre-configured data passed in at construction time.
+ * Mock authorization bean. Used in testing. Instead of extracting real credentials for the current principle returns
+ * pre-configured data passed in at construction and/or call time.
  */
 
 /*
  * #%L
- * interaction-commands-sms
+ * interaction-commands-authorization
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -26,14 +26,15 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.ws.rs.core.MultivaluedMap;
 
 import com.temenos.interaction.core.command.InteractionContext;
 
 public class MockAuthorizationBean implements AuthorizationBean {
 
-	private final static Logger logger = LoggerFactory.getLogger(MockAuthorizationBean.class);
+	// Keys for test arguments that can be passed in as parameters.
+	public static String TEST_FILTER_KEY = "$testAuthorizationKey";
+	public static String TEST_SELECT_KEY = "$testSelectKey";
 
 	// Somewhere to store dummy test arguments.
 	private String testFilter = null;
@@ -43,8 +44,8 @@ public class MockAuthorizationBean implements AuthorizationBean {
 	// public MockAuthorizationBean() {
 	// }
 
-	// Constructor enabling dummy SMS parameters to be passed in for testing.
-	// BREAKS SMS. DO NOT USE OTHER THAN FOR TESTING.
+	// Constructor enabling dummy credentials to be passed in for testing.
+	// BREAKS AUTHORIZATION. DO NOT USE OTHER THAN FOR TESTING.
 	public MockAuthorizationBean(String testFilter, String testSelect) {
 		// Store test arguments
 		this.testFilter = testFilter;
@@ -55,6 +56,16 @@ public class MockAuthorizationBean implements AuthorizationBean {
 	 * Get the filter (row filter) for the current principle
 	 */
 	public String getFilter(InteractionContext ctx) {
+		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+
+		// If a filter was passed on the command line use that
+		if (null != queryParams) {
+			String passedFilter = queryParams.getFirst(TEST_FILTER_KEY);
+			if (null != passedFilter) {
+				return (passedFilter);
+			}
+		}
+
 		return (testFilter);
 	}
 
@@ -62,7 +73,15 @@ public class MockAuthorizationBean implements AuthorizationBean {
 	 * Get the select (column filter) for the current principle.
 	 */
 	public String getSelect(InteractionContext ctx) {
+		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+
+		// If a filter was passed on the command line use that.
+		if (null != queryParams) {
+			String passedSelect = queryParams.getFirst(TEST_SELECT_KEY);
+			if (null != passedSelect) {
+				return (passedSelect);
+			}
+		}
 		return (testSelect);
 	}
-
 }
