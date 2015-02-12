@@ -234,7 +234,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 		// Add the filter string (like query but does hard matching).
 		addFilter(query, queryParams);
 		
-		// If returned fields have been limited by SMS set them
+		// If returned fields have been limited by authorization set them
 		addSelect(query, queryParams);
 
 		return (query);
@@ -286,7 +286,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 		return (queryStr);
 	}
 
-	// Build the Solr query string from passed request and any SMS restrictions.
+	// Build the Solr query string from passed request and any authorization restrictions.
 	private void addFilter(SolrQuery query, MultivaluedMap<String, String> queryParams) {
 		
 		// If we were passed an OData $filter parse it and add to the query

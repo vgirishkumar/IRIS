@@ -1,12 +1,12 @@
 package com.temenos.interaction.commands.authorization;
 
 /*
- * Base class for the SMS command tests.
+ * Base class for the Authorization command tests.
  */
 
 /* 
  * #%L
- * interaction-commands-sms
+ * interaction-commands-authorization
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -43,7 +43,7 @@ public class AbstractAuthorizationTest {
 	}
 
 	/*
-	 * A mock child class that can be called by the SMSCommand.
+	 * A mock child class that can be called by the AuthorzationCommand.
 	 */
 	protected class MockCommand implements InteractionCommand {
 		// Somewhere to store the context we are passed
