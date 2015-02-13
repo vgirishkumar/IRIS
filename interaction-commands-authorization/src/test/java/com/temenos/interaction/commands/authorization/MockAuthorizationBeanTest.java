@@ -61,8 +61,10 @@ public class MockAuthorizationBeanTest {
 		MockAuthorizationBean bean = new MockAuthorizationBean("filter", "select");
 
 		// Create a minimal context
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), null, null,
-				mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
 		// Check that the expected parameter is present
 		assertEquals("filter", bean.getFilter(ctx));
@@ -79,8 +81,10 @@ public class MockAuthorizationBeanTest {
 		MockAuthorizationBean bean = new MockAuthorizationBean(null, null);
 
 		// Create a minimal context
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), null, null,
-				mock(ResourceState.class), mock(Metadata.class));
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
 		// Check that the expected parameter is present
 		assertEquals(null, bean.getFilter(ctx));
@@ -102,7 +106,8 @@ public class MockAuthorizationBeanTest {
 		queryParams.add(MockAuthorizationBean.TEST_SELECT_KEY, "goodSelect");
 
 		// Create a minimal context
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), null,
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
 		// Check that the expected parameter is present
