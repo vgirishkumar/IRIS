@@ -28,8 +28,6 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
-import static org.junit.Assert.assertTrue;
-
 import com.temenos.interaction.core.command.InteractionContext;
 
 public interface AuthorizationBean {
