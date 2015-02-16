@@ -60,12 +60,12 @@ public class UpdateEntityCommand extends AbstractODataCommand implements Interac
 			producer.updateEntity(entityName, entityResource.getEntity());
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("Failed to update entity [" + entityName + "]: " + ope.getMessage());
-			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+			logger.debug("Failed to update entity [" + entityName + "]: ", ope);
+			throw new InteractionException(ope.getHttpStatus(), ope);
 		}
 		catch(Exception e) {
-			logger.debug("Error while updating entity [" + entityName + "]: " + e.getMessage());
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			logger.debug("Error while updating entity [" + entityName + "]: ", e);
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		
 		ctx.setResource(null);

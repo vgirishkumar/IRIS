@@ -74,14 +74,14 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			ctx.setResource(cr);
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: " + ope.getMessage());
-			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
+			throw new InteractionException(ope.getHttpStatus(), ope);
 		} catch (InteractionException e) {
 			throw e;
 		}
 		catch(Exception e) {
-			logger.error("Failed to GET entities [" + entityName + ", " + ctx.getId() + "]: " + e.getMessage());
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			logger.error("Failed to GET entities [" + entityName + ", " + ctx.getId() + "]: ", e);
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		return Result.SUCCESS;
 	}
@@ -123,7 +123,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 					OptionsQueryParser.parseSelect(select));
 		} catch (RuntimeException e) {
 			// all runtime exceptions are due to failure in parsing the query options
-			throw new InteractionException(Status.BAD_REQUEST,"Invalid query option in '" + queryParams + "'. Error: " + e.getMessage());
+			throw new InteractionException(Status.BAD_REQUEST,"Invalid query option in '" + queryParams + "'. Error: ", e);
 		}
 	}
 }

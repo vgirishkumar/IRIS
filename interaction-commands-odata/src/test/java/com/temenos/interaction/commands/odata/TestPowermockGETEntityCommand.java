@@ -90,7 +90,7 @@ public class TestPowermockGETEntityCommand {
         }
         catch(InteractionException ie) {
     		assertEquals(Status.INTERNAL_SERVER_ERROR, ie.getHttpStatus());
-    		assertEquals("Entity key type test is not supported.", ie.getMessage());
+    		assertEquals("Entity key type test is not supported.", ie.getCause().getMessage());
         }
 		
 		// verify static calls

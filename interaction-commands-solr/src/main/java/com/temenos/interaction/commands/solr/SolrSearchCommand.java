@@ -32,6 +32,11 @@ package com.temenos.interaction.commands.solr;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.List;
+import java.util.Arrays;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -46,6 +51,17 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+
+// import org.odata4j.edm.EdmEntityType;
+// import org.odata4j.edm.EdmModel;
+import org.odata4j.producer.resources.OptionsQueryParser;
+import org.odata4j.expression.AndExpression;
+import org.odata4j.expression.BoolCommonExpression;
+import org.odata4j.expression.BooleanLiteral;
+import org.odata4j.expression.CommonExpression;
+import org.odata4j.expression.EntitySimpleProperty;
+import org.odata4j.expression.EqExpression;
+import org.odata4j.expression.LiteralExpression;
 
 public class SolrSearchCommand extends AbstractSolrCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(SolrSearchCommand.class);
@@ -67,6 +83,8 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 	private static final String QUERY_KEY = "q";
 	private static final String FIELD_NAME_KEY = "fieldname";
 	private static final String COMPANY_NAME_KEY = "companyid";
+	private static final String FILTER_KEY = "$filter";
+	private static final String SELECT_KEY = "$select";
 
 	/**
 	 * Instantiates a new select command.
@@ -86,7 +104,8 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 	 * Unit tests use an embedded Solr server. It has no URL so just pass in the
 	 * server references.
 	 * 
-	 * The third argument tells the test which entity type to associate witht he first test server.
+	 * The third argument tells the test which entity type to associate witht he
+	 * first test server.
 	 * 
 	 * NOT TO BE USED FOR PRODUCTION CODE.
 	 * 
@@ -104,22 +123,15 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 		// Validate passed parameters
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
-		String queryValue = queryParams.getFirst(QUERY_KEY);
-		if (null == queryValue) {
-			logger.warn("Search called with no query string.");
-			return Result.FAILURE;
-		}
-		
 		// Dump query parameters
-		/* Iterator<String> it = ctx.getQueryParameters().keySet().iterator();
+		Iterator<String> it = ctx.getQueryParameters().keySet().iterator();
+		logger.info("SolrSearch command parameters:");
 		while (it.hasNext()) {
 			String theKey = (String) it.next();
-			logger.info("    Key " + theKey + " = Value " + ctx.getQueryParameters().getFirst(theKey));
-		}	
-		*/
-		
+			logger.info("    " + theKey + " = " + ctx.getQueryParameters().getFirst(theKey));
+		}
+
 		String coreName = queryParams.getFirst(CORE_KEY);
-		String fieldName = queryParams.getFirst(FIELD_NAME_KEY);
 		String entityType = ctx.getCurrentState().getEntityName();
 
 		String companyName = ctx.getPathParameters().getFirst(COMPANY_NAME_KEY);
@@ -129,8 +141,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 		}
 
 		// TODO remove before production.
-		logger.info("Calling search on company " + companyName + " core " + coreName + " entity " + entityType
-				+ " query " + queryValue + " field name " + fieldName);
+		logger.info("Calling search on company " + companyName + " core " + coreName + " entity " + entityType);
 
 		// Validate entity type
 		if (null == entityType) {
@@ -154,6 +165,13 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 			coreName = entityType;
 		}
 
+		// Set up query
+		SolrQuery query = buildQuery(queryParams);
+		if (null == query) {
+			// Could not build a valid query.
+			return (Result.FAILURE);
+		}
+
 		// Set up a client side stub connecting to a Solr server
 		SolrServer solrServer;
 		if (null != testEntity1SolrServer) {
@@ -175,15 +193,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 			}
 		}
 
-		// Set up query
-		SolrQuery query = new SolrQuery();
-		
-		// By default SolrQuery only returns 10 rows. This is true even if more rows are available. Since we will be 
-		// reading more than this increase the number of rows returned.
-		query.setRows(MAX_ENTITIES_RETURNED);
-		
-		query.setQuery(buildQuery(fieldName, queryValue));
-
+		// Run the query
 		Result res = Result.FAILURE;
 		try {
 			QueryResponse rsp = solrServer.query(query);
@@ -206,19 +216,144 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 		return (res);
 	}
 
-	// Build a Solr query string.
-	private String buildQuery(String fieldName, String query) {
+	// Build up a query from the parameters. Returns null on failure.
+	SolrQuery buildQuery(MultivaluedMap<String, String> queryParams) {
+		SolrQuery query = new SolrQuery();
+
+		// By default SolrQuery only returns 10 rows. This is true even if more
+		// rows are available. Since we will be
+		// reading more than this increase the number of rows returned.
+		query.setRows(MAX_ENTITIES_RETURNED);
+
+		// Build the query string.
+		String queryString = buildQueryString(queryParams);
+		if (null != queryString) {
+			query.setQuery(queryString);
+		}
+
+		// Add the filter string (like query but does hard matching).
+		addFilter(query, queryParams);
+		
+		// If returned fields have been limited by authorization set them
+		addSelect(query, queryParams);
+
+		return (query);
+	}
+
+	// Build Solr field list from an OData $select option.
+	private void addSelect(SolrQuery query, MultivaluedMap<String, String> queryParams) {
+		
+		// If we were passed an OData $select parse it and add to the query
+		String selectOption = queryParams.getFirst(SELECT_KEY);
+		if (null != selectOption) {
+			// Its a comma separated list of fields.
+			List<String> options = Arrays.asList(selectOption.split("\\s*,\\s*"));
+			
+			logger.info("Adding selects:");
+			Iterator<String> it = options.iterator();
+			while (it.hasNext()) {
+				String field = (String) it.next();
+				logger.info("    " + field);
+				query.addField(field);
+			}
+		}
+		return;
+	}
+
+	// Build the Solr query string from passed request.
+	private String buildQueryString(MultivaluedMap<String, String> queryParams) {
+		String queryStr = new String();
+
 		// If field name not passed use the 'text' field which contains all
 		// other fields.
+		String fieldName = queryParams.getFirst(FIELD_NAME_KEY);
 		if (null == fieldName) {
 			fieldName = "text";
 		}
 
-		// Quote the query in case it contains any spaces etc.
-		String queryStr = new String(fieldName + ":" + query);
+		// Add "q=" option if present.
+		String query = queryParams.getFirst(QUERY_KEY);
+		if (null != query) {
+			queryStr = queryStr.concat(fieldName + ":" + query);
+		} else {
+			// If no query go with everything.
+			logger.info("Search called with no query string. Searching on '*'.");
+			queryStr = queryStr.concat(fieldName + ":*");
+		}
 		
 		logger.info("Executing query " + queryStr + ".");
-		
+
 		return (queryStr);
 	}
+
+	// Build the Solr query string from passed request and any authorization restrictions.
+	private void addFilter(SolrQuery query, MultivaluedMap<String, String> queryParams) {
+		
+		// If we were passed an OData $filter parse it and add to the query
+		Map<String, String> filterMap = new HashMap<String, String>();
+		String filterOption = queryParams.getFirst(FILTER_KEY);
+		if (null != filterOption) {
+			try {
+				BoolCommonExpression expression = OptionsQueryParser.parseFilter(filterOption);
+				parseExpression(expression, filterMap);
+
+				Iterator<String> it = filterMap.keySet().iterator();
+				logger.info("Adding filters:");
+				while (it.hasNext()) {
+					String theKey = (String) it.next();
+					logger.info("    " + theKey + " = " + filterMap.get(theKey));
+					query.addFilterQuery(theKey + ":" + filterMap.get(theKey));
+				}
+			} catch (UnsupportedQueryOperationException e) {
+				logger.error("Could not interpret OData " + FILTER_KEY + " = " + filterOption);
+				return;
+			}
+		}
+		return;
+	}
+
+	// Convert an OData filter to a Solr query string. A complete implementation
+	// of this would be complex. For now only parse simple filters and throw
+	// on failure. If complex filters are required then we should
+	// investigate 3rd party tools (e.g. Teiid) for this task.
+	//
+	// This code is a copy of that in AbstractT24MetadataCommand.
+	// Maybe it should be moved to interaction-commands-odata.
+	private void parseExpression(BoolCommonExpression expression, Map<String, String> filter)
+			throws UnsupportedQueryOperationException {
+
+		if (expression == null) {
+			throw new UnsupportedQueryOperationException("Unable to parse null Expression.");
+		}
+		if (expression instanceof AndExpression) {
+			AndExpression e = (AndExpression) expression;
+			parseExpression(e.getLHS(), filter);
+			parseExpression(e.getRHS(), filter);
+		} else if (expression instanceof EqExpression) {
+			EqExpression expr = (EqExpression) expression;
+			filter.put(getExpressionValue(expr.getLHS()), getExpressionValue(expr.getRHS()));
+		} else {
+			throw new UnsupportedQueryOperationException("Unsupported expression " + expression);
+		}
+	}
+
+	private String getExpressionValue(CommonExpression expression) throws UnsupportedQueryOperationException {
+		if (expression instanceof BooleanLiteral) {
+			return Boolean.toString(((BooleanLiteral) expression).getValue());
+		} else if (expression instanceof EntitySimpleProperty) {
+			return ((EntitySimpleProperty) expression).getPropertyName();
+		} else if (expression instanceof LiteralExpression) {
+			return org.odata4j.expression.Expression.literalValue((LiteralExpression) expression).toString();
+		}
+		throw new UnsupportedQueryOperationException("Unsupported expression " + expression);
+	}
+
+	private class UnsupportedQueryOperationException extends Exception {
+		private static final long serialVersionUID = 1L;
+
+		public UnsupportedQueryOperationException(String message) {
+			super(message);
+		}
+	}
+
 }

@@ -36,21 +36,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import java.io.File;
-import java.io.IOException;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.core.SolrConfig;
-import org.apache.solr.util.TestHarness;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
@@ -65,180 +54,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 /**
  * The Class SolrSearchCommandTest.
  */
-public class SolrSearchCommandTest {
-
-	// Names of entities. Will be the same as core names
-	private static final String ENTITY1_TYPE = "test_entity1_search";
-	private static final String ENTITY2_TYPE = "test_entity2_search";
-
-	// Name of company
-	private static final String COMPANY_NAME = "TestBank";
-
-	private SolrServer entity1SolrServer;
-	private SolrServer entity2SolrServer;
-
-	private String getSolrHome() {
-		return "solr";
-	}
-
-	private String getSolrSchemaFile(String solr_core) {
-		return "solr/" + solr_core + "/conf/schema.xml";
-	}
-
-	private String getSolrConfigFile(String solr_core) {
-		return "solr/" + solr_core + "/conf/solrconfig.xml";
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		System.setProperty("solr.solr.home", getSolrHome());
-
-		// Populate Entity1 Solr core
-		TestHarness entity1TestHarness = initSolrCore(COMPANY_NAME + "/" + ENTITY1_TYPE);
-		entity1SolrServer = new EmbeddedSolrServer(entity1TestHarness.getCoreContainer(), entity1TestHarness.getCore()
-				.getName());
-		initEntity1TestData();
-
-		// Populate Entity2 Solr core
-		TestHarness entity2TestHarness = initSolrCore(COMPANY_NAME + "/" + ENTITY2_TYPE);
-		entity2SolrServer = new EmbeddedSolrServer(entity2TestHarness.getCoreContainer(), entity2TestHarness.getCore()
-				.getName());
-		initEntity2TestData();
-
-	}
-
-	/**
-	 * @return
-	 */
-	private TestHarness initSolrCore(String solrCore) {
-		File dataDir = getSolrDataDir(solrCore);
-
-		// Clear any junk from the index.
-		clearDataDir(dataDir);
-
-		SolrConfig solrConfig = TestHarness.createConfig(getSolrHome(), solrCore, getSolrConfigFile(solrCore));
-
-		TestHarness h = new TestHarness(dataDir.getAbsolutePath(), solrConfig, getSolrSchemaFile(solrCore));
-		return h;
-	}
-
-	/**
-	 * Find location of the Solr data.
-	 * 
-	 * @param solrCore
-	 * @return
-	 */
-	private File getSolrDataDir(String solrCore) {
-		return (new File("./target/" + COMPANY_NAME + '/' + solrCore + "-test/data"));
-	}
-
-	/**
-	 * Clear out any existing data in index.
-	 */
-	private void clearDataDir(File dataDir) {
-		try {
-			FileUtils.deleteDirectory(dataDir);
-		} catch (IOException e) {
-			// No problem. Probably did not exist.
-		}
-	}
-
-	@After
-	public void tearDown() {
-		entity1SolrServer.shutdown();
-		entity2SolrServer.shutdown();
-
-		// Tidy all indexes
-		clearDataDir(getSolrDataDir(ENTITY1_TYPE));
-		clearDataDir(getSolrDataDir(ENTITY2_TYPE));
-	}
-
-	/**
-	 * Inits the entity1 test data.
-	 * 
-	 * @throws Exception
-	 *             the exception
-	 */
-	private void initEntity1TestData() throws Exception {
-		entity1SolrServer.add(createEntity1("1111", "JOHN1", "Alan Jones", "111 Somewhere", "AA IWSH", "UK"), 0);
-		entity1SolrServer.add(createEntity1("2222", "JOHN2", "B Jillian", "222 Somewhere", "BB IWSH", "UK"), 0);
-		entity1SolrServer.add(createEntity1("3333", "JOHN3", "Ima Twin", "333 Somewhere", "CC IWSH", "UK"), 0);
-		entity1SolrServer.add(createEntity1("4444", "JOHN4", "Ima Twin", "444 Somewhere", "DD IWSH", "FR"), 0);
-		entity1SolrServer.commit(true, true);
-	}
-
-	/*
-	 * Add a large numbers of extra instances of the test data
-	 */
-	private void addEntity1TestData(int count) throws Exception {
-		for (int i = 0; i < count; i++) {
-			// Write something like a unique entity.
-			entity1SolrServer.add(
-					createEntity1("" + i + i + i + i, "JOHN" + i, "Ima number " + i, "" + i + i + " Somewhere",
-							"DD IWSH", "FR"), 0);
-		}
-		entity1SolrServer.commit(true, true);
-	}
-
-	/**
-	 * Inits the entity2 test data.
-	 * 
-	 * @throws Exception
-	 *             the exception
-	 */
-	private void initEntity2TestData() throws Exception {
-		entity2SolrServer.add(createEntity2("1111", "JOHN1", "Fred Jones"), 0);
-		entity2SolrServer.add(createEntity2("2222", "JOHN2", "John Jillian"), 0);
-		entity2SolrServer.commit(true, true);
-	}
-
-	/**
-	 * Creates the entity1.
-	 * 
-	 * @param id
-	 *            the id
-	 * @param mnemonic
-	 *            the mnemonic
-	 * @param name
-	 *            the name
-	 * @param address
-	 *            the address
-	 * @param postcode
-	 *            the postcode
-	 * @param country
-	 *            the country
-	 * @return the solr input document
-	 */
-	private SolrInputDocument createEntity1(String id, String mnemonic, String name, String address, String postcode,
-			String country) {
-		SolrInputDocument doc = new SolrInputDocument();
-		doc.addField("id", id, 1.0f);
-		doc.addField("mnemonic", mnemonic, 1.0f);
-		doc.addField("name", name, 1.0f);
-		doc.addField("address", address, 1.0f);
-		doc.addField("postcode", postcode, 1.0f);
-		// doc.addField("country", country, 1.0f);
-		return doc;
-	}
-
-	/**
-	 * Creates the entity2.
-	 * 
-	 * @param id
-	 *            the id
-	 * @param mnemonic
-	 *            the mnemonic
-	 * @param name
-	 *            the name
-	 * @return the solr input document
-	 */
-	private SolrInputDocument createEntity2(String id, String mnemonic, String name) {
-		SolrInputDocument doc = new SolrInputDocument();
-		doc.addField("id", id, 1.0f);
-		doc.addField("mnemonic", mnemonic, 1.0f);
-		doc.addField("name", name, 1.0f);
-		return doc;
-	}
+public class SolrSearchCommandTest extends AbstractSolrTest {
 
 	/**
 	 * Test select for single entities. Search on all fields.
@@ -460,10 +276,10 @@ public class SolrSearchCommandTest {
 	}
 
 	/**
-	 * Test fails if query not present
+	 * May be called with 'q=' missing ... filtering on '$filter='
 	 */
 	@Test
-	public void testFailsOnMissingQuery() {
+	public void testMissingQuery() {
 
 		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -476,7 +292,7 @@ public class SolrSearchCommandTest {
 
 		InteractionCommand.Result result = command.execute(ctx);
 
-		assertEquals("Did not fail on no query", Result.FAILURE, result);
+		assertEquals("Did failed on mission 'q='", Result.SUCCESS, result);
 	}
 
 	/**
@@ -580,5 +396,4 @@ public class SolrSearchCommandTest {
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(SolrSearchCommand.MAX_ENTITIES_RETURNED, cr.getEntities().size());
 	}
-
 }
