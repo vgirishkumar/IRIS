@@ -14,14 +14,6 @@
     <name>interaction-commands-solr</name>
     <description>IRIS interaction commands for Apache Solr</description>
 
-    <properties>
-    </properties>
-
-    <build>
-        <plugins>
-        </plugins>
-    </build>
-
     <dependencies>
    	    <!-- IRIS dependencies -->
    		<dependency>
@@ -110,13 +102,4 @@
             <artifactId>odata4j-core</artifactId>
         </dependency>
     </dependencies>
-
-	<repositories>
-		<repository>
-    		<id>spring-maven-milesone</id>
-    		<url>http://repo.springsource.org/libs-milestone</url>
-		</repository>  
-    </repositories>
-
-	<version>0.6.0-SNAPSHOT</version>
 </project>
