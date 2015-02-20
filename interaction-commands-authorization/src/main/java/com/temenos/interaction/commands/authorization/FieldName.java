@@ -1,15 +1,14 @@
 package com.temenos.interaction.commands.authorization;
 
 /*
- * Interface for authentication beans.
+ * Classes containing information about a field name (column in relational DBS).
  * 
- * TODO. THIS IS A PLACEHOLDER TO TEST AuthorizationCommand PLUMBING. Feel free to re-design this interface as authorization
- * work progresses.
+ * For now field names are strings. One day they may be more complex.
  */
 
 /*
  * #%L
- * interaction-authorization
+ * interaction-commands-Authorization
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -28,27 +27,37 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
-import java.util.List;
-import java.util.Set;
+public class FieldName {
+	String name;
 
-import com.temenos.interaction.core.command.InteractionContext;
+	public FieldName(String name) {
+		this.name = name;
+	}
 
-public interface AuthorizationBean {
+	public String getName() {
+		return (name);
+	}
 
-	/*
-	 * Get the filter (row filter) for the current principle
-	 * 
-	 * An empty list means do no filtering ... return all rows.
-	 * A null list means return nothing.
-	 * 
+	/**
+	 * Define equality of state. To enable comparison.
 	 */
-	public List<RowFilter> getFilters(InteractionContext ctx);
+	@Override
+	public boolean equals(Object aThat) {
+		if (this == aThat)
+			return true;
+		if (!(aThat instanceof FieldName))
+			return false;
 
-	/*
-	 * Get the select for the current principle.
-	 * 
-	 * @Return An empty list means select no columns, A null list means select all columns.
+		FieldName that = (FieldName) aThat;
+		return (this.getName().equals(that.getName()));
+	}
+
+	/**
+	 * Return same hash code for identical objects. So contains() works.
 	 */
-	public Set<FieldName> getSelect(InteractionContext ctx);
-	
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
 }

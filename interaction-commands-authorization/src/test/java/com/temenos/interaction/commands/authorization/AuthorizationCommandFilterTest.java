@@ -22,7 +22,6 @@ package com.temenos.interaction.commands.authorization;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -36,12 +35,11 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import com.temenos.interaction.commands.authorization.AuthorizationCommand;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
@@ -78,9 +76,9 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 			// Should never throw.
 			fail();
 		}
+
 		// Check that the expected parameter is present
-		InteractionContext finalCtx = child.getCtx();
-		assertEquals(null ,finalCtx.getQueryParameters().getFirst(AuthorizationCommand.FILTER_KEY));
+		assertEquals(null, ctx.getQueryParameters().getFirst(oDataParser.FILTER_KEY));
 	}
 
 	/**
@@ -112,8 +110,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		InteractionContext finalCtx = child.getCtx();
-		assertEquals("name eq Tim", finalCtx.getQueryParameters().getFirst(AuthorizationCommand.FILTER_KEY));
+		assertEquals("name eq Tim", ctx.getQueryParameters().getFirst(oDataParser.FILTER_KEY));
 	}
 
 	/**
@@ -131,7 +128,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(AuthorizationCommand.FILTER_KEY, "name eq Tim");
+		queryParams.add(oDataParser.FILTER_KEY, "name eq Tim");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -146,8 +143,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		InteractionContext finalCtx = child.getCtx();
-		String resultStr = finalCtx.getQueryParameters().getFirst(AuthorizationCommand.FILTER_KEY);
+		String resultStr = ctx.getQueryParameters().getFirst(oDataParser.FILTER_KEY);
 		ArrayList<String> result = new ArrayList<String>(Arrays.asList(resultStr.split("\\s* and \\s*")));
 		assertTrue(result.contains("name eq Tim"));
 		assertTrue(result.contains("id eq 1234"));
@@ -168,7 +164,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(AuthorizationCommand.FILTER_KEY, "origin eq andriod");
+		queryParams.add(oDataParser.FILTER_KEY, "origin eq andriod");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -183,8 +179,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		InteractionContext finalCtx = child.getCtx();
-		String resultStr = finalCtx.getQueryParameters().getFirst(AuthorizationCommand.FILTER_KEY);
+		String resultStr = ctx.getQueryParameters().getFirst(oDataParser.FILTER_KEY);
 		ArrayList<String> result = new ArrayList<String>(Arrays.asList(resultStr.split("\\s* and \\s*")));
 		assertTrue(result.contains("Landlord eq Thor"));
 		assertTrue(result.contains("origin eq andriod"));

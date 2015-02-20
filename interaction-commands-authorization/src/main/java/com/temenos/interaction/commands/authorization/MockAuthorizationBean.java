@@ -1,7 +1,7 @@
 package com.temenos.interaction.commands.authorization;
 
 /*
- * Mock authorization bean. Used in testing. Instead of extracting real credentials for the current principle returns
+ * Mock authorization bean. Used in testing. Instead of extracting real RowFilters for the current principle returns
  * pre-configured data passed in at construction and/or call time.
  */
 
@@ -26,43 +26,110 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import javax.ws.rs.core.MultivaluedMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionContext;
 
 public class MockAuthorizationBean implements AuthorizationBean {
+	private final static Logger logger = LoggerFactory.getLogger(MockAuthorizationBean.class);
 
 	// Keys for test arguments that can be passed in as parameters.
 	public static String TEST_FILTER_KEY = "$testAuthorizationKey";
 	public static String TEST_SELECT_KEY = "$testSelectKey";
 
 	// Somewhere to store dummy test arguments.
-	private String testFilter = null;
-	private String testSelect = null;
+	private List<RowFilter> testFilter = null;
+	private Set<FieldName> testSelect = null;
 
 	// A mock bean with no arguments is meaningless.
 	// public MockAuthorizationBean() {
 	// }
 
-	// Constructor enabling dummy credentials to be passed in for testing.
+	// Constructors enabling dummy RowFilters to be passed in for testing.
 	// BREAKS AUTHORIZATION. DO NOT USE OTHER THAN FOR TESTING.
-	public MockAuthorizationBean(String testFilter, String testSelect) {
+	public MockAuthorizationBean(String filter, String select) {
+		CommonTestConstructor(stringToFilter(filter), stringToSelect(select));
+	}
+
+	private void CommonTestConstructor(List<RowFilter> testFilter, Set<FieldName> testSelect) {
 		// Store test arguments
 		this.testFilter = testFilter;
 		this.testSelect = testSelect;
 	}
 
+	// Helper to convert a filter string into a filter. Handles parsing and also
+	// the edge 'all' and 'none' cases.
+	private List<RowFilter> stringToFilter(String filter) {
+		if (null == filter) {
+			// A null string means return nothing. Represented by a null filter.
+			return (null);
+		}
+
+		if (filter.isEmpty()) {
+			// An empty string means do no filtering. Represented by an empty
+			// filter list.
+			return (new ArrayList<RowFilter>());
+		}
+
+		// If we get here parse the filter.
+		try {
+			List<RowFilter> filterList = oDataParser.parseFilter(filter);
+			return (filterList);
+		} catch (Exception e) {
+			logger.info("Could not parse test filter \"" + filter + "\" : " + e.getMessage());
+
+			// Return the 'no output' case
+			return (null);
+		}
+	}
+
+	// Helper to convert a select string into a select. Handles parsing and also
+	// the edge 'all' and 'none' cases.
+	private Set<FieldName> stringToSelect(String select) {
+		if (null == select) {
+			// An null string means do no filtering. Represented by a null empty
+			// select list.
+			return (null);
+		}
+
+		if (select.isEmpty()) {
+			// Ae empty string means return nothing. Represented by an empty
+			// select list.
+			return (new HashSet<FieldName>());
+		}
+
+		// If we get here parse the select.
+		try {
+			Set<FieldName> selectList = oDataParser.parseSelect(select);
+			return (selectList);
+		} catch (Exception e) {
+			logger.info("Could not parse test seelct \"" + select + "\" : " + e.getMessage());
+
+			// Return the 'no output' case
+			return (new HashSet<FieldName>());
+		}
+	}
+
 	/*
 	 * Get the filter (row filter) for the current principle
 	 */
-	public String getFilter(InteractionContext ctx) {
+	public List<RowFilter> getFilters(InteractionContext ctx) {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
 		// If a filter was passed on the command line use that
 		if (null != queryParams) {
 			String passedFilter = queryParams.getFirst(TEST_FILTER_KEY);
+
 			if (null != passedFilter) {
-				return (passedFilter);
+				return (stringToFilter(passedFilter));
 			}
 		}
 
@@ -72,14 +139,14 @@ public class MockAuthorizationBean implements AuthorizationBean {
 	/*
 	 * Get the select (column filter) for the current principle.
 	 */
-	public String getSelect(InteractionContext ctx) {
+	public Set<FieldName> getSelect(InteractionContext ctx) {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
-		// If a filter was passed on the command line use that.
+		// If a select was passed on the command line use that.
 		if (null != queryParams) {
 			String passedSelect = queryParams.getFirst(TEST_SELECT_KEY);
 			if (null != passedSelect) {
-				return (passedSelect);
+				return (stringToSelect(passedSelect));
 			}
 		}
 		return (testSelect);

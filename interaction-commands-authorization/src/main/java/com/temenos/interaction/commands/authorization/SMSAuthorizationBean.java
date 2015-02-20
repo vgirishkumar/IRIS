@@ -1,15 +1,12 @@
 package com.temenos.interaction.commands.authorization;
 
 /*
- * Interface for authentication beans.
- * 
- * TODO. THIS IS A PLACEHOLDER TO TEST AuthorizationCommand PLUMBING. Feel free to re-design this interface as authorization
- * work progresses.
+ * SMS authorization bean. Extracts row filters and column select lists from the T24 SMS system.
  */
 
 /*
  * #%L
- * interaction-authorization
+ * interaction-commands-authorization
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -28,27 +25,47 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.temenos.interaction.core.command.InteractionContext;
 
-public interface AuthorizationBean {
+public class SMSAuthorizationBean implements AuthorizationBean {
+
+	public SMSAuthorizationBean() {
+	}
 
 	/*
 	 * Get the filter (row filter) for the current principle
 	 * 
 	 * An empty list means do no filtering ... return all rows.
-	 * A null list means return nothing.
-	 * 
 	 */
-	public List<RowFilter> getFilters(InteractionContext ctx);
+	public List<RowFilter> getFilters(InteractionContext ctx) {
+
+		List<RowFilter> RowFilters = new ArrayList<RowFilter>();
+
+		// TODO Replace following with plumbing into SMS
+		RowFilter perm = new RowFilter("aname", RowFilter.Relation.EQ, "value");
+		RowFilters.add(perm);
+
+		return (RowFilters);
+	}
 
 	/*
-	 * Get the select for the current principle.
+	 * Get the select (column filter) for the current principle.
 	 * 
-	 * @Return An empty list means select no columns, A null list means select all columns.
+	 * An empty list means select all columns
 	 */
-	public Set<FieldName> getSelect(InteractionContext ctx);
-	
+	public Set<FieldName> getSelect(InteractionContext ctx) {
+
+		Set<FieldName> fields = new HashSet<FieldName>();
+
+		// TODO Replace following with plumbing into SMS
+		FieldName name = new FieldName("aname");
+		fields.add(name);
+
+		return (fields);
+	}
 }

@@ -29,8 +29,8 @@ import org.junit.After;
 import org.junit.Before;
 
 import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 public class AbstractAuthorizationTest {
 
@@ -57,8 +57,10 @@ public class AbstractAuthorizationTest {
 			return (Result.SUCCESS);
 		}
 
-		public InteractionContext getCtx() {
-			return (ctx);
-		}
+		// public InteractionContext
+		//getCtx() {
+		//	return (ctx);
+		// }
+
 	}
 }

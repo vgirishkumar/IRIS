@@ -31,7 +31,4 @@ public abstract class AbstractAuthorizationCommand {
 	// mechanism.
 	AuthorizationBean authorizationBean = null;
 
-	// Odata option keys. Must comply with the OData standard.
-	public static final String FILTER_KEY = "$filter";
-	public static final String SELECT_KEY = "$select";
 }
