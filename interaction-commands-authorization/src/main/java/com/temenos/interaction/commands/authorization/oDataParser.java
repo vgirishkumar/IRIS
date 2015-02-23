@@ -27,7 +27,6 @@ package com.temenos.interaction.commands.authorization;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -93,6 +92,10 @@ public class oDataParser {
 	// RowFilters. A complete implementation of this would be complex. For now
 	// only parse simple filters and throw on failure.
 	public static List<RowFilter> parseFilter(String filterStr) throws UnsupportedQueryOperationException {
+		if (filterStr.isEmpty()) {
+			// Won't parse. Return an empty filter list
+			return(new ArrayList<RowFilter>());
+		}
 		BoolCommonExpression expression = OptionsQueryParser.parseFilter(filterStr);
 		return (parseFilter(expression));
 	}
@@ -152,13 +155,13 @@ public class oDataParser {
 		}
 
 		Set<FieldName> select = new HashSet<FieldName>();
-
+		
+		List<EntitySimpleProperty> expression= OptionsQueryParser.parseSelect(selectStr);
+		
 		// Split up comma separated list
 		Set<String> fieldList = new HashSet<String>();
-		fieldList.addAll(Arrays.asList(selectStr.split("\\s*,\\s*")));
-
-		for (String field : fieldList) {
-			select.add(new FieldName(field));
+		for (EntitySimpleProperty prop : expression) {
+			select.add(new FieldName(prop.getPropertyName()));		
 		}
 
 		return (select);
