@@ -47,7 +47,7 @@ import org.odata4j.producer.EntityQueryInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.commands.authorization.oDataParser.UnsupportedQueryOperationException;
+import com.temenos.interaction.commands.authorization.ODataParser.UnsupportedQueryOperationException;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -73,7 +73,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 
 		try {
 			// Parse the incoming oData. Do once extracting filter and select.
-			EntityQueryInfo queryInfo = oDataParser.getEntityQueryInfo(ctx);
+			EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
 
 			if (!addRowFilter(ctx, queryInfo.filter)) {
 				logger.info("After authorization there are no rows to return. Command not called.");
@@ -113,7 +113,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		}
 
 		// Get any existing filter
-		List<RowFilter> oldList = oDataParser.parseFilter(oldFilter);
+		List<RowFilter> oldList = ODataParser.parseFilter(oldFilter);
 
 		// Final list contains both sets of filters
 		if (null != oldList) {
@@ -127,9 +127,9 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		// By the time we get here the target 'and' terms will be in newList.
 		if (newList.isEmpty()) {
 			// No filtering, i.e. return everything. Delete any existing filter.
-			queryParams.remove(oDataParser.FILTER_KEY);
+			queryParams.remove(ODataParser.FILTER_KEY);
 		} else {
-			queryParams.putSingle(oDataParser.FILTER_KEY, oDataParser.toFilter(newList));
+			queryParams.putSingle(ODataParser.FILTER_KEY, ODataParser.toFilter(newList));
 		}
 
 		// Return the entries specified by the filter.
@@ -151,7 +151,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		Set<FieldName> authSet = authorizationBean.getSelect(ctx);
 
 		// Get any existing select
-		Set<FieldName> oldSet = oDataParser.parseSelect(oldSelect);
+		Set<FieldName> oldSet = ODataParser.parseSelect(oldSelect);
 
 		if (null == authSet) {
 			// null from authorization means 'return all requested' i.e.
@@ -160,7 +160,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		} else {
 			if (null == oldSet) {
 				// null in oldlist means just return authorization list
-				queryParams.putSingle(oDataParser.SELECT_KEY, oDataParser.toSelect(authSet));
+				queryParams.putSingle(ODataParser.SELECT_KEY, ODataParser.toSelect(authSet));
 			} else {
 
 				// If we get here both sets contain entries. Final list is
@@ -175,7 +175,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 
 				// By the time we get here the target select list will be
 				// in oldSet. Write the target list ... which may be empty
-				queryParams.putSingle(oDataParser.SELECT_KEY, oDataParser.toSelect(oldSet));
+				queryParams.putSingle(ODataParser.SELECT_KEY, ODataParser.toSelect(oldSet));
 			}
 		}
 	}

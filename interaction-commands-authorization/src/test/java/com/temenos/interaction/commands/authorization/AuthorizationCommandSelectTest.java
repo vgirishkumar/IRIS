@@ -75,7 +75,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		assertEquals(null, ctx.getQueryParameters().getFirst(oDataParser.SELECT_KEY));
+		assertEquals(null, ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		assertEquals("id", ctx.getQueryParameters().getFirst(oDataParser.SELECT_KEY));
+		assertEquals("id", ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(oDataParser.SELECT_KEY, "name");
+		queryParams.add(ODataParser.SELECT_KEY, "name");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -141,7 +141,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 		}
 		// Check that the expected parameter is present
 		// Should just have name left
-		assertEquals("name", ctx.getQueryParameters().getFirst(oDataParser.SELECT_KEY));
+		assertEquals("name", ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
 	}
 
 	/**
@@ -159,7 +159,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(oDataParser.SELECT_KEY, "name, id");
+		queryParams.add(ODataParser.SELECT_KEY, "name, id");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -175,7 +175,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 		}
 		// Check that the expected parameter is present
 		// Should just have id left
-		assertEquals("id", ctx.getQueryParameters().getFirst(oDataParser.SELECT_KEY));
+		assertEquals("id", ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
 	}
 
 	/**
@@ -193,7 +193,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(oDataParser.SELECT_KEY, "id, postcode, name");
+		queryParams.add(ODataParser.SELECT_KEY, "id, postcode, name");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -209,7 +209,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 		}
 		// Check that the expected parameter is present
 		// Should just have id and name left
-		String result = ctx.getQueryParameters().getFirst(oDataParser.SELECT_KEY);
+		String result = ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY);
 		assertTrue(result.contains("id"));
 		assertTrue(result.contains("name"));
 		assertFalse(result.contains("postcode"));

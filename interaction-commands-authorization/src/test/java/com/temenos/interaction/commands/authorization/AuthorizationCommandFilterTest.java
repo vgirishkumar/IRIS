@@ -78,7 +78,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 		}
 
 		// Check that the expected parameter is present
-		assertEquals(null, ctx.getQueryParameters().getFirst(oDataParser.FILTER_KEY));
+		assertEquals(null, ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY));
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		assertEquals("name eq Tim", ctx.getQueryParameters().getFirst(oDataParser.FILTER_KEY));
+		assertEquals("name eq Tim", ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY));
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(oDataParser.FILTER_KEY, "name eq Tim");
+		queryParams.add(ODataParser.FILTER_KEY, "name eq Tim");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -143,7 +143,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		String resultStr = ctx.getQueryParameters().getFirst(oDataParser.FILTER_KEY);
+		String resultStr = ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY);
 		ArrayList<String> result = new ArrayList<String>(Arrays.asList(resultStr.split("\\s* and \\s*")));
 		assertTrue(result.contains("name eq Tim"));
 		assertTrue(result.contains("id eq 1234"));
@@ -164,7 +164,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(oDataParser.FILTER_KEY, "origin eq andriod");
+		queryParams.add(ODataParser.FILTER_KEY, "origin eq andriod");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -179,7 +179,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		String resultStr = ctx.getQueryParameters().getFirst(oDataParser.FILTER_KEY);
+		String resultStr = ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY);
 		ArrayList<String> result = new ArrayList<String>(Arrays.asList(resultStr.split("\\s* and \\s*")));
 		assertTrue(result.contains("Landlord eq Thor"));
 		assertTrue(result.contains("origin eq andriod"));

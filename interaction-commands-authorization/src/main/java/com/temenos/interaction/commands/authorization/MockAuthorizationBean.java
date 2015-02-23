@@ -81,7 +81,7 @@ public class MockAuthorizationBean implements AuthorizationBean {
 
 		// If we get here parse the filter.
 		try {
-			List<RowFilter> filterList = oDataParser.parseFilter(filter);
+			List<RowFilter> filterList = ODataParser.parseFilter(filter);
 			return (filterList);
 		} catch (Exception e) {
 			logger.info("Could not parse test filter \"" + filter + "\" : " + e.getMessage());
@@ -108,7 +108,7 @@ public class MockAuthorizationBean implements AuthorizationBean {
 
 		// If we get here parse the select.
 		try {
-			Set<FieldName> selectList = oDataParser.parseSelect(select);
+			Set<FieldName> selectList = ODataParser.parseSelect(select);
 			return (selectList);
 		} catch (Exception e) {
 			logger.info("Could not parse test seelct \"" + select + "\" : " + e.getMessage());

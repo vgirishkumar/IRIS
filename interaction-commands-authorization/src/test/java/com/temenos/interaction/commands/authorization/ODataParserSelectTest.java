@@ -1,7 +1,7 @@
 package com.temenos.interaction.commands.authorization;
 
 /*
- * Test class for the oData parser/printer filter operations.
+ * Test class for the oData parser/printer select operations.
  * 
  * Not too concerned with the intermediate format of data but it must survive the 'round trip' into intermediate format
  * and back to a string.
@@ -27,15 +27,17 @@ package com.temenos.interaction.commands.authorization;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class oDataParserFilterTest {
+public class ODataParserSelectTest {
 
 	@Before
 	public void setUp() throws Exception {
@@ -46,100 +48,112 @@ public class oDataParserFilterTest {
 	}
 
 	/**
-	 *  Test valid filters work
+	 * Test valid Selects work
 	 */
 	@Test
-	public void testSimpleFilter() {
-		testValid("a eq b");
-
-		// TODO add more conditions as they are implemented
-		// testValidFilter("a ne b");
-		// ...
+	public void testSimpleSelect() {
+		testValid("a");
 	}
-	
+
 	/**
-	 *  Test empty filters.
+	 * Test empty Selects.
 	 */
 	@Test
-	public void testEmptyFilter() {
+	public void testEmptySelect() {
 		testValid("");
 	}
-	
+
 	/*
-	 * Test filter containing multiple terms
+	 * Test Select containing multiple terms
 	 */
 	@Test
-	public void testMultipleFilter() {
-		testValid("a eq b and bb eq cc");
+	public void testMultipleSelect() {
+		testValid("a, b, c");
 	}
-	
+
 	/*
-	 * Test filter containing quoted elements
+	 * Test Select containing quoted elements
+	 * 
+	 * This appears to be invalid. Doc implies that spaces in oData col names
+	 * are illegal. However if this is incorrect feel free to amend this test.
 	 */
 	@Test
-	public void testQuotesfilter() {
-		testValid("'a b' eq 'b c'");
+	public void testQuotesSelect() {
+		testInvalid("'a b'");
 	}
-	
+
 	/**
-	 *  Test invalid filters throw.
+	 * Test invalid Selects throw.
 	 */
 	@Test
-	public void testBadFilter() {
-		// Bad condition
-		testInvalid("a xx b");
-		
+	public void testBadSelect() {
+		// Bad condition. Not sure this is 'bad'.
+		// testInvalid(",,");
+
 		// Can't parse a null string.
 		testInvalid(null);
-		
-		// Wrong number of element
-		testInvalid("a");
+
+		// Wrong number of element (unquoted)
 		testInvalid("a b");
 		testInvalid("a b c");
 	}
-	
+
 	/**
-	 *  Test null intermediate filter.
+	 * Test null intermediate select.
 	 */
 	@Test
-	public void testNullFilter() {
-		
+	public void testNullSelect() {
+
 		String actual = null;
 		boolean threw = false;
 		try {
-			actual = oDataParser.toFilter(null);
+			actual = ODataParser.toSelect(null);
 		} catch (Exception e) {
 			threw = true;
 		}
-
 		assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
 	}
 
-	// Test round trip for a valid filter
+	// Test round trip for a valid Select
 	private void testValid(String expected) {
 
+		Exception e = null;
+
 		String actual = null;
 		boolean threw = false;
 		try {
-			actual = oDataParser.toFilter(oDataParser.parseFilter(expected));
-		} catch (Exception e) {
+			actual = ODataParser.toSelect(ODataParser.parseSelect(expected));
+		} catch (Exception caught) {
 			threw = true;
+			e = caught;
 		}
 
-		assertFalse(threw);
-		assertEquals(expected, actual);
+		assertFalse("Threw : " + e, threw);
+
+		// Order may have been changed so we have to do out own parsing (which
+		// could also be wrong).
+		List<String> expectedList = Arrays.asList(expected.split("\\s*,\\s*"));
+		List<String> actualList = Arrays.asList(actual.split("\\s*,\\s*"));
+
+		for (String str : expectedList) {
+			assertTrue("Expected \"" + expected + "\"Actual is \"" + actual + "\"", actualList.contains(str));
+		}
+
+		for (String str : actualList) {
+			assertTrue("Expected \"" + expected + "\"Actual is \"" + actual + "\"", expectedList.contains(str));
+		}
 	}
 
-	// Test invalid filter throws
+	// Test invalid Select throws
 	private void testInvalid(String expected) {
-		String actual = null;
+
 		boolean threw = false;
 		try {
-			actual = oDataParser.toFilter(oDataParser.parseFilter(expected));
+			ODataParser.toSelect(ODataParser.parseSelect(expected));
 		} catch (Exception e) {
 			threw = true;
 		}
-		assertTrue("Didn't throw. Expected \"" + expected + "\"Actual is \"" + actual + "\"", threw);
+		assertTrue(threw);
 	}
 
 }

@@ -46,14 +46,14 @@ import org.odata4j.producer.resources.OptionsQueryParser;
 import com.temenos.interaction.commands.authorization.RowFilter.Relation;
 import com.temenos.interaction.core.command.InteractionContext;
 
-public class oDataParser {
+public class ODataParser {
 
 	// Odata option keys. Must comply with the OData standard.
 	public static final String FILTER_KEY = "$filter";
 	public static final String SELECT_KEY = "$select";
 
 	// Get and parse the oData
-	public oDataParser() {
+	public ODataParser() {
 	}
 
 	/*
@@ -94,7 +94,7 @@ public class oDataParser {
 	public static List<RowFilter> parseFilter(String filterStr) throws UnsupportedQueryOperationException {
 		if (filterStr.isEmpty()) {
 			// Won't parse. Return an empty filter list
-			return(new ArrayList<RowFilter>());
+			return (new ArrayList<RowFilter>());
 		}
 		BoolCommonExpression expression = OptionsQueryParser.parseFilter(filterStr);
 		return (parseFilter(expression));
@@ -155,13 +155,12 @@ public class oDataParser {
 		}
 
 		Set<FieldName> select = new HashSet<FieldName>();
-		
-		List<EntitySimpleProperty> expression= OptionsQueryParser.parseSelect(selectStr);
-		
+
+		List<EntitySimpleProperty> expression = OptionsQueryParser.parseSelect(selectStr);
+
 		// Split up comma separated list
-		Set<String> fieldList = new HashSet<String>();
 		for (EntitySimpleProperty prop : expression) {
-			select.add(new FieldName(prop.getPropertyName()));		
+			select.add(new FieldName(prop.getPropertyName()));
 		}
 
 		return (select);
@@ -191,15 +190,14 @@ public class oDataParser {
 			// Need to quote it
 			name = new String("'" + name + "'");
 		}
-		
+
 		String value = filter.getValue();
 		if (value.contains(" ")) {
 			// Need to quote it
 			value = new String("'" + value + "'");
 		}
 
-		String filterStr = new String(name + " " + filter.getRelation().getoDataString()
-				+ " " + value);
+		String filterStr = new String(name + " " + filter.getRelation().getoDataString() + " " + value);
 		return (filterStr);
 	}
 
