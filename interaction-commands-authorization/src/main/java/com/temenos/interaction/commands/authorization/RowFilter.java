@@ -39,11 +39,11 @@ public class RowFilter {
 			this.oDataString = oDataString;
 		}
 
-		String oDataString() {
+		/* String oDataString() {
 			return (oDataString);
-		}
+		}*/
 
-		String getoDataString() {
+		public String getoDataString() {
 			return (oDataString);
 		}
 	}
