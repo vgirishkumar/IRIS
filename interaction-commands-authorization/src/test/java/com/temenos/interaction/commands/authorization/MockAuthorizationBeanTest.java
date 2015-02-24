@@ -24,8 +24,8 @@ package com.temenos.interaction.commands.authorization;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.temenos.interaction.commands.authorization.RowFilter.Relation;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
@@ -52,13 +53,14 @@ public class MockAuthorizationBeanTest {
 	}
 
 	/**
-	 * Test parameters are remembered.
+	 * Test valid parameters are remembered.
 	 */
 	@Test
 	public void testParameters() {
 
 		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean("filter", "select");
+		MockAuthorizationBean bean = new MockAuthorizationBean("field1 eq value1 and field2 eq value2",
+				"select1, select2");
 
 		// Create a minimal context
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -67,8 +69,17 @@ public class MockAuthorizationBeanTest {
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
 		// Check that the expected parameter is present
-		assertEquals("filter", bean.getFilter(ctx));
-		assertEquals("select", bean.getSelect(ctx));
+		assertEquals(2, bean.getFilters(ctx).size());
+		assertEquals("field1", bean.getFilters(ctx).get(0).getFieldName().getName());
+		assertEquals(Relation.EQ, bean.getFilters(ctx).get(0).getRelation());
+		assertEquals("value1", bean.getFilters(ctx).get(0).getValue());
+		assertEquals("field2", bean.getFilters(ctx).get(1).getFieldName().getName());
+		assertEquals(Relation.EQ, bean.getFilters(ctx).get(1).getRelation());
+		assertEquals("value2", bean.getFilters(ctx).get(1).getValue());
+
+		assertEquals(2, bean.getSelect(ctx).size());
+		assertTrue(bean.getSelect(ctx).contains(new FieldName("select1")));
+		assertTrue(bean.getSelect(ctx).contains(new FieldName("select2")));
 	}
 
 	/**
@@ -86,9 +97,46 @@ public class MockAuthorizationBeanTest {
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
-		// Check that the expected parameter is present
-		assertEquals(null, bean.getFilter(ctx));
+		assertEquals(null, bean.getFilters(ctx));
 		assertEquals(null, bean.getSelect(ctx));
+	}
+	
+	/**
+	 * Test empty parameters.
+	 */
+	@Test
+	public void testEmptyParameters() {
+
+		// Create the bean
+		MockAuthorizationBean bean = new MockAuthorizationBean("", "");
+
+		// Create a minimal context
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		
+		assertTrue(null, bean.getFilters(ctx).isEmpty());
+		assertTrue(null, bean.getSelect(ctx).isEmpty());
+	}
+
+	/**
+	 * Test parameters that won't parse.
+	 */
+	@Test
+	public void testBadParameters() {
+
+		// Create the bean
+		MockAuthorizationBean bean = new MockAuthorizationBean("filter", "select");
+		
+		// Create a minimal context
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		
+		// Should have created the 'no results' filter
+		assertEquals(null, bean.getFilters(ctx));
 	}
 
 	/**
@@ -98,11 +146,11 @@ public class MockAuthorizationBeanTest {
 	public void testPassedParameters() {
 
 		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean("badFilter", "badSelect");
+		MockAuthorizationBean bean = new MockAuthorizationBean("badField eq badValue", "badSelect");
 
 		// Create parameter list with different filter and select parameters.
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(MockAuthorizationBean.TEST_FILTER_KEY, "goodFilter");
+		queryParams.add(MockAuthorizationBean.TEST_FILTER_KEY, "field1 eq value1 and field2 eq value2");
 		queryParams.add(MockAuthorizationBean.TEST_SELECT_KEY, "goodSelect");
 
 		// Create a minimal context
@@ -111,7 +159,15 @@ public class MockAuthorizationBeanTest {
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
 		// Check that the expected parameter is present
-		assertEquals("goodFilter", bean.getFilter(ctx));
-		assertEquals("goodSelect", bean.getSelect(ctx));
+		assertEquals(2, bean.getFilters(ctx).size());
+		assertEquals("field1", bean.getFilters(ctx).get(0).getFieldName().getName());
+		assertEquals(Relation.EQ, bean.getFilters(ctx).get(0).getRelation());
+		assertEquals("value1", bean.getFilters(ctx).get(0).getValue());
+		assertEquals("field2", bean.getFilters(ctx).get(1).getFieldName().getName());
+		assertEquals(Relation.EQ, bean.getFilters(ctx).get(1).getRelation());
+		assertEquals("value2", bean.getFilters(ctx).get(1).getValue());
+
+		assertEquals(1, bean.getSelect(ctx).size());
+		assertTrue(bean.getSelect(ctx).contains(new FieldName("goodSelect")));
 	}
 }

@@ -1,9 +1,5 @@
 package com.temenos.interaction.commands.authorization;
 
-/*
- * Base class for the Authorization command tests.
- */
-
 /* 
  * #%L
  * interaction-commands-authorization
@@ -24,15 +20,15 @@ package com.temenos.interaction.commands.authorization;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 
-import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionException;
-
-public class AbstractAuthorizationTest {
+public class FieldNameTest {
 
 	@Before
 	public void setUp() throws Exception {
@@ -42,19 +38,33 @@ public class AbstractAuthorizationTest {
 	public void tearDown() {
 	}
 
-	/*
-	 * A mock child class that can be called by the AuthorzationCommand.
-	 */
-	protected class MockCommand implements InteractionCommand {
-		// Somewhere to store the context we are passed
-		InteractionContext ctx = null;
+	@Test
+	public void testConstruct() {
 
-		public MockCommand() {
-		}
+		FieldName name = new FieldName("aname");
 
-		public Result execute(InteractionContext ctx) throws InteractionException {
-			this.ctx = ctx;
-			return (Result.SUCCESS);
-		}
+		assertEquals("aname", name.getName());
+	}
+	
+	@Test
+	public void testEquivalence() {
+
+		FieldName name1 = new FieldName("aname");
+		FieldName name2 = new FieldName("aname");
+		FieldName name3 = new FieldName("aothername");
+
+		assertEquals(name1, name2);
+		assertFalse(name1.equals(name3));
+	}
+	
+	@Test
+	public void testHashEquivalence() {
+
+		FieldName name1 = new FieldName("aname");
+		FieldName name2 = new FieldName("aname");
+		FieldName name3 = new FieldName("aothername");
+
+		assertTrue(name1.hashCode() == name2.hashCode());
+		assertFalse(name1.hashCode() == name3.hashCode());
 	}
 }

@@ -35,16 +35,19 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.odata4j.expression.BoolCommonExpression;
+import org.odata4j.expression.EntitySimpleProperty;
+import org.odata4j.producer.EntityQueryInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.commands.authorization.ODataParser.UnsupportedQueryOperationException;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -68,8 +71,22 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 			logger.info("    Key " + theKey + " = Value " + ctx.getQueryParameters().getFirst(theKey));
 		}
 
-		addRowFilter(ctx);
-		addColFilter(ctx);
+		try {
+			// Parse the incoming oData. Do once extracting filter and select.
+			EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
+
+			if (!addRowFilter(ctx, queryInfo.filter)) {
+				logger.info("After authorization there are no rows to return. Command not called.");
+				return (Result.SUCCESS);
+			}
+
+			addColFilter(ctx, queryInfo.select);
+
+		} catch (Exception e) {
+			// Any sort of exception is an Authorization failure
+			logger.info("Authorization failed: " + e.getMessage());
+			return (Result.FAILURE);
+		}
 
 		Result res = command.execute(ctx);
 
@@ -81,87 +98,85 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		return (res);
 	}
 
-	private void addRowFilter(InteractionContext ctx) {
+	// Add a row.
+	//
+	// @Returns true = rows added, false = rows not added. Return no entries
+	private boolean addRowFilter(InteractionContext ctx, BoolCommonExpression oldFilter)
+			throws UnsupportedQueryOperationException {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
 		// Get filter from the authorization bean.
-		String filterString = authorizationBean.getFilter(ctx);
-		
-		ArrayList<String> targetList = null;
-		if (null != filterString) {
-			// Break filter into list of 'anded' terms. Don't care about other
-			// boolean logic between 'ands'.
-			// Note: May have to revisit this if bracketing becomes important.
-			targetList = new ArrayList<String>(Arrays.asList(filterString.split("\\s* and \\s*")));
-		} else {
-			targetList = new ArrayList<String>();
+		List<RowFilter> newList = authorizationBean.getFilters(ctx);
+		if (null == newList) {
+			// Null means return no entries
+			return (false);
 		}
 
-		// Add any existing row filtering.
-		String oldFilter = queryParams.getFirst(FILTER_KEY);
-		if (null != oldFilter) {
-			targetList.addAll(Arrays.asList(oldFilter.split("\\s* and \\s*")));
+		// Get any existing filter
+		List<RowFilter> oldList = ODataParser.parseFilter(oldFilter);
+
+		// Final list contains both sets of filters
+		if (null != oldList) {
+			// TODO Some additional work may be required to combine filters on
+			// the same column. What if "a > b" and
+			// "a = c"? For now include both and let the database decide how it
+			// handles tests conditions.
+			newList.addAll(oldList);
 		}
 
-		// By the time we get here the target 'and' terms will be in targetList.
-		if (targetList.isEmpty()) {
-			// No filtering, i.e. return everything. Delete any existing filter
-			// term
-			queryParams.remove(FILTER_KEY);
+		// By the time we get here the target 'and' terms will be in newList.
+		if (newList.isEmpty()) {
+			// No filtering, i.e. return everything. Delete any existing filter.
+			queryParams.remove(ODataParser.FILTER_KEY);
 		} else {
-			// Write in target list
-			Iterator<String> it = targetList.iterator();
-			String targetStr = new String(it.next());
-			while (it.hasNext()) {
-				targetStr = targetStr.concat(" and " + it.next());
-			}
-			queryParams.putSingle(FILTER_KEY, targetStr);
+			queryParams.putSingle(ODataParser.FILTER_KEY, ODataParser.toFilter(newList));
 		}
+
+		// Return the entries specified by the filter.
+		return (true);
 	}
 
-	private void addColFilter(InteractionContext ctx) {
+	private void addColFilter(InteractionContext ctx, List<EntitySimpleProperty> oldSelect) {
+
+		// getEntityQueryInfo returns an empty list for missing 'selects'. In
+		// the authentication framework these
+		// are represented with nulls.
+		if (oldSelect.isEmpty()) {
+			oldSelect = null;
+		}
+
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
 		// Get select from the authorization bean.
-		String selectString = authorizationBean.getSelect(ctx);
+		Set<FieldName> authSet = authorizationBean.getSelect(ctx);
 
-		// Break filter into list of comma separated terms.
-		ArrayList<String> targetList;
-		if (null != selectString) {
-			targetList = new ArrayList<String>(Arrays.asList(selectString.split("\\s*,\\s*")));
+		// Get any existing select
+		Set<FieldName> oldSet = ODataParser.parseSelect(oldSelect);
+
+		if (null == authSet) {
+			// null from authorization means 'return all requested' i.e.
+			// don't modify existing $select parameter.
+			return;
 		} else {
-			targetList = new ArrayList<String>();
-		}
+			if (null == oldSet) {
+				// null in oldlist means just return authorization list
+				queryParams.putSingle(ODataParser.SELECT_KEY, ODataParser.toSelect(authSet));
+			} else {
 
-		// Parse existing select list. If no old select list then we want all
-		// fields in target list.
-		String oldSelect = queryParams.getFirst(SELECT_KEY);
-		if (null != oldSelect) {
-			// Parse old select list into a list
-			List<String> oldList = Arrays.asList(oldSelect.split("\\s*,\\s*"));
-
-			// Field is returned only if it is in BOTH lists.
-			Iterator<String> it = targetList.iterator();
-			while (it.hasNext()) {
-				String str = it.next();
-				if (!oldList.contains(str)) {
-					it.remove();
+				// If we get here both sets contain entries. Final list is
+				// a union of the other two.
+				Iterator<FieldName> it = oldSet.iterator();
+				while (it.hasNext()) {
+					FieldName oldName = it.next();
+					if (!authSet.contains(oldName)) {
+						it.remove();
+					}
 				}
-			}
-		}
 
-		// By the time we get here the target select list will be in targetList.
-		if (targetList.isEmpty()) {
-			// Delete any existing select term
-			queryParams.remove(SELECT_KEY);
-		} else {
-			// Write in target list
-			Iterator<String> it = targetList.iterator();
-			String targetStr = new String(it.next());
-			while (it.hasNext()) {
-				targetStr = targetStr.concat("," + it.next());
+				// By the time we get here the target select list will be
+				// in oldSet. Write the target list ... which may be empty
+				queryParams.putSingle(ODataParser.SELECT_KEY, ODataParser.toSelect(oldSet));
 			}
-			queryParams.putSingle(SELECT_KEY, targetStr);
 		}
 	}
 }

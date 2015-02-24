@@ -1,9 +1,5 @@
 package com.temenos.interaction.commands.authorization;
 
-/*
- * Base class for the Authorization command tests.
- */
-
 /* 
  * #%L
  * interaction-commands-authorization
@@ -24,15 +20,15 @@ package com.temenos.interaction.commands.authorization;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+import static org.junit.Assert.assertEquals;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 
-import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.commands.authorization.RowFilter.Relation;
 
-public class AbstractAuthorizationTest {
+public class RowFilterTest {
 
 	@Before
 	public void setUp() throws Exception {
@@ -42,19 +38,25 @@ public class AbstractAuthorizationTest {
 	public void tearDown() {
 	}
 
-	/*
-	 * A mock child class that can be called by the AuthorzationCommand.
-	 */
-	protected class MockCommand implements InteractionCommand {
-		// Somewhere to store the context we are passed
-		InteractionContext ctx = null;
+	@Test
+	public void testConstruct() {
+		
+		FieldName name = new FieldName("aname");
 
-		public MockCommand() {
-		}
+		RowFilter filter = new RowFilter(name, Relation.EQ, "avalue");
 
-		public Result execute(InteractionContext ctx) throws InteractionException {
-			this.ctx = ctx;
-			return (Result.SUCCESS);
-		}
+		assertEquals("aname", filter.getFieldName().getName());
+		assertEquals(Relation.EQ, filter.getRelation());
+		assertEquals("avalue", filter.getValue());
+	}
+	
+	@Test
+	public void testStringConstruct() {
+		
+		RowFilter filter = new RowFilter("aname", Relation.EQ, "avalue");
+
+		assertEquals("aname", filter.getFieldName().getName());
+		assertEquals(Relation.EQ, filter.getRelation());
+		assertEquals("avalue", filter.getValue());
 	}
 }
