@@ -56,11 +56,5 @@ public class AbstractAuthorizationTest {
 			this.ctx = ctx;
 			return (Result.SUCCESS);
 		}
-
-		// public InteractionContext
-		//getCtx() {
-		//	return (ctx);
-		// }
-
 	}
 }

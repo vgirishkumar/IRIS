@@ -52,10 +52,6 @@ public class ODataParser {
 	public static final String FILTER_KEY = "$filter";
 	public static final String SELECT_KEY = "$select";
 
-	// Get and parse the oData
-	public ODataParser() {
-	}
-
 	/*
 	 * Obtain the odata query information from the context's query parameters.
 	 * This parses the incoming parameters into an oData4j EntityQueryInfo
