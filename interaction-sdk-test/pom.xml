@@ -37,6 +37,11 @@
 							<name>insertFile</name>
 							<value>${insertFile}</value>
 						</property>
+						<!-- pass local repo dir to InteractionSDKTest -->
+						<property>
+						  <name>localRepo</name>
+						  <value>${settings.localRepository}</value>
+						</property>
 					</systemProperties>
 				</configuration>
 			</plugin>
