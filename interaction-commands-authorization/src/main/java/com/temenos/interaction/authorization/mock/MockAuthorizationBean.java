@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.mock;
 
 /*
  * Mock authorization bean. Used in testing. Instead of extracting real RowFilters for the current principle returns
@@ -36,9 +36,22 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.authorization.IAuthorizationProvider;
+import com.temenos.interaction.authorization.command.data.AccessProfile;
+import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.RowFilter;
+import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.command.InteractionContext;
 
-public class MockAuthorizationBean implements AuthorizationBean {
+/** 
+ * Once we have actual functionality available. PLEASE DELETE THIS CLASS
+ * 
+ * @author sjunejo
+ *
+ */
+
+
+public class MockAuthorizationBean implements IAuthorizationProvider {
 	private final static Logger logger = LoggerFactory.getLogger(MockAuthorizationBean.class);
 
 	// Keys for test arguments that can be passed in as parameters.
@@ -150,5 +163,11 @@ public class MockAuthorizationBean implements AuthorizationBean {
 			}
 		}
 		return (testSelect);
+	}
+
+	@Override
+	public AccessProfile getAccessProfile(InteractionContext ctx) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

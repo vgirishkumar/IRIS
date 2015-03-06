@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.command.util;
 
 /*
  * Utilities for converting between oData $select and $filters parameters and the authorization systems internal 
@@ -43,7 +43,9 @@ import org.odata4j.expression.LiteralExpression;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.resources.OptionsQueryParser;
 
-import com.temenos.interaction.commands.authorization.RowFilter.Relation;
+import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.RowFilter;
+import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
 import com.temenos.interaction.core.command.InteractionContext;
 
 public class ODataParser {

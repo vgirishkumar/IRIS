@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.command;
 
 /*
  * Base class for the Authorization command tests.

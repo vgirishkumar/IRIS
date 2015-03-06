@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization;
 
 /*
  * Interface for authentication beans.
@@ -31,10 +31,21 @@ package com.temenos.interaction.commands.authorization;
 import java.util.List;
 import java.util.Set;
 
+import com.temenos.interaction.authorization.command.data.AccessProfile;
+import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.core.command.InteractionContext;
 
-public interface AuthorizationBean {
+public interface IAuthorizationProvider {
 
+	/**
+	 * This method will return the authorised AccessProfile for a current logged in user 
+	 * 
+	 * @param ctx
+	 * @return null if nothing
+	 */
+	public AccessProfile getAccessProfile(InteractionContext ctx);
+	
 	/*
 	 * Get the filter (row filter) for the current principle
 	 * 

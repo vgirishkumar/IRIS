@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.command;
 
 /* 
  * #%L
@@ -22,10 +22,12 @@ package com.temenos.interaction.commands.authorization;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -33,6 +35,9 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
+import com.temenos.interaction.authorization.command.AuthorizationCommand;
+import com.temenos.interaction.authorization.command.util.ODataParser;
+import com.temenos.interaction.authorization.mock.MockAuthorizationBean;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -44,16 +49,16 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 /**
  * The Class AuthorizationCommandTest.
  */
-public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
+public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 
 	/**
-	 * Test no $select parameter
+	 * Test no $filter parameter
 	 */
 	@Test
-	public void testSelectNone() {
+	public void testFilterNone() {
 
 		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("", null);
+		MockAuthorizationBean authBean = new MockAuthorizationBean(null, null);
 		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
 
 		// Path is not important for security
@@ -74,18 +79,19 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 			// Should never throw.
 			fail();
 		}
+
 		// Check that the expected parameter is present
-		assertEquals(null, ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
+		assertEquals(null, ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY));
 	}
 
 	/**
-	 * Test creation of $select parameter
+	 * Test creation of $filter parameter
 	 */
 	@Test
-	public void testSelectCreate() {
+	public void testFilterCreate() {
 
 		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("", "id");
+		MockAuthorizationBean authBean = new MockAuthorizationBean("name eq Tim", null);
 		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
 
 		// Path is not important for security
@@ -107,17 +113,17 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		assertEquals("id", ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
+		assertEquals("name eq Tim", ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY));
 	}
 
 	/**
-	 * Test removal of a new $select parameter
+	 * Test addition of $filter parameter
 	 */
 	@Test
-	public void testSelectRemoveNew() {
+	public void testFilterAdd() {
 
 		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("", "name, id");
+		MockAuthorizationBean authBean = new MockAuthorizationBean("id eq 1234", null);
 		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
 
 		// Path is not important for security
@@ -125,7 +131,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(ODataParser.SELECT_KEY, "name");
+		queryParams.add(ODataParser.FILTER_KEY, "name eq Tim");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -140,18 +146,20 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		// Should just have name left
-		assertEquals("name", ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
+		String resultStr = ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY);
+		ArrayList<String> result = new ArrayList<String>(Arrays.asList(resultStr.split("\\s* and \\s*")));
+		assertTrue(result.contains("name eq Tim"));
+		assertTrue(result.contains("id eq 1234"));
 	}
 
 	/**
-	 * Test removal of an existing $select parameter
+	 * Test dangerous names containing keywords 'and', 'or' etc.
 	 */
 	@Test
-	public void testSelectRemoveOld() {
+	public void testFilterKeywords() {
 
 		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("", "id");
+		MockAuthorizationBean authBean = new MockAuthorizationBean("Landlord eq Thor", null);
 		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
 
 		// Path is not important for security
@@ -159,7 +167,7 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 
 		// Set up oData parameters
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(ODataParser.SELECT_KEY, "name, id");
+		queryParams.add(ODataParser.FILTER_KEY, "origin eq andriod");
 
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
@@ -174,45 +182,9 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 			fail();
 		}
 		// Check that the expected parameter is present
-		// Should just have id left
-		assertEquals("id", ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
-	}
-
-	/**
-	 * Test union of two groups of $select parameters
-	 */
-	@Test
-	public void testSelectUnion() {
-
-		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("", "id, name, street");
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
-
-		// Path is not important for security
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-
-		// Set up oData parameters
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(ODataParser.SELECT_KEY, "id, postcode, name");
-
-		// Run command
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		try {
-			InteractionCommand.Result result = command.execute(ctx);
-
-			// Should work.
-			assertEquals(Result.SUCCESS, result);
-		} catch (InteractionException e) {
-			// Should never throw.
-			fail();
-		}
-		// Check that the expected parameter is present
-		// Should just have id and name left
-		String result = ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY);
-		assertTrue(result.contains("id"));
-		assertTrue(result.contains("name"));
-		assertFalse(result.contains("postcode"));
-		assertFalse(result.contains("street"));
+		String resultStr = ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY);
+		ArrayList<String> result = new ArrayList<String>(Arrays.asList(resultStr.split("\\s* and \\s*")));
+		assertTrue(result.contains("Landlord eq Thor"));
+		assertTrue(result.contains("origin eq andriod"));
 	}
 }

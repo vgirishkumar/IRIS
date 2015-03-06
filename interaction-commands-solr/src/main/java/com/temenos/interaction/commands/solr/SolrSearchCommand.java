@@ -47,10 +47,10 @@ import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.commands.authorization.FieldName;
-import com.temenos.interaction.commands.authorization.ODataParser;
-import com.temenos.interaction.commands.authorization.RowFilter;
-import com.temenos.interaction.commands.authorization.RowFilter.Relation;
+import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.RowFilter;
+import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
+import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 

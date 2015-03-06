@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.command.data;
 
 /*
  * Classes containing information about a field name (column in relational DBS).

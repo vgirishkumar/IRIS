@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.mock;
 
 /*
  * Base class for the authorization bean tests.
@@ -36,7 +36,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.commands.authorization.RowFilter.Relation;
+import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
+import com.temenos.interaction.authorization.mock.MockAuthorizationBean;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;

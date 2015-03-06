@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.command;
 
 /*
  * Authorization inteceptor bean. This is passed parameters corresponding to the options of an OData request and a child
@@ -47,7 +47,11 @@ import org.odata4j.producer.EntityQueryInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.commands.authorization.ODataParser.UnsupportedQueryOperationException;
+import com.temenos.interaction.authorization.IAuthorizationProvider;
+import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.RowFilter;
+import com.temenos.interaction.authorization.command.util.ODataParser;
+import com.temenos.interaction.authorization.command.util.ODataParser.UnsupportedQueryOperationException;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -56,7 +60,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 	private final static Logger logger = LoggerFactory.getLogger(AuthorizationCommand.class);
 
 	// Normal constructor
-	public AuthorizationCommand(InteractionCommand command, AuthorizationBean authorizationBean) {
+	public AuthorizationCommand(InteractionCommand command, IAuthorizationProvider authorizationBean) {
 		this.command = command;
 		this.authorizationBean = authorizationBean;
 	}
@@ -75,6 +79,10 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 			// Parse the incoming oData. Do once extracting filter and select.
 			EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
 
+			// Call the single API
+			// applyAuthorization(ctx, queryInfo.filter, queryInfo.select);
+			
+			
 			if (!addRowFilter(ctx, queryInfo.filter)) {
 				logger.info("After authorization there are no rows to return. Command not called.");
 				return (Result.SUCCESS);
@@ -98,6 +106,31 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		return (res);
 	}
 
+	
+	/**
+	 * This method will apply Authorization on InteractionContext for filtering data
+	 * @param ctx
+	 * @param oldFilter
+	 * @param oldSelect
+	 * @throws UnsupportedQueryOperationException
+	 */
+	private void applyAuthorization(InteractionContext ctx, 
+			BoolCommonExpression oldFilter,  List<EntitySimpleProperty> oldSelect) 
+					throws UnsupportedQueryOperationException {
+		
+		// TODO : Should be implemented and used instead 
+		// 
+		// AccessProfile accessProfile = authorizationBean.getAccessProfile(ctx);
+		// 
+		// List<RowFilter> newList = accessProfile.getRowFilters();
+		// Update Ctx with aggregated 'filter'
+		// 
+		// Set<FieldName> authSet = accessProfile.getFieldNames();
+		// Update Ctx with aggregated 'select'
+	}
+	
+	
+	
 	// Add a row.
 	//
 	// @Returns true = rows added, false = rows not added. Return no entries
@@ -107,8 +140,10 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 
 		// Get filter from the authorization bean.
 		List<RowFilter> newList = authorizationBean.getFilters(ctx);
+		
+		// NOT sure if following is correct. RowFilter == NULL == Return Everything...Right?
 		if (null == newList) {
-			// Null means return no entries
+			// Null means return no entries - 
 			return (false);
 		}
 
