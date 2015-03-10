@@ -194,8 +194,8 @@
 					<configuration>
 						<meminitial>128m</meminitial>
 						<maxmem>1g</maxmem>
-						<source>5.0</source>
-						<target>5.0</target>
+						<source>6.0</source>
+						<target>6.0</target>
 						<verbose>true</verbose>
 						<excludeResources>
 							<excludeResource>**/*.xtend</excludeResource>
