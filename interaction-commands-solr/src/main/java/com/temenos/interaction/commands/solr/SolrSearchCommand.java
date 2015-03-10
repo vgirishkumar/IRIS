@@ -32,11 +32,9 @@ package com.temenos.interaction.commands.solr;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.List;
-import java.util.Arrays;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -49,19 +47,12 @@ import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.RowFilter;
+import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
+import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
-
-// import org.odata4j.edm.EdmEntityType;
-// import org.odata4j.edm.EdmModel;
-import org.odata4j.producer.resources.OptionsQueryParser;
-import org.odata4j.expression.AndExpression;
-import org.odata4j.expression.BoolCommonExpression;
-import org.odata4j.expression.BooleanLiteral;
-import org.odata4j.expression.CommonExpression;
-import org.odata4j.expression.EntitySimpleProperty;
-import org.odata4j.expression.EqExpression;
-import org.odata4j.expression.LiteralExpression;
 
 public class SolrSearchCommand extends AbstractSolrCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(SolrSearchCommand.class);
@@ -233,7 +224,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 
 		// Add the filter string (like query but does hard matching).
 		addFilter(query, queryParams);
-		
+
 		// If returned fields have been limited by authorization set them
 		addSelect(query, queryParams);
 
@@ -242,19 +233,17 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 
 	// Build Solr field list from an OData $select option.
 	private void addSelect(SolrQuery query, MultivaluedMap<String, String> queryParams) {
-		
+
 		// If we were passed an OData $select parse it and add to the query
 		String selectOption = queryParams.getFirst(SELECT_KEY);
 		if (null != selectOption) {
 			// Its a comma separated list of fields.
-			List<String> options = Arrays.asList(selectOption.split("\\s*,\\s*"));
-			
+			Set<FieldName> fields = ODataParser.parseSelect(selectOption);
+
 			logger.info("Adding selects:");
-			Iterator<String> it = options.iterator();
-			while (it.hasNext()) {
-				String field = (String) it.next();
-				logger.info("    " + field);
-				query.addField(field);
+			for (FieldName field : fields) {
+				logger.info("    " + field.getName());
+				query.addField(field.getName());
 			}
 		}
 		return;
@@ -280,80 +269,38 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 			logger.info("Search called with no query string. Searching on '*'.");
 			queryStr = queryStr.concat(fieldName + ":*");
 		}
-		
+
 		logger.info("Executing query " + queryStr + ".");
 
 		return (queryStr);
 	}
 
-	// Build the Solr query string from passed request and any authorization restrictions.
+	// Build the Solr query string from passed request and any authorization
+	// restrictions.
 	private void addFilter(SolrQuery query, MultivaluedMap<String, String> queryParams) {
-		
+
 		// If we were passed an OData $filter parse it and add to the query
-		Map<String, String> filterMap = new HashMap<String, String>();
 		String filterOption = queryParams.getFirst(FILTER_KEY);
 		if (null != filterOption) {
 			try {
-				BoolCommonExpression expression = OptionsQueryParser.parseFilter(filterOption);
-				parseExpression(expression, filterMap);
+				List<RowFilter> filters = ODataParser.parseFilter(filterOption);
 
-				Iterator<String> it = filterMap.keySet().iterator();
 				logger.info("Adding filters:");
-				while (it.hasNext()) {
-					String theKey = (String) it.next();
-					logger.info("    " + theKey + " = " + filterMap.get(theKey));
-					query.addFilterQuery(theKey + ":" + filterMap.get(theKey));
+				for (RowFilter filter : filters) {
+					logger.info("    " + filter.getFieldName().getName() + filter.getRelation().getoDataString()
+							+ filter.getValue());
+					if (Relation.EQ != filter.getRelation()) {
+						// TODO. Code other conditions.
+						logger.warn("Non 'eq' filter conditions not yet implemented ... ignored.");
+					} else {
+						query.addFilterQuery(filter.getFieldName().getName() + ":" + filter.getValue());
+					}
 				}
-			} catch (UnsupportedQueryOperationException e) {
+			} catch (ODataParser.UnsupportedQueryOperationException e) {
 				logger.error("Could not interpret OData " + FILTER_KEY + " = " + filterOption);
 				return;
 			}
 		}
 		return;
 	}
-
-	// Convert an OData filter to a Solr query string. A complete implementation
-	// of this would be complex. For now only parse simple filters and throw
-	// on failure. If complex filters are required then we should
-	// investigate 3rd party tools (e.g. Teiid) for this task.
-	//
-	// This code is a copy of that in AbstractT24MetadataCommand.
-	// Maybe it should be moved to interaction-commands-odata.
-	private void parseExpression(BoolCommonExpression expression, Map<String, String> filter)
-			throws UnsupportedQueryOperationException {
-
-		if (expression == null) {
-			throw new UnsupportedQueryOperationException("Unable to parse null Expression.");
-		}
-		if (expression instanceof AndExpression) {
-			AndExpression e = (AndExpression) expression;
-			parseExpression(e.getLHS(), filter);
-			parseExpression(e.getRHS(), filter);
-		} else if (expression instanceof EqExpression) {
-			EqExpression expr = (EqExpression) expression;
-			filter.put(getExpressionValue(expr.getLHS()), getExpressionValue(expr.getRHS()));
-		} else {
-			throw new UnsupportedQueryOperationException("Unsupported expression " + expression);
-		}
-	}
-
-	private String getExpressionValue(CommonExpression expression) throws UnsupportedQueryOperationException {
-		if (expression instanceof BooleanLiteral) {
-			return Boolean.toString(((BooleanLiteral) expression).getValue());
-		} else if (expression instanceof EntitySimpleProperty) {
-			return ((EntitySimpleProperty) expression).getPropertyName();
-		} else if (expression instanceof LiteralExpression) {
-			return org.odata4j.expression.Expression.literalValue((LiteralExpression) expression).toString();
-		}
-		throw new UnsupportedQueryOperationException("Unsupported expression " + expression);
-	}
-
-	private class UnsupportedQueryOperationException extends Exception {
-		private static final long serialVersionUID = 1L;
-
-		public UnsupportedQueryOperationException(String message) {
-			super(message);
-		}
-	}
-
 }

@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.command;
 
 /*
  * Base class for the Authorization command tests.
@@ -29,8 +29,8 @@ import org.junit.After;
 import org.junit.Before;
 
 import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 public class AbstractAuthorizationTest {
 
@@ -55,10 +55,6 @@ public class AbstractAuthorizationTest {
 		public Result execute(InteractionContext ctx) throws InteractionException {
 			this.ctx = ctx;
 			return (Result.SUCCESS);
-		}
-
-		public InteractionContext getCtx() {
-			return (ctx);
 		}
 	}
 }

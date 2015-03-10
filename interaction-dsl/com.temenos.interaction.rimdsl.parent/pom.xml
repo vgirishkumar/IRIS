@@ -5,7 +5,7 @@
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>com.temenos.interaction.rimdsl.parent</artifactId>
 	<!-- You should change this and the MANIFEST.MF to your versioning scheme -->
-	<version>0.6.0</version>
+	<version>0.6.1</version>
 	<packaging>pom</packaging>
 	<name>com.temenos.interaction.rimdsl.RimDsl - Parent</name>
 
@@ -29,7 +29,7 @@
 		<license.licenseName>agpl_v3</license.licenseName>
 		<tycho-version>0.18.1</tycho-version>
 		<junit-version>4.8.1</junit-version>
-		<xtext-version>2.3.1</xtext-version>
+		<xtend-version>2.3.1</xtend-version>
 	</properties>
 
 	<distributionManagement>
@@ -194,8 +194,8 @@
 					<configuration>
 						<meminitial>128m</meminitial>
 						<maxmem>1g</maxmem>
-						<source>5.0</source>
-						<target>5.0</target>
+						<source>6.0</source>
+						<target>6.0</target>
 						<verbose>true</verbose>
 						<excludeResources>
 							<excludeResource>**/*.xtend</excludeResource>
@@ -231,7 +231,7 @@
 				<plugin>
 					<groupId>org.eclipse.xtend</groupId>
 					<artifactId>xtend-maven-plugin</artifactId>
-					<version>${xtext-version}</version>
+					<version>${xtend-version}</version>
 					<configuration>
 						<!-- need to prefix by basedir to generate to currently built module -->
 						<outputDirectory>${basedir}/xtend-gen</outputDirectory>
@@ -344,7 +344,7 @@
 			<dependency>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>org.eclipse.xtend.standalone</artifactId>
-				<version>${xtext-version}</version>
+				<version>${xtend-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
