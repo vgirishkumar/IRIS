@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization;
 
 /*
  * Interface for authentication beans.
@@ -28,22 +28,38 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
+import java.util.List;
+import java.util.Set;
+
+import com.temenos.interaction.authorization.command.data.AccessProfile;
+import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.core.command.InteractionContext;
 
-public interface AuthorizationBean {
+public interface IAuthorizationProvider {
 
+	/**
+	 * This method will return the authorised AccessProfile for a current logged in user 
+	 * 
+	 * @param ctx
+	 * @return null if nothing
+	 */
+	public AccessProfile getAccessProfile(InteractionContext ctx);
+	
 	/*
 	 * Get the filter (row filter) for the current principle
 	 * 
-	 * Return a 'and' separated list of rows to return e.g.
-	 * "name eq Tim and id eq 1234" For now only 'eq' is supported.
+	 * An empty list means do no filtering ... return all rows.
+	 * A null list means return nothing.
+	 * 
 	 */
-	public String getFilter(InteractionContext ctx);
+	public List<RowFilter> getFilters(InteractionContext ctx);
 
 	/*
 	 * Get the select for the current principle.
 	 * 
-	 * Return a comma separated list of columns to display e.g. "name, id".
+	 * @Return An empty list means select no columns, A null list means select all columns.
 	 */
-	public String getSelect(InteractionContext ctx);
+	public Set<FieldName> getSelect(InteractionContext ctx);
+	
 }

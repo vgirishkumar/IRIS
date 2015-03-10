@@ -1,4 +1,4 @@
-package com.temenos.interaction.commands.authorization;
+package com.temenos.interaction.authorization.command;
 
 /*
  * #%L
@@ -21,17 +21,14 @@ package com.temenos.interaction.commands.authorization;
  * #L%
  */
 
+import com.temenos.interaction.authorization.IAuthorizationProvider;
 import com.temenos.interaction.core.command.InteractionCommand;
 
 public abstract class AbstractAuthorizationCommand {
 	// Somewhere to store the child command that will be called.
 	InteractionCommand command = null;
 
-	// Somewhere to store the bean that interfaces to a given authentication
-	// mechanism.
-	AuthorizationBean authorizationBean = null;
+	// Somewhere to store the bean that interfaces to a given authroization provider
+	IAuthorizationProvider authorizationBean = null;
 
-	// Odata option keys. Must comply with the OData standard.
-	public static final String FILTER_KEY = "$filter";
-	public static final String SELECT_KEY = "$select";
 }
