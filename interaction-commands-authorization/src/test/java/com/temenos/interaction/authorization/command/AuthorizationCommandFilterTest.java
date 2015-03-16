@@ -31,11 +31,11 @@ import java.util.Arrays;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.AuthorizationCommand;
 import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.authorization.mock.MockAuthorizationBean;
 import com.temenos.interaction.core.MultivaluedMapImpl;
@@ -52,13 +52,13 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 
 	/**
-	 * Test no $filter parameter
+	 * Check that a forced internal error throws.
 	 */
 	@Test
-	public void testFilterNone() {
+	public void testInternalErrorThrows() {
 
 		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean(null, null);
+		MockAuthorizationBean authBean = new MockAuthorizationBean(new InteractionException(Status.UNAUTHORIZED, "Test exception"));
 		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
 
 		// Path is not important for security
@@ -70,20 +70,18 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 		// Run command
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		boolean threw = false;
 		try {
-			InteractionCommand.Result result = command.execute(ctx);
-
-			// Should work.
-			assertEquals(Result.SUCCESS, result);
+			command.execute(ctx);
 		} catch (InteractionException e) {
-			// Should never throw.
-			fail();
+			threw = true;
 		}
-
-		// Check that the expected parameter is present
-		assertEquals(null, ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY));
+		
+		// Should throw.
+		assertTrue(threw);
 	}
-
+	
+	
 	/**
 	 * Test creation of $filter parameter
 	 */
@@ -91,7 +89,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 	public void testFilterCreate() {
 
 		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("name eq Tim", null);
+		MockAuthorizationBean authBean = new MockAuthorizationBean("name eq Tim", "");
 		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
 
 		// Path is not important for security
@@ -123,7 +121,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 	public void testFilterAdd() {
 
 		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("id eq 1234", null);
+		MockAuthorizationBean authBean = new MockAuthorizationBean("id eq 1234", "");
 		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
 
 		// Path is not important for security
@@ -159,7 +157,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 	public void testFilterKeywords() {
 
 		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("Landlord eq Thor", null);
+		MockAuthorizationBean authBean = new MockAuthorizationBean("Landlord eq Thor", "");
 		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
 
 		// Path is not important for security

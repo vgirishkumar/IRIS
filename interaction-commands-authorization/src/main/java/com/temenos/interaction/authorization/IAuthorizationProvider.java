@@ -2,9 +2,6 @@ package com.temenos.interaction.authorization;
 
 /*
  * Interface for authentication beans.
- * 
- * TODO. THIS IS A PLACEHOLDER TO TEST AuthorizationCommand PLUMBING. Feel free to re-design this interface as authorization
- * work progresses.
  */
 
 /*
@@ -35,31 +32,35 @@ import com.temenos.interaction.authorization.command.data.AccessProfile;
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 public interface IAuthorizationProvider {
 
 	/**
-	 * This method will return the authorised AccessProfile for a current logged in user 
+	 * This method will return the authorised AccessProfile for a current logged in user.
+	 * 
+	 * Note : For some providers this may return cached data. 
 	 * 
 	 * @param ctx
-	 * @return null if nothing
 	 */
-	public AccessProfile getAccessProfile(InteractionContext ctx);
+	public AccessProfile getAccessProfile(InteractionContext ctx) throws InteractionException;
 	
 	/*
-	 * Get the filter (row filter) for the current principle
+	 * Get the row filter for the current principle
 	 * 
-	 * An empty list means do no filtering ... return all rows.
-	 * A null list means return nothing.
+	 * An empty list means do no filtering i.e. return all rows. This is represented by a missing $filter term.
 	 * 
+	 * Note : This should return current, non cached, data,
 	 */
-	public List<RowFilter> getFilters(InteractionContext ctx);
+	public List<RowFilter> getFilters(InteractionContext ctx) throws InteractionException;
 
 	/*
 	 * Get the select for the current principle.
 	 * 
-	 * @Return An empty list means select no columns, A null list means select all columns.
+	 * An empty list means do no selecting i.e. return all columns. This is represented by a missing $select term.
+	 * 
+	 * * Note : This should return current, non cached, data,
 	 */
-	public Set<FieldName> getSelect(InteractionContext ctx);
+	public Set<FieldName> getSelect(InteractionContext ctx)  throws InteractionException;
 	
 }
