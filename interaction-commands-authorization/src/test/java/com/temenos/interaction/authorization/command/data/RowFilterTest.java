@@ -26,8 +26,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
 
 public class RowFilterTest {
@@ -60,5 +58,22 @@ public class RowFilterTest {
 		assertEquals("aname", filter.getFieldName().getName());
 		assertEquals(Relation.EQ, filter.getRelation());
 		assertEquals("avalue", filter.getValue());
+	}
+	
+	@Test
+	public void testRelationGoodLookup() {
+		
+		Relation relation = Relation.getByt24String("eq");
+
+		assertEquals("eq", relation.gett24String());
+		assertEquals("eq", relation.getoDataString());
+	}
+	
+	@Test
+	public void testRelationBadLookup() {
+		
+		Relation relation = Relation.getByt24String("rubbish");
+
+		assertEquals(null, relation);
 	}
 }
