@@ -1,7 +1,5 @@
 package com.temenos.interaction.authorization.command.data;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /*
  * Classes containing information about row filters.
@@ -30,40 +28,22 @@ import java.util.Map;
 
 public class RowFilter {
 	// Requested relation a fields and its values.
-	// Extend with 'GT', 'LT', 'NE' etc. as they become available.
+	// Extend with additional relationships as they become available.
 	public enum Relation {
-		EQ("eq", "eq");
+		EQ("eq"),
+		NE("ne"),
+		LT("lt"),
+		GT("gt");
 		
 		// OData equivalent
 		private final String oDataString;
-
-		// T24 equivalent
-		private final String t24String;
-
-		// Build a map for constructing instances of relation from t24Sting.
-		private static Map<String, Relation> nameToRelation = new HashMap<String,Relation>();
-		static {
-			for (Relation relation : Relation.values()) {
-				nameToRelation.put(relation.gett24String(), relation);
-			}
-		}
-				
-		Relation(String oDataString, String t24String) {
+		
+		Relation(String oDataString) {
 			this.oDataString = oDataString;
-			this.t24String = t24String;
-		}
-
-		public static Relation getByt24String(String t24String) {
-			Relation result = nameToRelation.get(t24String);
-			return result; 
 		}
 
 		public String getoDataString() {
 			return (oDataString);
-		}
-
-		public String gett24String() {
-			return (t24String);
 		}
 	}
 
