@@ -26,8 +26,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
 
 public class RowFilterTest {

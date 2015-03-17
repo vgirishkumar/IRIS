@@ -33,7 +33,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.AuthorizationCommand;
 import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.authorization.mock.MockAuthorizationBean;
 import com.temenos.interaction.core.MultivaluedMapImpl;
@@ -48,38 +47,6 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
  * The Class AuthorizationCommandTest.
  */
 public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
-
-	/**
-	 * Test no $select parameter
-	 */
-	@Test
-	public void testSelectNone() {
-
-		MockCommand child = new MockCommand();
-		MockAuthorizationBean authBean = new MockAuthorizationBean("", null);
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
-
-		// Path is not important for security
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-
-		// Set up oData parameters
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		// Run command
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		try {
-			InteractionCommand.Result result = command.execute(ctx);
-
-			// Should work.
-			assertEquals(Result.SUCCESS, result);
-		} catch (InteractionException e) {
-			// Should never throw.
-			fail();
-		}
-		// Check that the expected parameter is present
-		assertEquals(null, ctx.getQueryParameters().getFirst(ODataParser.SELECT_KEY));
-	}
 
 	/**
 	 * Test creation of $select parameter

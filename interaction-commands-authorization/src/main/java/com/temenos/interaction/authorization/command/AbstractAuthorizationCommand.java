@@ -2,7 +2,7 @@ package com.temenos.interaction.authorization.command;
 
 /*
  * #%L
- * interaction-authorization
+ * interaction-commands-authorization
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%

@@ -1,5 +1,6 @@
 package com.temenos.interaction.authorization.command.data;
 
+
 /*
  * Classes containing information about row filters.
  */
@@ -26,22 +27,20 @@ package com.temenos.interaction.authorization.command.data;
  */
 
 public class RowFilter {
-
 	// Requested relation a fields and its values.
-	// Extend with 'GT', 'LT', 'NE' etc. as they become available.
+	// Extend with additional relationships as they become available.
 	public enum Relation {
-		EQ("eq");
-
+		EQ("eq"),
+		NE("ne"),
+		LT("lt"),
+		GT("gt");
+		
 		// OData equivalent
 		private final String oDataString;
-
+		
 		Relation(String oDataString) {
 			this.oDataString = oDataString;
 		}
-
-		/* String oDataString() {
-			return (oDataString);
-		}*/
 
 		public String getoDataString() {
 			return (oDataString);

@@ -42,14 +42,14 @@ import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
-/** 
+/**
  * Once we have actual functionality available. PLEASE DELETE THIS CLASS
  * 
  * @author sjunejo
- *
+ * 
  */
-
 
 public class MockAuthorizationBean implements IAuthorizationProvider {
 	private final static Logger logger = LoggerFactory.getLogger(MockAuthorizationBean.class);
@@ -62,9 +62,17 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 	private List<RowFilter> testFilter = null;
 	private Set<FieldName> testSelect = null;
 
+	// Place to store an exception to be thrown on execute
+	private InteractionException exception = null;
+
 	// A mock bean with no arguments is meaningless.
 	// public MockAuthorizationBean() {
 	// }
+
+	// Constructor that will throw on execute
+	public MockAuthorizationBean(InteractionException exception) {
+		this.exception = exception;
+	}
 
 	// Constructors enabling dummy RowFilters to be passed in for testing.
 	// BREAKS AUTHORIZATION. DO NOT USE OTHER THAN FOR TESTING.
@@ -134,7 +142,12 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 	/*
 	 * Get the filter (row filter) for the current principle
 	 */
-	public List<RowFilter> getFilters(InteractionContext ctx) {
+	@Override
+	public List<RowFilter> getFilters(InteractionContext ctx) throws InteractionException {
+		if (null != exception) {
+			throw (exception);
+		}
+
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
 		// If a filter was passed on the command line use that
@@ -152,7 +165,12 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 	/*
 	 * Get the select (column filter) for the current principle.
 	 */
-	public Set<FieldName> getSelect(InteractionContext ctx) {
+	@Override
+	public Set<FieldName> getSelect(InteractionContext ctx) throws InteractionException {
+		if (null != exception) {
+			throw (exception);
+		}
+
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
 		// If a select was passed on the command line use that.
@@ -166,8 +184,12 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 	}
 
 	@Override
-	public AccessProfile getAccessProfile(InteractionContext ctx) {
-		// TODO Auto-generated method stub
-		return null;
+	public AccessProfile getAccessProfile(InteractionContext ctx) throws InteractionException {
+		if (null != exception) {
+			throw (exception);
+		}
+
+		AccessProfile profile = new AccessProfile(getFilters(ctx), getSelect(ctx));
+		return (profile);
 	}
 }

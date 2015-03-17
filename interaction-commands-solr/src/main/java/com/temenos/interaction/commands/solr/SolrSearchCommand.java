@@ -287,13 +287,13 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 
 				logger.info("Adding filters:");
 				for (RowFilter filter : filters) {
-					logger.info("    " + filter.getFieldName().getName() + filter.getRelation().getoDataString()
-							+ filter.getValue());
+					logger.info("    " + filter.getFieldName().getName() + " " + filter.getRelation().getoDataString()
+							+ " " + filter.getValue());
 					if (Relation.EQ != filter.getRelation()) {
 						// TODO. Code other conditions.
 						logger.warn("Non 'eq' filter conditions not yet implemented ... ignored.");
 					} else {
-						query.addFilterQuery(filter.getFieldName().getName() + ":" + filter.getValue());
+						query.addFilterQuery(filter.getFieldName().getName() + ":\"" + filter.getValue() + "\"");
 					}
 				}
 			} catch (ODataParser.UnsupportedQueryOperationException e) {

@@ -16,7 +16,7 @@ package com.temenos.interaction.authorization.command;
 
 /*
  * #%L
- * interaction-commands-Authorization
+ * interaction-commands-authorization
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.expression.BoolCommonExpression;
 import org.odata4j.expression.EntitySimpleProperty;
@@ -48,10 +49,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.IAuthorizationProvider;
+import com.temenos.interaction.authorization.command.data.AccessProfile;
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.authorization.command.util.ODataParser.UnsupportedQueryOperationException;
+import com.temenos.interaction.authorization.exceptions.AuthorizationException;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -65,6 +68,11 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		this.authorizationBean = authorizationBean;
 	}
 
+	/*
+	 * Execute the command.
+	 * 
+	 * If there is any form of internal error during authorization this will throw and nothing should be returned to the use.
+	 */
 	public Result execute(InteractionContext ctx) throws InteractionException {
 
 		// TODO Remove before production
@@ -75,26 +83,10 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 			logger.info("    Key " + theKey + " = Value " + ctx.getQueryParameters().getFirst(theKey));
 		}
 
-		try {
-			// Parse the incoming oData. Do once extracting filter and select.
-			EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
+		EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
 
-			// Call the single API
-			// applyAuthorization(ctx, queryInfo.filter, queryInfo.select);
-			
-			
-			if (!addRowFilter(ctx, queryInfo.filter)) {
-				logger.info("After authorization there are no rows to return. Command not called.");
-				return (Result.SUCCESS);
-			}
-
-			addColFilter(ctx, queryInfo.select);
-
-		} catch (Exception e) {
-			// Any sort of exception is an Authorization failure
-			logger.info("Authorization failed: " + e.getMessage());
-			return (Result.FAILURE);
-		}
+		// Call the single API
+		applyAuthorization(ctx, queryInfo.filter, queryInfo.select);
 
 		Result res = command.execute(ctx);
 
@@ -106,46 +98,33 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		return (res);
 	}
 
-	
 	/**
-	 * This method will apply Authorization on InteractionContext for filtering data
+	 * This method will apply Authorization on InteractionContext for filtering
+	 * data
+	 * 
 	 * @param ctx
 	 * @param oldFilter
 	 * @param oldSelect
 	 * @throws UnsupportedQueryOperationException
 	 */
-	private void applyAuthorization(InteractionContext ctx, 
-			BoolCommonExpression oldFilter,  List<EntitySimpleProperty> oldSelect) 
-					throws UnsupportedQueryOperationException {
-		
-		// TODO : Should be implemented and used instead 
-		// 
-		// AccessProfile accessProfile = authorizationBean.getAccessProfile(ctx);
-		// 
-		// List<RowFilter> newList = accessProfile.getRowFilters();
-		// Update Ctx with aggregated 'filter'
-		// 
-		// Set<FieldName> authSet = accessProfile.getFieldNames();
-		// Update Ctx with aggregated 'select'
+	private void applyAuthorization(InteractionContext ctx, BoolCommonExpression oldFilter,
+			List<EntitySimpleProperty> oldSelect) throws InteractionException {
+
+		AccessProfile accessProfile = authorizationBean.getAccessProfile(ctx);
+		List<RowFilter> newList = accessProfile.getRowFilters();
+		try {
+			addRowFilter(ctx, newList, oldFilter);
+		} catch (UnsupportedQueryOperationException e) {
+			throw (new AuthorizationException(Status.UNAUTHORIZED, e.toString()));
+		}
+
+		Set<FieldName> authSet = accessProfile.getFieldNames();
+		addColFilter(ctx, authSet, oldSelect);
 	}
-	
-	
-	
-	// Add a row.
-	//
-	// @Returns true = rows added, false = rows not added. Return no entries
-	private boolean addRowFilter(InteractionContext ctx, BoolCommonExpression oldFilter)
+
+	private boolean addRowFilter(InteractionContext ctx, List<RowFilter> newList, BoolCommonExpression oldFilter)
 			throws UnsupportedQueryOperationException {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-
-		// Get filter from the authorization bean.
-		List<RowFilter> newList = authorizationBean.getFilters(ctx);
-		
-		// NOT sure if following is correct. RowFilter == NULL == Return Everything...Right?
-		if (null == newList) {
-			// Null means return no entries - 
-			return (false);
-		}
 
 		// Get any existing filter
 		List<RowFilter> oldList = ODataParser.parseFilter(oldFilter);
@@ -171,30 +150,20 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		return (true);
 	}
 
-	private void addColFilter(InteractionContext ctx, List<EntitySimpleProperty> oldSelect) {
-
-		// getEntityQueryInfo returns an empty list for missing 'selects'. In
-		// the authentication framework these
-		// are represented with nulls.
-		if (oldSelect.isEmpty()) {
-			oldSelect = null;
-		}
+	private void addColFilter(InteractionContext ctx, Set<FieldName> authSet, List<EntitySimpleProperty> oldSelect) {
 
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-
-		// Get select from the authorization bean.
-		Set<FieldName> authSet = authorizationBean.getSelect(ctx);
 
 		// Get any existing select
 		Set<FieldName> oldSet = ODataParser.parseSelect(oldSelect);
 
-		if (null == authSet) {
-			// null from authorization means 'return all requested' i.e.
+		if (authSet.isEmpty()) {
+			// Empty authorization list means 'return all requested' i.e.
 			// don't modify existing $select parameter.
 			return;
 		} else {
-			if (null == oldSet) {
-				// null in oldlist means just return authorization list
+			if (oldSet.isEmpty()) {
+				// Empty oldlist means just return authorization list
 				queryParams.putSingle(ODataParser.SELECT_KEY, ODataParser.toSelect(authSet));
 			} else {
 
