@@ -24,9 +24,9 @@ package com.temenos.interaction.commands.solr;
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * #L%
 */
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -218,6 +218,84 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 			threw = true;
 		}
 		assertFalse(threw);
+	}
+	
+	/**
+	 * Test for filtering on 'not equal' single field
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFilterNotEqual() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$filter", "id ne 1111");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		
+		// Should get 3 out of 4
+		assertEquals(3, cr.getEntities().size());
+	}
+	
+	/**
+	 * Test for filtering on 'greater than' single field
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFilterGreaterThan() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$filter", "id gt 3333");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		
+		// Should get 4444
+		assertEquals(1, cr.getEntities().size());
+	}
+	
+	/**
+	 * Test for filtering on 'less than' single field
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFilterLessThan() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$filter", "id lt 2222");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		
+		// Should get 1111
+		assertEquals(1, cr.getEntities().size());
 	}
 
 

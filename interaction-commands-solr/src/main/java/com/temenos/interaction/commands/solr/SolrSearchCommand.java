@@ -49,7 +49,6 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
 import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -289,11 +288,31 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 				for (RowFilter filter : filters) {
 					logger.info("    " + filter.getFieldName().getName() + " " + filter.getRelation().getoDataString()
 							+ " " + filter.getValue());
-					if (Relation.EQ != filter.getRelation()) {
-						// TODO. Code other conditions.
-						logger.warn("Non 'eq' filter conditions not yet implemented ... ignored.");
-					} else {
+					
+					// Build filter query. Filter query (fq) syntax is non obvious. Check out on line references.
+
+					switch (filter.getRelation()) {
+					case EQ:
 						query.addFilterQuery(filter.getFieldName().getName() + ":\"" + filter.getValue() + "\"");
+						break;
+
+					case NE:
+						query.addFilterQuery("-" + filter.getFieldName().getName() + ":\"" + filter.getValue() + "\"");
+						break;
+
+					case LT:
+						// fq comparisons uses 'inclusive' [x TO y] syntax. To get an 'exclusive' lt use 'not gt'.
+						query.addFilterQuery("-" + filter.getFieldName().getName() + ":[\"" + filter.getValue() + "\" TO *]");
+						break;
+
+					case GT:
+						// fq comparisons uses 'inclusive' [x TO y] syntax. To get an 'exclusive' gt use 'not lt'.
+						query.addFilterQuery("-" + filter.getFieldName().getName() + ":[* TO \"" + filter.getValue() + "\"]");
+						break;
+
+					default:
+						logger.warn("Non 'eq' filter conditions \"" + filter.getRelation()
+								+ "\" not yet implemented ... ignored.");
 					}
 				}
 			} catch (ODataParser.UnsupportedQueryOperationException e) {
