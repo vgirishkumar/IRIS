@@ -33,7 +33,9 @@ public class RowFilter {
 		EQ("eq"),
 		NE("ne"),
 		LT("lt"),
-		GT("gt");
+		GT("gt"),
+		LE("le"),
+		GE("ge");
 		
 		// OData equivalent
 		private final String oDataString;

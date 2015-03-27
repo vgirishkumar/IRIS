@@ -309,9 +309,17 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 						// fq comparisons uses 'inclusive' [x TO y] syntax. To get an 'exclusive' gt use 'not lt'.
 						query.addFilterQuery("-" + filter.getFieldName().getName() + ":[* TO \"" + filter.getValue() + "\"]");
 						break;
+						
+					case LE:
+						query.addFilterQuery(filter.getFieldName().getName() + ":[* TO \"" + filter.getValue() + "\"]");
+						break;
+
+					case GE:
+						query.addFilterQuery(filter.getFieldName().getName() + ":[\"" + filter.getValue() + "\" TO *]");
+						break;
 
 					default:
-						logger.warn("Non 'eq' filter conditions \"" + filter.getRelation()
+						logger.warn("Filter condition \"" + filter.getRelation()
 								+ "\" not yet implemented ... ignored.");
 					}
 				}

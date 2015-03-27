@@ -297,6 +297,59 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 		// Should get 1111
 		assertEquals(1, cr.getEntities().size());
 	}
+	
+	/**
+	 * Test for filtering on 'greater than or equal' single field
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFilterGreaterThanEqual() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$filter", "id ge 3333");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		
+		// Should get 3333 and 4444
+		assertEquals(2, cr.getEntities().size());
+	}
+	
+	/**
+	 * Test for filtering on 'less than or equal' single field
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFilterLessThanEqual() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$filter", "id le 2222");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		
+		// Should get 1111 and 2222
+		assertEquals(2, cr.getEntities().size());
+	}
+
 
 
 }
