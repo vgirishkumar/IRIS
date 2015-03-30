@@ -299,6 +299,33 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	}
 	
 	/**
+	 * Test for filtering on a range. GE one value and LE another.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFilterRange() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$filter", "id gt 2222");
+		queryParams.add("$filter", "id lt 3333");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+		InteractionCommand.Result result = command.execute(ctx);
+		assertEquals(Result.SUCCESS, result);
+
+		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
+		
+		// Should get 2222 and 3333
+		assertEquals(2, cr.getEntities().size());
+	}
+	
+	/**
 	 * Test for filtering on 'greater than or equal' single field
 	 */
 	@SuppressWarnings("unchecked")
