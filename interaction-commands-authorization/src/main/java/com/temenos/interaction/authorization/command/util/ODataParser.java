@@ -39,7 +39,12 @@ import org.odata4j.expression.BooleanLiteral;
 import org.odata4j.expression.CommonExpression;
 import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.expression.EqExpression;
+import org.odata4j.expression.GeExpression;
+import org.odata4j.expression.GtExpression;
+import org.odata4j.expression.LeExpression;
 import org.odata4j.expression.LiteralExpression;
+import org.odata4j.expression.LtExpression;
+import org.odata4j.expression.NeExpression;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.resources.OptionsQueryParser;
 
@@ -111,6 +116,21 @@ public class ODataParser {
 		} else if (expression instanceof EqExpression) {
 			EqExpression expr = (EqExpression) expression;
 			filter.add(new RowFilter(getExpressionValue(expr.getLHS()), Relation.EQ, getExpressionValue(expr.getRHS())));
+		} else if (expression instanceof NeExpression) {
+			NeExpression expr = (NeExpression) expression;
+			filter.add(new RowFilter(getExpressionValue(expr.getLHS()), Relation.NE, getExpressionValue(expr.getRHS())));
+		} else if (expression instanceof GtExpression) {
+			GtExpression expr = (GtExpression) expression;
+			filter.add(new RowFilter(getExpressionValue(expr.getLHS()), Relation.GT, getExpressionValue(expr.getRHS())));
+		} else if (expression instanceof LtExpression) {
+			LtExpression expr = (LtExpression) expression;
+			filter.add(new RowFilter(getExpressionValue(expr.getLHS()), Relation.LT, getExpressionValue(expr.getRHS())));
+		} else if (expression instanceof GeExpression) {
+			GeExpression expr = (GeExpression) expression;
+			filter.add(new RowFilter(getExpressionValue(expr.getLHS()), Relation.GE, getExpressionValue(expr.getRHS())));
+		} else if (expression instanceof LeExpression) {
+			LeExpression expr = (LeExpression) expression;
+			filter.add(new RowFilter(getExpressionValue(expr.getLHS()), Relation.LE, getExpressionValue(expr.getRHS())));
 		} else {
 			throw new UnsupportedQueryOperationException("Unsupported expression " + expression);
 		}
