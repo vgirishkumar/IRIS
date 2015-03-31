@@ -48,7 +48,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         
         fsa.generateFile("IRIS-" + rimName + "-PRD.xml", toSpringXML(rim))
 
-        fsa.generateFile("IRIS-" + rimName + ".properties", toBeanMap(rim))
+        fsa.generateFile("META-INF/IRIS-" + rimName + ".properties", toBeanMap(rim))
 	}
 
 	

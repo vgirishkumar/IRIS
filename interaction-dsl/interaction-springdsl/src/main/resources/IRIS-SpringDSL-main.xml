@@ -38,6 +38,7 @@
   		<property name="locations">
     		<list>
       			<value>classpath*:IRIS-*.properties</value>
+      			<value>classpath*:/META-INF/IRIS-*.properties</value>
     		</list>
   		</property>
 	</bean>
