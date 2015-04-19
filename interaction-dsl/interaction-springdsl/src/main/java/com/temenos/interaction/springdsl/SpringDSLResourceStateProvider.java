@@ -186,8 +186,8 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 					String beanXml = "IRIS-" + resourceName + "-PRD.xml";
 					if (this.getClass().getClassLoader().getResource(beanXml) != null) {
 						ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
-						resource = (ResourceState) context.getBean(resourceState);
-						resources.putIfAbsent(resourceState, resource);
+						
+						resource = loadAllResourceStatesFromFile(resourceState, resource, context);						
 					} else {
 						/*
 						 * so there is no - 
@@ -206,8 +206,8 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 										resourceState = resourceState.substring(0, pos) + "-" + resourceState.substring(pos+1);
 									}
 								}
-								resource = (ResourceState) context.getBean(resourceState);
-								resources.putIfAbsent(resourceState, resource);
+								
+								resource = loadAllResourceStatesFromFile(resourceState, resource, context);						
 							}else{
 								logger.error("Unable to load resource ["+beanXml+"] not found");
 							}
@@ -222,6 +222,19 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			logger.error("Failed to load ["+resourceState+"]", e);
 		}
 		return null;
+	}
+
+	private ResourceState loadAllResourceStatesFromFile(String resourceState, ResourceState resource, ClassPathXmlApplicationContext context) {
+		Map<String,ResourceState> tmpResources = context.getBeansOfType(ResourceState.class);
+		resources.putAll(tmpResources);
+		
+		if(tmpResources.containsKey(resourceState)) {
+			resource = tmpResources.get(resourceState);
+		} else {
+			logger.error("Unable to resource state: " + resourceState);
+		}
+		
+		return resource;
 	}
 
 	@Override
