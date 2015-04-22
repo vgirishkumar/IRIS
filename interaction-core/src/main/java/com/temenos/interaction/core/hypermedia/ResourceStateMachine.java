@@ -293,12 +293,16 @@ public class ResourceStateMachine {
 		if (currentState == null)
 			return;
 		currentState = checkAndResolve(currentState);
-		if (result.contains(currentState))
-			return;
+		
+		for(ResourceState tmpState: result) {
+			if(tmpState == currentState)
+				return;
+		}		
+		
 		result.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
 			next = checkAndResolve(next);
-			if (next != null && !next.equals(initial)) {
+			if (next != null && next != initial) {
 				collectStates(result, next);
 			}
 		}
@@ -306,16 +310,23 @@ public class ResourceStateMachine {
 
 	private void collectTransitionsById(Map<String, Transition> transitions, ResourceState currentState,
 			Collection<ResourceState> processedStates) {
-		if (currentState == null || processedStates.contains(currentState)) {
+		
+		if (currentState == null) {
 			return;
 		}
+		
+		for(ResourceState tmpState: processedStates) {
+			if(tmpState == currentState)
+				return;
+		}
+		
 		for (Transition transition : currentState.getTransitions()) {
 			transitions.put(transition.getId(), transition);
 		}
 		processedStates.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
 			next = checkAndResolve(next);
-			if (next != null && !next.equals(initial)) {
+			if (next != null && next != initial) {
 				collectTransitionsById(transitions, next, processedStates);
 			}
 		}
@@ -323,9 +334,15 @@ public class ResourceStateMachine {
 
 	private void collectTransitionsByRel(Map<String, Transition> transitions, ResourceState currentState,
 			Collection<ResourceState> processedStates) {
-		if (currentState == null || processedStates.contains(currentState)) {
+		if (currentState == null) {
 			return;
 		}
+		
+		for(ResourceState tmpState: processedStates) {
+			if(tmpState == currentState)
+				return;
+		}
+		
 		for (Transition transition : currentState.getTransitions()) {
 			if (transition == null) {
 				logger.warn("collectTransitionsByRel : null transition detected");
@@ -340,7 +357,7 @@ public class ResourceStateMachine {
 		processedStates.add(currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
 			next = checkAndResolve(next);
-			if (next != null && !next.equals(initial)) {
+			if (next != null && next != initial) {
 				collectTransitionsById(transitions, next, processedStates);
 			}
 		}
@@ -358,8 +375,16 @@ public class ResourceStateMachine {
 
 	private void collectInteractionsByPath(Map<String, Set<String>> result, Collection<ResourceState> states,
 			ResourceState currentState, String method) {
-		if (currentState == null || states.contains(currentState))
+		
+		if (currentState == null) {
 			return;
+		}
+		
+		for(ResourceState tmpState: states) {
+			if(tmpState == currentState)
+				return;
+		}
+		
 		states.add(currentState);
 		// every state must have a 'GET' interaction
 		Set<String> interactions = result.get(currentState.getPath());
@@ -403,8 +428,16 @@ public class ResourceStateMachine {
 
 	private void collectInteractionsByState(Map<String, Set<String>> result, Collection<String> states,
 			ResourceState currentState, String method) {
-		if (currentState == null || states.contains(currentState.getName()))
+		
+		if (currentState == null) {
 			return;
+		}
+		
+		for(String tmpState: states) {
+			if(tmpState == currentState.getName())
+				return;
+		}
+		
 		states.add(currentState.getName());
 		// every state must have a 'GET' interaction
 		Set<String> interactions = result.get(currentState.getName());
@@ -532,8 +565,16 @@ public class ResourceStateMachine {
 
 	private void collectResourceStatesByPath(Map<String, Set<ResourceState>> result, Collection<ResourceState> states,
 			ResourceState currentState) {
-		if (currentState == null || states.contains(currentState))
+		
+		if (currentState == null) {
 			return;
+		}
+		
+		for(ResourceState tmpState: states) {
+			if(tmpState == currentState)
+				return;
+		}
+		
 		states.add(currentState);
 		// add current state to results
 		Set<ResourceState> thisStateSet = result.get(currentState.getResourcePath());
@@ -543,7 +584,7 @@ public class ResourceStateMachine {
 		result.put(currentState.getResourcePath(), thisStateSet);
 		for (ResourceState next : currentState.getAllTargets()) {
 			// if (!next.equals(currentState) && !next.isPseudoState()) {
-			if (next != null && !next.equals(currentState)) {
+			if (next != null && next != currentState) {
 				String path = next.getResourcePath();
 				if (result.get(path) != null) {
 					if (!result.get(path).contains(next)) {
@@ -605,13 +646,19 @@ public class ResourceStateMachine {
 
 	private void collectResourceStatesByName(Map<String, ResourceState> result, Collection<ResourceState> states,
 			ResourceState currentState) {
-		if (currentState == null || states.contains(currentState))
+		if (currentState == null)
 			return;
+			
+		for(ResourceState tmpState: states) {
+			if(tmpState == currentState)
+				return;
+		}
+		
 		states.add(currentState);
 		// add current state to results
 		result.put(currentState.getName(), currentState);
 		for (ResourceState next : currentState.getAllTargets()) {
-			if (next != null && !next.equals(currentState)) {
+			if (next != null && next != currentState) {
 				String name = next.getName();
 				logger.debug("Putting a ResourceState[" + name + "]: " + next);
 				result.put(name, next);
@@ -780,7 +827,7 @@ public class ResourceStateMachine {
 						 * ourselves we only want to embed the 'EMBEDDED'
 						 * transitions
 						 */
-						if (!t.getSource().equals(t.getTarget())
+						if (t.getSource() != t.getTarget()
 								&& (t.getCommand().getFlags() & Transition.EMBEDDED) == Transition.EMBEDDED) {
 							configBuilder.transition(t);
 						}
@@ -1075,7 +1122,7 @@ public class ResourceStateMachine {
 		
 		String rel = targetState.getRel();
 		
-		if (transition.getSource().equals(targetState)) {
+		if (transition.getSource() == targetState) {
 			rel = "self";
 		}				
 		
