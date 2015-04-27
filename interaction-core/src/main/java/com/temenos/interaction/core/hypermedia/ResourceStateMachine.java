@@ -243,29 +243,193 @@ public class ResourceStateMachine {
 		build();
 	}
 
+	/**
+	 * This method is called during resource state machine construction and builds the resource state machine's internal state graph starting 
+	 * from the initial state.  
+	 */
 	private synchronized void build() {
-		register(initial, HttpMethod.GET);
+		checkAndResolve(initial);
+		collectStates(allStates, initial);
+		collectTransitionsById(transitionsById, initial, new ArrayList<ResourceState>());
+		collectTransitionsByRel(transitionsByRel, initial, new ArrayList<ResourceState>());
+		collectInteractionsByPath(interactionsByPath, new ArrayList<ResourceState>(), initial, HttpMethod.GET);
+		collectInteractionsByState(interactionsByState, new ArrayList<String>(), initial, HttpMethod.GET);
+		collectResourceStatesByPath(resourceStatesByPath, new HashSet<ResourceState>(), initial);
+		collectResourceStatesByName(resourceStatesByName, initial);		
 	}
 
+	/**
+	 * Registers the given state / method pair, and any states required to process the given state, with the resource state machine's internal state graph   
+	 *  
+	 * @param state 	The resource state to register
+	 * @param method	The HTTP method associated with the state, this is important as the state to handle a request is determined by the duo
+	 * 					of the state's path and HTTP method; path alone is not sufficient as multiple states can share the same path
+	 */
 	public synchronized void register(ResourceState state, String method) {
 		checkAndResolve(state);
-		collectStates(allStates, state);
-		collectTransitionsById(transitionsById, state, new ArrayList<ResourceState>());
-		collectTransitionsByRel(transitionsByRel, state, new ArrayList<ResourceState>());
-		collectInteractionsByPath(interactionsByPath, new ArrayList<ResourceState>(), state, method);
-		collectInteractionsByState(interactionsByState, new ArrayList<String>(), state, method);
-		collectResourceStatesByPath(resourceStatesByPath, new HashSet<ResourceState>(), state);
-		collectResourceStatesByName(resourceStatesByName, state);
+		
+		if (state == null) {
+			return;
+		}
+		
+		collectTransitionsByIdForState(state);
+				
+		collectTransitionsByRelForState(state);
+		
+		collectInteractionsByPathForState(state, method);
+		
+		collectInteractionsByStateForState(state, method);
+		
+		collectResourceStatesByPathForState(state);		
+		
+		resourceStatesByName.put(state.getName(), state);
+		
+		// Process any embedded / foreach resources linked to this resource
+		for (Transition tmpTransition : state.getTransitions()) {
+			
+			if(tmpTransition.isType(Transition.EMBEDDED)) {
+				register(tmpTransition.getTarget(), tmpTransition.getCommand().getMethod());
+			}
+			
+			if(tmpTransition.isType(Transition.FOR_EACH)) {
+				register(tmpTransition.getTarget(), tmpTransition.getCommand().getMethod());
+			}
+		}
 	}
 
-	public synchronized void unregister(ResourceState state) {
+	/**
+	 * @param state
+	 */
+	private void collectResourceStatesByPathForState(ResourceState state) {
+		Set<ResourceState> pathStates = resourceStatesByPath.get(state.getResourcePath());
+		if (pathStates == null) {
+			pathStates = new HashSet<ResourceState>();
+			resourceStatesByPath.put(state.getResourcePath(), pathStates);
+		}
+		
+		pathStates.add(state);
+	}
+
+	/**
+	 * @param state
+	 * @param method
+	 */
+	private void collectInteractionsByStateForState(ResourceState state, String method) {
+		Set<String> stateInteractions = interactionsByState.get(state.getName());
+		if (stateInteractions == null) {
+			stateInteractions = new HashSet<String>();
+			interactionsByState.put(state.getName(), stateInteractions);
+		}
+		
+		if (!state.isPseudoState()) {
+			if (method != null) {
+				stateInteractions.add(method);
+			} else {
+				stateInteractions.add(HttpMethod.GET);
+			}
+		}
+		if (state.getActions() != null) {
+			for (Action action : state.getActions()) {
+				if (action.getMethod() != null) {
+					stateInteractions.add(action.getMethod());
+				}
+			}
+		}
+		
+		for (ResourceState next : state.getAllTargets()) {
+			List<Transition> transitions = state.getTransitions(next);
+			for (Transition t : transitions) {
+				TransitionCommandSpec command = t.getCommand();
+
+				Set<String> tmpStateInteractions = interactionsByState.get(next.getName());
+				
+				if (tmpStateInteractions == null) {
+					tmpStateInteractions = new HashSet<String>();
+					interactionsByState.put(next.getName(), tmpStateInteractions);					
+				}
+				
+				if (command.getMethod() != null && !command.isAutoTransition())
+					tmpStateInteractions.add(command.getMethod());				
+			}
+		}
+	}
+
+	/**
+	 * @param state
+	 * @param method
+	 */
+	private void collectInteractionsByPathForState(ResourceState state, String method) {
+		Set<String> pathInteractions = interactionsByPath.get(state.getPath());
+		if (pathInteractions == null) {
+			pathInteractions = new HashSet<String>();
+			interactionsByPath.put(state.getPath(), pathInteractions);
+		}
+		
+		if (method != null) {
+			pathInteractions.add(method);
+		} else {
+			pathInteractions.add(HttpMethod.GET);
+		}
+	}
+
+	/**
+	 * @param state
+	 */
+	private void collectTransitionsByRelForState(ResourceState state) {
+		for (Transition transition : state.getTransitions()) {
+			if (transition == null) {
+				logger.warn("collectTransitionsByRel : null transition detected");
+			} else if (transition.getTarget() == null) {
+				logger.warn("collectTransitionsByRel : null target detected");
+			} else if (transition.getTarget().getRel() == null) {
+				logger.warn("collectTransitionsByRel : null relation detected");
+			} else {
+				transitionsByRel.put(transition.getTarget().getRel(), transition);
+			}
+		}
+	}
+
+	/**
+	 * @param state
+	 */
+	private void collectTransitionsByIdForState(ResourceState state) {
+		for (Transition transition : state.getTransitions()) {
+			transitionsById.put(transition.getId(), transition);
+		}
+	}
+
+	/**
+	 * Unregisters the given state / method pair from the resource state machine's internal state graph   
+	 *  
+	 * @param state 	The resource state to unregister
+	 * @param method	The HTTP method associated with the state, this is important as the state to handle a request is determined by the duo
+	 * 					of the state's path and HTTP method; path alone is not sufficient as multiple states can share the same path
+	 */	
+	public synchronized void unregister(ResourceState state, String method) {
 		checkAndResolve(state);
 		allStates.remove(state);
 		// collectTransitionsById(transitionsById, state);
 		// collectTransitionsByRel(transitionsByRel, state);
-		interactionsByPath.remove(state.getPath());
-		interactionsByState.remove(state);
-		resourceStatesByPath.remove(state.getPath());
+		
+		// Process interactions by path		
+		final Set<String> pathInteractions = interactionsByPath.get(state.getPath());
+		
+		if(pathInteractions != null)
+			pathInteractions.remove(method);
+		
+		// Process interactions by state		
+		final Set<String> stateInteractions = interactionsByState.get(state);
+		
+		if(stateInteractions != null)
+			stateInteractions.remove(method);
+				
+		// Process resource states by path		
+		final Set<ResourceState> pathStates = resourceStatesByPath.get(state.getResourcePath());
+		
+		if(pathStates != null)
+			pathStates.remove(state);
+
+		// Process resource states by name
 		resourceStatesByName.remove(state.getName());
 	}
 	
@@ -1036,9 +1200,41 @@ public class ResourceStateMachine {
 		
 		try {
 			ResourceState targetState = transition.getTarget();
-			// is this a lazy resource state
-			targetState = checkAndResolve(targetState);
 			
+			if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
+				targetState = resourceStateProvider.getResourceState(targetState.getName());
+			}
+			
+			if (targetState != null) {
+				for (Transition tmpTransition : targetState.getTransitions()) {
+					if(tmpTransition.isType(Transition.EMBEDDED)) {
+						if (tmpTransition.getTarget() instanceof LazyResourceState
+								|| tmpTransition.getTarget() instanceof LazyCollectionResourceState) {						
+							if (tmpTransition.getTarget() != null) {							
+								ResourceState tt = resourceStateProvider.getResourceState(tmpTransition.getTarget().getName());
+								if (tt == null) {
+									logger.error("Invalid transition [" + tmpTransition.getId() + "]");
+								}
+								tmpTransition.setTarget(tt);
+							}
+						}						
+					}					
+				}
+								
+				// Target can have errorState which is not a normal transition, so resolve and add it here
+				if (targetState.getErrorState() != null) {
+					ResourceState errorState = targetState.getErrorState();
+					if ( 	(errorState instanceof LazyResourceState ||
+							errorState instanceof LazyCollectionResourceState)
+							&& 
+							errorState.getId().startsWith(".")) {
+						// We should resolve and overwrite the one already there  
+						errorState = resourceStateProvider.getResourceState(errorState.getName());
+						targetState.setErrorState(errorState);
+					}
+				}
+			}
+						
 			if (targetState == null) {
 				// a dead link, target could not be found
 				logger.error("Dead link to [" + transition.getId() + "]");
