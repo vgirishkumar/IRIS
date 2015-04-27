@@ -243,6 +243,10 @@ public class ResourceStateMachine {
 		build();
 	}
 
+	/**
+	 * This method is called during resource state machine construction and builds the resource state machine's internal state graph starting 
+	 * from the initial state.  
+	 */
 	private synchronized void build() {
 		checkAndResolve(initial);
 		collectStates(allStates, initial);
@@ -254,6 +258,13 @@ public class ResourceStateMachine {
 		collectResourceStatesByName(resourceStatesByName, initial);		
 	}
 
+	/**
+	 * Registers the given state / method pair, and any states required to process the given state, with the resource state machine's internal state graph   
+	 *  
+	 * @param state 	The resource state to register
+	 * @param method	The HTTP method associated with the state, this is important as the state to handle a request is determined by the duo
+	 * 					of the state's path and HTTP method; path alone is not sufficient as multiple states can share the same path
+	 */
 	public synchronized void register(ResourceState state, String method) {
 		checkAndResolve(state);
 		
@@ -261,22 +272,16 @@ public class ResourceStateMachine {
 			return;
 		}
 		
-		// Process transitions by id for state
 		collectTransitionsByIdForState(state);
-		
-		// Process transitions by relation		
+				
 		collectTransitionsByRelForState(state);
 		
-		// Process interactions by path
 		collectInteractionsByPathForState(state, method);
 		
-		// Process interactions by state
 		collectInteractionsByStateForState(state, method);
 		
-		// Process resource states by path
 		collectResourceStatesByPathForState(state);		
 		
-		// Process resource states by name
 		resourceStatesByName.put(state.getName(), state);
 		
 		// Process any embedded / foreach resources linked to this resource
@@ -393,6 +398,13 @@ public class ResourceStateMachine {
 		}
 	}
 
+	/**
+	 * Unregisters the given state / method pair from the resource state machine's internal state graph   
+	 *  
+	 * @param state 	The resource state to unregister
+	 * @param method	The HTTP method associated with the state, this is important as the state to handle a request is determined by the duo
+	 * 					of the state's path and HTTP method; path alone is not sufficient as multiple states can share the same path
+	 */	
 	public synchronized void unregister(ResourceState state, String method) {
 		checkAndResolve(state);
 		allStates.remove(state);
