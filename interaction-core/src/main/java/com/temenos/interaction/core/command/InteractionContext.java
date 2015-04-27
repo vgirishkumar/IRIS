@@ -58,7 +58,7 @@ public class InteractionContext {
 	/* Execution context */
 	private final UriInfo uriInfo;
 	private final HttpHeaders headers;
-	private final MultivaluedMap<String, String> queryParameters;
+	private final MultivaluedMap<String, String> inQueryParameters;
 	private final MultivaluedMap<String, String> pathParameters;
 	private final ResourceState currentState;
 	private final Metadata metadata;
@@ -71,7 +71,8 @@ public class InteractionContext {
 	private Map<String, Object> attributes = new HashMap<String, Object>();
 	private String preconditionIfMatch = null;
 	private List<String> preferredLanguages = new ArrayList<String>();
-	private Map<String, String> responseHeaders = new HashMap<String, String>();
+	private final Map<String, String> responseHeaders = new HashMap<String, String>();
+	private final Map<String, String> outQueryParameters = new HashMap<String, String>();
  
 
 	/**
@@ -89,7 +90,7 @@ public class InteractionContext {
 		this.uriInfo = uri;
 		this.headers = headers;
 		this.pathParameters = pathParameters;
-		this.queryParameters = queryParameters;
+		this.inQueryParameters = queryParameters;
 		this.currentState = currentState;
 		this.metadata = metadata;
 		assert(pathParameters != null);
@@ -112,7 +113,7 @@ public class InteractionContext {
 		this.uriInfo = null;
 		this.headers = headers != null ? headers : ctx.getHeaders();
 		this.pathParameters = pathParameters != null ? pathParameters : ctx.pathParameters;
-		this.queryParameters = queryParameters != null ? queryParameters : ctx.queryParameters;
+		this.inQueryParameters = queryParameters != null ? queryParameters : ctx.inQueryParameters;
 		this.currentState = currentState != null ? currentState : ctx.currentState;
 		this.metadata = ctx.metadata;
 		
@@ -136,7 +137,7 @@ public class InteractionContext {
 	 * URI query parameters as a result of jax-rs {@link UriInfo#getQueryParameters(true)}
 	 */
 	public MultivaluedMap<String, String> getQueryParameters() {
-		return queryParameters;
+		return inQueryParameters;
 	}
 
 	/**
@@ -310,5 +311,15 @@ public class InteractionContext {
 	 */
 	public List<String> getLanguagePreference(){
 		return preferredLanguages;
+	}
+
+	/**
+	 * Returns any query parameters, added by the resource's command, that should be dynamically
+	 * added to the response links   
+	 * 
+	 * @return the outQueryParameters
+	 */
+	public Map<String, String> getOutQueryParameters() {
+		return outQueryParameters;
 	}
 }
