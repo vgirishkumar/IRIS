@@ -1243,6 +1243,15 @@ public class ResourceStateMachine {
 			}
 			
 			UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
+			
+			// Add any query parameters set by the command to the response
+			if(ctx != null) {
+				Map<String,String> outQueryParams = ctx.getOutQueryParameters();
+				
+				for(Map.Entry<String, String> param: outQueryParams.entrySet()) {
+					linkTemplate.queryParam(param.getKey(), param.getValue());							
+				}
+			}
 
 			TransitionCommandSpec cs = transition.getCommand();			
 			String method = cs.getMethod();
