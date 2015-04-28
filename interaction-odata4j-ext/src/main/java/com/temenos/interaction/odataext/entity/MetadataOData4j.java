@@ -285,7 +285,7 @@ public class MetadataOData4j {
 				if (edmDataServices != null) {
 					// EDM data services has already been initialized
 
-					if (edmDataServices.getEdmEntitySet(entitySetName) != null) {
+					if (edmDataServices.findEdmEntitySet(entitySetName) != null) {
 						// EDM data services, i.e. service document, contains entity set therefore it needs to be rebuilt
 						edmDataServices = null;
 					}
