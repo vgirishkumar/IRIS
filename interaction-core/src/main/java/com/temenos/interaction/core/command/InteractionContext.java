@@ -59,6 +59,7 @@ public class InteractionContext {
 	private final UriInfo uriInfo;
 	private final HttpHeaders headers;
 	private final MultivaluedMap<String, String> inQueryParameters;
+	private final Map<String, String> outQueryParameters;	
 	private final MultivaluedMap<String, String> pathParameters;
 	private final ResourceState currentState;
 	private final Metadata metadata;
@@ -72,7 +73,6 @@ public class InteractionContext {
 	private String preconditionIfMatch = null;
 	private List<String> preferredLanguages = new ArrayList<String>();
 	private final Map<String, String> responseHeaders = new HashMap<String, String>();
-	private final Map<String, String> outQueryParameters = new HashMap<String, String>();
  
 
 	/**
@@ -91,6 +91,7 @@ public class InteractionContext {
 		this.headers = headers;
 		this.pathParameters = pathParameters;
 		this.inQueryParameters = queryParameters;
+		this.outQueryParameters = new HashMap<String,String>();		
 		this.currentState = currentState;
 		this.metadata = metadata;
 		assert(pathParameters != null);
@@ -114,6 +115,7 @@ public class InteractionContext {
 		this.headers = headers != null ? headers : ctx.getHeaders();
 		this.pathParameters = pathParameters != null ? pathParameters : ctx.pathParameters;
 		this.inQueryParameters = queryParameters != null ? queryParameters : ctx.inQueryParameters;
+		this.outQueryParameters = ctx.outQueryParameters == null ? new HashMap<String,String>() : ctx.outQueryParameters;
 		this.currentState = currentState != null ? currentState : ctx.currentState;
 		this.metadata = ctx.metadata;
 		
