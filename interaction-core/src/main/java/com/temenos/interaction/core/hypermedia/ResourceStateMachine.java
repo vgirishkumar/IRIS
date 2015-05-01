@@ -1158,7 +1158,21 @@ public class ResourceStateMachine {
 		if(tmpState == null) {
 			// A dead link, target could not be found
 			logger.error("Dead link - Failed to resolve resource using " + dynamicResourceState.getResourceLocatorName() + " resource locator");
-		} else {		
+		} else {
+			boolean registrationRequired = false;
+			
+			for(Transition transition: tmpState.getTransitions()) {
+				ResourceState target = transition.getTarget();
+				
+				if(target instanceof LazyResourceState || target instanceof LazyCollectionResourceState) {
+					registrationRequired = true;
+				}
+			}
+			
+			if(registrationRequired) {
+				register(tmpState, HttpMethod.GET);
+			}
+			
 			result.setState(tmpState);		
 			
 			if(parameterResolverProvider != null) {
