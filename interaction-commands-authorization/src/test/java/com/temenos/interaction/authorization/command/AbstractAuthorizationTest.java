@@ -28,10 +28,6 @@ package com.temenos.interaction.authorization.command;
 import org.junit.After;
 import org.junit.Before;
 
-import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionException;
-
 public class AbstractAuthorizationTest {
 
 	@Before
@@ -40,21 +36,5 @@ public class AbstractAuthorizationTest {
 
 	@After
 	public void tearDown() {
-	}
-
-	/*
-	 * A mock child class that can be called by the AuthorzationCommand.
-	 */
-	protected class MockCommand implements InteractionCommand {
-		// Somewhere to store the context we are passed
-		InteractionContext ctx = null;
-
-		public MockCommand() {
-		}
-
-		public Result execute(InteractionContext ctx) throws InteractionException {
-			this.ctx = ctx;
-			return (Result.SUCCESS);
-		}
 	}
 }

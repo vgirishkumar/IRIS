@@ -63,8 +63,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 	private final static Logger logger = LoggerFactory.getLogger(AuthorizationCommand.class);
 
 	// Normal constructor
-	public AuthorizationCommand(InteractionCommand command, IAuthorizationProvider authorizationBean) {
-		this.command = command;
+	public AuthorizationCommand(IAuthorizationProvider authorizationBean) {
 		this.authorizationBean = authorizationBean;
 	}
 
@@ -85,17 +84,14 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 
 		EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
 
-		// Call the single API
+		// Add authorization to context
 		applyAuthorization(ctx, queryInfo.filter, queryInfo.select);
+		
+		// Set attributes indicating that authorization has not yet been done.
+		ctx.setAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
+		ctx.setAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE, Boolean.FALSE);
 
-		Result res = command.execute(ctx);
-
-		// The database may not have fully completed the filtering.
-		// So re-do here.
-		// TODO Implement full Authorization filtering.
-		logger.info("Full authorization filtering not yet implemented");
-
-		return (res);
+		return (Result.SUCCESS);
 	}
 
 	/**
@@ -110,7 +106,9 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 	private void applyAuthorization(InteractionContext ctx, BoolCommonExpression oldFilter,
 			List<EntitySimpleProperty> oldSelect) throws InteractionException {
 
+		// TODO When IRIS supports it the following line will become a call to an Authorization resource.
 		AccessProfile accessProfile = authorizationBean.getAccessProfile(ctx);
+		
 		List<RowFilter> newList = accessProfile.getRowFilters();
 		try {
 			addRowFilter(ctx, newList, oldFilter);

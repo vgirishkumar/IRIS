@@ -54,9 +54,8 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 	@Test
 	public void testSelectCreate() {
 
-		MockCommand child = new MockCommand();
 		MockAuthorizationBean authBean = new MockAuthorizationBean("", "id");
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
+		AuthorizationCommand command = new AuthorizationCommand(authBean);
 
 		// Path is not important for security
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
@@ -86,9 +85,8 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 	@Test
 	public void testSelectRemoveNew() {
 
-		MockCommand child = new MockCommand();
 		MockAuthorizationBean authBean = new MockAuthorizationBean("", "name, id");
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
+		AuthorizationCommand command = new AuthorizationCommand(authBean);
 
 		// Path is not important for security
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
@@ -120,9 +118,8 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 	@Test
 	public void testSelectRemoveOld() {
 
-		MockCommand child = new MockCommand();
 		MockAuthorizationBean authBean = new MockAuthorizationBean("", "id");
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
+		AuthorizationCommand command = new AuthorizationCommand(authBean);
 
 		// Path is not important for security
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
@@ -154,9 +151,8 @@ public class AuthorizationCommandSelectTest extends AbstractAuthorizationTest {
 	@Test
 	public void testSelectUnion() {
 
-		MockCommand child = new MockCommand();
 		MockAuthorizationBean authBean = new MockAuthorizationBean("", "id, name, street");
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
+		AuthorizationCommand command = new AuthorizationCommand(authBean);
 
 		// Path is not important for security
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();

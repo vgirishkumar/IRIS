@@ -47,6 +47,8 @@ import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.authorization.command.PostFilterCommand;
+import com.temenos.interaction.authorization.command.PostSelectCommand;
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.authorization.command.util.ODataParser;
@@ -73,8 +75,6 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 	private static final String QUERY_KEY = "q";
 	private static final String FIELD_NAME_KEY = "fieldname";
 	private static final String COMPANY_NAME_KEY = "companyid";
-	private static final String FILTER_KEY = "$filter";
-	private static final String SELECT_KEY = "$select";
 
 	/**
 	 * Instantiates a new select command.
@@ -190,6 +190,11 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 			// SolrDocumentList list = rsp.getResults();
 
 			ctx.setResource(buildCollectionResource(entityType, rsp.getResults()));
+	
+			// Indicate that database level filtering was successful.
+			ctx.setAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
+			ctx.setAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
+			
 			res = Result.SUCCESS;
 		} catch (SolrException e) {
 			logger.error("An unexpected internal error occurred while querying Solr " + e);
@@ -234,7 +239,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 	private void addSelect(SolrQuery query, MultivaluedMap<String, String> queryParams) {
 
 		// If we were passed an OData $select parse it and add to the query
-		String selectOption = queryParams.getFirst(SELECT_KEY);
+		String selectOption = queryParams.getFirst(ODataParser.SELECT_KEY);
 		if (null != selectOption) {
 			// Its a comma separated list of fields.
 			Set<FieldName> fields = ODataParser.parseSelect(selectOption);
@@ -279,7 +284,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 	private void addFilter(SolrQuery query, MultivaluedMap<String, String> queryParams) {
 
 		// If we were passed an OData $filter parse it and add to the query
-		String filterOption = queryParams.getFirst(FILTER_KEY);
+		String filterOption = queryParams.getFirst(ODataParser.FILTER_KEY);
 		if (null != filterOption) {
 			try {
 				List<RowFilter> filters = ODataParser.parseFilter(filterOption);
@@ -324,7 +329,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 					}
 				}
 			} catch (ODataParser.UnsupportedQueryOperationException e) {
-				logger.error("Could not interpret OData " + FILTER_KEY + " = " + filterOption);
+				logger.error("Could not interpret OData " + ODataParser.FILTER_KEY + " = " + filterOption);
 				return;
 			}
 		}

@@ -39,8 +39,6 @@ public interface IAuthorizationProvider {
 	/**
 	 * This method will return the authorised AccessProfile for a current logged in user.
 	 * 
-	 * Note : For some providers this may return cached data. 
-	 * 
 	 * @param ctx
 	 */
 	public AccessProfile getAccessProfile(InteractionContext ctx) throws InteractionException;
@@ -49,8 +47,6 @@ public interface IAuthorizationProvider {
 	 * Get the row filter for the current principle
 	 * 
 	 * An empty list means do no filtering i.e. return all rows. This is represented by a missing $filter term.
-	 * 
-	 * Note : This should return current, non cached, data,
 	 */
 	public List<RowFilter> getFilters(InteractionContext ctx) throws InteractionException;
 
@@ -58,8 +54,6 @@ public interface IAuthorizationProvider {
 	 * Get the select for the current principle.
 	 * 
 	 * An empty list means do no selecting i.e. return all columns. This is represented by a missing $select term.
-	 * 
-	 * * Note : This should return current, non cached, data,
 	 */
 	public Set<FieldName> getSelect(InteractionContext ctx)  throws InteractionException;
 	
