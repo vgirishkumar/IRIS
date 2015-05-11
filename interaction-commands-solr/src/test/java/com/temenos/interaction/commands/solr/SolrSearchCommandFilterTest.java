@@ -37,6 +37,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
+import com.temenos.interaction.authorization.command.PostFilterCommand;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -70,6 +71,34 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
+	}
+	
+	
+	/**
+	 * Test that filter done flag changes state.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFilterDoneFlag() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$filter", "id eq 1111");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+	
+		// Set the flag to the not done state.
+		ctx.setAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
+		
+		command.execute(ctx);
+		
+		// Check filtering has been done
+		assertEquals(Boolean.TRUE, (Boolean) ctx.getAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE));
 	}
 
 	/**

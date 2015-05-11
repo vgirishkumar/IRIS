@@ -142,11 +142,9 @@ public class ResourceStateMachine {
 		if (interactions.contains(event.getMethod())) {
 			for (Action a : state.getActions()) {
 				if (event.isSafe() && a.getType().equals(Action.TYPE.VIEW)) {
-					// catch problem if overriding existing view actions
-					// assert(actions.size() == 0) :
-					// "Multiple view actions detected";
-					if (actions.size() == 0)
-						actions.add(a);
+					// Add action to list. Since we now support command chains, with more than one GET command, it is possible
+					// to have more than one VIEW in the action list.
+					actions.add(a);
 				} else if (event.isUnSafe() && a.getType().equals(Action.TYPE.ENTRY)
 						&& (a.getMethod() == null || event.getMethod().equals(a.getMethod()))) {
 					actions.add(a);

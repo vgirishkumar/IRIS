@@ -22,13 +22,9 @@ package com.temenos.interaction.authorization.command;
  */
 
 import com.temenos.interaction.authorization.IAuthorizationProvider;
-import com.temenos.interaction.core.command.InteractionCommand;
 
 public abstract class AbstractAuthorizationCommand {
-	// Somewhere to store the child command that will be called.
-	InteractionCommand command = null;
-
-	// Somewhere to store the bean that interfaces to a given authroization provider
+	// Somewhere to store the bean that interfaces to a given authroization provider. Eventually this will be a resource but
+	// Iris support for command calling resource does not yet exist.
 	IAuthorizationProvider authorizationBean = null;
-
 }

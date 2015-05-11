@@ -25,14 +25,13 @@ package com.temenos.interaction.commands.solr;
  * #L%
  */
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -40,6 +39,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
+import com.temenos.interaction.authorization.command.PostSelectCommand;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -146,6 +146,33 @@ public class SolrSearchCommandSelectTest extends AbstractSolrTest {
 		}
 	}
 
+	/**
+	 * Test that select done flag changes state.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testSelectDoneFlag() {
+		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+
+		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+		pathParams.add("companyid", COMPANY_NAME);
+
+		// Add OData filter
+		queryParams.add("$select", "name, mnemonic");
+
+		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+				queryParams, mock(ResourceState.class), mock(Metadata.class));
+	
+		// Set the flag to the not done state.
+		ctx.setAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE, Boolean.FALSE);
+		
+		command.execute(ctx);
+		
+		// Check filtering has been done
+		assertEquals(Boolean.TRUE, (Boolean) ctx.getAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE));
+	}
+	
 	/*
 	 * Test throws on bad $select
 	 * 

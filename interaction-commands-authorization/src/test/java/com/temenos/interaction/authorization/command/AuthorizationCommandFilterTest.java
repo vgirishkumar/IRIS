@@ -57,9 +57,8 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 	@Test
 	public void testInternalErrorThrows() {
 
-		MockCommand child = new MockCommand();
 		MockAuthorizationBean authBean = new MockAuthorizationBean(new InteractionException(Status.UNAUTHORIZED, "Test exception"));
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
+		AuthorizationCommand command = new AuthorizationCommand(authBean);
 
 		// Path is not important for security
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
@@ -88,9 +87,8 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 	@Test
 	public void testFilterCreate() {
 
-		MockCommand child = new MockCommand();
 		MockAuthorizationBean authBean = new MockAuthorizationBean("name eq Tim", "");
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
+		AuthorizationCommand command = new AuthorizationCommand(authBean);
 
 		// Path is not important for security
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
@@ -110,8 +108,12 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 			// Should never throw.
 			fail();
 		}
+		
 		// Check that the expected parameter is present
 		assertEquals("name eq Tim", ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY));
+		
+		// Check filtering has not yet been done
+		assertEquals(Boolean.FALSE, (Boolean) ctx.getAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE));	
 	}
 
 	/**
@@ -120,9 +122,8 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 	@Test
 	public void testFilterAdd() {
 
-		MockCommand child = new MockCommand();
 		MockAuthorizationBean authBean = new MockAuthorizationBean("id eq 1234", "");
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
+		AuthorizationCommand command = new AuthorizationCommand(authBean);
 
 		// Path is not important for security
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
@@ -156,9 +157,8 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 	@Test
 	public void testFilterKeywords() {
 
-		MockCommand child = new MockCommand();
 		MockAuthorizationBean authBean = new MockAuthorizationBean("Landlord eq Thor", "");
-		AuthorizationCommand command = new AuthorizationCommand(child, authBean);
+		AuthorizationCommand command = new AuthorizationCommand(authBean);
 
 		// Path is not important for security
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
