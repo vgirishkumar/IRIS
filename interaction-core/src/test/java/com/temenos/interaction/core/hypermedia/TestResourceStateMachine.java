@@ -1910,6 +1910,33 @@ public class TestResourceStateMachine {
 		MultivaluedMap<String, String> pathParams = HypermediaTemplateHelper.getPathParametersForTargetState(existsState.getTransition(cookingState), transProps);
 		assertEquals("SuperToaster", pathParams.getFirst("id"));	
 	}
+	
+	/*
+	 * Check that multiple GET (View) actions are correctly added.
+	 */
+	@Test
+	public void testDetermineMultipleGetAction() {
+		String ENTITY_NAME = "";
+  		List<Action> actions = new ArrayList<Action>();
+  		
+  		// Add multiple GET actions
+  		Action expected1 = new Action("GETEntities", Action.TYPE.VIEW);
+  		actions.add(expected1);
+  		Action expected2 = new Action("GETEntities", Action.TYPE.VIEW);
+  		actions.add(expected2);
+  		
+		ResourceState state = new ResourceState(ENTITY_NAME, "test", actions, "test");
+		
+		// Create resource state machine
+		ResourceStateMachine sm = new ResourceStateMachine(state);
+
+		// Ensure the correct actions are present.
+		List<Action> actual = sm.determineActions(new Event("GET", "GET"), state);
+		
+		assertEquals(2, actual.size());	
+		assertTrue(actual.contains(expected1));
+		assertTrue(actual.contains(expected2));
+	}
 
 	@SuppressWarnings({ "unused" })
 	private Object createTestNote(final String id) {
