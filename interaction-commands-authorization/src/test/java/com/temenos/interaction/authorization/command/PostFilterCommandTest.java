@@ -93,7 +93,7 @@ public class PostFilterCommandTest extends AbstractAuthorizationTest {
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		
 		// Set the flag
-		ctx.setAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
+		ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
 		
 		boolean threw = false;
 		try {
@@ -127,7 +127,7 @@ public class PostFilterCommandTest extends AbstractAuthorizationTest {
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		
 		// Set the flag
-		ctx.setAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
+		ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
 		
 		// Set up filter
 		ctx.getQueryParameters().add(ODataParser.FILTER_KEY, "test");
@@ -145,7 +145,7 @@ public class PostFilterCommandTest extends AbstractAuthorizationTest {
 		assertFalse(threw);
 		
 		// Should have changed filterDone state.
-		assertEquals(Boolean.TRUE, (Boolean) ctx.getAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE));
+		assertEquals(Boolean.TRUE, (Boolean) ctx.getAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE));
 		
 		// Check filtering has been done.
 		// TODO implement check

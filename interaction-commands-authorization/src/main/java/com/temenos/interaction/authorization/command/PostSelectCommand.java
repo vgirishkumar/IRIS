@@ -38,8 +38,6 @@ import com.temenos.interaction.core.command.InteractionException;
 
 public class PostSelectCommand implements InteractionCommand {
 
-	public static final String SELECT_DONE_ATTRIBUTE = "selectDone";
-
 	private final static Logger logger = LoggerFactory.getLogger(PostSelectCommand.class);
 
 	/*
@@ -48,7 +46,7 @@ public class PostSelectCommand implements InteractionCommand {
 	public Result execute(InteractionContext ctx) throws InteractionException {
 
 		// Check if selecting has already been done.
-		Boolean selectDone = (Boolean) ctx.getAttribute(SELECT_DONE_ATTRIBUTE);
+		Boolean selectDone = (Boolean)ctx.getAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE);
 
 		if (null == selectDone) {
 			// If attribute not present then something has gone wrong with
@@ -66,7 +64,7 @@ public class PostSelectCommand implements InteractionCommand {
 
 			if (Result.SUCCESS == res) {
 				// Note that selecting has been done.
-				ctx.setAttribute(SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
+				ctx.setAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
 			} else {
 				// Asked to select but could not. Security failure.
 				throw (new AuthorizationException(Status.UNAUTHORIZED, "Post selecting failed"));

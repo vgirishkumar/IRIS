@@ -113,7 +113,7 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 		assertEquals("name eq Tim", ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY));
 		
 		// Check filtering has not yet been done
-		assertEquals(Boolean.FALSE, (Boolean) ctx.getAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE));	
+		assertEquals(Boolean.FALSE, (Boolean) ctx.getAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE));	
 	}
 
 	/**

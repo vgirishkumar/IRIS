@@ -47,8 +47,7 @@ import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.authorization.command.PostFilterCommand;
-import com.temenos.interaction.authorization.command.PostSelectCommand;
+import com.temenos.interaction.authorization.command.AuthorizationAttributes;
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.authorization.command.util.ODataParser;
@@ -192,8 +191,8 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 			ctx.setResource(buildCollectionResource(entityType, rsp.getResults()));
 	
 			// Indicate that database level filtering was successful.
-			ctx.setAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
-			ctx.setAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
+			ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
+			ctx.setAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
 			
 			res = Result.SUCCESS;
 		} catch (SolrException e) {

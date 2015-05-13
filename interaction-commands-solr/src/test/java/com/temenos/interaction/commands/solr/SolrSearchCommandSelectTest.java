@@ -39,7 +39,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.PostSelectCommand;
+import com.temenos.interaction.authorization.command.AuthorizationAttributes;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -165,12 +165,12 @@ public class SolrSearchCommandSelectTest extends AbstractSolrTest {
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 	
 		// Set the flag to the not done state.
-		ctx.setAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE, Boolean.FALSE);
+		ctx.setAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE, Boolean.FALSE);
 		
 		command.execute(ctx);
 		
 		// Check filtering has been done
-		assertEquals(Boolean.TRUE, (Boolean) ctx.getAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE));
+		assertEquals(Boolean.TRUE, (Boolean) ctx.getAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE));
 	}
 	
 	/*

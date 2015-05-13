@@ -39,8 +39,6 @@ import com.temenos.interaction.core.command.InteractionException;
 
 public class PostFilterCommand implements InteractionCommand {
 
-	public static final String FILTER_DONE_ATTRIBUTE = "filterDone";
-
 	private final static Logger logger = LoggerFactory.getLogger(PostFilterCommand.class);
 
 	/*
@@ -49,7 +47,7 @@ public class PostFilterCommand implements InteractionCommand {
 	public Result execute(InteractionContext ctx) throws InteractionException {
 
 		// Check if filtering has already been done.
-		Boolean filterDone = (Boolean) ctx.getAttribute(FILTER_DONE_ATTRIBUTE);
+		Boolean filterDone = (Boolean)ctx.getAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE);
 
 		if (null == filterDone) {
 			// If attribute not present then something has gone wrong with
@@ -67,7 +65,7 @@ public class PostFilterCommand implements InteractionCommand {
 
 			if (Result.SUCCESS == res) {
 				// Note that filtering has been done.
-				ctx.setAttribute(FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
+				ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
 			} else {
 				// Asked to filter but could not. Security failure.
 				throw (new AuthorizationException(Status.UNAUTHORIZED, "Post filtering failed"));
