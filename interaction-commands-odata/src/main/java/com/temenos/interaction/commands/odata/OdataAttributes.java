@@ -21,36 +21,11 @@ package com.temenos.interaction.commands.odata;
  * #L%
  */
 
-
-import org.odata4j.producer.ODataProducer;
-
-import com.temenos.interaction.core.command.InteractionAttribute;
-
 /**
- * This enum defines InteractionContext attributes used by the OData package.
+ * Names of InteractionContext attributes used by the OData package.
  */
 
-public enum ODataAttributes implements InteractionAttribute {
+public class ODataAttributes {
 
-	O_DATA_PRODUCER_ATTRIBUTE("ODataProducer", ODataProducer.class);
-	
-	private String name;
-	private Class<?> type;
-	
-	ODataAttributes(String name, Class<?> type) {
-		init(name, type);
-	}
-	
-	public void init(String name, Class<?> type) {
-		this.name = name;
-		this.type = type;
-	}
-	
-	public Class<?> getType() {
-		return type;
-	}
-
-	public String getName() {
-		return name;
-	}
+	public static final String O_DATA_PRODUCER_ATTRIBUTE = "ODataProducer";
 }

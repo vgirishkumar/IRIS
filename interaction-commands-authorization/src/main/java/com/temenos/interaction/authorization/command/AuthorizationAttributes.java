@@ -21,39 +21,11 @@
 
 package com.temenos.interaction.authorization.command;
 
-import com.temenos.interaction.core.command.InteractionAttribute;
-
 /**
- * This enum defines InteractionContext attributes used by the authorization package.
+ * Names of InteractionContext attributes used by the authorization package.
  */
-public enum AuthorizationAttributes implements InteractionAttribute {
+public class AuthorizationAttributes {
 
-	FILTER_DONE_ATTRIBUTE("filterDone", Boolean.class), 
-	SELECT_DONE_ATTRIBUTE("selectDone", Boolean.class);
-
-	private String name;
-	private Class<?> type;
-
-	/**
-	 * @return the type
-	 */
-	public Class<?> getType() {
-		return type;
-	}
-
-	AuthorizationAttributes(String name, Class<?> type) {
-		init(name, type);
-	}
-
-	public void init(String name, Class<?> type) {
-		this.name = name;
-		this.type = type;
-	}
-
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return this.name;
-	}
+	public static final String FILTER_DONE_ATTRIBUTE = "filterDone"; 
+	public static final String SELECT_DONE_ATTRIBUTE = "selectDone";
 }

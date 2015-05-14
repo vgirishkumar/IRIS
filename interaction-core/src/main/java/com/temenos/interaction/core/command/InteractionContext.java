@@ -250,37 +250,12 @@ public class InteractionContext {
     }
     
     /**
-     * Store an attribute, described in a table, in this interaction context.
-     * @param name
-     * @param value
-     */
-    public void setAttribute(InteractionAttribute attribute, Object value) throws IllegalArgumentException{
-    	
-    	// Check value is instance of, or sub class of (for mock), the expected class.
-    	if (value.getClass().isInstance(attribute.getType())) {
-    		// Passed wrong type of object
-    		throw(new IllegalArgumentException("Wrong object type set as \"" + attribute.getName() + "\" attribute"));
-    	}
-    	
-    	attributes.put(attribute.getName(), value);
-    }
-    
-    /**
      * Retrieve an attribute from this interaction context.
      * @param name
      * @return
      */
     public Object getAttribute(String name) {
     	return attributes.get(name);
-    }
-    
-    /**
-     * Retrieve an attribute, described in a table, from this interaction context.
-     * @param name
-     * @return
-     */
-    public Object getAttribute(InteractionAttribute attribute) {
-    	return attributes.get(attribute.getName());
     }
     
     /**

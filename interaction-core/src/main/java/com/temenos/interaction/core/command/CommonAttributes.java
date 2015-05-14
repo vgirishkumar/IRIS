@@ -22,33 +22,12 @@
 package com.temenos.interaction.core.command;
 
 /**
- * This enum defines InteractionContext attributes which are not related to a specific package.
+ * Names of InteractionContext attributes which are not related to a specific package.
  * 
- * Attributes related to individual packages are described in similar enums within the packages.
+ * Attributes related to individual packages are described in similar classes within the package namespace.
  */
 
-public enum CommonAttributes implements InteractionAttribute {
-
-	// Currently there are no common attributes. When there are implement as, of example, ...
-	TEST("tests", Boolean.class);
-	
-	private String name;
-	private Class<?> type;
-	
-	CommonAttributes(String name, Class<?> type) {
-		init(name, type);
-	}
-	
-	public void init(String name, Class<?> type) {
-		this.name = name;
-		this.type = type;
-	}
-	
-	public Class<?> getType() {
-		return type;
-	}
-
-	public String getName() {
-		return name;
-	}
+public class CommonAttributes {
+	// Currently there are no common attributes. When there are implement as, for example, ...
+	// public static final String TEST_ATTRIB = "testsAttrib";
 }

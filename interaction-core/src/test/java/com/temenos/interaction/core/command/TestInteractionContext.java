@@ -23,9 +23,7 @@ package com.temenos.interaction.core.command;
 
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -104,64 +102,5 @@ public class TestInteractionContext {
 		
 		assertEquals(ctx.getAttribute("abc"), "test");
 		assertEquals(ctx.getAttribute("NextState"), "myNextState");		
-	}
-	
-	@Test
-	public void testAttributeInTable() {
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), new MultivaluedMapImpl<String>(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
-		
-		boolean threw = false;
-		Boolean actual = Boolean.FALSE;
-		try {
-			ctx.setAttribute(TestAttributes.ATTRIB1, Boolean.TRUE);
-			actual = (Boolean)ctx.getAttribute(TestAttributes.ATTRIB1);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		
-		assertFalse(threw);
-		assertEquals(Boolean.TRUE, actual);		
-	}
-	
-	@Test
-	public void testBadAttributeTypeInTable() {
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), new MultivaluedMapImpl<String>(), new MultivaluedMapImpl<String>(), new ResourceState("entity", "initial_state", new ArrayList<Action>(), "/resource"), mock(Metadata.class));
-		
-		boolean threw = false;
-		try {
-			// Pass a string instead of the expected Boolean.
-			ctx.setAttribute(TestAttributes.ATTRIB1, "wrong type");
-		}
-		catch (Exception e) {
-			threw = true;
-		}	
-		assertTrue(threw);	
-	}
-	
-	private enum TestAttributes implements InteractionAttribute {
-
-		// Currently there are no common attributes. When there are implement as, of example, ...
-		ATTRIB1("attribute1", Boolean.class);
-		
-		private String name;
-		private Class<?> type;
-		
-		TestAttributes(String name, Class<?> type) {
-			init(name, type);
-		}
-		
-		public void init(String name, Class<?> type) {
-			this.name = name;
-			this.type = type;
-		}
-		
-		public Class<?> getType() {
-			return type;
-		}
-
-		public String getName() {
-			return name;
-		}
 	}
 }
