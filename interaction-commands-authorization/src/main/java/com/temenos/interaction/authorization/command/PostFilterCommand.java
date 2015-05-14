@@ -28,11 +28,13 @@ package com.temenos.interaction.authorization.command;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.odata4j.producer.ODataProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.authorization.exceptions.AuthorizationException;
+import com.temenos.interaction.commands.odata.ODataAttributes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -74,10 +76,16 @@ public class PostFilterCommand implements InteractionCommand {
 		return (res);
 	}
 
-	private Result postFilter(InteractionContext ctx) {
+	private Result postFilter(InteractionContext ctx) throws InteractionException {
 		
 		String filter = ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY);
 		logger.info("Post filtering with \"" + filter + "\"");
+		
+		// If there is not enough data and a producer is available get more data.
+		ODataProducer producer = (ODataProducer)ctx.getAttribute(ODataAttributes.O_DATA_PRODUCER_ATTRIBUTE);		
+		if (null == producer) {
+			throw (new AuthorizationException(Status.UNAUTHORIZED, "More data required but OData producer not available"));
+		}
 		
 		// TODO implement it.
 		logger.info("Post filtering not yet implemented");

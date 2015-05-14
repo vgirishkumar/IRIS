@@ -255,7 +255,9 @@ public class InteractionContext {
      * @param value
      */
     public void setAttribute(InteractionAttribute attribute, Object value) throws IllegalArgumentException{
-    	if (value.getClass() != attribute.getType()) {
+    	
+    	// Check value is instance of, or sub class of (for mock), the expected class.
+    	if (value.getClass().isInstance(attribute.getType())) {
     		// Passed wrong type of object
     		throw(new IllegalArgumentException("Wrong object type set as \"" + attribute.getName() + "\" attribute"));
     	}

@@ -30,14 +30,14 @@ import com.temenos.interaction.core.command.InteractionAttribute;
  * This enum defines InteractionContext attributes used by the OData package.
  */
 
-public enum OdataAttributes implements InteractionAttribute {
+public enum ODataAttributes implements InteractionAttribute {
 
-	O_DATA_PRODUCER_ATTRIBUTE ("ODataProvider", ODataProducer.class);  // Not yet used
+	O_DATA_PRODUCER_ATTRIBUTE("ODataProducer", ODataProducer.class);
 	
 	private String name;
 	private Class<?> type;
 	
-	OdataAttributes(String name, Class<?> type) {
+	ODataAttributes(String name, Class<?> type) {
 		init(name, type);
 	}
 	

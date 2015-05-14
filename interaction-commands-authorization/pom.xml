@@ -63,5 +63,9 @@
             <groupId>org.odata4j</groupId>
             <artifactId>odata4j-core</artifactId>
         </dependency>
+        <dependency>
+        	<groupId>com.temenos.interaction</groupId>
+        	<artifactId>interaction-commands-odata</artifactId>
+        	</dependency>
 	</dependencies>	
 </project>
