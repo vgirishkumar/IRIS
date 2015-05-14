@@ -49,7 +49,7 @@ public class PostFilterCommand implements InteractionCommand {
 	public Result execute(InteractionContext ctx) throws InteractionException {
 
 		// Check if filtering has already been done.
-		Boolean filterDone = (Boolean)ctx.getAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE);
+		Boolean filterDone = (Boolean) ctx.getAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE);
 
 		if (null == filterDone) {
 			// If attribute not present then something has gone wrong with
@@ -62,34 +62,62 @@ public class PostFilterCommand implements InteractionCommand {
 			logger.info("Post filtering not required");
 			res = Result.SUCCESS;
 		} else {
-			// Do the filtering
-			res = postFilter(ctx);
+			do {
+				// Do the filtering
+				res = postFilter(ctx);
 
-			if (Result.SUCCESS == res) {
-				// Note that filtering has been done.
-				ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
-			} else {
-				// Asked to filter but could not. Security failure.
-				throw (new AuthorizationException(Status.UNAUTHORIZED, "Post filtering failed"));
-			}
+				if (Result.SUCCESS != res) {
+					// Asked to filter but could not. Security failure.
+					throw (new AuthorizationException(Status.UNAUTHORIZED, "Post filtering failed"));
+				}
+
+			} while (getMoreDataIfReqd(ctx));
+
+			// Note that filtering has been done.
+			ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
+
 		}
 		return (res);
 	}
 
-	private Result postFilter(InteractionContext ctx) throws InteractionException {
-		
+	private Result postFilter(InteractionContext ctx) {
+
 		String filter = ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY);
 		logger.info("Post filtering with \"" + filter + "\"");
-		
-		// If there is not enough data and a producer is available get more data.
-		ODataProducer producer = (ODataProducer)ctx.getAttribute(ODataAttributes.O_DATA_PRODUCER_ATTRIBUTE);		
-		if (null == producer) {
-			throw (new AuthorizationException(Status.UNAUTHORIZED, "More data required but OData producer not available"));
-		}
-		
-		// TODO implement it.
+
+		// TODO implement filtering.
 		logger.info("Post filtering not yet implemented");
 
 		return (Result.SUCCESS);
+	}
+
+	/*
+	 * If there is not enough data in the result set to it up.
+	 * 
+	 * @return True if data toped up. False if data not toped up.
+	 * 
+	 * Throws if cannot top up.
+	 */
+	private boolean getMoreDataIfReqd(InteractionContext ctx) throws InteractionException {
+
+		// Get producer
+		ODataProducer producer = (ODataProducer) ctx.getAttribute(ODataAttributes.O_DATA_PRODUCER_ATTRIBUTE);
+		if (null == producer) {
+			throw (new AuthorizationException(Status.UNAUTHORIZED,
+					"More data required but OData producer not available"));
+		}
+
+		// If we already have enough data no more needed.
+		// TODO implement check.
+		boolean enoughData = true;
+		if (enoughData) {
+			return (false);
+		}
+
+		// TODO implement top up
+		logger.info("Data top up not yet implemented");
+
+		// We added some data so must re-filter.
+		return (true);
 	}
 }
