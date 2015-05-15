@@ -88,8 +88,8 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		applyAuthorization(ctx, queryInfo.filter, queryInfo.select);
 		
 		// Set attributes indicating that authorization has not yet been done.
-		ctx.setAttribute(PostFilterCommand.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
-		ctx.setAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE, Boolean.FALSE);
+		ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
+		ctx.setAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE, Boolean.FALSE);
 
 		return (Result.SUCCESS);
 	}

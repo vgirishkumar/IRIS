@@ -90,7 +90,7 @@ public class PostSelectCommandTest extends AbstractAuthorizationTest {
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
 		// Set the flag
-		ctx.setAttribute(PostSelectCommand.SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
+		ctx.setAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
 
 		boolean threw = false;
 		try {
