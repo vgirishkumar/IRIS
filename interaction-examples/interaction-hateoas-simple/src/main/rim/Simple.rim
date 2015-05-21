@@ -21,6 +21,7 @@ rim Simple {
 	command GETNote
 	command DELETENote
 	command MatchCommand
+	command GETMultipleNoteCommand
 
 resource notes {
 	type: collection
@@ -72,6 +73,16 @@ resource createNote {
 		   }
 		   path: "/notes/{noteID}/NoteImportant"
 		}
-
-	}
+	
+resource twiceGetNote {
+	type: item
+	entity: Note
+	// Call same command twice.
+	commands [ 
+				GET : GETMultipleNoteCommand,
+				GET : GETMultipleNoteCommand ]
+	path: "/twiceGetNote({noteID})"
+	cache: 120
+}
+}
 }

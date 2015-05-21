@@ -106,6 +106,10 @@
 	<bean id="GETNote" class="com.temenos.interaction.example.hateoas.simple.GETNoteCommand">
 		<constructor-arg ref="persistence" />
 	</bean>
+	<bean id="GETMultipleNoteCommand" class="com.temenos.interaction.example.hateoas.simple.GETMultipleNoteCommand">
+		<!--  Give it any oData producer instance ... won't be used. -->
+		<constructor-arg ref="odataProducer" />
+	</bean>
 	<bean id="DELETENote" class="com.temenos.interaction.example.hateoas.simple.DELETENoteCommand">
 		<constructor-arg ref="persistence" />
 	</bean>
@@ -124,6 +128,7 @@
 				<entry key="GETPreferences" value-ref="GETPreferences" />
 				<entry key="GETNotes" value-ref="GETNotes" />
 				<entry key="GETNote" value-ref="GETNote" />
+				<entry key="GETMultipleNoteCommand" value-ref="GETMultipleNoteCommand" />				
 				<entry key="DELETENote" value-ref="DELETENote" />
 				<entry key="CREATENote" value-ref="CREATENote" />
 			</util:map> 
