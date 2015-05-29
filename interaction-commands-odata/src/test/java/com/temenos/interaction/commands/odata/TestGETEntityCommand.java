@@ -199,7 +199,7 @@ public class TestGETEntityCommand {
         }
         catch(InteractionException ie) {
     		assertEquals(Status.INTERNAL_SERVER_ERROR, ie.getHttpStatus());
-    		assertEquals("Entity key type A1 is not supported.", ie.getMessage());
+    		assertEquals("Entity key type A1 is not supported.", ie.getCause().getMessage());
         }
 	}
 	
@@ -261,7 +261,7 @@ public class TestGETEntityCommand {
         }
         catch(InteractionException ie) {
     		assertEquals(Status.NOT_FOUND, ie.getHttpStatus());
-    		assertEquals("Entity does not exist.", ie.getMessage());
+    		assertEquals("Entity does not exist.", ie.getCause().getMessage());
         }
 	}
 	

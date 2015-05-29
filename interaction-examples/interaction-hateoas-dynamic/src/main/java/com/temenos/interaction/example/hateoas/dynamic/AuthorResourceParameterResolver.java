@@ -30,6 +30,6 @@ public class AuthorResourceParameterResolver implements
 
 	@Override
 	public ParameterAndValue[] resolve(Object... aliases) {
-		return new ParameterAndValue[]{ new ParameterAndValue("id", "AU001") };
+		return new ParameterAndValue[]{ new ParameterAndValue("id", "AU002") };
 	}
 }

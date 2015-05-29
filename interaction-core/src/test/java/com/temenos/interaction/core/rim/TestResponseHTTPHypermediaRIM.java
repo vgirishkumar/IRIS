@@ -913,6 +913,44 @@ public class TestResponseHTTPHypermediaRIM {
 
 	@SuppressWarnings({ "unchecked" })
 	@Test
+	public void testBuildResponseWithDynamicLinkParams() throws Exception {
+		// construct an InteractionContext that simply mocks the result of loading a resource
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+
+        ResourceState b =  new ResourceState(initialState, "b", new ArrayList<Action>());
+        Transition t = new Transition.Builder().source(initialState).method("GET").target(b).build();
+        initialState.addTransition(t);
+
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
+		
+		Map<String,String> outQueryParameters = testContext.getOutQueryParameters();		
+		outQueryParameters.put("penguin", "emperor");
+		
+		testContext.setResource(new EntityResource<Object>(null));
+		// mock 'new InteractionContext()' in call to get
+		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
+			.withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link("id", "self", "href", null, null));
+		
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
+		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		
+		RESTResource resourceWithLinks = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
+		assertNotNull(resourceWithLinks.getLinks());
+		assertFalse(resourceWithLinks.getLinks().isEmpty());
+		assertEquals(2, resourceWithLinks.getLinks().size());
+		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
+		assertEquals("self", link.getRel());
+		
+		link = (Link)resourceWithLinks.getLinks().toArray()[1];
+		assertEquals("item", link.getRel());
+		assertEquals("/baseuri/path?penguin=emperor", link.getHref());
+	}
+	
+	@SuppressWarnings({ "unchecked" })
+	@Test
 	public void testBuildResponseEntityName() throws Exception {
 		// construct an InteractionContext that simply mocks the result of loading a resource
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");

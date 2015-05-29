@@ -417,7 +417,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		for (Transition t : transitions) {
 			ResourceState currTarget = t.getTarget();
 			
-			if (currTarget != null && currTarget.equals(targetState)) {
+			if (currTarget != null && currTarget == targetState) {
 				foundTransition = t;
 				break; // We've found what we're looking for so stop searching
 			}
@@ -433,7 +433,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	public List<Transition> getTransitions(ResourceState targetState) {
 		List<Transition> transitionList = new ArrayList<Transition>();
 		for (Transition t : transitions) {
-			if (t.getTarget() != null && t.getTarget().equals(targetState)) {
+			if (t.getTarget() != null && t.getTarget() == targetState) {
 				transitionList.add(t);
 			}
 		}
@@ -442,12 +442,23 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public Collection<ResourceState> getAllTargets() {
 		List<ResourceState> result = new ArrayList<ResourceState>();
+		
 		for (Transition t : transitions) {
 			ResourceState targetState = t.getTarget();
-			if(!result.contains(targetState)) {
+			
+			boolean contains = false;
+			
+			for(ResourceState tmpState: result) {
+				if(tmpState == targetState) {
+					contains = true;
+				}
+			}
+			
+			if(!contains) {
 				result.add(targetState);
 			}
 		}
+				
 		return result;
 	}
 	

@@ -285,7 +285,7 @@ public class MetadataOData4j {
 				if (edmDataServices != null) {
 					// EDM data services has already been initialized
 
-					if (edmDataServices.getEdmEntitySet(entitySetName) != null) {
+					if (edmDataServices.findEdmEntitySet(entitySetName) != null) {
 						// EDM data services, i.e. service document, contains entity set therefore it needs to be rebuilt
 						edmDataServices = null;
 					}
@@ -411,70 +411,77 @@ public class MetadataOData4j {
 				bEntityTypeMap.put(state.getEntityName(), bEntityType);					
 			}
 		}
-			
+					
 		// Add Navigation Properties
+		
+		// build associations		
+		Map<EdmEntityType.Builder, Map<String, EdmAssociation.Builder>> entityTypeToStateAssociations = new HashMap<EdmEntityType.Builder, Map<String, EdmAssociation.Builder>>();
+		
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
-			// build associations
 			Map<String, EdmAssociation.Builder> bAssociationMap = buildAssociations(namespace, bEntityType, bEntityTypeMap, hypermediaEngine, serviceDocument);
+			entityTypeToStateAssociations.put(bEntityType, bAssociationMap);
 			bAssociations.addAll(bAssociationMap.values());
+		}
+		
+		Map<String,String> multiAssociation = new HashMap<String,String>();
+		int multipleAssoc = 0;
+		
+		for (ResourceState source : hypermediaEngine.getStates()) {
+			for (ResourceState target : source.getAllTargets()) {
+				Collection<Transition> entityTransitions = source.getTransitions(target);
+				if (entityTransitions != null) {
+					for(Transition entityTransition : entityTransitions) {
+						ResourceState sourceState = entityTransition.getSource();
+						ResourceState targetState = entityTransition.getTarget();
+						
+						EdmEntityType.Builder bEntityType = bEntityTypeMap.get(sourceState.getEntityName());
 
-			//add navigation properties
-			Map<String,String> multiAssociation = new HashMap<String,String>();
-			int multipleAssoc = 0;
-			String entityName = bEntityType.getName();
-			for (ResourceState s : hypermediaEngine.getStates()) {
-				for (ResourceState ts : s.getAllTargets()) {
-					Collection<Transition> entityTransitions = s.getTransitions(ts);
-					if (entityTransitions != null) {
-						for(Transition entityTransition : entityTransitions) {
-							ResourceState sourceState = entityTransition.getSource();
-							ResourceState targetState = entityTransition.getTarget();
-							if (sourceState.getEntityName().equals(entityName) 
-									&& !entityTransition.getTarget().isPseudoState()
-									&& !entityTransition.getTarget().equals(serviceDocument)
-									&& !(entityTransition.getSource() instanceof CollectionResourceState)) {
-								//We can have more than one navigation property for the same association
-								String navPropertyName = targetState.getName();
-								//We can have transitions to a resource state from multiple source states
-								if (entityTransition.getLabel() != null) {
-									navPropertyName = entityTransition.getLabel();
-								} else if (multiAssociation.get(navPropertyName) != null) {
-									navPropertyName = navPropertyName + "_" + multipleAssoc++;
-								}
-								multiAssociation.put(navPropertyName, targetState.getName());
-								
-								EdmAssociation.Builder relationship = bAssociationMap.get(targetState.getName());
-								bEntityType.addNavigationProperties(EdmNavigationProperty
-										.newBuilder(navPropertyName)
-										.setRelationship(relationship)
-										.setFromTo(relationship.getEnd1(), relationship.getEnd2()));
+						if (bEntityType != null 
+								&& !entityTransition.getTarget().isPseudoState()
+								&& !entityTransition.getTarget().equals(serviceDocument)
+								&& !(entityTransition.getSource() instanceof CollectionResourceState)) {
+							//We can have more than one navigation property for the same association
+							String navPropertyName = targetState.getName();
+							//We can have transitions to a resource state from multiple source states
+							if (entityTransition.getLabel() != null) {
+								navPropertyName = entityTransition.getLabel();
+							} else if (multiAssociation.get(navPropertyName) != null) {
+								navPropertyName = navPropertyName + "_" + multipleAssoc++;
 							}
+							multiAssociation.put(navPropertyName, targetState.getName());
+							
+							Map<String, EdmAssociation.Builder> bAssociationMap = entityTypeToStateAssociations.get(bEntityType);
+							
+							EdmAssociation.Builder relationship = bAssociationMap.get(targetState.getName());
+							bEntityType.addNavigationProperties(EdmNavigationProperty
+									.newBuilder(navPropertyName)
+									.setRelationship(relationship)
+									.setFromTo(relationship.getEnd1(), relationship.getEnd2()));
 						}
 					}
 				}
 			}
-		}
-
-		// Index EntitySets by Entity name
-		Collection<ResourceState> allTargets = hypermediaEngine.getStates();
-		for (ResourceState state : allTargets) {
-			if (state instanceof CollectionResourceState) {
-				EdmEntityType.Builder entityType = bEntityTypeMap.get(state.getEntityName());
+			
+			if (source instanceof CollectionResourceState) {
+				// Index EntitySets by Entity name
+				EdmEntityType.Builder entityType = bEntityTypeMap.get(source.getEntityName());
 				
 				if (entityType == null) 
-					throw new RuntimeException("Entity type not found for " + state.getEntityName());
-				Transition fromInitialState = serviceDocument.getTransition(state);
-				EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
+					throw new RuntimeException("Entity type not found for " + source.getEntityName());
+				Transition fromInitialState = serviceDocument.getTransition(source);
+				EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(source.getName()).setEntityType(entityType);
 				if (fromInitialState != null) {
 					//Add entity set
-					bEntitySetMap.put(state.getEntityName(), bEntitySet);
+					bEntitySetMap.put(source.getEntityName(), bEntitySet);
 				} else {
-					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
+					logger.error("Not adding entity set ["+source.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
 				}
-			}
+			}			
 		}
-
-		for (ResourceState state : hypermediaEngine.getStates()) {
+				
+		Collection<ResourceState> allTargets = hypermediaEngine.getStates();
+		
+		for (ResourceState state : allTargets) {
 			if (state instanceof CollectionResourceState) {
 				Transition fromInitialState = serviceDocument.getTransition(state);
 				if (fromInitialState == null) {

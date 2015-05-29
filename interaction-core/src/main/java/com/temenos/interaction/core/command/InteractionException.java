@@ -53,6 +53,28 @@ public class InteractionException extends Exception {
 	}
 
 	/**
+	 * Construct a new exception
+	 * @param httpStatus HTTP status code
+	 * @param message error message
+	 * @param cause	the cause. (A null value is permitted, and indicates that the cause is nonexistent or unknown.)
+	 */
+	public InteractionException(StatusType httpStatus, String message, Throwable cause) {
+		super(message, cause);
+		this.httpStatus = httpStatus;
+	}
+
+
+	/**
+	 * Construct a new exception
+	 * @param httpStatus HTTP status code
+	 * @param cause	the cause. (A null value is permitted, and indicates that the cause is nonexistent or unknown.)
+	 */
+	public InteractionException(StatusType httpStatus, Throwable cause) {
+		super(cause);
+		this.httpStatus = httpStatus;
+	}
+
+	/**
 	 * Return the HTTP status code
 	 * @return http status code
 	 */

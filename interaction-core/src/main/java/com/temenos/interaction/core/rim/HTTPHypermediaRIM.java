@@ -521,7 +521,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			        	if (targetState.isTransientState()) {
 							Transition autoTransition = targetState.getRedirectTransition();
 							if (autoTransition.getTarget().getPath().equals(ctx.getCurrentState().getPath())
-									|| (linkUsed != null && autoTransition.getTarget().equals(linkUsed.getTransition().getSource()))) {
+									|| (linkUsed != null && autoTransition.getTarget() == linkUsed.getTransition().getSource())) {
 			            		// this transition has been configured to reset content
 			               		status = HttpStatusTypes.RESET_CONTENT;
 			        		} else {

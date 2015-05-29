@@ -4,7 +4,7 @@
 
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.6.0-SNAPSHOT</version>
+	<version>0.7.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>interaction-parent</name>
 
@@ -30,6 +30,7 @@
 		<module>../interaction-winkext</module>
 		<module>../interaction-commands-mule</module>
 		<module>../interaction-commands-solr</module>
+		<module>../interaction-commands-authorization</module>
 		<module>../interaction-commands-webhook</module>
 		<module>../interaction-commands-odata</module>
 		<module>../interaction-commands-odata-bridge</module>

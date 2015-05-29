@@ -176,6 +176,10 @@ public class Transition {
 		return same;
 	}
 	
+	public boolean isType(int type) {
+		return (command.getFlags() & type) == type;
+	}
+	
 	public int hashCode() {
 		return (source != null ? source.getName().hashCode() : 0)
 				+ (target != null ? target.getName().hashCode() : 0)
