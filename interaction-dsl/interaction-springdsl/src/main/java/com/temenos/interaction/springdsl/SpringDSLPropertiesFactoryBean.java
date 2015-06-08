@@ -32,13 +32,13 @@ import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
+import com.temenos.interaction.core.resource.ConfigLoader;
+
 /**
  * This class enhances the Spring PropertiesFactoryBean class to provide support for loading IRIS configuration files 
  * from a directory defined as a system property.
  */
 public class SpringDSLPropertiesFactoryBean extends PropertiesFactoryBean {
-	// System property defining the location of the unpacked IRIS configuration files
-	private static final String IRIS_CONFIG_DIR_PROP = "com.temenos.interaction.config.dir";
 	
 	private String filenamePattern;
 	
@@ -55,9 +55,9 @@ public class SpringDSLPropertiesFactoryBean extends PropertiesFactoryBean {
 		List<Resource> tmpLocations = new ArrayList<Resource>();
 		tmpLocations.addAll(Arrays.asList(locations));
 		
-		if(System.getProperty(IRIS_CONFIG_DIR_PROP) != null) {
+		if(System.getProperty(ConfigLoader.IRIS_CONFIG_DIR_PROP) != null) {
 			// Try and load the properties from the file system as a resource directory has been specified
-			String irisResourceDirPath = System.getProperty(IRIS_CONFIG_DIR_PROP);
+			String irisResourceDirPath = System.getProperty(ConfigLoader.IRIS_CONFIG_DIR_PROP);
 			File irisResourceDir = new File(irisResourceDirPath);
 			
 			if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {

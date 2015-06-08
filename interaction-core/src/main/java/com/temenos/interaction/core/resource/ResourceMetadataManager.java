@@ -182,18 +182,16 @@ public class ResourceMetadataManager {
 			metadataFilename = "metadata-" + entityName + ".xml";
 		}
 		
-		try {			
-			InputStream is = loader.load(metadataFilename);
+		try {
+			InputStream is = null;
 			
-			if(is == null) {
+			try {
+				is = loader.load(metadataFilename);
+			} catch(Exception e ) {
+				// Try to load default metadata file
 				is = loader.load(METADATA_XML_FILE);
-				
-				if(is == null) {
-					logger.error("Unable to load " + METADATA_XML_FILE + " from classpath.");
-					throw new Exception("Unable to load " + metadataFilename + " and " + METADATA_XML_FILE + " from classpath.");
-				}				
 			}
-			
+						
 			return new MetadataParser(termFactory).parse(is);
 		}
 		catch(Exception e) {

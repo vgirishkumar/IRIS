@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigLoader {
 	// System property defining the location of the unpacked IRIS configuration files
-	private static final String IRIS_CONFIG_DIR_PROP = "com.temenos.interaction.config.dir";
+	public static final String IRIS_CONFIG_DIR_PROP = "com.temenos.interaction.config.dir";
 	
 	private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);	
 	
@@ -48,6 +48,8 @@ public class ConfigLoader {
 			
 			if(is == null) {
 				logger.error("Unable to load " + filename + " from classpath.");
+				
+				throw new Exception("Unable to load " + filename + " from classpath.");
 			}
 		} else {
 			String irisResourceDirPath = System.getProperty(IRIS_CONFIG_DIR_PROP);
@@ -59,7 +61,8 @@ public class ConfigLoader {
 				if(file.exists()) {
 					is = new FileInputStream(file);
 				} else {
-					logger.error("Unable to load " + filename + " from file system.");
+					logger.error("Unable to load " + filename + " from directory " + irisResourceDir + " (specified by " 
+							+ IRIS_CONFIG_DIR_PROP + "system property)");
 					throw new Exception("Unable to load " + filename + " from file system.");
 				}
 			} else {
