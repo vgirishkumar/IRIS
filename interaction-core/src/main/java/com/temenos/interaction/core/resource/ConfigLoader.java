@@ -40,7 +40,7 @@ public class ConfigLoader {
 	
 	private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);	
 	
-	InputStream load(String filename) throws FileNotFoundException, Exception {
+	public InputStream load(String filename) throws FileNotFoundException, Exception {
 		InputStream is = null;
 		
 		if(System.getProperty(IRIS_CONFIG_DIR_PROP) == null) {
