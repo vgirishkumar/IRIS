@@ -42,11 +42,9 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
+import com.temenos.interaction.core.resource.ConfigLoader;
 
 public class SpringDSLResourceStateProvider implements ResourceStateProvider, DynamicRegistrationResourceStateProvider {
-	// System property defining the location of the unpacked IRIS configuration files
-	private static final String IRIS_CONFIG_DIR_PROP = "com.temenos.interaction.config.dir";
-
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
 	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
@@ -203,12 +201,12 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	private ApplicationContext createApplicationContext(String beanXml) {
 		ApplicationContext result = null;
 		
-		if(System.getProperty(IRIS_CONFIG_DIR_PROP) == null) {
+		if(System.getProperty(ConfigLoader.IRIS_CONFIG_DIR_PROP) == null) {
 			// Try and load the resource from the classpath
 			result = new ClassPathXmlApplicationContext(new String[] {beanXml});
 		} else {
 			// Try and load the resource from the file system as a resource directory has been specified
-			String irisResourceDirPath = System.getProperty(IRIS_CONFIG_DIR_PROP);
+			String irisResourceDirPath = System.getProperty(ConfigLoader.IRIS_CONFIG_DIR_PROP);
 			File irisResourceDir = new File(irisResourceDirPath);
 			
 			if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {
