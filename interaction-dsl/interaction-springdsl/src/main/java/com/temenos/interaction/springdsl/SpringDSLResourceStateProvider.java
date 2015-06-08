@@ -22,6 +22,7 @@ package com.temenos.interaction.springdsl;
  */
 
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,13 +35,18 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 
 public class SpringDSLResourceStateProvider implements ResourceStateProvider, DynamicRegistrationResourceStateProvider {
+	// System property defining the location of the unpacked IRIS configuration files
+	private static final String IRIS_CONFIG_DIR_PROP = "com.temenos.interaction.config.dir";
+
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
 	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
@@ -171,70 +177,119 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	}
 
 	@Override
-	public ResourceState getResourceState(String resourceState) {
-
+	public ResourceState getResourceState(String resourceStateName) {
+		ResourceState result = null;
+		
 		try {
-			if (resourceState != null) {
-				String resourceName = resourceState;
+			if (resourceStateName != null) {				
+				// Try to retrieve the resource state
+				result = resources.get(resourceStateName);
 				
-				if(resourceName.contains("-")) {
-					resourceName = resourceName.substring(0, resourceName.indexOf("-"));
+				if (result == null) {
+					// Resource state has not already been loaded so attempt to load it					
+					result = loadResourceStateFromFile(resourceStateName);
 				}
-				
-				ResourceState resource = resources.get(resourceState);
-				if (resource == null) {
-					String beanXml = "IRIS-" + resourceName + "-PRD.xml";
-					if (this.getClass().getClassLoader().getResource(beanXml) != null) {
-						ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
-						
-						resource = loadAllResourceStatesFromFile(resourceState, resource, context);						
-					} else {
-						/*
-						 * so there is no - 
-						 * 
-						 */
-						int pos = resourceName.lastIndexOf("_");
-						if (pos > 3){
-							resourceName = resourceName.substring(0, pos);
-							beanXml = "IRIS-" + resourceName + "-PRD.xml";
-							if (this.getClass().getClassLoader().getResource(beanXml) != null) {
-								ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
-								pos = resourceState.lastIndexOf("-");
-								if (pos < 0){
-									pos = resourceState.lastIndexOf("_");
-									if (pos > 0){
-										resourceState = resourceState.substring(0, pos) + "-" + resourceState.substring(pos+1);
-									}
-								}
-								
-								resource = loadAllResourceStatesFromFile(resourceState, resource, context);						
-							}else{
-								logger.error("Unable to load resource ["+beanXml+"] not found");
-							}
-						}else{
-							logger.error("Unable to load resource ["+beanXml+"] not found");
-						}
-					}
-				}
-				return resource;
 			}
 		} catch (BeansException e) {
-			logger.error("Failed to load ["+resourceState+"]", e);
+			logger.error("Failed to load ["+resourceStateName+"]", e);
 		}
-		return null;
+		
+		return result;
+	}
+	/**
+	 * @param beanXml
+	 * @return
+	 */
+	private ApplicationContext createApplicationContext(String beanXml) {
+		ApplicationContext result = null;
+		
+		if(System.getProperty(IRIS_CONFIG_DIR_PROP) == null) {
+			// Try and load the resource from the classpath
+			result = new ClassPathXmlApplicationContext(new String[] {beanXml});
+		} else {
+			// Try and load the resource from the file system as a resource directory has been specified
+			String irisResourceDirPath = System.getProperty(IRIS_CONFIG_DIR_PROP);
+			File irisResourceDir = new File(irisResourceDirPath);
+			
+			if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {
+				File file = new File(irisResourceDir, beanXml);			
+				
+				if(file.exists()) {
+					// Only attempt to create an application context if the file exists
+					result = new FileSystemXmlApplicationContext( new String[] { file.getAbsolutePath() });
+				}				
+			}
+		}
+		
+		return result;
+	}
+	
+	private ResourceState loadResourceStateFromFile(String resourceStateName) {
+		String tmpResourceStateName = resourceStateName;		
+		String tmpResourceName = tmpResourceStateName;
+		
+		if(tmpResourceName.contains("-")) {
+			tmpResourceName = tmpResourceName.substring(0, tmpResourceName.indexOf("-"));
+		}
+		
+		String beanXml = "IRIS-" + tmpResourceName + "-PRD.xml";
+		
+		// Attempt to create Spring context based on current resource filename pattern
+		ApplicationContext context = createApplicationContext(beanXml);
+		
+		if (context == null) {
+			// Failed to create Spring context using current resource filename pattern so use old pattern
+			int pos = tmpResourceName.lastIndexOf("_");
+			
+			if (pos > 3){
+				tmpResourceName = tmpResourceName.substring(0, pos);
+				beanXml = "IRIS-" + tmpResourceName + "-PRD.xml";
+				
+				context = createApplicationContext(beanXml);
+				
+				if (context != null) {
+					// Successfully created Spring context using old resource filename pattern
+					
+					// Convert resource state name to old resource name format
+					pos = tmpResourceStateName.lastIndexOf("-");
+					
+					if (pos < 0){
+						pos = tmpResourceStateName.lastIndexOf("_");
+						
+						if (pos > 0){
+							tmpResourceStateName = tmpResourceStateName.substring(0, pos) + "-" + tmpResourceStateName.substring(pos+1);
+						}
+					}						
+				}else{
+					logger.error("Unable to load resource ["+beanXml+"] not found");
+				}
+			}else{
+				logger.error("Unable to load resource ["+beanXml+"] not found");
+			}
+		}
+		
+		ResourceState result = null;
+		
+		if(context != null) {
+			result = loadAllResourceStatesFromFile(context, tmpResourceStateName);						
+		}
+		
+		return result;
 	}
 
-	private ResourceState loadAllResourceStatesFromFile(String resourceState, ResourceState resource, ClassPathXmlApplicationContext context) {
+	private ResourceState loadAllResourceStatesFromFile(ApplicationContext context, String resourceState) {
 		Map<String,ResourceState> tmpResources = context.getBeansOfType(ResourceState.class);
 		resources.putAll(tmpResources);
 		
+		ResourceState result = null;
+		
 		if(tmpResources.containsKey(resourceState)) {
-			resource = tmpResources.get(resourceState);
+			result = tmpResources.get(resourceState);
 		} else {
 			logger.error("Unable to resource state: " + resourceState);
 		}
 		
-		return resource;
+		return result;
 	}
 
 	@Override

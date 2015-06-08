@@ -40,11 +40,12 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 public class ResourceMetadataManager {
 	
 	private final static Logger logger = LoggerFactory.getLogger(ResourceMetadataManager.class);
-
+	
 	private final static String METADATA_XML_FILE = "metadata.xml";
 
 	private Metadata metadata = null;
 	private TermFactory termFactory = null;
+	private ConfigLoader loader = new ConfigLoader();
 	
 	/**
 	 * Construct the metadata object
@@ -181,16 +182,14 @@ public class ResourceMetadataManager {
 			metadataFilename = "metadata-" + entityName + ".xml";
 		}
 		
-		try {
-			InputStream is = getClass().getClassLoader().getResourceAsStream(metadataFilename);
+		try {			
+			InputStream is = loader.load(metadataFilename);
+			
 			if(is == null) {
-				logger.error("Unable to load " + metadataFilename + " from classpath.");
-				is = getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
-				if(is == null) {
-					logger.error("Unable to load " + METADATA_XML_FILE + " from classpath.");
-					throw new Exception("Unable to load " + metadataFilename + " and " + METADATA_XML_FILE + " from classpath.");
-				}
+				metadataFilename = METADATA_XML_FILE;
+				is = loader.load(metadataFilename);
 			}
+			
 			return new MetadataParser(termFactory).parse(is);
 		}
 		catch(Exception e) {
