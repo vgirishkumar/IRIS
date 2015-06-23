@@ -195,6 +195,11 @@
         	<artifactId>org.eclipse.xtext.common.types</artifactId>
         	<version>${xtend-version}</version>
         </dependency>
+        <dependency>
+        	<groupId>org.eclipse.xtext</groupId>
+        	<artifactId>org.eclipse.xtext.xbase.lib</artifactId>
+        	<version>${xtend-version}</version>
+        </dependency>
 		<dependency>
    			<groupId>org.eclipse.equinox</groupId>
    			<artifactId>common</artifactId>
