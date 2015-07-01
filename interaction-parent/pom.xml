@@ -119,7 +119,7 @@
 		<javadoc.exclude.patterns>com.temenos.interaction.core.*</javadoc.exclude.patterns>
 		<maven.compile.source>1.6</maven.compile.source>
 		<maven.compile.target>1.6</maven.compile.target>
-		<!--WINK-330 Change slf4j api import to a range to make it more user friendly. -->
+		<!--WINK-330 Change slf4j api import to a range to make it more user friendly. -->	
 		<slf4j.osgi.import.instruction>org.slf4j.*;version="[1.5,1.7)"</slf4j.osgi.import.instruction>
 
 		<odata4j.version>0.7.0</odata4j.version>
@@ -130,6 +130,20 @@
 		<spring.version>3.1.4.RELEASE</spring.version>
 		<joda.version>1.6</joda.version>
 		<xtext.version>2.8.3</xtext.version>
+
+		<!-- Sonar Config -->	
+		<sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<sonar.host.url>http://localhost:9000/</sonar.host.url>
+		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+		<sonar-jacoco-listeners.version>1.4</sonar-jacoco-listeners.version>
+		<sonar-jacoco-plugin.version>2.3</sonar-jacoco-plugin.version>
+		<jacoco.version>0.7.1.201405082137</jacoco.version>
+		<jacoco.outputDir>${project.build.directory}/jacoco</jacoco.outputDir>
+		<jacoco.out.ut.file>jacoco-ut.exec</jacoco.out.ut.file>
+		<jacoco.out.it.file>jacoco-it.exec</jacoco.out.it.file>
+		<sonar.jacoco.reportPath>${jacoco.outputDir}/${jacoco.out.ut.file}</sonar.jacoco.reportPath>
+		<sonar.jacoco.itReportPath>${jacoco.outputDir}/${jacoco.out.it.file}</sonar.jacoco.itReportPath>
 	</properties>
 
 	<build>
@@ -265,7 +279,7 @@
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
-				</plugin>
+				</plugin>					
 			</plugins>
 		</pluginManagement>
 	</build>
@@ -548,7 +562,100 @@
 				<groupId>net.sf.ehcache</groupId>
 				<artifactId>ehcache-core</artifactId>
 				<version>2.5.2</version>
-			</dependency>
+			</dependency>			
 		</dependencies>
-	</dependencyManagement>
+	</dependencyManagement>		
+
+	<!-- SONAR TEST COVERAGE PROFILE-->
+   <profiles>
+    <profile>
+        <id>coverage</id>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.13</version>
+                    <configuration>
+                        <argLine>${jacoco.agent.ut.arg}</argLine>
+                        <!-- Specific to generate mapping between tests and covered code -->
+                        <properties>
+                            <property>
+                                <name>listener</name>
+                                <value>org.sonar.java.jacoco.JUnitListener</value>
+                            </property>
+                        </properties>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>2.16</version>
+                    <configuration>
+                        <argLine>-Xmx1024m -XX:MaxPermSize=256m ${jacoco.agent.it.arg}</argLine>
+                        <!-- Specific to generate mapping between tests and covered code -->
+                        <properties>
+                            <property>
+                                <name>listener</name>
+                                <value>org.sonar.java.jacoco.JUnitListener</value>
+                            </property>
+                        </properties>
+                        <!-- Let's put failsafe reports with surefire to have access to tests failures/success reports in sonar -->
+                        <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <!-- Prepares a variable, jacoco.agent.ut.arg, that contains the info to be passed to the JVM hosting the code
+being tested. -->
+                        <execution>
+                            <id>prepare-ut-agent</id>
+                            <phase>process-test-classes</phase>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>${sonar.jacoco.reportPath}</destFile>
+                                <propertyName>jacoco.agent.ut.arg</propertyName>
+                                <append>true</append>
+                            </configuration>
+                        </execution>
+                        <!-- Prepares a variable, jacoco.agent.it.arg, that contains the info to be passed to the JVM hosting the code
+being tested. -->
+                        <execution>
+                            <id>prepare-it-agent</id>
+                            <phase>pre-integration-test</phase>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>${sonar.jacoco.itReportPath}</destFile>
+                                <propertyName>jacoco.agent.it.arg</propertyName>
+                                <append>true</append>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </build>
+        <dependencies>
+            <dependency>
+                <groupId>org.codehaus.sonar-plugins.java</groupId>
+                <artifactId>sonar-jacoco-listeners</artifactId>
+                <version>${sonar-jacoco-listeners.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.sonar-plugins.java</groupId>
+                <artifactId>sonar-jacoco-plugin</artifactId>
+                <version>${sonar-jacoco-plugin.version}</version>
+            </dependency>
+        </dependencies>
+    </profile>
+</profiles>
+
+    
 </project>
