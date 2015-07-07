@@ -12,10 +12,10 @@
     <artifactId>interaction-commands-mule</artifactId>
     <packaging>jar</packaging>
     <name>interaction-commands-mule</name>
-    <description>TODO</description>
+    <description>Transform interaction requests into mule flow requests.</description>
 
     <properties>
-        <mule.version>3.3.1</mule.version>
+        <mule.version>3.6.1</mule.version>
     </properties>
 
     <build>
