@@ -45,6 +45,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.wink.common.model.multipart.InMultiPart;
+import org.apache.wink.common.model.multipart.InPart;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -330,6 +332,60 @@ public class TestHTTPHypermediaRIM {
 		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
 		
 		rim.put(mock(HttpHeaders.class), "id", uriInfo, new EntityResource<Object>("test resource"));
+		verify(mockCommand).execute((InteractionContext) argThat(new CommandReceivesResourceArgumentMatcher()));
+	}
+	
+	/* Test the contract for multipart PUT commands.
+	 * A PUT command should should receive an InteractionContext that has the new resource set; enabling the 
+	 * command to process the resource contained in the current part of the multipart request
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMultipartPutCommandReceivesResource() throws InteractionException {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+		initialState.addTransition(new Transition.Builder().method("PUT").target(initialState).build());
+		// create a mock command to test the context is initialised correctly
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), createMockMetadata());
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		
+		InMultiPart inMP = mock(InMultiPart.class);
+		when(inMP.hasNext()).thenReturn(true, false);
+		when(inMP.next()).thenReturn(mock(InPart.class));
+		
+		rim.put(mock(HttpHeaders.class), uriInfo, inMP);
+		verify(mockCommand).execute((InteractionContext) argThat(new CommandReceivesResourceArgumentMatcher()));
+	}
+	
+	/* Test the contract for multipart POST commands.
+	 * A POST command should should receive an InteractionContext that has the new resource set; enabling the 
+	 * command to process the resource contained in the current part of the multipart request
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMultipartPostCommandReceivesResource() throws InteractionException {
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+		initialState.addTransition(new Transition.Builder().method("POST").target(initialState).build());
+		// create a mock command to test the context is initialised correctly
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+		// RIM with command controller that issues commands that always return SUCCESS
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(initialState), createMockMetadata());
+		
+		UriInfo uriInfo = mock(UriInfo.class);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		
+		InMultiPart inMP = mock(InMultiPart.class);
+		when(inMP.hasNext()).thenReturn(true, false);
+		when(inMP.next()).thenReturn(mock(InPart.class));
+		
+		rim.post(mock(HttpHeaders.class), uriInfo, inMP);
 		verify(mockCommand).execute((InteractionContext) argThat(new CommandReceivesResourceArgumentMatcher()));
 	}
 

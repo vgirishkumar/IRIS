@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.DynamicResource;
+import org.apache.wink.common.model.multipart.InMultiPart;
 
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -100,6 +101,11 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	}
 
 	@Override
+	public Response post(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
+		return resource.post(headers, uriInfo, inMP);
+	}	
+	
+	@Override
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams) {
 		return resource.post(headers, id, uriInfo, formParams);
@@ -109,6 +115,11 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	public Response post(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
 		return resource.post(headers, id, uriInfo, eresource);
 	}
+	
+	@Override
+	public Response put(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
+		return resource.put(headers, uriInfo, inMP);
+	}	
 
 	@Override
 	public Response put(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
@@ -143,6 +154,5 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
 		return resource.getChildren();
-	}
-    
+	}    
 }

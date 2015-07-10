@@ -36,6 +36,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.wink.common.model.multipart.InMultiPart;
+
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.resource.EntityResource;
 
@@ -53,10 +55,8 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 			MediaType.APPLICATION_XHTML_XML,
 			MediaType.TEXT_HTML,
 			MediaType.WILDCARD})
-	public abstract Response get(@Context HttpHeaders headers,
-			@PathParam("id") String id,
-			@Context UriInfo uriInfo);
-
+	public Response get(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo);
+	
 	/**
 	 * POST a resource representation from a from.
 	 */
@@ -65,7 +65,13 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams);
 
-    	
+    /**
+     * POST a multipart request i.e. multiple resource representations 
+     */
+    @POST
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response post(@Context HttpHeaders headers, @Context UriInfo uriInfo, InMultiPart inMP);
+    
 	/**
 	 * POST a resource representation.
 	 */
@@ -80,11 +86,16 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
     	MediaType.APPLICATION_XML, 
     	MediaType.APPLICATION_JSON, 
     	MediaType.WILDCARD})
-	public abstract Response post(@Context HttpHeaders headers,
-			@PathParam("id") String id,
-			@Context UriInfo uriInfo,
+	public Response post(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo,
 			EntityResource<?> resource);
 
+    /**
+     * PUT a multipart request i.e. multiple resource representations 
+     */	
+    @PUT
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response put(@Context HttpHeaders headers, @Context UriInfo uriInfo, InMultiPart inMP);
+	
 	/**
 	 * PUT a resource.
 	 */
@@ -99,18 +110,12 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
     	MediaType.APPLICATION_XML, 
     	MediaType.APPLICATION_JSON, 
     	MediaType.WILDCARD})
-	public abstract Response put(@Context HttpHeaders headers,
-			@PathParam("id") String id,
-			@Context UriInfo uriInfo,
+	public Response put(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo,
 			EntityResource<?> resource);
 
 	/**
 	 * DELETE a resource.
 	 */
 	@DELETE
-	public abstract Response delete(@Context HttpHeaders headers,
-			@PathParam("id") String id,
-			@Context UriInfo uriInfo);
-
-
+	public Response delete(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo);
 }
