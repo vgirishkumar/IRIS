@@ -15,7 +15,7 @@
   <url>http://www.temenos.com</url>
 
   <properties>
-    <lib.spring-test.version>3.2.8.RELEASE</lib.spring-test.version>
+    <lib.spring-test.version>3.2.13.RELEASE</lib.spring-test.version>
     <lib.javax.json-api.version>1.0</lib.javax.json-api.version>
     <lib.javax.json.version>1.0.4</lib.javax.json.version>
   </properties>
