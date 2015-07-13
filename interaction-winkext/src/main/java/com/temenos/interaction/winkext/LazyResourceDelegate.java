@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.DynamicResource;
+import org.apache.wink.common.model.multipart.InMultiPart;
 
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Metadata;
@@ -82,7 +83,7 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 		this.path = path;
 	}
 
-	private HTTPHypermediaRIM getRealResource() {
+	HTTPHypermediaRIM getRealResource() {
 		// work out if a reload is required (could be more effecient here as every request goes through this loop)
 		boolean reload = false;
 		for (String resourceName : resourceNamesToMethods.keySet()) {
@@ -166,6 +167,11 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	}
 
 	@Override
+	public Response post(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
+		return getRealResource().post(headers, uriInfo, inMP);
+	}	
+	
+	@Override
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams) {
 		return getRealResource().post(headers, id, uriInfo, formParams);
@@ -175,6 +181,11 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	public Response post(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
 		return getRealResource().post(headers, id, uriInfo, eresource);
 	}
+	
+	@Override
+	public Response put(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
+		return getRealResource().put(headers, uriInfo, inMP);
+	}	
 
 	@Override
 	public Response put(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
@@ -209,6 +220,5 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
 		return null;
-	}
-    
+	}    
 }

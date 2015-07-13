@@ -32,18 +32,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -52,10 +45,11 @@ import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.wink.common.model.multipart.InMultiPart;
+import org.apache.wink.common.model.multipart.InPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.HttpStatusTypes;
@@ -68,6 +62,7 @@ import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.StreamingInput;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.DynamicResourceState;
 import com.temenos.interaction.core.hypermedia.Event;
@@ -287,15 +282,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * @see com.temenos.interaction.core.rim.HTTPResourceInteractionModel#get(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
 	@Override
-	@GET
-	@Produces({
-		MediaType.APPLICATION_ATOM_XML,
-		MediaType.APPLICATION_XML,
-		ExtendedMediaTypes.APPLICATION_ATOMSVC_XML,
-		MediaType.APPLICATION_JSON,
-		MediaType.APPLICATION_XHTML_XML,
-		MediaType.TEXT_HTML,
-		MediaType.WILDCARD})
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
     	logger.info("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
@@ -863,11 +849,50 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
     }
     
+	@Override    
+    public Response put(@Context HttpHeaders headers, @Context UriInfo uriInfo, InMultiPart inMP) {
+    	Event event = new Event("PUT", HttpMethod.PUT);
+    	  
+    	return handleMultipartRequest(headers, uriInfo, inMP, event);
+    }
+
+	@Override
+	public Response post(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
+    	Event event = new Event("POST", HttpMethod.POST);
+  	  
+    	return handleMultipartRequest(headers, uriInfo, inMP, event);
+	}
+
+	private Response handleMultipartRequest(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP, Event event) {
+		InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);    	
+    	String entityName = ctx.getCurrentState().getEntityName();
+    	
+    	Response result = null;
+    	
+    	while(inMP.hasNext()) {
+    		InPart part = inMP.next();
+    		
+    		StreamingInput streamingInput = new StreamingInput(entityName, part.getInputStream(), part.getHeaders()); 
+    		EntityResource<StreamingInput> resource = new EntityResource<StreamingInput>(entityName, streamingInput);
+    		
+    		result = handleRequest(headers, uriInfo, event, resource);
+    		
+    		if(!isSuccessful(result)) {
+    			break; // The result HTTP status code was not in the 2XX range
+    		}
+    	}
+    	
+    	return result;
+	}
+	
+	private boolean isSuccessful(Response result) {
+		return result.getStatus() / 100 == 2; // Work out whether the result HTTP status code was within the 2XX range 
+	}
+	
     /**
 	 * Handle a POST from a regular html form.
 	 */
-    @POST
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Override
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams) {
     	assert(getResourcePath() != null);
@@ -895,19 +920,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * POST a document to a resource.
 	 * @precondition a valid POST command for this resourcePath + id must be registered with the command controller
 	 * @postcondition a Response with non null Status must be returned
-	 * @invariant resourcePath not null
+	 * @invariant resourcePath not null 
 	 */
-    @POST
-	@Consumes({
-		MediaType.APPLICATION_ATOM_XML,
-    	MediaType.APPLICATION_XML, 
-    	MediaType.APPLICATION_JSON, 
-    	MediaType.WILDCARD})
-	@Produces({
-		MediaType.APPLICATION_ATOM_XML,
-    	MediaType.APPLICATION_XML, 
-    	MediaType.APPLICATION_JSON, 
-    	MediaType.WILDCARD})
+	@Override    
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.info("POST " + getFQResourcePath());    	
     	assert(getResourcePath() != null);    	
@@ -925,17 +940,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * @see com.temenos.interaction.core.rim.HTTPResourceInteractionModel#put(javax.ws.rs.core.HttpHeaders, java.lang.String, com.temenos.interaction.core.EntityResource)
 	 */
     @Override
-	@PUT
-	@Consumes({
-		MediaType.APPLICATION_ATOM_XML,
-    	MediaType.APPLICATION_XML, 
-    	MediaType.APPLICATION_JSON, 
-    	MediaType.WILDCARD})
-	@Produces({
-		MediaType.APPLICATION_ATOM_XML,
-    	MediaType.APPLICATION_XML, 
-    	MediaType.APPLICATION_JSON, 
-    	MediaType.WILDCARD})
     public Response put( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource ) {
     	logger.info("PUT " + getFQResourcePath());
     	assert(getResourcePath() != null);
@@ -953,7 +957,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * @see com.temenos.interaction.core.rim.HTTPResourceInteractionModel#delete(javax.ws.rs.core.HttpHeaders, java.lang.String)
 	 */
     @Override
-	@DELETE
 	public Response delete( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
     	logger.info("DELETE " + getFQResourcePath());
     	assert(getResourcePath() != null);

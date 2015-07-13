@@ -108,7 +108,6 @@
         <dependency>
             <groupId>org.apache.wink</groupId>
             <artifactId>wink-common</artifactId>
-			<scope>test</scope>
         </dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
