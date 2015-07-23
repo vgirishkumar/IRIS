@@ -40,8 +40,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.core.MediaType;
@@ -50,6 +48,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.Assert;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.internal.InternalUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -60,7 +60,8 @@ import org.xml.sax.InputSource;
 import com.temenos.interaction.test.AbstractRuntimeTest;
 
 public abstract class AbstractNorthwindRuntimeTest extends AbstractRuntimeTest {
-
+	private static final Logger logger = LoggerFactory.getLogger(AbstractNorthwindRuntimeTest.class);
+	
 	protected static final String endpointUri = "http://localhost:8080/northwind/Northwind.svc/";
 	
 	public AbstractNorthwindRuntimeTest(RuntimeFacadeType type) {
@@ -532,15 +533,12 @@ public abstract class AbstractNorthwindRuntimeTest extends AbstractRuntimeTest {
 		return text;
 	}
 
-	public static void fillDatabase(EntityManagerFactory emf) {
+	public static void fillDatabase(EntityManagerFactory emf) {		
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
 		} catch (Exception ex) {
 			System.out.println("ERROR: failed to load HSQLDB JDBC driver.");
-			Logger.getLogger(AbstractNorthwindRuntimeTest.class.getName()).log(
-					Level.SEVERE,
-					null,
-					ex);
+			logger.error("ERROR: failed to load HSQLDB JDBC driver.", ex);
 
 			return;
 		}
@@ -575,20 +573,14 @@ public abstract class AbstractNorthwindRuntimeTest extends AbstractRuntimeTest {
 			statement.close();
 
 		} catch (Exception ex) {
-			Logger.getLogger(AbstractNorthwindRuntimeTest.class.getName()).log(
-					Level.SEVERE,
-					null,
-					ex);
+			logger.error("There was an error", ex);
 
 		} finally {
 			if (conn != null) {
 				try {
 					conn.close();
 				} catch (SQLException ex) {
-					Logger.getLogger(AbstractNorthwindRuntimeTest.class.getName()).log(
-							Level.SEVERE,
-							null,
-							ex);
+					logger.error("There was an error", ex);
 				}
 			}
 		}
@@ -639,19 +631,11 @@ public abstract class AbstractNorthwindRuntimeTest extends AbstractRuntimeTest {
 				in.close();
 
 			} catch (IOException ex) {
-				Logger.getLogger(
-						AbstractNorthwindRuntimeTest.class.getName()).log(
-								Level.SEVERE,
-								ex.getMessage(),
-								ex);
+				logger.error(ex.getMessage(), ex);
 			}
 
 		} catch (Exception ex) {
-			Logger.getLogger(
-					AbstractNorthwindRuntimeTest.class.getName()).log(
-							Level.SEVERE,
-							ex.getMessage(),
-							ex);
+			logger.error(ex.getMessage(), ex);
 		}
 
 		return strBuilder.toString();

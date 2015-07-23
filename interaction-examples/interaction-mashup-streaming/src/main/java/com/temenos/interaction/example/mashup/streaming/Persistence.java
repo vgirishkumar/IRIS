@@ -22,8 +22,6 @@ package com.temenos.interaction.example.mashup.streaming;
  */
 
 
-import java.util.logging.Logger;
-
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.EntityManager;
@@ -31,10 +29,13 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.temenos.interaction.example.mashup.streaming.model.Profile;
 
 public class Persistence {
-    private final static Logger logger = Logger.getLogger(Persistence.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(Persistence.class);
 
     @PersistenceContext(unitName = "ResponderServiceHibernate", type = PersistenceContextType.EXTENDED)
     @Access(AccessType.FIELD) 
@@ -49,7 +50,7 @@ public class Persistence {
 		try {
 			profile = entityManager.find(Profile.class, id);
 		} catch(Exception e) {
-			logger.severe("Error while loading entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while loading entity [" + id + "]: " + e.getMessage());
 		}
 		return profile;
     }

@@ -24,10 +24,11 @@ package com.temenos.interaction.test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Run all JUnit test cases twice. Once for Jersey and once for CXF runtime.
@@ -35,7 +36,7 @@ import org.junit.runners.Parameterized;
 @RunWith(Parameterized.class)
 public abstract class AbstractRuntimeTest {
 
-  private final Logger log = Logger.getLogger(this.getClass().getName());
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   protected Logger getLogger() {
     return this.log;

@@ -33,34 +33,35 @@ import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class to read SQL insert statement froma file and 
  * inject them into a database. 
  */
 public class ResponderDBUtils {
-	private final static Logger logger = Logger.getLogger(ResponderDBUtils.class.getName());
+	private final static Logger logger = LoggerFactory.getLogger(ResponderDBUtils.class);
 
 	public static String fillDatabase(DataSource dataSource) {
 		Connection conn = null;
 		String line = "";
 		try {
-			logger.fine("Attempting to connect to database");
+			logger.debug("Attempting to connect to database");
 			conn = dataSource.getConnection();
 			Statement statement = conn.createStatement();
 			
-			logger.fine("Loading SQL INSERTs file");
+			logger.debug("Loading SQL INSERTs file");
 			InputStream xml = ResponderDBUtils.class.getResourceAsStream("/META-INF/responder_insert.sql");
 			if (xml == null){
 				return "ERROR: DML file not found [/META-INF/responder_insert.sql].";
 			}
 			BufferedReader br = new BufferedReader(new InputStreamReader(xml, "UTF-8"));
 
-			logger.fine("Reading SQL INSERTs file");
+			logger.debug("Reading SQL INSERTs file");
 			statement.execute("SET REFERENTIAL_INTEGRITY FALSE;");		//The order of INSERTs may not respect foreign key constraints
 			int count = 0;
 			while ((line = br.readLine()) != null) {
@@ -70,7 +71,7 @@ public class ResponderDBUtils {
 					line = line.replace("'0x", "'");
 
 					if (line.length() > 5) {
-						logger.fine("Inserting record: " + line);
+						logger.debug("Inserting record: " + line);
 						statement.executeUpdate(line);
 						count++;
 					}
@@ -83,7 +84,7 @@ public class ResponderDBUtils {
 			logger.info(count + " rows have been inserted into the database.");
 
 		} catch (Exception ex) {
-			logger.severe("Failed to insert SQL statements.");
+			logger.error("Failed to insert SQL statements.");
 			ex.printStackTrace();
 		} finally {
 			if (conn != null) {
@@ -122,6 +123,7 @@ public class ResponderDBUtils {
 
 	public static String readFileToString(String fileName, String charsetName) {
 		StringBuilder strBuilder = new StringBuilder();
+		
 		try {
 			InputStream buf = ResponderDBUtils.class
 					.getResourceAsStream(fileName);
@@ -138,13 +140,11 @@ public class ResponderDBUtils {
 				in.close();
 
 			} catch (IOException ex) {
-				Logger.getLogger(ResponderDBUtils.class.getName()).log(
-						Level.SEVERE, null, ex);
+				logger.error("There was an error", ex);
 			}
 
 		} catch (Exception ex) {
-			Logger.getLogger(ResponderDBUtils.class.getName()).log(
-					Level.SEVERE, null, ex);
+			logger.error("There was an error", ex);
 		}
 
 		return strBuilder.toString();

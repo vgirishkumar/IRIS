@@ -21,7 +21,8 @@ package com.temenos.interaction.example.mashup.streaming;
  * #L%
  */
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -31,7 +32,7 @@ import com.temenos.interaction.core.web.RequestContext;
 import com.temenos.interaction.example.mashup.streaming.model.Profile;
 
 public class GETProfileCommand implements InteractionCommand {
-    private final static Logger logger = Logger.getLogger(Persistence.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(Persistence.class);
 
 	private Persistence persistence;
 	
