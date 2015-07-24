@@ -363,11 +363,13 @@ public class MetadataOData4j {
 	 */
 	private EdmEntitySet getEdmEntitySetFromEdmDataServices(String entitySetName) {
 		EdmEntitySet ees = null;
+		
 		try {
 			ees = getEdmMetadata().findEdmEntitySet(entitySetName);
 		} catch (Exception e) {
-			logger.warn(e.getMessage());
+			logger.warn("Failed to find EDM entity set", e);
 		}
+		
 		return ees;
 	}
 	

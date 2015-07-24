@@ -91,7 +91,7 @@ public class TestCommandHelper {
 			CommandHelper.createEntityKey(mockEDS, "MyEntity", "MyId");
 		}
 		catch(AssertionError ae) {
-			throw new Exception(ae.getMessage());
+			throw new Exception(ae);
 		}
 	}
 

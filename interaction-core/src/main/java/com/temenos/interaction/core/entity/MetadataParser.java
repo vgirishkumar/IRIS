@@ -93,7 +93,7 @@ public class MetadataParser extends DefaultHandler {
 					voc.setTerm(termFactory.createTerm(TermComplexGroup.TERM_NAME, propertyName.peek()));
 				}
 				catch(Exception e) {
-					throw new SAXException(e.getMessage());
+					throw new SAXException(e);
 				}
 			}
 			propertyName.push(name);			
@@ -119,7 +119,7 @@ public class MetadataParser extends DefaultHandler {
 					voc.setTerm(termFactory.createTerm(TermComplexType.TERM_NAME, "true"));
 				}
 				catch(Exception e) {
-					throw new SAXException(e.getMessage());
+					throw new SAXException(e);
 				}
 			}
 			entityMetadata.setPropertyVocabulary(name, voc, propertyName.elements());
@@ -138,7 +138,7 @@ public class MetadataParser extends DefaultHandler {
 				termValue = null;
 			}
 			catch(Exception e) {
-				throw new SAXException(e.getMessage());
+				throw new SAXException(e);
 			}
 			finally {
 				termName = null;	//characters() uses termName to avoid reading elements other than Terms			

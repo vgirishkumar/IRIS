@@ -342,7 +342,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         	status = determineStatus(headers, event, ctx, result);
     	}
     	catch(InteractionException ie) {
-    		logger.debug("Interaction command on state [" + ctx.getCurrentState().getId() + "] failed with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
+    		logger.debug("Interaction command on state [" + ctx.getCurrentState().getId() + "] failed with error [" + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: ", ie);
     		status = ie.getHttpStatus();
     		ctx.setException(ie);
     	}
@@ -803,7 +803,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			return response;
 			
 		} catch(Exception ie) {
-			logger.error("Failed to access resource [" + targetState.getId() + "] with error [" + ie.getMessage() + "]");
+			logger.error("Failed to access resource [" + targetState.getId() + "] with error:", ie);
 			throw new RuntimeException(ie);
 		}
     }
@@ -814,7 +814,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			//sometime some resource throw ClassCastException
 			return ((EntityResource<?>)currentResource).getEntity();
 		} catch (ClassCastException e) {
-			logger.error(e.getMessage());
+			logger.error("Failed to get entity resource", e);
 		}
  	
 		EntityResource<?> er = new EntityResource<RESTResource>(currentResource);

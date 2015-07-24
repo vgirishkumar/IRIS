@@ -54,11 +54,11 @@ public class DaoHibernate {
     		entityManager.merge(ft); 
     		entityManager.getTransaction().commit();    		
     	} catch(EntityExistsException eee) {
-			logger.error("Failed to commit transaction - entity already exists: " + eee.getMessage());
+			logger.error("Failed to commit transaction - entity already exists: ", eee);
     	} catch(IllegalArgumentException iae) {
-			logger.error("Failed to commit transaction - object is not an entity: " + iae.getMessage());
+			logger.error("Failed to commit transaction - object is not an entity: ", iae);
     	} catch(TransactionRequiredException tre) {
-			logger.error("Failed to commit transaction - No transaction exists: " + tre.getMessage());
+			logger.error("Failed to commit transaction - No transaction exists: ", tre);
     	} finally {
     		if (entityManager.getTransaction().isActive())
     			entityManager.getTransaction().rollback();
@@ -74,7 +74,7 @@ public class DaoHibernate {
 			entities = jpaQuery.getResultList();
 		}
 		catch(Exception e) {
-			logger.error("Error while loading entities: " + e.getMessage());
+			logger.error("Error while loading entities: ", e);
 		}
 		return entities;
     }
@@ -85,7 +85,7 @@ public class DaoHibernate {
 			ft = entityManager.find(FundTransfer.class, id);
 		}
 		catch(Exception e) {
-			logger.error("Error while loading entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while loading entity [" + id + "]: ", e);
 		}
 		return ft;
     }
@@ -98,7 +98,7 @@ public class DaoHibernate {
 			entities = jpaQuery.getResultList();
 		}
 		catch(Exception e) {
-			logger.error("Error while loading entities: " + e.getMessage());
+			logger.error("Error while loading entities: ", e);
 		}
 		return entities;
     }
@@ -109,7 +109,7 @@ public class DaoHibernate {
 			customer = entityManager.find(Customer.class, name);
 		}
 		catch(Exception e) {
-			logger.error("Error while loading entity [" + name + "]: " + e.getMessage());
+			logger.error("Error while loading entity [" + name + "]: ", e);
 		}
 		return customer;
     }

@@ -231,7 +231,7 @@ public class AtomEntityEntryFormatWriter {
 		try {
 				entity = entityResource.getEntity();
 		} catch(Exception e) { 
-			logger.error(e.getMessage());
+			logger.error("Failed to get entity", e);
 		}
 
 		writer.startEntry();

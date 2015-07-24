@@ -55,7 +55,7 @@ public class Persistence {
 			Query jpaQuery = entityManager.createQuery("SELECT n FROM user n");
 			entities = jpaQuery.getResultList();
 		} catch(Exception e) {
-			logger.error("Error while loading entities: " + e.getMessage());
+			logger.error("Error while loading entities: ", e);
 		}
 		return entities;
     }
@@ -65,7 +65,7 @@ public class Persistence {
 		try {
 			user = entityManager.find(User.class, id);
 		} catch(Exception e) {
-			logger.error("Error while loading entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while loading entity [" + id + "]: ", e);
 		}
 		return user;
     }

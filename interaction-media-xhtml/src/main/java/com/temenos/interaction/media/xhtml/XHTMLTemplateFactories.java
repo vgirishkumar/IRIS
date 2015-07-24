@@ -66,9 +66,8 @@ public class XHTMLTemplateFactories {
 			templateFactories.put(TEMPLATE_ENTITY_MINIMAL, loader.newTemplateFactory(TEMPLATE_PATH + "/" + TEMPLATE_ENTITY_MINIMAL));
 		}
 		catch(Exception e) {
-			logger.error("Failed to load XHTML templates: " + e.getMessage());
-			e.printStackTrace();
-			throw new RuntimeException("Failed to load XHTML templates: " + e.getMessage());
+			logger.error("Failed to load XHTML templates: ", e);
+			throw new RuntimeException("Failed to load XHTML templates: ", e);
 		}
 	}
 	

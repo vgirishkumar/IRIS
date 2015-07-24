@@ -105,7 +105,7 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 			List<RowFilter> filterList = ODataParser.parseFilter(filter);
 			return (filterList);
 		} catch (Exception e) {
-			logger.info("Could not parse test filter \"" + filter + "\" : " + e.getMessage());
+			logger.info("Could not parse test filter \"" + filter + "\" : ", e);
 
 			// Return the 'no output' case
 			return (null);
@@ -132,7 +132,7 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 			Set<FieldName> selectList = ODataParser.parseSelect(select);
 			return (selectList);
 		} catch (Exception e) {
-			logger.info("Could not parse test seelct \"" + select + "\" : " + e.getMessage());
+			logger.info("Could not parse test seelct \"" + select + "\" : ", e);
 
 			// Return the 'no output' case
 			return (new HashSet<FieldName>());

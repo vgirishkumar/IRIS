@@ -50,7 +50,7 @@ public class Persistence {
 		try {
 			profile = entityManager.find(Profile.class, id);
 		} catch(Exception e) {
-			logger.error("Error while loading entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while loading entity [" + id + "]: ", e);
 		}
 		return profile;
     }

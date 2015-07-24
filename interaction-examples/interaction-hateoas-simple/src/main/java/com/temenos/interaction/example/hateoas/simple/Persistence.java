@@ -55,7 +55,7 @@ public class Persistence {
 			Query jpaQuery = entityManager.createQuery("SELECT n FROM note n");
 			entities = jpaQuery.getResultList();
 		} catch(Exception e) {
-			logger.error("Error while loading entities: " + e.getMessage());
+			logger.error("Error while loading entities: ", e);
 		}
 		return entities;
     }
@@ -65,7 +65,7 @@ public class Persistence {
 		try {
 			note = entityManager.find(Note.class, id);
 		} catch(Exception e) {
-			logger.error("Error while loading entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while loading entity [" + id + "]: ", e);
 		}
 		return note;
     }
@@ -78,7 +78,7 @@ public class Persistence {
 			entityManager.remove(note);
     		entityManager.getTransaction().commit();    		
 		} catch(Exception e) {
-			logger.error("Error while removing entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while removing entity [" + id + "]: ", e);
 		}
 		return note;
     }
@@ -90,7 +90,7 @@ public class Persistence {
 			entityManager.persist(note);
     		entityManager.getTransaction().commit();    		
 		} catch(Exception e) {
-			logger.error("Error while removing entity [" + note.getNoteID() + "]: " + e.getMessage());
+			logger.error("Error while removing entity [" + note.getNoteID() + "]: ", e);
 		}
 		return note;
     }

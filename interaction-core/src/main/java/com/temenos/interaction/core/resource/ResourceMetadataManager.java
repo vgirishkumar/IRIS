@@ -136,9 +136,8 @@ public class ResourceMetadataManager {
 			return new MetadataParser(termFactory).parse(is);
 		}
 		catch(Exception e) {
-			logger.error("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
-			e.printStackTrace();
-			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": " + e.getMessage());
+			logger.error("Failed to parse " + METADATA_XML_FILE + ": ", e);
+			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": ", e);
 		}
 	}
 	
@@ -151,9 +150,8 @@ public class ResourceMetadataManager {
 			return new MetadataParser().parse(is);
 		}
 		catch(Exception e) {
-			logger.error("Failed to parse metadata xml: " + e.getMessage());
-			e.printStackTrace();
-			throw new RuntimeException("Failed to parse metadata xml: " + e.getMessage());
+			logger.error("Failed to parse metadata xml: ", e);
+			throw new RuntimeException("Failed to parse metadata xml: ", e);
 		}
 	}
 	
@@ -195,8 +193,8 @@ public class ResourceMetadataManager {
 			return new MetadataParser(termFactory).parse(is);
 		}
 		catch(Exception e) {
-			logger.error("Failed to parse " + metadataFilename + ": " + e.getMessage());
-			throw new RuntimeException("Failed to parse " + metadataFilename + ": " + e.getMessage());
+			logger.error("Failed to parse " + metadataFilename + ": ", e);
+			throw new RuntimeException("Failed to parse " + metadataFilename + ": ", e);
 		}
 	}
 }

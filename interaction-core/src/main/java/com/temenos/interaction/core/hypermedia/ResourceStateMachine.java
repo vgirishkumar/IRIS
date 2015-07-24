@@ -1039,7 +1039,7 @@ public class ResourceStateMachine {
 			return resourceResults;
 		} catch (InteractionException ie) {
 			logger.error("Failed to embed resources [" + ctx.getCurrentState().getId() + "] with error ["
-					+ ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: " + ie.getMessage());
+					+ ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: ", ie);
 			throw new RuntimeException(ie);
 		}
 	}
