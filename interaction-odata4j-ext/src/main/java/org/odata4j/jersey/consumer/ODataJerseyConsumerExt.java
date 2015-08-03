@@ -32,7 +32,6 @@ import org.core4j.Func1;
 import org.core4j.ReadOnlyIterator;
 import org.odata4j.consumer.AbstractODataConsumer;
 import org.odata4j.consumer.ConsumerCreateEntityRequest;
-import org.odata4j.consumer.ConsumerEntityModificationRequest;
 import org.odata4j.consumer.ConsumerGetEntityRequest;
 import org.odata4j.consumer.ConsumerQueryEntitiesRequest;
 import org.odata4j.consumer.ODataClient;
@@ -44,7 +43,6 @@ import org.odata4j.core.ODataConstants.Charsets;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityGetRequest;
 import org.odata4j.core.OEntityKey;
-import org.odata4j.core.OModifyRequest;
 import org.odata4j.core.OQueryRequest;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
@@ -76,14 +74,14 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 
 	public ODataJerseyConsumerExt(String serviceRootUri, FormatType formatType, JerseyClientFactory clientFactory, OClientBehavior... behaviors) {
 		super(serviceRootUri);
-		
+
 		// ensure that a correct JAX-RS implementation (Jersey, server or default) is loaded
 		if (!(RuntimeDelegate.getInstance() instanceof com.sun.jersey.core.spi.factory.AbstractRuntimeDelegate)) {
 			RuntimeDelegate.setInstance(new com.sun.ws.rs.ext.RuntimeDelegateImpl());
-		}		
+		}
 		this.client = new ODataJerseyClient(formatType, clientFactory, behaviors);
 	}
-	
+
 	@Override
 	protected ODataClient getClient() {
 		return client;
@@ -104,18 +102,18 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 			    //  the first segment contains the entitySetName we start from
 
 			    EdmEntitySet entitySet = null;
-			    
+
 			    try {
 			    	entitySet = getMetadata().getEdmEntitySet(getSegments().get(0).segment);
-			    	
+
 			    } catch(Exception e) {}
-			    
+
 			    Entry entry = null;
-			    		
-			    if(entitySet == null) {			    
+
+			    if(entitySet == null) {
 					MetadataOData4j metadataOData4j = getMetadataOData4j();
 					entitySet = metadataOData4j.getEdmEntitySetByEntitySetName(entitySetName);
-					
+
 				    for (EntitySegment segment : getSegments().subList(1, getSegments().size())) {
 						EdmNavigationProperty navProperty = entitySet.getType().findNavigationProperty(segment.segment);
 						entitySet = getMetadata().getEdmEntitySet(navProperty.getToRole().getType());
@@ -125,7 +123,7 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 
 					// Use the extended atom entry parser
 					entry = new AtomEntryFormatParserExt(metadataOData4j, entitySet.getName(), key, null)
-							.parse(getClient().getFeedReader(response));					
+							.parse(getClient().getFeedReader(response));
 			    } else {
 				    for (EntitySegment segment : getSegments().subList(1, getSegments().size())) {
 						EdmNavigationProperty navProperty = entitySet.getType().findNavigationProperty(segment.segment);
@@ -138,7 +136,7 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 					entry = new AtomEntryFormatParserExt(getMetadata(), entitySet.getName(), key, null)
 							.parse(getClient().getFeedReader(response));
 			    }
-			    
+
 			    response.close();
 			    return (T) InternalUtil.toEntity(OEntity.class, entry.getEntity());
 			  }
@@ -158,12 +156,12 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 			    //  the first segment contains the entitySetName we start from
 			    EdmEntitySet entitySet = getEntitySet();
 			    OEntityKey key = null;
-			    
+
 			    //Use the extended atom entry parser
 				final Feed feed = new AtomFeedFormatParserExt(getMetadata(), entitySet.getName(), key, null).parse(getClient().getFeedReader(response));
 
 			    response.close();
-			    
+
 			    Enumerable<Entry> entries = Enumerable.createFromIterator(new Func<Iterator<Entry>>() {
 			        public Iterator<Entry> apply() {
 			          return new EntryIterator(request, feed);
@@ -245,30 +243,14 @@ public class ODataJerseyConsumerExt extends AbstractODataConsumer {
 	    }
 
 	  }
-
-
-	@Override
-	public OCreateRequest<OEntity> createEntity(String entitySetName) {
-		EdmDataServices edmDataServices = getMetadataOData4j().getMetadata();
-		
-		return new ConsumerCreateEntityRequest<OEntity>(getClient(), getServiceRootUri(), edmDataServices, entitySetName, null);
-	}
-
-	@Override
-	public OModifyRequest<OEntity> updateEntity(OEntity entity) {
-		EdmDataServices edmDataServices = getMetadataOData4j().getMetadata();
-		
-	    return new ConsumerEntityModificationRequest<OEntity>(entity, getClient(), getServiceRootUri(), edmDataServices,
-	            entity.getEntitySet().getName(), entity.getEntityKey(), entity.getEntityTag());		
-	}
-	  
+			  
 	private MetadataOData4j getMetadataOData4j() {
 		String model = getMetadata().getSchemas().get(0).getEntityContainers().get(0).getName();
 		Metadata tmpMetadata = new Metadata(model);
-		
+
 		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
-	     
+
 		return new MetadataOData4j(tmpMetadata, hypermediaEngine);
-	}	  
+	}
 }
