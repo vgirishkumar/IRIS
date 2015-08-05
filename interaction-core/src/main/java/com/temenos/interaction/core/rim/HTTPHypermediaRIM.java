@@ -283,7 +283,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 */
 	@Override
     public Response get( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo ) {
-    	logger.info("GET " + getFQResourcePath());
     	assert(getResourcePath() != null);
     	Event event = new Event("GET", HttpMethod.GET);
     	
@@ -292,6 +291,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	}
 	
 	private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event, EntityResource<?> resource) {
+    	logger.info(event.getMethod() + " " + getFQResourcePath() + " [" + uriInfo.getRequestUri() + "]");
 		
 		// determine action
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
