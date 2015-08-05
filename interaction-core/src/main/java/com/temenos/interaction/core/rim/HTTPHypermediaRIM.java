@@ -291,8 +291,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	}
 	
 	private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event, EntityResource<?> resource) {
-    	logger.info(event.getMethod() + " " + getFQResourcePath() + " [" + uriInfo.getRequestUri() + "]");
-		
+    	long begin = System.currentTimeMillis();
 		// determine action
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
     			
@@ -301,22 +300,24 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	
 		// look for cached response
 		Cache cache = hypermediaEngine.getCache();
+		Response.ResponseBuilder cached = null;
 		if ( cache != null &&
 				event.isSafe() ) {
-			Response.ResponseBuilder cached = cache.get( ctx.getUriInfo().getRequestUri().toString() );
-			if ( cached != null )
-				return cached.build();
+			cached = cache.get( ctx.getUriInfo().getRequestUri().toString() );
 		} else {
 			logger.debug( "Cannot cache " + uriInfo.getRequestUri() );
 		}
-    	long begin = System.currentTimeMillis();
-    	Response response = handleRequest(headers, ctx, event, action, resource, null);
+		Response response = null;
+		if ( cached != null ) {
+			response = cached.build();
+		} else {
+	    	response = handleRequest(headers, ctx, event, action, resource, null);
+		}
     	long end = System.currentTimeMillis();
     	
 		logger.info("iris_request EntityName=" +  getFQResourcePath() + " MethodType=" + event.getMethod() + " URI=" + uriInfo.getRequestUri() + 
-				" RequestTime=" + String.valueOf(end-begin));
+				" RequestTime=" + String.valueOf(end-begin) + (cached != null ? " (cached response)" : ""));
 		
-
 		return response;
 	}
 
