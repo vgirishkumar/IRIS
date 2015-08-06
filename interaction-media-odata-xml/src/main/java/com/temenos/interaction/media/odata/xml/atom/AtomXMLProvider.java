@@ -550,7 +550,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			state = resourceStateProvider.determineState(event, resourcePath);
 
 			if (state == null) {
-				logger.error("No state found, dropping back to path matching " + resourcePath);
+				logger.warn("No state found, dropping back to path matching " + resourcePath);
 				// escape the braces in the regex
 				resourcePath = Pattern.quote(resourcePath);
 				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();

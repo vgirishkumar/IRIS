@@ -533,7 +533,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			if (state != null) {
 				entityName = state.getEntityName();
 			} else {
-				logger.error("No state found, dropping back to path matching");
+				logger.warn("No state found, dropping back to path matching");
 				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();
 				for (String path : pathToResourceStates.keySet()) {
 					for (String stateName : pathToResourceStates.get(path)) {

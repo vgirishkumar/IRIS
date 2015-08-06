@@ -299,7 +299,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			logger.debug("Found state ["+stateName+"] for ["+request+"]");
 			return getResourceState(stateName);
 		}else{
-			logger.error("NOT Found state ["+stateName+"] for ["+request+"]");
+			logger.warn("NOT Found state ["+stateName+"] for ["+request+"]");
 			return null;
 		}
 	}

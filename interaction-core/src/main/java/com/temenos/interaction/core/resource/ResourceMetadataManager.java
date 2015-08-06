@@ -23,6 +23,7 @@ package com.temenos.interaction.core.resource;
 
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.slf4j.Logger;
@@ -128,16 +129,26 @@ public class ResourceMetadataManager {
 	 * Parse the XML metadata file
 	 */
 	protected Metadata parseMetadataXML(TermFactory termFactory) {
+		InputStream is = null;
 		try {
-			InputStream is = getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
-			if(is == null) {
+			if (loader.isExist(METADATA_XML_FILE)) {
+				is = getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
+			}
+			if (is == null) {
 				throw new Exception("Unable to load " + METADATA_XML_FILE + " from classpath.");
 			}
 			return new MetadataParser(termFactory).parse(is);
-		}
-		catch(Exception e) {
+		} catch(Exception e) {
 			logger.error("Failed to parse " + METADATA_XML_FILE + ": ", e);
 			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": ", e);
+		} finally {
+			try {
+				if (is != null) {
+					is.close();
+				}
+			} catch (IOException e) {
+				// swallow, do not mask any original exceptions;
+			}
 		}
 	}
 	
@@ -180,21 +191,28 @@ public class ResourceMetadataManager {
 			metadataFilename = "metadata-" + entityName + ".xml";
 		}
 		
+		InputStream is = null;
 		try {
-			InputStream is = null;
-			
-			try {
+			if (loader.isExist(metadataFilename)) {
 				is = loader.load(metadataFilename);
-			} catch(Exception e ) {
+			}
+			if (is == null) {
+				logger.warn("Unabled to load metadata from ["+metadataFilename+"], dropping back to "+METADATA_XML_FILE);
 				// Try to load default metadata file
 				is = loader.load(METADATA_XML_FILE);
 			}
-						
 			return new MetadataParser(termFactory).parse(is);
-		}
-		catch(Exception e) {
+		} catch(Exception e) {
 			logger.error("Failed to parse " + metadataFilename + ": ", e);
 			throw new RuntimeException("Failed to parse " + metadataFilename + ": ", e);
+		} finally {
+			try {
+				if (is != null) {
+					is.close();
+				}
+			} catch (IOException e) {
+				// swallow, do not mask any original exceptions;
+			}
 		}
 	}
 }

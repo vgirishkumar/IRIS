@@ -40,6 +40,15 @@ public class ConfigLoader {
 	
 	private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);	
 	
+	public boolean isExist(String filename) {
+		if(System.getProperty(IRIS_CONFIG_DIR_PROP) == null) {
+			return getClass().getClassLoader().getResource(filename) != null;
+		} else {
+			File file = formResourceFile(filename);
+			return file != null && file.exists();
+		}
+	}
+	
 	public InputStream load(String filename) throws FileNotFoundException, Exception {
 		InputStream is = null;
 		
@@ -48,20 +57,15 @@ public class ConfigLoader {
 			
 			if(is == null) {
 				logger.error("Unable to load " + filename + " from classpath.");
-				
 				throw new Exception("Unable to load " + filename + " from classpath.");
 			}
 		} else {
-			String irisResourceDirPath = System.getProperty(IRIS_CONFIG_DIR_PROP);
-			File irisResourceDir = new File(irisResourceDirPath);
-			
-			if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {
-				File file = new File(irisResourceDir, filename);			
-				
+			File file = formResourceFile(filename);
+			if (file != null) {
 				if(file.exists()) {
 					is = new FileInputStream(file);
 				} else {
-					logger.error("Unable to load " + filename + " from directory " + irisResourceDir + " (specified by " 
+					logger.error("Unable to load " + filename + " from directory " + System.getProperty(IRIS_CONFIG_DIR_PROP) + " (specified by " 
 							+ IRIS_CONFIG_DIR_PROP + "system property)");
 					throw new Exception("Unable to load " + filename + " from file system.");
 				}
@@ -71,5 +75,14 @@ public class ConfigLoader {
 		}
 		
 		return is;
+	}
+	
+	private File formResourceFile(String filename) {
+		String irisResourceDirPath = System.getProperty(IRIS_CONFIG_DIR_PROP);
+		File irisResourceDir = new File(irisResourceDirPath);
+		if (irisResourceDir.exists() && irisResourceDir.isDirectory()) {
+			return new File(irisResourceDir, filename);
+		}
+		return null;
 	}
 }
