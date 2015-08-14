@@ -33,6 +33,8 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -130,32 +132,15 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			Annotation[] annotations, MediaType mediaType) {
 		return -1;
 	}
-
-	/**
-	 * Writes a Hypertext Application Language (HAL) representation of
-	 * {@link EntityResource} to the output stream.
-	 * 
-	 * @precondition supplied {@link EntityResource} is non null
-	 * @precondition {@link EntityResource#getEntity()} returns a valid OEntity, this 
-	 * provider only supports serialising OEntities
-	 * @postcondition non null HAL XML document written to OutputStream
-	 * @invariant valid OutputStream
-	 */
-	@Override
-	public void writeTo(RESTResource resource, Class<?> type, Type genericType,
-			Annotation[] annotations, MediaType mediaType,
-			MultivaluedMap<String, Object> httpHeaders,
-			OutputStream entityStream) throws IOException,
-			WebApplicationException {
-		assert (resource != null);
-		logger.debug("Writing " + mediaType);
+	
+	private Representation buildHalResource(URI id, RESTResource resource, Class<?> type, Type genericType) throws URISyntaxException {
 		
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class)
 				&& !ResourceTypeHelper.isType(type, genericType, CollectionResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
 		// create the hal resource
-        Representation halResource = representationFactory.newRepresentation(uriInfo.getBaseUri());
+        Representation halResource = representationFactory.newRepresentation(id);
 		if (resource.getGenericEntity() != null) {
 			// get the links
 			Collection<Link> links = resource.getLinks();
@@ -192,10 +177,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					RESTResource embeddedResource = embedded.get(t);
 					// TODO work our rel for embedded resource, just as we need to work out the rel for the other links
 					Link link = findLinkByTransition(links, t);
-					assert(link != null);
 					String rel = (link.getRel() != null ? link.getRel() : "embedded/" + embeddedResource.getEntityName());
 					logger.debug("Embedded: rel=[" + rel + "] href=[" + link.getHref() + "]");
-					ReadableRepresentation embeddedRepresentation = buildRepresentation(representationFactory.newRepresentation(link.getHref()), embeddedResource, null, null);
+					Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()), embeddedResource, type, genericType);
+//					Representation embeddedRepresentation = buildRepresentation(representationFactory.newRepresentation(link.getHref()), embeddedResource, type, genericType);
 					halResource.withRepresentation(rel, embeddedRepresentation);
 				}
 			}
@@ -205,6 +190,34 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 
 		}
 				
+		return halResource;
+	}
+ 
+	/**
+	 * Writes a Hypertext Application Language (HAL) representation of
+	 * {@link EntityResource} to the output stream.
+	 * 
+	 * @precondition supplied {@link EntityResource} is non null
+	 * @precondition {@link EntityResource#getEntity()} returns a valid OEntity, this 
+	 * provider only supports serialising OEntities
+	 * @postcondition non null HAL XML document written to OutputStream
+	 * @invariant valid OutputStream
+	 */
+	@Override
+	public void writeTo(RESTResource resource, Class<?> type, Type genericType,
+			Annotation[] annotations, MediaType mediaType,
+			MultivaluedMap<String, Object> httpHeaders,
+			OutputStream entityStream) throws IOException,
+			WebApplicationException{
+		logger.debug("Writing " + mediaType);		
+		Representation halResource;
+		try {
+			halResource = buildHalResource(uriInfo.getBaseUri(), resource, type, genericType);
+		}
+		catch(URISyntaxException e) {
+			logger.error("Invalid link syntax", e);
+			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		}
 		String representation = null;
 		if (halResource != null && mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
 			representation = halResource.toString(RepresentationFactory.HAL_XML);
@@ -215,7 +228,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		} else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
-		assert(representation != null);
+
 		logger.debug("Produced [" + representation + "]");
 		// TODO handle requested encoding?
 		entityStream.write(representation.getBytes("UTF-8"));
@@ -501,8 +514,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			Map<String, Object> halProperties = halResource.getProperties();
 			for (String propName : halProperties.keySet()) {
 				if (entityMetadata.getPropertyVocabulary(propName) != null) {
-					Object halValue = getHalPropertyValue(entityMetadata, propName, halProperties.get(propName));
-					entityFields.setProperty(new EntityProperty(propName, halValue));
+					Object propertyValue = halProperties.get(propName);
+					if (propertyValue != null) {
+						Object halValue = getHalPropertyValue(entityMetadata, propName, halProperties.get(propName));
+						entityFields.setProperty(new EntityProperty(propName, halValue));
+					}
 				}
 			}
 			return new Entity(entityName, entityFields);
@@ -567,9 +583,23 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	protected void setRequestContext(Request request) {
 		this.requestContext = request;
 	}
+	
+	/*
+	 * If a property is given with a null value, return it in a usable form for JSON
+	 */
+	private Object nullHalPropertyValue( EntityMetadata entityMetadata, String propertyName ) {
+		if ( entityMetadata.isPropertyText( propertyName ) )
+			return "";
+		else if ( entityMetadata.isPropertyNumber( propertyName ) )
+			return 0L;
+		return "";
+	}
 
 	private Object getHalPropertyValue( EntityMetadata entityMetadata, String propertyName, Object halPropertyValue )
 	{
+		if ( halPropertyValue == null )
+			return nullHalPropertyValue( entityMetadata, propertyName );
+		
 		String stringValue = halPropertyValue.toString();
 		Object typedValue;
 		
