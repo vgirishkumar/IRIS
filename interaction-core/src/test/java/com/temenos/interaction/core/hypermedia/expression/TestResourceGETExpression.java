@@ -71,10 +71,13 @@ public class TestResourceGETExpression {
 	private NewCommandController mockCommandController() {
 		NewCommandController cc = new NewCommandController();
 		try {
+			InteractionCommand dosomthing = mock(InteractionCommand.class);
+			when(dosomthing.execute(any(InteractionContext.class))).thenThrow(new RuntimeException("Should not execute this command"));
 			InteractionCommand notfound = mock(InteractionCommand.class);
 			when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
 			InteractionCommand found = new NoopGETCommand();
 			
+			cc.addCommand("dosomething", dosomthing);
 			cc.addCommand("notfound", notfound);
 			cc.addCommand("found", found);
 		}
@@ -102,11 +105,12 @@ public class TestResourceGETExpression {
 		ResourceState paid = new ResourceState(initial, "paid", new ArrayList<Action>(), "/payment", "pay".split(" "));
 		// waiting for merchant confirmation
 		List<Action> mockNotFound = new ArrayList<Action>();
-		mockNotFound.add(new Action("notfound", TYPE.VIEW));
+		mockNotFound.add(new Action("notfound", TYPE.VIEW, null, "GET"));
 		ResourceState pwaiting = new ResourceState(paid, "pwaiting", mockNotFound, "/pwaiting", "wait".split(" "));
 		// merchant confirmed
 		List<Action> mockFound = new ArrayList<Action>();
 		mockFound.add(new Action("found", TYPE.VIEW));
+		mockFound.add(new Action("dosomething", TYPE.VIEW, null, "POST"));
 		ResourceState pconfirmed = new ResourceState(paid, "pconfirmed", mockFound, "/pconfirmed", "confirmed".split(" "));
 
 		// create transitions that indicate state

@@ -71,7 +71,7 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 				t.setTarget(targetState);
 			}
 	    	
-	    	InteractionCommand action = hypermediaEngine.buildWorkflow(targetState.getActions());
+	    	InteractionCommand action = hypermediaEngine.buildWorkflow(event, targetState.getActions());
 	    	
 			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
 			newPathParameters.putAll(ctx.getPathParameters());

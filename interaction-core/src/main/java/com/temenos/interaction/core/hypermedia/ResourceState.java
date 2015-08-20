@@ -303,7 +303,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 */
 	public void addTransition(Transition transition) {
 		assert(transition != null);
-		assert(transition.getSource() == null);
+		assert(transition.getSource() == null || transition.getSource() == this);
 		transition.setSource(this);
 		ResourceState targetState = transition.getTarget();
 		assert(targetState != null);

@@ -132,7 +132,7 @@ public class ResourceStateMachine {
 		for (ResourceState s : resourceStates) {
 			actions.addAll(determineActions(event, s));
 		}
-		return buildWorkflow(actions);
+		return buildWorkflow(event, actions);
 	}
 
 	public List<Action> determineActions(Event event, ResourceState state) {
@@ -154,12 +154,14 @@ public class ResourceStateMachine {
 		return actions;
 	}
 
-	public InteractionCommand buildWorkflow(List<Action> actions) {
+	public InteractionCommand buildWorkflow(Event event, List<Action> actions) {
 		if (actions.size() > 0) {
 			AbortOnErrorWorkflowStrategyCommand workflow = new AbortOnErrorWorkflowStrategyCommand();
 			for (Action action : actions) {
-				assert (action != null);
-				workflow.addCommand(getCommandController().fetchCommand(action.getName()));
+				assert (action != null && event != null);
+				if (action.getMethod() == null || action.getMethod().equals(event.getMethod())) {
+					workflow.addCommand(getCommandController().fetchCommand(action.getName()));
+				}
 			}
 			return workflow;
 		}

@@ -780,7 +780,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 					.transition(resourceTransition)
 					.build();
 	    	Event event = new Event("", "GET");
-	    	InteractionCommand action = hypermediaEngine.buildWorkflow(targetState.getActions());
+	    	InteractionCommand action = hypermediaEngine.buildWorkflow(event, targetState.getActions());
 			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
 			newPathParameters.putAll(ctx.getPathParameters());
 			RESTResource currentResource = ctx.getResource();

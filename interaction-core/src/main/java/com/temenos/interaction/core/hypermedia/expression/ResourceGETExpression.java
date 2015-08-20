@@ -97,7 +97,6 @@ public class ResourceGETExpression implements Expression {
 		if (target == null)
 			throw new IllegalArgumentException("Indicates a problem with the RIM, it allowed an invalid state to be supplied");
 		assert(target.getActions() != null);
-		assert(target.getActions().size() == 1);
 		
 		//Create a new interaction context for this state
     	MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, ourTransition);
