@@ -319,10 +319,13 @@ public class TestHALProvider {
 	}
 	
 	@Test(expected = WebApplicationException.class)
-	public void testAttemptToSerialiseNonEntityResource() throws IOException {
+	public void testAttemptToSerialiseNonEntityResource() throws Exception {
 		EntityResource<?> mdr = mock(EntityResource.class);
 
 		HALProvider hp = new HALProvider(mock(Metadata.class));
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
 		hp.writeTo(mdr, MetaDataResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
 	}
 	

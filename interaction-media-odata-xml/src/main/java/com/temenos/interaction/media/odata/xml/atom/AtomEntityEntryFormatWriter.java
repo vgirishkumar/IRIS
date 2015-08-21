@@ -288,13 +288,14 @@ public class AtomEntityEntryFormatWriter {
 	}
 	
 	private void writeProperties(StreamWriter writer, EntityMetadata entityMetadata, EntityProperties entityProperties, String modelName) {
-		assert(entityMetadata != null);
+		if ( entityMetadata == null ) logger.error( "No entityMetadata" );
 		// Loop round all properties writing out fields and MV and SV sets
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 		
-		for (String propertyName:properties.keySet()) {
+		for (String propertyName : properties.keySet()) {
 			// Work out what the property looks like by looking at the metadata
 			EntityProperty property = (EntityProperty) properties.get(propertyName);
+			if ( property == null ) logger.error( "Property " + propertyName + " listed but missing" );
 			boolean isComplex = entityMetadata.isPropertyComplex(property.getFullyQualifiedName());
 	   		if( !isComplex ) {
 	   			// Simple field
