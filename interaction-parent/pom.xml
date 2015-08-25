@@ -563,8 +563,30 @@
 				<artifactId>ehcache-core</artifactId>
 				<version>2.5.2</version>
 			</dependency>			
-		</dependencies>
-	</dependencyManagement>		
+
+			<dependency>
+			  <groupId>com.theoryinpractise</groupId>
+			  <artifactId>halbuilder-api</artifactId>
+			  <version>2.2.1</version>
+			</dependency>
+			<dependency>
+			  <groupId>com.theoryinpractise</groupId>
+			  <artifactId>halbuilder-core</artifactId>
+			  <version>3.1.3</version>
+			</dependency>
+			<dependency>
+			  <groupId>com.theoryinpractise</groupId>
+			  <artifactId>halbuilder-json</artifactId>
+			  <version>3.1.3</version>
+			</dependency>
+			<dependency>
+			  <groupId>com.theoryinpractise</groupId>
+			  <artifactId>halbuilder-xml</artifactId>
+			  <version>3.0.2</version>
+			</dependency>
+			
+		      </dependencies>
+		    </dependencyManagement>		
 
 	<!-- SONAR TEST COVERAGE PROFILE-->
    <profiles>
@@ -654,8 +676,18 @@ being tested. -->
                 <version>${sonar-jacoco-plugin.version}</version>
             </dependency>
         </dependencies>
-    </profile>
-</profiles>
+      </profile>
 
+      
     
+</profiles>
+    <repositories>
+      <!-- The org.restlet.jee dependency is hidden away -->
+      <repository>
+	<id>restlet</id>
+	<name>restlet</name>
+	<url>http://maven.restlet.org</url>
+      </repository>
+    </repositories>
+
 </project>
