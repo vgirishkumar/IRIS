@@ -202,6 +202,8 @@
 	<!-- Commands for this integration test project -->
 	<bean id="GETEntityPassengerWithEmbeddedFlight" class="com.interaction.example.odata.embedded.command.GETEntityPassengerWithFlightEmbedded" />
 	
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
+		
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">

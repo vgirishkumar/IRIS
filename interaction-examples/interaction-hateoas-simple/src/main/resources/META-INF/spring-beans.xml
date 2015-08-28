@@ -135,4 +135,5 @@
 		</constructor-arg>
 	</bean>
 	
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
 </beans>

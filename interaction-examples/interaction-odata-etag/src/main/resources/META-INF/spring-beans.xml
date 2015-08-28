@@ -202,7 +202,8 @@
 		<constructor-arg name="getEntityCommand" ref="GETEntityWithEtag" />
 	</bean>
 	
-	
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
+		
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">

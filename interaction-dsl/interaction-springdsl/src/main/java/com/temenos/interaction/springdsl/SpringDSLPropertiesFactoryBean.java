@@ -41,23 +41,33 @@ import com.temenos.interaction.core.resource.ConfigLoader;
 public class SpringDSLPropertiesFactoryBean extends PropertiesFactoryBean {
 	
 	private String filenamePattern;
-	
+	private ConfigLoader configLoader = new ConfigLoader();
+
 	/**
 	 * @param filenamePattern The file name pattern to use if properties files are being loaded from the file system
 	 */
 	public SpringDSLPropertiesFactoryBean(String filenamePattern) {
 		this.filenamePattern = filenamePattern;
 	}
-
+		
+	/**
+	 * Sets the alternative config loader to use
+	 *  
+	 * @param configLoader The alternative config loader to use
+	 */
+	public void setConfigLoader(ConfigLoader configLoader) {
+		this.configLoader = configLoader;
+	}
 
 	@Override
 	public void setLocations(Resource[] locations) {
 		List<Resource> tmpLocations = new ArrayList<Resource>();
 		tmpLocations.addAll(Arrays.asList(locations));
 		
-		if(System.getProperty(ConfigLoader.IRIS_CONFIG_DIR_PROP) != null) {
+		String irisResourceDirPath = configLoader.getIrisConfigDirPath();
+		
+		if(irisResourceDirPath != null) {
 			// Try and load the properties from the file system as a resource directory has been specified
-			String irisResourceDirPath = System.getProperty(ConfigLoader.IRIS_CONFIG_DIR_PROP);
 			File irisResourceDir = new File(irisResourceDirPath);
 			
 			if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {

@@ -22,7 +22,6 @@ package com.temenos.interaction.springdsl;
  */
 
 import java.io.File;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,6 +51,8 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
 
 	private StateRegisteration stateRegisteration;
+	
+	private ConfigLoader configLoader = new ConfigLoader();
 
     /**
      * Map of ResourceState bean names, to paths.
@@ -83,6 +84,10 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 
 	public void setResourceMap(Properties beanMap) {
 		this.beanMap = beanMap;
+	}
+	
+	public void setConfigLoader(ConfigLoader configLoader) {
+		this.configLoader = configLoader;
 	}
 
 	private void initialise() {
@@ -372,7 +377,9 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		private ApplicationContext createApplicationContext(String beanXml) {
 			ApplicationContext result = null;
 
-			if(System.getProperty(ConfigLoader.IRIS_CONFIG_DIR_PROP) == null) {
+			String irisResourceDirPath = configLoader.getIrisConfigDirPath();
+			
+			if(irisResourceDirPath == null) {
 				// Try and load the resource from the classpath
 				String description = "classpath:" + beanXml;
 				attempts.add(description);
@@ -380,7 +387,6 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 				if ( result != null ) foundFile = description;
 			} else {
 				// Try and load the resource from the file system as a resource directory has been specified
-				String irisResourceDirPath = System.getProperty(ConfigLoader.IRIS_CONFIG_DIR_PROP);
 				File irisResourceDir = new File(irisResourceDirPath);
 
 				if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {

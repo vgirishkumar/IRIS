@@ -70,6 +70,10 @@
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>	
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>

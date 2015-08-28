@@ -203,7 +203,8 @@
 	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
 		<constructor-arg ref="producer" />
 	</bean>
-	
+
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>	
 	
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">

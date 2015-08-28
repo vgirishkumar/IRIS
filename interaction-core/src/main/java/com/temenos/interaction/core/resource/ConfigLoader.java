@@ -27,32 +27,41 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import javax.servlet.ServletContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.ServletContextAware;
 
 /**
  * This class provides an abstraction from the underlying mechanism used to load config files  
  *
  */
-public class ConfigLoader {
-	// System property defining the location of the unpacked IRIS configuration files
-	public static final String IRIS_CONFIG_DIR_PROP = "com.temenos.interaction.config.dir";
+public class ConfigLoader implements ServletContextAware  { 
+	private ServletContext context;
 	
-	private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);	
+	// Webapp context param defining the location of the unpacked IRIS configuration files
+	public static final String IRIS_CONFIG_DIR_PARAM = "com.temenos.interaction.config.dir";
 	
+	private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
+		
 	public boolean isExist(String filename) {
-		if(System.getProperty(IRIS_CONFIG_DIR_PROP) == null) {
+		if(getIrisConfigDirPath() == null) {
 			return getClass().getClassLoader().getResource(filename) != null;
 		} else {
 			File file = formResourceFile(filename);
 			return file != null && file.exists();
 		}
 	}
+
+	public String getIrisConfigDirPath() {		
+		return context == null ? null : context.getInitParameter(IRIS_CONFIG_DIR_PARAM);
+	}
 	
 	public InputStream load(String filename) throws FileNotFoundException, Exception {
 		InputStream is = null;
 		
-		if(System.getProperty(IRIS_CONFIG_DIR_PROP) == null) {
+		if(getIrisConfigDirPath() == null) {
 			is = getClass().getClassLoader().getResourceAsStream(filename);
 			
 			if(is == null) {
@@ -65,12 +74,12 @@ public class ConfigLoader {
 				if(file.exists()) {
 					is = new FileInputStream(file);
 				} else {
-					logger.error("Unable to load " + filename + " from directory " + System.getProperty(IRIS_CONFIG_DIR_PROP) + " (specified by " 
-							+ IRIS_CONFIG_DIR_PROP + "system property)");
+					logger.error("Unable to load " + filename + " from directory " + getIrisConfigDirPath() + " (specified by " 
+							+ IRIS_CONFIG_DIR_PARAM + "system property)");
 					throw new Exception("Unable to load " + filename + " from file system.");
 				}
 			} else {
-				throw new Exception("The IRIS resource config directory specified (" + IRIS_CONFIG_DIR_PROP + ") does not exist.");
+				throw new Exception("The IRIS resource config directory specified (" + IRIS_CONFIG_DIR_PARAM + ") does not exist.");
 			}
 		}
 		
@@ -78,11 +87,16 @@ public class ConfigLoader {
 	}
 	
 	private File formResourceFile(String filename) {
-		String irisResourceDirPath = System.getProperty(IRIS_CONFIG_DIR_PROP);
+		String irisResourceDirPath = getIrisConfigDirPath();
 		File irisResourceDir = new File(irisResourceDirPath);
 		if (irisResourceDir.exists() && irisResourceDir.isDirectory()) {
 			return new File(irisResourceDir, filename);
 		}
 		return null;
+	}
+
+	@Override
+	public void setServletContext(ServletContext context) {
+		this.context = context;
 	}
 }

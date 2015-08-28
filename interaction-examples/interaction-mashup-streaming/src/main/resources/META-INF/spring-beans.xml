@@ -98,6 +98,8 @@
 	</bean>
 	<bean id="UploadProfileImage" class="com.temenos.interaction.example.mashup.streaming.UploadProfileImageCommand" />
 
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
+
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">

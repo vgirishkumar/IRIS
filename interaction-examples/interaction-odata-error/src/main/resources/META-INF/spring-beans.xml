@@ -203,6 +203,7 @@
 	<bean id="GETGenericErrorCommand" class="com.interaction.example.odata.error.command.GETGenericErrorCommand" />
 	<bean id="ThrowInteractionExceptionCommand" class="com.interaction.example.odata.error.command.ThrowInteractionExceptionCommand" />
 	
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>	
 	
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
