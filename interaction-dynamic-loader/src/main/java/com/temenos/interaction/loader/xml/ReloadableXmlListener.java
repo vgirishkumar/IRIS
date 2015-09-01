@@ -62,7 +62,7 @@ public class ReloadableXmlListener implements ReconfigurableBean, ApplicationCon
 			
 			for(Resource location : tmpLocations) {			
 				// Add entry to locations			
-				File file = new File(location.getURL().getFile());
+				File file = location.getFile();
 				locations.put(location, file.lastModified());
 			}
 		} else {
@@ -71,7 +71,7 @@ public class ReloadableXmlListener implements ReconfigurableBean, ApplicationCon
 				
 				if(locations.containsKey(location)) {
 					// Existing location
-					File file = new File(location.getURL().getFile());
+					File file = location.getFile();
 					long lastModified = file.lastModified();
 					
 					if( lastModified > locations.get(location)) {
