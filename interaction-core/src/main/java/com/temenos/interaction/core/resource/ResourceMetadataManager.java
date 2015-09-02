@@ -28,6 +28,7 @@ import java.io.InputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
@@ -107,17 +108,7 @@ public class ResourceMetadataManager {
  	public ResourceMetadataManager(TermFactory termFactory)
 	{
 		this.termFactory = termFactory;
-	}
- 	
-	/*
-	 * construct only term factory
-	 */
- 	public ResourceMetadataManager(TermFactory termFactory, ConfigLoader configLoader)
-	{
-		this.termFactory = termFactory;
-		this.configLoader = configLoader;
 	} 	
- 	
 	
 	/**
 	 * Return the entity model metadata
@@ -125,8 +116,16 @@ public class ResourceMetadataManager {
 	 */
 	public Metadata getMetadata() {
 		return this.metadata;
-	}
+	}		
 	
+	/**
+	 * @param configLoader the configLoader to set
+	 */
+	@Autowired(required = false)	
+	public void setConfigLoader(ConfigLoader configLoader) {
+		this.configLoader = configLoader;
+	}
+
 	/*
 	 * Parse the XML metadata file with the default Vocabulary Term Factory
 	 */
