@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -86,6 +87,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		this.beanMap = beanMap;
 	}
 	
+	@Autowired(required = false)
 	public void setConfigLoader(ConfigLoader configLoader) {
 		this.configLoader = configLoader;
 	}

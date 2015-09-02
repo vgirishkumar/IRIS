@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -55,6 +56,7 @@ public class SpringDSLPropertiesFactoryBean extends PropertiesFactoryBean {
 	 *  
 	 * @param configLoader The alternative config loader to use
 	 */
+	@Autowired(required = false)	
 	public void setConfigLoader(ConfigLoader configLoader) {
 		this.configLoader = configLoader;
 	}

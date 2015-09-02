@@ -34,7 +34,6 @@
 	
 	<bean id="defaultResources" class="com.temenos.interaction.springdsl.SpringDSLPropertiesFactoryBean">
 		<constructor-arg name="filenamePattern" value="IRIS-.*\.properties"/>
-		<property name="configLoader" ref="configLoader"/>
   		<property name="singleton" value="true"/>
   		<property name="ignoreResourceNotFound" value="true"/>
   		<property name="locations">
@@ -47,6 +46,6 @@
 	
 	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider">
 		<property name="resourceMap" ref="defaultResources"/>
-		<property name="configLoader" ref="configLoader"/>		
+				
 	</bean>		
 </beans>
