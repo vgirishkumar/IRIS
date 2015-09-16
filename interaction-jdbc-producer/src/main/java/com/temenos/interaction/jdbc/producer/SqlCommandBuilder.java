@@ -5,7 +5,7 @@ package com.temenos.interaction.jdbc.producer;
  * 
  * If given a key constructs a command for a single row. 
  * 
- * If given a null key constructs a command to get all rows.
+ * If given a null key constructs a command to add all rows.
  * 
  * TODO maybe need variants for different databases.
  */
@@ -47,14 +47,13 @@ public class SqlCommandBuilder {
 	private AccessProfile accessProfile;
 	private ColumnTypesMap colTypesMap;
 
-	// private final static Logger logger = LoggerFactory.getLogger(SqlCommandBuilder.class);
+	// private final static Logger logger = LoggerFactory.addLogger(SqlCommandBuilder.class);
 
 	/*
 	 * Constructor when there is not a key.
 	 */
 	public SqlCommandBuilder(String tableName, AccessProfile accessProfile, ColumnTypesMap colTypesMap) {
 		this.tableName = tableName;
-		this.keyValue = null;
 		this.accessProfile = accessProfile;
 		this.colTypesMap = colTypesMap;
 	}
@@ -63,10 +62,8 @@ public class SqlCommandBuilder {
 	 * Constructor when there is a key.
 	 */
 	public SqlCommandBuilder(String tableName, String keyValue, AccessProfile accessProfile, ColumnTypesMap colTypesMap) {
-		this.tableName = tableName;
+		this(tableName, accessProfile, colTypesMap);
 		this.keyValue = keyValue;
-		this.accessProfile = accessProfile;
-		this.colTypesMap = colTypesMap;
 	}
 
 	/*
@@ -75,16 +72,15 @@ public class SqlCommandBuilder {
 	public String getCommand() {
 
 		// Build an SQL command
-		String sqlCommand = "SELECT ";
-		sqlCommand = sqlCommand.concat(getSelects());
-		sqlCommand = sqlCommand.concat(getFrom());
-		sqlCommand = sqlCommand.concat(getWhere());
+		StringBuilder builder = new StringBuilder("SELECT ");
+		addSelects(builder);
+		addFrom(builder);
+		addWhere(builder);
 
-		return sqlCommand;
+		return builder.toString();
 	}
 
-	private String getSelects() {
-		String cmd = "";
+	private void addSelects(StringBuilder builder) {
 
 		// Add columns to select
 		Set<FieldName> names = accessProfile.getFieldNames();
@@ -93,44 +89,42 @@ public class SqlCommandBuilder {
 		}
 		if (names.isEmpty()) {
 			// Empty select list means "return all columns".
-			cmd = cmd.concat("*");
+			builder.append("*");
 		} else {
 			// Add comma separated list of select terms. Need to detect the last
 			// operation so use old style iterator.
 			Iterator<FieldName> iterator = names.iterator();
 			while (iterator.hasNext()) {
 				FieldName name = iterator.next();
-				cmd = cmd.concat(getSelect(name));
-				;
+				addSelect(builder, name);
 
 				// If not the last entry
 				if (iterator.hasNext()) {
-					cmd = cmd.concat(", ");
+					builder.append(", ");
 				}
 			}
 		}
-		return cmd;
 	}
 
-	private String getSelect(FieldName name) {
-		return "\"" + name.getName() + "\"";
+	private void addSelect(StringBuilder builder, FieldName name) {
+		builder.append("\"" + name.getName() + "\"");
 	}
 
-	private String getFrom() {
-		return " FROM \"" + tableName + "\"";
+	private void addFrom(StringBuilder builder) {
+		builder.append(" FROM \"" + tableName + "\"");
 	}
 
 	/*
-	 * Get the "WHERE x AND y" etc clause. Adds filters and/or key.
+	 * add the "WHERE x AND y" etc clause. Adds filters and/or key.
 	 */
-	private String getWhere() {
+	private void addWhere(StringBuilder builder) {
 		
 		// If there are no filters or key return;
 		if (accessProfile.getRowFilters().isEmpty() && (null == keyValue)) {
-			return "";
+			return;
 		}
 
-		String cmd = " WHERE ";
+		builder.append(" WHERE ");
 		
 		if (null != keyValue) {
 			if (null == colTypesMap.getPrimaryKeyName()) {
@@ -139,25 +133,23 @@ public class SqlCommandBuilder {
 			
 			// Add key as a filter
 			RowFilter keyFilter = new RowFilter(colTypesMap.getPrimaryKeyName(), RowFilter.Relation.EQ, keyValue);
-			cmd = cmd.concat(getFilter(keyFilter));
+			addFilter(builder, keyFilter);
 		}
 
 		if (!accessProfile.getRowFilters().isEmpty()) {
 			// If we already had a key need to link with an 'AND'.
 			if (null != keyValue) {
-				cmd = cmd.concat(getAnd());
+				addAnd(builder);
 			}
-			cmd = cmd.concat(getFilters());
-		}		
-		return cmd;
+			addFilters(builder);
+		}	
 	}
 	
-	private String getAnd() {
-		return " AND ";
+	private void addAnd(StringBuilder builder) {
+		builder.append(" AND ");
 	}
 
-	private String getFilters() {
-		String cmd = "";
+	private void addFilters(StringBuilder builder) {
 
 		// Add row filters
 		List<RowFilter> filters = accessProfile.getRowFilters();
@@ -171,30 +163,26 @@ public class SqlCommandBuilder {
 		while (iterator.hasNext()) {
 			RowFilter filter = iterator.next();
 
-			cmd = cmd.concat(getFilter(filter));
+			addFilter(builder, filter);
 
 			// If not the last entry
 			if (iterator.hasNext()) {
-				cmd = cmd.concat(getAnd());
+				addAnd(builder);
 			}
 		}
-
-		return cmd;
 	}
 
-	private String getFilter(RowFilter filter) {
-		String cmd = "\"" + filter.getFieldName().getName() + "\"";
-		cmd = cmd.concat(filter.getRelation().getSqlSymbol());
+	private void addFilter(StringBuilder builder,RowFilter filter) {
+		builder.append("\"" + filter.getFieldName().getName() + "\"");
+		builder.append(filter.getRelation().getSqlSymbol());
 
 		// Extract the column type from the metadata. Text
 		// must be quoted but not numerics.
 		boolean numeric = colTypesMap.isNumeric(filter.getFieldName().getName());
 		if (numeric) {
-			cmd = cmd.concat(filter.getValue());
+			builder.append(filter.getValue());
 		} else {
-
-			cmd = cmd.concat("'" + filter.getValue() + "'");
+			builder.append("'" + filter.getValue() + "'");
 		}
-		return cmd;
 	}
 }

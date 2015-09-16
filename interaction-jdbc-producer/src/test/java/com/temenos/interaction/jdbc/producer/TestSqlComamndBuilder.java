@@ -22,8 +22,7 @@ package com.temenos.interaction.jdbc.producer;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -59,13 +58,11 @@ public class TestSqlComamndBuilder {
 
 		// Create the builder
 		SqlCommandBuilder builder = null;
-		boolean threw = false;
 		try {
 			builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, mock(ColumnTypesMap.class));
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Get the command.
 		String actualCommand = builder.getCommand();
@@ -107,13 +104,11 @@ public class TestSqlComamndBuilder {
 
 		// Create the builder
 		SqlCommandBuilder builder = null;
-		boolean threw = false;
 		try {
 			builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Get the command.
 		String actualCommand = builder.getCommand();
@@ -145,13 +140,11 @@ public class TestSqlComamndBuilder {
 
 		// Create the builder
 		SqlCommandBuilder builder = null;
-		boolean threw = false;
 		try {
 			builder = new SqlCommandBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Get the command.
 		String actualCommand = builder.getCommand();
@@ -164,8 +157,8 @@ public class TestSqlComamndBuilder {
 	 * Test failure if a key value is given but no primary key column is
 	 * present.
 	 */
-	@Test
-	public void testGetCommandNullKey() {
+	@Test(expected = SecurityException.class)
+	public void testGetCommandNullKey() throws Exception {
 
 		// Build up an access profile
 		List<RowFilter> filters = new ArrayList<RowFilter>();
@@ -181,34 +174,22 @@ public class TestSqlComamndBuilder {
 		String keyValue = "aKeyValue";
 
 		// Create the builder
-		boolean threw = false;
 		SqlCommandBuilder builder = null;
 		try {
 			builder = new SqlCommandBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
-		threw = false;
-		try {
-			// Get the command.
-			builder.getCommand();
-		} catch (SecurityException e) {
-			// This is expected
-			threw = true;
-		} catch (Exception e) {
-			// This is not expected
-			threw = false;
-		}
-		assertTrue(threw);
+		// Get the command. Should throw.
+		builder.getCommand();
 	}
 
 	/**
 	 * Test failure with null filter.
 	 */
-	@Test
-	public void testGetCommandNullFilter() {
+	@Test(expected = Exception.class)
+	public void testGetCommandNullFilter() throws Exception {
 
 		// Build up an access profile
 		Set<FieldName> selects = new HashSet<FieldName>();
@@ -216,29 +197,21 @@ public class TestSqlComamndBuilder {
 
 		// Create the builder
 		SqlCommandBuilder builder = null;
-		boolean threw = false;
 		try {
 			builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, mock(ColumnTypesMap.class));
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
-		// Get the command.
-		threw = false;
-		try {
-			builder.getCommand();
-		} catch (Exception e) {
-			threw = true;
-		}
-		assertTrue(threw);
+		// Get the command. Should throw.
+		builder.getCommand();
 	}
 
 	/**
 	 * Test failure with null select.
 	 */
-	@Test
-	public void testGetCommandNullSelect() {
+	@Test(expected = Exception.class)
+	public void testGetCommandNullSelect() throws Exception {
 		// Build up an access profile
 		List<RowFilter> filters = new ArrayList<RowFilter>();
 
@@ -246,21 +219,13 @@ public class TestSqlComamndBuilder {
 
 		// Create the builder
 		SqlCommandBuilder builder = null;
-		boolean threw = false;
 		try {
 			builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, mock(ColumnTypesMap.class));
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
-		// Get the command.
-		threw = false;
-		try {
-			builder.getCommand();
-		} catch (Exception e) {
-			threw = true;
-		}
-		assertTrue(threw);
+		// Get the command. Should throw.
+		builder.getCommand();
 	}
 }

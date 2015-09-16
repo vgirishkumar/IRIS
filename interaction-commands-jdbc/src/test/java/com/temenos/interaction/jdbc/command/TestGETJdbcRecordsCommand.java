@@ -23,13 +23,13 @@ package com.temenos.interaction.jdbc.command;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
-import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Test;
 
 import com.temenos.interaction.authorization.command.util.ODataParser;
@@ -56,15 +56,11 @@ public class TestGETJdbcRecordsCommand extends AbstractJdbcCommandTest {
 	public void testConstructor() {
 
 		GETJdbcRecordsCommand command = null;
-		boolean threw = false;
 		try {
 			command = new GETJdbcRecordsCommand(mock(JdbcProducer.class));
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-
-		// Should not throw.
-		assertFalse(threw);
 
 		// Should produce an object
 		assertFalse(null == command);
@@ -81,31 +77,21 @@ public class TestGETJdbcRecordsCommand extends AbstractJdbcCommandTest {
 		// Populate the database.
 		populateTestTable();
 
-		// Create a datasource. For testing we don't use Jndi.
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create a producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Create a command based on the producer.
 		GETJdbcRecordsCommand command = null;
-		threw = false;
 		try {
 			command = new GETJdbcRecordsCommand(producer);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Create an interaction context.
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -128,9 +114,8 @@ public class TestGETJdbcRecordsCommand extends AbstractJdbcCommandTest {
 
 			assertEquals(Result.SUCCESS, result);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Check the results.
 		CollectionResource<Entity> resources = (CollectionResource<Entity>) ctx.getResource();

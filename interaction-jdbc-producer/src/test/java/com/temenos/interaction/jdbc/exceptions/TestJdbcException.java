@@ -22,7 +22,7 @@ package com.temenos.interaction.jdbc.exceptions;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -41,15 +41,11 @@ public class TestJdbcException {
 	public void testConstructorStatus() {
 
 		JdbcException actualException = null;
-		boolean threw = false;
 		try {
 			actualException = new JdbcException(expectedStatus);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-
-		// Should not throw.
-		assertFalse(threw);
 
 		// Check result
 		assertEquals(expectedStatus, actualException.getHttpStatus());
@@ -58,15 +54,11 @@ public class TestJdbcException {
 	@Test
 	public void testConstructorStatusMessage() {
 		JdbcException actualException = null;
-		boolean threw = false;
 		try {
 			actualException = new JdbcException(expectedStatus, expectedMessage);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-
-		// Should not throw.
-		assertFalse(threw);
 
 		// Check result
 		assertEquals(expectedStatus, actualException.getHttpStatus());
@@ -76,15 +68,11 @@ public class TestJdbcException {
 	@Test
 	public void testConstructorStatusMessageCause() {
 		JdbcException actualException = null;
-		boolean threw = false;
 		try {
 			actualException = new JdbcException(expectedStatus, expectedMessage, expectedCause);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-
-		// Should not throw.
-		assertFalse(threw);
 
 		// Check result
 		assertEquals(expectedStatus, actualException.getHttpStatus());
@@ -95,15 +83,11 @@ public class TestJdbcException {
 	@Test
 	public void testConstructorStatusCause() {
 		JdbcException actualException = null;
-		boolean threw = false;
 		try {
 			actualException = new JdbcException(expectedStatus, expectedCause);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-
-		// Should not throw.
-		assertFalse(threw);
 
 		// Check result
 		assertEquals(expectedStatus, actualException.getHttpStatus());

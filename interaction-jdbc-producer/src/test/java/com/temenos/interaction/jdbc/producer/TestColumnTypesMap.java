@@ -24,11 +24,11 @@ package com.temenos.interaction.jdbc.producer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Test;
 
 /**
@@ -44,31 +44,21 @@ public class TestColumnTypesMap extends AbstractJdbcProducerTest {
 		// Set up a queryable environment.
 		populateTestTable();
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Create the object under test
 		ColumnTypesMap map = null;
-		threw = false;
 		try {
 			map = new ColumnTypesMap(producer, TEST_TABLE_NAME, true);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		assertFalse(null == map);
 	}
@@ -81,31 +71,21 @@ public class TestColumnTypesMap extends AbstractJdbcProducerTest {
 		// Set up a queryable environment.
 		populateTestTable();
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Create the object under test
 		ColumnTypesMap map = null;
-		threw = false;
 		try {
 			map = new ColumnTypesMap(producer, TEST_TABLE_NAME, true);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		assertEquals(KEY_FIELD_NAME, map.getPrimaryKeyName());
 	}
@@ -118,32 +98,21 @@ public class TestColumnTypesMap extends AbstractJdbcProducerTest {
 		// Set up a queryable environment.
 		populateTestTable(TEST_ROW_COUNT, false);
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Create the object under test
 		ColumnTypesMap map = null;
-		threw = false;
 		try {
 			map = new ColumnTypesMap(producer, TEST_TABLE_NAME, true);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		
-		assertFalse(threw);
 		
 		// Since the RECID column is present should get the default key.
 		assertEquals("RECID", map.getPrimaryKeyName());

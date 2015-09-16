@@ -35,6 +35,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.h2.jdbcx.JdbcDataSource;
 import org.junit.After;
 import org.junit.Before;
 
@@ -81,6 +82,9 @@ public class AbstractJdbcCommandTest {
 	private JdbcConnectionPool pool = null;
 	private Connection conn = null;
 
+	// Data source for the tests.
+	protected JdbcDataSource dataSource;
+
 	@Before
 	public void startH2() throws SQLException {
 		// Create a connection pool. This also causes the in memory database to
@@ -89,10 +93,19 @@ public class AbstractJdbcCommandTest {
 
 		// Open connection to in memory database
 		conn = pool.getConnection();
+
+		// Set up data source
+		dataSource = new JdbcDataSource();
+		dataSource.setUrl(H2_URL);
+		dataSource.setUser(H2_USER);
+		dataSource.setPassword(H2_PASSWORD);
 	}
 
 	@After
 	public void stopH2() throws SQLException {
+		// Forget data source.
+		dataSource = null;
+		
 		// Close connection. Should cause the database to destruct.
 		conn.close();
 

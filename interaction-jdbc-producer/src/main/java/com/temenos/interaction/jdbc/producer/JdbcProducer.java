@@ -57,7 +57,7 @@ import com.temenos.interaction.jdbc.exceptions.JdbcException;
 
 public class JdbcProducer {
 	// Somewhere to store connection
-	JdbcTemplate template = null;
+	private JdbcTemplate template;
 
 	private final static Logger logger = LoggerFactory.getLogger(JdbcProducer.class);
 
@@ -66,21 +66,13 @@ public class JdbcProducer {
 	 */
 	public JdbcProducer(JndiTemplate jndiTemplate, String dataSourceName) throws ClassNotFoundException, JdbcException,
 			NamingException {
-		DataSource dataSource = (DataSource) jndiTemplate.lookup(dataSourceName);
-		initialise(dataSource);
+		this((DataSource) jndiTemplate.lookup(dataSourceName));
 	}
 
 	/*
 	 * Constructor called when a DataSource object is available.
 	 */
 	public JdbcProducer(DataSource dataSource) throws ClassNotFoundException, JdbcException {
-		initialise(dataSource);
-	}
-
-	/*
-	 * Common constructor
-	 */
-	public void initialise(DataSource dataSource) {
 		template = new JdbcTemplate(dataSource);
 	}
 

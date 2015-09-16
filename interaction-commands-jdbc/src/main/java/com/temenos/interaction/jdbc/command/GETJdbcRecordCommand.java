@@ -32,11 +32,14 @@ import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.jdbc.producer.JdbcProducer;
 
-public class GETJdbcRecordCommand extends AbstractJdbcCommand implements InteractionCommand {
+public class GETJdbcRecordCommand implements JdbcCommand, InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(GETJdbcRecordCommand.class);
-
+	
+	// Somewhere to store the producer.
+	JdbcProducer producer;
+	
 	public GETJdbcRecordCommand(JdbcProducer producer) {
-		super(producer);
+		this.producer = producer;
 	}
 
 	/*

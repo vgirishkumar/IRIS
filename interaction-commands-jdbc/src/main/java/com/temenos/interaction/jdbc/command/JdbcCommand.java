@@ -1,6 +1,5 @@
 package com.temenos.interaction.jdbc.command;
 
-import com.temenos.interaction.jdbc.producer.JdbcProducer;
 
 // Import the interaction framework Jdbc producer (not the OData4j one).
 
@@ -25,15 +24,5 @@ import com.temenos.interaction.jdbc.producer.JdbcProducer;
  * #L%
  */
 
-
-public abstract class AbstractJdbcCommand {
-
-	// Somewhere to store the producer.
-	JdbcProducer producer;
-
-	public AbstractJdbcCommand(JdbcProducer producer) {
-		// Remember the producer
-		this.producer = producer;
-	}
-
+public interface JdbcCommand {
 }

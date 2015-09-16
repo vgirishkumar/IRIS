@@ -47,10 +47,10 @@ public class ColumnTypesMap {
 	private static String DEFAULT_PRIMARY_KEY = "RECID";
 
 	// Somewhere to cache mapping information.
-	Map<String, Integer> typesMap = null;
+	Map<String, Integer> typesMap;
 
 	// Somewhere to store primary key.
-	String primaryKeyName = null;
+	String primaryKeyName;
 
 	// A producer that can be used to query the table.
 	JdbcProducer producer;
@@ -63,23 +63,28 @@ public class ColumnTypesMap {
 		// This will open a new connection. Remember to close it latter.
 		DataSource ds = producer.getDataSource();
 		Connection conn = ds.getConnection();
+		
+		// Get the metadata
+		DatabaseMetaData dsMetaData = conn.getMetaData();
 
 		// Read the initial map.
-		this.typesMap = readColumnTypes(conn, tableName);
+		this.typesMap = readColumnTypes(dsMetaData, tableName);
 
 		// If required obtain the primary key.
 		if (primaryKeyNameRequired) {
 			try {
-				this.primaryKeyName = readPrimaryKey(conn, tableName);
+				this.primaryKeyName = readPrimaryKey(dsMetaData, tableName);
 			} catch (Exception e) {
-				// Remember to close the connection
-				conn.close();
-
 				// Re-throw
 				throw (e);
+			} finally {
+				// Remember to close the connection
+				if (null != conn) {
+					conn.close();
+				}
 			}
 		}
-
+		
 		// Close the connection
 		conn.close();
 	}
@@ -117,10 +122,8 @@ public class ColumnTypesMap {
 	/*
 	 * Utility to read primary key for a given table.
 	 */
-	String readPrimaryKey(Connection conn, String tableName) throws Exception {
-		String key = null;
-
-		DatabaseMetaData dsMetaData = conn.getMetaData();
+	private String readPrimaryKey(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+		String key=null;
 
 		ResultSet result = dsMetaData.getPrimaryKeys(null, null, tableName);
 
@@ -163,12 +166,9 @@ public class ColumnTypesMap {
 	/*
 	 * Utility to read column types for a given table.
 	 */
-	private Map<String, Integer> readColumnTypes(Connection conn, String tableName) throws Exception {
-
+	private Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
 		// Create type map
 		typesMap = new HashMap<String, Integer>();
-
-		DatabaseMetaData dsMetaData = conn.getMetaData();
 
 		ResultSet resultSet = dsMetaData.getColumns(null, null, tableName, null);
 		int columnCount = 0;

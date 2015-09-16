@@ -24,6 +24,7 @@ package com.temenos.interaction.jdbc.producer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -31,6 +32,7 @@ import java.net.URL;
 import java.util.Properties;
 
 import javax.naming.Context;
+import javax.sql.DataSource;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
@@ -101,7 +103,6 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	 * Utility to shut down Jndi context
 	 */
 	private void jndiShutDown() {
-		boolean threw = false;
 		try {
 			// Remove object. If .bindings file becomes empty this should also
 			// delete it. If not then we have left it as we found it.
@@ -109,9 +110,8 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 
 			// Don't think we have to close JndiTemplate
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 	}
 
 	/**
@@ -119,20 +119,14 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testConstructor() {
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setUser(H2_PASSWORD);
+		DataSource dataSource = mock(JdbcDataSource.class);
 
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Should produce an object
 		assertFalse(null == producer);
@@ -151,21 +145,14 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 		populateTestTable();
 
 		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
 
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
-
 		// Run a query
 		SqlRowSet rs = producer.query(query);
 
@@ -187,13 +174,6 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testJndiWorking() {
-		// Create a test data source with same properties as local H2 test
-		// data source.
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Start up Jndi
 		jndiSetUp();
 
@@ -236,37 +216,26 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 		// Populate the jdbc database.
 		populateTestTable();
 
-		// Create a test data source with same properties as local H2 test
-		// data source.
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Start up Jndi
 		jndiSetUp();
 
 		// Write reference to the data source into Jndi
-		boolean threw = false;
 		try {
 			// Remove any existing objects with same name
 			jndiTemplate.unbind(DATA_SOURCE_JNDI_NAME);
 
 			jndiTemplate.bind(DATA_SOURCE_JNDI_NAME, dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail("Could not bind object to JndiTemplate");
 		}
-		assertFalse("Could not bind object to JndiTemplate", threw);
 
 		// Create the jdbc producer
 		JdbcProducer producer = null;
-		threw = false;
 		try {
 			producer = new JdbcProducer(jndiTemplate, DATA_SOURCE_JNDI_NAME);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Run a query
 		SqlRowSet rs = producer.query(query);
@@ -285,31 +254,22 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 		// Tidy
 		jndiShutDown();
 	}
-	
+
 	/**
 	 * Test access to database using Iris parameter passing.
 	 */
 	@Test
 	public void testIrisQuery() {
-
 		// Populate the database.
 		populateTestTable();
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Build up an InteractionContext
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -319,13 +279,11 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 
 		// Run a query
 		SqlRowSet rs = null;
-		threw = false;
 		try {
 			rs = producer.query(TEST_TABLE_NAME, null, ctx);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Check the results
 		assertFalse(null == rs);
@@ -346,25 +304,16 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testIrisQueryEntity() {
-
 		// Populate the database.
 		populateTestTable();
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Build up an InteractionContext
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -374,15 +323,13 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 
 		// Run a query
 		EntityResource<Entity> entityResource = null;
-		threw = false;
 		String expectedType = "returnEntityType";
 		String key = TEST_KEY_DATA + 1;
 		try {
 			entityResource = producer.queryEntity(TEST_TABLE_NAME, key, ctx, expectedType);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Check the results
 		assertFalse(null == entityResource);
@@ -400,27 +347,18 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	 * Test access to database using Iris parameter passing and returning a
 	 * single entity. When the entry is not present in the database.
 	 */
-	@Test
-	public void testIrisQueryEntityMissing() {
-
+	@Test(expected = JdbcException.class)
+	public void testIrisQueryEntityMissing() throws Exception {
 		// Populate the database.
 		populateTestTable();
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Build up an InteractionContext
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -428,20 +366,10 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
-		// Run a query
-		threw = false;
+		// Run a query. Should throw.
 		String expectedType = "returnEntityType";
 		String key = "badEntityKey";
-		try {
-			producer.queryEntity(TEST_TABLE_NAME, key, ctx, expectedType);
-		} catch (JdbcException e) {
-			// Expected
-			threw = true;
-		} catch (Exception e) {
-			// Not expected
-			threw = false;
-		}
-		assertTrue(threw);
+		producer.queryEntity(TEST_TABLE_NAME, key, ctx, expectedType);
 	}
 
 	/**
@@ -450,25 +378,16 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testIrisQueryEntities() {
-
 		// Populate the database.
 		populateTestTable();
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Build up an InteractionContext
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -478,14 +397,12 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 
 		// Run a query
 		CollectionResource<Entity> entities = null;
-		threw = false;
 		String expectedType = "returnEntityType";
 		try {
 			entities = producer.queryEntities(TEST_TABLE_NAME, ctx, expectedType);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Check the results
 		assertFalse(null == entities);
@@ -511,25 +428,16 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testIrisSelectQuery() {
-
 		// Populate the database.
 		populateTestTable();
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Build up an InteractionContext
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -540,20 +448,18 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 
 		// Run a query
 		SqlRowSet rs = null;
-		threw = false;
 		try {
 			rs = producer.query(TEST_TABLE_NAME, null, ctx);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Check the results
 		assertFalse(null == rs);
 
 		int rowCount = 0;
 		while (rs.next()) {
-			threw = false;
+			boolean threw = false;
 			try {
 				rs.getString(KEY_FIELD_NAME);
 			} catch (InvalidResultSetAccessException e) {
@@ -583,25 +489,16 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testIrisFilterQuery() {
-
 		// Populate the database.
 		populateTestTable();
 
-		// Create data source for target
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl(H2_URL);
-		dataSource.setUser(H2_USER);
-		dataSource.setPassword(H2_PASSWORD);
-
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(dataSource);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Build up an InteractionContext
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -612,13 +509,11 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 
 		// Run a query
 		SqlRowSet rs = null;
-		threw = false;
 		try {
 			rs = producer.query(TEST_TABLE_NAME, null, ctx);
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Check the results. Should get all fields of the single row we
 		// filtered for.
@@ -637,18 +532,16 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 	/**
 	 * Test access to database using Iris with null tablename.
 	 */
-	@Test
-	public void testIrisQueryNullTable() {
+	@Test(expected = JdbcException.class)
+	public void testIrisQueryNullTable() throws Exception {
 
 		// Create the producer
 		JdbcProducer producer = null;
-		boolean threw = false;
 		try {
 			producer = new JdbcProducer(mock(JdbcDataSource.class));
 		} catch (Exception e) {
-			threw = true;
+			fail();
 		}
-		assertFalse(threw);
 
 		// Build up an InteractionContext
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
@@ -656,15 +549,7 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
-		// Run a query
-		threw = false;
-		try {
-			producer.query(null, null, ctx);
-		} catch (JdbcException e) {
-			threw = true;
-		} catch (Exception e) {
-			// Not the exception we're looking for.
-		}
-		assertTrue(threw);
+		// Run a query. Should throw.
+		producer.query(null, null, ctx);
 	}
 }
