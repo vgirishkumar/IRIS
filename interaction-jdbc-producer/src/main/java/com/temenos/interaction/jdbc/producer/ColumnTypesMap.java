@@ -42,7 +42,7 @@ import org.springframework.jdbc.support.JdbcUtils;
 
 import com.temenos.interaction.jdbc.exceptions.JdbcException;
 
-public class ColumnTypesMap {
+class ColumnTypesMap {
 	// Default primary key
 	private static String DEFAULT_PRIMARY_KEY = "RECID";
 
@@ -151,14 +151,6 @@ public class ColumnTypesMap {
 								+ DEFAULT_PRIMARY_KEY
 								+ " column. For this table try multiple version of the command with \"?$filter=<Key name> eq <key_value>\"."));
 			}
-
-			// As an alternative it should also be possible to get the
-			// primary key from the entity metadata. Something like:
-			// EntityMetadata emd =
-			// ctx.getMetadata().getEntityMetadata(entityType);
-			// Vocabulary voc = emd.getPropertyVocabulary("ACCOUNT_NUMBER");
-			// Term term = voc.getTerm("TERM_ID_FIELD");
-			// key = term.getValue();
 		}
 		return key;
 	}

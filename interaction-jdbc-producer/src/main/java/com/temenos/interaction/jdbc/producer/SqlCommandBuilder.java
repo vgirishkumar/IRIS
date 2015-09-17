@@ -39,15 +39,13 @@ import com.temenos.interaction.authorization.command.data.AccessProfile;
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 
-public class SqlCommandBuilder {
+class SqlCommandBuilder {
 
 	// Somewhere to store arguments
 	private String tableName;
 	private String keyValue;
 	private AccessProfile accessProfile;
 	private ColumnTypesMap colTypesMap;
-
-	// private final static Logger logger = LoggerFactory.addLogger(SqlCommandBuilder.class);
 
 	/*
 	 * Constructor when there is not a key.

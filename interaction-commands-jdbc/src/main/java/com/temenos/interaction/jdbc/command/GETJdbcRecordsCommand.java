@@ -1,6 +1,12 @@
 package com.temenos.interaction.jdbc.command;
 
 /*
+ * Jdbc collection command. 
+ * 
+ * Given a collection enquiry constructs a Jdbc request and recovers the requested information from a JDBCProducer.
+ */
+
+/*
  * #%L
  * interaction-commands-jdbc
  * %%
@@ -25,16 +31,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.command.AuthorizationAttributes;
-import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.jdbc.producer.JdbcProducer;
 
-public class GETJdbcRecordsCommand implements JdbcCommand, InteractionCommand {
+public class GETJdbcRecordsCommand implements JdbcCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETJdbcRecordsCommand.class);
-	
+
 	// Somewhere to store the producer.
 	JdbcProducer producer;
 
@@ -56,9 +61,9 @@ public class GETJdbcRecordsCommand implements JdbcCommand, InteractionCommand {
 
 		// For raw command table name is the same as the entity type.
 		String tableName = entityType;
-	
+
 		// Get data from JDBC
-		CollectionResource<Entity>result = null;
+		CollectionResource<Entity> result = null;
 		try {
 			result = producer.queryEntities(tableName, ctx, entityType);
 		} catch (Exception e) {
@@ -68,11 +73,11 @@ public class GETJdbcRecordsCommand implements JdbcCommand, InteractionCommand {
 
 		// Write result into context
 		ctx.setResource(result);
-		
+
 		// Indicate that database level filtering was successful.
 		ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
 		ctx.setAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
-		
+
 		return Result.SUCCESS;
 	}
 }

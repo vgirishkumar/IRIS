@@ -1,6 +1,12 @@
 package com.temenos.interaction.jdbc.command;
 
 /*
+ * Jdbc command. 
+ * 
+ * Given an enquiry constructs a Jdbc request and recovers the requested information from a JDBCProducer.
+ */
+
+/*
  * #%L
  * interaction-commands-jdbc
  * %%
@@ -25,19 +31,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.command.AuthorizationAttributes;
-import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.jdbc.producer.JdbcProducer;
 
-public class GETJdbcRecordCommand implements JdbcCommand, InteractionCommand {
+public class GETJdbcRecordCommand implements JdbcCommand {
 	private final static Logger logger = LoggerFactory.getLogger(GETJdbcRecordCommand.class);
-	
+
 	// Somewhere to store the producer.
 	JdbcProducer producer;
-	
+
 	public GETJdbcRecordCommand(JdbcProducer producer) {
 		this.producer = producer;
 	}
@@ -50,33 +55,33 @@ public class GETJdbcRecordCommand implements JdbcCommand, InteractionCommand {
 	 */
 	@Override
 	public Result execute(InteractionContext ctx) throws InteractionException {
-		
+
 		// Unpack interaction context parameters,
 		String entityType = ctx.getCurrentState().getEntityName();
 
 		// For raw command table name is the same as the entity type.
 		String tableName = entityType;
-		
+
 		String key = ctx.getId();
 
 		// Get data from JDBC
-		EntityResource<Entity> result= null;
+		EntityResource<Entity> result = null;
 		try {
 			result = producer.queryEntity(tableName, key, ctx, entityType);
 		} catch (Exception e) {
 			logger.error("Jdbc query failed. " + e);
 			return Result.FAILURE;
 		}
-		
+
 		// Write result into context
 		ctx.setResource(result);
-		
+
 		// Indicate that database level filtering was successful.
 		ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
 		ctx.setAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE, Boolean.TRUE);
 
 		return Result.SUCCESS;
-	
+
 	}
 
 }

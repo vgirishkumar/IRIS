@@ -54,16 +54,11 @@ public class TestGETJdbcRecordsCommand extends AbstractJdbcCommandTest {
 	 */
 	@Test
 	public void testConstructor() {
-
-		GETJdbcRecordsCommand command = null;
 		try {
-			command = new GETJdbcRecordsCommand(mock(JdbcProducer.class));
-		} catch (Exception e) {
+			new GETJdbcRecordsCommand(mock(JdbcProducer.class));
+		} catch (Throwable e) {
 			fail();
 		}
-
-		// Should produce an object
-		assertFalse(null == command);
 	}
 
 	/*

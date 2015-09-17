@@ -53,14 +53,11 @@ public class TestColumnTypesMap extends AbstractJdbcProducerTest {
 		}
 
 		// Create the object under test
-		ColumnTypesMap map = null;
 		try {
-			map = new ColumnTypesMap(producer, TEST_TABLE_NAME, true);
+			new ColumnTypesMap(producer, TEST_TABLE_NAME, true);
 		} catch (Exception e) {
 			fail();
 		}
-
-		assertFalse(null == map);
 	}
 	
 	/**

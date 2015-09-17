@@ -128,9 +128,6 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
 			fail();
 		}
 
-		// Should produce an object
-		assertFalse(null == producer);
-
 		// Should contain DataSource
 		assertEquals(dataSource, producer.getDataSource());
 	}

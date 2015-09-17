@@ -1,7 +1,10 @@
 package com.temenos.interaction.jdbc.command;
 
+import com.temenos.interaction.core.command.InteractionCommand;
 
-// Import the interaction framework Jdbc producer (not the OData4j one).
+/*
+ *  Base interface for the Jdbc commands.
+ */
 
 /*
  * #%L
@@ -24,5 +27,5 @@ package com.temenos.interaction.jdbc.command;
  * #L%
  */
 
-public interface JdbcCommand {
+interface JdbcCommand extends InteractionCommand {
 }

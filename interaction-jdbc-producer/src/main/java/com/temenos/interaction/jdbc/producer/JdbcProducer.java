@@ -130,7 +130,6 @@ public class JdbcProducer {
 		SqlCommandBuilder sqlBuilder = new SqlCommandBuilder(tableName, key, accessProfile, colTypesMap);
 		String sqlCommand = sqlBuilder.getCommand();
 
-		// TODO Remove for production
 		logger.info("Jdbc producer about to execute \"" + sqlCommand + "\"");
 
 		// Execute the SQL command
