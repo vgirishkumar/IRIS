@@ -307,6 +307,11 @@
     	<artifactId>ehcache-core</artifactId>
     </dependency>
 
+    <dependency>
+    	<groupId>org.codehaus.jettison</groupId>
+    	<artifactId>jettison</artifactId>
+    	<version>1.0.1</version>
+    </dependency>
   </dependencies>
   
 </project>

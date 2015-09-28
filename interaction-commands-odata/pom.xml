@@ -55,10 +55,6 @@
 	</build>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.temenos.interaction</groupId>
-			<artifactId>interaction-core</artifactId>
-		</dependency>
         <dependency>
             <groupId>org.odata4j</groupId>
             <artifactId>odata4j-core</artifactId>
