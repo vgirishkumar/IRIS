@@ -27,6 +27,8 @@ package com.temenos.interaction.jdbc.command;
  * #L%
  */
 
+import javax.ws.rs.core.Response.Status;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,9 +68,22 @@ public class GETJdbcRecordsCommand implements JdbcCommand {
 		CollectionResource<Entity> result = null;
 		try {
 			result = producer.queryEntities(tableName, ctx, entityType);
-		} catch (Exception e) {
+		} catch (InteractionException e) {
 			logger.error("Jdbc query failed. " + e);
-			return Result.FAILURE;
+
+			if (Status.NOT_FOUND == e.getHttpStatus()) {
+				// Not found is just a failure.
+				return Result.FAILURE;
+			}
+
+			// Other Interaction exceptions should thrown up to the framework.
+			throw e;
+		} catch (Exception e) {
+			logger.error("Jdbc query failed with internal error. " + e);
+
+			// Wrap other exception in an InteractionException and throw to
+			// framework.
+			throw (new InteractionException(Status.INTERNAL_SERVER_ERROR, e));
 		}
 
 		// Write result into context
