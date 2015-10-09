@@ -31,6 +31,7 @@ package com.temenos.interaction.jdbc.producer;
  * #L%
  */
 
+import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -178,9 +179,26 @@ class SqlCommandBuilder {
 		// must be quoted but not numerics.
 		boolean numeric = colTypesMap.isNumeric(filter.getFieldName().getName());
 		if (numeric) {
-			builder.append(filter.getValue());
+			String value = filter.getValue();
+			if (!isJdbcNumeric(value)) {
+				throw (new SecurityException("Jdbc column \"" + filter.getFieldName().getName() + "\" is numeric. Filter value \"" + value + "\" is non numeric."));
+			}
+			builder.append(value);
 		} else {
 			builder.append("'" + filter.getValue() + "'");
 		}
+	}
+	
+	/*
+	 * Utility to check if a string is representable as a Jdbc numeric.
+	 */
+	private boolean isJdbcNumeric(String value) {
+	    try {
+	    	// Java "BigDecimal" appears to be the closest data type to Jdbc "numeric". 
+	        new BigDecimal(value);
+	    }catch (NumberFormatException e) {
+	        return false;
+	    }
+	    return true;
 	}
 }
