@@ -228,4 +228,35 @@ public class TestSqlComamndBuilder {
 		// Get the command. Should throw.
 		builder.getCommand();
 	}
+	
+	/**
+	 * Test failure with bad filter column name.
+	 */
+	@Test (expected = SecurityException.class)
+	public void testBadColumnName() {
+
+		// Build up an access profile.
+		List<RowFilter> filters = new ArrayList<RowFilter>();
+		filters.add(new RowFilter("badName", RowFilter.Relation.EQ, "value1"));
+
+		// Build up some column metadata which does not match.
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		map.put("goodName", java.sql.Types.VARCHAR);
+		ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, null);
+		
+		Set<FieldName> selects = new HashSet<FieldName>();
+		selects.add(new FieldName("goodName"));
+		AccessProfile accessProfile = new AccessProfile(filters, selects);
+
+		// Create the builder
+		SqlCommandBuilder builder = null;
+		try {
+			builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap);
+		} catch (Exception e) {
+			fail();
+		}
+
+		// Get the command. Should throw
+		builder.getCommand();
+	}
 }

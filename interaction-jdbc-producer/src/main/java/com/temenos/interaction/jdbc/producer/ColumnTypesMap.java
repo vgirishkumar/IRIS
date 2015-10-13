@@ -63,7 +63,7 @@ class ColumnTypesMap {
 		// This will open a new connection. Remember to close it latter.
 		DataSource ds = producer.getDataSource();
 		Connection conn = ds.getConnection();
-		
+
 		// Get the metadata
 		DatabaseMetaData dsMetaData = conn.getMetaData();
 
@@ -84,7 +84,7 @@ class ColumnTypesMap {
 				}
 			}
 		}
-		
+
 		// Close the connection
 		conn.close();
 	}
@@ -102,14 +102,26 @@ class ColumnTypesMap {
 	 * Get type of a given column
 	 */
 	public Integer getType(String columnName) {
-		return typesMap.get(columnName);
+		return get(columnName);
+	}
+
+	/*
+	 * Get type and handle missing columns.
+	 */
+	private Integer get(String columnName) {
+		Integer type = typesMap.get(columnName);
+		if (null == type) {
+			throw (new SecurityException("Jdbc column \"" + columnName + "\" does not exist."));
+		}
+		return type;
 	}
 
 	/*
 	 * Determines if a given column is numeric.
 	 */
 	public boolean isNumeric(String columnName) {
-		return JdbcUtils.isNumeric(typesMap.get(columnName));
+		Integer type = get(columnName);
+		return JdbcUtils.isNumeric(type);
 	}
 
 	/*
@@ -123,7 +135,7 @@ class ColumnTypesMap {
 	 * Utility to read primary key for a given table.
 	 */
 	private String readPrimaryKey(DatabaseMetaData dsMetaData, String tableName) throws Exception {
-		String key=null;
+		String key = null;
 
 		ResultSet result = dsMetaData.getPrimaryKeys(null, null, tableName);
 
