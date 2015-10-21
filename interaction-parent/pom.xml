@@ -370,6 +370,11 @@
 				<artifactId>useragent-javascript-tester</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.temenos.interaction</groupId>
+				<artifactId>interaction-jdbc-producer</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<!-- APIs -->
 			<dependency>
