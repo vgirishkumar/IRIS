@@ -159,9 +159,9 @@ public class ResourceStateMachine {
 			AbortOnErrorWorkflowStrategyCommand workflow = new AbortOnErrorWorkflowStrategyCommand();
 			for (Action action : actions) {
 				assert (action != null && event != null);
-				if (action.getMethod() == null || action.getMethod().equals(event.getMethod())) {
+				//if (action.getMethod() == null || action.getMethod().equals(event.getMethod())) {
 					workflow.addCommand(getCommandController().fetchCommand(action.getName()));
-				}
+				//}
 			}
 			return workflow;
 		}
