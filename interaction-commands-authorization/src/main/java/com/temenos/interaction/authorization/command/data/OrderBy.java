@@ -1,5 +1,7 @@
 package com.temenos.interaction.authorization.command.data;
 
+import java.util.Objects;
+
 import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.expression.OrderByExpression;
 import org.odata4j.expression.OrderByExpression.Direction;
@@ -54,6 +56,10 @@ public class OrderBy {
         return direction == Direction.ASCENDING;
     }
 
+    public Direction getDirection() {
+        return direction;
+    }
+
     public String getDirectionString() {
         if (direction == Direction.ASCENDING) {
             return "asc";
@@ -61,4 +67,28 @@ public class OrderBy {
             return "desc";
         }
     }
+
+    /**
+     * Define equality of state. To enable comparison.
+     */
+    @Override
+    public boolean equals(Object aThat) {
+        if (this == aThat)
+            return true;
+        if (!(aThat instanceof OrderBy))
+            return false;
+
+        OrderBy that = (OrderBy) aThat;
+        return (this.getFieldName().getName().equals(that.getFieldName().getName()) && (this.getDirection() == that
+                .getDirection()));
+    }
+
+    /**
+     * Return same hash code for identical objects. So contains() works.
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, direction);
+    }
+
 }
