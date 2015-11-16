@@ -378,7 +378,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         		/*
         		 * Add hypermedia information to this resource
         		 */
-        		hypermediaEngine.injectLinks(this, ctx, ctx.getResource(), selfTransition);
+        		hypermediaEngine.injectLinks(this, ctx, ctx.getResource(), selfTransition, headers, metadata);
     		}
     		
     		if (embedResources) {

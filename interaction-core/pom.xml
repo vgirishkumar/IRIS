@@ -137,7 +137,11 @@
 			<groupId>xmlunit</groupId>
 			<artifactId>xmlunit</artifactId>
 			<scope>test</scope>
-		</dependency>		 
+		</dependency>
+		<dependency>
+			<groupId>org.odata4j</groupId>
+			<artifactId>odata4j-core</artifactId>
+		</dependency>
 	</dependencies>
 
 	<!-- SONAR TEST COVERAGE PROFILE-->
