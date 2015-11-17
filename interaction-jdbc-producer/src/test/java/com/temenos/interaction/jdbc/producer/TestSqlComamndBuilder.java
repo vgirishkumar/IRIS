@@ -390,4 +390,24 @@ public class TestSqlComamndBuilder {
         // Get the command. Should throw
         builder.getCommand();
     }
+
+    /**
+     * Test a simple command where the reserved row number column is present.
+     */
+    @Test
+    public void testReservedRnCommand() {
+        // Build column metadata containing the reserved column..
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        map.put(SqlCommandBuilder.getRnName(), java.sql.Types.INTEGER);
+        ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1");
+
+        // Create the builder
+        try {
+            new SqlCommandBuilder(TEST_TABLE_NAME, null, null, columnTypesMap, null, null, null, null);
+        } catch (Exception e) {
+            fail();
+        }
+        
+        // For now this should work. Maybe one day it will be changed to throw.
+    }
 }

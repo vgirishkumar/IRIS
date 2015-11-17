@@ -71,7 +71,7 @@ class SqlCommandBuilder {
     private boolean serverIsEmulated;
 
     // Name of rownum exported form inner select.
-    private final String INNER_RN_NAME = "rn";
+    private final static String INNER_RN_NAME = "rn";
 
     private final static Logger logger = LoggerFactory.getLogger(SqlCommandBuilder.class);
 
@@ -87,6 +87,21 @@ class SqlCommandBuilder {
         this.top = top;
         this.skip = skip;
         this.orderBy = orderBy;
+
+        // Check if reserved row number column name is present.
+        boolean exists = true;
+        try {
+            colTypesMap.getType(INNER_RN_NAME);
+        } catch (SecurityException e) {
+            // Not found. This is what we want.
+            exists = false;
+        }
+        if (exists) {
+            // Possibly should throw or maybe dynamically work out an unique
+            // column name. For now just warn the user.
+            logger.warn("Table contains a column with the reserved name \"" + INNER_RN_NAME
+                    + "\" pagination may not perform as expected");
+        }
 
         setCompatibilityMode(serverMode);
     }
@@ -145,7 +160,7 @@ class SqlCommandBuilder {
         addSelects(builder);
         addFrom(builder);
         addWhereTerms(builder);
-        
+
         switch (serverMode) {
         case ORACLE:
             // Always need an order by term
@@ -413,5 +428,13 @@ class SqlCommandBuilder {
             return false;
         }
         return true;
+    }
+
+    /*
+     * Utility to obtain the reserved 'row number' column name. Used mainly in
+     * testing but could be useful to the end user.
+     */
+    public static String getRnName() {
+        return INNER_RN_NAME;
     }
 }
