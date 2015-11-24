@@ -28,10 +28,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NewCommandController {
+public class NewCommandController implements CommandController {
 	private final Logger logger = LoggerFactory.getLogger(NewCommandController.class);
 
-	private Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
+	protected Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
 
 	/**
 	 * Create an empty command controller.
