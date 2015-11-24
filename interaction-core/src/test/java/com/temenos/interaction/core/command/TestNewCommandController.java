@@ -32,7 +32,7 @@ import java.util.HashMap;
 
 import org.junit.Test;
 
-public class TestCommandControllerInterface {
+public class TestNewCommandController {
 
 	@Test
 	public void testDefaultConstructorNotNullNotRegistered() {
