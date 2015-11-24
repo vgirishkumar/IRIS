@@ -32,11 +32,11 @@ import java.util.HashMap;
 
 import org.junit.Test;
 
-public class TestNewCommandController {
+public class TestCommandControllerInterface {
 
 	@Test
 	public void testDefaultConstructorNotNullNotRegistered() {
-		NewCommandController cc = new NewCommandController();
+		CommandControllerInterface cc = new NewCommandController();
 		InteractionCommand command = cc.fetchCommand("dostuff");
 		assertNull(command);
 	}
@@ -48,26 +48,26 @@ public class TestNewCommandController {
 
 	@Test
 	public void testFetchCommandNoCommandsSetNotFound() {
-		NewCommandController cc = new NewCommandController(new HashMap<String, InteractionCommand>());
+		CommandControllerInterface cc = new NewCommandController(new HashMap<String, InteractionCommand>());
 		InteractionCommand command = cc.fetchCommand("dostuff");
 		assertNull(command);
 	}
 
 	@Test(expected = AssertionError.class)
 	public void testAddNullCommand() {
-		NewCommandController cc = new NewCommandController();
+		ModifiableCommandControllerInterface cc = new NewCommandController();
 		cc.addCommand("commandName", null);
 	}
 
 	@Test(expected = AssertionError.class)
 	public void testAddNullName() {
-		NewCommandController cc = new NewCommandController();
+		ModifiableCommandControllerInterface cc = new NewCommandController();
 		cc.addCommand(null, mock(InteractionCommand.class));
 	}
 
 	@Test
 	public void testCommandRegistered() {
-		NewCommandController cc = new NewCommandController();
+		ModifiableCommandControllerInterface cc = new NewCommandController();
 		InteractionCommand command = mock(InteractionCommand.class);
 		cc.addCommand("DO", command);
 		assertEquals(command, cc.fetchCommand("DO"));
@@ -75,7 +75,7 @@ public class TestNewCommandController {
 
 	@Test
 	public void testIsValidCommandCommandRegistered() {
-		NewCommandController cc = new NewCommandController();
+		ModifiableCommandControllerInterface cc = new NewCommandController();
 		InteractionCommand command = mock(InteractionCommand.class);
 		cc.addCommand("DO", command);
 		assertTrue(cc.isValidCommand("DO"));

@@ -33,7 +33,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.junit.Test;
 
-import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.command.CommandControllerInterface;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
@@ -52,7 +52,7 @@ public class TestLazyResourceDelegate {
 		final HTTPHypermediaRIM realResource = mock(HTTPHypermediaRIM.class);
 		
 		LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(mock(ResourceStateMachine.class),
-				mock(ResourceStateProvider.class), mock(NewCommandController.class), mock(Metadata.class), "test", "/", mock(HashSet.class)) {
+				mock(ResourceStateProvider.class), mock(CommandControllerInterface.class), mock(Metadata.class), "test", "/", mock(HashSet.class)) {
 
 			@Override
 			HTTPHypermediaRIM getRealResource() {			
@@ -76,7 +76,7 @@ public class TestLazyResourceDelegate {
 		final HTTPHypermediaRIM realResource = mock(HTTPHypermediaRIM.class);
 		
 		LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(mock(ResourceStateMachine.class),
-				mock(ResourceStateProvider.class), mock(NewCommandController.class), mock(Metadata.class), "test", "/", mock(HashSet.class)) {
+				mock(ResourceStateProvider.class), mock(CommandControllerInterface.class), mock(Metadata.class), "test", "/", mock(HashSet.class)) {
 
 			@Override
 			HTTPHypermediaRIM getRealResource() {			
@@ -98,7 +98,7 @@ public class TestLazyResourceDelegate {
 		final HTTPHypermediaRIM realResource = mock(HTTPHypermediaRIM.class);
 		
 		LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(mock(ResourceStateMachine.class),
-				mock(ResourceStateProvider.class), mock(NewCommandController.class), mock(Metadata.class), "test", "/", mock(HashSet.class)) {
+				mock(ResourceStateProvider.class), mock(CommandControllerInterface.class), mock(Metadata.class), "test", "/", mock(HashSet.class)) {
 
 			@Override
 			HTTPHypermediaRIM getRealResource() {			
@@ -122,7 +122,7 @@ public class TestLazyResourceDelegate {
 		final HTTPHypermediaRIM realResource = mock(HTTPHypermediaRIM.class);
 		
 		LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(mock(ResourceStateMachine.class),
-				mock(ResourceStateProvider.class), mock(NewCommandController.class), mock(Metadata.class), "test", "/", mock(HashSet.class)) {
+				mock(ResourceStateProvider.class), mock(CommandControllerInterface.class), mock(Metadata.class), "test", "/", mock(HashSet.class)) {
 
 			@Override
 			HTTPHypermediaRIM getRealResource() {			

@@ -28,7 +28,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NewCommandController {
+public class NewCommandController implements CommandControllerInterface,
+       ModifiableCommandControllerInterface {
 	private final Logger logger = LoggerFactory.getLogger(NewCommandController.class);
 
 	private Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
@@ -49,6 +50,7 @@ public class NewCommandController {
 	public NewCommandController(Map<String, InteractionCommand> commands) {
 		assert(commands != null);
 		for(String name : commands.keySet()) {
+		    logger.warn("PETE  --  Adding new command: " + name);
 			addCommand(name, commands.get(name));
 		}
 	}
