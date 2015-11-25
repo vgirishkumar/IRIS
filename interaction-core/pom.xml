@@ -142,10 +142,10 @@
 			<groupId>org.odata4j</groupId>
 			<artifactId>odata4j-core</artifactId>
 		</dependency>
-	 <dependency>
-	  <groupId>org.springframework</groupId>
-	  <artifactId>spring-context</artifactId>
-	 </dependency>
+                <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </dependency>
 	</dependencies>
 
 	<!-- SONAR TEST COVERAGE PROFILE-->
