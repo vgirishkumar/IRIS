@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.temenos.interaction.core.command;
 
 /*
@@ -26,20 +21,13 @@ package com.temenos.interaction.core.command;
  * #L%
  */
 
-import java.util.HashMap;
-import java.util.Map;
 
-/**
- *
- * @author andres
- */
-public class DefaultRefreshableCommandController         
-        extends NewCommandController
-implements RefreshableWithMapCommandController {
+public class TestCommand implements com.temenos.interaction.core.command.InteractionCommand {
 
-    @Override
-    public void refresh(Map<String, InteractionCommand> context) {
-        commands = new HashMap(context);
-    }
-    
+	@Override
+	public Result execute(InteractionContext ctx) throws InteractionException {
+		// do nothing
+		return null;
+	}
+
 }
