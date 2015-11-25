@@ -32,7 +32,7 @@ public class NewCommandController implements CommandControllerInterface,
        ModifiableCommandControllerInterface {
 	private final Logger logger = LoggerFactory.getLogger(NewCommandController.class);
 
-	private Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
+	protected Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
 
 	/**
 	 * Create an empty command controller.
