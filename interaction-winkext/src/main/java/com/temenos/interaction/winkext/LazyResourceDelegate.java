@@ -38,7 +38,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.wink.common.DynamicResource;
 import org.apache.wink.common.model.multipart.InMultiPart;
 
-import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.command.CommandControllerInterface;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
@@ -52,7 +52,7 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 
 	private ResourceStateMachine hypermediaEngine;
 	private ResourceStateProvider resourceStateProvider;
-	private NewCommandController commandController;
+	private CommandControllerInterface commandController;
 	private Metadata metadata;
 
 	private Map<String, Set<String>> resourceNamesToMethods = new HashMap<String, Set<String>>();
@@ -70,7 +70,7 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	 */
 	public LazyResourceDelegate(ResourceStateMachine hypermediaEngine,
 			ResourceStateProvider resourceStateProvider, 
-			NewCommandController commandController,
+			CommandControllerInterface commandController,
 			Metadata metadata,
 			String resourceName, 
 			String path,
