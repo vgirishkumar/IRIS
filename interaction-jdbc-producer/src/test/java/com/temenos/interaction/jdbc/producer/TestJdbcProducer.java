@@ -62,7 +62,7 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
     private JndiTemplate jndiTemplate = null;
 
     // Jndi name for the data source
-    String DATA_SOURCE_JNDI_NAME = "aDir/H2Datasource";
+    String DATA_SOURCE_JNDI_NAME = "H2Datasource";
 
     /*
      * Utility to set up Jndi context
