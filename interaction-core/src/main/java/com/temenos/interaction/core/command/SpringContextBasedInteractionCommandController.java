@@ -26,9 +26,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 
 /**
- * Implementation of Implementation of {@link CommandController} delegating the
- * command resolution to underlying Spring ApplicationContext. The default bean
- * resolution is based on id or name attributes of the beans in the context.
+ * Implementation of {@link CommandController} delegating the
+ * command resolution to underlying Spring ApplicationContext. The bean
+ * resolution is based on id or name attributes of the beans in the context matching name passed literally.
  *
  * @author trojanbug
  */
