@@ -39,8 +39,8 @@
 		<module>../interaction-media-odata-xml</module>
 		<module>../interaction-dsl/interaction-springdsl</module>
 		<module>../interaction-dynamic-loader</module>	
-		<!--module>../interaction-commands-jdbc</module>
-		<module>../interaction-jdbc-producer</module-->					
+		<module>../interaction-commands-jdbc</module>
+		<module>../interaction-jdbc-producer</module>
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../useragent-examples/useragent-odata-html5</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
@@ -60,11 +60,11 @@
 		<module>../interaction-examples/interaction-odata-error</module>
 		<module>../interaction-examples/interaction-odata-embedded</module>
 		<module>../interaction-examples/interaction-odata-multicompany</module>
-		<!--module>../interaction-sdk-archetype</module>
+		<module>../interaction-sdk-archetype</module>
 		<module>../interaction-sdk</module>
 		<module>../interaction-sdk-plugin</module>
 		<module>../interaction-sdk-rim-plugin</module>
-		<module>../interaction-sdk-test</module-->
+		<module>../interaction-sdk-test</module>
 		<module>../interaction-test</module>
 	</modules>
 
