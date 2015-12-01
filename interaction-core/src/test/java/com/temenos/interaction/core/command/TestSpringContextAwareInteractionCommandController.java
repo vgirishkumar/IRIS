@@ -20,9 +20,6 @@ package com.temenos.interaction.core.command;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
-
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,17 +29,23 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:/spring-test-contexts/interaction-command-test-context.xml" })
+@ContextConfiguration(locations = {"classpath:/spring-test-contexts/interaction-command-test-context.xml"})
 public class TestSpringContextAwareInteractionCommandController {
 
-	@Autowired
-	SpringContextAwareInteractionCommandController commandController;
-	
-	@Test
-	public void testFetchCommand() throws BeansException {
-		Assert.assertNotNull(commandController.fetchCommand("testCommand1"));
-		Assert.assertNotNull(commandController.fetchCommand("testCommand2"));
-		
-		Assert.assertEquals(TestCommand.class, commandController.fetchCommand("testCommand1").getClass());
-	}
+    @Autowired
+    SpringContextAwareInteractionCommandController commandController;
+
+    @Test
+    public void testFetchCommandWorksForConfiguredCommands() throws BeansException {
+        Assert.assertNotNull(commandController.fetchCommand("testCommand1"));
+        Assert.assertNotNull(commandController.fetchCommand("testCommand2"));
+
+        Assert.assertEquals(TestCommand.class, commandController.fetchCommand("testCommand1").getClass());
+    }
+
+    @Test
+    public void testFetchCommandDoesNotReturnAnythingElse() throws BeansException {
+        // we don't expect any exceptions, just null returned
+        Assert.assertNull(commandController.fetchCommand("testCommandNameNotConfiguredAnywhere"));
+    }
 }

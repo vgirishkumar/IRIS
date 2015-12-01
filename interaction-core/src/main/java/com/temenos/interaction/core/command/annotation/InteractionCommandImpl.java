@@ -1,4 +1,4 @@
-package com.temenos.interaction.loader.detector;
+package com.temenos.interaction.core.command.annotation;
 
 /*
  * #%L
@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 
 @Target(value=ElementType.TYPE)
 @Retention(value=RetentionPolicy.RUNTIME)
-public @interface InteractionCommand {
+public @interface InteractionCommandImpl {
     
     String name();
 }
