@@ -49,10 +49,10 @@ import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.Cache;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperty;
@@ -84,7 +84,7 @@ public class ResourceStateMachine {
 	ResourceState initial;
 	ResourceState exception;
 	Transformer transformer;
-	NewCommandController commandController;
+	CommandController commandController;
 	Cache responseCache;
 	ResourceStateProvider resourceStateProvider;
 	ResourceLocatorProvider resourceLocatorProvider;
@@ -116,11 +116,11 @@ public class ResourceStateMachine {
 		this(initialState, exceptionState, null, resourceLocatorProvider, null);
 	}
 
-	public NewCommandController getCommandController() {
+	public CommandController getCommandController() {
 		return commandController;
 	}
 
-	public void setCommandController(NewCommandController commandController) {
+	public void setCommandController(CommandController commandController) {
 		this.commandController = commandController;
 	}
 	
@@ -1557,7 +1557,7 @@ public class ResourceStateMachine {
 		private ResourceState initial;
 		private ResourceState exception;
 		private Transformer transformer;
-		private NewCommandController commandController;
+		private CommandController commandController;
 		private ResourceStateProvider resourceStateProvider;
 		private ResourceLocatorProvider resourceLocatorProvider;
 		private ResourceParameterResolverProvider parameterResolverProvider;
@@ -1578,7 +1578,7 @@ public class ResourceStateMachine {
 			return this;
 		}
 
-		public Builder commandController(NewCommandController commandController) {
+		public Builder commandController(CommandController commandController) {
 			this.commandController = commandController;
 			return this;
 		}
