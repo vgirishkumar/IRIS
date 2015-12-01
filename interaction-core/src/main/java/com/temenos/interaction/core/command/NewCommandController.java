@@ -56,7 +56,6 @@ public class NewCommandController implements CommandController,
 	public NewCommandController(Map<String, InteractionCommand> commands) {
 		assert(commands != null);
 		for(String name : commands.keySet()) {
-		    logger.warn("PETE  --  Adding new command: " + name);
 			addCommand(name, commands.get(name));
 		}
 	}
