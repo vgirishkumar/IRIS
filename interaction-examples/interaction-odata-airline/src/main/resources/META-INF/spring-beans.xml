@@ -178,12 +178,14 @@
 	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="NoopGETCommand" class="com.temenos.interaction.core.command.NoopGETCommand" />
-	<bean id="GETExceptionCommand" class="com.temenos.interaction.core.command.GETExceptionCommand" />
+	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="GETException" class="com.temenos.interaction.core.command.GETExceptionCommand" />
 
 	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
 	
 	<!-- Command controller -->
+        <bean id="commands" class="com.temenos.interaction.core.command.SpringContextAwareInteractionCommandController"/>
+<!--       
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
@@ -199,6 +201,6 @@
 				<entry key="NoopGET" value-ref="NoopGETCommand" />
  			</util:map> 
 		</constructor-arg>
-	</bean>
+	</bean>-->
 </beans>
 
