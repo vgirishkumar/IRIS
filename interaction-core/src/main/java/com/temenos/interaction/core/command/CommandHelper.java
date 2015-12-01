@@ -33,6 +33,8 @@ import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.resource.EntityResource;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedType;
 
 
 public class CommandHelper {
@@ -125,6 +127,26 @@ public class CommandHelper {
 						public String getName() {
 							return entityType.getSimpleName();
 						}
+
+                                            @Override
+                                            public AnnotatedType[] getAnnotatedBounds() {
+                                               return new AnnotatedType[]{};
+                                            }
+
+                                            @Override
+                                            public <T extends Annotation> T getAnnotation(Class<T> type) {
+                                               return null; 
+                                            }
+
+                                            @Override
+                                            public Annotation[] getAnnotations() {
+                                                return new Annotation[]{};
+                                            }
+
+                                            @Override
+                                            public Annotation[] getDeclaredAnnotations() {
+                                                return new Annotation[]{};
+                                            }
 						
 					};
 				}
@@ -147,6 +169,26 @@ public class CommandHelper {
 				public String getName() {
 					return entityType.getSimpleName();
 				}
+
+                            @Override
+                            public AnnotatedType[] getAnnotatedBounds() {
+                                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            }
+
+                            @Override
+                            public <T extends Annotation> T getAnnotation(Class<T> type) {
+                                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            }
+
+                            @Override
+                            public Annotation[] getAnnotations() {
+                                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            }
+
+                            @Override
+                            public Annotation[] getDeclaredAnnotations() {
+                                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            }
 				
 			};
 			newGenericType = t; 

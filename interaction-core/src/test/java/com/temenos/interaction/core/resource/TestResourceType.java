@@ -40,6 +40,8 @@ import org.junit.Test;
 
 import com.temenos.interaction.core.NestedObject;
 import com.temenos.interaction.core.entity.Entity;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedType;
 
 public class TestResourceType {
 
@@ -133,6 +135,26 @@ public class TestResourceType {
 			public String getName() {
 				return fTypeName;
 			}
+
+                    @Override
+                    public AnnotatedType[] getAnnotatedBounds() {
+                        return new AnnotatedType[]{};
+                    }
+
+                    @Override
+                    public <T extends Annotation> T getAnnotation(Class<T> type) {
+                        return null;
+                    }
+
+                    @Override
+                    public Annotation[] getAnnotations() {
+                        return new Annotation[]{};
+                    }
+
+                    @Override
+                    public Annotation[] getDeclaredAnnotations() {
+                        return new Annotation[]{};
+                    }
 			
 		};
 		return t;
