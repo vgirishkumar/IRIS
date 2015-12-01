@@ -20,34 +20,43 @@ package com.temenos.interaction.core.command;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 
 /**
- * Implementation of Implementation of {@link CommandController} delegating the command resolution to underlying Spring ApplicationContext.
- * The default bean resolution is based on id or name attributes of the beans in the context.
- * 
+ * Implementation of Implementation of {@link CommandController} delegating the
+ * command resolution to underlying Spring ApplicationContext. The default bean
+ * resolution is based on id or name attributes of the beans in the context.
+ *
  * @author trojanbug
  */
 public class SpringContextBasedInteractionCommandController
         implements CommandController {
 
+    private static final Logger logger = LoggerFactory.getLogger(SpringContextBasedInteractionCommandController.class);
+
     private ApplicationContext applicationContext = null;
 
     /**
      * @param name
-     * @return The object returned by calling getBean(name, InteractionCommand.class) method on the underlying application context, or null if no such bean found, or application context is not set. If the bean name matches, but it is not an implementation of {@link InteractionCommand} will be silently ignored.
+     * @return The object returned by calling getBean(name,
+     * InteractionCommand.class) method on the underlying application context,
+     * or null if no such bean found, or application context is not set. If the
+     * bean name matches, but it is not an implementation of
+     * {@link InteractionCommand} will be silently ignored.
      */
     @Override
     public InteractionCommand fetchCommand(String name) {
         if (applicationContext == null) {
+            logger.warn("applicationContext not initialised in fetchCommand of " + this.getClass());
             return null;
         }
         try {
             return applicationContext.getBean(name, InteractionCommand.class);
         } catch (BeansException ex) {
+            logger.debug("could not find bean implementing interaction command under name " + name);
             return null;
         }
     }
@@ -63,9 +72,10 @@ public class SpringContextBasedInteractionCommandController
     @Override
     public boolean isValidCommand(String name) {
         if (applicationContext == null) {
+            logger.warn("applicationContext not initialised in isValidCommand of " + this.getClass());
             return false;
         }
-        try {
+         try {
             return (applicationContext.getBean(name, InteractionCommand.class) != null);
         } catch (BeansException ex) {
             return false;
