@@ -35,7 +35,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import com.temenos.interaction.core.command.CommandControllerInterface;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
@@ -64,7 +64,7 @@ public class TestLazyServiceRootFactory {
 		beanMap.put("SimpleModel_Home_home", "GET /test");
 		LazyServiceRootFactory factory = new LazyServiceRootFactory();
 		factory.setResourceStateProvider(mockResourceStateProvider(beanMap));
-		factory.setCommandController(mock(CommandControllerInterface.class));
+		factory.setCommandController(mock(CommandController.class));
 		factory.setMetadata(mockMetadata());
 		Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
 		assertEquals(1, serviceRoots.size());
@@ -82,7 +82,7 @@ public class TestLazyServiceRootFactory {
 		beanMap.put("SimpleModel_Home_test", "PUT /test");
 		LazyServiceRootFactory factory = new LazyServiceRootFactory();
 		factory.setResourceStateProvider(mockResourceStateProvider(beanMap));
-		factory.setCommandController(mock(CommandControllerInterface.class));
+		factory.setCommandController(mock(CommandController.class));
 		factory.setMetadata(mockMetadata());
 		Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
 		assertEquals(1, serviceRoots.size());
