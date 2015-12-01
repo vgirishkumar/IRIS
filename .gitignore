@@ -26,3 +26,5 @@ target
 report
 src-gen
 *~
+/interaction-core/nb-configuration.xml
+/nb-configuration.xml
