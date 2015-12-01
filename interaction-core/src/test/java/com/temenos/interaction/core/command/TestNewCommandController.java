@@ -36,7 +36,7 @@ public class TestNewCommandController {
 
 	@Test
 	public void testDefaultConstructorNotNullNotRegistered() {
-		CommandControllerInterface cc = new NewCommandController();
+		CommandController cc = new NewCommandController();
 		InteractionCommand command = cc.fetchCommand("dostuff");
 		assertNull(command);
 	}
@@ -48,26 +48,26 @@ public class TestNewCommandController {
 
 	@Test
 	public void testFetchCommandNoCommandsSetNotFound() {
-		CommandControllerInterface cc = new NewCommandController(new HashMap<String, InteractionCommand>());
+		CommandController cc = new NewCommandController(new HashMap<String, InteractionCommand>());
 		InteractionCommand command = cc.fetchCommand("dostuff");
 		assertNull(command);
 	}
 
 	@Test(expected = AssertionError.class)
 	public void testAddNullCommand() {
-		ModifiableCommandControllerInterface cc = new NewCommandController();
+		ModifiableCommandController cc = new NewCommandController();
 		cc.addCommand("commandName", null);
 	}
 
 	@Test(expected = AssertionError.class)
 	public void testAddNullName() {
-		ModifiableCommandControllerInterface cc = new NewCommandController();
+		ModifiableCommandController cc = new NewCommandController();
 		cc.addCommand(null, mock(InteractionCommand.class));
 	}
 
 	@Test
 	public void testCommandRegistered() {
-		ModifiableCommandControllerInterface cc = new NewCommandController();
+		ModifiableCommandController cc = new NewCommandController();
 		InteractionCommand command = mock(InteractionCommand.class);
 		cc.addCommand("DO", command);
 		assertEquals(command, cc.fetchCommand("DO"));
@@ -75,7 +75,7 @@ public class TestNewCommandController {
 
 	@Test
 	public void testIsValidCommandCommandRegistered() {
-		ModifiableCommandControllerInterface cc = new NewCommandController();
+		ModifiableCommandController cc = new NewCommandController();
 		InteractionCommand command = mock(InteractionCommand.class);
 		cc.addCommand("DO", command);
 		assertTrue(cc.isValidCommand("DO"));

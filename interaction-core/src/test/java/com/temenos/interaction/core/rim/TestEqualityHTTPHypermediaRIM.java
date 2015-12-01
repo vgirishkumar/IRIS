@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.temenos.interaction.core.command.CommandControllerInterface;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
@@ -49,8 +49,8 @@ public class TestEqualityHTTPHypermediaRIM {
 		return actions;
 	}
 	
-	private CommandControllerInterface mockCommandController() {
-		CommandControllerInterface cc = mock(CommandControllerInterface.class);
+	private CommandController mockCommandController() {
+		CommandController cc = mock(CommandController.class);
 		when(cc.fetchCommand("DO")).thenReturn(mock(InteractionCommand.class));
 		return cc;
 	}

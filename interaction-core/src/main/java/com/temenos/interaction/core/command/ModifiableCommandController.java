@@ -22,16 +22,13 @@ package com.temenos.interaction.core.command;
  */
 
 /**
- * TODO: This interface provides an abstract definition
- * for the command controller. The command controller will
- * provide a map for all of the commands that can be executed
- * via URLs.
- *
+ * Extension to the {@link CommandController} interface to mark registries capable of registering or unregistering new commands at runtime
  * @author pblair
- *
+ * @author trojanbug
  */
-public interface CommandControllerInterface {
+public interface ModifiableCommandController 
+       extends CommandController {
 
-    public InteractionCommand fetchCommand(String name);
-    public boolean isValidCommand(String name);
+    public void addCommand(String name, InteractionCommand c);
+    public void removeCommand(String name);
 }

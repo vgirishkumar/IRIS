@@ -43,12 +43,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.temenos.interaction.core.command.CommandControllerInterface;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.command.ModifiableCommandControllerInterface;
+import com.temenos.interaction.core.command.ModifiableCommandController;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.command.NoopGETCommand;
 import com.temenos.interaction.core.entity.EntityMetadata;
@@ -71,8 +71,8 @@ public class TestResourceGETExpression {
         RequestContext.setRequestContext(ctx);
 	}
 
-	private CommandControllerInterface mockCommandController() {
-		ModifiableCommandControllerInterface cc = new NewCommandController();
+	private CommandController mockCommandController() {
+		ModifiableCommandController cc = new NewCommandController();
 		try {
 			InteractionCommand dosomthing = mock(InteractionCommand.class);
 			when(dosomthing.execute(any(InteractionContext.class))).thenThrow(new RuntimeException("Should not execute this command"));
@@ -91,7 +91,7 @@ public class TestResourceGETExpression {
 	}
 	
 	private HTTPHypermediaRIM mockRimHandler() {
-		CommandControllerInterface mockCommandController = mockCommandController();
+		CommandController mockCommandController = mockCommandController();
 		Metadata mockMetadata = mock(Metadata.class);
 		when(mockMetadata.getEntityMetadata(anyString())).thenReturn(mock(EntityMetadata.class));
 		return new HTTPHypermediaRIM(mockCommandController, mockRIM(), mockMetadata);

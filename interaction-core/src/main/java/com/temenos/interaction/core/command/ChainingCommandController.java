@@ -25,14 +25,19 @@ package com.temenos.interaction.core.command;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainingCommandController implements CommandControllerInterface {
+/**
+ * Implementation of {@link CommandController} delegating the command resolution to a chain of wrapped CommandController implementations. 
+ * The first CommandController to return non-null from fetchCommand "wins". If not found on any, return null
+ * @author trojanbug
+ */
+public class ChainingCommandController implements CommandController {
 
-    private List<? extends CommandControllerInterface> commandControllers = new ArrayList<CommandControllerInterface>();
+    private List<? extends CommandController> commandControllers = new ArrayList<CommandController>();
 
     @Override
     public InteractionCommand fetchCommand(String name) {
 
-        for (CommandControllerInterface commandController : commandControllers) {
+        for (CommandController commandController : commandControllers) {
             InteractionCommand command = commandController.fetchCommand(name);
             if (command != null) {
                 return command;
@@ -44,7 +49,7 @@ public class ChainingCommandController implements CommandControllerInterface {
 
     @Override
     public boolean isValidCommand(String name) {
-        for (CommandControllerInterface commandController : commandControllers) {
+        for (CommandController commandController : commandControllers) {
             if (commandController.isValidCommand(name)) {
                 return true;
             }
@@ -53,12 +58,12 @@ public class ChainingCommandController implements CommandControllerInterface {
         return false;
     }
 
-    public List<? extends CommandControllerInterface> getCommandControllers() {
+    public List<? extends CommandController> getCommandControllers() {
         return commandControllers;
     }
 
-    public void setCommandControllers(List<? extends CommandControllerInterface> commandControllers) {
-        this.commandControllers = new ArrayList<CommandControllerInterface>(commandControllers);
+    public void setCommandControllers(List<? extends CommandController> commandControllers) {
+        this.commandControllers = new ArrayList<CommandController>(commandControllers);
     }
 
 }

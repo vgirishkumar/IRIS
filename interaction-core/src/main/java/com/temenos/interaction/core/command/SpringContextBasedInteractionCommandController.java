@@ -25,11 +25,21 @@ package com.temenos.interaction.core.command;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 
+/**
+ * Implementation of Implementation of {@link CommandController} delegating the command resolution to underlying Spring ApplicationContext.
+ * The default bean resolution is based on id or name attributes of the beans in the context.
+ * 
+ * @author trojanbug
+ */
 public class SpringContextBasedInteractionCommandController
-        implements CommandControllerInterface {
+        implements CommandController {
 
     private ApplicationContext applicationContext = null;
 
+    /**
+     * @param name
+     * @return The object returned by calling getBean(name, InteractionCommand.class) method on the underlying application context, or null if no such bean found, or application context is not set. If the bean name matches, but it is not an implementation of {@link InteractionCommand} will be silently ignored.
+     */
     @Override
     public InteractionCommand fetchCommand(String name) {
         if (applicationContext == null) {

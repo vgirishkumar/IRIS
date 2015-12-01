@@ -61,7 +61,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandControllerInterface;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.GETExceptionCommand;
 import com.temenos.interaction.core.command.HttpStatusTypes;
@@ -69,7 +69,7 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.command.ModifiableCommandControllerInterface;
+import com.temenos.interaction.core.command.ModifiableCommandController;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.command.NoopGETCommand;
 import com.temenos.interaction.core.entity.Entity;
@@ -144,7 +144,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testGETCommandNotRegistered() {
 		// our empty command controller
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
@@ -160,7 +160,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testPUTCommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
@@ -181,7 +181,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testPOSTCommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
@@ -202,7 +202,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testDELETECommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
@@ -241,7 +241,7 @@ public class TestResponseHTTPHypermediaRIM {
 		};
 		
 		// create mock command controller
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 		when(mockCommandController.isValidCommand("DO")).thenReturn(true);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
@@ -765,7 +765,7 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", mockCommand_SUCCESS());
 		commands.put("GET", mockCommand_FAILURE());
-		CommandControllerInterface commandController = new NewCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
@@ -852,7 +852,7 @@ public class TestResponseHTTPHypermediaRIM {
 			}
 			
 		});
-		CommandControllerInterface commandController = new NewCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Collection<ResourceInteractionModel> children = rim.getChildren();
 		// find the resource interaction model for the 'exists' state
@@ -978,9 +978,9 @@ public class TestResponseHTTPHypermediaRIM {
 		return uriInfo;
 	}
 	
-	private CommandControllerInterface mockNoopCommandController() {
+	private CommandController mockNoopCommandController() {
 		// make sure command execution does nothing
-		CommandControllerInterface commandController = mock(CommandControllerInterface.class);
+		CommandController commandController = mock(CommandController.class);
 		InteractionCommand testCommand = mockCommand_SUCCESS();
 		when(commandController.isValidCommand(anyString())).thenReturn(true);
 		when(commandController.fetchCommand(anyString())).thenReturn(testCommand);
@@ -1029,7 +1029,7 @@ public class TestResponseHTTPHypermediaRIM {
 		};
 		
 		// create mock command controller
-		ModifiableCommandControllerInterface mockCommandController = new NewCommandController();
+		ModifiableCommandController mockCommandController = new NewCommandController();
 		mockCommandController.addCommand("GET", mockCommand);
 		mockCommandController.addCommand("DO", mockCommand);
 
@@ -1126,7 +1126,7 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", getGenericErrorMockCommand(Result.FAILURE, "Resource manager: 5 fatal error and 2 warnings."));
 		commands.put("GET", mockCommand_SUCCESS());
-		CommandControllerInterface commandController = new NewCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
@@ -1274,7 +1274,7 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", mockCommand_FAILURE());
 		commands.put("GET", mockCommand_SUCCESS());
-		CommandControllerInterface commandController = new NewCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 
 		HTTPHypermediaRIM deleteInteraction = (HTTPHypermediaRIM) rim.getChildren().iterator().next();
@@ -1534,7 +1534,7 @@ public class TestResponseHTTPHypermediaRIM {
 	}
 	
 	protected Response getMockResponse(InteractionCommand mockCommand, InteractionCommand mockExceptionCommand, HttpHeaders httpHeaders) {
-		ModifiableCommandControllerInterface mockCommandController = mock(ModifiableCommandControllerInterface.class);
+		ModifiableCommandController mockCommandController = mock(ModifiableCommandController.class);
 		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
@@ -1555,7 +1555,7 @@ public class TestResponseHTTPHypermediaRIM {
 	}
 
 	protected Response getMockResponseWithErrorResource(InteractionCommand mockCommand) {
-		ModifiableCommandControllerInterface mockCommandController = mock(ModifiableCommandControllerInterface.class);
+		ModifiableCommandController mockCommandController = mock(ModifiableCommandController.class);
 		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);

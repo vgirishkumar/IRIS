@@ -57,13 +57,13 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandControllerInterface;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.command.ModifiableCommandControllerInterface;
+import com.temenos.interaction.core.command.ModifiableCommandController;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
@@ -92,7 +92,7 @@ public class TestResourceStateMachine {
 	}
 
 	private HTTPHypermediaRIM mockRIMHandler(ResourceStateMachine rsm) {
-		CommandControllerInterface mockCommandController = mockCommandController();
+		CommandController mockCommandController = mockCommandController();
 		Metadata mockMetadata = mock(Metadata.class);
 		when(mockMetadata.getEntityMetadata(anyString())).thenReturn(mock(EntityMetadata.class));
 		HTTPHypermediaRIM rimHandler = new HTTPHypermediaRIM(mockCommandController, rsm, mockMetadata);
@@ -1003,8 +1003,8 @@ public class TestResourceStateMachine {
 		assertEquals("root.initial>GET>root.initial", links.get(2).getId());
 	}
 
-	private ModifiableCommandControllerInterface mockCommandController() {
-		ModifiableCommandControllerInterface cc = new NewCommandController();
+	private ModifiableCommandController mockCommandController() {
+		ModifiableCommandController cc = new NewCommandController();
 		try {
 			InteractionCommand notfound = mock(InteractionCommand.class);
 			when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
@@ -1809,7 +1809,7 @@ public class TestResourceStateMachine {
 		
 		//Define resource state machine
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand(anyString())).thenReturn(mock(InteractionCommand.class));
 		sm.setCommandController(mockCommandController);
 
@@ -1840,7 +1840,7 @@ public class TestResourceStateMachine {
 		
 		//Define resource state machine
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand(anyString())).thenReturn(mock(InteractionCommand.class));
 		sm.setCommandController(mockCommandController);
 		

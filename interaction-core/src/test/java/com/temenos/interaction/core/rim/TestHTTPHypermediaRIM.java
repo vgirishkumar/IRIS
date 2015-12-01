@@ -55,7 +55,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandControllerInterface;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -86,8 +86,8 @@ public class TestHTTPHypermediaRIM {
 		return actions;
 	}
 	
-	private CommandControllerInterface mockCommandController() {
-		CommandControllerInterface cc = mock(CommandControllerInterface.class);
+	private CommandController mockCommandController() {
+		CommandController cc = mock(CommandController.class);
 		try {
 			InteractionCommand mockCommand = mock(InteractionCommand.class);
 			when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
@@ -102,8 +102,8 @@ public class TestHTTPHypermediaRIM {
 		return cc;
 	}
 
-	private CommandControllerInterface mockCommandController(InteractionCommand mockCommand) {
-		CommandControllerInterface cc = mock(CommandControllerInterface.class);
+	private CommandController mockCommandController(InteractionCommand mockCommand) {
+		CommandController cc = mock(CommandController.class);
 		when(cc.fetchCommand("DO")).thenReturn(mockCommand);
 		when(cc.fetchCommand("GET")).thenReturn(mockCommand);
 		return cc;
@@ -189,7 +189,7 @@ public class TestHTTPHypermediaRIM {
 		};
 
 		// create mock command controller
-		CommandControllerInterface mockCommandController = mockCommandController(mockCommand);
+		CommandController mockCommandController = mockCommandController(mockCommand);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
@@ -209,7 +209,7 @@ public class TestHTTPHypermediaRIM {
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
 
 		// create mock command controller
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
@@ -231,7 +231,7 @@ public class TestHTTPHypermediaRIM {
 		InteractionCommand mockCommand = mock(InteractionCommand.class);
 
 		// create mock command controller
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("DELETE")).thenReturn(mockCommand);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
@@ -252,7 +252,7 @@ public class TestHTTPHypermediaRIM {
 		};
 
 		// create mock command controller
-		CommandControllerInterface mockCommandController = mockCommandController(mockCommand);
+		CommandController mockCommandController = mockCommandController(mockCommand);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
@@ -277,7 +277,7 @@ public class TestHTTPHypermediaRIM {
 		};
 
 		// create mock command controller
-		CommandControllerInterface mockCommandController = mock(CommandControllerInterface.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
@@ -305,7 +305,7 @@ public class TestHTTPHypermediaRIM {
 		};
 
 		// create mock command controller
-		CommandControllerInterface mockCommandController = mockCommandController(mockCommand);
+		CommandController mockCommandController = mockCommandController(mockCommand);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
@@ -431,7 +431,7 @@ public class TestHTTPHypermediaRIM {
 		ResourceState exists = new ResourceState("entity", "exists", mockActions(), resourcePath);
 		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 		
-		CommandControllerInterface cc = mock(CommandControllerInterface.class);
+		CommandController cc = mock(CommandController.class);
 		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists), mock(Metadata.class));
 	}
 
@@ -441,7 +441,7 @@ public class TestHTTPHypermediaRIM {
 		ResourceState exists = new ResourceState("entity", "exists", mockActions(), resourcePath);
 		exists.addTransition(new Transition.Builder().method("POST").target(exists).build());
 		
-		CommandControllerInterface cc = mock(CommandControllerInterface.class);
+		CommandController cc = mock(CommandController.class);
 		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists), mock(Metadata.class));
 	}
 
@@ -451,7 +451,7 @@ public class TestHTTPHypermediaRIM {
 		ResourceState exists = new ResourceState("entity", "exists", mockActions(), resourcePath);
 		exists.addTransition(new Transition.Builder().method("DELETE").target(exists).build());
 		
-		CommandControllerInterface cc = mock(CommandControllerInterface.class);
+		CommandController cc = mock(CommandController.class);
 		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists), mock(Metadata.class));
 	}
 
@@ -461,7 +461,7 @@ public class TestHTTPHypermediaRIM {
 		ResourceState exists = new ResourceState("entity", "exists", mockActions(), resourcePath);
 		exists.addTransition(new Transition.Builder().method("GET").target(exists).build());
 		
-		CommandControllerInterface cc = mock(CommandControllerInterface.class);
+		CommandController cc = mock(CommandController.class);
 		new HTTPHypermediaRIM(cc, new ResourceStateMachine(exists), mock(Metadata.class));
 	}
 
@@ -525,7 +525,7 @@ public class TestHTTPHypermediaRIM {
 		};
 
 		// create mock command controller
-		CommandControllerInterface mockCommandController = mockCommandController(mockCommand);
+		CommandController mockCommandController = mockCommandController(mockCommand);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
