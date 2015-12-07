@@ -269,6 +269,10 @@
     	<type>jar</type>
     	<scope>compile</scope>
     </dependency>
+        <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-dynamic-loader</artifactId>
+    </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-springdsl</artifactId>

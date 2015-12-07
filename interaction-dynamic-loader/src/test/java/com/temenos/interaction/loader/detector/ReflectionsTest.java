@@ -35,8 +35,10 @@ import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
 /**
- *
+ * The tests verifies if the class already existing on the classpath can be reloaded from a JAR coocked up for the person.
+ * It also test scanning for annotations in the prescribed group of JARs only.
  * @author andres
+ * @author trojan
  */
 
 public class ReflectionsTest {
@@ -73,7 +75,7 @@ public class ReflectionsTest {
         for (Class cls : annotated) {
             // for every class chack if it was really loaded with the classloader we wanted
             // AnnotatedClass1 - in case of classloading method being faulty would be from parent!
-            Assert.assertEquals("Classloader used to load class different than expected, delegation madel failed!", cls.getClassLoader(), classloader);
+            Assert.assertEquals("Classloader used to load class different than expected, delegation model failed!", cls.getClassLoader(), classloader);
         }
     }
 }

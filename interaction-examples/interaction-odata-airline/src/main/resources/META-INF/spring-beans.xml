@@ -184,7 +184,28 @@
 	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
 	
 	<!-- Command controller -->
-        <bean id="commands" class="com.temenos.interaction.core.command.SpringContextAwareInteractionCommandController"/>
+        <bean id="commands" class="com.temenos.interaction.core.command.ChainingCommandController">
+            <property name="commandControllers">
+                <list>
+                    <bean class="com.temenos.interaction.core.command.SpringContextAwareInteractionCommandController"/> 
+                </list>
+            </property>
+            
+        </bean>
+        
+        <bean id="updateAfterChangeAction" class="com.temenos.interaction.loader.detector.SpringBasedLoaderAction">
+            <property name="useCurrentContextAsParent" value="true"/>
+            <property name="parentChainingCommandController" ref="commands"/>
+        </bean>
+        
+        <bean id="dirWatchdog" class="com.temenos.interaction.loader.detector.DirectoryChangeActionNotifier">
+            <property name="resources">
+                <value>file://C:/someDir</value>
+            </property>
+           <property name="listeners">
+                <ref bean="updateAfterChangeAction"/>
+            </property>
+        </bean>
 <!--       
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">

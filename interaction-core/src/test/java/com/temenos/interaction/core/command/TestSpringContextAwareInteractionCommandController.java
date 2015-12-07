@@ -48,4 +48,17 @@ public class TestSpringContextAwareInteractionCommandController {
         // we don't expect any exceptions, just null returned
         Assert.assertNull(commandController.fetchCommand("testCommandNameNotConfiguredAnywhere"));
     }
+    
+        @Test
+    public void testScopesAreWorking() throws BeansException {
+            InteractionCommand ic1_1 = commandController.fetchCommand("testCommand1");
+            InteractionCommand ic1_2 = commandController.fetchCommand("testCommand1");
+
+            Assert.assertTrue(ic1_1 == ic1_2);
+
+            InteractionCommand ic3_1 = commandController.fetchCommand("testCommand3");
+            InteractionCommand ic3_2 = commandController.fetchCommand("testCommand3");
+
+            Assert.assertTrue(ic3_1 != ic3_2);
+    }
 }
