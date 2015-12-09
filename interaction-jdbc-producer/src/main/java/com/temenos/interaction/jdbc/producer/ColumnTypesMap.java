@@ -102,7 +102,7 @@ class ColumnTypesMap {
 	/*
 	 * Get type and handle missing columns.
 	 */
-	private Integer get(String columnName) {
+	protected Integer get(String columnName) {
 		Integer type = typesMap.get(columnName);
 		if (null == type) {
 			throw (new SecurityException("Jdbc column \"" + columnName + "\" does not exist."));
@@ -128,7 +128,7 @@ class ColumnTypesMap {
 	/*
 	 * Utility to read primary key for a given table.
 	 */
-	private String readPrimaryKey(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+	protected String readPrimaryKey(DatabaseMetaData dsMetaData, String tableName) throws Exception {
 		String key = null;
 
 		ResultSet result = dsMetaData.getPrimaryKeys(null, null, tableName);
@@ -164,7 +164,7 @@ class ColumnTypesMap {
 	/*
 	 * Utility to read column types for a given table.
 	 */
-	private Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+	protected Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
 		// Create type map
 		typesMap = new HashMap<String, Integer>();
 
