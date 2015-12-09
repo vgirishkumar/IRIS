@@ -90,6 +90,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.web.RequestContext;
+import java.util.HashSet;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HTTPHypermediaRIM.class})
@@ -171,7 +172,9 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
 	/*
@@ -192,7 +195,9 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
 	/*
@@ -213,7 +218,9 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
 	/*
