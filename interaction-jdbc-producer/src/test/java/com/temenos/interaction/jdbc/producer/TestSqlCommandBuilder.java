@@ -47,7 +47,7 @@ import java.util.TreeSet;
 /**
  * Test SqlCommandBuilder class.
  */
-public class TestSqlComamndBuilder {
+public class TestSqlCommandBuilder {
 
     private static final String TEST_TABLE_NAME = "testTable";
 
@@ -140,7 +140,7 @@ public class TestSqlComamndBuilder {
         map.put("col5", java.sql.Types.TIMESTAMP);
         map.put("col6", java.sql.Types.VARCHAR);
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1") {
-            protected Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+            Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
                 return new TreeMap(super.readColumnTypes(dsMetaData, tableName));
             }            
         };
@@ -167,7 +167,7 @@ public class TestSqlComamndBuilder {
                 + "\"col5\"<='value5' AND \"col6\">='value6' ORDER BY \"col1\"", actualCommand);
     }
     
-    protected static class ComparableFieldName extends FieldName implements Comparable<FieldName> {
+    static class ComparableFieldName extends FieldName implements Comparable<FieldName> {
         
         public ComparableFieldName(String name) {
             super(name);
