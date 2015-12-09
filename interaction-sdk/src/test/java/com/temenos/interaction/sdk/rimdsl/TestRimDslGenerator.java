@@ -53,10 +53,15 @@ import com.temenos.interaction.sdk.interaction.state.IMState;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
+import org.odata4j.edm.EdmDataServices;
 
 /**
  * Unit test for {@link RimDslGenerator}.
@@ -79,12 +84,10 @@ public class TestRimDslGenerator {
 	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
 
 	@Test
-        @Ignore("The test depends on order of lines in generated output, and the order in turn depends on order of returning objects from Set iterator")
-        // TODO Propose a method of comparing RIM models texts semantically, not tied to the parser/formatter pair it is suppossed to tests
 	public void testGenerateRimDslAirlinesSimple() {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
-		InteractionModel interactionModel = new InteractionModel(metadata);
+		InteractionModel interactionModel = new SortedInteractionModel(metadata);
 
 		//Add transitions
 		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
@@ -110,8 +113,6 @@ public class TestRimDslGenerator {
 	}
 	
 	@Test
-        @Ignore("The test depends on order of lines in generated output, and the order in turn depends on order of returning objects from Set iterator")
-        // TODO Propose a method of comparing RIM models texts semantically, not tied to the parser/formatter pair it is suppossed to tests
 	public void testGenerateRimDslAirlines() {
 		InteractionModel interactionModel = createAirlineModelDSL(null);
 		//Run the generator
@@ -197,8 +198,6 @@ public class TestRimDslGenerator {
 	}
 
         @Test
-        @Ignore("The test depends on order of lines in generated output, and the order in turn depends on order of returning objects from Set iterator")
-        // TODO Propose a method of comparing RIM models texts semantically, not tied to the parser/formatter pair it is suppossed to tests
 	public void testGenerateRimDslAirlinesNonStrictOData() {
 		InteractionModel interactionModel = createAirlineModelDSL(null);
 		//Run the generator
@@ -258,7 +257,7 @@ public class TestRimDslGenerator {
 	public InteractionModel createAirlineModelDSL(String domain) {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
-		InteractionModel interactionModel = new InteractionModel(metadata);
+		InteractionModel interactionModel = new SortedInteractionModel(metadata);
 		interactionModel.setDomain(domain);
 		interactionModel.setExceptionState(new IMEntityState("InteractionException", "", Commands.GET_EXCEPTION));
 		IMState rsResponseErrors = new IMEntityState("ErrorMessages", "", Commands.GET_NOOP);
@@ -415,5 +414,32 @@ public class TestRimDslGenerator {
             }
             return lines.toString();
         }
+        
+    public static class SortedInteractionModel extends InteractionModel {
 
+        public SortedInteractionModel(EdmDataServices edmds) {
+            super(edmds);
+        }
+
+        public SortedInteractionModel(Metadata metadata) {
+            super(metadata);
+        }
+
+        public SortedInteractionModel() {
+            super();
+        }
+
+        @Override
+        public List<IMResourceStateMachine> getResourceStateMachines() {
+            List<IMResourceStateMachine> list = new ArrayList(super.getResourceStateMachines());
+            Collections.sort(list, new Comparator<IMResourceStateMachine>() {
+
+                @Override
+                public int compare(IMResourceStateMachine t1, IMResourceStateMachine t2) {
+                    return t1.getEntityState().getName().compareTo(t2.getEntityState().getName());
+                }
+            });
+            return list;
+        }
+    }
 }
