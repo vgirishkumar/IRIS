@@ -41,10 +41,8 @@ import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
 import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import org.junit.Ignore;
 
 /**
  * Test SqlCommandBuilder class.
@@ -157,8 +155,7 @@ public class TestSqlComamndBuilder {
         // Create the builder
         SqlCommandBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
-                    null) ;
+            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null, null) ;
         } catch (Exception e) {
             fail();
         }
