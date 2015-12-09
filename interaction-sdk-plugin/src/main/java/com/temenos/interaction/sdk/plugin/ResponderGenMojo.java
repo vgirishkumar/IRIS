@@ -41,7 +41,7 @@ public class ResponderGenMojo extends AbstractMojo {
     /**
      * @parameter property="edmxFile"
      */
-    private String edmxFileStr;
+    private String edmxFile;
 
     /**
      * Enable/disable strict odata compliance.
@@ -60,7 +60,7 @@ public class ResponderGenMojo extends AbstractMojo {
     private String configTargetDirectory;
 
 	public void setEdmxFile(String edmxFileStr) {
-		this.edmxFileStr = edmxFileStr;
+		this.edmxFile = edmxFileStr;
 	}
 
 	public void setSrcTargetDirectory(String targetDirectory) {
@@ -77,7 +77,7 @@ public class ResponderGenMojo extends AbstractMojo {
 	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		// check our configuration
-		if (edmxFileStr == null)
+		if (edmxFile == null)
 			throw new MojoExecutionException("[edmxFilePath] not specified in plugin configuration");
 		if (srcTargetDirectory == null)
 			throw new MojoExecutionException("[srcTargetDirectory] not specified in plugin configuration");
@@ -85,13 +85,13 @@ public class ResponderGenMojo extends AbstractMojo {
 			getLog().warn("[configTargetDirectory] not set, using [srcTargetDirectory]");
 			configTargetDirectory = srcTargetDirectory;
 		}
-		File edmxFile = new File(edmxFileStr);
+		File edmxFileHandle = new File(edmxFile);
 		File srcTargetDir = new File(srcTargetDirectory);
 		File configTargetDir = new File(configTargetDirectory);
-		execute(edmxFile, srcTargetDir, configTargetDir);
+		execute(edmxFileHandle, srcTargetDir, configTargetDir);
 	}
 	
-	protected void execute(File edmxFile, File srcTargetDir, File configTargetDir) throws MojoExecutionException, MojoFailureException {
+	protected void execute(File edmxFileHandle, File srcTargetDir, File configTargetDir) throws MojoExecutionException, MojoFailureException {
 		if (!srcTargetDir.exists()) {
 			getLog().info("Source target directory does not exist, creating it [" + srcTargetDirectory + "]");
 			srcTargetDir.mkdirs();
@@ -111,9 +111,9 @@ public class ResponderGenMojo extends AbstractMojo {
 
 		boolean ok = false;
 		JPAResponderGen rg = new JPAResponderGen(strictOdata);
-		if (edmxFile.exists()) {
+		if (edmxFileHandle.exists()) {
 			getLog().info("Generating artifacts (strict odata compliance: " + (strictOdata ? "true" : "false") + ")");
-			ok = rg.generateArtifacts(new EDMXAdapter(edmxFile.getAbsolutePath()), srcTargetDir, configTargetDir);
+			ok = rg.generateArtifacts(new EDMXAdapter(edmxFileHandle.getAbsolutePath()), srcTargetDir, configTargetDir);
 		}
 		else {
 			getLog().error("EDMX file does not exist.");
