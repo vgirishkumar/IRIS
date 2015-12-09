@@ -31,8 +31,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- *
  * @author andres
+ * @author trojan
  */
 public class ClassLoaderClosingAction implements Action<ClassLoader> {
 

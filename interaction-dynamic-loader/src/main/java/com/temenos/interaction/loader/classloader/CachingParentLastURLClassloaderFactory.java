@@ -1,10 +1,13 @@
-package com.temenos.interaction.loader.classloader;
 
+package com.temenos.interaction.loader.classloader;
+ 
 /*
- * #%L
- * interaction-dynamic-loader
+* #%L
+ * * interaction-dynamic-loader
+ * *
  * %%
  * Copyright (C) 2012 - 2015 Temenos Holdings N.V.
+ * *
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,9 +22,9 @@ package com.temenos.interaction.loader.classloader;
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
- */
-
-
+*/
+ 
+ 
 import com.google.common.primitives.Longs;
 import com.temenos.interaction.core.loader.FileEvent;
 import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
@@ -32,36 +35,37 @@ import java.security.MessageDigest;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-
+ 
 /**
- *
- * @author trojanbug
- */
+*
+* @author trojanbug
+*/
 public class CachingParentLastURLClassloaderFactory implements ParameterizedFactory<FileEvent<File>,ClassLoader> {
-    
+   
     ClassLoader cache = null;
     Object lastState = null;
-
+ 
     @Override
     public synchronized ClassLoader getForObject(FileEvent<File> param) {
-        
+       
       Object state = calculateCurrentState(param);
       if (lastState==null || (!lastState.equals(state))) {
           Object previousState = lastState;
           ClassLoader previousCL = cache;
-
+         
           lastState = state;
           cache = createClassLoader(param);
-      } 
+      }
       
       return cache;
     }
-
+ 
     protected synchronized ClassLoader createClassLoader(FileEvent<File> param) {
         Set<URL> urls = new HashSet();
-        
+       
         Collection<File> files = FileUtils.listFiles(param.getResource(), new String[]{"jar"}, true);
         for (File f : files) {
             try {
@@ -71,21 +75,20 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
                 // but if, what can we do - just log it
             }
         }
-        
+       
         ClassLoader classloader = new ParentLastURLClassloader(urls.toArray(new URL[]{}), Thread.currentThread().getContextClassLoader());
-        
+       
         return classloader;
     }
-
+ 
     protected Object calculateCurrentState(FileEvent<File> param) {
         Collection<File> files = FileUtils.listFiles(param.getResource(), new String[]{"jar"}, true);
-        
+       
         MessageDigest md = DigestUtils.getMd5Digest();
         for (File f : files) {
            md.update( Longs.toByteArray(f.lastModified()));
         }
-        
-        return md.digest();
+       
+        return Hex.encodeHexString( md.digest() );
     }
-    
 }

@@ -20,74 +20,157 @@ package com.temenos.interaction.loader.detector;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
 import com.temenos.interaction.core.command.ChainingCommandController;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.SpringContextBasedInteractionCommandController;
 import com.temenos.interaction.core.loader.Action;
 import com.temenos.interaction.core.loader.FileEvent;
+import com.temenos.interaction.loader.classloader.CachingParentLastURLClassloaderFactory;
 import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FilenameFilter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import org.apache.commons.io.FileUtils;
+import org.reflections.Reflections;
+import org.reflections.scanners.AbstractScanner;
+import org.reflections.scanners.ResourcesScanner;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.vfs.Vfs;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.core.io.FileSystemResource;
 
 /**
+ * Loads a CommandController with a set of InteractionCommands from Spring configuration files.
+ * 
+ * The execute method would be typically called after a directory change (for instance, when a user
+ * copies a jar file with new InteractionCommands). All jars in the directory are scanned for Spring configuration
+ * files matching the pattern "/spring/*-interaction-context.xml". By default, the CommandController with id
+ * "commandController", together with the defined InteractionCommand, would be loaded to the top of a provided
+ * ChainingCommandController. 
  *
  * @author andres
+ * @author trojan
+ * @author cmclopes
  */
 public class SpringBasedLoaderAction implements Action<FileEvent<File>>, ApplicationContextAware, InitializingBean {
 
     public final static String DEFAULT_COMMAND_CONTROLLER_BEAN_NAME = "commandController";
-        
+
     List<String> configPatterns = new ArrayList();
     private ApplicationContext currentContext = null;
     private ApplicationContext parentContext = null;
     private boolean useCurrentContextAsParent = false;
-    private List<String> configLocationsPatterns = new ArrayList(Collections.singletonList("/spring/*-interaction-context.xml"));
+    private List<String> configLocationsPatterns = new ArrayList(Arrays.asList(new String[]{"classpath:/spring/*-interaction-context.xml"}));
     private Collection<? extends Action<ApplicationContext>> listeners = new ArrayList();
-    private ParameterizedFactory<FileEvent<File>, ClassLoader> classloaderFactory = new CurrentThreadClassLoaderFactory();
+    ParameterizedFactory<FileEvent<File>, ClassLoader> classloaderFactory = new CachingParentLastURLClassloaderFactory();
     private String commandControllerBeanName = DEFAULT_COMMAND_CONTROLLER_BEAN_NAME;
     private ChainingCommandController parentChainingCommandController = null;
-
+    private CommandController previousCC = null;
+    private ApplicationContext previousAppCtx = null;
 
     @Override
     public void execute(FileEvent<File> dirEvent) {
-        ClassPathXmlApplicationContext context;
-        if (useCurrentContextAsParent && (parentContext != null)) {
-            context = new ClassPathXmlApplicationContext(parentContext);
-        } else {
-            context = new ClassPathXmlApplicationContext();
-        }
-        context.setConfigLocations(configLocationsPatterns.toArray(new String[]{}));
-        context.setClassLoader(classloaderFactory.getForObject(dirEvent));
-        context.refresh();
-        
-        CommandController cc = null;
 
-        try {
-            cc = context.getBean(commandControllerBeanName, CommandController.class);
-        } catch (BeansException ex) {
-            Map<String,InteractionCommand> commands = context.getBeansOfType(InteractionCommand.class);
-            if (!commands.isEmpty()) {
-                SpringContextBasedInteractionCommandController scbcc = new SpringContextBasedInteractionCommandController();
-                scbcc.setApplicationContext(context);
-                cc = scbcc;
+        Collection<File> jars = FileUtils.listFiles(dirEvent.getResource(), new String[]{"jar"}, true);
+        Set<URL> urls = new HashSet();
+        for (File f : jars) {
+            try {
+                urls.add(f.toURI().toURL());
+            } catch (MalformedURLException ex) {
+                // kindly ignore and log
             }
         }
-        
-        if (cc!=null && parentChainingCommandController!=null) {
-            List<CommandController> newCommandControllers = new ArrayList<CommandController>(parentChainingCommandController.getCommandControllers());
-            newCommandControllers.add(0,cc);
-            parentChainingCommandController.setCommandControllers(newCommandControllers);
+        Reflections reflectionHelper = new Reflections(
+                new ConfigurationBuilder()
+                .addClassLoader(classloaderFactory.getForObject(dirEvent)).addScanners(new ResourcesScanner())
+                .addUrls(urls)
+        );
+
+        Set<String> resources = new HashSet();
+
+        for (String locationPattern : configLocationsPatterns) {
+            String regex = convertWildcardToRegex(locationPattern);
+            resources.addAll(reflectionHelper.getResources(Pattern.compile(regex)));
+        }
+
+        if (!resources.isEmpty()) {
+            // if resources are empty just clean up the previous ApplicationContext and leave!
+            ClassPathXmlApplicationContext context;
+            if (parentContext != null) {
+                context = new ClassPathXmlApplicationContext(parentContext);
+            } else {
+                context = new ClassPathXmlApplicationContext();
+            }
+
+            context.setConfigLocations(configLocationsPatterns.toArray(new String[]{}));
+
+            ClassLoader childClassLoader = classloaderFactory.getForObject(dirEvent);
+            context.setClassLoader(childClassLoader);
+            context.refresh();
+            
+            CommandController cc = null;
+
+            try {
+                cc = context.getBean(commandControllerBeanName, CommandController.class);
+            } catch (BeansException ex) {
+                Map<String, InteractionCommand> commands = context.getBeansOfType(InteractionCommand.class);
+                if (!commands.isEmpty()) {
+                    SpringContextBasedInteractionCommandController scbcc = new SpringContextBasedInteractionCommandController();
+                    scbcc.setApplicationContext(context);
+                    cc = scbcc;
+                }
+            }
+
+            if (parentChainingCommandController != null) {
+
+                List<CommandController> newCommandControllers = new ArrayList<CommandController>(parentChainingCommandController.getCommandControllers());
+
+                // "unload" the previously loaded CommandController
+                if (previousCC != null) {
+                    newCommandControllers.remove(previousCC);
+                }
+
+                // if there is a new CommandController on the Spring file, add it on top of the chain
+                if (cc != null) {
+                    newCommandControllers.add(0, cc);
+                    parentChainingCommandController.setCommandControllers(newCommandControllers);
+                    previousCC = cc;
+                } else {
+                    previousCC = null;
+                }
+            }
+
+            if (previousAppCtx != null) {
+                if (previousAppCtx instanceof Closeable) {
+                    try {
+                        ((Closeable) previousAppCtx).close();
+                    } catch (Exception ex) {
+                        // log
+                    }
+                }
+                previousAppCtx = context;
+            }
         }
     }
 
@@ -98,7 +181,7 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        if (parentContext==null && currentContext!=null && useCurrentContextAsParent) {
+        if (parentContext == null && currentContext != null && useCurrentContextAsParent) {
             parentContext = currentContext;
         }
     }
@@ -129,20 +212,6 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
      */
     public void setClassloaderFactory(ParameterizedFactory<FileEvent<File>, ClassLoader> classloaderFactory) {
         this.classloaderFactory = classloaderFactory;
-    }
-
-    /**
-     * @return the currentContext
-     */
-    public ApplicationContext getCurrentContext() {
-        return currentContext;
-    }
-
-    /**
-     * @param currentContext the currentContext to set
-     */
-    public void setCurrentContext(ApplicationContext currentContext) {
-        this.currentContext = currentContext;
     }
 
     /**
@@ -209,7 +278,8 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
     }
 
     /**
-     * @param parentChainingCommandController the parentChainingCommandController to set
+     * @param parentChainingCommandController the
+     * parentChainingCommandController to set
      */
     public void setParentChainingCommandController(ChainingCommandController parentChainingCommandController) {
         this.parentChainingCommandController = parentChainingCommandController;
@@ -222,7 +292,32 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
         @Override
         public ClassLoader getForObject(FileEvent<File> param) {
-            return Thread.currentThread().getContextClassLoader();
+            
+           return Thread.currentThread().getContextClassLoader();
+            
+        }
+    }
+
+    private String convertWildcardToRegex(String wildcardPattern) {
+        wildcardPattern = wildcardPattern.substring(wildcardPattern.indexOf(':') + 1);
+        wildcardPattern = wildcardPattern.substring(wildcardPattern.lastIndexOf("/") + 1);
+        return wildcardPattern.replaceAll("\\*", "[^/]*");
+    }
+
+    public static class ResourcesScanner extends AbstractScanner {
+
+        public boolean acceptsInput(String file) {
+            return !file.endsWith(".class"); //not a class
+        }
+
+        @Override
+        public Object scan(Vfs.File file, Object classObject) {
+            getStore().put(file.getName(), file.getRelativePath());
+            return classObject;
+        }
+
+        public void scan(Object cls) {
+            throw new UnsupportedOperationException(); //shouldn't get here
         }
     }
 

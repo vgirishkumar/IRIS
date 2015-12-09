@@ -163,9 +163,12 @@
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
 	
-	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+	<bean id="GETEntities1" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
+        
+        <alias alias="GETEntities" name="GETEntities1"/>
+        
 	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
@@ -192,7 +195,7 @@
             </property>
             
         </bean>
-        
+         
         <bean id="updateAfterChangeAction" class="com.temenos.interaction.loader.detector.SpringBasedLoaderAction">
             <property name="useCurrentContextAsParent" value="true"/>
             <property name="parentChainingCommandController" ref="commands"/>
@@ -200,7 +203,7 @@
         
         <bean id="dirWatchdog" class="com.temenos.interaction.loader.detector.DirectoryChangeActionNotifier">
             <property name="resources">
-                <value>file://C:/someDir</value>
+                <value>file:///tmp/someDir</value>
             </property>
            <property name="listeners">
                 <ref bean="updateAfterChangeAction"/>

@@ -36,14 +36,20 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 
 /**
- *
+ * Loads classes from files with specified extensions in a given directory.
+ * It also gives the option to set listeners and execute actions on the loaded classes.
+ * 
  * @author andres
+ * @author trojan
  */
 public class ClassLoaderCreatingAction implements Action<FileEvent<File>> {
 
     private Collection<? extends Action<ClassLoader>> listeners = new ArrayList();
     private List<String> extensions = Collections.singletonList("jar");
 
+    /**
+     * @param fe the file event with the directory to search for the specified file extensions
+     */
     @Override
     public void execute(FileEvent<File> fe) {
        Collection<File> files = FileUtils.listFiles(fe.getResource(), extensions.toArray(new String[]{}), true);
@@ -62,16 +68,10 @@ public class ClassLoaderCreatingAction implements Action<FileEvent<File>> {
        }
     }
   
-    /**
-     * @return the listeners
-     */
     public Collection<? extends Action<ClassLoader>> getListeners() {
         return listeners;
     }
 
-    /**
-     * @param listeners the listeners to set
-     */
     public void setListeners(Collection<? extends Action<ClassLoader>> listeners) {
         this.listeners = new ArrayList(listeners);
     }
@@ -79,7 +79,10 @@ public class ClassLoaderCreatingAction implements Action<FileEvent<File>> {
     public List<String> getExtensions() {
         return extensions;
     }
-
+    
+    /**
+     * @param extensions list of file extensions to look for
+     */
     public void setExtensions(List<String> extensions) {
         this.extensions = extensions;
     }
