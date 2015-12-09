@@ -30,6 +30,7 @@ import org.apache.maven.plugin.MojoFailureException;
 
 import com.temenos.interaction.sdk.JPAResponderGen;
 import com.temenos.interaction.sdk.adapter.edmx.EDMXAdapter;
+import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * A Maven plugin that generates a responder from a given EDMX file.
@@ -41,22 +42,26 @@ public class ResponderGenMojo extends AbstractMojo {
     /**
      * @parameter property="edmxFile"
      */
+    @Parameter(property = "edmxFile")
     private String edmxFile;
 
     /**
      * Enable/disable strict odata compliance.
      * @parameter
      */
+    @Parameter
     private boolean strictOdata = true;
     
     /**
      * @parameter property="srcTargetDirectory"
      */
+    @Parameter(property = "srcTargetDirectory")
     private String srcTargetDirectory;
 
     /**
      * @parameter property="configTargetDirectory"
      */
+    @Parameter(property = "configTargetDirectory")
     private String configTargetDirectory;
 
 	public void setEdmxFile(String edmxFileStr) {
