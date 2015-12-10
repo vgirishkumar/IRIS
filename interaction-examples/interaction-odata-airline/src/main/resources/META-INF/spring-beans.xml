@@ -40,7 +40,8 @@
 			</list>
 		</property>
 		<property name="ignoreUnresolvablePlaceholders" value="true"/>
-	</bean>
+                <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+        </bean>
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
@@ -203,7 +204,7 @@
         
         <bean id="dirWatchdog" class="com.temenos.interaction.loader.detector.DirectoryChangeActionNotifier">
             <property name="resources">
-                <value>file:///tmp/someDir</value>
+                <value>${hot.deploy.dir}</value>
             </property>
            <property name="listeners">
                 <ref bean="updateAfterChangeAction"/>

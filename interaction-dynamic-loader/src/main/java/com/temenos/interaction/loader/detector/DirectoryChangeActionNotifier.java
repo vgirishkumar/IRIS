@@ -38,12 +38,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.temenos.interaction.core.loader.Action;
 import com.temenos.interaction.core.loader.FileEvent;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Executes actions every time a change (creation, modification or
- * deletion) in a collection of directories is detected.
+ * Executes actions every time a change (creation, modification or deletion) in
+ * a collection of directories is detected.
  *
  * The implementation sets a scheduled task whenever setResources or
  * setListeners is called, which executes a command (in this case
@@ -64,16 +65,28 @@ public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Ac
     private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> scheduledTask = null;
     // make it a parameter
-    private long interval_seconds = 10;
-
+    private long intervalSeconds = 10;
 
     @Override
     public void setResources(Collection<? extends File> resources) {
-        if (resources == null) {
-            this.resources = new ArrayList<File>();
+        ArrayList<File> existingResources = new ArrayList<File>();
+        // temporary fix to avoid crashes when trying to watch inexisting directories
+        // just create them if they don't exist
+        for (File file : resources) {
+            if (!file.exists()) {
+                try {
+                    FileUtils.forceMkdir(file);
+                    existingResources.add(file);
+                } catch (IOException ex) {
+                    logger.warn("Could not create configured directory to monitor.", ex);
+                }
+            } else {
+                existingResources.add(file);
+            }
         }
-        this.resources = new ArrayList<File>(resources);
-        initWatchers(resources);
+
+        this.resources = existingResources;
+        initWatchers(this.resources);
     }
 
     @Override
@@ -109,18 +122,26 @@ public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Ac
             }
 
             watchService = ws;
-            scheduledTask = executorService.scheduleWithFixedDelay(new ListenerNotificationTask(watchService, getListeners(), interval_seconds * 1000), 5, interval_seconds, TimeUnit.SECONDS);
+            scheduledTask = executorService.scheduleWithFixedDelay(new ListenerNotificationTask(watchService, getListeners(), getIntervalSeconds() * 1000), 5, getIntervalSeconds(), TimeUnit.SECONDS);
         } catch (IOException ex) {
             throw new RuntimeException("Error configuring directory change listener - unexpected IOException", ex);
         }
     }
 
+    public long getIntervalSeconds() {
+        return intervalSeconds;
+    }
+
+    public void setIntervalSeconds(long intervalSeconds) {
+        this.intervalSeconds = intervalSeconds;
+    }
+
     /**
      * Runnable class that uses a provided WatchService on files and directories
      * to execute all listener's actions for detected events.
-     * 
-     * It currently ignores all events in a user-specified time interval after the
-     * first accepted event.
+     *
+     * It currently ignores all events in a user-specified time interval after
+     * the first accepted event.
      *
      * @author andres
      * @author trojanbug
