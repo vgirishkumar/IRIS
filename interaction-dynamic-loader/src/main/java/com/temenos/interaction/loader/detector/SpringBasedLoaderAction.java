@@ -30,50 +30,48 @@ import com.temenos.interaction.loader.classloader.CachingParentLastURLClassloade
 import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.AbstractScanner;
-import org.reflections.scanners.ResourcesScanner;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.vfs.Vfs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
-import org.springframework.core.io.FileSystemResource;
 
 /**
- * Loads a CommandController with a set of InteractionCommands from Spring configuration files.
- * 
- * The execute method would be typically called after a directory change (for instance, when a user
- * copies a jar file with new InteractionCommands). All jars in the directory are scanned for Spring configuration
- * files matching the pattern "/spring/*-interaction-context.xml". By default, the CommandController with id
- * "commandController", together with the defined InteractionCommand, would be loaded to the top of a provided
- * ChainingCommandController. 
+ * Loads a CommandController with a set of InteractionCommands from Spring
+ * configuration files.
+ *
+ * The execute method would be typically called after a directory change (for
+ * instance, when a user copies a jar file with new InteractionCommands). All
+ * jars in the directory are scanned for Spring configuration files matching the
+ * pattern "/spring/*-interaction-context.xml". By default, the
+ * CommandController with id "commandController", together with the defined
+ * InteractionCommand, would be loaded to the top of a provided
+ * ChainingCommandController.
  *
  * @author andres
  * @author trojan
  * @author cmclopes
  */
 public class SpringBasedLoaderAction implements Action<FileEvent<File>>, ApplicationContextAware, InitializingBean {
+
+    private static final Logger logger = LoggerFactory.getLogger(CachingParentLastURLClassloaderFactory.class);
 
     public final static String DEFAULT_COMMAND_CONTROLLER_BEAN_NAME = "commandController";
 
@@ -91,11 +89,17 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
     @Override
     public void execute(FileEvent<File> dirEvent) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creation of new Spring ApplicationContext based CommandController triggerred by change in", dirEvent.getResource().getAbsolutePath());
+        }
 
         Collection<File> jars = FileUtils.listFiles(dirEvent.getResource(), new String[]{"jar"}, true);
         Set<URL> urls = new HashSet();
         for (File f : jars) {
             try {
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Adding {} to list of URLs to create ApplicationContext from", f.toURI().toURL());
+                }
                 urls.add(f.toURI().toURL());
             } catch (MalformedURLException ex) {
                 // kindly ignore and log
@@ -128,22 +132,26 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
             ClassLoader childClassLoader = classloaderFactory.getForObject(dirEvent);
             context.setClassLoader(childClassLoader);
             context.refresh();
-            
+
             CommandController cc = null;
 
             try {
                 cc = context.getBean(commandControllerBeanName, CommandController.class);
+                logger.debug("Detected pre-configured CommandController in added config files");
             } catch (BeansException ex) {
                 Map<String, InteractionCommand> commands = context.getBeansOfType(InteractionCommand.class);
                 if (!commands.isEmpty()) {
+                    logger.debug("Adding new commands");
                     SpringContextBasedInteractionCommandController scbcc = new SpringContextBasedInteractionCommandController();
                     scbcc.setApplicationContext(context);
                     cc = scbcc;
+                } else {
+                    logger.debug("No commands detected to be added");
                 }
             }
 
             if (parentChainingCommandController != null) {
-
+                logger.debug("Adding newly created CommandController to ChainingCommandController");
                 List<CommandController> newCommandControllers = new ArrayList<CommandController>(parentChainingCommandController.getCommandControllers());
 
                 // "unload" the previously loaded CommandController
@@ -153,12 +161,15 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
                 // if there is a new CommandController on the Spring file, add it on top of the chain
                 if (cc != null) {
+                    logger.debug("No new CommandController created");
                     newCommandControllers.add(0, cc);
                     parentChainingCommandController.setCommandControllers(newCommandControllers);
                     previousCC = cc;
                 } else {
                     previousCC = null;
                 }
+            } else {
+                logger.debug("No ChainingCommandController set to add newly created CommandController to - skipping action");
             }
 
             if (previousAppCtx != null) {
@@ -171,6 +182,8 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
                 }
                 previousAppCtx = context;
             }
+        } else {
+            logger.debug("No Spring config files detected in the JARs scanned");
         }
     }
 
@@ -292,9 +305,9 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
         @Override
         public ClassLoader getForObject(FileEvent<File> param) {
-            
-           return Thread.currentThread().getContextClassLoader();
-            
+
+            return Thread.currentThread().getContextClassLoader();
+
         }
     }
 

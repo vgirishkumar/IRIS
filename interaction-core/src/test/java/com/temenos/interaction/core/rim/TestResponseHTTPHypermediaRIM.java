@@ -69,7 +69,6 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.command.ModifiableCommandController;
 import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.command.NoopGETCommand;
 import com.temenos.interaction.core.entity.Entity;
@@ -1036,7 +1035,7 @@ public class TestResponseHTTPHypermediaRIM {
 		};
 		
 		// create mock command controller
-		ModifiableCommandController mockCommandController = new NewCommandController();
+		NewCommandController mockCommandController = new NewCommandController();
 		mockCommandController.addCommand("GET", mockCommand);
 		mockCommandController.addCommand("DO", mockCommand);
 
@@ -1541,7 +1540,7 @@ public class TestResponseHTTPHypermediaRIM {
 	}
 	
 	protected Response getMockResponse(InteractionCommand mockCommand, InteractionCommand mockExceptionCommand, HttpHeaders httpHeaders) {
-		ModifiableCommandController mockCommandController = mock(ModifiableCommandController.class);
+		NewCommandController mockCommandController = mock(NewCommandController.class);
 		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
@@ -1562,7 +1561,7 @@ public class TestResponseHTTPHypermediaRIM {
 	}
 
 	protected Response getMockResponseWithErrorResource(InteractionCommand mockCommand) {
-		ModifiableCommandController mockCommandController = mock(ModifiableCommandController.class);
+		NewCommandController mockCommandController = mock(NewCommandController.class);
 		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);

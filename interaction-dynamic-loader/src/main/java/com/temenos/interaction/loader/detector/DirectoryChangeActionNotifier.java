@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
 public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Action<FileEvent<File>>> {
 
     private static final Logger logger = LoggerFactory.getLogger(DirectoryChangeActionNotifier.class);
+
     private Collection<? extends File> resources = new ArrayList();
     private Collection<? extends Action<FileEvent<File>>> listeners = new ArrayList();
     private WatchService watchService;
@@ -168,12 +169,15 @@ public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Ac
                     // TODO change this for a schedule run in the future
                     if (System.currentTimeMillis() - lastRun > interval) {
                         WatchEvent.Kind<?> kind = e.kind();
-                        logger.warn(kind.name());
                         if (kind != StandardWatchEventKinds.OVERFLOW) {
                             Path dir = (Path) key.watchable();
                             Path fullPath = dir.resolve((Path) e.context());
+                            logger.debug("Detected change ({}) in watched directory: {}", kind, fullPath);
                             FileEvent<File> newEvent = new DirectoryChangeEvent(fullPath.toFile());
                             for (Action<FileEvent<File>> action : listeners) {
+                                if (logger.isTraceEnabled()) {
+                                    logger.trace("Notifying {} about the change in {}", action, fullPath);
+                                }
                                 action.execute(newEvent);
                             }
                         }
