@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  *
  * The implementation sets a scheduled task whenever setResources or
  * setListeners is called, which executes a command (in this case
- * ListenerNotificationTask) every 10 seconds. ListenerNotificationTask watches
+ * ListenerNotificationTask) every 10 seconds (by default). ListenerNotificationTask watches
  * the directories for changes and is responsible of calling the execute method
  * of all listener's action with the directory that changed as parameter.
  *
@@ -141,7 +141,10 @@ public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Ac
      * to execute all listener's actions for detected events.
      *
      * It currently ignores all events in a user-specified time interval after
-     * the first accepted event.
+     * the first accepted event to prevent multiples executions of the listener's for the same user-event.
+     * Example: Creating a single file in a folder (on UNIX system) raises two events: the ENTRY_CREATE
+     * and the ENTRY_MODIFY on folder. This will be changed to a scheduled run to catch the first system event
+     * and after the user-specified time interval executes one single call to all the listener's.
      *
      * @author andres
      * @author trojanbug
@@ -165,7 +168,7 @@ public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Ac
             try {
                 WatchKey key = watchService.take();
                 for (WatchEvent<?> e : key.pollEvents()) {
-                    // TODO change this for a schedule run in the future
+                    // TODO change this for a scheduled run in the future
                     if (System.currentTimeMillis() - lastRun > interval) {
                         WatchEvent.Kind<?> kind = e.kind();
                         logger.warn(kind.name());

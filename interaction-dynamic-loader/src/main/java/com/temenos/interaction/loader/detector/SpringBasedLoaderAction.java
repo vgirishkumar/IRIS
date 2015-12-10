@@ -65,8 +65,11 @@ import org.springframework.core.io.FileSystemResource;
  * 
  * The execute method would be typically called after a directory change (for instance, when a user
  * copies a jar file with new InteractionCommands). All jars in the directory are scanned for Spring configuration
- * files matching the pattern "/spring/*-interaction-context.xml". By default, the CommandController with id
- * "commandController", together with the defined InteractionCommand, would be loaded to the top of a provided
+ * files matching the pattern "/spring/*-interaction-context.xml" using the Reflections API. Reflections scans the 
+ * classpath, indexes the metadata and allows to query it on runtime. If any Spring configuration files with the 
+ * matching pattern are found, the execute method adds a new ClassLoader (with the new jars) to the current context 
+ * (the child context is created with a reference to the parent context if this exists). By default, the CommandController 
+ * with id "commandController", together with the defined InteractionCommand, would be loaded to the top of a provided
  * ChainingCommandController. 
  *
  * @author andres
