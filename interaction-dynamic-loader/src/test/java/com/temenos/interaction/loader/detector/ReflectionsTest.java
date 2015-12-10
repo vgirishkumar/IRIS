@@ -23,16 +23,16 @@ package com.temenos.interaction.loader.detector;
 
 import com.temenos.interaction.core.command.annotation.InteractionCommandImpl;
 import com.temenos.interaction.loader.classloader.ParentLastURLClassloader;
-import com.temenos.test.helperclasses.AnnotatedClass1;
+import com.temenos.annotatedtestclasses.AnnotatedInteractionCmdStubImpl1;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 import junit.framework.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
+
 
 /**
  * The tests verifies if the class already existing on the classpath can be reloaded from a JAR coocked up for the person.
@@ -44,22 +44,20 @@ import org.reflections.util.ConfigurationBuilder;
 public class ReflectionsTest {
     
     @Test
-    @Ignore(value = "Not ready yet")
     public void testLoadingClassesFromJar() throws MalformedURLException, ClassNotFoundException {
-        File jarFile = new File("src/test/jars/annotations-test-helpers.jar");
-       
-        ClassLoader classloader = new ParentLastURLClassloader(new URL[]{jarFile.toURI().toURL()});
-        Class<?> clz = classloader.loadClass("com.temenos.test.helperclasses.AnnotatedClass1");
-        Assert.assertEquals("Annotation name was not read as expected", "test1", clz.getAnnotation(InteractionCommandImpl.class).name());
+        File jarFile = new File("src/test/jars/AnnotatedTestInteractionCommandClasses.jar");
+        Assert.assertTrue(jarFile.exists());
+        ClassLoader classloader = new ParentLastURLClassloader(new URL[]{jarFile.toURI().toURL()}, Thread.currentThread().getContextClassLoader());
+        Class<?> clz = classloader.loadClass("com.temenos.annotatedtestclasses.AnnotatedInteractionCmdStubImpl1");
+        Assert.assertEquals("Annotation name was not read as expected", "testName1", clz.getAnnotation(InteractionCommandImpl.class).name());
     }
     
     @Test
-    @Ignore(value = "Not ready yet")
     public void testReflectionsOnSpecificPackage() throws MalformedURLException {
         // enforce loading class with current classloader
-        AnnotatedClass1 object = new AnnotatedClass1();
+        AnnotatedInteractionCmdStubImpl1 object = new AnnotatedInteractionCmdStubImpl1();
         
-        File jarFile = new File("src/test/jars/annotations-test-helpers.jar");
+        File jarFile = new File("src/test/jars/AnnotatedTestInteractionCommandClasses.jar");
        
         ClassLoader classloader = new ParentLastURLClassloader(new URL[]{jarFile.toURI().toURL()}, Thread.currentThread().getContextClassLoader());
         Reflections r = new Reflections(                
@@ -78,4 +76,5 @@ public class ReflectionsTest {
             Assert.assertEquals("Classloader used to load class different than expected, delegation model failed!", cls.getClassLoader(), classloader);
         }
     }
+    
 }

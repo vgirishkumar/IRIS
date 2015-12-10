@@ -1,4 +1,8 @@
-package com.temenos.test.helperclasses;
+package com.temenos.annotatedtestclasses;
+
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 /*
  * #%L
@@ -26,6 +30,11 @@ package com.temenos.test.helperclasses;
  *
  * @author ktrojan
  */
-public class AnnotatedClass1 {
+public class AnnotatedInteractionCmdStubImpl1 implements InteractionCommand{
+
+    @Override
+    public Result execute(InteractionContext ctx) throws InteractionException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }
