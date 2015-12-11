@@ -22,10 +22,6 @@ package com.temenos.interaction.loader.classloader;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-import com.google.common.primitives.Longs;
-import com.temenos.interaction.core.command.MapBasedCommandController;
-import com.temenos.interaction.core.loader.FileEvent;
-import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -33,11 +29,16 @@ import java.security.MessageDigest;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.primitives.Longs;
+import com.temenos.interaction.core.loader.FileEvent;
+import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
 
 /**
  *
@@ -55,6 +56,7 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
 
         Object state = calculateCurrentState(param);
         if (lastState == null || (!lastState.equals(state))) {
+            logger.debug("Detected state change, creating new classloader");
             Object previousState = lastState;
             ClassLoader previousCL = cache;
 

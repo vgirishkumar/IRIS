@@ -20,14 +20,6 @@ package com.temenos.interaction.loader.detector;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-import com.temenos.interaction.core.command.ChainingCommandController;
-import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.SpringContextBasedInteractionCommandController;
-import com.temenos.interaction.core.loader.Action;
-import com.temenos.interaction.core.loader.FileEvent;
-import com.temenos.interaction.loader.classloader.CachingParentLastURLClassloaderFactory;
-import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -40,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.FileUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.AbstractScanner;
@@ -52,6 +45,15 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.temenos.interaction.core.command.ChainingCommandController;
+import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.SpringContextBasedInteractionCommandController;
+import com.temenos.interaction.core.loader.Action;
+import com.temenos.interaction.core.loader.FileEvent;
+import com.temenos.interaction.loader.classloader.CachingParentLastURLClassloaderFactory;
+import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
 
 /**
  * Loads a CommandController with a set of InteractionCommands from Spring
@@ -71,7 +73,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class SpringBasedLoaderAction implements Action<FileEvent<File>>, ApplicationContextAware, InitializingBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(CachingParentLastURLClassloaderFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(SpringBasedLoaderAction.class);
 
     public final static String DEFAULT_COMMAND_CONTROLLER_BEAN_NAME = "commandController";
 
@@ -84,7 +86,7 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
     ParameterizedFactory<FileEvent<File>, ClassLoader> classloaderFactory = new CachingParentLastURLClassloaderFactory();
     private String commandControllerBeanName = DEFAULT_COMMAND_CONTROLLER_BEAN_NAME;
     private ChainingCommandController parentChainingCommandController = null;
-    private CommandController previousCC = null;
+    private CommandController previouslyAddedCommandController = null;
     private ApplicationContext previousAppCtx = null;
 
     @Override
@@ -120,6 +122,7 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
         if (!resources.isEmpty()) {
             // if resources are empty just clean up the previous ApplicationContext and leave!
+            logger.debug("Detected potential Spring config files to load");
             ClassPathXmlApplicationContext context;
             if (parentContext != null) {
                 context = new ClassPathXmlApplicationContext(parentContext);
@@ -151,22 +154,22 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
             }
 
             if (parentChainingCommandController != null) {
-                logger.debug("Adding newly created CommandController to ChainingCommandController");
                 List<CommandController> newCommandControllers = new ArrayList<CommandController>(parentChainingCommandController.getCommandControllers());
 
                 // "unload" the previously loaded CommandController
-                if (previousCC != null) {
-                    newCommandControllers.remove(previousCC);
+                if (previouslyAddedCommandController != null) {
+                    logger.debug("Removing previously added instance of CommandController");
+                    newCommandControllers.remove(previouslyAddedCommandController);
                 }
 
                 // if there is a new CommandController on the Spring file, add it on top of the chain
                 if (cc != null) {
-                    logger.debug("No new CommandController created");
+                    logger.debug("Adding newly created CommandController to ChainingCommandController");
                     newCommandControllers.add(0, cc);
                     parentChainingCommandController.setCommandControllers(newCommandControllers);
-                    previousCC = cc;
+                    previouslyAddedCommandController = cc;
                 } else {
-                    previousCC = null;
+                    previouslyAddedCommandController = null;
                 }
             } else {
                 logger.debug("No ChainingCommandController set to add newly created CommandController to - skipping action");
