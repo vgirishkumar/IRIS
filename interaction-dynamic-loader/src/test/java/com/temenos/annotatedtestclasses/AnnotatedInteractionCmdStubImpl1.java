@@ -1,8 +1,12 @@
-package com.temenos.interaction.core.command;
+package com.temenos.annotatedtestclasses;
+
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 
 /*
  * #%L
- * interaction-core
+ * interaction-dynamic-loader
  * %%
  * Copyright (C) 2012 - 2015 Temenos Holdings N.V.
  * %%
@@ -21,14 +25,16 @@ package com.temenos.interaction.core.command;
  * #L%
  */
 
-/**
- * Extension to the {@link CommandController} interface to mark registries capable of registering or unregistering new commands at runtime
- * @author pblair
- * @author trojanbug
- */
-public interface ModifiableCommandController 
-       extends CommandController {
 
-    public void addCommand(String name, InteractionCommand c);
-    public void removeCommand(String name);
+/**
+ *
+ * @author ktrojan
+ */
+public class AnnotatedInteractionCmdStubImpl1 implements InteractionCommand{
+
+    @Override
+    public Result execute(InteractionContext ctx) throws InteractionException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
 }
