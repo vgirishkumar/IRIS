@@ -39,7 +39,8 @@ public class TestSpringContextAwareInteractionCommandController {
     public void testFetchCommandWorksForConfiguredCommands() throws BeansException {
         Assert.assertNotNull(commandController.fetchCommand("testCommand1"));
         Assert.assertNotNull(commandController.fetchCommand("testCommand2"));
-
+        Assert.assertTrue(commandController.isValidCommand("testCommand1"));
+        Assert.assertTrue(commandController.isValidCommand("testCommand2"));
         Assert.assertEquals(TestCommand.class, commandController.fetchCommand("testCommand1").getClass());
     }
 
@@ -47,5 +48,6 @@ public class TestSpringContextAwareInteractionCommandController {
     public void testFetchCommandDoesNotReturnAnythingElse() throws BeansException {
         // we don't expect any exceptions, just null returned
         Assert.assertNull(commandController.fetchCommand("testCommandNameNotConfiguredAnywhere"));
+        Assert.assertFalse(commandController.isValidCommand("testCommandNameNotConfiguredAnywhere"));
     }
 }
