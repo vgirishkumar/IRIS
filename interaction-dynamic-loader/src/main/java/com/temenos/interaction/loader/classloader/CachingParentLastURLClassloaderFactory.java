@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.primitives.Longs;
 import com.temenos.interaction.core.loader.FileEvent;
 import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
+import java.io.IOException;
+import java.net.URLClassLoader;
 
 /**
  *
@@ -48,8 +50,9 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
 
     private static final Logger logger = LoggerFactory.getLogger(CachingParentLastURLClassloaderFactory.class);
 
-    private ClassLoader cache = null;
+    private URLClassLoader cache = null;
     private Object lastState = null;
+    private File lastClassloaderTempDir = null;
 
     @Override
     public synchronized ClassLoader getForObject(FileEvent<File> param) {
@@ -58,39 +61,47 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
         if (lastState == null || (!lastState.equals(state))) {
             logger.debug("Detected state change, creating new classloader");
             Object previousState = lastState;
-            ClassLoader previousCL = cache;
-
+            URLClassLoader previousCL = cache;
+            File previousTempDir = lastClassloaderTempDir;
+            
+            cleanupClassloaderResources(previousCL, previousTempDir);
             //TODO add listeners to inform about classloader creation and "destruction"
             lastState = state;
-            cache = createClassLoader(param);
+            cache = createClassLoader(state, param);
         }
 
         return cache;
     }
 
-    protected synchronized ClassLoader createClassLoader(FileEvent<File> param) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Classloader requested from CachingParentLastURLClassloaderFactory, based on FileEvent reflecting change in {}", param.getResource().getAbsolutePath());
-        }
-        Set<URL> urls = new HashSet();
-
-        Collection<File> files = FileUtils.listFiles(param.getResource(), new String[]{"jar"}, true);
-        for (File f : files) {
-            try {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Adding {} to list of URLs to create classloader from", f.toURI().toURL());
-                }
-                urls.add(f.toURI().toURL());
-            } catch (MalformedURLException ex) {
-                // should not happen, we do have the file there
-                // but if, what can we do - just log it
-                logger.warn("Trying to intiialize classloader based on URL failed!", ex);
+    protected synchronized URLClassLoader createClassLoader(Object currentState, FileEvent<File> param) {
+        try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Classloader requested from CachingParentLastURLClassloaderFactory, based on FileEvent reflecting change in {}", param.getResource().getAbsolutePath());
             }
+            Set<URL> urls = new HashSet();
+            File newTempDir = new File(FileUtils.getTempDirectory(),currentState.toString());
+            FileUtils.forceMkdir(newTempDir);
+            Collection<File> files = FileUtils.listFiles(param.getResource(), new String[]{"jar"}, true);
+            for (File f : files) {
+                try {
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Adding {} to list of URLs to create classloader from", f.toURI().toURL());
+                    }
+                    FileUtils.copyFileToDirectory(f, newTempDir);
+                    urls.add(new File(newTempDir, f.getName()).toURI().toURL());
+                } catch (MalformedURLException ex) {
+                    // should not happen, we do have the file there
+                    // but if, what can we do - just log it
+                    logger.warn("Trying to intilialize classloader based on URL failed!", ex);
+                }
+            }
+            lastClassloaderTempDir = newTempDir;
+            URLClassLoader classloader = new ParentLastURLClassloader(urls.toArray(new URL[]{}), Thread.currentThread().getContextClassLoader());
+            
+            return classloader;
+        } catch (IOException ex) {
+            throw new RuntimeException("Unexpected error trying to create new classloader.", ex);
         }
-
-        ClassLoader classloader = new ParentLastURLClassloader(urls.toArray(new URL[]{}), Thread.currentThread().getContextClassLoader());
-
-        return classloader;
     }
 
     protected Object calculateCurrentState(FileEvent<File> param) {
@@ -106,5 +117,18 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
             logger.trace("Calculated representation /hash/ of state of collection of URLs for classloader creation to: {}", state);
         }
         return state;
+    }
+
+    private void cleanupClassloaderResources(URLClassLoader previousCL, File previousTempDir) {
+        try {
+            previousCL.close();
+        } catch (IOException ex) {
+            logger.error("Failed to close classloader - potential resource and memory leak!");
+        }
+        try {
+            FileUtils.forceDelete(previousTempDir);
+        } catch (IOException ex) {
+            logger.error("Failed to delete temporary directory, possible resource leak!");
+        }
     }
 }
