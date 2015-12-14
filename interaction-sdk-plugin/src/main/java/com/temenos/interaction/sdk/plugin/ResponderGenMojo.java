@@ -39,6 +39,8 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 public class ResponderGenMojo extends AbstractMojo {
 
+    // renamed the variable, Maven 3.3 seems to ignore any hints to take config property name other than variable name it is supposed to land in
+    // see https://issues.apache.org/jira/browse/MNG-5948
     /**
      * @parameter property="edmxFile"
      */
