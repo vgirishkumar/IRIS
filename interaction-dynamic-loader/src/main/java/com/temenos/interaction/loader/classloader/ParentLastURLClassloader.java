@@ -28,10 +28,6 @@ import java.net.URLStreamHandlerFactory;
 
 public class ParentLastURLClassloader extends URLClassLoader {
 
-    public ParentLastURLClassloader(URL[] urls, ClassLoader cl, URLStreamHandlerFactory urlshf) {
-        super(urls, cl, urlshf);
-    }
-
     public ParentLastURLClassloader(URL[] urls, ClassLoader cl) {
         super(urls, cl);
     }
