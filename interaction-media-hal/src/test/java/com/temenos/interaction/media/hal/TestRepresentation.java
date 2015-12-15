@@ -22,21 +22,18 @@ package com.temenos.interaction.media.hal;
  */
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.Representation;
-import com.theoryinpractise.halbuilder.api.RepresentationException;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
 import com.theoryinpractise.halbuilder.standard.StandardRepresentationFactory;
+import java.io.IOException;
+import java.util.Map;
 import org.junit.Test;
 
 /** These tests are not actually testing IRIS code, they are verifying the behaviour
@@ -52,7 +49,10 @@ public class TestRepresentation {
 
 		String output = halResource.toString(RepresentationFactory.HAL_JSON);
 
-		assertEquals( "{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}}}", output );
+                Map<String,Object> expectedData = parseJson("{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}}}");
+		Map<String,Object> actualData   = parseJson(output);
+
+                assertEquals( expectedData, actualData );                       
 	}
 
 	@Test
@@ -64,7 +64,10 @@ public class TestRepresentation {
 
 		String output = halResource.toString(RepresentationFactory.HAL_JSON);
 
-		assertEquals( "{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\"}", output );
+                Map<String,Object> expectedData = parseJson("{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\"}");
+		Map<String,Object> actualData   = parseJson(output);
+
+                assertEquals( expectedData, actualData );                
 	}
 
 	@Test
@@ -80,8 +83,11 @@ public class TestRepresentation {
 
 		String output = halResource.toString(RepresentationFactory.HAL_JSON);
 
-		assertEquals( "{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\",\"key2\":{\"key2a\":\"value2a\"}}", output );
-	}
+                Map<String,Object> expectedData = parseJson("{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\",\"key2\":{\"key2a\":\"value2a\"}}");
+		Map<String,Object> actualData   = parseJson(output);
+
+                assertEquals( expectedData, actualData );
+        }
 		
 	@Test
 	public void testArray() throws Exception {
@@ -101,8 +107,11 @@ public class TestRepresentation {
 
 		String output = halResource.toString(RepresentationFactory.HAL_JSON);
 
-		assertEquals( "{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\",\"key2\":[{\"key2a\":\"value2a\"},{\"key2b\":\"value2b\"}]}", output );
-	}		
+                Map<String,Object> expectedData = parseJson("{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\",\"key2\":[{\"key2a\":\"value2a\"},{\"key2b\":\"value2b\"}]}");
+		Map<String,Object> actualData   = parseJson(output);
+
+                assertEquals( expectedData, actualData );
+        }		
 		
 	@Test
 	public void testArray1() throws Exception {
@@ -122,8 +131,11 @@ public class TestRepresentation {
 
 		String output = halResource.toString(RepresentationFactory.HAL_JSON);
 
-		assertEquals( "{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\",\"key2\":[{\"key2a\":\"value2a\"},{\"key2b\":\"value2b\"}]}", output );
-	}		
+                Map<String,Object> expectedData = parseJson("{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\",\"key2\":[{\"key2a\":\"value2a\"},{\"key2b\":\"value2b\"}]}");
+		Map<String,Object> actualData   = parseJson(output);
+
+                assertEquals( expectedData, actualData );
+        }		
 
 	@Test
 	public void testMv() throws Exception {
@@ -145,8 +157,18 @@ public class TestRepresentation {
 		halResource.withProperty("keyMvGroup", array);
 
 		String output = halResource.toString(RepresentationFactory.HAL_JSON);
-
-		assertEquals( "{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\",\"keyMvGroup\":[{\"key2a\":\"value2a\",\"valuePosition\":\"1\"}]}", output );
+		Map<String,Object> expectedData = parseJson("{\"_links\":{\"self\":{\"href\":\"http://example.org/test.svc/resource\"}},\"key1\":\"value1\",\"keyMvGroup\":[{\"key2a\":\"value2a\",\"valuePosition\":\"1\"}]}");
+		Map<String,Object> actualData   = parseJson(output);
+		assertEquals( expectedData, actualData );
 	}		
-	
+
+	public Map parseJson(String json) throws IOException {
+		//converting json to Map
+		byte[] mapData = json.getBytes();
+		Map<String,Object> myMap = new HashMap<String, Object>();
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		myMap = objectMapper.readValue(mapData, HashMap.class);
+		return myMap;
+	}        
 }
