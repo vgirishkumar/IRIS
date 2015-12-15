@@ -64,9 +64,6 @@ import org.odata4j.core.OEntity;
 import org.odata4j.core.OObject;
 import org.odata4j.core.OProperty;
 import org.odata4j.core.OSimpleObject;
-import org.odata4j.edm.EdmCollectionType;
-import org.odata4j.edm.EdmComplexType;
-import org.odata4j.edm.EdmType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +102,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	private Request requestContext;
 	private Metadata metadata = null;
 	private ResourceStateProvider resourceStateProvider;
-    private RepresentationFactory representationFactory = new StandardRepresentationFactory().withFlag(RepresentationFactory.SINGLE_ELEM_ARRAYS);
+    private RepresentationFactory representationFactory = new StandardRepresentationFactory(); //.withFlag(RepresentationFactory.SINGLE_ELEM_ARRAYS);
 
 	public HALProvider(Metadata metadata, ResourceStateProvider resourceStateProvider) {
 		this(metadata);
@@ -575,16 +572,16 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						|| mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)));
 
 		//Parse hal+json into an Entity object
-		Entity entity = buildEntityFromHal(entityStream);
+		Entity entity = buildEntityFromHal(entityStream, mediaType);
 		return new EntityResource<Entity>(entity);
 	}
 	
-	private Entity buildEntityFromHal(InputStream entityStream) {
+	private Entity buildEntityFromHal(InputStream entityStream, MediaType mediaType) {
 		try {
 			// create the hal resource
 			String baseUri = uriInfo.getBaseUri().toASCIIString();
 			RepresentationFactory representationFactory = new StandardRepresentationFactory();
-			ReadableRepresentation halResource = representationFactory.readRepresentation(new InputStreamReader(entityStream));
+			ReadableRepresentation halResource = representationFactory.readRepresentation(mediaType.toString(), new InputStreamReader(entityStream));
 			// assume the client providing the representation knows something we don't
 			String resourcePath = halResource.getResourceLink() != null ? halResource.getResourceLink().getHref() : null;
 			if (resourcePath == null) {

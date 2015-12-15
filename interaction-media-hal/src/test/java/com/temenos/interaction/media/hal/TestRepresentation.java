@@ -24,12 +24,17 @@ package com.temenos.interaction.media.hal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.theoryinpractise.halbuilder.api.Representation;
+import com.theoryinpractise.halbuilder.api.RepresentationException;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
 import com.theoryinpractise.halbuilder.standard.StandardRepresentationFactory;
 import java.io.IOException;
@@ -40,7 +45,7 @@ import org.junit.Test;
  *  of the underlying halbuilder library.
  */
 public class TestRepresentation {
-	private RepresentationFactory representationFactory = new StandardRepresentationFactory().withFlag(RepresentationFactory.SINGLE_ELEM_ARRAYS);
+	private RepresentationFactory representationFactory = new StandardRepresentationFactory(); //.withFlag(RepresentationFactory.SINGLE_ELEM_ARRAYS);
 
 	@Test
 	public void testNull() throws Exception {
