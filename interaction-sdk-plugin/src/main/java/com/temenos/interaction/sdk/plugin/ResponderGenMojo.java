@@ -30,44 +30,34 @@ import org.apache.maven.plugin.MojoFailureException;
 
 import com.temenos.interaction.sdk.JPAResponderGen;
 import com.temenos.interaction.sdk.adapter.edmx.EDMXAdapter;
+import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
  * A Maven plugin that generates a responder from a given EDMX file.
- * @goal gen
- * @requiresDependencyResolution compile
  */
+@Mojo(name = "gen",
+        requiresDependencyResolution=ResolutionScope.COMPILE)
 public class ResponderGenMojo extends AbstractMojo {
 
-    // renamed the variable, Maven 3.3 seems to ignore any hints to take config property name other than variable name it is supposed to land in
-    // see https://issues.apache.org/jira/browse/MNG-5948
-    /**
-     * @parameter property="edmxFile"
-     */
-    @Parameter(property = "edmxFile")
-    private String edmxFile;
+    @Parameter(property = "edmxFile", alias="edmxFile")
+    private String edmxFilePath;
 
     /**
      * Enable/disable strict odata compliance.
-     * @parameter
      */
     @Parameter
     private boolean strictOdata = true;
     
-    /**
-     * @parameter property="srcTargetDirectory"
-     */
     @Parameter(property = "srcTargetDirectory")
     private String srcTargetDirectory;
 
-    /**
-     * @parameter property="configTargetDirectory"
-     */
     @Parameter(property = "configTargetDirectory")
     private String configTargetDirectory;
 
-	public void setEdmxFile(String edmxFileStr) {
-		this.edmxFile = edmxFileStr;
+	public void setEdmxFile(String edmxFilePath) {
+		this.edmxFilePath = edmxFilePath;
 	}
 
 	public void setSrcTargetDirectory(String targetDirectory) {
@@ -84,7 +74,7 @@ public class ResponderGenMojo extends AbstractMojo {
 	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		// check our configuration
-		if (edmxFile == null)
+		if (edmxFilePath == null)
 			throw new MojoExecutionException("[edmxFilePath] not specified in plugin configuration");
 		if (srcTargetDirectory == null)
 			throw new MojoExecutionException("[srcTargetDirectory] not specified in plugin configuration");
@@ -92,10 +82,10 @@ public class ResponderGenMojo extends AbstractMojo {
 			getLog().warn("[configTargetDirectory] not set, using [srcTargetDirectory]");
 			configTargetDirectory = srcTargetDirectory;
 		}
-		File edmxFileHandle = new File(edmxFile);
+		File edmxFile = new File(edmxFilePath);
 		File srcTargetDir = new File(srcTargetDirectory);
 		File configTargetDir = new File(configTargetDirectory);
-		execute(edmxFileHandle, srcTargetDir, configTargetDir);
+		execute(edmxFile, srcTargetDir, configTargetDir);
 	}
 	
 	protected void execute(File edmxFileHandle, File srcTargetDir, File configTargetDir) throws MojoExecutionException, MojoFailureException {
