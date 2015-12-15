@@ -75,18 +75,14 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
 
     protected synchronized URLClassLoader createClassLoader(Object currentState, FileEvent<File> param) {
         try {
-            if (logger.isDebugEnabled()) {
                 logger.debug("Classloader requested from CachingParentLastURLClassloaderFactory, based on FileEvent reflecting change in {}", param.getResource().getAbsolutePath());
-            }
-            Set<URL> urls = new HashSet();
+            Set<URL> urls = new HashSet<URL>();
             File newTempDir = new File(FileUtils.getTempDirectory(),currentState.toString());
             FileUtils.forceMkdir(newTempDir);
             Collection<File> files = FileUtils.listFiles(param.getResource(), new String[]{"jar"}, true);
             for (File f : files) {
                 try {
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("Adding {} to list of URLs to create classloader from", f.toURI().toURL());
-                    }
+                    logger.trace("Adding {} to list of URLs to create classloader from", f.toURI().toURL());
                     FileUtils.copyFileToDirectory(f, newTempDir);
                     urls.add(new File(newTempDir, f.getName()).toURI().toURL());
                 } catch (MalformedURLException ex) {
@@ -113,20 +109,22 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
         }
         
         Object state = Hex.encodeHexString(md.digest());
-        if (logger.isTraceEnabled()) {
             logger.trace("Calculated representation /hash/ of state of collection of URLs for classloader creation to: {}", state);
-        }
         return state;
     }
 
     private void cleanupClassloaderResources(URLClassLoader previousCL, File previousTempDir) {
-        try {
-            previousCL.close();
+    	try {
+    		if(previousCL != null){
+    			previousCL.close();
+    		}
         } catch (IOException ex) {
             logger.error("Failed to close classloader - potential resource and memory leak!");
         }
         try {
-            FileUtils.forceDelete(previousTempDir);
+            if(previousTempDir != null){
+            	FileUtils.forceDelete(previousTempDir);
+            }
         } catch (IOException ex) {
             logger.error("Failed to delete temporary directory, possible resource leak!");
         }

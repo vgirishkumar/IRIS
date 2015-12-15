@@ -22,6 +22,8 @@ package com.temenos.interaction.loader.detector;
  */
 import com.temenos.interaction.core.command.ChainingCommandController;
 import com.temenos.interaction.core.loader.FileEvent;
+import com.temenos.interaction.loader.classloader.CachingParentLastURLClassloaderFactory;
+
 import java.io.File;
 import java.io.IOException;
 import org.junit.Assert;
@@ -32,6 +34,8 @@ public class SpringBasedLoaderActionTest {
     @Test
     public void test() throws IOException, InterruptedException {
         
+    	CachingParentLastURLClassloaderFactory classLoaderFactory = new CachingParentLastURLClassloaderFactory();
+    	
         FileEvent<File> dirEvent = new FileEvent<File>() {
             @Override
             public File getResource() {
@@ -43,6 +47,7 @@ public class SpringBasedLoaderActionTest {
        
         SpringBasedLoaderAction instance = new SpringBasedLoaderAction();
         instance.setParentChainingCommandController(chainingCommandController);
+        instance.setClassloaderFactory(classLoaderFactory);
         // Check chainingCommandController and try to find the GETEntities command before the loading
         // This test should be false because the bean doesn't exist
         Assert.assertFalse(chainingCommandController.isValidCommand("GETEntities"));
