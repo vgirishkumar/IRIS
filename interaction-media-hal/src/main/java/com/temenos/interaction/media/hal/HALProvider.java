@@ -58,6 +58,7 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.apache.commons.lang.StringUtils;
 import org.odata4j.core.OCollection;
 import org.odata4j.core.OComplexObject;
 import org.odata4j.core.OEntity;
@@ -615,15 +616,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add properties if they are present on the resolved entity
 			EntityProperties entityFields = new EntityProperties();
 			Map<String, Object> halProperties = halResource.getProperties();
-			for (String propName : halProperties.keySet()) {
-				if (entityMetadata.getPropertyVocabulary(propName) != null) {
-					Object propertyValue = halProperties.get(propName);
-					if (propertyValue != null) {
-						Object halValue = getHalPropertyValue(entityMetadata, propName, halProperties.get(propName));
-						entityFields.setProperty(new EntityProperty(propName, halValue));
-					}
-				}
-			}
+			iterateProperties(entityMetadata, entityFields, halProperties, "");
 			return new Entity(entityName, entityFields);
 		} catch (RepresentationException e) {
 			logger.warn("Malformed request from client", e);
@@ -633,6 +626,21 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 	}
+
+	private void iterateProperties(EntityMetadata entityMetadata, EntityProperties entityFields,
+			Map<String, Object> halProperties, String prefix) {
+		for (String propName : halProperties.keySet()) {
+			if (entityMetadata.getPropertyVocabulary(concatenatePrefixes(prefix,propName)) != null) {
+				Object propertyValue = halProperties.get(propName);
+				if (propertyValue != null) {
+					Object halValue = getHalPropertyValue(entityMetadata, propName, halProperties.get(propName),prefix);
+					entityFields.setProperty(new EntityProperty(propName, halValue));
+				}
+			}
+		}
+	}
+	
+	
 	
 	private String getEntityName(String resourcePath) {
 		String entityName = null;
@@ -698,11 +706,24 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		return "";
 	}
 
-	private Object getHalPropertyValue( EntityMetadata entityMetadata, String propertyName, Object halPropertyValue )
+	private Object getHalPropertyValue( EntityMetadata entityMetadata, String propertyName, Object halPropertyValue, String currentPrefix )
 	{
 		if ( halPropertyValue == null )
 			return nullHalPropertyValue( entityMetadata, propertyName );
-		
+		if(halPropertyValue instanceof Collection){
+			Collection halPropertyValueCollection = (Collection)halPropertyValue;
+			ArrayList<EntityProperties> embeddedArray = new ArrayList<EntityProperties>();
+
+			for(Object o : halPropertyValueCollection){
+				if(o instanceof Map){
+					EntityProperties properties = new EntityProperties();
+					Map<String, Object> halPropertiesMap = (Map<String,Object>) o;
+					this.iterateProperties(entityMetadata, properties, halPropertiesMap, this.concatenatePrefixes(currentPrefix, propertyName));
+					embeddedArray.add(properties);
+				}
+			}
+			return embeddedArray;
+		}
 		String stringValue = halPropertyValue.toString();
 		Object typedValue;
 		
@@ -720,5 +741,16 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 		
 		return typedValue;
+	}
+	
+	private String concatenatePrefixes(String current, String newPrefixAddition){
+		if(StringUtils.isNotBlank(current)){
+			StringBuilder sb = new StringBuilder();
+			sb.append(current).append(".").append(newPrefixAddition);
+			return sb.toString(); 
+		}
+		else {
+			return newPrefixAddition;
+		}
 	}
 }
