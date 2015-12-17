@@ -33,6 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Ignore;
@@ -63,6 +65,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.GenericCollectionTypeResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,6 +74,8 @@ import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.MetadataParser;
+import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
@@ -82,9 +87,14 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.core.resource.ConfigLoader;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
+
+import ch.qos.logback.classic.gaffer.NestingType;
+import ch.qos.logback.classic.gaffer.PropertyUtil;
+
 import java.util.Collections;
 
 public class TestHALProvider {
@@ -184,9 +194,9 @@ public class TestHALProvider {
         
     @SuppressWarnings("unchecked")
 	@Test
-	public void testNestedDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
-		HALProvider hp = new HALProvider(createNestedMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
+	public void testNestedDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("students", "initial", new ArrayList<Action>(), "/students"));
+		HALProvider hp = new HALProvider(createNestedMockStudentsVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -194,21 +204,24 @@ public class TestHALProvider {
 		when(requestContext.getMethod()).thenReturn("GET");
 		hp.setRequestContext(requestContext);
 
-		String strEntityStream = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/children'}},'name':'noah','age':'2','tutions':[{'Duration':'2.5','TutionName':'Maths'},{'TutionName':'English','Duration':'2'}]}".replace('\'','\"');
+		String strEntityStream = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/students'}},'name':'noah','age':'2','tuitions':[{'Duration':'2.5','TutionName':'Maths'},{'TutionName':'English','Duration':'2'}]}".replace('\'','\"');
 
         InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
-		assertEquals("Children", entity.getName());
+		assertEquals("students", entity.getName());
+		assertEquals(2L, PropertyUtils.getProperty(entity, "properties.properties.age.value"));
+		assertEquals("noah", PropertyUtils.getProperty(entity, "properties.properties.name.value"));
+		assertEquals("2.5", PropertyUtils.getProperty(entity, "properties.properties.tuitions.value[0].properties.Duration.value"));
 	}
     
     @SuppressWarnings("unchecked")
 	@Test
-	public void testMoreComplexNestedDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException {
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
-		HALProvider hp = new HALProvider(createMoreComplexNestedMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
+	public void testMoreComplexNestedDeserialiseResolveEntityNameJSON() throws IOException, URISyntaxException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("students", "initial", new ArrayList<Action>(), "/students"));
+		HALProvider hp = new HALProvider(createMoreComplexNestedMockStudentVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
@@ -216,16 +229,22 @@ public class TestHALProvider {
 		when(requestContext.getMethod()).thenReturn("GET");
 		hp.setRequestContext(requestContext);
 
-		String strEntityStream = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/children'}},'name':'noah','age':'2','tutions':[{'Duration':'2.5','TutionName':'Maths'},{'TutionName':'English','Duration':'2', 'Teachers': [{'Name': 'John'}, {'Name': 'Martin'}]}]}".replace('\'','\"');
+		String strEntityStream = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/students'}},'name':'noah','age':'2','address': {'houseNumber':'123', 'roadName': 'Fenchurch Street'},'tuitions':[{'Duration':'2.5','TutionName':'Maths'},{'TutionName':'English','Duration':'2', 'Teachers': [{'Name': 'John'}, {'Name': 'Martin'}]}]}".replace('\'','\"');
 
         InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
-		assertEquals("Children", entity.getName());
+		assertEquals("students", entity.getName());
+		Object o = PropertyUtils.getNestedProperty(entity, "properties.properties.tuitions.value[0].properties.Duration.value");
+		assertEquals(2L, PropertyUtils.getProperty(entity, "properties.properties.age.value"));
+		assertEquals("noah", PropertyUtils.getProperty(entity, "properties.properties.name.value"));
+		assertEquals("123", PropertyUtils.getProperty(entity, "properties.properties.address.value.properties.houseNumber.value"));
+		assertEquals("Fenchurch Street", PropertyUtils.getProperty(entity, "properties.properties.address.value.properties.roadName.value"));
+		assertEquals("2.5", PropertyUtils.getProperty(entity, "properties.properties.tuitions.value[0].properties.Duration.value"));
 	}
-    
+        
     @Test
     public void testIsWritable(){
     	ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
@@ -428,20 +447,88 @@ public class TestHALProvider {
                 
         Vocabulary vocRides = new Vocabulary();
 		vocRides.setTerm(new TermComplexType(true));
-		vocs.setPropertyVocabulary("tutions", vocRides);
+		vocs.setPropertyVocabulary("tuitions", vocRides);
 		Vocabulary vocTutionName = new Vocabulary();
 		vocTutionName.setTerm(new TermValueType(TermValueType.TEXT));
-		vocs.setPropertyVocabulary("TutionName", vocTutionName, Collections.enumeration(Collections.singletonList("tutions")));
+		vocs.setPropertyVocabulary("TutionName", vocTutionName, Collections.enumeration(Collections.singletonList("tuitions")));
 		Vocabulary vocTutionDuration = new Vocabulary();
 		vocTutionName.setTerm(new TermValueType(TermValueType.TEXT));
-		vocs.setPropertyVocabulary("Duration", vocTutionDuration, Collections.enumeration(Collections.singletonList("tutions")));
+		vocs.setPropertyVocabulary("Duration", vocTutionDuration, Collections.enumeration(Collections.singletonList("tuitions")));
 		
 		Metadata metadata = new Metadata("Family");
 		metadata.setEntityMetadata(vocs);
 		return metadata;
 	}
     
-    private Metadata createMoreComplexNestedMockChildVocabMetadata() {
+    private Metadata createNestedMockStudentsVocabMetadata() {
+		EntityMetadata vocs = new EntityMetadata("students");
+		Vocabulary vocId = new Vocabulary();
+		vocId.setTerm(new TermValueType(TermValueType.TEXT));
+		vocs.setPropertyVocabulary("name", vocId);
+		Vocabulary vocBody = new Vocabulary();
+		vocBody.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
+		vocs.setPropertyVocabulary("age", vocBody);
+                
+        Vocabulary vocRides = new Vocabulary();
+		vocRides.setTerm(new TermComplexType(true));
+		vocs.setPropertyVocabulary("tuitions", vocRides);
+		Vocabulary vocTutionName = new Vocabulary();
+		vocTutionName.setTerm(new TermValueType(TermValueType.TEXT));
+		vocs.setPropertyVocabulary("TutionName", vocTutionName, Collections.enumeration(Collections.singletonList("tuitions")));
+		Vocabulary vocTutionDuration = new Vocabulary();
+		vocTutionName.setTerm(new TermValueType(TermValueType.TEXT));
+		vocs.setPropertyVocabulary("Duration", vocTutionDuration, Collections.enumeration(Collections.singletonList("tuitions")));
+		
+		Metadata metadata = new Metadata("Faculty");
+		metadata.setEntityMetadata(vocs);
+		return metadata;
+	}
+
+    
+    private Metadata createMoreComplexNestedMockStudentVocabMetadata() {
+		EntityMetadata vocs = new EntityMetadata("students");
+		Vocabulary vocId = new Vocabulary();
+		vocId.setTerm(new TermValueType(TermValueType.TEXT));
+		vocs.setPropertyVocabulary("name", vocId);
+		Vocabulary vocBody = new Vocabulary();
+		vocBody.setTerm(new TermValueType(TermValueType.INTEGER_NUMBER));
+		vocs.setPropertyVocabulary("age", vocBody);
+                
+        Vocabulary vocRides = new Vocabulary();
+		vocRides.setTerm(new TermComplexType(true));
+		vocs.setPropertyVocabulary("tuitions", vocRides);
+		Vocabulary vocTeachers = new Vocabulary();
+		vocTeachers.setTerm(new TermComplexType(true));
+		vocs.setPropertyVocabulary("Teachers", vocTeachers, Collections.enumeration(Collections.singletonList("tuitions")));
+		Vocabulary vocTutionName = new Vocabulary();
+		vocTutionName.setTerm(new TermValueType(TermValueType.TEXT));
+		vocs.setPropertyVocabulary("TutionName", vocTutionName, Collections.enumeration(Collections.singletonList("tuitions")));
+		Vocabulary vocTutionDuration = new Vocabulary();
+		vocTutionName.setTerm(new TermValueType(TermValueType.TEXT));
+		vocs.setPropertyVocabulary("Duration", vocTutionDuration, Collections.enumeration(Collections.singletonList("tuitions")));
+		
+		Vocabulary vocTeacherName = new Vocabulary();
+		vocTeacherName.setTerm(new TermValueType(TermValueType.TEXT));
+		vocs.setPropertyVocabulary("Name", vocTeacherName, Collections.enumeration(Arrays.asList(new String[]{"tuitions","Teachers"})));
+		
+		Vocabulary vocAddress = new Vocabulary();
+		vocAddress.setTerm(new TermComplexType(true));
+		vocs.setPropertyVocabulary("address", vocAddress);
+		
+		Vocabulary vocAddressHouseNumber = new Vocabulary();
+		vocAddressHouseNumber.setTerm(new TermValueType(TermValueType.NUMBER));
+		vocs.setPropertyVocabulary("houseNumber", vocAddressHouseNumber, Collections.enumeration(Arrays.asList(new String[]{"address"})));
+		
+		Vocabulary vocAddressRoadName = new Vocabulary();
+		vocAddressRoadName.setTerm(new TermValueType(TermValueType.NUMBER));
+		vocs.setPropertyVocabulary("roadName", vocAddressRoadName, Collections.enumeration(Arrays.asList(new String[]{"address"})));
+		
+		Metadata metadata = new Metadata("Faculty");
+		metadata.setEntityMetadata(vocs);
+		return metadata;
+	}
+    
+    private Metadata createObjectNestedVocabMetadataStub(){
 		EntityMetadata vocs = new EntityMetadata("Children");
 		Vocabulary vocId = new Vocabulary();
 		vocId.setTerm(new TermValueType(TermValueType.TEXT));
@@ -452,25 +539,30 @@ public class TestHALProvider {
                 
         Vocabulary vocRides = new Vocabulary();
 		vocRides.setTerm(new TermComplexType(true));
-		vocs.setPropertyVocabulary("tutions", vocRides);
-		Vocabulary vocTeachers = new Vocabulary();
-		vocTeachers.setTerm(new TermComplexType(true));
-		vocs.setPropertyVocabulary("Teachers", vocTeachers, Collections.enumeration(Collections.singletonList("tutions")));
+		vocs.setPropertyVocabulary("tuitions", vocRides);
 		Vocabulary vocTutionName = new Vocabulary();
 		vocTutionName.setTerm(new TermValueType(TermValueType.TEXT));
-		vocs.setPropertyVocabulary("TutionName", vocTutionName, Collections.enumeration(Collections.singletonList("tutions")));
+		vocs.setPropertyVocabulary("TutionName", vocTutionName, Collections.enumeration(Collections.singletonList("tuitions")));
 		Vocabulary vocTutionDuration = new Vocabulary();
 		vocTutionName.setTerm(new TermValueType(TermValueType.TEXT));
-		vocs.setPropertyVocabulary("Duration", vocTutionDuration, Collections.enumeration(Collections.singletonList("tutions")));
+		vocs.setPropertyVocabulary("Duration", vocTutionDuration, Collections.enumeration(Collections.singletonList("tuitions")));
 		
-		Vocabulary vocTeacherName = new Vocabulary();
-		vocTeacherName.setTerm(new TermValueType(TermValueType.TEXT));
-		vocs.setPropertyVocabulary("Name", vocTeacherName, Collections.enumeration(Arrays.asList(new String[]{"tutions","Teachers"})));
+		Vocabulary vocAddress = new Vocabulary();
+		vocAddress.setTerm(new TermComplexType(true));
+		vocs.setPropertyVocabulary("address", vocAddress);
+		
+		Vocabulary vocAddressHouseNumber = new Vocabulary();
+		vocAddressHouseNumber.setTerm(new TermValueType(TermValueType.NUMBER));
+		vocs.setPropertyVocabulary("houseNumber", vocAddressHouseNumber, Collections.enumeration(Arrays.asList(new String[]{"address"})));
+		
+		Vocabulary vocAddressRoadName = new Vocabulary();
+		vocAddressRoadName.setTerm(new TermValueType(TermValueType.NUMBER));
+		vocs.setPropertyVocabulary("roadName", vocAddressRoadName, Collections.enumeration(Arrays.asList(new String[]{"address"})));
 		
 		Metadata metadata = new Metadata("Family");
 		metadata.setEntityMetadata(vocs);
 		return metadata;
-	}
+    }
 	
 	@Test(expected = WebApplicationException.class)
 	public void testAttemptToSerialiseNonEntityResource() throws Exception {

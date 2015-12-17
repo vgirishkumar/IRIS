@@ -45,7 +45,7 @@ import org.junit.Test;
  *  of the underlying halbuilder library.
  */
 public class TestRepresentation {
-	private RepresentationFactory representationFactory = new StandardRepresentationFactory(); //.withFlag(RepresentationFactory.SINGLE_ELEM_ARRAYS);
+	private RepresentationFactory representationFactory = new StandardRepresentationFactory();
 
 	@Test
 	public void testNull() throws Exception {

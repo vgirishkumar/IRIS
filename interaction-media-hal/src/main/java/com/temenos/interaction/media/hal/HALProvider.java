@@ -103,7 +103,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	private Request requestContext;
 	private Metadata metadata = null;
 	private ResourceStateProvider resourceStateProvider;
-    private RepresentationFactory representationFactory = new StandardRepresentationFactory(); //.withFlag(RepresentationFactory.SINGLE_ELEM_ARRAYS);
+    private RepresentationFactory representationFactory = new StandardRepresentationFactory();
 
 	public HALProvider(Metadata metadata, ResourceStateProvider resourceStateProvider) {
 		this(metadata);
@@ -627,6 +627,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 
+	/*
+	 * Iterate through property keys and extract values if the vocabulary is correct.
+	 */
 	private void iterateProperties(EntityMetadata entityMetadata, EntityProperties entityFields,
 			Map<String, Object> halProperties, String prefix) {
 		for (String propName : halProperties.keySet()) {
@@ -706,23 +709,17 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		return "";
 	}
 
+	/*
+	 * Parse property values from input data.
+	 */
 	private Object getHalPropertyValue( EntityMetadata entityMetadata, String propertyName, Object halPropertyValue, String currentPrefix )
 	{
 		if ( halPropertyValue == null )
 			return nullHalPropertyValue( entityMetadata, propertyName );
 		if(halPropertyValue instanceof Collection){
-			Collection halPropertyValueCollection = (Collection)halPropertyValue;
-			ArrayList<EntityProperties> embeddedArray = new ArrayList<EntityProperties>();
-
-			for(Object o : halPropertyValueCollection){
-				if(o instanceof Map){
-					EntityProperties properties = new EntityProperties();
-					Map<String, Object> halPropertiesMap = (Map<String,Object>) o;
-					this.iterateProperties(entityMetadata, properties, halPropertiesMap, this.concatenatePrefixes(currentPrefix, propertyName));
-					embeddedArray.add(properties);
-				}
-			}
-			return embeddedArray;
+			return getValuesFromJsonArray(entityMetadata, propertyName, halPropertyValue, currentPrefix);
+		} else if(halPropertyValue instanceof Map){
+			return getValuesFromJsonObject(entityMetadata, propertyName, (Map<String, Object>)halPropertyValue, currentPrefix);
 		}
 		String stringValue = halPropertyValue.toString();
 		Object typedValue;
@@ -742,8 +739,38 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		
 		return typedValue;
 	}
+
+	/*
+	 * Retrieve values from a JSON array. 
+	 */
+	private List<EntityProperties> getValuesFromJsonArray(EntityMetadata entityMetadata, String propertyName,
+			Object halPropertyValue, String currentPrefix) {
+		Collection halPropertyValueCollection = (Collection)halPropertyValue;
+		ArrayList<EntityProperties> embeddedArray = new ArrayList<EntityProperties>();
+
+		for(Object o : halPropertyValueCollection){
+			if(o instanceof Map){
+				EntityProperties properties = new EntityProperties();
+				Map<String, Object> halPropertiesMap = (Map<String,Object>) o;
+				this.iterateProperties(entityMetadata, properties, halPropertiesMap, this.concatenatePrefixes(currentPrefix, propertyName));
+				embeddedArray.add(properties);
+			}
+		}
+		return embeddedArray;
+	}
 	
-	private String concatenatePrefixes(String current, String newPrefixAddition){
+	private EntityProperties getValuesFromJsonObject(EntityMetadata entityMetadata, String propertyName, 
+		Map<String, Object> halPropertyValue, String currentPrefix){
+		EntityProperties properties = new EntityProperties();
+		this.iterateProperties(entityMetadata, properties, halPropertyValue, this.concatenatePrefixes(currentPrefix, propertyName));
+		return properties;
+	}
+	
+	/*
+	 * Concatenate an object prefix with a nested object name using dot notation
+	 * if a prefix already exists, else return the object name.
+	 */
+	private String concatenatePrefixes(String current, String newPrefixAddition){ 
 		if(StringUtils.isNotBlank(current)){
 			StringBuilder sb = new StringBuilder();
 			sb.append(current).append(".").append(newPrefixAddition);
