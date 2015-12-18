@@ -186,10 +186,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					Link link = findLinkByTransition(links, t);
 					String rel = (link.getRel() != null ? link.getRel() : "embedded/" + embeddedResource.getEntityName());
 					logger.debug("Embedded: rel=[" + rel + "] href=[" + link.getHref() + "]");
-					Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()),
-																			 embeddedResource,
-																			 type,
-																			 genericType);
+
+                                        Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()),
+                                                                                                                        embeddedResource,
+                                                                                                                        embeddedResource.getGenericEntity().getRawType(),
+                                                                                                                        embeddedResource.getGenericEntity().getType());
 					halResource.withRepresentation(rel, embeddedRepresentation);
 				}
 			}
