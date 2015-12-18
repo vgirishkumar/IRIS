@@ -58,15 +58,13 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.apache.commons.lang.StringUtils;
 import org.odata4j.core.OCollection;
 import org.odata4j.core.OComplexObject;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OObject;
 import org.odata4j.core.OProperty;
 import org.odata4j.core.OSimpleObject;
-import org.odata4j.edm.EdmCollectionType;
-import org.odata4j.edm.EdmComplexType;
-import org.odata4j.edm.EdmType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +103,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	private Request requestContext;
 	private Metadata metadata = null;
 	private ResourceStateProvider resourceStateProvider;
-    private RepresentationFactory representationFactory = new StandardRepresentationFactory().withFlag(RepresentationFactory.SINGLE_ELEM_ARRAYS);
+    private RepresentationFactory representationFactory = new StandardRepresentationFactory();
 
 	public HALProvider(Metadata metadata, ResourceStateProvider resourceStateProvider) {
 		this(metadata);
@@ -188,10 +186,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					Link link = findLinkByTransition(links, t);
 					String rel = (link.getRel() != null ? link.getRel() : "embedded/" + embeddedResource.getEntityName());
 					logger.debug("Embedded: rel=[" + rel + "] href=[" + link.getHref() + "]");
-					Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()),
-																			 embeddedResource,
-																			 type,
-																			 genericType);
+
+                                        Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()),
+                                                                                                                        embeddedResource,
+                                                                                                                        embeddedResource.getGenericEntity().getRawType(),
+                                                                                                                        embeddedResource.getGenericEntity().getType());
 					halResource.withRepresentation(rel, embeddedRepresentation);
 				}
 			}
@@ -575,16 +574,16 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						|| mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)));
 
 		//Parse hal+json into an Entity object
-		Entity entity = buildEntityFromHal(entityStream);
+		Entity entity = buildEntityFromHal(entityStream, mediaType);
 		return new EntityResource<Entity>(entity);
 	}
 	
-	private Entity buildEntityFromHal(InputStream entityStream) {
+	private Entity buildEntityFromHal(InputStream entityStream, MediaType mediaType) {
 		try {
 			// create the hal resource
 			String baseUri = uriInfo.getBaseUri().toASCIIString();
 			RepresentationFactory representationFactory = new StandardRepresentationFactory();
-			ReadableRepresentation halResource = representationFactory.readRepresentation(new InputStreamReader(entityStream));
+			ReadableRepresentation halResource = representationFactory.readRepresentation(mediaType.toString(), new InputStreamReader(entityStream));
 			// assume the client providing the representation knows something we don't
 			String resourcePath = halResource.getResourceLink() != null ? halResource.getResourceLink().getHref() : null;
 			if (resourcePath == null) {
@@ -618,15 +617,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add properties if they are present on the resolved entity
 			EntityProperties entityFields = new EntityProperties();
 			Map<String, Object> halProperties = halResource.getProperties();
-			for (String propName : halProperties.keySet()) {
-				if (entityMetadata.getPropertyVocabulary(propName) != null) {
-					Object propertyValue = halProperties.get(propName);
-					if (propertyValue != null) {
-						Object halValue = getHalPropertyValue(entityMetadata, propName, halProperties.get(propName));
-						entityFields.setProperty(new EntityProperty(propName, halValue));
-					}
-				}
-			}
+			iterateProperties(entityMetadata, entityFields, halProperties, "");
 			return new Entity(entityName, entityFields);
 		} catch (RepresentationException e) {
 			logger.warn("Malformed request from client", e);
@@ -636,6 +627,24 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 	}
+
+	/*
+	 * Iterate through property keys and extract values if the vocabulary is correct.
+	 */
+	private void iterateProperties(EntityMetadata entityMetadata, EntityProperties entityFields,
+			Map<String, Object> halProperties, String prefix) {
+		for (String propName : halProperties.keySet()) {
+			if (entityMetadata.getPropertyVocabulary(concatenatePrefixes(prefix,propName)) != null) {
+				Object propertyValue = halProperties.get(propName);
+				if (propertyValue != null) {
+					Object halValue = getHalPropertyValue(entityMetadata, propName, halProperties.get(propName),prefix);
+					entityFields.setProperty(new EntityProperty(propName, halValue));
+				}
+			}
+		}
+	}
+	
+	
 	
 	private String getEntityName(String resourcePath) {
 		String entityName = null;
@@ -701,11 +710,18 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		return "";
 	}
 
-	private Object getHalPropertyValue( EntityMetadata entityMetadata, String propertyName, Object halPropertyValue )
+	/*
+	 * Parse property values from input data.
+	 */
+	private Object getHalPropertyValue( EntityMetadata entityMetadata, String propertyName, Object halPropertyValue, String currentPrefix )
 	{
 		if ( halPropertyValue == null )
 			return nullHalPropertyValue( entityMetadata, propertyName );
-		
+		if(halPropertyValue instanceof Collection){
+			return getValuesFromJsonArray(entityMetadata, propertyName, halPropertyValue, currentPrefix);
+		} else if(halPropertyValue instanceof Map){
+			return getValuesFromJsonObject(entityMetadata, propertyName, (Map<String, Object>)halPropertyValue, currentPrefix);
+		}
 		String stringValue = halPropertyValue.toString();
 		Object typedValue;
 		
@@ -723,5 +739,46 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 		
 		return typedValue;
+	}
+
+	/*
+	 * Retrieve values from a JSON array. 
+	 */
+	private List<EntityProperties> getValuesFromJsonArray(EntityMetadata entityMetadata, String propertyName,
+			Object halPropertyValue, String currentPrefix) {
+		Collection halPropertyValueCollection = (Collection)halPropertyValue;
+		ArrayList<EntityProperties> embeddedArray = new ArrayList<EntityProperties>();
+
+		for(Object o : halPropertyValueCollection){
+			if(o instanceof Map){
+				EntityProperties properties = new EntityProperties();
+				Map<String, Object> halPropertiesMap = (Map<String,Object>) o;
+				this.iterateProperties(entityMetadata, properties, halPropertiesMap, this.concatenatePrefixes(currentPrefix, propertyName));
+				embeddedArray.add(properties);
+			}
+		}
+		return embeddedArray;
+	}
+	
+	private EntityProperties getValuesFromJsonObject(EntityMetadata entityMetadata, String propertyName, 
+		Map<String, Object> halPropertyValue, String currentPrefix){
+		EntityProperties properties = new EntityProperties();
+		this.iterateProperties(entityMetadata, properties, halPropertyValue, this.concatenatePrefixes(currentPrefix, propertyName));
+		return properties;
+	}
+	
+	/*
+	 * Concatenate an object prefix with a nested object name using dot notation
+	 * if a prefix already exists, else return the object name.
+	 */
+	private String concatenatePrefixes(String current, String newPrefixAddition){ 
+		if(StringUtils.isNotBlank(current)){
+			StringBuilder sb = new StringBuilder();
+			sb.append(current).append(".").append(newPrefixAddition);
+			return sb.toString(); 
+		}
+		else {
+			return newPrefixAddition;
+		}
 	}
 }
