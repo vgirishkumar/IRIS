@@ -184,14 +184,17 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					RESTResource embeddedResource = embedded.get(t);
 					// TODO work our rel for embedded resource, just as we need to work out the rel for the other links
 					Link link = findLinkByTransition(links, t);
-					String rel = (link.getRel() != null ? link.getRel() : "embedded/" + embeddedResource.getEntityName());
-					logger.debug("Embedded: rel=[" + rel + "] href=[" + link.getHref() + "]");
+					// Check link for null before using it
+					if(link!=null) {
+						String rel = (link.getRel() != null ? link.getRel() : "embedded/" + embeddedResource.getEntityName());
+						logger.debug("Embedded: rel=[" + rel + "] href=[" + link.getHref() + "]");
 
-                                        Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()),
-                                                                                                                        embeddedResource,
-                                                                                                                        embeddedResource.getGenericEntity().getRawType(),
-                                                                                                                        embeddedResource.getGenericEntity().getType());
-					halResource.withRepresentation(rel, embeddedRepresentation);
+						Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()),
+																											embeddedResource,
+																											embeddedResource.getGenericEntity().getRawType(),
+																											embeddedResource.getGenericEntity().getType());
+						halResource.withRepresentation(rel, embeddedRepresentation);
+					}
 				}
 			}
 
@@ -219,7 +222,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			MultivaluedMap<String, Object> httpHeaders,
 			OutputStream entityStream) throws IOException,
 			WebApplicationException{
-		logger.debug("Writing " + mediaType);		
+		logger.debug("Writing " + mediaType);
 		Representation halResource;
 		try {
 			halResource = buildHalResource(uriInfo.getBaseUri(), resource, type, genericType);
