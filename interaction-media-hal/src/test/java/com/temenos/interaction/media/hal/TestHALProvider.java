@@ -237,12 +237,11 @@ public class TestHALProvider {
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("students", entity.getName());
-		Object o = PropertyUtils.getNestedProperty(entity, "properties.properties.tuitions.value[0].properties.Duration.value");
-		assertEquals(2L, PropertyUtils.getProperty(entity, "properties.properties.age.value"));
-		assertEquals("noah", PropertyUtils.getProperty(entity, "properties.properties.name.value"));
-		assertEquals("123", PropertyUtils.getProperty(entity, "properties.properties.address.value.properties.houseNumber.value"));
-		assertEquals("Fenchurch Street", PropertyUtils.getProperty(entity, "properties.properties.address.value.properties.roadName.value"));
-		assertEquals("2.5", PropertyUtils.getProperty(entity, "properties.properties.tuitions.value[0].properties.Duration.value"));
+		assertEquals(2L, PropertyUtils.getProperty(entity, "properties.properties(age).value"));
+		assertEquals("noah", PropertyUtils.getProperty(entity, "properties.properties(name).value"));
+		assertEquals("123", PropertyUtils.getProperty(entity, "properties.properties(address).value.properties(houseNumber).value"));
+		assertEquals("Fenchurch Street", PropertyUtils.getProperty(entity, "properties.properties(address).value.properties(roadName).value"));
+		assertEquals("2.5", PropertyUtils.getProperty(entity, "properties.properties(tuitions).value[0].properties(Duration).value"));
 	}
         
     @Test
