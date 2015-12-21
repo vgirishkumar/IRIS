@@ -91,17 +91,13 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
     @Override
     public void execute(FileEvent<File> dirEvent) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Creation of new Spring ApplicationContext based CommandController triggerred by change in", dirEvent.getResource().getAbsolutePath());
-        }
+        logger.debug("Creation of new Spring ApplicationContext based CommandController triggerred by change in", dirEvent.getResource().getAbsolutePath());
 
         Collection<File> jars = FileUtils.listFiles(dirEvent.getResource(), new String[]{"jar"}, true);
         Set<URL> urls = new HashSet();
         for (File f : jars) {
             try {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Adding {} to list of URLs to create ApplicationContext from", f.toURI().toURL());
-                }
+                logger.trace("Adding {} to list of URLs to create ApplicationContext from", f.toURI().toURL());
                 urls.add(f.toURI().toURL());
             } catch (MalformedURLException ex) {
                 // kindly ignore and log

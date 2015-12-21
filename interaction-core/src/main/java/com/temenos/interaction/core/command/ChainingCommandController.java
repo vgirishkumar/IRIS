@@ -41,45 +41,32 @@ public class ChainingCommandController implements CommandController {
 
     @Override
     public InteractionCommand fetchCommand(String name) {
-        if (logger.isTraceEnabled()) {
-            logger.trace("Chaining CommandController requested InteractionCommand for name {}", name);
-        }
+        logger.trace("Chaining CommandController requested InteractionCommand for name {}", name);
 
         for (CommandController commandController : commandControllers) {
-            if (logger.isTraceEnabled()) {
-                logger.trace("ChainingCommandController delegating to {} to retrieve command for name {}", commandController, name);
-            }
+            logger.trace("ChainingCommandController delegating to {} to retrieve command for name {}", commandController, name);
             InteractionCommand command = commandController.fetchCommand(name);
             if (command != null) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("ChainingCommandController returning command for name {} found by delegating to {}", name, commandController);
-                }
+                logger.trace("ChainingCommandController returning command for name {} found by delegating to {}", name, commandController);
                 return command;
             }
         }
 
-        if (logger.isTraceEnabled()) {
-            logger.trace("ChainingCommandController could not find command for name {} by delegation to any configured CommandControllers", name);
-        }
+        logger.trace("ChainingCommandController could not find command for name {} by delegation to any configured CommandControllers", name);
         return null;
     }
 
     @Override
     public boolean isValidCommand(String name) {
-        if (logger.isTraceEnabled()) {
-            logger.trace("ChainingCommandController requested to check existence of command for name {}", name);
-        }
+        logger.trace("ChainingCommandController requested to check existence of command for name {}", name);
         for (CommandController commandController : commandControllers) {
             if (commandController.isValidCommand(name)) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("ChainingCommandController found command for name {} found by delegating to {}", name, commandController);
-                }
+                logger.trace("ChainingCommandController found command for name {} found by delegating to {}", name, commandController);
                 return true;
             }
         }
-        if (logger.isTraceEnabled()) {
-            logger.trace("ChainingCommandController could not find command for name {} by delegation to any configured CommandControllers", name);
-        }
+        logger.trace("ChainingCommandController could not find command for name {} by delegation to any configured CommandControllers", name);
+ 
         return false;
     }
 

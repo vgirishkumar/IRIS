@@ -55,9 +55,7 @@ public class SpringContextBasedInteractionCommandController
             return null;
         }
         try {
-            if (logger.isTraceEnabled()) {
-                logger.trace("{} requesting bean implementing InteractionCommand under name {} from underlying ApplicationContext", this.getClass().getName(), name);
-            }
+            logger.trace("{} requesting bean implementing InteractionCommand under name {} from underlying ApplicationContext", this.getClass().getName(), name);
             return applicationContext.getBean(name, InteractionCommand.class);
         } catch (BeansException ex) {
             logger.trace("Could not find bean implementing interaction command under name {}", name);
@@ -80,9 +78,7 @@ public class SpringContextBasedInteractionCommandController
             return false;
         }
         try {
-            if (logger.isTraceEnabled()) {
-                logger.trace("{} requesting bean implementing InteractionCommand under name {} from underlying ApplicationContext", this.getClass().getName(), name);
-            }
+            logger.trace("{} requesting bean implementing InteractionCommand under name {} from underlying ApplicationContext", this.getClass().getName(), name);
             return (applicationContext.getBean(name, InteractionCommand.class) != null);
         } catch (BeansException ex) {
             logger.trace("Could not find bean implementing interaction command under name {}", name);

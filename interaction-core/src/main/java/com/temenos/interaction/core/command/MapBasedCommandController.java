@@ -50,9 +50,7 @@ public class MapBasedCommandController implements CommandController {
 
     @Override
     public InteractionCommand fetchCommand(String name) {
-        if (logger.isTraceEnabled()) {
-            logger.trace("Retrieving command for name {} from MapBasedCommandController {}", name, this);
-        }
+        logger.trace("Retrieving command for name {} from MapBasedCommandController {}", name, this);
         return commandMap.get(name);
     }
 

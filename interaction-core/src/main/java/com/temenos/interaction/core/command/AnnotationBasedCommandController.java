@@ -72,22 +72,16 @@ public class AnnotationBasedCommandController implements CommandController {
      */
     @Override
     public InteractionCommand fetchCommand(String name) {
-        if (logger.isTraceEnabled()) {
-            logger.trace("AnnotationBasedCommandController requested finding command for name: {}", name);
-        }
+        logger.trace("AnnotationBasedCommandController requested finding command for name: {}", name);
         if (!initialized) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("AnnotationBasedCommandController store not yet initialized (or reintiialized) - requesting initialisation");
-            }
+            logger.debug("AnnotationBasedCommandController store not yet initialized (or reintiialized) - requesting initialisation");
             reinitialize();
         }
         return cache.get(name);
     }
 
     protected synchronized void reinitialize() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("AnnotationBasedCommandController initializing.");
-        }
+        logger.debug("AnnotationBasedCommandController initializing.");
         ConfigurationBuilder config = new ConfigurationBuilder();
         if (getJarsToScan() != null && (!jarsToScan.isEmpty())) {
             config.setUrls(getJarsToScan());
@@ -126,9 +120,7 @@ public class AnnotationBasedCommandController implements CommandController {
     }
 
     public final void setClassloader(ClassLoader classloader) {
-        if (logger.isTraceEnabled()) {
-            logger.trace("AnnotationBasedCommandController {} setting classloader: {}", this, classloader);
-        }
+        logger.trace("AnnotationBasedCommandController {} setting classloader: {}", this, classloader);
         this.classloader = classloader;
         initialized = false;
     }

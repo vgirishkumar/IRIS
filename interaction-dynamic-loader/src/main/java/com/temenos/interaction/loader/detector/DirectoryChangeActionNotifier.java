@@ -177,9 +177,7 @@ public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Ac
                             logger.debug("Detected change ({}) in watched directory: {}", kind, fullPath);
                             FileEvent<File> newEvent = new DirectoryChangeEvent(fullPath.toFile());
                             for (Action<FileEvent<File>> action : listeners) {
-                                if (logger.isTraceEnabled()) {
-                                    logger.trace("Notifying {} about the change in {}", action, fullPath);
-                                }
+                                logger.trace("Notifying {} about the change in {}", action, fullPath);
                                 action.execute(newEvent);
                             }
                         }
