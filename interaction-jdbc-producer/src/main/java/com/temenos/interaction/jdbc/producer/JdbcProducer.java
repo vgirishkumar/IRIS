@@ -307,19 +307,22 @@ public class JdbcProducer {
 
         // Extract server type from URL
         String[] tokens = url.split(":");
-        if (tokens[1].equals("oracle")) {
+        String modeString = tokens[1];
+
+        if ("oracle".equals(modeString)) {
             return ServerMode.ORACLE;
         }
 
-        if (tokens[1].equals("mssql")) {
+        // MS Sql supports more then one URL format.
+        if ("mssql".equals(modeString) || "sqlserver".equals(modeString)) {
             return ServerMode.MSSQL;
         }
 
-        if (tokens[1].equals("h2")) {
+        if ("h2".equals(modeString)) {
             logger.warn("Running under H2 but no server compatibility mode specified. Defaulting to emulated MSSQL mode.");
             return ServerMode.H2_MSSQL;
         }
 
-        throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Unknown serveer type \"" + tokens[1] + "\"."));
+        throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Unknown serveer type \"" + modeString + "\"."));
     }
 }
