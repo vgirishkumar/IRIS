@@ -20,18 +20,21 @@ package com.temenos.interaction.core.command;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-import com.temenos.interaction.core.command.annotation.InteractionCommandImpl;
+
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+
+import com.temenos.interaction.core.command.annotation.InteractionCommandImpl;
 
 /**
  * Implementation of {@link CommandController} based on Annotation. Using
