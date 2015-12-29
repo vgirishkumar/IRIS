@@ -6,8 +6,6 @@ package com.temenos.interaction.jdbc.producer;
  * If given a key constructs a command for a single row. 
  * 
  * If given a null key constructs a command to add all rows.
- * 
- * TODO maybe need variants for different databases.
  */
 
 /*
@@ -72,6 +70,9 @@ class SqlCommandBuilder {
 
     // Name of rownum exported form inner select.
     private final static String INNER_RN_NAME = "rn";
+
+    // Inner table name used when ordering rows.
+    private final static String INNER_TABLE_NAME = "inner_tab";
 
     private final static Logger logger = LoggerFactory.getLogger(SqlCommandBuilder.class);
 
@@ -156,57 +157,15 @@ class SqlCommandBuilder {
 
         // Build inner SQL command
         StringBuilder builder = new StringBuilder("SELECT");
-        addRowNumSelect(builder);
         addSelects(builder);
-        addFrom(builder);
+        addFromTerm(builder);
         addWhereTerms(builder);
-
-        switch (serverMode) {
-        case ORACLE:
-            // Always need an order by term
-            addOrderByTerms(builder);
-            break;
-        case MSSQL:
-        default:
-            // If we have not already included it, for $top or $skip, need an
-            // order by.
-            if ((null == top) && (null == skip)) {
-                addOrderByTerms(builder);
-            }
-            break;
-        }
+        addOrderByTerms(builder);
 
         // Package the inner SQL command in an outer SQL command.
         addTopAndSkip(builder);
 
         return builder.toString();
-    }
-
-    /*
-     * To select row number ranges ($top and $skip) in outer select we need the
-     * INNER_RN_NAME alias in the inner select.
-     */
-    private void addRowNumSelect(StringBuilder builder) {
-        if ((null != top) || (null != skip)) {
-            switch (serverMode) {
-            case MSSQL:
-                builder.append(" ROW_NUMBER() OVER (");
-
-                // H2 in MSSQL mode does not yet support the inner "ORDER BY"
-                // syntax but MSSQL requires it.
-                if (!serverIsEmulated) {
-                    addOrderByTerms(builder);
-                }
-
-                builder.append(") AS \"" + INNER_RN_NAME + "\",");
-                break;
-
-            case ORACLE:
-            default:
-                builder.append(" ROWNUM \"" + INNER_RN_NAME + "\",");
-                break;
-            }
-        }
     }
 
     private void addSelects(StringBuilder builder) {
@@ -218,7 +177,7 @@ class SqlCommandBuilder {
         }
         if (names.isEmpty()) {
             // Empty select list means "return all columns".
-            builder.append(" \"" + tableName + "\".*");
+            builder.append(" *");
         } else {
             // Add comma separated list of select terms. Need to detect the last
             // operation so use old style iterator.
@@ -239,8 +198,17 @@ class SqlCommandBuilder {
         builder.append(" \"" + name.getName() + "\"");
     }
 
+    private void addFromTerm(StringBuilder builder) {
+        addFrom(builder);
+        addTableName(builder);
+    }
+
     private void addFrom(StringBuilder builder) {
-        builder.append(" FROM \"" + tableName + "\"");
+        builder.append(" FROM");
+    }
+
+    private void addTableName(StringBuilder builder) {
+        builder.append(" \"" + tableName + "\"");
     }
 
     /*
@@ -328,7 +296,7 @@ class SqlCommandBuilder {
     /*
      * Add $top and $skip components for this server type.
      * 
-     * This is messy. To support pagination an inner select is wraped by an
+     * This is messy. To support pagination an inner select is wrapped by an
      * outer select. For more information search online for "oracle pagination".
      */
     private void addTopAndSkip(StringBuilder builder) {
@@ -337,22 +305,52 @@ class SqlCommandBuilder {
             return;
         }
 
+        // Builder for starting part of the string.
+        StringBuilder startBuilder = new StringBuilder();
+
         // Add start of outer command
-        builder.insert(0, "SELECT * FROM (");
+        startBuilder.append("SELECT * FROM ( SELECT " + INNER_TABLE_NAME + ".*,");
+
+        // If we are doing top or skip need the row number column
+        addRowNumSelect(startBuilder);
+
+        // Also select everything form the inner select
+        startBuilder.append(" FROM ( ");
+
+        // Add starting part.
+        builder.insert(0, startBuilder);
 
         // Add inner command end bracket
-        builder.append(")");
-
-        if (ServerMode.MSSQL == serverMode) {
-            // Add extra MSSQL syntax.
-            builder.append(" AS tbl");
-        }
+        builder.append(" ) " + INNER_TABLE_NAME + " )");
 
         // Add where clauses
         addSkip(builder);
         addTop(builder);
     }
 
+    /*
+     * To select row number ranges ($top and $skip) in outer select we need the
+     * INNER_RN_NAME alias in the inner select.
+     */
+    private void addRowNumSelect(StringBuilder builder) {
+        if ((null != top) || (null != skip)) {
+            switch (serverMode) {
+            case MSSQL:
+                // Over term must be present but, since we have already done
+                // orderby in an inner select, can be left blank.
+                builder.append(" ROW_NUMBER() OVER ()");
+
+                builder.append(" AS \"" + INNER_RN_NAME + "\"");
+                break;
+
+            case ORACLE:
+            default:
+                builder.append(" ROWNUM \"" + INNER_RN_NAME + "\"");
+                break;
+            }
+        }
+    }
+    
     private void addTop(StringBuilder builder) {
         if (null != top) {
             // Work out max row

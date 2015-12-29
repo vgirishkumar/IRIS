@@ -1,7 +1,7 @@
 package com.temenos.interaction.jdbc.producer;
 
 /*
- * Test ordering operation ($orderby). These differ between servers so test each under both Oracle and MSSQL 
+ * Test $orderby and $top together. These differ between servers so test each under both Oracle and MSSQL 
  * compatibility mode.
  */
 
@@ -48,7 +48,7 @@ import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
 /**
  * Test $orderby options withJdbcProducer class.
  */
-public class TestOrderBy extends AbstractJdbcProducerTest {
+public class TestOrderByTop extends AbstractJdbcProducerTest {
 
     /**
      * Test access to database using Iris parameters with a $orderby term.
@@ -92,6 +92,9 @@ public class TestOrderBy extends AbstractJdbcProducerTest {
         // Build up an InteractionContext
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 
+        // Return all but the last row.
+        queryParams.add(ODataParser.TOP_KEY, Integer.toString(TEST_ROW_COUNT - 1));
+
         // Order by integer.
         queryParams.add(ODataParser.ORDERBY_KEY, INTEGER_FIELD_NAME + " " + direction);
 
@@ -124,6 +127,6 @@ public class TestOrderBy extends AbstractJdbcProducerTest {
             assertEquals(TEST_INTEGER_DATA + data, rs.getInt(INTEGER_FIELD_NAME));
             rowCount++;
         }
-        assertEquals(TEST_ROW_COUNT, rowCount);
+        assertEquals(TEST_ROW_COUNT - 1, rowCount);
     }
 }

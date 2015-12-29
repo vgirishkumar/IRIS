@@ -307,19 +307,27 @@ public class JdbcProducer {
 
         // Extract server type from URL
         String[] tokens = url.split(":");
-        if (tokens[1].equals("oracle")) {
-            return ServerMode.ORACLE;
-        }
 
-        if (tokens[1].equals("mssql")) {
-            return ServerMode.MSSQL;
-        }
+        if (tokens != null && tokens.length > 1 && tokens[1] != null) {
+            String serverType = tokens[1];
+            if ("oracle".equals(serverType)) {
+                return ServerMode.ORACLE;
+            }
 
-        if (tokens[1].equals("h2")) {
-            logger.warn("Running under H2 but no server compatibility mode specified. Defaulting to emulated MSSQL mode.");
-            return ServerMode.H2_MSSQL;
-        }
+            if ("mssql".equals(serverType) || "sqlserver".equals(serverType)) {
+                return ServerMode.MSSQL;
+            }
 
-        throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Unknown serveer type \"" + tokens[1] + "\"."));
+            if ("h2".equals(serverType)) {
+                logger.warn("Running under H2 but no server compatibility mode specified. Defaulting to emulated MSSQL mode.");
+                return ServerMode.H2_MSSQL;
+            }
+            
+            throw (new JdbcException(Status.PRECONDITION_FAILED, "JDBC Server type \"" + serverType
+                    + "\" not supported."));
+        }
+        
+        throw (new JdbcException(Status.INTERNAL_SERVER_ERROR,
+                "Failed to detect JDBC server type from connection URL \"" + url.toString() + "\"."));
     }
 }

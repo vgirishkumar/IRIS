@@ -25,12 +25,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.junit.Test;
 import org.odata4j.expression.OrderByExpression;
@@ -40,9 +43,6 @@ import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
-import java.sql.DatabaseMetaData;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * Test SqlCommandBuilder class.
@@ -79,8 +79,7 @@ public class TestSqlCommandBuilder {
         // Get the command.
         String actualCommand = builder.getCommand();
 
-        assertEquals("SELECT \"" + TEST_TABLE_NAME + "\".* FROM \"" + TEST_TABLE_NAME + "\" ORDER BY \"col1\"",
-                actualCommand);
+        assertEquals("SELECT * FROM \"" + TEST_TABLE_NAME + "\" ORDER BY \"col1\"", actualCommand);
     }
 
     /**
@@ -111,7 +110,7 @@ public class TestSqlCommandBuilder {
         // Get the command.
         String actualCommand = builder.getCommand();
 
-        assertEquals("SELECT \"" + TEST_TABLE_NAME + "\".* FROM \"" + TEST_TABLE_NAME + "\"", actualCommand);
+        assertEquals("SELECT * FROM \"" + TEST_TABLE_NAME + "\"", actualCommand);
     }
 
     /**
@@ -142,20 +141,23 @@ public class TestSqlCommandBuilder {
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1") {
             Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
                 return new TreeMap(super.readColumnTypes(dsMetaData, tableName));
-            }            
+            }
         };
 
         // adding as TreeSet to ensure iteration order matches on all JVMs
-        // however FieldName does not implement comparable - thus helper class created inhering from Field name and implementing Comparable usign names
+        // however FieldName does not implement comparable - thus helper class
+        // created inhering from Field name and implementing Comparable usign
+        // names
         Set<FieldName> selects = new TreeSet<FieldName>();
-        selects.add(new ComparableFieldName("col1") );
+        selects.add(new ComparableFieldName("col1"));
         selects.add(new ComparableFieldName("col2"));
         AccessProfile accessProfile = new AccessProfile(filters, selects);
 
         // Create the builder
         SqlCommandBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null, null) ;
+            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
+                    null);
         } catch (Exception e) {
             fail();
         }
@@ -166,18 +168,18 @@ public class TestSqlCommandBuilder {
                 + " WHERE \"col1\"='value1' AND \"col2\"<>2 AND \"col3\"<'value3' AND \"col4\">4 AND "
                 + "\"col5\"<='value5' AND \"col6\">='value6' ORDER BY \"col1\"", actualCommand);
     }
-    
+
     static class ComparableFieldName extends FieldName implements Comparable<FieldName> {
-        
+
         public ComparableFieldName(String name) {
             super(name);
         }
-        
+
         @Override
         public int compareTo(FieldName t) {
-           return getName().compareTo(t.getName());
+            return getName().compareTo(t.getName());
         }
-        
+
     }
 
     /**
@@ -211,8 +213,8 @@ public class TestSqlCommandBuilder {
         // Get the command.
         String actualCommand = builder.getCommand();
 
-        assertEquals("SELECT \"" + TEST_TABLE_NAME + "\".* FROM \"" + TEST_TABLE_NAME + "\" WHERE \"col1\"" + "='"
-                + keyValue + "'" + " ORDER BY \"col1\"", actualCommand);
+        assertEquals("SELECT * FROM \"" + TEST_TABLE_NAME + "\" WHERE \"col1\"" + "='" + keyValue + "'"
+                + " ORDER BY \"col1\"", actualCommand);
     }
 
     /**
@@ -253,9 +255,11 @@ public class TestSqlCommandBuilder {
         // Get the command.
         String actualCommand = builder.getCommand();
 
-        assertEquals("SELECT * FROM (SELECT ROW_NUMBER() OVER ( ORDER BY \"col1\", \"col2\" DESC) AS \"rn\", \""
-                + TEST_TABLE_NAME + "\".* FROM \"" + TEST_TABLE_NAME
-                + "\" WHERE \"col1\"='aKeyValue') AS tbl WHERE \"rn\" > 3 AND \"rn\" <= 5", actualCommand);
+        assertEquals(
+                "SELECT * FROM ( SELECT inner_tab.*, ROW_NUMBER() OVER () AS \"rn\" FROM ( SELECT * FROM \""
+                        + TEST_TABLE_NAME
+                        + "\" WHERE \"col1\"='aKeyValue' ORDER BY \"col1\", \"col2\" DESC ) inner_tab ) WHERE \"rn\" > 3 AND \"rn\" <= 5",
+                actualCommand);
     }
 
     /**
@@ -296,9 +300,9 @@ public class TestSqlCommandBuilder {
         // Get the command.
         String actualCommand = builder.getCommand();
 
-        assertEquals("SELECT * FROM (SELECT ROWNUM \"rn\", \"" + TEST_TABLE_NAME + "\".* FROM \"" + TEST_TABLE_NAME
-                + "\" WHERE \"col1\"='aKeyValue' ORDER BY \"col1\", \"col2\" DESC) WHERE \"rn\" > 3 AND \"rn\" <= 5",
-                actualCommand);
+        assertEquals("SELECT * FROM ( SELECT inner_tab.*, ROWNUM \"rn\" FROM (" + " SELECT * FROM \"" + TEST_TABLE_NAME
+                + "\" WHERE \"col1\"='aKeyValue' ORDER BY \"col1\", \"col2\" DESC ) inner_tab )"
+                + " WHERE \"rn\" > 3 AND \"rn\" <= 5", actualCommand);
     }
 
     /**
@@ -428,7 +432,7 @@ public class TestSqlCommandBuilder {
         } catch (Exception e) {
             fail();
         }
-        
+
         // For now this should work. Maybe one day it will be changed to throw.
     }
 }
