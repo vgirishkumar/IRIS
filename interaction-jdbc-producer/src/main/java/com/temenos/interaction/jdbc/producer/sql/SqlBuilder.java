@@ -33,6 +33,7 @@ import com.temenos.interaction.authorization.command.data.AccessProfile;
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.authorization.command.data.RowFilter;
+import com.temenos.interaction.jdbc.JDBCProducerConstants;
 import com.temenos.interaction.jdbc.ServerMode;
 
 /**
@@ -45,7 +46,7 @@ public abstract class SqlBuilder {
 
     public static final int MAX_ROWS_DEFAULT = 99;
     public static final int SKIP_ROWS_DEFAULT = 0;
-    
+
     // Somewhere to store arguments
     protected String tableName;
     protected String keyValue;
@@ -54,14 +55,14 @@ public abstract class SqlBuilder {
     protected String top;
     protected String skip;
     protected List<OrderBy> orderBy;
-  
+
     // Server compatibility mode.
     protected ServerMode serverMode;
-  
+
     // Flag indicating that the server is really H2. i.e. an emulated server for
     // testing.
     protected boolean serverIsEmulated;
-    
+
     // Name of rownum exported form inner select.
     protected final static String INNER_RN_NAME = "rn";
 
@@ -69,9 +70,9 @@ public abstract class SqlBuilder {
     protected final static String INNER_TABLE_NAME = "inner_tab";
 
     protected final static Logger logger = LoggerFactory.getLogger(SqlBuilder.class);
-    
-    public SqlBuilder(String tableName, String keyValue, AccessProfile accessProfile, ColumnTypesMap colTypesMap, String top,
-            String skip, List<OrderBy> orderBy) {
+
+    public SqlBuilder(String tableName, String keyValue, AccessProfile accessProfile, ColumnTypesMap colTypesMap,
+            String top, String skip, List<OrderBy> orderBy) {
         this.tableName = tableName;
         this.keyValue = keyValue;
         this.accessProfile = accessProfile;
@@ -97,7 +98,7 @@ public abstract class SqlBuilder {
 
         setCompatibilityMode();
     }
-    
+
     /*
      * Utility to check if a string is representable as a Jdbc numeric.
      */
@@ -114,6 +115,7 @@ public abstract class SqlBuilder {
 
     /**
      * Add Selected coloumn names in query
+     * 
      * @param builder
      */
     protected void addSelects(StringBuilder builder) {
@@ -143,11 +145,37 @@ public abstract class SqlBuilder {
     }
 
     private void addSelect(StringBuilder builder, FieldName name) {
-        builder.append(" \"" + name.getName() + "\"");
+        String fieldName = name.getName();
+        // Check if we have to append its alias.
+        //
+        // Note: This is an extension of the odata standard. If/when the column
+        // aliasing is standardized this should be
+        // changed to match the official syntax.
+        int aliasSepInd = fieldName.indexOf(JDBCProducerConstants.SELECT_FIELD_NAME_ALIAS_SEP);
+        if (aliasSepInd > 0) {
+            if (aliasSepInd + JDBCProducerConstants.SELECT_FIELD_NAME_ALIAS_SEP_LEN == fieldName.length()) {
+                // Alias provided seems to be empty :(, we should log at-least
+                logger.info("FieldName recieved with empty alias, this should be corrected while constructing select list...");
+                // Append the name before :AS: and ignore the rest as its empty
+                // anyway
+                builder.append(" \"" + fieldName.substring(0, aliasSepInd) + "\"");
+            } else {
+                // Append the name before :AS:
+                builder.append(" \"" + fieldName.substring(0, aliasSepInd) + "\" AS");
+                // Append alias after :AS:
+                builder.append(" \""
+                        + fieldName.substring(aliasSepInd + JDBCProducerConstants.SELECT_FIELD_NAME_ALIAS_SEP_LEN)
+                        + "\"");
+            }
+        } else {
+            // Append the name as is
+            builder.append(" \"" + name.getName() + "\"");
+        }
     }
 
     /**
      * Append Table/View entity name to the query
+     * 
      * @param builder
      */
     protected void addFromTerm(StringBuilder builder) {
@@ -244,7 +272,7 @@ public abstract class SqlBuilder {
             builder.append("'" + filter.getValue() + "'");
         }
     }
-    
+
     /*
      * Add order by term. If this is not present rows will be returned in a
      * random order.
@@ -282,7 +310,7 @@ public abstract class SqlBuilder {
             builder.append(" DESC");
         }
     }
-    
+
     /*
      * Add $top and $skip components for this server type.
      * 
@@ -357,8 +385,7 @@ public abstract class SqlBuilder {
             builder.append(" \"" + INNER_RN_NAME + "\" > " + skip);
         }
     }
-    
-    
+
     /*
      * Utility to obtain the reserved 'row number' column name. Used mainly in
      * testing but could be useful to the end user.
@@ -366,13 +393,13 @@ public abstract class SqlBuilder {
     public static String getRnName() {
         return INNER_RN_NAME;
     }
-    
-    
+
     /**
      * Returns the SQL Statement as String
+     * 
      * @return
      */
     public abstract String getCommand();
-    
+
     public abstract void setCompatibilityMode();
 }
