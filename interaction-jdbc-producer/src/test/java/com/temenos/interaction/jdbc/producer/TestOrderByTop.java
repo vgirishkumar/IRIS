@@ -43,7 +43,7 @@ import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
+import com.temenos.interaction.jdbc.ServerMode;
 
 /**
  * Test $orderby options withJdbcProducer class.
@@ -56,7 +56,7 @@ public class TestOrderByTop extends AbstractJdbcProducerTest {
     @Test
     public void testAscQueryMSSQL() {
         setMSSQLMode();
-        testOrderedQuery(ServerMode.MSSQL, "asc");
+        testOrderedQuery(ServerMode.H2_MSSQL, "asc");
     }
 
     @Test
@@ -68,7 +68,7 @@ public class TestOrderByTop extends AbstractJdbcProducerTest {
     @Test
     public void testDescQueryMSSQL() {
         setMSSQLMode();
-        testOrderedQuery(ServerMode.MSSQL, "desc");
+        testOrderedQuery(ServerMode.H2_MSSQL, "desc");
     }
 
     @Test

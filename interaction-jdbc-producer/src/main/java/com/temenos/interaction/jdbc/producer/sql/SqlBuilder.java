@@ -1,18 +1,10 @@
-package com.temenos.interaction.jdbc.producer;
-
-/*
- * Utility class for building SQL commands.
- * 
- * If given a key constructs a command for a single row. 
- * 
- * If given a null key constructs a command to add all rows.
- */
+package com.temenos.interaction.jdbc.producer.sql;
 
 /*
  * #%L
  * interaction-jdbc-producer
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2015 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,50 +33,49 @@ import com.temenos.interaction.authorization.command.data.AccessProfile;
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.authorization.command.data.RowFilter;
+import com.temenos.interaction.jdbc.ServerMode;
 
-class SqlCommandBuilder {
+/**
+ * Interface for writing multiple implementation of sql bilder
+ *
+ * @author sjunejo
+ *
+ */
+public abstract class SqlBuilder {
 
+    public static final int MAX_ROWS_DEFAULT = 99;
+    public static final int SKIP_ROWS_DEFAULT = 0;
+    
     // Somewhere to store arguments
-    private String tableName;
-    private String keyValue;
-    private AccessProfile accessProfile;
-    private ColumnTypesMap colTypesMap;
-    private String top;
-    private String skip;
-    private List<OrderBy> orderBy;
-
-    // Server mode.Or compatibility mode under H2.
-    public enum ServerMode {
-        // Real server modes
-        MSSQL, ORACLE,
-        // H2 server compatibility modes. Used for testing.
-        H2_MSSQL, H2_ORACLE
-    };
-
+    protected String tableName;
+    protected String keyValue;
+    protected AccessProfile accessProfile;
+    protected ColumnTypesMap colTypesMap;
+    protected String top;
+    protected String skip;
+    protected List<OrderBy> orderBy;
+  
     // Server compatibility mode.
-    private ServerMode serverMode;
-
+    protected ServerMode serverMode;
+  
     // Flag indicating that the server is really H2. i.e. an emulated server for
     // testing.
-    private boolean serverIsEmulated;
-
+    protected boolean serverIsEmulated;
+    
     // Name of rownum exported form inner select.
-    private final static String INNER_RN_NAME = "rn";
+    protected final static String INNER_RN_NAME = "rn";
 
     // Inner table name used when ordering rows.
-    private final static String INNER_TABLE_NAME = "inner_tab";
+    protected final static String INNER_TABLE_NAME = "inner_tab";
 
-    private final static Logger logger = LoggerFactory.getLogger(SqlCommandBuilder.class);
-
-    /*
-     * Constructor when there is not a key.
-     */
-    public SqlCommandBuilder(String tableName, AccessProfile accessProfile, ColumnTypesMap colTypesMap, String top,
-            String skip, List<OrderBy> orderBy, ServerMode serverMode) {
+    protected final static Logger logger = LoggerFactory.getLogger(SqlBuilder.class);
+    
+    public SqlBuilder(String tableName, String keyValue, AccessProfile accessProfile, ColumnTypesMap colTypesMap, String top,
+            String skip, List<OrderBy> orderBy) {
         this.tableName = tableName;
+        this.keyValue = keyValue;
         this.accessProfile = accessProfile;
         this.colTypesMap = colTypesMap;
-        this.serverMode = serverMode;
         this.top = top;
         this.skip = skip;
         this.orderBy = orderBy;
@@ -104,71 +95,28 @@ class SqlCommandBuilder {
                     + "\" pagination may not perform as expected");
         }
 
-        setCompatibilityMode(serverMode);
+        setCompatibilityMode();
     }
-
+    
     /*
-     * Set up server compatibility modes.
+     * Utility to check if a string is representable as a Jdbc numeric.
      */
-    private void setCompatibilityMode(ServerMode serverMode) {
-        // Default to emulated MSSQL mode
-        if (null == serverMode) {
-            serverMode = ServerMode.MSSQL;
+    protected boolean isJdbcNumeric(String value) {
+        try {
+            // Java "BigDecimal" appears to be the closest data type to Jdbc
+            // "numeric".
+            new BigDecimal(value);
+        } catch (NumberFormatException e) {
+            return false;
         }
-
-        switch (serverMode) {
-        case MSSQL:
-            this.serverMode = serverMode;
-            this.serverIsEmulated = false;
-            break;
-
-        case H2_MSSQL:
-            this.serverMode = ServerMode.MSSQL;
-            this.serverIsEmulated = true;
-            break;
-
-        case H2_ORACLE:
-            this.serverMode = ServerMode.ORACLE;
-            this.serverIsEmulated = true;
-            break;
-
-        case ORACLE:
-        default:
-            this.serverMode = serverMode;
-            this.serverIsEmulated = false;
-            break;
-        }
-
+        return true;
     }
 
-    /*
-     * Constructor when there is a key.
+    /**
+     * Add Selected coloumn names in query
+     * @param builder
      */
-    public SqlCommandBuilder(String tableName, String keyValue, AccessProfile accessProfile,
-            ColumnTypesMap colTypesMap, String top, String skip, List<OrderBy> orderBy, ServerMode serverMode) {
-        this(tableName, accessProfile, colTypesMap, top, skip, orderBy, serverMode);
-        this.keyValue = keyValue;
-    }
-
-    /*
-     * Method to build Sql command
-     */
-    public String getCommand() {
-
-        // Build inner SQL command
-        StringBuilder builder = new StringBuilder("SELECT");
-        addSelects(builder);
-        addFromTerm(builder);
-        addWhereTerms(builder);
-        addOrderByTerms(builder);
-
-        // Package the inner SQL command in an outer SQL command.
-        addTopAndSkip(builder);
-
-        return builder.toString();
-    }
-
-    private void addSelects(StringBuilder builder) {
+    protected void addSelects(StringBuilder builder) {
 
         // Add columns to select
         Set<FieldName> names = accessProfile.getFieldNames();
@@ -198,7 +146,11 @@ class SqlCommandBuilder {
         builder.append(" \"" + name.getName() + "\"");
     }
 
-    private void addFromTerm(StringBuilder builder) {
+    /**
+     * Append Table/View entity name to the query
+     * @param builder
+     */
+    protected void addFromTerm(StringBuilder builder) {
         addFrom(builder);
         addTableName(builder);
     }
@@ -214,7 +166,7 @@ class SqlCommandBuilder {
     /*
      * add the "WHERE x AND y" etc clause. Adds filters and/or key.
      */
-    private void addWhereTerms(StringBuilder builder) {
+    protected void addWhereTerms(StringBuilder builder) {
 
         // If there are no filters or key return;
         if (accessProfile.getRowFilters().isEmpty() && (null == keyValue)) {
@@ -292,14 +244,52 @@ class SqlCommandBuilder {
             builder.append("'" + filter.getValue() + "'");
         }
     }
+    
+    /*
+     * Add order by term. If this is not present rows will be returned in a
+     * random order.
+     */
+    protected void addOrderByTerms(StringBuilder builder) {
+        if (null != orderBy) {
+            addOrderBy(builder);
+            boolean first = true;
+            for (OrderBy order : orderBy) {
+                if (!first) {
+                    builder.append(",");
+                } else {
+                    first = false;
+                }
+                addOrderByTerm(builder, order.getFieldName().getName(), order.isAcsending());
+            }
+        } else {
+            // By default order by the primary key.
+            if (null == colTypesMap.getPrimaryKeyName()) {
+                logger.warn("Primary key name not known. Cannot add \"ORDER BY\" clause.");
+                return;
+            }
+            addOrderBy(builder);
+            addOrderByTerm(builder, colTypesMap.getPrimaryKeyName(), true);
+        }
+    }
 
+    private void addOrderBy(StringBuilder builder) {
+        builder.append(" ORDER BY");
+    }
+
+    private void addOrderByTerm(StringBuilder builder, String columnName, boolean ascending) {
+        builder.append(" \"" + columnName + "\"");
+        if (!ascending) {
+            builder.append(" DESC");
+        }
+    }
+    
     /*
      * Add $top and $skip components for this server type.
      * 
      * This is messy. To support pagination an inner select is wrapped by an
      * outer select. For more information search online for "oracle pagination".
      */
-    private void addTopAndSkip(StringBuilder builder) {
+    protected void addTopAndSkip(StringBuilder builder) {
         if ((null == top) && (null == skip)) {
             // Nothing to do
             return;
@@ -335,14 +325,6 @@ class SqlCommandBuilder {
     private void addRowNumSelect(StringBuilder builder) {
         if ((null != top) || (null != skip)) {
             switch (serverMode) {
-            case MSSQL:
-                // Over term must be present but, since we have already done
-                // orderby in an inner select, can be left blank.
-                builder.append(" ROW_NUMBER() OVER ()");
-
-                builder.append(" AS \"" + INNER_RN_NAME + "\"");
-                break;
-
             case ORACLE:
             default:
                 builder.append(" ROWNUM \"" + INNER_RN_NAME + "\"");
@@ -350,7 +332,7 @@ class SqlCommandBuilder {
             }
         }
     }
-    
+
     private void addTop(StringBuilder builder) {
         if (null != top) {
             // Work out max row
@@ -375,59 +357,8 @@ class SqlCommandBuilder {
             builder.append(" \"" + INNER_RN_NAME + "\" > " + skip);
         }
     }
-
-    /*
-     * Add order by term. If this is not present rows will be returned in a
-     * random order.
-     */
-    private void addOrderByTerms(StringBuilder builder) {
-        if (null != orderBy) {
-            addOrderBy(builder);
-            boolean first = true;
-            for (OrderBy order : orderBy) {
-                if (!first) {
-                    builder.append(",");
-                } else {
-                    first = false;
-                }
-                addOrderByTerm(builder, order.getFieldName().getName(), order.isAcsending());
-            }
-        } else {
-            // By default order by the primary key.
-            if (null == colTypesMap.getPrimaryKeyName()) {
-                logger.warn("Primary key name not known. Cannot add \"ORDER BY\" clause.");
-                return;
-            }
-            addOrderBy(builder);
-            addOrderByTerm(builder, colTypesMap.getPrimaryKeyName(), true);
-        }
-    }
-
-    private void addOrderBy(StringBuilder builder) {
-        builder.append(" ORDER BY");
-    }
-
-    private void addOrderByTerm(StringBuilder builder, String columnName, boolean ascending) {
-        builder.append(" \"" + columnName + "\"");
-        if (!ascending) {
-            builder.append(" DESC");
-        }
-    }
-
-    /*
-     * Utility to check if a string is representable as a Jdbc numeric.
-     */
-    private boolean isJdbcNumeric(String value) {
-        try {
-            // Java "BigDecimal" appears to be the closest data type to Jdbc
-            // "numeric".
-            new BigDecimal(value);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        return true;
-    }
-
+    
+    
     /*
      * Utility to obtain the reserved 'row number' column name. Used mainly in
      * testing but could be useful to the end user.
@@ -435,4 +366,13 @@ class SqlCommandBuilder {
     public static String getRnName() {
         return INNER_RN_NAME;
     }
+    
+    
+    /**
+     * Returns the SQL Statement as String
+     * @return
+     */
+    public abstract String getCommand();
+    
+    public abstract void setCompatibilityMode();
 }
