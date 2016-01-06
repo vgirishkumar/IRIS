@@ -36,6 +36,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+/**
+ * Test class for the MapBasedCommandController {@link MapBasedCommandController}
+ *
+ * @author trojanbug
+ */
+
 @RunWith(MockitoJUnitRunner.class)
 public class TestMapBasedCommandController {
 

@@ -43,6 +43,16 @@ import java.io.IOException;
 import java.net.URLClassLoader;
 
 /**
+ * This class manages the creation of URLClassLoaders, which are responsible for making new
+ * InteractionCommands available.
+ * It maintains a hashed state of the last jar file dynamically loaded based on the modified time.
+ * If an event arrives with information about new jars being available, the hash is calculated for the
+ * new jars and compared to the stored hash. If the hash values are equal, the cached URLClassLoader is
+ * simply returned.
+ * If the hash values are not equal a temporary directory is created and the jar files are copied to this directory.
+ * This circumvents the problem of the URLClassLoader holding the jar file open, making it impossible to replace it
+ * with a new version. A ParentLastURLClassloader is created to load the jars and the hash value is stored for future
+ * comparisons.
  *
  * @author trojanbug
  */

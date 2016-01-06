@@ -38,6 +38,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+/**
+ * Test class for the ChainingCommandController {@link ChainingCommandController}
+ *
+ * @author trojanbug
+ */
+ 
 @RunWith(MockitoJUnitRunner.class)
 public class TestChainingCommandController {
 

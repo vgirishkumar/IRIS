@@ -34,11 +34,11 @@ import com.temenos.interaction.core.command.annotation.InteractionCommandImpl;
  * @author hmanchala
  */
 
-@InteractionCommandImpl(name = "testName1")
-public class AnnotatedInteractionCmdStubImpl1 implements InteractionCommand{
+@InteractionCommandImpl(name = "testName2")
+public class AnnotatedInteractionCmdStubImpl2 implements InteractionCommand{
 
-    public Result execute(InteractionContext ctx) throws InteractionException {
-        return Result.SUCCESS;
+    public InteractionCommand.Result execute(InteractionContext ctx) throws InteractionException {
+        return InteractionCommand.Result.SUCCESS;
     }
     
 }

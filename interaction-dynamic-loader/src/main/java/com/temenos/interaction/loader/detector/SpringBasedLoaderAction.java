@@ -81,7 +81,7 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
     private ApplicationContext currentContext = null;
     private ApplicationContext parentContext = null;
     private boolean useCurrentContextAsParent = false;
-    private List<String> configLocationsPatterns = new ArrayList(Arrays.asList(new String[]{"classpath:/spring/*-interaction-context.xml"}));
+    private List<String> configLocationsPatterns = new ArrayList(Arrays.asList(new String[]{"classpath:/spring*/*-interaction-context.xml"}));
     private Collection<? extends Action<ApplicationContext>> listeners = new ArrayList();
     ParameterizedFactory<FileEvent<File>, ClassLoader> classloaderFactory = new CachingParentLastURLClassloaderFactory();
     private String commandControllerBeanName = DEFAULT_COMMAND_CONTROLLER_BEAN_NAME;

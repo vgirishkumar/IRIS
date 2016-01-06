@@ -33,7 +33,9 @@
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
  	
 	<bean id="GETEntities" class="com.temenos.interaction.command.HelloWorldCommand">
-        <property name="wrappedCommand" ref="GETEntities1" />
+	    <!-- The following property is used in the airlines example to allow the behaviour of the
+	         GETEntities command to be modified. It should not be used in this test -->
+        <!-- property name="wrappedCommand" ref="GETEntities1" / -->
     </bean>
-        
+         
 </beans>
