@@ -26,6 +26,21 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandlerFactory;
 
+/**
+ * This class manages the loading of jar files, which would contain new InteractionCommands.
+ * The jar files are supplied as an array of URLs.
+ * It extends the URLClassLoader and basically forces the supplied jar files to the front of the search
+ * down the classpath.
+ * It performs the following search:
+ *   1) Tries to find the required class loaded in the local classpath.
+ *   2) Tries to find the required class in the supplied jar files.
+ *   3) Delegates the search to the parent class loader, which will typically be the context class loader from the current thread.
+ *
+ * If the class is not found a ClassNotFoundException is thrown.
+ *
+ * @author trojanbug
+ */
+
 public class ParentLastURLClassloader extends URLClassLoader {
 
     public ParentLastURLClassloader(URL[] urls, ClassLoader cl) {
