@@ -1,8 +1,8 @@
-package com.temenos.test.helperclasses;
+package com.temenos.annotatedtestclasses;
 
 /*
  * #%L
- * interaction-dynamic-loader
+ * AnnotatedTestClasses
  * %%
  * Copyright (C) 2012 - 2015 Temenos Holdings N.V.
  * %%
@@ -22,10 +22,21 @@ package com.temenos.test.helperclasses;
  */
 
 
+import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
+
 /**
- *
- * @author ktrojan
+ * Class to support testing of AnnotationBasedCommandCOntroller
+ * This class shouldn't be found using reflection
+ * because it is not implementing InteractionCommand & annotated with InteractionCommandImpl
+ * 
+ * @author hmanchala
  */
-public class AnnotatedClass1 {
+public class UnAnnotatedInteractionCmdStubImpl1 implements InteractionCommand{
+
+    public Result execute(InteractionContext ctx) throws InteractionException {
+        return Result.SUCCESS;
+    }
     
 }
