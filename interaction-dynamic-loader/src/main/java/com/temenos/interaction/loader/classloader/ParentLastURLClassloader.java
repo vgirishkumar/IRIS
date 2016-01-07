@@ -26,6 +26,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandlerFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class manages the loading of jar files, which would contain new InteractionCommands.
  * The jar files are supplied as an array of URLs.
@@ -42,6 +45,8 @@ import java.net.URLStreamHandlerFactory;
  */
 
 public class ParentLastURLClassloader extends URLClassLoader {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ParentLastURLClassloader.class);
 
     public ParentLastURLClassloader(URL[] urls, ClassLoader cl) {
         super(urls, cl);
@@ -64,7 +69,7 @@ public class ParentLastURLClassloader extends URLClassLoader {
                 try {
                 result = getParent().loadClass(name);
                 } catch (Throwable t) {
-                    System.out.println(t);
+					logger.warn("Classloader failed to find class " + name, t);
                 }
             }
         }
