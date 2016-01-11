@@ -132,25 +132,44 @@ public class EntityResource<T> implements RESTResource {
 		this.entityTag = entityTag;
 	}
 
+	/**
+	 * Copy this EntityResource instance with a deep clone of its entity.
+	 * @return
+	 */
 	public EntityResource<?> cloneWithDeepCopyOfEntities() {
 		if(entity instanceof OEntity) {
 			OEntity originalEntity = (OEntity)entity;
 			OEntity oEntity = OEntities.create(originalEntity.getEntitySet(), originalEntity.getEntityKey(),
 					originalEntity.getProperties(), originalEntity.getLinks());
-			EntityResource<OEntity> newCopy = new EntityResource<OEntity>(new String(getEntityName()),oEntity);
+			EntityResource<OEntity> newCopy = this.createNewEntityResource(new String(getEntityName()), oEntity);
 			shallowCopyFields(newCopy);
 			return newCopy;
 		}else if(entity instanceof Entity){
 			Entity originalEntity = (Entity)entity;
 			Entity entity = new Entity(originalEntity.getName(), originalEntity.getProperties());
-			EntityResource<Entity> newCopy = new EntityResource<Entity>(new String(getEntityName()), entity);
+			EntityResource<Entity> newCopy = this.createNewEntityResource(new String(getEntityName()), entity);
 			shallowCopyFields(newCopy);
 			return newCopy;
 		}else{
 			return this;
 		}
 	}
+	
+	/**
+	 * Create a new EntityResource from the given entity name and entity.
+	 * @param entityName
+	 * @param entityResource
+	 * @return
+	 */
+	protected <E> EntityResource<E> createNewEntityResource(String entityName, E entityResource){
+		return new EntityResource<E>(entityName, entityResource);
+	}
 
+	/**
+	 * Shallow copy embedded links, links and entity tag from this instance
+	 * to the new EntityResource instance.
+	 * @param newCopy
+	 */
 	private void shallowCopyFields(EntityResource<?> newCopy) {
 		newCopy.setEmbedded(this.embedded);
 		newCopy.setLinks(this.links);
