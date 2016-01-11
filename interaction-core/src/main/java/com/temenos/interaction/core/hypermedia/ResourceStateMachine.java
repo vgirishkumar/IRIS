@@ -939,7 +939,7 @@ public class ResourceStateMachine {
 							// evaluate the conditional expression
 							Expression conditionalExp = transition.getCommand().getEvaluation();
 							if (conditionalExp != null) {
-								addLink = conditionalExp.evaluate(rimHander, ctx, er);
+								addLink = conditionalExp.evaluate(rimHander, ctx, er.cloneWithDeepCopyOfEntities());
 							}
 							if (addLink) {
 								eLinks.add(link);
