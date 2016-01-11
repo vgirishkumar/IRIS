@@ -989,7 +989,7 @@ public class ResourceStateMachine {
 					EntityResource<?> entityResource = null;
 					
 					if(ctx.getResource() instanceof EntityResource<?>) {
-						entityResource = ((EntityResource) ctx.getResource()).cloneWithDeepCopyOfEntities();
+						entityResource = ((EntityResource<?>) ctx.getResource()).cloneWithDeepCopyOfEntities();
 					}
 					
 					addLink = conditionalExp.evaluate(rimHander, ctx, entityResource);
