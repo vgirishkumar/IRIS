@@ -860,7 +860,7 @@ public class ResourceStateMachine {
 	 * Evaluate and return all the valid links (target states) from the current
 	 * resource state (@see {@link InteractionContext#getCurrentState()}).
 	 * 
-	 * @param rimHandler
+	 * @param rimHander
 	 * @param ctx
 	 * @param resourceEntity
 	 * @param selfTransition
@@ -1101,7 +1101,7 @@ public class ResourceStateMachine {
 	 * 
 	 * @param pathParameters
 	 * @param resourceEntity
-	 * @param customLinkRelations
+	 * @param linkHeader
 	 * @return
 	 */
 	public Link getLinkFromRelations(MultivaluedMap<String, String> pathParameters, RESTResource resourceEntity,
