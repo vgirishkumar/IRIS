@@ -671,7 +671,7 @@ public class ResourceStateMachine {
 	/**
 	 * For a given path, return the resource states.
 	 * 
-	 * @param state
+	 * @param path
 	 * @return
 	 */
 	public Set<ResourceState> getResourceStatesForPath(String path) {
@@ -684,7 +684,7 @@ public class ResourceStateMachine {
 	/**
 	 * For a given path regular expression, return the resource states.
 	 * 
-	 * @param state
+	 * @param pathRegex
 	 * @return
 	 */
 	public Set<ResourceState> getResourceStatesForPathRegex(String pathRegex) {
@@ -989,7 +989,7 @@ public class ResourceStateMachine {
 					EntityResource<?> entityResource = null;
 					
 					if(ctx.getResource() instanceof EntityResource<?>) {
-						entityResource = (EntityResource<?>) ctx.getResource();
+						entityResource = ((EntityResource) ctx.getResource()).cloneWithDeepCopyOfEntities();
 					}
 					
 					addLink = conditionalExp.evaluate(rimHander, ctx, entityResource);

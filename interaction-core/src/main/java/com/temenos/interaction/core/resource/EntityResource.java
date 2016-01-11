@@ -32,8 +32,11 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.Transition;
+import org.odata4j.core.OEntities;
+import org.odata4j.core.OEntity;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
@@ -47,7 +50,6 @@ import com.temenos.interaction.core.hypermedia.Transition;
 public class EntityResource<T> implements RESTResource {
 	@XmlAnyElement(lax=true)
 	private T entity;
-
 	
 	/* injected by during build response phase */
 	@XmlTransient
@@ -128,5 +130,30 @@ public class EntityResource<T> implements RESTResource {
 	@Override
 	public void setEntityTag(String entityTag) {
 		this.entityTag = entityTag;
+	}
+
+	public EntityResource<?> cloneWithDeepCopyOfEntities() {
+		if(entity instanceof OEntity) {
+			OEntity originalEntity = (OEntity)entity;
+			OEntity oEntity = OEntities.create(originalEntity.getEntitySet(), originalEntity.getEntityKey(),
+					originalEntity.getProperties(), originalEntity.getLinks());
+			EntityResource<OEntity> newCopy = new EntityResource<OEntity>(new String(getEntityName()),oEntity);
+			shallowCopyFields(newCopy);
+			return newCopy;
+		}else if(entity instanceof Entity){
+			Entity originalEntity = (Entity)entity;
+			Entity entity = new Entity(originalEntity.getName(), originalEntity.getProperties());
+			EntityResource<Entity> newCopy = new EntityResource<Entity>(new String(getEntityName()), entity);
+			shallowCopyFields(newCopy);
+			return newCopy;
+		}else{
+			return this;
+		}
+	}
+
+	private void shallowCopyFields(EntityResource<?> newCopy) {
+		newCopy.setEmbedded(this.embedded);
+		newCopy.setLinks(this.links);
+		newCopy.setEntityTag(this.entityTag);
 	}
 }
