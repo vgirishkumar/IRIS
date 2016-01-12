@@ -32,11 +32,8 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.Transition;
-import org.odata4j.core.OEntities;
-import org.odata4j.core.OEntity;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
@@ -47,7 +44,7 @@ import org.odata4j.core.OEntity;
  */
 @XmlRootElement(name = "resource")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EntityResource<T> implements RESTResource {
+public class EntityResource<T> implements RESTResource, Cloneable {
 	@XmlAnyElement(lax=true)
 	private T entity;
 	
@@ -133,46 +130,20 @@ public class EntityResource<T> implements RESTResource {
 	}
 
 	/**
-	 * Copy this EntityResource instance with a deep clone of its entity.
+	 * Create a shallow copy of this EntityResource using the same entity, links and etag
+	 * as this instance.
 	 * @return
 	 */
-	public EntityResource<?> cloneWithDeepCopyOfEntities() {
-		if(entity instanceof OEntity) {
-			OEntity originalEntity = (OEntity)entity;
-			OEntity oEntity = OEntities.create(originalEntity.getEntitySet(), originalEntity.getEntityKey(),
-					originalEntity.getProperties(), originalEntity.getLinks());
-			EntityResource<OEntity> newCopy = this.createNewEntityResource(new String(getEntityName()), oEntity);
-			shallowCopyFields(newCopy);
-			return newCopy;
-		}else if(entity instanceof Entity){
-			Entity originalEntity = (Entity)entity;
-			Entity entity = new Entity(originalEntity.getName(), originalEntity.getProperties());
-			EntityResource<Entity> newCopy = this.createNewEntityResource(new String(getEntityName()), entity);
-			shallowCopyFields(newCopy);
-			return newCopy;
-		}else{
-			return this;
-		}
+	@Override
+	public EntityResource<T> clone() throws CloneNotSupportedException {
+		EntityResource<T> entityResourceClone = this.createNewEntityResource(this.entityName, this.entity);
+		entityResourceClone.setEmbedded(this.embedded);
+		entityResourceClone.setLinks(this.links);
+		entityResourceClone.setEntityTag(this.entityTag);
+		return entityResourceClone;
 	}
 	
-	/**
-	 * Create a new EntityResource from the given entity name and entity.
-	 * @param entityName
-	 * @param entityResource
-	 * @return
-	 */
-	protected <E> EntityResource<E> createNewEntityResource(String entityName, E entityResource){
-		return new EntityResource<E>(entityName, entityResource);
-	}
-
-	/**
-	 * Shallow copy embedded links, links and entity tag from this instance
-	 * to the new EntityResource instance.
-	 * @param newCopy
-	 */
-	private void shallowCopyFields(EntityResource<?> newCopy) {
-		newCopy.setEmbedded(this.embedded);
-		newCopy.setLinks(this.links);
-		newCopy.setEntityTag(this.entityTag);
+	protected <E> EntityResource<E> createNewEntityResource(String name, E entity){
+		return new EntityResource<E>(name, entity);
 	}
 }

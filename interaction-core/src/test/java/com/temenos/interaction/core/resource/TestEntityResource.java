@@ -31,7 +31,10 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.CoreMatchers.not;
 
 import java.io.ByteArrayInputStream;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -44,14 +47,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OEntityKey;
-import org.odata4j.core.OLink;
 import org.odata4j.core.OProperty;
-import org.odata4j.edm.EdmEntitySet;
 
 import com.temenos.interaction.core.NestedObject;
 import com.temenos.interaction.core.entity.Entity;
-import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.Transition;
 
@@ -59,7 +58,6 @@ public class TestEntityResource {
 
 	private @Spy EntityResource<OEntity> oEntityEntityResource;
 	private @Spy EntityResource<Entity> entityEntityResource;
-	private @Spy EntityResource<Object> otherEntityResource;
 	
 	private @Mock EntityResource<OEntity> oEntityEntityResourceMock;
 	private @Mock EntityResource<Entity> entityEntityResourceMock;
@@ -67,21 +65,28 @@ public class TestEntityResource {
 	private @Mock OProperty<String> oProperty;
 	private @Mock Entity entity;
 	private @Mock OEntity oEntity;
-	private @Mock Object otherEntity;	
 	
+	private Map<Transition, RESTResource> embeddedDummy = new HashMap<Transition, RESTResource>();
+	private Collection<Link> linksDummy = new ArrayList<Link>();
+	private String entityTagDummy = "MyResource";
 	
 	@Before
 	public void setUp(){
 		MockitoAnnotations.initMocks(this);
-		when(this.entity.getName()).thenReturn("Jim");
-		when(this.entity.getProperties()).thenReturn(mock(EntityProperties.class));
-		when(this.oEntity.getEntityKey()).thenReturn(mock(OEntityKey.class)); 
-		when(this.oEntity.getProperties()).thenReturn(Arrays.asList(new OProperty<?>[]{this.oProperty}));
-		when(this.oEntity.getEntitySet()).thenReturn(mock(EdmEntitySet.class));
-		when(this.oEntity.getLinks()).thenReturn(Arrays.asList(new OLink[]{mock(OLink.class)}));
-		this.oEntityEntityResource = spy(new EntityResource<OEntity>("John", this.oEntity));
-		this.entityEntityResource = spy(new EntityResource<Entity>("Jim", this.entity));
-		this.otherEntityResource = spy(new EntityResource<Object>("Derek", this.otherEntity));
+		
+		when(this.oEntityEntityResource.getEntity()).thenReturn(this.oEntity);
+		when(this.entityEntityResource.getEntity()).thenReturn(this.entity);
+		
+		this.oEntityEntityResource = spy(new EntityResource<OEntity>("company", this.oEntity));
+		this.entityEntityResource = spy(new EntityResource<Entity>("user", this.entity));
+		
+		this.oEntityEntityResource.setEmbedded(this.embeddedDummy);
+		this.oEntityEntityResource.setLinks(this.linksDummy);
+		this.oEntityEntityResource.setEntityTag(this.entityTagDummy);
+		
+		this.entityEntityResource.setEmbedded(this.embeddedDummy);
+		this.entityEntityResource.setLinks(this.linksDummy);
+		this.entityEntityResource.setEntityTag(this.entityTagDummy);
 	}
 	
 	@After
@@ -90,45 +95,32 @@ public class TestEntityResource {
 	}
 	
 	@Test
-	public void testCloneWithDeepCopyOfEntitiesWithOEntity(){		
+	public void testCloneWithOEntity() throws CloneNotSupportedException {		
 		//given
 		doReturn(this.oEntityEntityResourceMock).when(this.oEntityEntityResource).createNewEntityResource(anyString(), any(OEntity.class));
 		//when
-		EntityResource<?> result = this.oEntityEntityResource.cloneWithDeepCopyOfEntities();
-		assertThat((OEntity)result.getEntity(), not(sameInstance(this.oEntity)));
+		EntityResource<OEntity> result = this.oEntityEntityResource.clone();
+		assertThat(result, not(sameInstance(this.oEntityEntityResource)));
 		//then
-		verify(this.oEntity, atLeastOnce()).getEntityKey();
-		verify(this.oEntity, atLeastOnce()).getEntitySet();
-		verify(this.oEntity, atLeastOnce()).getProperties();
-		verify(this.oEntity, atLeastOnce()).getLinks();
-		verify(this.oEntityEntityResourceMock).setEmbedded(anyMapOf(Transition.class, RESTResource.class));
-		verify(this.oEntityEntityResourceMock).setLinks(anyCollectionOf(Link.class));
-		verify(this.oEntityEntityResourceMock).setEntityTag(anyString());
+		verify(this.oEntityEntityResource).createNewEntityResource(eq("company"), same(this.oEntity));
+		verify(this.oEntityEntityResourceMock).setEmbedded(this.embeddedDummy);
+		verify(this.oEntityEntityResourceMock).setLinks(this.linksDummy);
+		verify(this.oEntityEntityResourceMock).setEntityTag(this.entityTagDummy);
 	}
 	
 	@Test
-	public void testCloneWithDeepCopyOfEntitiesWithEntity(){		
+	public void testCloneWithEntity() throws CloneNotSupportedException {		
 		//given
 		doReturn(this.entityEntityResourceMock).when(this.entityEntityResource).createNewEntityResource(anyString(), any(Entity.class));
 		//when
-		EntityResource<?> result = this.entityEntityResource.cloneWithDeepCopyOfEntities();
-		assertThat((Entity)result.getEntity(), not(sameInstance(this.entity)));
+		EntityResource<Entity> result = this.entityEntityResource.clone();
+		assertThat(result, not(sameInstance(this.entityEntityResource)));
 		//then
-		verify(this.entity).getName();
-		verify(this.entity).getProperties();
-		verify(this.entityEntityResourceMock).setEmbedded(anyMapOf(Transition.class, RESTResource.class));
-		verify(this.entityEntityResourceMock).setLinks(anyCollectionOf(Link.class));
-		verify(this.entityEntityResourceMock).setEntityTag(anyString());
+		verify(this.entityEntityResource).createNewEntityResource(eq("user"), same(this.entity));
+		verify(this.entityEntityResourceMock).setEmbedded(this.embeddedDummy);
+		verify(this.entityEntityResourceMock).setLinks(this.linksDummy);
+		verify(this.entityEntityResourceMock).setEntityTag(this.entityTagDummy);
 	}
-	
-	@Test
-	public void testCloneWithDeepCopyOfEntitiesWithAnotherTypeOfEntity(){
-		//when
-		assertThat(this.otherEntityResource.cloneWithDeepCopyOfEntities().getEntity(), sameInstance(this.otherEntity));
-		//then
-		verifyZeroInteractions(this.otherEntity);
-	}
-	
 	
 	@SuppressWarnings("unchecked")
 	@Test
