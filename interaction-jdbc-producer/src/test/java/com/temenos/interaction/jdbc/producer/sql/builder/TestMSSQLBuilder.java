@@ -1,4 +1,4 @@
-package com.temenos.interaction.jdbc.producer;
+package com.temenos.interaction.jdbc.producer.sql.builder;
 
 /* 
  * #%L
@@ -42,12 +42,16 @@ import com.temenos.interaction.authorization.command.data.AccessProfile;
 import com.temenos.interaction.authorization.command.data.FieldName;
 import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
+import com.temenos.interaction.jdbc.JDBCProducerConstants;
+import com.temenos.interaction.jdbc.ServerMode;
+import com.temenos.interaction.jdbc.producer.sql.ColumnTypesMap;
+import com.temenos.interaction.jdbc.producer.sql.SqlBuilder;
+import com.temenos.interaction.jdbc.producer.sql.SqlBuilderFactory;
 
 /**
  * Test SqlCommandBuilder class.
  */
-public class TestSqlCommandBuilder {
+public class TestMSSQLBuilder {
 
     private static final String TEST_TABLE_NAME = "testTable";
 
@@ -68,10 +72,10 @@ public class TestSqlCommandBuilder {
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1");
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
-                    null);
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
+                    ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
@@ -99,10 +103,10 @@ public class TestSqlCommandBuilder {
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, null);
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
-                    null);
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
+                    ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
@@ -139,8 +143,8 @@ public class TestSqlCommandBuilder {
         map.put("col5", java.sql.Types.TIMESTAMP);
         map.put("col6", java.sql.Types.VARCHAR);
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1") {
-            Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
-                return new TreeMap(super.readColumnTypes(dsMetaData, tableName));
+            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+                return new TreeMap<String, Integer>(super.readColumnTypes(dsMetaData, tableName));
             }
         };
 
@@ -154,10 +158,10 @@ public class TestSqlCommandBuilder {
         AccessProfile accessProfile = new AccessProfile(filters, selects);
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
-                    null);
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
+                    ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
@@ -169,6 +173,64 @@ public class TestSqlCommandBuilder {
                 + "\"col5\"<='value5' AND \"col6\">='value6' ORDER BY \"col1\"", actualCommand);
     }
 
+    /**
+     * Test a simple command with alias
+     */
+    @Test
+    public void testGetCommandWithAlias() {
+
+        // Build up an access profile. Use a mixture of relations and
+        // numeric/text fields.
+        List<RowFilter> filters = new ArrayList<RowFilter>();
+        filters.add(new RowFilter("col1", RowFilter.Relation.EQ, "value1"));
+        filters.add(new RowFilter("col2", RowFilter.Relation.NE, "2"));
+        filters.add(new RowFilter("col3", RowFilter.Relation.LT, "value3"));
+        filters.add(new RowFilter("col4", RowFilter.Relation.GT, "4"));
+        filters.add(new RowFilter("col5", RowFilter.Relation.LE, "value5"));
+        filters.add(new RowFilter("col6", RowFilter.Relation.GE, "value6"));
+
+        // Build up some column metadata matching the above columns. The correct
+        // fields must be numeric of textual.
+        Map<String, Integer> map = new TreeMap<String, Integer>();
+        map.put("col1", java.sql.Types.VARCHAR);
+        map.put("col2", java.sql.Types.INTEGER);
+        map.put("col3", java.sql.Types.NVARCHAR);
+        map.put("col4", java.sql.Types.DOUBLE);
+        map.put("col5", java.sql.Types.TIMESTAMP);
+        map.put("col6", java.sql.Types.VARCHAR);
+        ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1") {
+            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+                return new TreeMap<String, Integer>(super.readColumnTypes(dsMetaData, tableName));
+            }
+        };
+
+        // adding as TreeSet to ensure iteration order matches on all JVMs
+        // however FieldName does not implement comparable - thus helper class
+        // created inhering from Field name and implementing Comparable usign
+        // names
+        Set<FieldName> selects = new TreeSet<FieldName>();
+        selects.add(new ComparableFieldName("col1" + JDBCProducerConstants.SELECT_FIELD_NAME_ALIAS_SEP + "Column No 1"));   // Valid Alias
+        selects.add(new ComparableFieldName("col2"));                                                                       // No Alias
+        selects.add(new ComparableFieldName("col3" + JDBCProducerConstants.SELECT_FIELD_NAME_ALIAS_SEP + "Column3"));       /// Valid Alias
+        selects.add(new ComparableFieldName("col4" + JDBCProducerConstants.SELECT_FIELD_NAME_ALIAS_SEP + ""));              // Empty Alias
+        AccessProfile accessProfile = new AccessProfile(filters, selects);
+
+        // Create the builder
+        SqlBuilder builder = null;
+        try {
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
+                    ServerMode.MSSQL);
+        } catch (Exception e) {
+            fail();
+        }
+
+        // Get the command.
+        String actualCommand = builder.getCommand();
+        assertEquals("SELECT \"col1\" AS \"Column No 1\", \"col2\", \"col3\" AS \"Column3\", \"col4\" FROM \"" + TEST_TABLE_NAME + "\""
+                + " WHERE \"col1\"='value1' AND \"col2\"<>2 AND \"col3\"<'value3' AND \"col4\">4 AND "
+                + "\"col5\"<='value5' AND \"col6\">='value6' ORDER BY \"col1\"", actualCommand);
+    }
+    
     static class ComparableFieldName extends FieldName implements Comparable<FieldName> {
 
         public ComparableFieldName(String name) {
@@ -202,10 +264,10 @@ public class TestSqlCommandBuilder {
         String keyValue = "aKeyValue";
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap, null, null, null,
-                    null);
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap, null, null, null,
+                    ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
@@ -244,9 +306,9 @@ public class TestSqlCommandBuilder {
         orderBy.add(expected2);
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap, "2", "3",
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap, "2", "3",
                     orderBy, ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
@@ -256,53 +318,9 @@ public class TestSqlCommandBuilder {
         String actualCommand = builder.getCommand();
 
         assertEquals(
-                "SELECT * FROM ( SELECT inner_tab.*, ROW_NUMBER() OVER () AS \"rn\" FROM ( SELECT * FROM \""
-                        + TEST_TABLE_NAME
-                        + "\" WHERE \"col1\"='aKeyValue' ORDER BY \"col1\", \"col2\" DESC ) inner_tab ) WHERE \"rn\" > 3 AND \"rn\" <= 5",
+                "SELECT * FROM \"" + TEST_TABLE_NAME + "\" WHERE \"col1\"='aKeyValue' ORDER BY \"col1\", \"col2\" DESC "
+                        + "OFFSET 3 ROWS FETCH NEXT 2 ROWS ONLY",
                 actualCommand);
-    }
-
-    /**
-     * Test a command with $top, $skip and $orderby under Oracle
-     */
-    @Test
-    public void testGetCommandComplexOracle() {
-
-        // Build up an access profile
-        List<RowFilter> filters = new ArrayList<RowFilter>();
-        Set<FieldName> selects = new HashSet<FieldName>();
-        AccessProfile accessProfile = new AccessProfile(filters, selects);
-
-        // Build up some column metadata with a primary key
-        Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put("col1", java.sql.Types.VARCHAR);
-        map.put("col2", java.sql.Types.INTEGER);
-        ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1");
-
-        String keyValue = "aKeyValue";
-
-        // Create order by list
-        List<OrderBy> orderBy = new ArrayList<OrderBy>();
-        OrderBy expected1 = new OrderBy("col1", OrderByExpression.Direction.ASCENDING);
-        orderBy.add(expected1);
-        OrderBy expected2 = new OrderBy("col2", OrderByExpression.Direction.DESCENDING);
-        orderBy.add(expected2);
-
-        // Create the builder
-        SqlCommandBuilder builder = null;
-        try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap, "2", "3",
-                    orderBy, ServerMode.ORACLE);
-        } catch (Exception e) {
-            fail();
-        }
-
-        // Get the command.
-        String actualCommand = builder.getCommand();
-
-        assertEquals("SELECT * FROM ( SELECT inner_tab.*, ROWNUM \"rn\" FROM (" + " SELECT * FROM \"" + TEST_TABLE_NAME
-                + "\" WHERE \"col1\"='aKeyValue' ORDER BY \"col1\", \"col2\" DESC ) inner_tab )"
-                + " WHERE \"rn\" > 3 AND \"rn\" <= 5", actualCommand);
     }
 
     /**
@@ -326,10 +344,10 @@ public class TestSqlCommandBuilder {
         String keyValue = "aKeyValue";
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap, null, null, null,
-                    null);
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, keyValue, accessProfile, columnTypesMap, null, null, null,
+                    ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
@@ -349,10 +367,10 @@ public class TestSqlCommandBuilder {
         AccessProfile accessProfile = new AccessProfile(null, selects);
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, mock(ColumnTypesMap.class), null,
-                    null, null, null);
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, null, accessProfile, mock(ColumnTypesMap.class), null,
+                    null, null, ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
@@ -372,10 +390,10 @@ public class TestSqlCommandBuilder {
         AccessProfile accessProfile = new AccessProfile(filters, null);
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, mock(ColumnTypesMap.class), null,
-                    null, null, null);
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, null, accessProfile, mock(ColumnTypesMap.class), null,
+                    null, null, ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
@@ -404,10 +422,10 @@ public class TestSqlCommandBuilder {
         AccessProfile accessProfile = new AccessProfile(filters, selects);
 
         // Create the builder
-        SqlCommandBuilder builder = null;
+        SqlBuilder builder = null;
         try {
-            builder = new SqlCommandBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
-                    null);
+            builder = SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, null, accessProfile, columnTypesMap, null, null, null,
+                    ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
@@ -423,12 +441,12 @@ public class TestSqlCommandBuilder {
     public void testReservedRnCommand() {
         // Build column metadata containing the reserved column..
         Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put(SqlCommandBuilder.getRnName(), java.sql.Types.INTEGER);
+        map.put(SqlBuilder.getRnName(), java.sql.Types.INTEGER);
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1");
 
         // Create the builder
         try {
-            new SqlCommandBuilder(TEST_TABLE_NAME, null, null, columnTypesMap, null, null, null, null);
+            SqlBuilderFactory.getSqlBuilder(TEST_TABLE_NAME, null, null, columnTypesMap, null, null, null, ServerMode.MSSQL);
         } catch (Exception e) {
             fail();
         }
