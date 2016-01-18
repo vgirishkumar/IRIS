@@ -21,14 +21,27 @@ package com.temenos.interaction.core.command;
  * #L%
  */
 
-/**
- * Extension to the {@link CommandController} interface to mark registries capable of registering or unregistering new commands at runtime
- * @author pblair
- * @author trojanbug
- */
-public interface ModifiableCommandController 
-       extends CommandController {
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
 
-    public void addCommand(String name, InteractionCommand c);
-    public void removeCommand(String name);
+@RunWith(MockitoJUnitRunner.class)
+public class TestSpringContextAwareInteractionCommandControllerMocks {
+
+    @InjectMocks
+    private SpringContextAwareInteractionCommandController commandController;
+    
+    @Mock
+    private ApplicationContext context;
+    
+    @Test
+    public void testFetchCommandApplicationContextIsNull(){
+    	commandController.setApplicationContext(null);
+    	assertNull(commandController.fetchCommand("testCommand1"));
+    	assertFalse(commandController.isValidCommand("testCommand1"));
+    }
 }
