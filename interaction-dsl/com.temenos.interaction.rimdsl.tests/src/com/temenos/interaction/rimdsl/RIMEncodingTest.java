@@ -26,7 +26,7 @@ public class RIMEncodingTest {
     private IEncodingProvider encodingProvider;
 
     @Test
-    public void testGenerateSimpleStates() throws Exception {
+    public void testEncodingProvider() throws Exception {
         assertEquals(RIMEncodingProvider.class, encodingProvider.getClass());
         assertEquals("UTF-8", encodingProvider.getEncoding(null));
     }
