@@ -24,16 +24,16 @@ Import-Package: org.apache.log4j,
  org.eclipse.xtext.xbase.lib
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.temenos.interaction.rimdsl,
- com.temenos.interaction.rimdsl.encoding,
- com.temenos.interaction.rimdsl.formatting,
- com.temenos.interaction.rimdsl.generator,
- com.temenos.interaction.rimdsl.parser.antlr,
- com.temenos.interaction.rimdsl.parser.antlr.internal,
+ com.temenos.interaction.rimdsl.services,
  com.temenos.interaction.rimdsl.rim,
  com.temenos.interaction.rimdsl.rim.impl,
  com.temenos.interaction.rimdsl.rim.util,
- com.temenos.interaction.rimdsl.scoping,
  com.temenos.interaction.rimdsl.serializer,
- com.temenos.interaction.rimdsl.services,
- com.temenos.interaction.rimdsl.validation
+ com.temenos.interaction.rimdsl.parser.antlr,
+ com.temenos.interaction.rimdsl.parser.antlr.internal,
+ com.temenos.interaction.rimdsl.validation,
+ com.temenos.interaction.rimdsl.scoping,
+ com.temenos.interaction.rimdsl.generator,
+ com.temenos.interaction.rimdsl.formatting,
+ com.temenos.interaction.rimdsl.encoding
 
