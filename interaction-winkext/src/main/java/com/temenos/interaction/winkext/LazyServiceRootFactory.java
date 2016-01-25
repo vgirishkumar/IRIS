@@ -22,27 +22,21 @@ package com.temenos.interaction.winkext;
  */
 
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.temenos.interaction.core.cache.Cache;
+import com.temenos.interaction.core.cache.CacheBasic;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
-import com.temenos.interaction.core.hypermedia.ResourceParameterResolverProvider;
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
-import com.temenos.interaction.core.hypermedia.Transformer;
+import com.temenos.interaction.core.hypermedia.*;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 import com.temenos.interaction.springdsl.DynamicRegistrationResourceStateProvider;
 import com.temenos.interaction.springdsl.RIMRegistration;
 import com.temenos.interaction.springdsl.StateRegisteration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A resource factory that uses the beans and configuration files from the SpringDSL implementation
@@ -63,7 +57,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 	private Metadata metadata;
 	private ResourceLocatorProvider resourceLocatorProvider;
 	private ResourceParameterResolverProvider parameterResolverProvider;
-	private Cache cacheImpl;
+	private CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> cache;
 	private ResourceState exception;
 	private Transformer transformer;
 	private RIMRegistration rimRegistration;
@@ -80,7 +74,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 				.resourceLocatorProvider(resourceLocatorProvider)
 				.resourceStateProvider(resourceStateProvider)
 				.parameterResolverProvider(parameterResolverProvider)
-				.responseCache(cacheImpl)
+				.responseCache(cache)
 				.build();
 
 		Set<HTTPResourceInteractionModel> services = new HashSet<HTTPResourceInteractionModel>();
@@ -179,13 +173,13 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 	public void setHypermediaEngine(ResourceStateMachine hypermediaEngine) {
 		this.hypermediaEngine = hypermediaEngine;
 	}
-	
-	public Cache getCacheImpl() {
-		return cacheImpl;
+
+	public CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> getCache() {
+		return cache;
 	}
-	
-	public void setCacheImpl(Cache cache) {
-		cacheImpl = cache;
+
+	public void setCache(CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> cache) {
+		this.cache = cache;
 	}
 
 	@Override

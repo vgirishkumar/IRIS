@@ -22,7 +22,7 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.cache.Cache;
+import com.temenos.interaction.core.cache.CacheBasic;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -72,7 +72,7 @@ public class ResourceStateMachine {
 	ResourceState exception;
 	Transformer transformer;
 	CommandController commandController;
-	Cache responseCache;
+	CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> responseCache;
 	ResourceStateProvider resourceStateProvider;
 	ResourceLocatorProvider resourceLocatorProvider;
 	ResourceParameterResolverProvider parameterResolverProvider;
@@ -105,12 +105,12 @@ public class ResourceStateMachine {
 		this.commandController = commandController;
 	}
 
-	public Cache getCache() {
+	public CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> getCache() {
 		return responseCache;
 	}
 
-	public void setCache(Cache cache) {
-		responseCache = cache;
+	public void setCache(CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> cache) {
+		this.responseCache = cache;
 	}
 
 	// TODO support Event
@@ -1273,7 +1273,7 @@ public class ResourceStateMachine {
 		private ResourceStateProvider resourceStateProvider;
 		private ResourceLocatorProvider resourceLocatorProvider;
 		private ResourceParameterResolverProvider parameterResolverProvider;
-		private Cache responseCache;
+		private CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> responseCache;
 
 		public Builder initial(ResourceState initial) {
 			this.initial = initial;
@@ -1310,7 +1310,7 @@ public class ResourceStateMachine {
 			return this;
 		}
 
-		public Builder responseCache(Cache cache) {
+		public Builder responseCache(CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> cache) {
 			this.responseCache = cache;
 			return this;
 		}

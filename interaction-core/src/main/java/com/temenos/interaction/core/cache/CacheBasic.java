@@ -4,7 +4,7 @@ package com.temenos.interaction.core.cache;
  * #%L
  * interaction-core
  * %%
- * Copyright (C) 2012 - 2016 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,27 +21,14 @@ package com.temenos.interaction.core.cache;
  * #L%
  */
 
-import java.util.Map;
 
 /**
- * Interface for caching objects with the option of specifying their life time.
- * 
- * @author kwieconkowski
- * @author andres
- * @author dgroves
+ * Interface to the response cache used by HttpHypermediaRIM
+ *
+ * @author amcguinness
  */
-public interface CacheExtended<K, V> {
-    void put(K key, V value);
+public interface CacheBasic<K, V> {
+    public void put(K key, V data, int maxAge);
 
-    void put(K key, V value, int ageInSeconds);
-
-    void putAll(Map<K, V> keyValueMap);
-
-    V get(K key);
-
-    void remove(K key);
-
-    void removeAll();
-
-    boolean isEmpty();
+    public V get(K key);
 }

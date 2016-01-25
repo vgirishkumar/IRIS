@@ -22,64 +22,31 @@ package com.temenos.interaction.core.rim;
  */
 
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.StatusType;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.wink.common.model.multipart.InMultiPart;
-import org.apache.wink.common.model.multipart.InPart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.cache.Cache;
-import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.command.HttpStatusTypes;
-import com.temenos.interaction.core.command.InteractionCommand;
+import com.temenos.interaction.core.cache.CacheBasic;
+import com.temenos.interaction.core.command.*;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
-import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.entity.Entity;
-import com.temenos.interaction.core.entity.EntityProperties;
-import com.temenos.interaction.core.entity.EntityProperty;
-import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.StreamingInput;
-import com.temenos.interaction.core.hypermedia.Action;
-import com.temenos.interaction.core.hypermedia.DynamicResourceState;
-import com.temenos.interaction.core.hypermedia.Event;
-import com.temenos.interaction.core.hypermedia.Link;
-import com.temenos.interaction.core.hypermedia.LinkHeader;
-import com.temenos.interaction.core.hypermedia.ParameterAndValue;
-import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateAndParameters;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.hypermedia.TransitionCommandSpec;
+import com.temenos.interaction.core.entity.*;
+import com.temenos.interaction.core.hypermedia.*;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.hypermedia.validation.LogicalConfigurationListener;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import org.apache.wink.common.model.multipart.InMultiPart;
+import org.apache.wink.common.model.multipart.InPart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.*;
 
 /**
  * <P>
@@ -113,8 +80,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * 			All commands for all resources.
 	 * @param hypermediaEngine
 	 * 			All application states, responsible for creating links from one state to another.
-	 * @param currentState	
-	 * 			The current application state when accessing this resource.
+	 * @param metadata
 	 */
 	public HTTPHypermediaRIM(
 			CommandController commandController, 
@@ -129,8 +95,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * 			All commands for all resources.
 	 * @param hypermediaEngine
 	 * 			All application states, responsible for creating links from one state to another.
-	 * @param currentState	
-	 * 			The current application state when accessing this resource.
+	 * @param metadata
+	 * @param resourceLocatorProvider
 	 */
 	public HTTPHypermediaRIM(
 			CommandController commandController, 
@@ -299,7 +265,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		InteractionContext ctx = buildInteractionContext(headers, uriInfo, event);			
     	
 		// look for cached response
-		Cache cache = hypermediaEngine.getCache();
+		CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> cache = hypermediaEngine.getCache();
 		Response.ResponseBuilder cached = null;
 		if ( cache != null &&
 				event.isSafe() ) {
@@ -706,8 +672,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
 		
 	    // cache the response if it is valid to do so
-	    Cache cache = hypermediaEngine.getCache();
-	    if ( cache != null && cacheKey != null && cacheMaxAge > 0 ) {
+		CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> cache = hypermediaEngine.getCache();
+		if ( cache != null && cacheKey != null && cacheMaxAge > 0 ) {
 	    	logger.info( "Cache " + cacheKey );
 	    	cache.put( cacheKey, responseBuilder, cacheMaxAge );
 	    }

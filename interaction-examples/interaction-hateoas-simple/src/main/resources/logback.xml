@@ -38,7 +38,7 @@
   <logger name="com.temenos.interaction.core.rim">
     <level value="DEBUG" />
   </logger>
-  <logger name="com.temenos.interaction.core.cache">
+  <logger name="com.temenos.interaction.core.cacheBasic">
     <level value="DEBUG">
   </level></logger>
 
