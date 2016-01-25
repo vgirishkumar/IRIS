@@ -57,6 +57,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.temenos.interaction.core.hypermedia.ResourceStateMachineOptimizationMappingsImpl.InformationType;
+
 /**
  * A state machine that is responsible for creating the links (hypermedia) to
  * other valid application states.
@@ -78,7 +80,7 @@ public class ResourceStateMachine {
 	ResourceParameterResolverProvider parameterResolverProvider;
 
 	private List<ResourceState> allStates = new ArrayList<ResourceState>();
-	private ResourceStateMachineOptimizationMappings optimizationMappings;
+	private ResourceStateMachineOptimizationMappings<InformationType> optimizationMappings;
 
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null, null, null);
@@ -309,19 +311,19 @@ public class ResourceStateMachine {
 		// collectTransitionsByRel(transitionsByRel, state);
 
         // Process interactions by path
-		final Set<String> pathInteractions = optimizationMappings.getInteractionsByPath(state.getPath());
+		final Set<String> pathInteractions = (Set<String>) optimizationMappings.getInformationFrom(InformationType.INTERACTIONS_BY_PATH, state.getPath());
 
         if (pathInteractions != null)
 			pathInteractions.remove(method);
 
         // Process interactions by state
-		final Set<String> stateInteractions = optimizationMappings.getInteractionsByStateName(state.getName());
+		final Set<String> stateInteractions = (Set<String>) optimizationMappings.getInformationFrom(InformationType.INTERACTIONS_BY_STATE_NAME, state.getName());
 
         if (stateInteractions != null)
 			stateInteractions.remove(method);
 
         // Process resource states by path
-		final Set<ResourceState> pathStates = optimizationMappings.getResourceStatesByPath(state.getResourcePath());
+		final Set<ResourceState> pathStates = (Set<ResourceState>) optimizationMappings.getInformationFrom(InformationType.RESOURCE_STATES_BY_PATH, state.getResourcePath());
 
         if (pathStates != null)
 			pathStates.remove(state);
@@ -408,7 +410,7 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Map<String, Set<String>> getInteractionByPath() {
-		return optimizationMappings.getInteractionByPath();
+		return (Map<String, Set<String>>) optimizationMappings.getInformationFrom(InformationType.INTERACTIONS_BY_PATH);
 	}
 
 	/**
@@ -418,7 +420,7 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Map<String, Set<String>> getInteractionByState() {
-		return optimizationMappings.getInteractionsByStateName();
+		return (Map<String, Set<String>>) optimizationMappings.getInformationFrom(InformationType.INTERACTIONS_BY_STATE_NAME);
 	}
 
 	private boolean isStringInsideCollectionCheckingByReference(Collection<String> states, ResourceState currentState) {
@@ -493,7 +495,7 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Map<String, Set<ResourceState>> getResourceStatesByPath() {
-		return optimizationMappings.getResourceStatesByPath();
+		return (Map<String, Set<ResourceState>>) optimizationMappings.getInformationFrom(InformationType.RESOURCE_STATES_BY_PATH);
 	}
 
 	/**
@@ -527,7 +529,7 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Map<String, ResourceState> getResourceStateByName() {
-		return optimizationMappings.getResourceStateByName();
+		return (Map<String, ResourceState>) optimizationMappings.getInformationFrom(InformationType.RESOURCE_STATES_BY_NAME);
 	}
 
 	/**
@@ -866,11 +868,11 @@ public class ResourceStateMachine {
 	}
 
 	public Map<String, Transition> getTransitionsById() {
-		return optimizationMappings.getTransitionsById();
+		return (Map<String, Transition>) optimizationMappings.getInformationFrom(InformationType.TRANSITIONS_BY_ID);
 	}
 
 	public Map<String, Transition> getTransitionsByRel() {
-		return optimizationMappings.getTransitionsByRel();
+		return (Map<String, Transition>) optimizationMappings.getInformationFrom(InformationType.TRANSITIONS_BY_REL);
 	}
 
 	/**
