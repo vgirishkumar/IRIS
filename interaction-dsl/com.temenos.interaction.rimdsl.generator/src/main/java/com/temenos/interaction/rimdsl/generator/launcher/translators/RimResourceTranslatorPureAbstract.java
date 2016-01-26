@@ -32,7 +32,7 @@ public abstract class RimResourceTranslatorPureAbstract {
 
     protected ResourceState createResourceStateOrCollectionDependingOfType(State state, String entityName, String name, List<Action> actionList, String path, String[] relations, UriSpecification uriSpecification, ResourceState errorState) {
         if (state.getType().isIsCollection()) {
-            return new CollectionResourceState(name, entityName, actionList, path, relations, uriSpecification, errorState);
+            return new CollectionResourceState(entityName, name, actionList, path, relations, uriSpecification, errorState);
         } else {
             return new ResourceState(entityName, name, actionList, path, relations, uriSpecification, errorState);
         }
