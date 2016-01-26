@@ -23,8 +23,9 @@ package com.temenos.interaction.core.loader;
 
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
-import static com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
 import java.util.List;
+
+import static com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
 
 /**
  * Interface for loading a list of ResourceStateResult from a source. Ideally,
@@ -40,10 +41,18 @@ public interface ResourceStateLoader<S> extends Loader<List<ResourceStateResult>
     class ResourceStateResult {
         public final String resourceStateId;
         public final ResourceState resourceState;
+        public final String[] methods;
+        public final String path;
 
         public ResourceStateResult(String resourceStateId, ResourceState resourceState) {
+            this(resourceStateId, resourceState, null, null);
+        }
+
+        public ResourceStateResult(String resourceStateId, ResourceState resourceState, String[] methods, String path) {
             this.resourceStateId = resourceStateId;
             this.resourceState = resourceState;
+            this.methods = methods;
+            this.path = path;
         }
     }
 }
