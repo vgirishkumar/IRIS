@@ -60,7 +60,6 @@
 		<module>../com.temenos.interaction.rimdsl.tests</module>
 		<module>../com.temenos.interaction.rimdsl.generator</module>
 		<module>../com.temenos.interaction.rimdsl.site</module>
-		<module>../com.temenos.interaction.rimdsl.runtime</module>
 	</modules>
 	<build>
 		<plugins>
