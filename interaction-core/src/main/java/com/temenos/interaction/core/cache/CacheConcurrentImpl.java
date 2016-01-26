@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author andres
  * @author dgroves
  */
-public class CacheConcurrentImpl<K, V> implements CacheExtended<K, V> {
+public class CacheConcurrentImpl<K, V> implements Cache<K, V> {
     private ConcurrentMap<K, V> cache = new ConcurrentHashMap<K, V>();
 
     @Override

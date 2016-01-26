@@ -29,40 +29,11 @@ import java.util.Set;
 /**
  * @author kwieconkowski
  */
-public interface ResourceStateMachineOptimizationMappings {
+public interface ResourceStateMachineOptimizationMappings<E extends Enum> {
     List<ResourceState> buildAllMappingsAndInitializeLazyResourceAndReturnAllStates(ResourceStateProvider resourceStateProvider, ResourceState initial);
-
     boolean updateMapsWithNewState(ResourceStateProvider resourceStateProvider, ResourceState state, String method);
-
-    Map<String, Set<ResourceState>> getResourceStatesByPath(ResourceState begin);
-
-    Map<String, Set<String>> getInteractionsByPath();
-
-    Set<String> getInteractionsByPath(String path);
-
-    Map<String, Set<ResourceState>> getResourceStatesByPath();
-
-    Set<ResourceState> getResourceStatesByPath(String path);
-
-    Map<String, Set<String>> getInteractionByPath();
-
-    Set<String> getInteractionByPath(String path);
-
-    Map<String, Set<String>> getInteractionsByStateName();
-
-    Set<String> getInteractionsByStateName(String stateName);
-
-    Map<String, ResourceState> getResourceStateByName();
-
-    ResourceState getResourceStateByName(String stateName);
-
-    Map<String, Transition> getTransitionsById();
-
-    Transition getTransitionsById(String id);
-
-    Map<String, Transition> getTransitionsByRel();
-
-    Transition getTransitionsByRel(String rel);
-
     void removeResourceStateByName(String stateName);
+    Map<String, Set<ResourceState>> getResourceStatesByPath(ResourceState begin);
+    Map getInformationFrom(E target);
+    Object getInformationFrom(E target, String key);
 }

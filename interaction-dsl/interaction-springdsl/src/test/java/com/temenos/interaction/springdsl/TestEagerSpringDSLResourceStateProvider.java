@@ -21,8 +21,8 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
+import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.cache.CacheConcurrentImpl;
-import com.temenos.interaction.core.cache.CacheExtended;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.loader.ResourceStateLoadingStrategy;
@@ -132,7 +132,7 @@ public class TestEagerSpringDSLResourceStateProvider extends TestSpringDSLResour
         return getDefaultClass("classpath*:/**/IRIS-*-PRD.xml", new SpringResourceStateLoadingStrategy(), new CacheConcurrentImpl(), properties);
     }
 
-    private EagerSpringDSLResourceStateProvider getDefaultClass(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, CacheExtended<String, ResourceState> cache, Properties properties) {
+    private EagerSpringDSLResourceStateProvider getDefaultClass(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, Cache<String, ResourceState> cache, Properties properties) {
         return new EagerSpringDSLResourceStateProvider(antStylePattern, loadingStrategy, cache, properties);
     }
 }

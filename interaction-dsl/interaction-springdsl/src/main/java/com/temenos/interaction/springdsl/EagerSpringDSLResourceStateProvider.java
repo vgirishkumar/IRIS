@@ -21,7 +21,7 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
-import com.temenos.interaction.core.cache.CacheExtended;
+import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.loader.ResourceStateLoadingStrategy;
 import org.slf4j.Logger;
@@ -52,16 +52,16 @@ import static com.temenos.interaction.core.loader.ResourceStateLoadingStrategy.R
 public class EagerSpringDSLResourceStateProvider extends SpringDSLResourceStateProvider {
     private final Logger logger = LoggerFactory.getLogger(EagerSpringDSLResourceStateProvider.class);
 
-    private final CacheExtended<String, ResourceState> cache;
+    private final Cache<String, ResourceState> cache;
     private final String antStylePattern;
     private Set<String> PRDconfigurationFileSources;
     private ResourceStateLoadingStrategy<String> loadingStrategy;
 
-    public EagerSpringDSLResourceStateProvider(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, CacheExtended<String, ResourceState> cache) {
+    public EagerSpringDSLResourceStateProvider(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, Cache<String, ResourceState> cache) {
         this(antStylePattern, loadingStrategy, cache, null);
     }
 
-    public EagerSpringDSLResourceStateProvider(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, CacheExtended<String, ResourceState> cache, Properties beanMap) {
+    public EagerSpringDSLResourceStateProvider(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, Cache<String, ResourceState> cache, Properties beanMap) {
         super(beanMap);
         this.antStylePattern = antStylePattern;
         this.loadingStrategy = loadingStrategy;
