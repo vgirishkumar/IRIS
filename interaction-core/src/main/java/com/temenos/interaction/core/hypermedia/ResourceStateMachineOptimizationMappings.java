@@ -32,11 +32,8 @@ import java.util.Set;
 public interface ResourceStateMachineOptimizationMappings<E extends Enum> {
     List<ResourceState> buildAllMappingsAndInitializeLazyResourceAndReturnAllStates(ResourceStateProvider resourceStateProvider, ResourceState initial);
     boolean updateMapsWithNewState(ResourceStateProvider resourceStateProvider, ResourceState state, String method);
-
     void removeResourceStateByName(String stateName);
     Map<String, Set<ResourceState>> getResourceStatesByPath(ResourceState begin);
-
     Map getInformationFrom(E target);
-
     Object getInformationFrom(E target, String key);
 }

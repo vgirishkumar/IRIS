@@ -29,7 +29,6 @@ import javax.ws.rs.HttpMethod;
 import java.util.*;
 
 import static com.temenos.interaction.core.hypermedia.ResourceStateMachineOptimizationMappingsImpl.InformationType;
-import static com.temenos.interaction.core.hypermedia.ResourceStateMachineOptimizationMappingsImpl.InformationType.*;
 
 /**
  * @author kwieconkowski
@@ -40,36 +39,20 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
 
 
     public enum InformationType {
-        TRANSITIONS_BY_ID(new HashMap<String, Transition>()),
-        TRANSITIONS_BY_REL(new HashMap<String, Transition>()),
-        INTERACTIONS_BY_PATH(new HashMap<String, Set<String>>()),
-        INTERACTIONS_BY_STATE_NAME(new HashMap<String, Set<String>>()),
-        RESOURCE_STATES_BY_PATH(new HashMap<String, Set<ResourceState>>()),
-        RESOURCE_STATES_BY_NAME(new HashMap<String, ResourceState>());
-
-        private final Map informationMap;
-
-        private Map get() {
-            return informationMap;
-        }
-
-        private Object get(String key) {
-            return informationMap.get(key);
-        }
-
-        private void put(String key, Object value) {
-            informationMap.put(key, value);
-        }
-
-        private void clear() {
-            informationMap.clear();
-        }
-
-        InformationType(final Map informationMap) {
-            this.informationMap = informationMap;
-        }
+        TRANSITIONS_BY_ID,
+        TRANSITIONS_BY_REL,
+        INTERACTIONS_BY_PATH,
+        INTERACTIONS_BY_STATE_NAME,
+        RESOURCE_STATES_BY_PATH,
+        RESOURCE_STATES_BY_NAME;
     }
 
+    private Map<String, Transition> transitionsById = new HashMap<String, Transition>();
+    private Map<String, Transition> transitionsByRel = new HashMap<String, Transition>();
+    private Map<String, Set<String>> interactionsByPath = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> interactionsByStateName = new HashMap<String, Set<String>>();
+    private Map<String, Set<ResourceState>> resourceStatesByPath = new HashMap<String, Set<ResourceState>>();
+    private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
 
     private ResourceState initial;
     private ResourceStateProvider resourceStateProvider;
@@ -79,15 +62,11 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
         this.initial = initial;
         this.resourceStateProvider = resourceStateProvider;
 
-        for (InformationType informationType : InformationType.values()) {
-            informationType.clear();
-        }
-
         List<ResourceState> allStates = new ArrayList<ResourceState>();
         checkAndResolve(initial);
         collectAllStatesAndTransitionsByIdAndRelAndResourceStatesByName(allStates, initial);
         collectInteractionsByPathAndState(new ArrayList<ResourceState>(), initial, HttpMethod.GET);
-        collectResourceStatesByPath((Map<String, Set<ResourceState>>) RESOURCE_STATES_BY_PATH.get(), new HashSet<ResourceState>(), initial);
+        collectResourceStatesByPath(resourceStatesByPath, new HashSet<ResourceState>(), initial);
 
         clear();
         return allStates;
@@ -124,17 +103,36 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
 
     @Override
     public Object getInformationFrom(InformationType target, String key) {
-        return target.get(key);
+        return getInformationFrom(target).get(key);
     }
 
     @Override
     public Map getInformationFrom(InformationType target) {
-        return target.get();
+        if (target == null) {
+            return null;
+        }
+
+        switch (target) {
+            case INTERACTIONS_BY_PATH:
+                return interactionsByPath;
+            case INTERACTIONS_BY_STATE_NAME:
+                return interactionsByStateName;
+            case RESOURCE_STATES_BY_NAME:
+                return resourceStatesByName;
+            case RESOURCE_STATES_BY_PATH:
+                return resourceStatesByPath;
+            case TRANSITIONS_BY_ID:
+                return transitionsById;
+            case TRANSITIONS_BY_REL:
+                return transitionsByRel;
+            default:
+                return null;
+        }
     }
 
     @Override
     public void removeResourceStateByName(String stateName) {
-        RESOURCE_STATES_BY_NAME.get().remove(stateName);
+        resourceStatesByName.remove(stateName);
     }
 
     private void clear() {
@@ -143,19 +141,19 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
     }
 
     private void collectInteractionsByPathForState(ResourceState state, String method) {
-        Set<String> pathInteractions = (Set<String>) INTERACTIONS_BY_PATH.get(state.getPath());
+        Set<String> pathInteractions = (Set<String>) interactionsByPath.get(state.getPath());
         if (pathInteractions == null) {
             pathInteractions = new HashSet<String>();
-            INTERACTIONS_BY_PATH.put(state.getPath(), pathInteractions);
+            interactionsByPath.put(state.getPath(), pathInteractions);
         }
         putMethodOrGetMethodToCollection(method, pathInteractions);
     }
 
     private void collectInteractionsByStateForState(ResourceState state, String method) {
-        Set<String> stateInteractions = (Set<String>) INTERACTIONS_BY_STATE_NAME.get(state.getName());
+        Set<String> stateInteractions = (Set<String>) interactionsByStateName.get(state.getName());
         if (stateInteractions == null) {
             stateInteractions = new HashSet<String>();
-            INTERACTIONS_BY_STATE_NAME.put(state.getName(), stateInteractions);
+            interactionsByStateName.put(state.getName(), stateInteractions);
         }
 
         if (!state.isPseudoState()) {
@@ -174,11 +172,11 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
             for (Transition t : transitions) {
                 TransitionCommandSpec command = t.getCommand();
 
-                Set<String> tmpStateInteractions = (Set<String>) INTERACTIONS_BY_STATE_NAME.get(next.getName());
+                Set<String> tmpStateInteractions = (Set<String>) interactionsByStateName.get(next.getName());
 
                 if (tmpStateInteractions == null) {
                     tmpStateInteractions = new HashSet<String>();
-                    INTERACTIONS_BY_STATE_NAME.put(next.getName(), tmpStateInteractions);
+                    interactionsByStateName.put(next.getName(), tmpStateInteractions);
                 }
 
                 if (command.getMethod() != null && !command.isAutoTransition())
@@ -188,10 +186,10 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
     }
 
     private void collectResourceStatesByPathForState(ResourceState state) {
-        Set<ResourceState> pathStates = (Set<ResourceState>) RESOURCE_STATES_BY_PATH.get(state.getResourcePath());
+        Set<ResourceState> pathStates = (Set<ResourceState>) resourceStatesByPath.get(state.getResourcePath());
         if (pathStates == null) {
             pathStates = new HashSet<ResourceState>();
-            RESOURCE_STATES_BY_PATH.put(state.getResourcePath(), pathStates);
+            resourceStatesByPath.put(state.getResourcePath(), pathStates);
         }
         pathStates.add(state);
     }
@@ -288,29 +286,29 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
     }
 
     private void populateInteractionsByPath(ResourceState currentState, String method) {
-        Set<String> interactions = (Set<String>) INTERACTIONS_BY_PATH.get(currentState.getPath());
+        Set<String> interactions = (Set<String>) interactionsByPath.get(currentState.getPath());
         if (interactions == null) {
             interactions = new HashSet<String>();
         }
         // every state must have a 'GET' interaction
         putMethodOrGetMethodToCollection(method, interactions);
-        INTERACTIONS_BY_PATH.put(currentState.getPath(), interactions);
+        interactionsByPath.put(currentState.getPath(), interactions);
     }
 
     private void populateInteractionsByPath(String path, TransitionCommandSpec command) {
-        Set<String> interactions = (Set<String>) INTERACTIONS_BY_PATH.get(path);
+        Set<String> interactions = (Set<String>) interactionsByPath.get(path);
         interactions = addMethodsFromCommandNotAutoTransition(command, interactions);
-        INTERACTIONS_BY_PATH.put(path, interactions);
+        interactionsByPath.put(path, interactions);
     }
 
     private void populateInteractionsByState(String name, TransitionCommandSpec command) {
-        Set<String> interactions = (Set<String>) INTERACTIONS_BY_STATE_NAME.get(name);
+        Set<String> interactions = (Set<String>) interactionsByStateName.get(name);
         interactions = addMethodsFromCommandNotAutoTransition(command, interactions);
-        INTERACTIONS_BY_STATE_NAME.put(name, interactions);
+        interactionsByStateName.put(name, interactions);
     }
 
     private void populateInteractionsByState(ResourceState currentState, String method) {
-        Set<String> interactions = (Set<String>) INTERACTIONS_BY_STATE_NAME.get(currentState.getName());
+        Set<String> interactions = (Set<String>) interactionsByStateName.get(currentState.getName());
         if (interactions == null) {
             interactions = new HashSet<String>();
         }
@@ -325,7 +323,7 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
                 }
             }
         }
-        INTERACTIONS_BY_STATE_NAME.put(currentState.getName(), interactions);
+        interactionsByStateName.put(currentState.getName(), interactions);
     }
 
     private void putMethodOrGetMethodToCollection(String method, Set<String> interactions) {
@@ -353,14 +351,14 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
             } else if (transition.getTarget().getRel() == null) {
                 logger.warn("collectTransitionsByRel : null relation detected");
             } else {
-                TRANSITIONS_BY_ID.put(transition.getId(), transition);
-                TRANSITIONS_BY_REL.put(transition.getTarget().getRel(), transition);
+                transitionsById.put(transition.getId(), transition);
+                transitionsByRel.put(transition.getTarget().getRel(), transition);
             }
         }
     }
 
     private void populateResourceStatesByName(ResourceState currentState) {
-        RESOURCE_STATES_BY_NAME.put(currentState.getName(), currentState);
+        resourceStatesByName.put(currentState.getName(), currentState);
     }
 
 
@@ -403,6 +401,4 @@ public class ResourceStateMachineOptimizationMappingsImpl implements ResourceSta
             }
         }
     }
-
 }
-
