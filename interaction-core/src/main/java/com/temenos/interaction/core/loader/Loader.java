@@ -21,8 +21,6 @@ package com.temenos.interaction.core.loader;
  * #L%
  */
 
-import java.util.List;
-
 /**
  * Interface for loading a list of elements from a source. 
  * 
@@ -30,6 +28,6 @@ import java.util.List;
  * @author andres
  * @author dgroves
  */
-public interface LoadingStrategy<T, S> {
-    public List<T> load(S source);
+public interface Loader<T, S> {
+    public T load(S source);
 }

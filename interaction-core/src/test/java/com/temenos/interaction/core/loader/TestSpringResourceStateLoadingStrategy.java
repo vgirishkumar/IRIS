@@ -27,7 +27,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import static com.temenos.interaction.core.loader.ResourceStateLoadingStrategy.ResourceStateResult;
+import static com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
 import static org.junit.Assert.*;
 
 /**
@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
 public class TestSpringResourceStateLoadingStrategy {
     private static final String SPRING_PRD_FILE = "IRIS-testResources-PRD.xml";
     private static final String SPRING_EMPTY_PRD_FILE = "IRIS-empty-PRD.xml";
-    private ResourceStateLoadingStrategy<String> loadingStrategy = new SpringResourceStateLoadingStrategy();
+    private ResourceStateLoader<String> loadingStrategy = new SpringDSLResourceStateLoader();
 
     @Test
     public void load_shouldReturnFilledList() {

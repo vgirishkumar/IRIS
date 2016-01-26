@@ -41,8 +41,8 @@ import java.util.Map;
  * @author andres
  * @author dgroves
  */
-public class SpringResourceStateLoadingStrategy implements ResourceStateLoadingStrategy<String> {
-    private final Logger logger = LoggerFactory.getLogger(SpringResourceStateLoadingStrategy.class);
+public class SpringDSLResourceStateLoader implements ResourceStateLoader<String> {
+    private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateLoader.class);
     private final static String MSG_NAME_BLANK_OR_NULL = "Passed PRD file name is NULL or empty";
     private final static String MSG_PATH_IN_NAME = "Spring PRD file name must not contain the path";
 
