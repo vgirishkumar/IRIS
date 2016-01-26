@@ -38,6 +38,7 @@
 		<module>../interaction-media-xhtml</module>
 		<module>../interaction-media-odata-xml</module>
 		<module>../interaction-dsl/interaction-springdsl</module>
+        <module>../interaction-dsl/interaction-translate</module>
 		<module>../interaction-dynamic-loader</module>	
 		<module>../interaction-commands-jdbc</module>
 		<module>../interaction-jdbc-producer</module>
