@@ -42,8 +42,6 @@ import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.FileMappingResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.hypermedia.StateMachineRegistrar;
 import com.temenos.interaction.core.loader.ResourceStateLoader;
 import com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
 import com.temenos.interaction.springdsl.DynamicRegistrationResourceStateProvider;
@@ -59,7 +57,7 @@ import com.temenos.interaction.translate.mapper.ResourceStateMapper;
  *
  */
 public class RIMResourceStateProvider implements FileMappingResourceStateProvider, 
-		StateMachineRegistrar, DynamicRegistrationResourceStateProvider {
+		DynamicRegistrationResourceStateProvider {
 	
 	private static final boolean REGISTER_WITH_WINK_DURING_INITIALISATION = false;
 	
@@ -70,7 +68,6 @@ public class RIMResourceStateProvider implements FileMappingResourceStateProvide
 	
 	private StateRegisteration stateRegistration;
     private ResourceStateLoader<String> resourceStateLoader;
-    private ResourceStateMachine resourceStateMachine;
     private Collection<String> sources;
     private ResourceStateMapper mapper;
     	
@@ -200,16 +197,6 @@ public class RIMResourceStateProvider implements FileMappingResourceStateProvide
     public Map<String, String> getResourcePathsByState() {
         return mapper.getResourcePathsByState();
     }
-    
-	@Override
-	public void registerResourceStateResult(ResourceState resourceState, String method) {
-		this.resourceStateMachine.register(resourceState, method);
-	}
-	
-	@Override
-	public void setResourceStateMachine(ResourceStateMachine resourceStateMachine) {
-		this.resourceStateMachine = resourceStateMachine;
-	}
 	
     public void setLoader(ResourceStateLoader<String> resourceStateLoader){
     	this.resourceStateLoader = resourceStateLoader;
