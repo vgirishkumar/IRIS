@@ -9,9 +9,12 @@ import org.odata4j.expression.BoolCommonExpression;
 import org.odata4j.expression.CommonExpression;
 import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.expression.Expression;
+import org.odata4j.expression.IntegralLiteral;
+import org.odata4j.expression.StringLiteral;
 import org.odata4j.producer.resources.OptionsQueryParser;
 
 import com.temenos.interaction.odataext.odataparser.ODataParser;
+import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
 
 /*
  * Classes containing information about a set of row filters.
@@ -78,13 +81,13 @@ public class RowFilters {
      * must throw.
      */
     @Deprecated
-    public List<RowFilter> asRowFilters() {
+    public List<RowFilter> asRowFilters() throws UnsupportedQueryOperationException {
         // Start wih top level expression
         return asRowFilters(oData4jExpression);
     }
 
     @Deprecated
-    private List<RowFilter> asRowFilters(BoolCommonExpression expression) {
+    private List<RowFilter> asRowFilters(BoolCommonExpression expression) throws UnsupportedQueryOperationException {
         List<RowFilter> filters = new ArrayList<RowFilter>();
 
         if (null == expression) {
@@ -109,28 +112,37 @@ public class RowFilters {
             }
 
             if (null == rel) {
-                throw new SecurityException("Unrecognised relationship type " + expression);
+                throw new UnsupportedQueryOperationException("Unrecognised relationship type " + expression);
             }
 
             if (!BinaryCommonExpression.class.isAssignableFrom(expression.getClass())) {
-                throw new SecurityException("Expression \"" + expression
+                throw new UnsupportedQueryOperationException("Expression \"" + expression
                         + "\" cannot be converted to a BinaryCommonExpression.");
             }
 
             CommonExpression lhsExpression = ((BinaryCommonExpression) expression).getLHS();
-            if (!(lhsExpression instanceof EntitySimpleProperty)) {
-                throw new SecurityException("LHS expression too complex " + lhsExpression);
-            }
-            String lhsStr = ODataParser.OData4jToFilters(lhsExpression);
+            String lhsStr = toRowFilterCompatible(lhsExpression);
 
             CommonExpression rhsExpression = ((BinaryCommonExpression) expression).getRHS();
-            if (!(rhsExpression instanceof EntitySimpleProperty)) {
-                throw new SecurityException("RHS expression too complex" + rhsExpression);
-            }
-            String rhsStr = ODataParser.OData4jToFilters(rhsExpression);
+            String rhsStr = toRowFilterCompatible(rhsExpression);
 
             filters.add(new RowFilter(lhsStr, rel, rhsStr));
         }
         return filters;
+    }
+
+    // Convert expression to a RowFilter name/value. Throw if it's too complex.
+    private String toRowFilterCompatible(CommonExpression expr) throws UnsupportedQueryOperationException {
+
+        // Convert expression to a string.
+        String str = ODataParser.OData4jToFilters(expr);
+
+        if (!(expr instanceof IntegralLiteral) && !(expr instanceof EntitySimpleProperty)
+                && !(expr instanceof StringLiteral)) {
+            throw new UnsupportedQueryOperationException("Expression too complex for row filter. Type=\"" + expr + "\" value=\"" + str
+                    + "\"");
+        }
+
+        return str;
     }
 }

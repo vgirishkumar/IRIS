@@ -62,7 +62,7 @@ public class ODataParser {
 
     // Support for old code that still uses RowFilters (note method name Filter
     // NOT Filters)
-    public static List<RowFilter> parseFilter(String filterStr) {
+    public static List<RowFilter> parseFilter(String filterStr) throws UnsupportedQueryOperationException {
         // First do it the new way
         RowFilters filters = parseFilters(filterStr);
 
