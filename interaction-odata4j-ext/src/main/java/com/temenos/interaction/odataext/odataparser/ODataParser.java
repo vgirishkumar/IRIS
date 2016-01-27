@@ -60,8 +60,9 @@ public class ODataParser {
         return (new RowFilters(filterStr));
     }
 
-    // Support for old code that still uses RowFilters (note method name Filter
-    // NOT Filters)
+    // Support for old code that still uses RowFilter list. (note method name
+    // Filter NOT Filters)
+    @Deprecated
     public static List<RowFilter> parseFilter(String filterStr) throws UnsupportedQueryOperationException {
         // First do it the new way
         RowFilters filters = parseFilters(filterStr);
@@ -118,7 +119,7 @@ public class ODataParser {
         return (OData4jToFilters(filters.getBoolCommonExpression()));
     }
 
-    // Once it is no longer needed for testing this shold probably be made
+    // Once it is no longer needed for back compatibility this should be made
     // private.
     public static String OData4jToFilters(CommonExpression filters) {
 
@@ -130,6 +131,33 @@ public class ODataParser {
             // This is the empty filter list case. Just return an empty string;
             return ("");
         }
+    }
+
+    // Support for old code that still uses RowFilter list.
+    @Deprecated
+    public static String toFilter(List<RowFilter> filters) {
+
+        String filterStr = new String();
+
+        boolean first = true;
+        for (RowFilter filter : filters) {
+            if (first) {
+                first = false;
+            } else {
+                filterStr = filterStr.concat(" and ");
+            }
+            filterStr = filterStr.concat(toFilter(filter));
+        }
+
+        return (filterStr);
+    }
+
+    // Support for old code that still uses RowFilter list.
+    @Deprecated
+    private static String toFilter(RowFilter filter) {
+        String name = filter.getFieldName().getName();
+        String filterStr = new String(name + " " + filter.getRelation().getoDataString() + " " + filter.getValue());
+        return (filterStr);
     }
 
     // Convert select to an oData parameter
