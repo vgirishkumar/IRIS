@@ -16,7 +16,7 @@ public class RIMResourceStateLoaderTest {
 
     @Test
     public void testLoad() {
-        ResourceStateLoader<String> loader = new RIMResourceStateLoader();
+        ResourceStateLoader<String> loader = new ThroughPrdRIMResourceStateLoader();
         List<ResourceStateResult> resourceStateList = loader.load("Airline.rim");
         assertNotNull(resourceStateList);
         assertFalse(resourceStateList.isEmpty());
@@ -24,7 +24,7 @@ public class RIMResourceStateLoaderTest {
 
     @Test
     public void testLoad_Pure() {
-        ResourceStateLoader<String> loader = new RIMResourceStateLoaderPure();
+        ResourceStateLoader<String> loader = new RIMResourceStateLoader();
         List<ResourceStateResult> resourceStateList = loader.load("Airline.rim");
         assertNotNull(resourceStateList);
         assertFalse(resourceStateList.isEmpty());
