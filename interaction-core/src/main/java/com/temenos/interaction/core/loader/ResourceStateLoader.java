@@ -23,7 +23,9 @@ package com.temenos.interaction.core.loader;
 
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
 
@@ -54,5 +56,44 @@ public interface ResourceStateLoader<S> extends Loader<List<ResourceStateResult>
             this.methods = methods;
             this.path = path;
         }
+        
+        public String getResourceStateId(){
+        	return resourceStateId;
+        }
+        
+        public ResourceState getResourceState(){
+        	return resourceState;
+        }
+        
+        public String[] getMethods(){
+        	return methods;
+        }
+        
+        public String getPath(){
+        	return path;
+        }
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(resourceStateId, resourceState, methods, path);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			ResourceStateResult other = (ResourceStateResult) obj;
+			return Objects.equals(resourceStateId, other.getResourceStateId()) &&
+					Objects.equals(resourceState, other.getResourceState()) &&
+					Objects.equals(methods, other.getMethods()) &&
+					Objects.equals(path, other.getPath());
+		}
     }
 }
