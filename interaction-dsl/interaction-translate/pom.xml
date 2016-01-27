@@ -13,13 +13,25 @@
 	<packaging>jar</packaging>
 	<dependencies>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.temenos.interaction</groupId>
+			<artifactId>interaction-dynamic-loader</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.temenos.interaction</groupId>
@@ -29,6 +41,19 @@
 		<dependency>
 			<groupId>com.temenos.interaction</groupId>
 			<artifactId>interaction-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.temenos.interaction</groupId>
+			<artifactId>interaction-commands-odata</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.temenos.interaction</groupId>
+			<artifactId>interaction-winkext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kubek2k</groupId>
+			<artifactId>springockito-annotations</artifactId>
+			<version>1.0.9</version>
 		</dependency>
 	</dependencies>
  <!-- SONAR TEST COVERAGE PROFILE-->

@@ -1,5 +1,7 @@
 package com.temenos.interaction.translate.mapper;
 
+import java.util.HashMap;
+
 /*
  * #%L
  * %%
@@ -37,6 +39,13 @@ public class ResourceStateMapper implements Mapper<ResourceStateResult>{
 	private Map<String, String> resourcePathsByState;
 	
 	private final Logger logger = LoggerFactory.getLogger(ResourceStateMapper.class);
+	
+	public ResourceStateMapper(){
+		this.resourceStatesByPath = new HashMap<String, Set<String>>();
+		this.methodsByResourceStateName = new HashMap<String, Set<String>>();
+		this.resourceStatesByRequest = new HashMap<String, String>();
+		this.resourcePathsByState = new HashMap<String, String>();
+	}
 	
 	public ResourceStateMapper(Map<String, Set<String>> statesByPath, Map<String, Set<String>> methodsByStateName,
 			Map<String, String> statesByRequest, Map<String, String> pathsByState){

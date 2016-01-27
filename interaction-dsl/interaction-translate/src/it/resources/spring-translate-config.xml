@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	
+	<bean id="entityTransformer" class="com.temenos.interaction.commands.odata.OEntityTransformer" />
+	
+	<!-- Metadata -->	
+	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
+        <constructor-arg ref="stateMachine" />
+	</bean>
+	<bean id="metadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+	
+	<!-- Odata4j Metadata -->
+	<bean id="metadataOData4j" class="com.temenos.interaction.odataext.entity.MetadataOData4j">
+        <constructor-arg ref="metadata" />
+        <constructor-arg ref="stateMachine" />
+    </bean>
+	
+	<bean id="serviceRootFactory" class="com.temenos.interaction.winkext.LazyServiceRootFactory">
+		<property name="commandController" ref="commands" />
+		<property name="metadata" ref="metadata" />
+		<property name="transformer" ref="entityTransformer" />
+		<property name="resourceStateProvider" ref="resourceStateProvider" />
+	</bean>
+	
+	<bean id="resourceStateCache" class="com.temenos.interaction.core.cache.CacheConcurrentImpl" />
+	<bean id="resourceStateMapper" class="com.temenos.interaction.translate.mapper.ResourceStateMapper" />
+	<bean id="resourceStateLoader" class="com.temenos.interaction.rimdsl.generator.launcher.RIMResourceStateLoader" />
+	
+	<bean id="resourceStateProvider" class="com.temenos.interaction.translate.loader.RIMResourceStateProvider">
+		<constructor-arg value="classpath*:/**/*.rim" />
+		<constructor-arg ref="resourceStateCache" />
+		<constructor-arg ref="resourceStateMapper" />
+		<constructor-arg ref="resourceStateLoader" />
+	</bean>
+	
+	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
+		<constructor-arg value="test-Notes" />
+	</bean>
+	
+	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
+	<bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+        <constructor-arg name="initialState" ref="serviceDocument" />
+    	<constructor-arg name="exceptionState"><null /></constructor-arg>
+		<constructor-arg name="transformer" ref="entityTransformer" />
+    	<constructor-arg name="resourceLocatorProvider"><null /></constructor-arg>
+		<constructor-arg name="resourceStateProvider" ref="resourceStateProvider" />
+	</bean>
+	
+	<bean id="executors" class="java.concurrent.Executors" abstract="true" />
+	<bean id="executorService" class="java.concurrent.ScheduledExecutorService" factory-bean="executors" factory-method="newSingleThreadScheduledExecutor" />
+	
+	<bean id="rimDirWatchdog" class="com.temenos.interaction.loader.detector.DirectoryChangeActionNotifier">
+	   <constructor-arg name="executorService" ref="executorService" />
+	   <property name="resources">
+	       <list>
+	           <value>classpath:test-hotdeploy-dir</value>
+	       </list>
+       </property>
+	   <property name="listeners">
+	        <ref bean="updateAfterChangeRIMAction" />
+	    </property>
+	</bean>
+	
+	<bean id="updateAfterChangeRIMAction" class="com.temenos.interaction.rimdsl.generator.launcher.ResourceSetGeneratorAction"/>
+	
+		<!-- Commands -->
+	<bean id="GETServiceDocument" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+		<constructor-arg value="ServiceDocument" />
+		<constructor-arg ref="metadataOData4j" />
+	</bean>
+	
+	<bean id="GETMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
+		<constructor-arg value="Metadata" />
+		<constructor-arg ref="metadataOData4j" />
+	</bean>
+	
+	<bean id="GETException" class="com.temenos.interaction.core.command.GETExceptionCommand">
+	</bean>
+	
+	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand">
+	</bean>
+	
+	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
+		<constructor-arg ref="producer" />
+	</bean>
+	
+	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+		<constructor-arg ref="producer" />
+	</bean>
+	
+	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
+		<constructor-arg ref="producer" />
+	</bean>
+	
+	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
+		<constructor-arg ref="producer" />
+	</bean>
+	
+	<bean id="UpdateEntity" class="com.temenos.interaction.commands.odata.UpdateEntityCommand">
+		<constructor-arg ref="producer" />
+	</bean>
+	
+	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
+		<constructor-arg ref="producer" />
+	</bean>
+
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
+	
+	<!-- Command controller -->
+	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
+		<constructor-arg name="commands">
+			<util:map id="commandsMap" map-class="java.util.Hashtable">
+				<entry key="GETServiceDocument" value-ref="GETServiceDocument" />
+				<entry key="GETMetadata" value-ref="GETMetadata" />
+				<entry key="GETException" value-ref="GETException" />
+				<entry key="NoopGET" value-ref="NoopGET" />
+				<entry key="GETEntity" value-ref="GETEntity" />
+				<entry key="GETEntities" value-ref="GETEntities" />
+				<entry key="CreateEntity" value-ref="CreateEntity" />
+				<entry key="GETNavProperty" value-ref="GETNavProperty" />
+				<entry key="UpdateEntity" value-ref="UpdateEntity" />
+				<entry key="DeleteEntity" value-ref="DeleteEntity" />
+			</util:map> 
+		</constructor-arg>
+	</bean> 
+</beans>
