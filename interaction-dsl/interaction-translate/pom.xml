@@ -9,6 +9,7 @@
 		<relativePath>../../interaction-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>interaction-translate</artifactId>
+    <name>interaction-translate</name>
 	<packaging>jar</packaging>
 	<name></name>
 	<dependencies>
