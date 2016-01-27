@@ -1,5 +1,6 @@
 package com.temenos.interaction.rimdsl.generator.launcher;
 
+import com.temenos.interaction.core.loader.ResourceStateLoader;
 import org.junit.Test;
 
 import java.util.List;
@@ -14,8 +15,16 @@ import static org.junit.Assert.assertNotNull;
 public class RIMResourceStateLoaderTest {
 
     @Test
-    public void testLoad() throws Exception {
-        RIMResourceStateLoader loader = new RIMResourceStateLoader();
+    public void testLoad() {
+        ResourceStateLoader<String> loader = new RIMResourceStateLoader();
+        List<ResourceStateResult> resourceStateList = loader.load("Airline.rim");
+        assertNotNull(resourceStateList);
+        assertFalse(resourceStateList.isEmpty());
+    }
+
+    @Test
+    public void testLoad_Pure() {
+        ResourceStateLoader<String> loader = new RIMResourceStateLoaderPure();
         List<ResourceStateResult> resourceStateList = loader.load("Airline.rim");
         assertNotNull(resourceStateList);
         assertFalse(resourceStateList.isEmpty());
