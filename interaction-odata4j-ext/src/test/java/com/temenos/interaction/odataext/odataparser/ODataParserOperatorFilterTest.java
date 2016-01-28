@@ -200,29 +200,29 @@ public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest
 
         assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
     }
-    
+
     /**
      * Test parsing a OData4j expression
      */
     @Test
     @Deprecated
-    public void testExpressionFilter() {    
+    public void testExpressionFilter() {
         List<RowFilter> actual = null;
-        
-        BoolCommonExpression expr = (BoolCommonExpression)Expression.parse("a eq b");
+
+        BoolCommonExpression expr = (BoolCommonExpression) Expression.parse("a eq b");
         try {
-            actual =  ODataParser.parseFilter(expr);
+            actual = ODataParser.parseFilter(expr);
         } catch (Exception e) {
             fail("Failed with " + e);
         }
-        
+
         assertFalse(null == actual);
         assertEquals(1, actual.size());
-        assertEquals("a", actual.get(0).getFieldName().getName());       
+        assertEquals("a", actual.get(0).getFieldName().getName());
         assertEquals(Relation.EQ, actual.get(0).getRelation());
-        assertEquals("b", actual.get(0).getValue());       
+        assertEquals("b", actual.get(0).getValue());
     }
-    
+
     /**
      * Test old style filter.
      */

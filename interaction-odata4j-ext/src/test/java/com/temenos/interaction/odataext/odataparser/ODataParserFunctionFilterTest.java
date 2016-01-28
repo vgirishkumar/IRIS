@@ -62,13 +62,4 @@ public class ODataParserFunctionFilterTest extends AbstractODataParserFilterTest
             }
         }
     }
-    
-    /*
-     * Test the few ternary operators
-     */
-    @Test
-    public void jlt() {
-        // Test the 3 argument version of substring
-        testValid("a eq substring('a', 'b')");
-    }
 }

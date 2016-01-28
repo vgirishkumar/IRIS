@@ -38,12 +38,14 @@ import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQuery
  */
 
 public class RowFilter {
-    
-    // Since this class supports backwards comparability, with a class that did not throw, its callers may not hamdle
-    // exceptions. So catch them and don't throw. When we replace this with RowFilters adjuxt the callers to do things
+
+    // Since this class supports backwards comparability, with a class that did
+    // not throw, its callers may not hamdle
+    // exceptions. So catch them and don't throw. When we replace this with
+    // RowFilters adjuxt the callers to do things
     // correctly
     private final static Logger logger = LoggerFactory.getLogger(RowFilter.class);
-    
+
     // Wrapped OData4j object.
     private BinaryCommonExpression oData4jExpression;
 
@@ -53,35 +55,36 @@ public class RowFilter {
 
     // Constructor for callers that don't have a FieldName.
     public RowFilter(String name, Relation relation, String value) {
-        // Only way to convert fields to an Expression is to print and then parse it.
+        // Only way to convert fields to an Expression is to print and then
+        // parse it.
         String filterStr = name + " " + relation.getoDataString() + " " + value;
         CommonExpression expr = OptionsQueryParser.parseFilter(filterStr);
-        
+
         if (!(expr instanceof BinaryCommonExpression)) {
             // Too complex to fit in a RowFIlter
             logger.error("Expression too complex for row filter. Type=\"" + expr + "\"");
-            
-            // For backward comparability cannot throw UnsupportedQueryOperationException. So throw something that old
+
+            // For backward comparability cannot throw
+            // UnsupportedQueryOperationException. So throw something that old
             // callers can handle.
             throw new NullPointerException("Expression too complex for row filter. Type=\"" + expr + "\"");
-        }         
-        oData4jExpression = (BinaryCommonExpression)expr;
+        }
+        oData4jExpression = (BinaryCommonExpression) expr;
     }
-    
+
     /*
      * Get wrapped oData4J object
      */
     public BinaryCommonExpression getOData4jExpression() {
         return oData4jExpression;
     }
-    
+
     public FieldName getFieldName() {
         FieldName name = null;
-        
+
         try {
             name = new FieldName(oData4jExpression.getLHS());
-        }
-        catch (UnsupportedQueryOperationException e) {
+        } catch (UnsupportedQueryOperationException e) {
             logger.error("LHS incompatible with FieldName.");
         }
         return name;

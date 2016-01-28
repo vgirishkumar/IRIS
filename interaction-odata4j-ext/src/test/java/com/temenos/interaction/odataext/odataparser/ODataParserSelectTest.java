@@ -44,156 +44,156 @@ import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.producer.resources.OptionsQueryParser;
 
 import com.temenos.interaction.odataext.odataparser.data.FieldName;
+
 public class ODataParserSelectTest {
 
-	@Before
-	public void setUp() throws Exception {
-	}
+    @Before
+    public void setUp() throws Exception {
+    }
 
-	@After
-	public void tearDown() {
-	}
+    @After
+    public void tearDown() {
+    }
 
-	/**
-	 * Test valid Selects work
-	 */
-	@Test
-	public void testSimpleSelect() {
-		//testValid("a");
-		
-		try 
-		{ Set<String> jlt = new HashSet<String>();
-		String xxx = "ss";
-		jlt.add(xxx);
+    /**
+     * Test valid Selects work
+     */
+    @Test
+    public void testSimpleSelect() {
+        // testValid("a");
 
-        jlt.add(xxx);
-		}
-		catch (Exception e) {
-		    System.out.println(e);
-		}
-		        
-	}
+        try {
+            Set<String> jlt = new HashSet<String>();
+            String xxx = "ss";
+            jlt.add(xxx);
 
-	/**
-	 * Test empty Selects.
-	 */
-	@Test
-	public void testEmptySelect() {
-		testValid("");
-	}
+            jlt.add(xxx);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
 
-	/*
-	 * Test Select containing multiple terms
-	 */
-	@Test
-	public void testMultipleSelect() {
-		testValid("a, b, c");
-	}
+    }
 
-	/*
-	 * Test Select containing quoted elements
-	 * 
-	 * This appears to be invalid. Doc implies that spaces in oData col names
-	 * are illegal. However if this is incorrect feel free to amend this test.
-	 */
-	@Test
-	public void testQuotesSelect() {
-		testInvalid("'a b'");
-	}
+    /**
+     * Test empty Selects.
+     */
+    @Test
+    public void testEmptySelect() {
+        testValid("");
+    }
 
-	/**
-	 * Test invalid Selects throw.
-	 */
-	@Test
-	public void testBadSelect() {
-		// Bad condition. Not sure this is 'bad'.
-		// testInvalid(",,");
+    /*
+     * Test Select containing multiple terms
+     */
+    @Test
+    public void testMultipleSelect() {
+        testValid("a, b, c");
+    }
 
-		// Can't parse a null string.
-		testInvalid(null);
+    /*
+     * Test Select containing quoted elements
+     * 
+     * This appears to be invalid. Doc implies that spaces in oData col names
+     * are illegal. However if this is incorrect feel free to amend this test.
+     */
+    @Test
+    public void testQuotesSelect() {
+        testInvalid("'a b'");
+    }
 
-		// Wrong number of element (unquoted)
-		testInvalid("a b");
-		testInvalid("a b c");
-	}
+    /**
+     * Test invalid Selects throw.
+     */
+    @Test
+    public void testBadSelect() {
+        // Bad condition. Not sure this is 'bad'.
+        // testInvalid(",,");
 
-	/**
-	 * Test null intermediate select.
-	 */
-	@Test
-	public void testNullSelect() {
+        // Can't parse a null string.
+        testInvalid(null);
 
-		String actual = null;
-		boolean threw = false;
-		try {
-			actual = ODataParser.toSelect(null);
-		} catch (Exception e) {
-			threw = true;
-		}
-		assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
-	}
+        // Wrong number of element (unquoted)
+        testInvalid("a b");
+        testInvalid("a b c");
+    }
 
-	// Test round trip for a valid Select
-	private void testValid(String expected) {
+    /**
+     * Test null intermediate select.
+     */
+    @Test
+    public void testNullSelect() {
 
-		Exception e = null;
+        String actual = null;
+        boolean threw = false;
+        try {
+            actual = ODataParser.toSelect(null);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
+    }
 
-		String actual = null;
-		boolean threw = false;
-		try {
-			actual = ODataParser.toSelect(ODataParser.parseSelect(expected));
-		} catch (Exception caught) {
-			threw = true;
-			e = caught;
-		}
+    // Test round trip for a valid Select
+    private void testValid(String expected) {
 
-		assertFalse("Threw : " + e, threw);
+        Exception e = null;
 
-		// Order may have been changed so we have to do out own parsing (which
-		// could also be wrong).
-		List<String> expectedList = Arrays.asList(expected.split("\\s*,\\s*"));
-		List<String> actualList = Arrays.asList(actual.split("\\s*,\\s*"));
+        String actual = null;
+        boolean threw = false;
+        try {
+            actual = ODataParser.toSelect(ODataParser.parseSelect(expected));
+        } catch (Exception caught) {
+            threw = true;
+            e = caught;
+        }
 
-		for (String str : expectedList) {
-			assertTrue("Expected \"" + expected + "\"Actual is \"" + actual + "\"", actualList.contains(str));
-		}
+        assertFalse("Threw : " + e, threw);
 
-		for (String str : actualList) {
-			assertTrue("Expected \"" + expected + "\"Actual is \"" + actual + "\"", expectedList.contains(str));
-		}
-	}
+        // Order may have been changed so we have to do out own parsing (which
+        // could also be wrong).
+        List<String> expectedList = Arrays.asList(expected.split("\\s*,\\s*"));
+        List<String> actualList = Arrays.asList(actual.split("\\s*,\\s*"));
 
-	// Test invalid Select throws
-	private void testInvalid(String expected) {
+        for (String str : expectedList) {
+            assertTrue("Expected \"" + expected + "\"Actual is \"" + actual + "\"", actualList.contains(str));
+        }
 
-		boolean threw = false;
-		try {
-			ODataParser.toSelect(ODataParser.parseSelect(expected));
-		} catch (Exception e) {
-			threw = true;
-		}
-		assertTrue(threw);
-	}
-	
-	 /**
+        for (String str : actualList) {
+            assertTrue("Expected \"" + expected + "\"Actual is \"" + actual + "\"", expectedList.contains(str));
+        }
+    }
+
+    // Test invalid Select throws
+    private void testInvalid(String expected) {
+
+        boolean threw = false;
+        try {
+            ODataParser.toSelect(ODataParser.parseSelect(expected));
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertTrue(threw);
+    }
+
+    /**
      * Test parsing a OData4j expression
      */
     @Test
     @Deprecated
-    public void testExpressionSelect() {       
-        List<EntitySimpleProperty> selects= OptionsQueryParser.parseSelect("a, b");
-        
-        Set<FieldName> actual = null;   
+    public void testExpressionSelect() {
+        List<EntitySimpleProperty> selects = OptionsQueryParser.parseSelect("a, b");
+
+        Set<FieldName> actual = null;
         try {
-            actual =  ODataParser.parseSelect(selects);
+            actual = ODataParser.parseSelect(selects);
         } catch (Exception e) {
             fail("Failed with " + e);
         }
-        
+
         assertFalse(null == actual);
         assertEquals(2, actual.size());
-        assertTrue(actual.contains(new FieldName("a")));  
-        assertTrue(actual.contains(new FieldName("b")));   
+        assertTrue(actual.contains(new FieldName("a")));
+        assertTrue(actual.contains(new FieldName("b")));
     }
 
 }

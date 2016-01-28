@@ -47,7 +47,7 @@ public abstract class AbstractODataParserFilterTest {
         assertFalse(threw);
         assertEquals(expected, actual);
     }
- 
+
     // Test round trip for a valid old style filter
     @Deprecated
     protected void testOldValid(String expected) {
@@ -63,7 +63,6 @@ public abstract class AbstractODataParserFilterTest {
         assertFalse(threw);
         assertEquals(expected, actual);
     }
-
 
     // Test invalid filter throws
     protected void testInvalid(String expected) {

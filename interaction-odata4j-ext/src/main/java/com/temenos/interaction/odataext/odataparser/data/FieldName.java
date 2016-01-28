@@ -47,9 +47,9 @@ public class FieldName {
             // Too complex to fit in a RowFIlter
             throw new UnsupportedQueryOperationException("Expression too complex for FieldName. Type=\"" + prop + "\"");
         }
-        oData4jProperty = (EntitySimpleProperty)prop;
+        oData4jProperty = (EntitySimpleProperty) prop;
     }
-    
+
     public FieldName(EntitySimpleProperty prop) {
         oData4jProperty = prop;
     }
