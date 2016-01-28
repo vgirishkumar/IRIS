@@ -54,22 +54,39 @@ public class RowFilters {
             oData4jExpression = OptionsQueryParser.parseFilter(filterStr);
         }
     }
+    
+    public RowFilters(List<RowFilter>filterList) {
+        if (filterList.isEmpty()) {
+            // OData4j parser appears to throw on empty strings. Mark this as an
+            // empty filter.
+            oData4jExpression = null;
+        } else {
+            // Add all the filters
+            for (RowFilter filter : filterList) {
+                addFilter((BoolCommonExpression)filter.getOData4jExpression());
+            }
+        }
+    }
 
     public RowFilters(BoolCommonExpression expression) {
         oData4jExpression = expression;
     }
 
-    public BoolCommonExpression getBoolCommonExpression() {
+    public BoolCommonExpression getOData4jExpression() {
         return oData4jExpression;
     }
 
     // Add (and) a filter with the list
     public void addFilter(String filterStr) {
         BoolCommonExpression newExpression = OptionsQueryParser.parseFilter(filterStr);
-
+        addFilter(newExpression);
+    }
+    
+    // Add (and) a filter with the list
+    public void addFilter(BoolCommonExpression expr) {
         // We become a new 'and' expression with the old expression and our new
         // expression as leafs.
-        oData4jExpression = Expression.and(oData4jExpression, newExpression);
+        oData4jExpression = Expression.and(oData4jExpression, expr);
     }
 
     /*

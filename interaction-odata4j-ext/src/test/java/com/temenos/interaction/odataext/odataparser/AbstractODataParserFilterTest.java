@@ -47,6 +47,23 @@ public abstract class AbstractODataParserFilterTest {
         assertFalse(threw);
         assertEquals(expected, actual);
     }
+ 
+    // Test round trip for a valid old style filter
+    @Deprecated
+    protected void testOldValid(String expected) {
+
+        String actual = null;
+        boolean threw = false;
+        try {
+            actual = ODataParser.toFilter(ODataParser.parseFilter(expected));
+        } catch (Exception e) {
+            threw = true;
+        }
+
+        assertFalse(threw);
+        assertEquals(expected, actual);
+    }
+
 
     // Test invalid filter throws
     protected void testInvalid(String expected) {

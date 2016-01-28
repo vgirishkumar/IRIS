@@ -24,6 +24,11 @@ package com.temenos.interaction.odataext.odataparser.data;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
+
 /**
  * Class to contain full user access profile information for consumers.
  * 
@@ -31,30 +36,46 @@ import java.util.Set;
  *
  */
 public class AccessProfile {
+    private final static Logger logger = LoggerFactory.getLogger(AccessProfile.class);
 
-	// List of filter conditions
-	private List<RowFilter> rowFilters;
-	// Set of field/column to select 
-	private Set<FieldName> fieldNames;
-	
-	public AccessProfile(List<RowFilter> rowFilters, Set<FieldName> fieldNames) {
-		this.rowFilters = rowFilters;
-		this.fieldNames = fieldNames; 
-	}
-	
-	public List<RowFilter> getRowFilters() {
-		return rowFilters;
-	}
-	
-	public void setRowFilters(List<RowFilter> rowFilters) {
-		this.rowFilters = rowFilters;
-	}
-	
-	public Set<FieldName> getFieldNames() {
-		return fieldNames;
-	}
-	
-	public void setFieldNames(Set<FieldName> fieldNames) {
-		this.fieldNames = fieldNames;
-	}
+    // Filter conditions
+    private RowFilters rowFilters;
+
+    // Set of field/column to select
+    private Set<FieldName> fieldNames;
+
+    public AccessProfile(List<RowFilter> rowFilters, Set<FieldName> fieldNames) {
+        setRowFilters(rowFilters);
+        this.fieldNames = fieldNames;
+    }
+
+    @Deprecated
+    public List<RowFilter> getRowFilters() {
+        try {
+            return rowFilters.asRowFilters();
+        } catch (UnsupportedQueryOperationException e) {
+            // For backward comparability cannot throw
+            // UnsupportedQueryOperationException. So throw something that old
+            // callers can handle.
+            logger.error("Could not convert to row filters");
+            return null;
+        }
+    }
+    
+    public void setRowFilters(RowFilters rowFilters) {
+        this.rowFilters = rowFilters;
+    }
+    
+    @Deprecated
+    public void setRowFilters(List<RowFilter> rowFilters) {
+        setRowFilters(new RowFilters(rowFilters));
+    }
+    
+    public Set<FieldName> getFieldNames() {
+        return fieldNames;
+    }
+
+    public void setFieldNames(Set<FieldName> fieldNames) {
+        this.fieldNames = fieldNames;
+    }
 }

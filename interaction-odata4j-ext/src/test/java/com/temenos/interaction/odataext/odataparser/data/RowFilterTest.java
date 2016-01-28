@@ -28,33 +28,33 @@ import org.junit.Test;
 
 public class RowFilterTest {
 
-	@Before
-	public void setUp() throws Exception {
-	}
+    @Before
+    public void setUp() throws Exception {
+    }
 
-	@After
-	public void tearDown() {
-	}
+    @After
+    public void tearDown() {
+    }
 
-	@Test
-	public void testConstruct() {
-		
-		FieldName name = new FieldName("aname");
+    @Test
+    public void testConstruct() {
 
-		RowFilter filter = new RowFilter(name, Relation.EQ, "avalue");
+        FieldName name = new FieldName("aname");
 
-		assertEquals("aname", filter.getFieldName().getName());
-		assertEquals(Relation.EQ, filter.getRelation());
-		assertEquals("avalue", filter.getValue());
-	}
-	
-	@Test
-	public void testStringConstruct() {
-		
-		RowFilter filter = new RowFilter("aname", Relation.EQ, "avalue");
+        RowFilter filter = new RowFilter(name, Relation.EQ, "avalue");
 
-		assertEquals("aname", filter.getFieldName().getName());
-		assertEquals(Relation.EQ, filter.getRelation());
-		assertEquals("avalue", filter.getValue());
-	}
+        assertEquals("aname", filter.getFieldName().getName());
+        assertEquals(Relation.EQ, filter.getRelation());
+        assertEquals("avalue", filter.getValue());
+    }
+
+    @Test
+    public void testStringConstruct() {
+
+        RowFilter filter = new RowFilter("aname", Relation.EQ, "avalue");
+
+        assertEquals("aname", filter.getFieldName().getName());
+        assertEquals(Relation.EQ, filter.getRelation());
+        assertEquals("avalue", filter.getValue());
+    }
 }

@@ -51,7 +51,7 @@ public class RowFiltersTest {
 
         RowFilters filters = new RowFilters(expected);
 
-        assertEquals(expected, filters.getBoolCommonExpression());
+        assertEquals(expected, filters.getOData4jExpression());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class RowFiltersTest {
         String expectedStr = "";
         RowFilters filters = new RowFilters("");
 
-        assertEquals(null, filters.getBoolCommonExpression());
+        assertEquals(null, filters.getOData4jExpression());
         assertEquals(expectedStr, ODataParser.toFilters(filters));
     }
 
@@ -85,8 +85,7 @@ public class RowFiltersTest {
     }
 
     @Test
-    @Deprecated
-    public void testSimpleToRowFilter() {
+    public void testSimpleToRowFilters() {
         String expectedStr = "aname ne avalue";
 
         RowFilters filters = new RowFilters(expectedStr);
@@ -106,8 +105,7 @@ public class RowFiltersTest {
     }
 
     @Test
-    @Deprecated
-    public void testLiteralToRowFilter() {
+    public void testLiteralToRowFilters() {
         String expectedStr = "aname eq 1111";
 
         RowFilters filters = new RowFilters(expectedStr);
@@ -127,8 +125,7 @@ public class RowFiltersTest {
     }
 
     @Test
-    @Deprecated
-    public void testStringLiteralToRowFilter() {
+    public void testStringLiteralToRowFilters() {
         String expectedStr = "aname gt 'abc'";
 
         RowFilters filters = new RowFilters(expectedStr);
@@ -148,8 +145,7 @@ public class RowFiltersTest {
     }
 
     @Test
-    @Deprecated
-    public void testMultipleToRowFilter() {
+    public void testMultipleToRowFilters() {
         String expectedStr = "aname1 eq avalue1 and aname2 ne avalue2";
 
         RowFilters filters = new RowFilters(expectedStr);

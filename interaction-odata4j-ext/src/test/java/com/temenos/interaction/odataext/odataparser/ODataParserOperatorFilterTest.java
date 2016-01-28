@@ -25,12 +25,15 @@ package com.temenos.interaction.odataext.odataparser;
  * #L%
  */
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.List;
 
 import org.junit.Test;
+import org.odata4j.expression.BoolCommonExpression;
+import org.odata4j.expression.Expression;
 
 import com.temenos.interaction.odataext.odataparser.data.Relation;
 import com.temenos.interaction.odataext.odataparser.data.RowFilter;
@@ -52,7 +55,8 @@ public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest
     public void testStringFilters() {
         for (Relation rel : Relation.values()) {
             if (!rel.isNumeric() && !rel.isBoolean() && (2 == rel.getExpectedArgumentCount()) && !rel.isFunctionCall()) {
-                testValid("a " + rel.getoDataString() + " b");
+                String str = "a " + rel.getoDataString() + " b";
+                testValid(str);
             }
         }
     }
@@ -90,7 +94,8 @@ public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest
     public void testBooleanBinaryFilters() {
         for (Relation rel : Relation.values()) {
             if (rel.isBoolean() && (2 == rel.getExpectedArgumentCount()) && (!rel.isFunctionCall())) {
-                testValid("true " + rel.getoDataString() + " false");
+                String str = "true " + rel.getoDataString() + " false";
+                testValid(str);
             }
         }
     }
@@ -194,5 +199,37 @@ public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest
         }
 
         assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
+    }
+    
+    /**
+     * Test parsing a OData4j expression
+     */
+    @Test
+    @Deprecated
+    public void testExpressionFilter() {    
+        List<RowFilter> actual = null;
+        
+        BoolCommonExpression expr = (BoolCommonExpression)Expression.parse("a eq b");
+        try {
+            actual =  ODataParser.parseFilter(expr);
+        } catch (Exception e) {
+            fail("Failed with " + e);
+        }
+        
+        assertFalse(null == actual);
+        assertEquals(1, actual.size());
+        assertEquals("a", actual.get(0).getFieldName().getName());       
+        assertEquals(Relation.EQ, actual.get(0).getRelation());
+        assertEquals("b", actual.get(0).getValue());       
+    }
+    
+    /**
+     * Test old style filter.
+     */
+    @Test
+    @Deprecated
+    public void testOldFilter() {
+        // Just do a representative one
+        testOldValid("a eq b and c ne 'd' and e gt 1");
     }
 }

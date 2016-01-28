@@ -121,7 +121,7 @@ public class ODataParser {
 
     // Convert filter to an oData parameter
     public static String toFilters(RowFilters filters) {
-        return (OData4jToFilters(filters.getBoolCommonExpression()));
+        return (OData4jToFilters(filters.getOData4jExpression()));
     }
 
     // Once it is no longer needed for back compatibility this should be made
@@ -169,7 +169,7 @@ public class ODataParser {
     public static String toSelect(Set<FieldName> selects) {
         List<EntitySimpleProperty> oData4jSelects = new ArrayList<EntitySimpleProperty>();
         for (FieldName select : selects) {
-            oData4jSelects.add(select.getEntitySimpleProperty());
+            oData4jSelects.add(select.getOData4jExpression());
         }
         return OData4jToSelect(oData4jSelects);
     }
@@ -184,7 +184,7 @@ public class ODataParser {
     public static String toOrderBy(List<OrderBy> orderByList) {
         List<OrderByExpression> oData4jOrderBys = new ArrayList<OrderByExpression>();
         for (OrderBy orderBy : orderByList) {
-            oData4jOrderBys.add(orderBy.getOrderByExpression());
+            oData4jOrderBys.add(orderBy.getOData4jExpression());
         }
         return OData4jToOrderBy(oData4jOrderBys);
     }

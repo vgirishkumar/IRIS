@@ -27,8 +27,10 @@ package com.temenos.interaction.odataext.odataparser;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -38,6 +40,10 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.odata4j.expression.EntitySimpleProperty;
+import org.odata4j.producer.resources.OptionsQueryParser;
+
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
 public class ODataParserSelectTest {
 
 	@Before
@@ -168,5 +174,26 @@ public class ODataParserSelectTest {
 		}
 		assertTrue(threw);
 	}
+	
+	 /**
+     * Test parsing a OData4j expression
+     */
+    @Test
+    @Deprecated
+    public void testExpressionSelect() {       
+        List<EntitySimpleProperty> selects= OptionsQueryParser.parseSelect("a, b");
+        
+        Set<FieldName> actual = null;   
+        try {
+            actual =  ODataParser.parseSelect(selects);
+        } catch (Exception e) {
+            fail("Failed with " + e);
+        }
+        
+        assertFalse(null == actual);
+        assertEquals(2, actual.size());
+        assertTrue(actual.contains(new FieldName("a")));  
+        assertTrue(actual.contains(new FieldName("b")));   
+    }
 
 }

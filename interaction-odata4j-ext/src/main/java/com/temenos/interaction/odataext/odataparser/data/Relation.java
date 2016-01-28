@@ -86,73 +86,73 @@ public enum Relation {
 
     GE("ge", ">=", GeExpression.class, false),
 
-    AND("and", "TODO", AndExpression.class, false),
+    AND("and", null, AndExpression.class, false),
 
-    OR("or", "TODO", OrExpression.class, false),
+    OR("or", null, OrExpression.class, false),
 
-    NOT("not", "TODO", NotExpression.class, false),
+    NOT("not", null, NotExpression.class, false),
 
-    ADD("add", "TODO", AddExpression.class, true),
+    ADD("add", null, AddExpression.class, true),
 
-    SUB("sub", "TODO", SubExpression.class, true),
+    SUB("sub", null, SubExpression.class, true),
 
-    MUL("mul", "TODO", MulExpression.class, true),
+    MUL("mul", null, MulExpression.class, true),
 
-    DIV("div", "TODO", DivExpression.class, true),
+    DIV("div", null, DivExpression.class, true),
 
-    MOD("mod", "TODO", ModExpression.class, true),
+    MOD("mod", null, ModExpression.class, true),
 
     // Unary functions.
-    TOUPPER("toupper", "TODO", ToUpperMethodCallExpression.class, false),
+    TOUPPER("toupper", null, ToUpperMethodCallExpression.class, false),
 
-    TOLOWER("tolower", "TODO", ToLowerMethodCallExpression.class, false),
+    TOLOWER("tolower", null, ToLowerMethodCallExpression.class, false),
 
-    LENGTH("length", "TODO", LengthMethodCallExpression.class, false),
+    LENGTH("length", null, LengthMethodCallExpression.class, false),
 
-    TRIM("trim", "TODO", TrimMethodCallExpression.class, false),
+    TRIM("trim", null, TrimMethodCallExpression.class, false),
 
     // TODO this one has syntax like a function but is not derived from a
     // MethodCallExpression.
     // Also it has 1 or 2 arguments. For the moment can't handle it.
-    // ISOF("isof", "TODO", IsofExpression.class, false),
+    // ISOF("isof", null, IsofExpression.class, false),
 
     // Unary time related functions
 
-    YEAR("year", "TODO", YearMethodCallExpression.class, false),
+    YEAR("year", null, YearMethodCallExpression.class, false),
 
-    MONTH("month", "TODO", MonthMethodCallExpression.class, false),
+    MONTH("month", null, MonthMethodCallExpression.class, false),
 
-    DAY("day", "TODO", DayMethodCallExpression.class, false),
+    DAY("day", null, DayMethodCallExpression.class, false),
 
-    HOUR("hour", "TODO", HourMethodCallExpression.class, false),
+    HOUR("hour", null, HourMethodCallExpression.class, false),
 
-    MINUTE("minute", "TODO", MinuteMethodCallExpression.class, false),
+    MINUTE("minute", null, MinuteMethodCallExpression.class, false),
 
-    SECOND("second", "TODO", SecondMethodCallExpression.class, false),
+    SECOND("second", null, SecondMethodCallExpression.class, false),
 
     // Unary maths functions
 
-    ROUND("round", "TODO", RoundMethodCallExpression.class, false),
+    ROUND("round", null, RoundMethodCallExpression.class, false),
 
-    FLOOR("floor", "TODO", FloorMethodCallExpression.class, false),
+    FLOOR("floor", null, FloorMethodCallExpression.class, false),
 
-    CEILING("ceiling", "TODO", CeilingMethodCallExpression.class, false),
+    CEILING("ceiling", null, CeilingMethodCallExpression.class, false),
 
     // Binary functions.
-    SUBSTROF("substringof", "TODO", SubstringOfMethodCallExpression.class, false),
+    SUBSTROF("substringof", null, SubstringOfMethodCallExpression.class, false),
 
-    ENDSWITH("endswith", "TODO", EndsWithMethodCallExpression.class, false),
+    ENDSWITH("endswith", null, EndsWithMethodCallExpression.class, false),
 
-    STARTSWITH("startswith", "TODO", StartsWithMethodCallExpression.class, false),
+    STARTSWITH("startswith", null, StartsWithMethodCallExpression.class, false),
 
-    INDEXOF("indexof", "TODO", IndexOfMethodCallExpression.class, false),
+    INDEXOF("indexof", null, IndexOfMethodCallExpression.class, false),
 
-    CONCAT("concat", "TODO", ConcatMethodCallExpression.class, false),
+    CONCAT("concat", null, ConcatMethodCallExpression.class, false),
 
     // Ternary functions.
-    SUBSTR("substring", "TODO", SubstringMethodCallExpression.class, false),
+    SUBSTR("substring", null, SubstringMethodCallExpression.class, false),
 
-    REPLACE("replace", "TODO", ReplaceMethodCallExpression.class, false);
+    REPLACE("replace", null, ReplaceMethodCallExpression.class, false);
 
     // OData equivalent. Should really be string constants from oData4j. But
     // those are scoped as private so have to redefine here.
@@ -178,6 +178,7 @@ public enum Relation {
         return (oDataString);
     }
 
+    // Return equivalent SQL symbol. Null if not supported.
     public String getSqlSymbol() {
         return (sqlSymbol);
     }

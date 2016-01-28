@@ -34,7 +34,7 @@ import com.temenos.interaction.odataext.odataparser.output.OutputParameters;
  */
 
 public class OrderBy {
-    // Field name
+    // Wrapped OData4j object.
     private OrderByExpression oData4jExpression;
 
     public OrderBy(String orderBy, Direction direction) {
@@ -51,7 +51,7 @@ public class OrderBy {
         return new FieldName(sb.toString());
     }
 
-    public OrderByExpression getOrderByExpression() {
+    public OrderByExpression getOData4jExpression() {
         return oData4jExpression;
     }
 

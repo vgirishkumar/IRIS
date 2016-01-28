@@ -27,8 +27,11 @@ package com.temenos.interaction.odataext.odataparser.data;
  * #L%
  */
 
+import org.odata4j.expression.CommonExpression;
 import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.expression.Expression;
+
+import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
 
 public class FieldName {
 
@@ -39,6 +42,14 @@ public class FieldName {
         oData4jProperty = Expression.simpleProperty(name);
     }
 
+    public FieldName(CommonExpression prop) throws UnsupportedQueryOperationException {
+        if (!(prop instanceof EntitySimpleProperty)) {
+            // Too complex to fit in a RowFIlter
+            throw new UnsupportedQueryOperationException("Expression too complex for FieldName. Type=\"" + prop + "\"");
+        }
+        oData4jProperty = (EntitySimpleProperty)prop;
+    }
+    
     public FieldName(EntitySimpleProperty prop) {
         oData4jProperty = prop;
     }
@@ -50,7 +61,7 @@ public class FieldName {
     /*
      * Get wrapped oData4J object
      */
-    public EntitySimpleProperty getEntitySimpleProperty() {
+    public EntitySimpleProperty getOData4jExpression() {
         return oData4jProperty;
     }
 
