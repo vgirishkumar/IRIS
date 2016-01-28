@@ -34,11 +34,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.odata4j.expression.BoolCommonExpression;
 import org.odata4j.expression.CommonExpression;
 import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.expression.OrderByExpression;
+import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.resources.OptionsQueryParser;
 
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.odataext.odataparser.data.FieldName;
 import com.temenos.interaction.odataext.odataparser.data.OrderBy;
 import com.temenos.interaction.odataext.odataparser.data.RowFilter;
@@ -188,6 +193,52 @@ public class ODataParser {
         StringBuffer sb = new StringBuffer();
         OutputParameters.appendParameter(sb, orderBys, true);
         return (sb.toString());
+    }
+
+    /*
+     * Obtain the odata query information from the context's query parameters.
+     * This parses the incoming parameters into an oData4j EntityQueryInfo
+     * object. Further work is than required to convert this into our internal
+     * representation.
+     */
+    public static EntityQueryInfo getEntityQueryInfo(InteractionContext ctx) {
+        MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+
+        // Unpack parameters
+        String filter = queryParams.getFirst(FILTER_KEY);
+        String select = queryParams.getFirst(SELECT_KEY);
+
+        return new EntityQueryInfo(OptionsQueryParser.parseFilter(filter), null, null,
+                OptionsQueryParser.parseSelect(select));
+    }
+
+    // Convert an OData filter into a list of authorization framework
+    // RowFilters. A complete implementation of this would be complex. For now
+    // only parse simple filters and throw on failure.
+    public static List<RowFilter> parseFilter(BoolCommonExpression expression)
+            throws UnsupportedQueryOperationException {
+
+        if (null != expression) {
+            RowFilters filters = new RowFilters(expression);
+            return filters.asRowFilters();
+        }
+        return (new ArrayList<RowFilter>());
+    }
+    
+    // Convert an OData select into a list of authorization framework
+    // field names.
+    public static Set<FieldName> parseSelect(List<EntitySimpleProperty> propList) {
+
+        if (null == propList) {
+            return (null);
+        }
+
+        Set<FieldName> select = new HashSet<FieldName>();
+        for (EntitySimpleProperty prop : propList) {
+            select.add(new FieldName(prop));
+        }
+
+        return (select);
     }
 
     // Errors thrown by parsing
