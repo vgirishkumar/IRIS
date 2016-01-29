@@ -55,6 +55,7 @@ public class RowFilters {
         }
     }
     
+    @Deprecated
     public RowFilters(List<RowFilter>filterList) {
         if (filterList.isEmpty()) {
             // OData4j parser appears to throw on empty strings. Mark this as an
@@ -161,5 +162,9 @@ public class RowFilters {
         }
 
         return str;
+    }
+    
+    public boolean isEmpty() {
+        return (null == getOData4jExpression());
     }
 }

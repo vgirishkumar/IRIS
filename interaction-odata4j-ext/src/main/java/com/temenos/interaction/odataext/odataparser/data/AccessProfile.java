@@ -43,10 +43,22 @@ public class AccessProfile {
 
     // Set of field/column to select
     private Set<FieldName> fieldNames;
-
-    public AccessProfile(List<RowFilter> rowFilters, Set<FieldName> fieldNames) {
-        setRowFilters(rowFilters);
+    
+    public AccessProfile(RowFilters rowFilters, Set<FieldName> fieldNames) {
+        this.rowFilters = rowFilters;
         this.fieldNames = fieldNames;
+    }
+    
+    @Deprecated
+    public AccessProfile(List<RowFilter> rowFilters, Set<FieldName> fieldNames) {
+
+        this.rowFilters = new RowFilters(rowFilters);
+        this.fieldNames = fieldNames;
+    }
+    
+    // TODO once old getRowFilters() has been removed rename this.
+    public RowFilters getNewRowFilters() {
+        return rowFilters;
     }
 
     @Deprecated
@@ -62,20 +74,7 @@ public class AccessProfile {
         }
     }
     
-    public void setRowFilters(RowFilters rowFilters) {
-        this.rowFilters = rowFilters;
-    }
-    
-    @Deprecated
-    public void setRowFilters(List<RowFilter> rowFilters) {
-        setRowFilters(new RowFilters(rowFilters));
-    }
-    
     public Set<FieldName> getFieldNames() {
         return fieldNames;
-    }
-
-    public void setFieldNames(Set<FieldName> fieldNames) {
-        this.fieldNames = fieldNames;
     }
 }

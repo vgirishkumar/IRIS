@@ -21,6 +21,7 @@ package com.temenos.interaction.odataext.odataparser.data;
  * #L%
  */
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.List;
@@ -70,6 +71,7 @@ public class RowFiltersTest {
 
         assertEquals(null, filters.getOData4jExpression());
         assertEquals(expectedStr, ODataParser.toFilters(filters));
+        assertTrue(filters.isEmpty());
     }
 
     @Test
