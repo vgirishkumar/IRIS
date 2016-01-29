@@ -287,8 +287,8 @@
     </dependency>
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
-    	<artifactId>translate</artifactId>
-    	<version>0.8.0-SNAPSHOT</version>
+    	<artifactId>interaction-translate</artifactId>
+    	<version>0.9.0-SNAPSHOT</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>    
