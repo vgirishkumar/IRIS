@@ -49,7 +49,7 @@ public class ResourceSetGeneratorAction implements Action<FileEvent<File>> {
     @Override
     public synchronized void execute(FileEvent<File> dirEvent) {
     	this.available = false;
-    	logger.error("File change or new files detected in {}", 
+    	logger.info("File change or new files detected in {}", 
         		dirEvent.getResource().getAbsolutePath());
         Collection<File> rims = FileUtils.listFiles(
     		dirEvent.getResource(), new String[]{"rim"}, true

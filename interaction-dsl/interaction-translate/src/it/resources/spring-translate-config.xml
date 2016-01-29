@@ -104,11 +104,6 @@
 	
 	<bean id="rimDirWatchdog" class="com.temenos.interaction.loader.detector.DirectoryChangeActionNotifier">
 	   <constructor-arg name="executorService" type="java.util.concurrent.ScheduledExecutorService" ref="executorService" />
-	   <property name="resources">
-	       <list>
-	           <value>D:\\DevUtils\\myrepos\\master-s2\\interaction-dsl\\interaction-translate\\target\\classes\\hot-deploy-dir</value>
-	       </list>
-       </property>
 	   <property name="listeners">
 	        <ref bean="updateAfterChangeRIMAction" />
 	    </property>

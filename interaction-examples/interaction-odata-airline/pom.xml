@@ -102,12 +102,12 @@
 						<resourceBase>${basedir}/src/main/webapp</resourceBase>
 					</resourceBases>
 				</webApp>
-                                <systemProperties>
-                                    <systemProperty>
-                                        <name>hot.deploy.dir</name>
-                                        <value>${project.build.directory}/hot-deploy</value>
-                                    </systemProperty>
-                                </systemProperties>
+                <systemProperties>
+                    <systemProperty>
+                        <name>hot.deploy.dir</name>
+                        <value>${basedir}/hot-deploy-dir</value>
+                    </systemProperty>
+                </systemProperties>
 			</configuration>
 			<executions>
 				<execution>
@@ -282,6 +282,13 @@
     <dependency>
     	<groupId>com.temenos.interaction</groupId>
     	<artifactId>interaction-springdsl</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>translate</artifactId>
+    	<version>0.8.0-SNAPSHOT</version>
     	<type>jar</type>
     	<scope>runtime</scope>
     </dependency>    

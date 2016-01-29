@@ -114,4 +114,8 @@
 			<Term Name="TERM_COMPLEX_GROUP">address</Term>
 		</Property-->
 	</Entity>
+		<Entity Name="Greeting">
+   		<Property Name="helloWorld"></Property>
+   	</Entity>
+	
 </Metadata>
