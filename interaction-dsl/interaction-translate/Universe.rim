@@ -1,0 +1,16 @@
+rim greetings {
+
+event GET {
+	method: GET
+}
+
+command GETTestController
+
+resource Universe {
+	type: item
+	entity: Greeting
+	view: GETTestController
+	path: "/universe"
+}
+
+}

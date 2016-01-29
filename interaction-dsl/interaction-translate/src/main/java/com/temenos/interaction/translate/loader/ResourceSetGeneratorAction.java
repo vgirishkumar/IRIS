@@ -22,7 +22,6 @@ package com.temenos.interaction.translate.loader;
 
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.commons.io.FileUtils;
@@ -42,14 +41,15 @@ import com.temenos.interaction.core.loader.FileEvent;
  */
 public class ResourceSetGeneratorAction implements Action<FileEvent<File>> {
 
-	private static final boolean REGISTER_WITH_APACHE_WINK = true;
     private static final Logger logger = LoggerFactory.getLogger(ResourceSetGeneratorAction.class);
     
     private FileMappingResourceStateProvider resourceStateProvider;
+    private boolean available;
     
     @Override
-    public void execute(FileEvent<File> dirEvent) {
-        logger.debug("File change or new files detected in {}", 
+    public synchronized void execute(FileEvent<File> dirEvent) {
+    	this.available = false;
+    	logger.error("File change or new files detected in {}", 
         		dirEvent.getResource().getAbsolutePath());
         Collection<File> rims = FileUtils.listFiles(
     		dirEvent.getResource(), new String[]{"rim"}, true
@@ -58,19 +58,16 @@ public class ResourceSetGeneratorAction implements Action<FileEvent<File>> {
         	logger.info("Couldn't find any RIM file changes; skipping registration.");
         	return;
         }
-        Collection<String> rimFilenames = this.getFilenamesFromFiles(rims);
-        this.resourceStateProvider.loadAndMapFiles(rimFilenames, REGISTER_WITH_APACHE_WINK);
+        this.resourceStateProvider.loadAndMapFileObjects(rims);
+        this.available = true;
+        notifyAll();
     }
-	
-	private Collection<String> getFilenamesFromFiles(Collection<File> files){
-		Collection<String> filenames = new ArrayList<String>();
-		for(File file : files){
-			filenames.add(file.getName());
-		}
-		return filenames;
-	}
-    
+	    
     public void setResourceStateProvider(FileMappingResourceStateProvider resourceStateProvider){
         this.resourceStateProvider = resourceStateProvider;
+    }
+    
+    public boolean isAvailable(){
+    	return available;
     }
 }

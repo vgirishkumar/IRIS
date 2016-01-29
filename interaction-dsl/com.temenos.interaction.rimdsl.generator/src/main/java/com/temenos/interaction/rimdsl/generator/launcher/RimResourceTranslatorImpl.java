@@ -9,6 +9,8 @@ import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.xbase.lib.IteratorExtensions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -23,7 +25,7 @@ public class RimResourceTranslatorImpl implements RimResourceTranslator<RimResou
 
     @Override
     public Object translateTo(final Resource rimResource, final RimResourceTranslationTarget target) {
-        whenNullThrowException(rimResource, "Method was called with null resource");
+    	whenNullThrowException(rimResource, "Method was called with null resource");
 
         Object collection = createCorrectReturnType(target);
         for (final ResourceInteractionModel rim : getResourceInteractionModels(rimResource)) {

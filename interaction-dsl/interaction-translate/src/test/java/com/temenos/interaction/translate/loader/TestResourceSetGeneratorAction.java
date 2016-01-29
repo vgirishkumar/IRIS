@@ -21,7 +21,6 @@ package com.temenos.interaction.translate.loader;
  */
 
 
-import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,6 +31,7 @@ import java.io.IOException;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
@@ -46,6 +46,7 @@ import com.temenos.interaction.translate.loader.ResourceSetGeneratorAction;
 /**
  * TODO: Document me!
  *
+ * @author dgroves
  * @author hmanchala
  *
  */
@@ -55,6 +56,9 @@ public class TestResourceSetGeneratorAction {
     private @Mock FileMappingResourceStateProvider resourceStateProvider;
     private @Mock ResourceState alpha, beta, theta;
     private @Mock FileEvent<File> fileEvent;
+    
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
     
     @Before
     public void setUp() {
@@ -71,14 +75,12 @@ public class TestResourceSetGeneratorAction {
     @Test
     public void testExecute() throws IOException {
         //given
-        TemporaryFolder tempFolder = new TemporaryFolder();
-        tempFolder.create();
         tempFolder.newFile("numbers.rim");
         when(fileEvent.getResource()).thenReturn(tempFolder.getRoot());
         //when
         this.resourceSetGeneratorAction.execute(fileEvent);
         //then
-        verify(this.resourceStateProvider, times(1)).loadAndMapFiles(anyCollectionOf(String.class), eq(true));
+        verify(this.resourceStateProvider, times(1)).loadAndMapFileObjects(anyCollectionOf(File.class));
     }
     
     @Test
@@ -91,6 +93,6 @@ public class TestResourceSetGeneratorAction {
         //when
         this.resourceSetGeneratorAction.execute(fileEvent);
         //then
-        verify(this.resourceStateProvider, times(0)).loadAndMapFiles(anyCollectionOf(String.class), eq(true));
+        verify(this.resourceStateProvider, times(0)).loadAndMapFileObjects(anyCollectionOf(File.class));
     }
 }

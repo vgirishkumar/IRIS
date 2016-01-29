@@ -18,7 +18,7 @@ public class RIMDslRuntimeModule extends AbstractRIMDslRuntimeModule {
 
 	@Override
 	public Class<? extends IQualifiedNameProvider> bindIQualifiedNameProvider() {
-		return RIMDslQualifiedNameProvider.class;
+		return (Class<? extends IQualifiedNameProvider>) RIMDslQualifiedNameProvider.class;
 	}
 
 	// no @Override

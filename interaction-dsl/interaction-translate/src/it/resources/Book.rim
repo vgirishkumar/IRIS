@@ -3,32 +3,22 @@ rim test {
 event GET {
 	method: GET
 }
-event PUT {
-	method: PUT
-}
 
-command GetEntities
-command GetEntity
-command UpdateEntity
+command GETServiceDocument
+command GETTestController
 
-initial resource Notes {
-	type: collection
-	entity: Note
-	view: GetEntities
-	GET -> B
-}
-
-resource B {
+initial resource ServiceDocument {
 	type: item
-	entity: ENTITY
-	view: GetEntity
-	PUT -> B_update
+	entity: ServiceDocument
+	view: GETServiceDocument
+	path: "/"
+	GET -> World
 }
 
-resource B_update {
+resource World {
 	type: item
-	entity: ENTITY
-    actions [ UpdateEntity ]
+	entity: Greeting
+	view: GETTestController
 }
 
 }

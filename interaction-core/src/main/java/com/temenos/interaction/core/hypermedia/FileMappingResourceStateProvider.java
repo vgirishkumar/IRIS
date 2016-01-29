@@ -1,5 +1,7 @@
 package com.temenos.interaction.core.hypermedia;
 
+import java.io.File;
+
 /*
  * #%L
  * interaction-core
@@ -26,5 +28,6 @@ import java.util.Collection;
 import java.util.List;
 
 public interface FileMappingResourceStateProvider extends ResourceStateProvider {
-	public void loadAndMapFiles(Collection<String> files, boolean register);
+	public void loadAndMapFileNames(Collection<String> files);
+	public void loadAndMapFileObjects(Collection<File> files);
 }

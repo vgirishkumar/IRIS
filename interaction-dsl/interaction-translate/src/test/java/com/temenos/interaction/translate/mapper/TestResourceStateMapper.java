@@ -41,6 +41,10 @@ import org.junit.Test;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
 
+/**
+ * 
+ * @author dgroves
+ */
 public class TestResourceStateMapper {
 
 	private ResourceStateMapper mapper;

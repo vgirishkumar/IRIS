@@ -22,6 +22,7 @@ package com.temenos.interaction.translate.loader;
 
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Mockito.mock;
@@ -31,9 +32,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.CoreMatchers.nullValue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,22 +55,27 @@ import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
-import com.temenos.interaction.core.loader.ResourceStateLoader;
 import com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
+import com.temenos.interaction.rimdsl.generator.launcher.RIMResourceStateLoaderTemplate;
 import com.temenos.interaction.springdsl.StateRegisteration;
 import com.temenos.interaction.translate.loader.RIMResourceStateProvider;
 import com.temenos.interaction.translate.mapper.ResourceStateMapper;
 
+/**
+ * 
+ * @author dgroves
+ */
 public class TestRIMResourceStateProvider {
 	
 	private RIMResourceStateProvider resourceStateProvider;
 	
-	private @Mock ResourceStateLoader<String> loader;
+	private @Mock RIMResourceStateLoaderTemplate loader;
 	private @Mock ResourceStateResult alpha, beta, theta;
 	private @Mock ResourceStateMachine resourceStateMachine;
 	private @Mock StateRegisteration stateRegistration;
 	private @Mock Cache<String, ResourceStateResult> cache;
 	private @Mock ResourceStateMapper mapper;
+	private @Mock File rimFileDummy;
 	
 	private @Spy HashSet<String> sources;
 	private String antPattern;
@@ -76,6 +84,7 @@ public class TestRIMResourceStateProvider {
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		when(loader.load(anyString())).thenReturn(resourceStateResultsStub());
+		when(loader.load(any(File.class))).thenReturn(resourceStateResultsStub());
 		when(alpha.getMethods()).thenReturn(new String[]{"GET"});
 		when(alpha.getPath()).thenReturn("/alpha");
 		when(alpha.getResourceStateId()).thenReturn("Alpha");
@@ -106,7 +115,7 @@ public class TestRIMResourceStateProvider {
 	@Test
 	public void testLoadAndMapFiles(){
 		//when
-		this.resourceStateProvider.loadAndMapFiles(rimFilenamesStub(), false);
+		this.resourceStateProvider.loadAndMapFileNames(rimFilenamesStub());
 		//then
 		verify(loader, times(1)).load(eq("numbers.rim"));
 		verify(alpha).getResourceStateId();
@@ -123,9 +132,9 @@ public class TestRIMResourceStateProvider {
 	@Test
 	public void testLoadAndMapFilesWithWinkRegistrationEnabled(){
 		//when
-		this.resourceStateProvider.loadAndMapFiles(rimFilenamesStub(), true);
+		this.resourceStateProvider.loadAndMapFileObjects(rimFilesStub());
 		//then
-		verify(loader, times(1)).load(eq("numbers.rim"));
+		verify(loader, times(1)).load(same(rimFileDummy));
 		verify(alpha, atLeastOnce()).getResourceStateId();
 		verify(beta, atLeastOnce()).getResourceStateId();
 		verify(theta, atLeastOnce()).getResourceStateId();
@@ -209,6 +218,12 @@ public class TestRIMResourceStateProvider {
 	private List<String> rimFilenamesStub(){
 		return new ArrayList<String>(Arrays.asList(new String[]{
 			"numbers.rim"
+		}));
+	}
+	
+	private List<File> rimFilesStub(){
+		return new ArrayList<File>(Arrays.asList(new File[]{
+			rimFileDummy
 		}));
 	}
 	
