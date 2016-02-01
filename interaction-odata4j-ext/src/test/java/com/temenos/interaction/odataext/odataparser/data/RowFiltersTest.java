@@ -24,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
@@ -78,10 +79,30 @@ public class RowFiltersTest {
     public void testAddFilter() {
         String expectedStr1 = "aname eq avalue";
         String expectedStr2 = "aname ne avalue";
-        String expected = expectedStr1 + " and " + expectedStr2;
+        String expectedStr3 = "aname gt avalue";
+        String expected = expectedStr1 + " and " + expectedStr2 + " and " + expectedStr3;
 
         RowFilters filters = new RowFilters(expectedStr1);
         filters.addFilter(expectedStr2);
+        filters.addFilter(expectedStr3);
+
+        assertEquals(expected, ODataParser.toFilters(filters));
+    }
+
+    @Test
+    @Deprecated
+    public void testAddFRowilter() {
+
+        RowFilter filter1 = new RowFilter("aname", Relation.EQ, "avalue");
+        RowFilter filter2 = new RowFilter("aname", Relation.NE, "avalue");
+
+        List<RowFilter> filterList = new ArrayList<RowFilter>();
+        filterList.add(filter1);
+        filterList.add(filter2);
+
+        String expected = ODataParser.toFilter(filterList);
+
+        RowFilters filters = new RowFilters(filterList);
 
         assertEquals(expected, ODataParser.toFilters(filters));
     }

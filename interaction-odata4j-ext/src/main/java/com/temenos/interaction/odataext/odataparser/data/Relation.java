@@ -86,11 +86,11 @@ public enum Relation {
 
     GE("ge", ">=", GeExpression.class, false),
 
-    AND("and", null, AndExpression.class, false),
+    AND("and", "AND", AndExpression.class, false),
 
-    OR("or", null, OrExpression.class, false),
+    OR("or", "OR", OrExpression.class, false),
 
-    NOT("not", null, NotExpression.class, false),
+    NOT("not", "NOT", NotExpression.class, false),
 
     ADD("add", null, AddExpression.class, true),
 
@@ -103,11 +103,11 @@ public enum Relation {
     MOD("mod", null, ModExpression.class, true),
 
     // Unary functions.
-    TOUPPER("toupper", null, ToUpperMethodCallExpression.class, false),
+    TOUPPER("toupper", "UPPER", ToUpperMethodCallExpression.class, false),
 
-    TOLOWER("tolower", null, ToLowerMethodCallExpression.class, false),
+    TOLOWER("tolower", "LOWER", ToLowerMethodCallExpression.class, false),
 
-    LENGTH("length", null, LengthMethodCallExpression.class, false),
+    LENGTH("length", "LEN", LengthMethodCallExpression.class, false),
 
     TRIM("trim", null, TrimMethodCallExpression.class, false),
 

@@ -54,9 +54,9 @@ public class RowFilters {
             oData4jExpression = OptionsQueryParser.parseFilter(filterStr);
         }
     }
-    
+
     @Deprecated
-    public RowFilters(List<RowFilter>filterList) {
+    public RowFilters(List<RowFilter> filterList) {
         if (filterList.isEmpty()) {
             // OData4j parser appears to throw on empty strings. Mark this as an
             // empty filter.
@@ -64,7 +64,7 @@ public class RowFilters {
         } else {
             // Add all the filters
             for (RowFilter filter : filterList) {
-                addFilter((BoolCommonExpression)filter.getOData4jExpression());
+                addFilter((BoolCommonExpression) filter.getOData4jExpression());
             }
         }
     }
@@ -82,12 +82,17 @@ public class RowFilters {
         BoolCommonExpression newExpression = OptionsQueryParser.parseFilter(filterStr);
         addFilter(newExpression);
     }
-    
+
     // Add (and) a filter with the list
     public void addFilter(BoolCommonExpression expr) {
-        // We become a new 'and' expression with the old expression and our new
-        // expression as leafs.
-        oData4jExpression = Expression.and(oData4jExpression, expr);
+        if (null == oData4jExpression) {
+            // This is the first expression. Just use it.
+            oData4jExpression = expr;
+        } else {
+            // We become a new 'and' expression with the old expression and the added
+            // expression as leafs.
+            oData4jExpression = Expression.and(oData4jExpression, expr);
+        }
     }
 
     /*
@@ -157,13 +162,13 @@ public class RowFilters {
 
         if (!(expr instanceof IntegralLiteral) && !(expr instanceof EntitySimpleProperty)
                 && !(expr instanceof StringLiteral)) {
-            throw new UnsupportedQueryOperationException("Expression too complex for row filter. Type=\"" + expr + "\" value=\"" + str
-                    + "\"");
+            throw new UnsupportedQueryOperationException("Expression too complex for row filter. Type=\"" + expr
+                    + "\" value=\"" + str + "\"");
         }
 
         return str;
     }
-    
+
     public boolean isEmpty() {
         return (null == getOData4jExpression());
     }
