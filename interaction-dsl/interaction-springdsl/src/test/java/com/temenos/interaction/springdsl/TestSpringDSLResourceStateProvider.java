@@ -22,23 +22,22 @@ package com.temenos.interaction.springdsl;
  */
 
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
+import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
+import com.temenos.interaction.core.hypermedia.Transition;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.temenos.interaction.core.hypermedia.Event;
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
-import com.temenos.interaction.core.hypermedia.Transition;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 //ApplicationContext will be loaded from "classpath:/com/temenos/interaction/springdsl/TestSpringDSLResourceStateProvider-context.xml"
@@ -46,7 +45,7 @@ import com.temenos.interaction.core.hypermedia.Transition;
 public class TestSpringDSLResourceStateProvider {
 
 	@Autowired
-	private ResourceStateProvider resourceStateProvider;
+	protected ResourceStateProvider resourceStateProvider;
 
 	@Test
 	public void testGetResourceState() {
