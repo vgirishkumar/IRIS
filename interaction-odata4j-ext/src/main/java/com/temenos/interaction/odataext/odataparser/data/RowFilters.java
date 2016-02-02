@@ -44,7 +44,12 @@ import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQuery
 public class RowFilters {
     // Wrapped OData4j object. Null means an empty filter list.
     private BoolCommonExpression oData4jExpression;
-
+    
+    public RowFilters() {
+        // Empty list
+        oData4jExpression = null;
+    }
+    
     public RowFilters(String filterStr) {
         if (filterStr.isEmpty()) {
             // OData4j parser appears to throw on empty strings. Mark this as an

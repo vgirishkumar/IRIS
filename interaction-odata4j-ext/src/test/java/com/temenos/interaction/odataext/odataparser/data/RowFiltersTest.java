@@ -57,6 +57,13 @@ public class RowFiltersTest {
     }
 
     @Test
+    public void testEmptyConstruct() {
+        RowFilters filters = new RowFilters();
+
+        assertTrue(filters.isEmpty());
+    }
+
+    @Test
     public void testStringConstruct() {
         String expectedStr = "aname eq avalue";
 
