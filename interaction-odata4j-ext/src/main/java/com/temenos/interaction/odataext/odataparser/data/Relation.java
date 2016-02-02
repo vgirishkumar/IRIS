@@ -139,11 +139,11 @@ public enum Relation {
     CEILING("ceiling", null, CeilingMethodCallExpression.class, false),
 
     // Binary functions.
-    SUBSTROF("substringof", null, SubstringOfMethodCallExpression.class, false),
+    SUBSTROF("substringof", "%s LIKE '%%' + %s + '%%'", SubstringOfMethodCallExpression.class, false),
 
-    ENDSWITH("endswith", null, EndsWithMethodCallExpression.class, false),
+    ENDSWITH("endswith", "%s LIKE '%%' + %s", EndsWithMethodCallExpression.class, false),
 
-    STARTSWITH("startswith", null, StartsWithMethodCallExpression.class, false),
+    STARTSWITH("startswith", "%s LIKE %s + '%%'", StartsWithMethodCallExpression.class, false),
 
     INDEXOF("indexof", null, IndexOfMethodCallExpression.class, false),
 
@@ -158,7 +158,9 @@ public enum Relation {
     // those are scoped as private so have to redefine here.
     private final String oDataString;
 
-    // Equivalent SQL symbol
+    // Equivalent SQL symbol, May also contain a standard format string indicating how the arguments should be arranged.
+    //
+    // TODO Where formating differs between SQL dialects multiple fields may be required.
     private String sqlSymbol;
 
     // Equivalent oData4j expression class.
