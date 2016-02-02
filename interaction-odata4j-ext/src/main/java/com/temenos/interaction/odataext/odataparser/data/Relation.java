@@ -34,7 +34,6 @@ import org.odata4j.expression.AddExpression;
 import org.odata4j.expression.AndExpression;
 import org.odata4j.expression.BinaryBoolCommonExpression;
 import org.odata4j.expression.BinaryCommonExpression;
-import org.odata4j.expression.BoolCommonExpression;
 import org.odata4j.expression.CeilingMethodCallExpression;
 import org.odata4j.expression.ConcatMethodCallExpression;
 import org.odata4j.expression.DayMethodCallExpression;
@@ -191,7 +190,7 @@ public enum Relation {
 
     public boolean isBoolean() {
         // return type == Type.BOOLEAN;
-        return BoolCommonExpression.class.isAssignableFrom(getOData4jClass());
+        return !BinaryCommonExpression.class.isAssignableFrom(getOData4jClass());
     }
 
     public boolean isNumeric() {
