@@ -100,7 +100,6 @@ public class ResourceGETExpression implements Expression {
 			throw new IllegalArgumentException("Indicates a problem with the RIM, it allowed an invalid state to be supplied");
 		assert(target.getActions() != null);
 		
-		//TODO
 		if(ourTransition.getTarget() instanceof LazyResourceState) {
 		    ourTransition.setTarget(target);
 		}
