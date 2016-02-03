@@ -146,12 +146,12 @@ public enum Relation {
 
     INDEXOF("indexof", null, IndexOfMethodCallExpression.class, false),
 
-    CONCAT("concat", null, ConcatMethodCallExpression.class, false),
+    CONCAT("concat", "CONCAT", ConcatMethodCallExpression.class, false),
 
     // Ternary functions.
-    SUBSTR("substring", null, SubstringMethodCallExpression.class, false),
+    SUBSTR("substring", "SUBSTRING", SubstringMethodCallExpression.class, false),
 
-    REPLACE("replace", null, ReplaceMethodCallExpression.class, false);
+    REPLACE("replace", "REPLACE", ReplaceMethodCallExpression.class, false);
 
     // OData equivalent. Should really be string constants from oData4j. But
     // those are scoped as private so have to redefine here.

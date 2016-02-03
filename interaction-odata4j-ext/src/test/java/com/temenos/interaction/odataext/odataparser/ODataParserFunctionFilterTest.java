@@ -62,4 +62,13 @@ public class ODataParserFunctionFilterTest extends AbstractODataParserFilterTest
             }
         }
     }
+
+    /*
+     * Test a few special function.
+     */
+    @Test
+    public void testSpecialFunctionsFilter() {
+        // Substr can also be called with 3 args
+        testValid("a eq " + Relation.SUBSTR.getoDataString() + "(a, b, c)");
+    }
 }
