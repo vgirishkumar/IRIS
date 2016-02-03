@@ -76,6 +76,88 @@ public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest
     }
 
     /**
+     * Test binary decimal numeric filters.
+     */
+    @Test
+    public void testDecimalFilters() {
+        // Test all binary relations
+        for (Relation rel : Relation.values()) {
+            if (rel.isNumeric() && !rel.isFunctionCall()) {
+                testValid("a eq 123.456M " + rel.getoDataString() + " -234.567M");
+
+                // Since we print 'M' in upper case only that is 'valid'. But
+                // check the lower case version also parses.
+                try {
+                    ODataParser.parseFilters("123.456m " + rel.getoDataString() + " -234.567m eq b");
+                } catch (Exception e) {
+                    fail();
+                }
+            }
+        }
+    }
+
+    /**
+     * Test binary decimal numeric filters with missing 'm'.
+     */
+    @Test
+    public void testDecimalNoMFilters() {
+        // Test all binary relations
+        for (Relation rel : Relation.values()) {
+            if (rel.isNumeric() && !rel.isFunctionCall()) {
+                // Invalid syntax. Should throw.
+                testInvalid("a eq 123.456 " + rel.getoDataString() + " 234.567");
+            }
+        }
+    }
+
+    /**
+     * Test binary long numeric filters.
+     */
+    @Test
+    public void testLongFilters() {
+        // Test all binary relations
+        for (Relation rel : Relation.values()) {
+            if (rel.isNumeric() && !rel.isFunctionCall()) {
+                testValid("a eq 123L " + rel.getoDataString() + " -234L");
+            }
+        }
+    }
+
+    /**
+     * Test binary floating numeric filters.
+     */
+    @Test
+    public void testFloatFilters() {
+        // Test all binary relations
+        for (Relation rel : Relation.values()) {
+            if (rel.isNumeric() && !rel.isFunctionCall()) {
+                // Looks like oData4j treats these as normal literals. Just
+                // check that they parse.
+                try {
+                    ODataParser.parseFilters("a eq 123.456f " + rel.getoDataString() + " -234.567f");
+                } catch (Exception e) {
+                    fail();
+                }
+            }
+        }
+    }
+
+    /**
+     * Test binary double numeric filters.
+     */
+    @Test
+    public void testDoubleFilters() {
+        // Test all binary relations
+        for (Relation rel : Relation.values()) {
+            if (rel.isNumeric() && !rel.isFunctionCall()) {
+                testValid("a eq 123.456d " + rel.getoDataString() + " -234.567d");
+                // Looks like oData4j does not support following format.
+                // testValid("a eq 1E+10d " + rel.getoDataString() + " -2E+3d");
+            }
+        }
+    }
+
+    /**
      * Test boolean unary filters.
      */
     @Test

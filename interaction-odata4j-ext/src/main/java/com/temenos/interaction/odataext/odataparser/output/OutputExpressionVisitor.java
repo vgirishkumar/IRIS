@@ -36,10 +36,13 @@ import org.odata4j.expression.BoolParenExpression;
 import org.odata4j.expression.CeilingMethodCallExpression;
 import org.odata4j.expression.ConcatMethodCallExpression;
 import org.odata4j.expression.DayMethodCallExpression;
+import org.odata4j.expression.DecimalLiteral;
+import org.odata4j.expression.DoubleLiteral;
 import org.odata4j.expression.EndsWithMethodCallExpression;
 import org.odata4j.expression.FloorMethodCallExpression;
 import org.odata4j.expression.HourMethodCallExpression;
 import org.odata4j.expression.IndexOfMethodCallExpression;
+import org.odata4j.expression.Int64Literal;
 import org.odata4j.expression.IsofExpression;
 import org.odata4j.expression.LengthMethodCallExpression;
 import org.odata4j.expression.MethodCallExpression;
@@ -78,9 +81,14 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
     }
 
     protected void append(String format, Object... args) {
-        // Always append the arg as a simple string. Don't bother with the
-        // formatting.
+        // For non overridden methods append the arg as a simple string. Don't
+        // do the formatting.
         append(String.format("%s", args));
+    }
+
+    protected void appendFormatted(String format, Object... args) {
+        // For overridden methods do the formatting.
+        append(String.format(format, args));
     }
 
     protected void append(String str) {
@@ -280,5 +288,21 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
     public void visit(ConcatMethodCallExpression expr) {
         currentNode.setIsFunction();
         super.visit(expr);
+    }
+
+    @Override
+    public void visit(DecimalLiteral expr) {
+        appendFormatted("%sM", expr.getValue());
+    }
+
+    @Override
+    public void visit(Int64Literal expr) {
+        appendFormatted("%sL", expr.getValue());
+
+    }
+
+    @Override
+    public void visit(DoubleLiteral expr) {
+        appendFormatted("%sd", expr.getValue());
     }
 }

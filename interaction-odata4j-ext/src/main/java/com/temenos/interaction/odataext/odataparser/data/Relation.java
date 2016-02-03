@@ -91,15 +91,15 @@ public enum Relation {
 
     NOT("not", "NOT", NotExpression.class, false),
 
-    ADD("add", null, AddExpression.class, true),
+    ADD("add", "+", AddExpression.class, true),
 
-    SUB("sub", null, SubExpression.class, true),
+    SUB("sub", "-", SubExpression.class, true),
 
-    MUL("mul", null, MulExpression.class, true),
+    MUL("mul", "*", MulExpression.class, true),
 
-    DIV("div", null, DivExpression.class, true),
+    DIV("div", "/", DivExpression.class, true),
 
-    MOD("mod", null, ModExpression.class, true),
+    MOD("mod", "%", ModExpression.class, true),
 
     // Unary functions.
     TOUPPER("toupper", "UPPER", ToUpperMethodCallExpression.class, false),
@@ -157,9 +157,14 @@ public enum Relation {
     // those are scoped as private so have to redefine here.
     private final String oDataString;
 
-    // Equivalent SQL symbol, May also contain a standard format string indicating how the arguments should be arranged.
+    // Equivalent SQL symbol, May also contain a standard format string
+    // indicating how the arguments should be arranged.
     //
-    // TODO Where formating differs between SQL dialects multiple fields may be required.
+    // TODO Where formating differs between SQL dialects multiple fields may be
+    // required.
+    //
+    // TODO Once backwards compatibility is no longer required this information
+    // should be moved into interaction-jdbc-producer.
     private String sqlSymbol;
 
     // Equivalent oData4j expression class.
@@ -237,6 +242,7 @@ public enum Relation {
                 return 2;
 
             case TOUPPER:
+            case TRIM:
                 // Unary functions
                 return 1;
 
