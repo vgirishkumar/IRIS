@@ -31,6 +31,7 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.odata4j.expression.BoolCommonExpression;
 import org.odata4j.expression.Expression;
@@ -191,7 +192,7 @@ public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest
         testValid("(1 add 2) ne (3 div 4)");
         testValid("((1 add 2)) ne (3 div 4)");
     }
-
+    
     // TODO add tests for functions
     @Test
     public void testBinaryFunctionsFilter() {
@@ -248,7 +249,37 @@ public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest
     public void testQuotesDotFilter() {
         testValid("'a.b' eq 'b.c'");
     }
-
+    
+    /*
+     * Test filter containing Time elements.
+     * 
+     * Currently this does not appear to parse.
+     */
+    @Test
+    @Ignore
+    public void testTimeFilter() {
+        testValid("a eq 13:20:00");
+    }
+    
+    /*
+     * Test filter containing DateTime elements.
+     */
+    @Test
+    public void testDateTimeFilter() {
+        testValid("a eq datetime'2000-12-12T12:00'");
+    }
+    
+    /*
+     * Test filter containing DateTime offset elements.
+     * 
+     * Currently this does not appear to parse.
+     */
+    @Test
+    @Ignore
+    public void testDateTimeOffsetFilter() {
+        testValid("a eq 2002-10-10T17:00:00Z");
+    }
+    
     /**
      * Test invalid filters throw.
      */

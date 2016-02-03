@@ -35,6 +35,8 @@ package com.temenos.interaction.odataext.odataparser.output;
 import org.odata4j.expression.BoolParenExpression;
 import org.odata4j.expression.CeilingMethodCallExpression;
 import org.odata4j.expression.ConcatMethodCallExpression;
+import org.odata4j.expression.DateTimeLiteral;
+import org.odata4j.expression.DateTimeOffsetLiteral;
 import org.odata4j.expression.DayMethodCallExpression;
 import org.odata4j.expression.DecimalLiteral;
 import org.odata4j.expression.DoubleLiteral;
@@ -57,10 +59,12 @@ import org.odata4j.expression.StartsWithMethodCallExpression;
 import org.odata4j.expression.StringLiteral;
 import org.odata4j.expression.SubstringMethodCallExpression;
 import org.odata4j.expression.SubstringOfMethodCallExpression;
+import org.odata4j.expression.TimeLiteral;
 import org.odata4j.expression.ToLowerMethodCallExpression;
 import org.odata4j.expression.ToUpperMethodCallExpression;
 import org.odata4j.expression.TrimMethodCallExpression;
 import org.odata4j.expression.YearMethodCallExpression;
+import org.odata4j.internal.InternalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -304,5 +308,32 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
     @Override
     public void visit(DoubleLiteral expr) {
         appendFormatted("%sd", expr.getValue());
+    }
+    
+    @Override
+    public void visit(DateTimeLiteral expr) {
+      appendFormatted("datetime'%s'", InternalUtil.formatDateTimeForXml(expr.getValue()));
+    }
+
+    /*
+     * TODO Currently not sure about the syntax for this.
+     */
+    @Override
+    public void visit(DateTimeOffsetLiteral expr) {
+      throw new UnsupportedOperationException("DateTimeOffsetLiteral not supported.");
+      
+      // Maybe should be something like.
+      // appendFormatted("%sZ", InternalUtil.formatDateTimeOffsetForXml(expr.getValue()));
+    }
+    
+    /*
+     * TODO Currently not sure about the syntax for this.
+     */
+    @Override
+    public void visit(TimeLiteral expr) {
+      throw new UnsupportedOperationException("TimeLiteral not supported.");
+      
+      // Maybe should be something like.
+      // appendFormatted("%s", expr.getValue().toString(ExpressionParser.TIME_FORMATTER));
     }
 }

@@ -117,17 +117,17 @@ public enum Relation {
 
     // Unary time related functions
 
-    YEAR("year", null, YearMethodCallExpression.class, false),
+    YEAR("year", "DATEPART(YEAR, %s)", YearMethodCallExpression.class, false),
 
-    MONTH("month", null, MonthMethodCallExpression.class, false),
+    MONTH("month", "DATEPART(MONTH, %s)", MonthMethodCallExpression.class, false),
 
-    DAY("day", null, DayMethodCallExpression.class, false),
+    DAY("day", "DATEPART(DAY, %s)", DayMethodCallExpression.class, false),
 
-    HOUR("hour", null, HourMethodCallExpression.class, false),
+    HOUR("hour", "DATEPART(HOUR, %s)", HourMethodCallExpression.class, false),
 
-    MINUTE("minute", null, MinuteMethodCallExpression.class, false),
+    MINUTE("minute", "DATEPART(MINUTE, %s)", MinuteMethodCallExpression.class, false),
 
-    SECOND("second", null, SecondMethodCallExpression.class, false),
+    SECOND("second", "DATEPART(SECOND, %s)", SecondMethodCallExpression.class, false),
 
     // Unary maths functions
 
