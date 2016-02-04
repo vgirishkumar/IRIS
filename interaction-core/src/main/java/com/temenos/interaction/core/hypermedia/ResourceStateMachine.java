@@ -1383,11 +1383,23 @@ public class ResourceStateMachine {
                 }
 
 				rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
+				
+                if ("item".equals(rel)) {
+                    rel = createLinkForState(targetState);
+                    rel = "http://schemas.microsoft.com/ado/2007/08/dataservices/related/".concat(targetState.getName());
 
+                }
                 if (stateAndParams.getParams() != null) {
                     // Add query parameters
 					for (ParameterAndValue paramAndValue : stateAndParams.getParams()) {
-                        linkTemplate.queryParam(paramAndValue.getParameter(), paramAndValue.getValue());
+					    String param = paramAndValue.getParameter();
+					    String value = paramAndValue.getValue();
+					                            
+                        if("id".equalsIgnoreCase(param)) {
+                            transitionProperties.put(param, value);
+                        } else {
+                            linkTemplate.queryParam(param, value);
+                        }
 					}
 				}
 
@@ -1427,6 +1439,13 @@ public class ResourceStateMachine {
 		}
 	}
 
+	private String createLinkForState( ResourceState targetState){
+	    StringBuilder rel = new StringBuilder("http://schemas.microsoft.com/ado/2007/08/dataservices/related/");
+	    rel.append(targetState.getName());
+	
+	    return  rel.toString();
+	}
+	
     private String configureLink(UriBuilder linkTemplate, Transition transition,
             Map<String, Object> transitionProperties, ResourceState targetState) {
 		String targetResourcePath = targetState.getPath();
