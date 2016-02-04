@@ -1386,8 +1386,6 @@ public class ResourceStateMachine {
 				
                 if ("item".equals(rel)) {
                     rel = createLinkForState(targetState);
-                    rel = "http://schemas.microsoft.com/ado/2007/08/dataservices/related/".concat(targetState.getName());
-
                 }
                 if (stateAndParams.getParams() != null) {
                     // Add query parameters
