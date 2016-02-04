@@ -1384,7 +1384,7 @@ public class ResourceStateMachine {
 
 				rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
 				
-                if ("item".equals(rel)) {
+                if ("item".equals(rel) || "collection".equals(rel)) {
                     rel = createLinkForState(targetState);
                 }
                 if (stateAndParams.getParams() != null) {
