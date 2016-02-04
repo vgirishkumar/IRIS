@@ -267,6 +267,10 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
     @Override
     public void visit(IsofExpression expr) {
         currentNode.setIsFunction();
+
+        // Isof has literal arguments.
+        currentNode.setQuoteArguments();
+
         super.visit(expr);
     }
 
@@ -309,10 +313,10 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
     public void visit(DoubleLiteral expr) {
         appendFormatted("%sd", expr.getValue());
     }
-    
+
     @Override
     public void visit(DateTimeLiteral expr) {
-      appendFormatted("datetime'%s'", InternalUtil.formatDateTimeForXml(expr.getValue()));
+        appendFormatted("datetime'%s'", InternalUtil.formatDateTimeForXml(expr.getValue()));
     }
 
     /*
@@ -320,20 +324,22 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
      */
     @Override
     public void visit(DateTimeOffsetLiteral expr) {
-      throw new UnsupportedOperationException("DateTimeOffsetLiteral not supported.");
-      
-      // Maybe should be something like.
-      // appendFormatted("%sZ", InternalUtil.formatDateTimeOffsetForXml(expr.getValue()));
+        throw new UnsupportedOperationException("DateTimeOffsetLiteral not supported.");
+
+        // Maybe should be something like.
+        // appendFormatted("%sZ",
+        // InternalUtil.formatDateTimeOffsetForXml(expr.getValue()));
     }
-    
+
     /*
      * TODO Currently not sure about the syntax for this.
      */
     @Override
     public void visit(TimeLiteral expr) {
-      throw new UnsupportedOperationException("TimeLiteral not supported.");
-      
-      // Maybe should be something like.
-      // appendFormatted("%s", expr.getValue().toString(ExpressionParser.TIME_FORMATTER));
+        throw new UnsupportedOperationException("TimeLiteral not supported.");
+
+        // Maybe should be something like.
+        // appendFormatted("%s",
+        // expr.getValue().toString(ExpressionParser.TIME_FORMATTER));
     }
 }

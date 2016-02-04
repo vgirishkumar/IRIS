@@ -46,6 +46,9 @@ public class OutputExpressionNode {
     // Flag indicating term is bracketed.
     private boolean isBracketed;
 
+    // Flag indicating arguments should be quoted.
+    private boolean quoteArguments;
+
     // Flag indicating therm is a 'function', e.g. func(args), rather than an
     // 'operator', e.g. arg op arg.
     //
@@ -75,6 +78,7 @@ public class OutputExpressionNode {
         this.parent = parent;
         isBracketed = false;
         isFunction = false;
+        quoteArguments = false;
     }
 
     /*
@@ -119,8 +123,24 @@ public class OutputExpressionNode {
             } else {
                 appendCommaSpace(sb);
             }
-            sb.append(argument);
+            appendArgument(sb, argument);
         }
+    }
+
+    private void appendArgument(StringBuffer sb, String argument) {
+        if (isQuoteArgumnets()) {
+            appendQuote(sb);
+        }
+
+        sb.append(argument);
+
+        if (isQuoteArgumnets()) {
+            appendQuote(sb);
+        }
+    }
+
+    private void appendQuote(StringBuffer sb) {
+        sb.append("'");
     }
 
     private void appendOperator(StringBuffer sb) {
@@ -220,6 +240,14 @@ public class OutputExpressionNode {
 
     public boolean isBracketed() {
         return isBracketed;
+    }
+
+    public void setQuoteArguments() {
+        quoteArguments = true;
+    }
+
+    public boolean isQuoteArgumnets() {
+        return quoteArguments;
     }
 
     public void setIsFunction() {

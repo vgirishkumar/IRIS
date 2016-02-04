@@ -45,6 +45,7 @@ import org.odata4j.expression.GeExpression;
 import org.odata4j.expression.GtExpression;
 import org.odata4j.expression.HourMethodCallExpression;
 import org.odata4j.expression.IndexOfMethodCallExpression;
+import org.odata4j.expression.IsofExpression;
 import org.odata4j.expression.LeExpression;
 import org.odata4j.expression.LengthMethodCallExpression;
 import org.odata4j.expression.LtExpression;
@@ -85,49 +86,46 @@ public enum Relation {
 
     GE("ge", ">=", GeExpression.class, false),
 
-    AND("and", "AND", AndExpression.class, false),
+    AND("and", null, AndExpression.class, false),
 
-    OR("or", "OR", OrExpression.class, false),
+    OR("or", null, OrExpression.class, false),
 
-    NOT("not", "NOT", NotExpression.class, false),
+    NOT("not", null, NotExpression.class, false),
 
-    ADD("add", "+", AddExpression.class, true),
+    ADD("add", null, AddExpression.class, true),
 
-    SUB("sub", "-", SubExpression.class, true),
+    SUB("sub", null, SubExpression.class, true),
 
-    MUL("mul", "*", MulExpression.class, true),
+    MUL("mul", null, MulExpression.class, true),
 
-    DIV("div", "/", DivExpression.class, true),
+    DIV("div", null, DivExpression.class, true),
 
-    MOD("mod", "%", ModExpression.class, true),
+    MOD("mod", null, ModExpression.class, true),
 
     // Unary functions.
-    TOUPPER("toupper", "UPPER", ToUpperMethodCallExpression.class, false),
+    TOUPPER("toupper", null, ToUpperMethodCallExpression.class, false),
 
-    TOLOWER("tolower", "LOWER", ToLowerMethodCallExpression.class, false),
+    TOLOWER("tolower", null, ToLowerMethodCallExpression.class, false),
 
-    LENGTH("length", "LEN", LengthMethodCallExpression.class, false),
+    LENGTH("length", null, LengthMethodCallExpression.class, false),
 
     TRIM("trim", null, TrimMethodCallExpression.class, false),
 
-    // TODO this one has syntax like a function but is not derived from a
-    // MethodCallExpression.
-    // Also it has 1 or 2 arguments. For the moment can't handle it.
-    // ISOF("isof", null, IsofExpression.class, false),
+    ISOF("isof", null, IsofExpression.class, false),
 
     // Unary time related functions
 
-    YEAR("year", "DATEPART(YEAR, %s)", YearMethodCallExpression.class, false),
+    YEAR("year", null, YearMethodCallExpression.class, false),
 
-    MONTH("month", "DATEPART(MONTH, %s)", MonthMethodCallExpression.class, false),
+    MONTH("month", null, MonthMethodCallExpression.class, false),
 
-    DAY("day", "DATEPART(DAY, %s)", DayMethodCallExpression.class, false),
+    DAY("day", null, DayMethodCallExpression.class, false),
 
-    HOUR("hour", "DATEPART(HOUR, %s)", HourMethodCallExpression.class, false),
+    HOUR("hour", null, HourMethodCallExpression.class, false),
 
-    MINUTE("minute", "DATEPART(MINUTE, %s)", MinuteMethodCallExpression.class, false),
+    MINUTE("minute", null, MinuteMethodCallExpression.class, false),
 
-    SECOND("second", "DATEPART(SECOND, %s)", SecondMethodCallExpression.class, false),
+    SECOND("second", null, SecondMethodCallExpression.class, false),
 
     // Unary maths functions
 
@@ -138,20 +136,20 @@ public enum Relation {
     CEILING("ceiling", null, CeilingMethodCallExpression.class, false),
 
     // Binary functions.
-    SUBSTROF("substringof", "%s LIKE '%%' + %s + '%%'", SubstringOfMethodCallExpression.class, false),
+    SUBSTROF("substringof", null, SubstringOfMethodCallExpression.class, false),
 
-    ENDSWITH("endswith", "%s LIKE '%%' + %s", EndsWithMethodCallExpression.class, false),
+    ENDSWITH("endswith", null, EndsWithMethodCallExpression.class, false),
 
-    STARTSWITH("startswith", "%s LIKE %s + '%%'", StartsWithMethodCallExpression.class, false),
+    STARTSWITH("startswith", null, StartsWithMethodCallExpression.class, false),
 
     INDEXOF("indexof", null, IndexOfMethodCallExpression.class, false),
 
-    CONCAT("concat", "CONCAT", ConcatMethodCallExpression.class, false),
+    CONCAT("concat", null, ConcatMethodCallExpression.class, false),
 
     // Ternary functions.
-    SUBSTR("substring", "SUBSTRING", SubstringMethodCallExpression.class, false),
+    SUBSTR("substring", null, SubstringMethodCallExpression.class, false),
 
-    REPLACE("replace", "REPLACE", ReplaceMethodCallExpression.class, false);
+    REPLACE("replace", null, ReplaceMethodCallExpression.class, false);
 
     // OData equivalent. Should really be string constants from oData4j. But
     // those are scoped as private so have to redefine here.
@@ -160,11 +158,12 @@ public enum Relation {
     // Equivalent SQL symbol, May also contain a standard format string
     // indicating how the arguments should be arranged.
     //
-    // TODO Where formating differs between SQL dialects multiple fields may be
-    // required.
-    //
-    // TODO Once backwards compatibility is no longer required this information
-    // should be moved into interaction-jdbc-producer.
+    // TODO This is retained only for backwards compatibility with the six basic
+    // operands. Equivalent functionality
+    // is now provided by the interaction-jdbc-producer SqlRelation enum. Once
+    // backward compatibility is no longer
+    // required this should be removed.
+    @Deprecated
     private String sqlSymbol;
 
     // Equivalent oData4j expression class.
@@ -185,6 +184,7 @@ public enum Relation {
     }
 
     // Return equivalent SQL symbol. Null if not supported.
+    @Deprecated
     public String getSqlSymbol() {
         return (sqlSymbol);
     }
@@ -230,8 +230,12 @@ public enum Relation {
                 return 3;
 
             case SUBSTR:
-                // This one is special. Can be called with 2 or 2 arguments.
+                // This one is special. Can be called with 2 or 3 arguments.
                 return 2;
+
+            case ISOF:
+                // This one is special. Can be called with 1 or 2 arguments.
+                return 1;
 
             case SUBSTROF:
             case ENDSWITH:
@@ -256,6 +260,13 @@ public enum Relation {
     // Returns true if a function, e.g. 'fn(a, b...)' rather then an
     // operator, e.g. 'a op b'.
     public boolean isFunctionCall() {
+        // ISOF is a special case. Not derived from 'method' but has function
+        // like syntax.
+        if (Relation.ISOF == this) {
+            return true;
+        }
+
+        // Entries based on 'Method' are functions.
         return MethodCallExpression.class.isAssignableFrom(getOData4jClass());
     }
 }

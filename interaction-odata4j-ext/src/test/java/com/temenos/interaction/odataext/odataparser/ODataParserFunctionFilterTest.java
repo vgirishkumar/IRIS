@@ -34,7 +34,12 @@ public class ODataParserFunctionFilterTest extends AbstractODataParserFilterTest
     public void testUnaaryFunctionsFilter() {
         for (Relation rel : Relation.values()) {
             if (rel.isFunctionCall() && (1 == rel.getExpectedArgumentCount())) {
-                testValid("a eq " + rel.getoDataString() + "(a)");
+                if (Relation.ISOF != rel) {
+                    testValid("a eq " + rel.getoDataString() + "(a)");
+                } else {
+                    // ISOF requires literal arguments.
+                    testValid("a eq " + rel.getoDataString() + "('a')");
+                }
             }
         }
     }
