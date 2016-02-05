@@ -33,7 +33,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +43,7 @@ import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.producer.resources.OptionsQueryParser;
 
 import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.output.OutputExpressionVisitor;
 
 public class ODataParserSelectTest {
 
@@ -53,25 +53,6 @@ public class ODataParserSelectTest {
 
     @After
     public void tearDown() {
-    }
-
-    /**
-     * Test valid Selects work
-     */
-    @Test
-    public void testSimpleSelect() {
-        // testValid("a");
-
-        try {
-            Set<String> jlt = new HashSet<String>();
-            String xxx = "ss";
-            jlt.add(xxx);
-
-            jlt.add(xxx);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
     }
 
     /**
@@ -133,15 +114,31 @@ public class ODataParserSelectTest {
         assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
     }
 
+    /*
+     * Test the visitor passing interface.
+     */
+    @Test
+    public void testVisitorSelect() {
+        testValid("a, b, c", true);
+    }
+
     // Test round trip for a valid Select
     private void testValid(String expected) {
+        testValid(expected, false);
+    }
+
+    private void testValid(String expected, boolean useVisitor) {
 
         Exception e = null;
 
         String actual = null;
         boolean threw = false;
         try {
-            actual = ODataParser.toSelect(ODataParser.parseSelect(expected));
+            if (useVisitor) {
+                actual = ODataParser.toSelect(ODataParser.parseSelect(expected), new OutputExpressionVisitor());
+            } else {
+                actual = ODataParser.toSelect(ODataParser.parseSelect(expected));
+            }
         } catch (Exception caught) {
             threw = true;
             e = caught;

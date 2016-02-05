@@ -48,7 +48,8 @@ import com.temenos.interaction.odataext.odataparser.data.FieldName;
 import com.temenos.interaction.odataext.odataparser.data.OrderBy;
 import com.temenos.interaction.odataext.odataparser.data.RowFilter;
 import com.temenos.interaction.odataext.odataparser.data.RowFilters;
-import com.temenos.interaction.odataext.odataparser.output.OutputParameters;
+import com.temenos.interaction.odataext.odataparser.odata4j.PrintExpressionVisitor;
+import com.temenos.interaction.odataext.odataparser.output.ParameterPrinter;
 
 public class ODataParser {
 
@@ -119,22 +120,34 @@ public class ODataParser {
         return OptionsQueryParser.parseOrderBy(orderByStr);
     }
 
-    // Convert filter to an oData parameter
+    // Convert filter to an oData parameter.
     public static String toFilters(RowFilters filters) {
-        return (OData4jToFilters(filters.getOData4jExpression()));
+        return OData4jToFilters(filters.getOData4jExpression());
+    }
+
+    // Convert filter to an oData parameter using a custom visitor.
+    public static String toFilters(RowFilters filters, PrintExpressionVisitor visitor) {
+        return OData4jToFilters(filters.getOData4jExpression(), visitor);
     }
 
     // Once it is no longer needed for back compatibility this should be made
     // private.
     public static String OData4jToFilters(CommonExpression filters) {
+        return PrintOData4jToFilters(filters, new ParameterPrinter());
+    }
 
+    public static String OData4jToFilters(CommonExpression filters, PrintExpressionVisitor visitor) {
+        return PrintOData4jToFilters(filters, new ParameterPrinter(visitor));
+    }
+
+    private static String PrintOData4jToFilters(CommonExpression filters, ParameterPrinter printer) {
         if (null != filters) {
             StringBuffer sb = new StringBuffer();
-            OutputParameters.appendParameter(sb, filters, true);
+            printer.appendParameter(sb, filters, true);
             return (sb.toString());
         } else {
             // This is the empty filter list case. Just return an empty string;
-            return ("");
+            return "";
         }
     }
 
@@ -154,7 +167,7 @@ public class ODataParser {
             filterStr = filterStr.concat(toFilter(filter));
         }
 
-        return (filterStr);
+        return filterStr;
     }
 
     // Support for old code that still uses RowFilter list.
@@ -162,7 +175,7 @@ public class ODataParser {
     private static String toFilter(RowFilter filter) {
         String name = filter.getFieldName().getName();
         String filterStr = new String(name + " " + filter.getRelation().getoDataString() + " " + filter.getValue());
-        return (filterStr);
+        return filterStr;
     }
 
     // Convert select to an oData parameter
@@ -174,10 +187,27 @@ public class ODataParser {
         return OData4jToSelect(oData4jSelects);
     }
 
+    // Convert select to an oData parameter using a custom visitor.
+    public static String toSelect(Set<FieldName> selects, PrintExpressionVisitor visitor) {
+        List<EntitySimpleProperty> oData4jSelects = new ArrayList<EntitySimpleProperty>();
+        for (FieldName select : selects) {
+            oData4jSelects.add(select.getOData4jExpression());
+        }
+        return OData4jToSelect(oData4jSelects, visitor);
+    }
+
     private static String OData4jToSelect(List<EntitySimpleProperty> selects) {
+        return PrintOData4jToSelect(selects, new ParameterPrinter());
+    }
+
+    private static String OData4jToSelect(List<EntitySimpleProperty> selects, PrintExpressionVisitor visitor) {
+        return PrintOData4jToSelect(selects, new ParameterPrinter(visitor));
+    }
+
+    private static String PrintOData4jToSelect(List<EntitySimpleProperty> selects, ParameterPrinter printer) {
         StringBuffer sb = new StringBuffer();
-        OutputParameters.appendParameter(sb, selects, true);
-        return (sb.toString());
+        printer.appendParameter(sb, selects, true);
+        return sb.toString();
     }
 
     // Convert order by to an OData parameter.
@@ -189,10 +219,26 @@ public class ODataParser {
         return OData4jToOrderBy(oData4jOrderBys);
     }
 
+    public static String toOrderBy(List<OrderBy> orderByList, PrintExpressionVisitor visitor) {
+        List<OrderByExpression> oData4jOrderBys = new ArrayList<OrderByExpression>();
+        for (OrderBy orderBy : orderByList) {
+            oData4jOrderBys.add(orderBy.getOData4jExpression());
+        }
+        return OData4jToOrderBy(oData4jOrderBys, visitor);
+    }
+
     private static String OData4jToOrderBy(List<OrderByExpression> orderBys) {
+        return PrintOData4jToOrderBy(orderBys, new ParameterPrinter());
+    }
+
+    private static String OData4jToOrderBy(List<OrderByExpression> orderBys, PrintExpressionVisitor visitor) {
+        return PrintOData4jToOrderBy(orderBys, new ParameterPrinter(visitor));
+    }
+
+    private static String PrintOData4jToOrderBy(List<OrderByExpression> orderBys, ParameterPrinter printer) {
         StringBuffer sb = new StringBuffer();
-        OutputParameters.appendParameter(sb, orderBys, true);
-        return (sb.toString());
+        printer.appendParameter(sb, orderBys, true);
+        return sb.toString();
     }
 
     /*
@@ -222,9 +268,9 @@ public class ODataParser {
             RowFilters filters = new RowFilters(expression);
             return filters.asRowFilters();
         }
-        return (new ArrayList<RowFilter>());
+        return new ArrayList<RowFilter>();
     }
-    
+
     // Convert an OData select into a list of authorization framework
     // field names.
     public static Set<FieldName> parseSelect(List<EntitySimpleProperty> propList) {
@@ -238,7 +284,7 @@ public class ODataParser {
             select.add(new FieldName(prop));
         }
 
-        return (select);
+        return select;
     }
 
     // Errors thrown by parsing

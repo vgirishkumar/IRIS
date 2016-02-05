@@ -92,6 +92,11 @@ public class PrintExpressionVisitor implements ExpressionVisitor {
 
   private final StringBuilder sb = new StringBuilder();
 
+  public void reset() {
+      // Clear down the buffer.
+      sb.setLength(0);  
+  }
+  
   public static String asString(CommonExpression expr) {
     PrintExpressionVisitor v = new PrintExpressionVisitor();
     expr.visit(v);

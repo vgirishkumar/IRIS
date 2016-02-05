@@ -6,7 +6,7 @@ import org.odata4j.expression.Expression;
 import org.odata4j.expression.OrderByExpression;
 import org.odata4j.expression.OrderByExpression.Direction;
 
-import com.temenos.interaction.odataext.odataparser.output.OutputParameters;
+import com.temenos.interaction.odataext.odataparser.output.ParameterPrinter;
 
 /*
  * Thin wrapper round the odat4j OrderByExpression.
@@ -47,7 +47,8 @@ public class OrderBy {
 
     public FieldName getFieldName() {
         StringBuffer sb = new StringBuffer();
-        OutputParameters.appendParameter(sb, oData4jExpression.getExpression(), true);
+        ParameterPrinter printer = new ParameterPrinter();
+        printer.appendParameter(sb, oData4jExpression.getExpression(), true);
         return new FieldName(sb.toString());
     }
 

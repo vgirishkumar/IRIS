@@ -7,7 +7,7 @@ package com.temenos.interaction.odataext.odataparser.output;
  * (Looks like PreOrderVisitor is moving towards this functionality but it is not present in oData4j 0.7.0)
  * 
  * This class extend OUR version of PrintExpressionVisitor. Not the, almost identical, OData4j version. This means we can
- * make use of most of the parents, unchanged, visit() methods and the will call back to our, changed, append() methods.
+ * make use of most of the parents, unchanged, visit() methods. These will call back to our, changed, append() methods.
  * If the OData4j PrintExpressionVisitor is extended then these calls will go to it's, private, append() methods and the
  * desired results will not be achieved.
  */
@@ -75,8 +75,19 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
     private final static Logger logger = LoggerFactory.getLogger(OutputExpressionVisitor.class);
 
     // Variables handling the ExpressionPrinter tree,
-    private OutputExpressionNode rootNode = new OutputExpressionNode();
-    private OutputExpressionNode currentNode = rootNode;
+    private OutputExpressionNode rootNode;
+    private OutputExpressionNode currentNode;
+    
+    public OutputExpressionVisitor() {
+        reset();
+    }
+    
+    // Reset tree to it's starting state. Put current tree up for garbage collection.
+    public void reset() {
+        super.reset();
+        rootNode = new OutputExpressionNode();
+        currentNode = rootNode;
+    }
 
     @Override
     public String toString() {

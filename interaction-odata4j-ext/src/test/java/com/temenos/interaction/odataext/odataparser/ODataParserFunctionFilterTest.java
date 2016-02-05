@@ -24,9 +24,12 @@ package com.temenos.interaction.odataext.odataparser;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import com.temenos.interaction.odataext.odataparser.data.Relation;
+import com.temenos.interaction.odataext.odataparser.output.OutputExpressionVisitor;
 
 public class ODataParserFunctionFilterTest extends AbstractODataParserFilterTest {
 
@@ -75,5 +78,15 @@ public class ODataParserFunctionFilterTest extends AbstractODataParserFilterTest
     public void testSpecialFunctionsFilter() {
         // Substr can also be called with 3 args
         testValid("a eq " + Relation.SUBSTR.getoDataString() + "(a, b, c)");
+    }
+
+    /*
+     * Test the visitor passing interface.
+     */
+    @Test
+    public void testVisitorFunctionsFilter() {
+        String expected = "a eq " + Relation.SUBSTR.getoDataString() + "(a, b, c)";
+        String actual = ODataParser.toFilters(ODataParser.parseFilters(expected), new OutputExpressionVisitor());
+        assertEquals(expected, actual);
     }
 }

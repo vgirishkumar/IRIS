@@ -33,6 +33,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.temenos.interaction.odataext.odataparser.output.OutputExpressionVisitor;
+
 public class ODataParserOrderByTest {
 
     @Test
@@ -59,6 +61,11 @@ public class ODataParserOrderByTest {
     public void testNull() {
         assertEquals(null, ODataParser.parseOrderBy(null));
     }
+    
+    @Test
+    public void testVisitor() {
+        testValid("col asc", true);
+    }
 
     /**
      * Test invalid order by throw.
@@ -77,13 +84,20 @@ public class ODataParserOrderByTest {
 
     // Test round trip for a valid Select
     private void testValid(String expected) {
+        testValid(expected, false);
+    }
 
+    private void testValid(String expected, boolean useVisitor) {
         Exception e = null;
 
         String actual = null;
         boolean threw = false;
         try {
-            actual = ODataParser.toOrderBy(ODataParser.parseOrderBy(expected));
+            if (useVisitor) {
+                actual = ODataParser.toOrderBy(ODataParser.parseOrderBy(expected), new OutputExpressionVisitor());
+            } else {
+                actual = ODataParser.toOrderBy(ODataParser.parseOrderBy(expected));
+            }
         } catch (Exception caught) {
             threw = true;
             e = caught;

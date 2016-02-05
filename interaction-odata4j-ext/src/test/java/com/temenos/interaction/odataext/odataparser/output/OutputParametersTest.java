@@ -38,7 +38,7 @@ import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.expression.Expression;
 
 public class OutputParametersTest {
-    
+
     /*
      * Test appending a single named parameter
      */
@@ -46,54 +46,58 @@ public class OutputParametersTest {
     public void testSingleNamedParameter() {
         String expectedName = "name";
         String expectedValue = "value";
-        
+
         StringBuffer sb = new StringBuffer();
         EntitySimpleProperty property = Expression.simpleProperty(expectedValue);
-        
-        OutputParameters.appendParameter(sb, expectedName, property, true);
-        
+
+        ParameterPrinter printer = new ParameterPrinter();
+        printer.appendParameter(sb, expectedName, property, true);
+
         assertEquals(expectedName + "=" + expectedValue, sb.toString());
     }
-    
+
     /*
      * Test appending a single unnamed parameter
      */
     @Test
     public void testSingleUnNamedParameter() {
         String expectedValue = "value";
-        
+
         StringBuffer sb = new StringBuffer();
         EntitySimpleProperty property = Expression.simpleProperty(expectedValue);
-        
-        boolean first = OutputParameters.appendParameter(sb, property, true);
+
+        ParameterPrinter printer = new ParameterPrinter();
+        boolean first = printer.appendParameter(sb, property, true);
 
         assertFalse(first);
         assertEquals(expectedValue, sb.toString());
     }
-    
+
     /*
      * Null single parameters should throw.
      */
-    @Test (expected = NullPointerException.class)
+    @Test(expected = NullPointerException.class)
     public void testNullUnnamedParameter() {
         StringBuffer sb = new StringBuffer();
-        OutputParameters.appendParameter(sb, null, true);
+        ParameterPrinter printer = new ParameterPrinter();
+        printer.appendParameter(sb, null, true);
     }
-    
+
     /*
      * Null named parameters should not be added.
      */
     @Test
     public void testNullNamedParameter() {
         String expectedName = "name";
-        
+
         StringBuffer sb = new StringBuffer();
-        boolean first = OutputParameters.appendParameter(sb, expectedName, null, true);
-        
+        ParameterPrinter printer = new ParameterPrinter();
+        boolean first = printer.appendParameter(sb, expectedName, null, true);
+
         assertTrue(first);
         assertTrue(sb.toString().isEmpty());
     }
-    
+
     /*
      * Test appending a multiple named parameters
      */
@@ -103,20 +107,21 @@ public class OutputParametersTest {
         String expectedValue1 = "value";
         String expectedName2 = "anothername";
         String expectedValue2 = "anothervalue";
-        
+
         StringBuffer sb = new StringBuffer();
         EntitySimpleProperty property1 = Expression.simpleProperty(expectedValue1);
         EntitySimpleProperty property2 = Expression.simpleProperty(expectedValue2);
-        
+
         boolean first = true;
-        first = OutputParameters.appendParameter(sb, expectedName1, property1, first);
+        ParameterPrinter printer = new ParameterPrinter();
+        first = printer.appendParameter(sb, expectedName1, property1, first);
         assertFalse(first);
-        first = OutputParameters.appendParameter(sb, expectedName2, property2, first);
+        first = printer.appendParameter(sb, expectedName2, property2, first);
         assertFalse(first);
-        
+
         assertEquals(expectedName1 + "=" + expectedValue1 + "&" + expectedName2 + "=" + expectedValue2, sb.toString());
     }
-    
+
     /*
      * Test appending a single unnamed parameters
      */
@@ -124,18 +129,19 @@ public class OutputParametersTest {
     public void testMultipleUnNamedParameter() {
         String expectedValue1 = "value";
         String expectedValue2 = "anothervalue";
-        
+
         StringBuffer sb = new StringBuffer();
         EntitySimpleProperty property1 = Expression.simpleProperty(expectedValue1);
         EntitySimpleProperty property2 = Expression.simpleProperty(expectedValue2);
-        
+
         boolean first = true;
-        first = OutputParameters.appendParameter(sb, property1, first);
-        first = OutputParameters.appendParameter(sb, property2, first);
-        
+        ParameterPrinter printer = new ParameterPrinter();
+        first = printer.appendParameter(sb, property1, first);
+        first = printer.appendParameter(sb, property2, first);
+
         assertEquals(expectedValue1 + "&" + expectedValue2, sb.toString());
     }
-    
+
     /*
      * Test appending a multiple named parameters as a list
      */
@@ -144,21 +150,22 @@ public class OutputParametersTest {
         String expectedName1 = "name";
         String expectedValue1 = "value";
         String expectedValue2 = "anothervalue";
-        
+
         StringBuffer sb = new StringBuffer();
         EntitySimpleProperty property1 = Expression.simpleProperty(expectedValue1);
         EntitySimpleProperty property2 = Expression.simpleProperty(expectedValue2);
-        
+
         List<EntitySimpleProperty> list = new ArrayList<EntitySimpleProperty>();
         list.add(property1);
         list.add(property2);
-        
-        boolean first = OutputParameters.appendParameter(sb, expectedName1, list, true);
+
+        ParameterPrinter printer = new ParameterPrinter();
+        boolean first = printer.appendParameter(sb, expectedName1, list, true);
         assertFalse(first);
-        
+
         assertEquals(expectedName1 + "=" + expectedValue1 + ", " + expectedValue2, sb.toString());
     }
-    
+
     /*
      * Test empty list
      */
@@ -166,8 +173,9 @@ public class OutputParametersTest {
     public void testListEmpty() {
         StringBuffer sb = new StringBuffer();
         List<EntitySimpleProperty> list = new ArrayList<EntitySimpleProperty>();
-        boolean first = OutputParameters.appendParameter(sb, list, true);
+        ParameterPrinter printer = new ParameterPrinter();
+        boolean first = printer.appendParameter(sb, list, true);
         assertTrue(first);
         assertTrue(sb.toString().isEmpty());
-    }   
+    }
 }

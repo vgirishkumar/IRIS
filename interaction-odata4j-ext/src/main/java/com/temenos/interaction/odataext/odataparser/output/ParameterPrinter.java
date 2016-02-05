@@ -1,7 +1,7 @@
 package com.temenos.interaction.odataext.odataparser.output;
 
 /*
- * Static methods used to print one or more odata parameter. Based on code from org.odata4j.producer.QueryInfo
+ * Class used to print one or more oData parameter. Based on code from org.odata4j.producer.QueryInfo
  * but has been significantly modified.
  */
 
@@ -29,12 +29,30 @@ import java.util.List;
 
 import org.odata4j.expression.CommonExpression;
 
-public class OutputParameters {
+import com.temenos.interaction.odataext.odataparser.odata4j.PrintExpressionVisitor;
+
+public class ParameterPrinter {
+
+    // private final static Logger logger =
+    // LoggerFactory.getLogger(ParameterPrinter.class);
+
+    // Expression visitor used by this printer.
+    private PrintExpressionVisitor visitor;
+
+    public ParameterPrinter() {
+        // Use the default visitor
+        this(new OutputExpressionVisitor());
+    }
+
+    public ParameterPrinter(PrintExpressionVisitor visitor) {
+        this.visitor = visitor;
+    }
+
     /*
      * Method appending a single OData parameter. If a parameter contains more
      * than one field these are handled by sub methods.
      */
-    public static boolean appendParameter(StringBuffer sb, String name, Object parameter, boolean first) {
+    public boolean appendParameter(StringBuffer sb, String name, Object parameter, boolean first) {
         if (parameter == null)
             return first;
         if (parameter instanceof List && ((List<?>) parameter).isEmpty())
@@ -53,7 +71,7 @@ public class OutputParameters {
     /*
      * Overload not adding the "Name=" term.
      */
-    public static boolean appendParameter(StringBuffer sb, Object parameter, boolean first) {
+    public boolean appendParameter(StringBuffer sb, Object parameter, boolean first) {
         // Do not accept nulls.
         if (null == parameter) {
             throw new NullPointerException();
@@ -65,7 +83,7 @@ public class OutputParameters {
      * Method appending a single OData field or list of OData fields.
      */
     @SuppressWarnings("unchecked")
-    private static void appendSingleParameterOrList(StringBuffer sb, Object parameter) {
+    private void appendSingleParameterOrList(StringBuffer sb, Object parameter) {
         if (parameter instanceof List) {
             appendList(sb, (List<Object>) parameter);
         } else {
@@ -76,7 +94,7 @@ public class OutputParameters {
     /*
      * Method appending a comma separated list of OData fields.
      */
-    private static void appendList(StringBuffer sb, List<Object> list) {
+    private void appendList(StringBuffer sb, List<Object> list) {
         boolean first = true;
         for (Object field : list) {
             if (first) {
@@ -94,9 +112,11 @@ public class OutputParameters {
      * The expression may be complex. However oData4j knows how to print complex
      * expressions. So use it's 'visitor' mechanism.
      */
-    private static void appendSingleParameter(StringBuffer sb, CommonExpression field) {
-        OutputExpressionVisitor v = new OutputExpressionVisitor();
-        field.visit(v);
-        sb.append(v.toString());
+    private void appendSingleParameter(StringBuffer sb, CommonExpression field) {
+        // Clear current visitor content
+        visitor.reset();
+
+        field.visit(visitor);
+        sb.append(visitor.toString());
     }
 }
