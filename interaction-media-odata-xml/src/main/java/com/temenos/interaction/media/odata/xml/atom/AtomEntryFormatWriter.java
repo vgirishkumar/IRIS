@@ -52,7 +52,6 @@ import org.odata4j.stax2.XMLWriter2;
 
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 /**
  * Slightly modified version of @link{org.odata4j.format.xml.AtomEntryFormatWriter} that 
@@ -255,7 +254,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     		  writeElement(writer, "link", null, "rel", rel, "title", title, "href", href, "id", id);
     	  } else {
     	      
-    	      StringBuilder profile = createProfileForStateName(title);
+    	      StringBuilder profile = createProfileForStateName(title, href);
     	      
     	      if("self".equals(rel) && null!=profile) {
     	          writeElement(writer, "link", null, "rel", rel, "profile" , profile.toString() , "title", title, "href", href); 
@@ -304,11 +303,8 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	    write(uriInfo, w, target, ees, target.getEntity().getLinks());
   }
   
-    private StringBuilder createProfileForStateName(String stateName) {
-        if (null != stateName
-                && (stateName.startsWith(ResourceStateMachine.COMPOSITE_SCREEN_PREFIX)
-                        || stateName.startsWith(ResourceStateMachine.VERSION_SCREEN_PREFIX) || stateName
-                            .startsWith(ResourceStateMachine.ENQUIRY_SCREEN_PREFIX))) {
+    private StringBuilder createProfileForStateName(String stateName, String href) {
+        if (null != stateName && null!=href && href.length()>0) {
             StringBuilder rel = new StringBuilder("http://schemas.microsoft.com/ado/2007/08/dataservices/related/");
             rel.append(stateName);
             return rel;

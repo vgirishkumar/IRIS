@@ -965,7 +965,7 @@ public class TestAtomXMLProvider {
 				+ "<title type=\"text\" />"
 				+ "<updated>2014-02-20T08:56:32Z</updated>"
 				+ "<author><name /></author>"
-				+ "<link rel=\"self\" title=\"Link to entity\" href=\"Flights('1')\" />"
+				+ "<link rel=\"self\" title=\"Link to entity\" href=\"Flights('1')\" profile=\"http://schemas.microsoft.com/ado/2007/08/dataservices/related/Link to entity\" />"
 				+ "<category term=\"FlightModelModel.Flight\" scheme=\"http://schemas.microsoft.com/ado/2007/08/dataservices/scheme\" />"
 				+ "<content type=\"application/xml\">"
 				+ "<m:properties><d:id>1</d:id><d:flight>EI218</d:flight></m:properties></content>"
