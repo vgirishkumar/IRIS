@@ -254,7 +254,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     		  writeElement(writer, "link", null, "rel", rel, "title", title, "href", href, "id", id);
     	  } else {
     	      
-    	      StringBuilder profile = createProfileForStateName(title, href);
+    	      StringBuilder profile = createProfileForStateName(href);
     	      
     	      if("self".equals(rel) && null!=profile) {
     	          writeElement(writer, "link", null, "rel", rel, "profile" , profile.toString() , "title", title, "href", href); 
@@ -303,10 +303,10 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	    write(uriInfo, w, target, ees, target.getEntity().getLinks());
   }
   
-    private StringBuilder createProfileForStateName(String stateName, String href) {
-        if (null != stateName && null!=href && href.length()>0) {
+    private StringBuilder createProfileForStateName(String href) {
+        if (null!=href && href.contains("#@")) {
             StringBuilder rel = new StringBuilder("http://schemas.microsoft.com/ado/2007/08/dataservices/related/");
-            rel.append(stateName);
+            rel.append(href.split("#@")[1]);
             return rel;
         } else {
             return null;
