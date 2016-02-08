@@ -1,8 +1,10 @@
+package com.temenos.interaction.commands.solr.data;
+
 /*
  * #%L
- * interaction-core
+ * interaction-commands-solr
  * %%
- * Copyright (C) 2012 - 2015 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2016 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,18 +21,20 @@
  * #L%
  */
 
-package com.temenos.interaction.authorization.command;
-
 /**
- * Names of InteractionContext attributes used by the authorization package.
+ * Constants used in Solr Commands
+ *
+ * @author sjunejo
+ *
  */
-public class AuthorizationAttributes {
+public class SolrConstants {
 
-	public static final String FILTER_DONE_ATTRIBUTE = "filterDone"; 
-	public static final String SELECT_DONE_ATTRIBUTE = "selectDone";
-
-	// This attribute can be used in Context to switch the context for Sms Provider 
-	// For an entity, in cases where user do not want to use resource entity name
-	// for SMS 
-	public static final String CUSTOM_ENTITY_NAME = "customEntityNameForAuth";
+    // Keys for the key/value pairs which can be passed in as part of the search
+    // URL.
+    public static final String SOLR_CORE_KEY = "core";
+    public static final String SOLR_SHARDS_KEY = "shards";
+    public static final String SOLR_SHARDS_TOLERANT_KEY = "shards.tolerant";
+    public static final String SOLR_QUERY_KEY = "q";
+    public static final String SOLR_FIELD_NAME_KEY = "fieldname";
+    public static final String SOLR_COMPANY_NAME_KEY = "companyid";
 }

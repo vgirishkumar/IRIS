@@ -29,6 +29,7 @@ package com.temenos.interaction.commands.solr;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -42,6 +43,7 @@ import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -66,9 +68,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
-
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+		} catch (InteractionException e) {
+		    fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+		}
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
 	}
@@ -93,8 +98,11 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	
 		// Set the flag to the not done state.
 		ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
-		
+		try {
 		command.execute(ctx);
+		} catch (InteractionException e) {
+		    fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+		}
 		
 		// Check filtering has been done
 		assertEquals(Boolean.TRUE, (Boolean) ctx.getAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE));
@@ -117,8 +125,13 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+		} catch (InteractionException e) {
+		    fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+		}
+		
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
@@ -141,8 +154,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
@@ -165,8 +182,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(0, cr.getEntities().size());
@@ -191,8 +212,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(0, cr.getEntities().size());
@@ -267,8 +292,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -293,8 +322,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -319,8 +352,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -346,8 +383,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -372,8 +413,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -398,8 +443,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 
 		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
 				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
