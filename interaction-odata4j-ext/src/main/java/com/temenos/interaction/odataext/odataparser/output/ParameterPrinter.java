@@ -33,9 +33,6 @@ import com.temenos.interaction.odataext.odataparser.odata4j.PrintExpressionVisit
 
 public class ParameterPrinter {
 
-    // private final static Logger logger =
-    // LoggerFactory.getLogger(ParameterPrinter.class);
-
     // Expression visitor used by this printer.
     private PrintExpressionVisitor visitor;
 

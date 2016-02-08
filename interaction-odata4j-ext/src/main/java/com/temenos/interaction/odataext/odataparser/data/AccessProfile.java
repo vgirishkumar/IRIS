@@ -24,9 +24,6 @@ package com.temenos.interaction.odataext.odataparser.data;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
 
 /**
@@ -36,7 +33,6 @@ import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQuery
  *
  */
 public class AccessProfile {
-    private final static Logger logger = LoggerFactory.getLogger(AccessProfile.class);
 
     // Filter conditions
     private RowFilters rowFilters;
@@ -66,10 +62,7 @@ public class AccessProfile {
         try {
             return rowFilters.asRowFilters();
         } catch (UnsupportedQueryOperationException e) {
-            // For backward comparability cannot throw
-            // UnsupportedQueryOperationException. So throw something that old
-            // callers can handle.
-            logger.error("Could not convert to row filters");
+            new RuntimeException("Could not convert to row filters");
             return null;
         }
     }

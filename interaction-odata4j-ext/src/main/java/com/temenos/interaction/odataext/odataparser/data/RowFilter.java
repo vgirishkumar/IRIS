@@ -3,8 +3,6 @@ package com.temenos.interaction.odataext.odataparser.data;
 import org.odata4j.expression.BinaryCommonExpression;
 import org.odata4j.expression.CommonExpression;
 import org.odata4j.producer.resources.OptionsQueryParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.odataext.odataparser.ODataParser;
 import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
@@ -39,13 +37,6 @@ import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQuery
 
 public class RowFilter {
 
-    // Since this class supports backwards comparability, with a class that did
-    // not throw, its callers may not hamdle
-    // exceptions. So catch them and don't throw. When we replace this with
-    // RowFilters adjuxt the callers to do things
-    // correctly
-    private final static Logger logger = LoggerFactory.getLogger(RowFilter.class);
-
     // Wrapped OData4j object.
     private BinaryCommonExpression oData4jExpression;
 
@@ -62,7 +53,7 @@ public class RowFilter {
 
         if (!(expr instanceof BinaryCommonExpression)) {
             // Too complex to fit in a RowFIlter
-            logger.error("Expression too complex for row filter. Type=\"" + expr + "\"");
+            new RuntimeException("Expression too complex for row filter. Type=\"" + expr + "\"");
 
             // For backward comparability cannot throw
             // UnsupportedQueryOperationException. So throw something that old
@@ -85,7 +76,7 @@ public class RowFilter {
         try {
             name = new FieldName(oData4jExpression.getLHS());
         } catch (UnsupportedQueryOperationException e) {
-            logger.error("LHS incompatible with FieldName.");
+            new RuntimeException("LHS incompatible with FieldName.");
         }
         return name;
     }

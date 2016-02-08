@@ -3,9 +3,6 @@ package com.temenos.interaction.odataext.odataparser.output;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /*
  * Class containing an Odata4j Expression constructed as a tree . This is required because OData4j Expression calls it's
  * visitor in a different sequence to that required printing OData parameters.
@@ -35,8 +32,6 @@ import org.slf4j.LoggerFactory;
  */
 
 public class OutputExpressionNode {
-
-    private final static Logger logger = LoggerFactory.getLogger(OutputExpressionNode.class);
 
     private List<String> arguments = new ArrayList<String>();
 
@@ -159,7 +154,7 @@ public class OutputExpressionNode {
             break;
 
         default:
-            logger.error("Too many arguments for an operator \"" + op + "\". Trailing args ignored.");
+            new RuntimeException("Too many arguments for an operator \"" + op + "\". Trailing args ignored.");
         }
     }
 
@@ -218,7 +213,7 @@ public class OutputExpressionNode {
 
     public boolean addArgument(String argument) {
         if (MAX_SUB_NODES <= arguments.size()) {
-            logger.error("Too many argumentents for any function or operator. Trailing args ignored.");
+            new RuntimeException("Too many argumentents for any function or operator. Trailing args ignored.");
             return false;
         }
         arguments.add(argument);
@@ -227,7 +222,7 @@ public class OutputExpressionNode {
 
     public boolean setOp(String op) {
         if (null != this.op) {
-            logger.error("Operator already set. Subsequent set ignored.");
+            new RuntimeException("Operator already set. Subsequent set ignored.");
             return false;
         }
         this.op = op;

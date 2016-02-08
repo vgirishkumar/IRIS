@@ -65,14 +65,10 @@ import org.odata4j.expression.ToUpperMethodCallExpression;
 import org.odata4j.expression.TrimMethodCallExpression;
 import org.odata4j.expression.YearMethodCallExpression;
 import org.odata4j.internal.InternalUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.odataext.odataparser.odata4j.PrintExpressionVisitor;
 
 public class OutputExpressionVisitor extends PrintExpressionVisitor {
-
-    private final static Logger logger = LoggerFactory.getLogger(OutputExpressionVisitor.class);
 
     // Variables handling the ExpressionPrinter tree,
     private OutputExpressionNode rootNode;
@@ -108,7 +104,7 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
 
     protected void append(String str) {
         if (!currentNode.setOp(str)) {
-            logger.error("Internal error adding:" + str);
+            new RuntimeException("Internal error adding:" + str);
         }
     }
 
@@ -118,7 +114,7 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
         OutputExpressionNode parentNode = currentNode.getParent();
         if (null == parentNode) {
             // Tried to go above the top of the tree.
-            logger.error("Tried to go above tree root.");
+            new RuntimeException("Tried to go above tree root.");
             return;
         }
 
@@ -139,7 +135,7 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
         OutputExpressionNode parentNode = currentNode.getParent();
         if (null == parentNode) {
             // Tried to go above the top of the tree.
-            logger.error("Tried to go above tree root.");
+            new RuntimeException("Tried to go above tree root.");
             return;
         }
 
