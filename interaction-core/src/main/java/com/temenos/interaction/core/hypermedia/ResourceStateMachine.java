@@ -89,6 +89,10 @@ public class ResourceStateMachine {
 	ResourceStateProvider resourceStateProvider;
 	ResourceLocatorProvider resourceLocatorProvider;
 	ResourceParameterResolverProvider parameterResolverProvider;
+	
+    public static final String COMPOSITE_SCREEN_PREFIX = "cos";
+    public static final String ENQUIRY_SCREEN_PREFIX = "enq";
+    public static final String VERSION_SCREEN_PREFIX = "ver";
 
 	// optimised access
 	private Map<String, Transition> transitionsById = new HashMap<String, Transition>();

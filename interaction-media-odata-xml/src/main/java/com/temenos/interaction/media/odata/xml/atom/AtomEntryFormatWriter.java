@@ -52,6 +52,7 @@ import org.odata4j.stax2.XMLWriter2;
 
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 /**
  * Slightly modified version of @link{org.odata4j.format.xml.AtomEntryFormatWriter} that 
@@ -253,11 +254,16 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     	  if(id != null && id.length() > 0 ) {
     		  writeElement(writer, "link", null, "rel", rel, "title", title, "href", href, "id", id);
     	  } else {
-    	      if("self".equals(rel) && !"profile".equals(title)) {
-    	          writeElement(writer, "link", null, "rel", rel, "profile" , createProfileForStateName(title), "title", title, "href", href); 
+    	      
+    	      StringBuilder profile = createProfileForStateName(title);
+    	      
+    	      if("self".equals(rel) && null!=profile) {
+    	          writeElement(writer, "link", null, "rel", rel, "profile" , profile.toString() , "title", title, "href", href); 
     	      } else {
     	          writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
     	      }
+    	      
+    	      profile = null;
     	  }
       }
   }
@@ -298,14 +304,16 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	    write(uriInfo, w, target, ees, target.getEntity().getLinks());
   }
   
-  private String createProfileForStateName(String stateName){
-      if(null!=stateName && stateName.length()>0) {
-          System.out.println(stateName);
-          StringBuilder rel = new StringBuilder("http://schemas.microsoft.com/ado/2007/08/dataservices/related/");
-          rel.append(stateName);  
-          return rel.toString();
-      } else {
-          return null;
-      }
-  }
+    private StringBuilder createProfileForStateName(String stateName) {
+        if (null != stateName
+                && (stateName.startsWith(ResourceStateMachine.COMPOSITE_SCREEN_PREFIX)
+                        || stateName.startsWith(ResourceStateMachine.VERSION_SCREEN_PREFIX) || stateName
+                            .startsWith(ResourceStateMachine.ENQUIRY_SCREEN_PREFIX))) {
+            StringBuilder rel = new StringBuilder("http://schemas.microsoft.com/ado/2007/08/dataservices/related/");
+            rel.append(stateName);
+            return rel;
+        } else {
+            return null;
+        }
+    }
 }
