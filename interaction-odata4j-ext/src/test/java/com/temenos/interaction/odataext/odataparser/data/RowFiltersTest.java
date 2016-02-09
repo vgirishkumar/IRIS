@@ -2,7 +2,7 @@ package com.temenos.interaction.odataext.odataparser.data;
 
 /* 
  * #%L
- * interaction-commands-authorization
+ * interaction-odata4j-ext
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -90,8 +90,21 @@ public class RowFiltersTest {
         String expected = expectedStr1 + " and " + expectedStr2 + " and " + expectedStr3;
 
         RowFilters filters = new RowFilters(expectedStr1);
-        filters.addFilter(expectedStr2);
-        filters.addFilter(expectedStr3);
+        filters.addFilters(expectedStr2);
+        filters.addFilters(expectedStr3);
+
+        assertEquals(expected, ODataParser.toFilters(filters));
+    }
+    
+    @Test
+    public void testAddFilters() {
+        String expectedStr1 = "aname eq avalue";
+        String expectedStr2 = "aname ne avalue";
+        String expected = expectedStr1 + " and " + expectedStr2;
+
+        RowFilters filters = new RowFilters(expectedStr1);
+        RowFilters addFilters = new RowFilters(expectedStr2);
+        filters.addFilters(addFilters);
 
         assertEquals(expected, ODataParser.toFilters(filters));
     }

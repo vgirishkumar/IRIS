@@ -12,7 +12,7 @@ import java.util.List;
 
 /*
  * #%L
- * interaction-authorization
+ * interaction-odata4j-ext
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%

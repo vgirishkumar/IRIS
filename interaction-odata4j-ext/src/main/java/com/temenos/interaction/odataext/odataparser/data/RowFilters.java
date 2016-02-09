@@ -22,7 +22,7 @@ import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQuery
 
 /*
  * #%L
- * interaction-commands-Authorization
+ * interaction-odata4j-ext
  * %%
  * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
  * %%
@@ -69,7 +69,7 @@ public class RowFilters {
         } else {
             // Add all the filters
             for (RowFilter filter : filterList) {
-                addFilter((BoolCommonExpression) filter.getOData4jExpression());
+                addFilters((BoolCommonExpression) filter.getOData4jExpression());
             }
         }
     }
@@ -82,14 +82,19 @@ public class RowFilters {
         return oData4jExpression;
     }
 
-    // Add (and) a filter with the list
-    public void addFilter(String filterStr) {
+    // Add (and) a filter to the current filter.
+    public void addFilters(String filterStr) {
         BoolCommonExpression newExpression = OptionsQueryParser.parseFilter(filterStr);
-        addFilter(newExpression);
+        addFilters(newExpression);
+    }
+    
+    // Add (and) extra filters to the current filter.
+    public void addFilters(RowFilters addFilter) {
+        addFilters(addFilter.getOData4jExpression());
     }
 
-    // Add (and) a filter with the list
-    public void addFilter(BoolCommonExpression expr) {
+    // Add (and) a filter with the list. Where possible use the addFilter(RowFilters...) instead of this.
+    public void addFilters(BoolCommonExpression expr) {
         if (null == oData4jExpression) {
             // This is the first expression. Just use it.
             oData4jExpression = expr;
