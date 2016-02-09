@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.CommonAttributes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -89,7 +90,7 @@ public class ResourceStateMachine {
 	ResourceStateProvider resourceStateProvider;
 	ResourceLocatorProvider resourceLocatorProvider;
 	ResourceParameterResolverProvider parameterResolverProvider;
-
+	
 	// optimised access
 	private Map<String, Transition> transitionsById = new HashMap<String, Transition>();
 	private Map<String, Transition> transitionsByRel = new HashMap<String, Transition>();
@@ -900,7 +901,11 @@ public class ResourceStateMachine {
 		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
 		resourceProperties.putAll(ctx.getPathParameters());
 		resourceProperties.putAll(ctx.getQueryParameters());
-
+		
+		if (null != ctx.getAttribute(CommonAttributes.O_DATA_ENTITY_ATTRIBUTE)) {
+		    resourceProperties.putSingle("profileOEntity", (String) ctx.getAttribute(CommonAttributes.O_DATA_ENTITY_ATTRIBUTE));
+		}
+		
 		ResourceState state = ctx.getCurrentState();
 		List<Link> links = new ArrayList<Link>();
 		if (resourceEntity == null)
@@ -1421,7 +1426,16 @@ public class ResourceStateMachine {
             }
 
 			// Create the link
-			Link link = new Link(transition, rel, href.toASCIIString(), method);
+			Link link;
+			
+			if(transitionProperties.containsKey("profileOEntity") && "self".equals(rel) && entity instanceof OEntity) {
+					//Create link adding profile to href to be resolved later on AtomXMLProvider
+					link = new Link(transition, rel, href.toASCIIString()+"#@"+createLinkForProfile(transition), method);
+			} else {
+					//Create link as normal behaviour
+					link = new Link(transition, rel, href.toASCIIString(), method);
+			}
+			
 			logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId() + ", rel="
 					+ rel + ", method=" + method + ", href=" + href.toString() + "(ASCII=" + href.toASCIIString()
 					+ ")]");
@@ -1435,6 +1449,13 @@ public class ResourceStateMachine {
 			logger.error("Dead link [" + transition + "]", e);
 			throw e;
 		}
+	}
+	
+	private String createLinkForProfile (Transition transition) {
+	    
+	    return transition.getLabel() != null
+                && !transition.getLabel().equals("") ? transition.getLabel()
+                : transition.getTarget().getName();
 	}
 
 	private String createLinkForState( ResourceState targetState){
