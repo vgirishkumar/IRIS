@@ -22,39 +22,25 @@ package com.temenos.interaction.odataext.odataparser.data;
  */
 import static org.junit.Assert.assertEquals;
 
-import org.junit.After;
-import org.junit.Before;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Test;
+import org.odata4j.expression.BoolCommonExpression;
+import org.odata4j.producer.resources.OptionsQueryParser;
 
-public class RowFilterTest {
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() {
-    }
+public class AccessProfileTest {
 
     @Test
     public void testConstruct() {
+        BoolCommonExpression filterStr = OptionsQueryParser.parseFilter("aname eq avalue");
+        RowFilters expectedFilters = new RowFilters(filterStr);
+        
+        Set<FieldName> expectedSelects = new HashSet<FieldName>();
+        
+        AccessProfile profile = new AccessProfile(expectedFilters, expectedSelects);
 
-        FieldName name = new FieldName("aname");
-
-        RowFilter filter = new RowFilter(name, Relation.EQ, "avalue");
-
-        assertEquals("aname", filter.getFieldName().getName());
-        assertEquals(Relation.EQ, filter.getRelation());
-        assertEquals("avalue", filter.getValue());
-    }
-
-    @Test
-    public void testStringConstruct() {
-
-        RowFilter filter = new RowFilter("aname", Relation.EQ, "avalue");
-
-        assertEquals("aname", filter.getFieldName().getName());
-        assertEquals(Relation.EQ, filter.getRelation());
-        assertEquals("avalue", filter.getValue());
+        assertEquals(expectedFilters, profile.getNewRowFilters());
+        assertEquals(expectedSelects, profile.getFieldNames());
     }
 }

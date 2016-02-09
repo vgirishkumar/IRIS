@@ -2,7 +2,7 @@ package com.temenos.interaction.odataext.odataparser.data;
 
 /*
  * #%L
- * interaction-commands-authorization
+ * interaction-odata4j-ext
  * %%
  * Copyright (C) 2012 - 2015 Temenos Holdings N.V.
  * %%
