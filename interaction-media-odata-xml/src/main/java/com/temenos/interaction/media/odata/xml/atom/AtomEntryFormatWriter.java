@@ -23,6 +23,7 @@ package com.temenos.interaction.media.odata.xml.atom;
 
 
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -254,15 +255,15 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     		  writeElement(writer, "link", null, "rel", rel, "title", title, "href", href, "id", id);
     	  } else {
     	      
-    	      StringBuilder profile = createProfileForStateName(href);
+    	      List<StringBuilder> profileAndHref = createProfileForStateName(href);
     	      
-    	      if("self".equals(rel) && null!=profile) {
-    	          writeElement(writer, "link", null, "rel", rel, "profile" , profile.toString() , "title", title, "href", href); 
+    	      if("self".equals(rel) && null!=profileAndHref) {
+    	          writeElement(writer, "link", null, "rel", rel, "profile" , profileAndHref.get(0).toString() , "title", title, "href", profileAndHref.get(1).toString()); 
     	      } else {
     	          writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
     	      }
     	      
-    	      profile = null;
+    	      profileAndHref = null;
     	  }
       }
   }
@@ -303,11 +304,20 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	    write(uriInfo, w, target, ees, target.getEntity().getLinks());
   }
   
-    private StringBuilder createProfileForStateName(String href) {
+    private List<StringBuilder> createProfileForStateName(String href) {
+        
         if (null!=href && href.contains("#@")) {
+            List<StringBuilder> list = new ArrayList<StringBuilder>();
+            String [] hrefSplit = href.split("#@");
+            
             StringBuilder rel = new StringBuilder("http://schemas.microsoft.com/ado/2007/08/dataservices/related/");
-            rel.append(href.split("#@")[1]);
-            return rel;
+            rel.append(hrefSplit[1]);          
+            
+            StringBuilder cleanHref = new StringBuilder(hrefSplit[0]);
+            list.add(0, rel);
+            list.add(1, cleanHref);
+            
+            return list;
         } else {
             return null;
         }
