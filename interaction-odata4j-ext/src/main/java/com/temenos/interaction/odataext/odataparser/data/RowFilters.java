@@ -95,6 +95,11 @@ public class RowFilters {
 
     // Add (and) a filter with the list. Where possible use the addFilter(RowFilters...) instead of this.
     public void addFilters(BoolCommonExpression expr) {
+        if (null == expr) {
+            // Nothing to add
+            return;
+        }
+        
         if (null == oData4jExpression) {
             // This is the first expression. Just use it.
             oData4jExpression = expr;

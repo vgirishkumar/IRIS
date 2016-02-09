@@ -108,6 +108,17 @@ public class RowFiltersTest {
 
         assertEquals(expected, ODataParser.toFilters(filters));
     }
+    
+    @Test
+    public void testAddEmptyFilters() {
+        String expected= "aname eq avalue";
+
+        RowFilters filters = new RowFilters(expected);
+        RowFilters addFilters = new RowFilters();
+        filters.addFilters(addFilters);
+
+        assertEquals(expected, ODataParser.toFilters(filters));
+    }
 
     @Test
     @Deprecated
