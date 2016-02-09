@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.CommonAttributes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -901,8 +902,8 @@ public class ResourceStateMachine {
 		resourceProperties.putAll(ctx.getPathParameters());
 		resourceProperties.putAll(ctx.getQueryParameters());
 		
-		if (null != ctx.getAttribute("ENTITY")) {
-		    resourceProperties.putSingle("profileOEntity", (String) ctx.getAttribute("ENTITY"));
+		if (null != ctx.getAttribute(CommonAttributes.O_DATA_ENTITY_ATTRIBUTE)) {
+		    resourceProperties.putSingle("profileOEntity", (String) ctx.getAttribute(CommonAttributes.O_DATA_ENTITY_ATTRIBUTE));
 		}
 		
 		ResourceState state = ctx.getCurrentState();

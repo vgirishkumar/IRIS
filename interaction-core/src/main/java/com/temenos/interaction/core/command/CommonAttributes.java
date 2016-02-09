@@ -30,4 +30,5 @@ package com.temenos.interaction.core.command;
 public class CommonAttributes {
 	// Currently there are no common attributes. When there are implement as, for example, ...
 	// public static final String TEST_ATTRIB = "testsAttrib";
+    public static final String O_DATA_ENTITY_ATTRIBUTE = "OEntityProducerName";
 }
