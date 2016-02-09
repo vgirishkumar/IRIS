@@ -28,4 +28,9 @@ public class AuthorizationAttributes {
 
 	public static final String FILTER_DONE_ATTRIBUTE = "filterDone"; 
 	public static final String SELECT_DONE_ATTRIBUTE = "selectDone";
+
+	// This attribute can be used in Context to switch the context for Sms Provider 
+	// For an entity, in cases where user do not want to use resource entity name
+	// for SMS 
+	public static final String CUSTOM_ENTITY_NAME = "customEntityNameForAuth";
 }

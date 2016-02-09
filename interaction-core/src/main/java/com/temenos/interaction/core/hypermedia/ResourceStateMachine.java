@@ -24,6 +24,7 @@ package com.temenos.interaction.core.hypermedia;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.CacheBasic;
 import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.CommonAttributes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -578,49 +579,54 @@ public class ResourceStateMachine {
         return injectLinks(rimHandler, ctx, resourceEntity, null, headers, metadata);
     }
 
-    /**
-     * Evaluate and return all the valid links (target states) from the current
-     * resource state (@see {@link InteractionContext#getCurrentState()}).
-     *
-     * @param rimHander
-     * @param ctx
-     * @param resourceEntity
-     * @param selfTransition if we are injecting links into a resource that has resulted
-     *                       from a transition from another resource (e.g an auto
-     *                       transition or an embedded transition) then we need to use the
-     *                       transition parameters as there are no path parameters
-     *                       available. i.e. because we've not made a request for this
-     *                       resource through the whole jax-rs stack
-     * @return
-     */
-    public Collection<Link> injectLinks(HTTPHypermediaRIM rimHander, InteractionContext ctx,
-                                        RESTResource resourceEntity, Transition selfTransition, HttpHeaders headers, Metadata metadata) {
-        // Add path and query parameters to the list of resource properties
-        MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
-        resourceProperties.putAll(ctx.getPathParameters());
-        resourceProperties.putAll(ctx.getQueryParameters());
+	/**
+	 * Evaluate and return all the valid links (target states) from the current
+	 * resource state (@see {@link InteractionContext#getCurrentState()}).
+	 * 
+	 * @param rimHander
+	 * @param ctx
+	 * @param resourceEntity
+	 * @param selfTransition
+	 *            if we are injecting links into a resource that has resulted
+	 *            from a transition from another resource (e.g an auto
+	 *            transition or an embedded transition) then we need to use the
+	 *            transition parameters as there are no path parameters
+	 *            available. i.e. because we've not made a request for this
+	 *            resource through the whole jax-rs stack
+	 * @return
+	 */
+	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHander, InteractionContext ctx,
+			RESTResource resourceEntity, Transition selfTransition, HttpHeaders headers, Metadata metadata) {
+		// Add path and query parameters to the list of resource properties
+		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
+		resourceProperties.putAll(ctx.getPathParameters());
+		resourceProperties.putAll(ctx.getQueryParameters());
+		
+		if (null != ctx.getAttribute(CommonAttributes.O_DATA_ENTITY_ATTRIBUTE)) {
+		    resourceProperties.putSingle("profileOEntity", (String) ctx.getAttribute(CommonAttributes.O_DATA_ENTITY_ATTRIBUTE));
+		}
+		
+		ResourceState state = ctx.getCurrentState();
+		List<Link> links = new ArrayList<Link>();
+		if (resourceEntity == null)
+			return links;
 
-        ResourceState state = ctx.getCurrentState();
-        List<Link> links = new ArrayList<Link>();
-        if (resourceEntity == null)
-            return links;
-
-        Object entity = null;
-        CollectionResource<?> collectionResource = null;
-        if (resourceEntity instanceof EntityResource) {
-            entity = ((EntityResource<?>) resourceEntity).getEntity();
-        } else if (resourceEntity instanceof CollectionResource) {
-            collectionResource = (CollectionResource<?>) resourceEntity;
-            // TODO add support for properties on collections
-            logger.warn("Injecting links into a collection, only support simple, non template, links as there are no properties on the collection at the moment");
-        } else if (resourceEntity instanceof MetaDataResource) {
-            // TODO deprecate all resource types apart from item
-            // (EntityResource) and collection (CollectionResource)
-            logger.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
-            return links;
-        } else {
-            throw new RuntimeException("Unable to get links, an error occurred");
-        }
+		Object entity = null;
+		CollectionResource<?> collectionResource = null;
+		if (resourceEntity instanceof EntityResource) {
+			entity = ((EntityResource<?>) resourceEntity).getEntity();
+		} else if (resourceEntity instanceof CollectionResource) {
+			collectionResource = (CollectionResource<?>) resourceEntity;
+			// TODO add support for properties on collections
+			logger.warn("Injecting links into a collection, only support simple, non template, links as there are no properties on the collection at the moment");
+		} else if (resourceEntity instanceof MetaDataResource) {
+			// TODO deprecate all resource types apart from item
+			// (EntityResource) and collection (CollectionResource)
+			logger.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
+			return links;
+		} else {
+			throw new RuntimeException("Unable to get links, an error occurred");
+		}
 
         // add link to GET 'self'
         if (selfTransition == null)
@@ -1116,21 +1122,38 @@ public class ResourceStateMachine {
                 }
             }
 
-            // Create the link
-            Link link = new Link(transition, rel, href.toASCIIString(), method);
-            logger.debug(String.format("Created link for transition [%s] [title=%s, rel=%s, method=%s, href=%s(ASCII=%s)]",
-                    transition, transition.getId(), rel, method, href.toString(), href.toASCIIString()));
-            return link;
-        } catch (IllegalArgumentException e) {
-            logger.warn(String.format("Dead link [%s]", transition), e);
+			// Create the link
+			Link link;
+			
+			if(transitionProperties.containsKey("profileOEntity") && "self".equals(rel) && entity instanceof OEntity) {
+					//Create link adding profile to href to be resolved later on AtomXMLProvider
+					link = new Link(transition, rel, href.toASCIIString()+"#@"+createLinkForProfile(transition), method);
+			} else {
+					//Create link as normal behaviour
+					link = new Link(transition, rel, href.toASCIIString(), method);
+			}
+			
+			logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId() + ", rel="
+					+ rel + ", method=" + method + ", href=" + href.toString() + "(ASCII=" + href.toASCIIString()
+					+ ")]");
+			return link;
+		} catch (IllegalArgumentException e) {
+			logger.warn("Dead link [" + transition + "]", e);
 
             return null;
 
-        } catch (UriBuilderException e) {
-            logger.warn(String.format("Dead link [%s]", transition), e);
-            throw e;
-        }
-    }
+		} catch (UriBuilderException e) {
+			logger.error("Dead link [" + transition + "]", e);
+			throw e;
+		}
+	}
+	
+	private String createLinkForProfile (Transition transition) {
+	    
+	    return transition.getLabel() != null
+                && !transition.getLabel().equals("") ? transition.getLabel()
+                : transition.getTarget().getName();
+	}
 
     private String createLinkForState( ResourceState targetState){
         StringBuilder rel = new StringBuilder("http://schemas.microsoft.com/ado/2007/08/dataservices/related/");

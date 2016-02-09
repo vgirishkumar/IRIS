@@ -31,6 +31,7 @@ import org.apache.solr.client.solrj.response.TermsResponse.Term;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 
+import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
@@ -39,7 +40,10 @@ import com.temenos.interaction.core.resource.EntityResource;
 
 public abstract class AbstractSolrCommand {
 	
-	static final int MAX_ENTITIES_RETURNED = 50;
+    // Root of the Solr URL
+    protected String solrRootURL;
+    
+	public static int MAX_ENTITIES_RETURNED = 50;
 
 	public CollectionResource<Entity> buildCollectionResource(String entityName, SolrDocumentList docs) {
 		List<EntityResource<Entity>> results = new ArrayList<EntityResource<Entity>>();
@@ -49,14 +53,25 @@ public abstract class AbstractSolrCommand {
 			SolrDocument doc = docs.get(i);
 			Collection<String> fields = doc.getFieldNames();
 			for (String propName : fields) {
-				properties.setProperty(new EntityProperty(propName, doc.getFirstValue(propName)));
+			    properties.setProperty(new EntityProperty(propName, doc.getFirstValue(propName)));
 			}
+			// Give some control to user if they have something in mind
+			customizeEntityProperties(doc, properties);
+			
+			// Build the entity as is
 			Entity entity = new Entity(entityName, properties);
 			results.add(new EntityResource<Entity>(entityName, entity));
 		}
 		return new CollectionResource<Entity>(results) {};
 	}
 	
+	/**
+	 * TODO : Remove this method as I am not sure why we have this?
+	 * @param entityName
+	 * @param termName
+	 * @param termMap
+	 * @return
+	 */
 	public CollectionResource<Entity> buildCollectionResource(String entityName, String termName, Map<String, List<Term>> termMap) {
 		List<EntityResource<Entity>> results = new ArrayList<EntityResource<Entity>>();
 		List<Term> terms = termMap.get(termName);
@@ -68,5 +83,46 @@ public abstract class AbstractSolrCommand {
 		}
 		return new CollectionResource<Entity>(results) {};
 	}
-
+	
+	/**
+	 * This method will update all filter fieldName to 'text'
+	 * @param rowFilters
+	 * @return
+	 */
+	protected List<RowFilter> toSolrTextFieldFilter(List<RowFilter> rowFilters) {
+	    return toSolrFieldFilters(rowFilters, "text");
+	}
+	
+	 /*
+     * Sometime we would like to search everything agains one field, so convert here, simply pass the
+     * taregt field name as text
+     */
+    protected List<RowFilter> toSolrFieldFilters(List<RowFilter> rowFilters, String solrFieldName) {
+        if (rowFilters != null && solrFieldName != null && !solrFieldName.isEmpty()) {
+            List<RowFilter> solrFieldFilters = new ArrayList<RowFilter>();
+            for (RowFilter filter : rowFilters) {
+                if (filter != null) // Filter all null objects if there is any
+                   solrFieldFilters.add(toSolrFieldFilter(filter, solrFieldName));
+            }
+            return solrFieldFilters;
+        }
+        return new ArrayList<RowFilter>();
+    }
+    
+    protected RowFilter toSolrFieldFilter(RowFilter filter, String solrFieldName) {
+        if (filter != null && solrFieldName != null && !solrFieldName.isEmpty()) {
+            return new RowFilter(solrFieldName, filter.getRelation(), filter.getValue());
+        }
+        return null;
+    }
+	
+	
+	/**
+	 * This method will be called before constructing a final entity so that 
+	 * caller can customize the results if required, for example apply select
+	 * or filter on result set which was not possible at query time
+	 * @param doc
+	 * @param properties
+	 */
+	protected abstract void customizeEntityProperties(SolrDocument doc, EntityProperties properties);
 }
