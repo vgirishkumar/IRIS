@@ -41,15 +41,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.Relation;
+import com.temenos.interaction.odataext.odataparser.data.RowFilter;
 
 public class MockAuthorizationBeanTest {
 
