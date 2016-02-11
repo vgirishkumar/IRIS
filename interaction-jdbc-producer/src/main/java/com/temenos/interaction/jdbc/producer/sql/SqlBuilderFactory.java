@@ -25,17 +25,17 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.jdbc.ServerMode;
 import com.temenos.interaction.jdbc.exceptions.JdbcException;
 import com.temenos.interaction.jdbc.producer.sql.builder.H2_MSSQLBuilder;
 import com.temenos.interaction.jdbc.producer.sql.builder.H2_OracleBuilder;
 import com.temenos.interaction.jdbc.producer.sql.builder.MSSQLBuilder;
 import com.temenos.interaction.jdbc.producer.sql.builder.OracleBuilder;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.OrderBy;
 
 /**
- * Factory to return appropiate SqlBuilder implementation according to target server type in use 
+ * Factory to return appropriate SqlBuilder implementation according to target server type in use 
  *
  * @author sjunejo
  *

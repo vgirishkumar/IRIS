@@ -26,11 +26,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.jdbc.ServerMode;
 import com.temenos.interaction.jdbc.producer.sql.ColumnTypesMap;
 import com.temenos.interaction.jdbc.producer.sql.SqlBuilder;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.OrderBy;
 
 /**
  * Implementation to build SQL Statement for MS SQL Server
@@ -56,18 +56,19 @@ public class MSSQLBuilder extends SqlBuilder {
         this.serverIsEmulated = false;
     };
 
+    /*
+     *  Build SQL Server command     
+     */
     @Override
     public String getCommand() {
-        // Build SQL Server command
         StringBuilder builder = new StringBuilder("SELECT");
         addSelects(builder);
         addFromTerm(builder);
         addWhereTerms(builder);
         addOrderByTerms(builder);
-
-        // Package the inner SQL command in an outer SQL command.
         addTopAndSkip(builder);
-
+        
+        // Package the inner SQL command in an outer SQL command.
         return builder.toString();
     }
 

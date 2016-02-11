@@ -38,12 +38,12 @@ import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.jdbc.ServerMode;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
 
 /**
  * Test $skip and $top options withJdbcProducer class.
