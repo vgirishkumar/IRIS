@@ -37,12 +37,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.IAuthorizationProvider;
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.RowFilter;
+import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 /**
  * Once we have actual functionality available. PLEASE DELETE THIS CLASS
@@ -143,7 +144,7 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 	 * Get the filter (row filter) for the current principle
 	 */
 	@Override
-	public List<RowFilter> getFilters(InteractionContext ctx) throws InteractionException {
+    public List<RowFilter> getFilters(InteractionContext ctx) throws InteractionException {
 		if (null != exception) {
 			throw (exception);
 		}
@@ -192,4 +193,9 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 		AccessProfile profile = new AccessProfile(getFilters(ctx), getSelect(ctx));
 		return (profile);
 	}
+
+    @Override
+    public RowFilters getNewFilters(InteractionContext ctx) throws InteractionException {
+        return new RowFilters(getFilters(ctx));
+    }
 }

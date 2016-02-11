@@ -33,13 +33,13 @@ import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 import org.odata4j.producer.ODataProducer;
 
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.authorization.exceptions.AuthorizationException;
 import com.temenos.interaction.commands.odata.ODataAttributes;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
 
 /**
  * The Class AuthorizationCommandTest.

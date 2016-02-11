@@ -36,7 +36,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.authorization.mock.MockAuthorizationBean;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
@@ -45,6 +44,7 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
 
 /**
  * The Class AuthorizationCommandTest.
@@ -150,6 +150,41 @@ public class AuthorizationCommandFilterTest extends AbstractAuthorizationTest {
 		assertTrue(result.contains("name eq Tim"));
 		assertTrue(result.contains("id eq 1234"));
 	}
+	
+	/**
+     * Test addition to the more complex $filter parameters handled by the new parser.
+     */
+    @Test
+    public void testComplexFilterAdd() {
+
+        MockAuthorizationBean authBean = new MockAuthorizationBean("id eq 1234", "");
+        AuthorizationCommand command = new AuthorizationCommand(authBean);
+
+        // Path is not important for security
+        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+
+        // Set up oData parameters
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+        queryParams.add(ODataParser.FILTER_KEY, "name eq Tim or value eq tolower('AVALUE')");
+
+        // Run command
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+                queryParams, mock(ResourceState.class), mock(Metadata.class));
+        try {
+            InteractionCommand.Result result = command.execute(ctx);
+
+            // Should work.
+            assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            // Should never throw.
+            fail();
+        }
+        // Check that the expected parameter is present
+        String resultStr = ctx.getQueryParameters().getFirst(ODataParser.FILTER_KEY);
+        ArrayList<String> result = new ArrayList<String>(Arrays.asList(resultStr.split("\\s* and \\s*")));
+        assertTrue(result.contains("name eq Tim or value eq tolower('AVALUE')"));
+        assertTrue(result.contains("id eq 1234"));
+    }
 
 	/**
 	 * Test dangerous names containing keywords 'and', 'or' etc.
