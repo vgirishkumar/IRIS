@@ -44,16 +44,23 @@ import com.temenos.interaction.jdbc.exceptions.JdbcException;
 import com.temenos.interaction.jdbc.producer.JdbcProducer;
 
 public class ColumnTypesMap {
+    private final static Logger logger = LoggerFactory.getLogger(ColumnTypesMap.class);
+
     // Default primary key
     private static String DEFAULT_PRIMARY_KEY = "RECID";
 
     // Somewhere to cache mapping information.
+    //
+    // TODO With the new oDataParser this member is almost unused. The column
+    // data types can be determined from the
+    // parsed oData4j data types. If these are wrong then the operation will
+    // fail when the SQL query is executed.
+    // This is retained only to check if the, illegal, INNER_RN_NAME column name
+    // is present.
     private Map<String, Integer> typesMap;
 
     // Somewhere to store primary key.
     private String primaryKeyName;
-
-    private final static Logger logger = LoggerFactory.getLogger(ColumnTypesMap.class);
 
     public ColumnTypesMap(JdbcProducer producer, String tableName, boolean primaryKeyNameRequired) throws Exception {
         // This will open a new connection. Remember to close it latter.

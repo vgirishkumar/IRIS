@@ -45,12 +45,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jndi.JndiTemplate;
 
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.OrderBy;
-import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.util.ODataParser;
-import com.temenos.interaction.authorization.command.util.ODataParser.UnsupportedQueryOperationException;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -62,6 +56,12 @@ import com.temenos.interaction.jdbc.exceptions.JdbcException;
 import com.temenos.interaction.jdbc.producer.sql.ColumnTypesMap;
 import com.temenos.interaction.jdbc.producer.sql.SqlBuilder;
 import com.temenos.interaction.jdbc.producer.sql.SqlBuilderFactory;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
+import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.OrderBy;
+import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 public class JdbcProducer {
     // Somewhere to store connection
@@ -161,7 +161,7 @@ public class JdbcProducer {
 
         List<OrderBy> orderBy = ODataParser.parseOrderBy(queryParams.getFirst(ODataParser.ORDERBY_KEY));
 
-        // Build an SQL command from an appropiate builder
+        // Build an SQL command from an appropriate builder
         SqlBuilder sqlBuilder = SqlBuilderFactory.getSqlBuilder(tableName, key, accessProfile, colTypesMap, top, skip,
                 orderBy, serverMode);
         String sqlCommand = sqlBuilder.getCommand();
@@ -177,15 +177,11 @@ public class JdbcProducer {
     }
 
     /*
-     * Method to unpack a contexts $filter and $select terms. For now use the
-     * parser from authorization module.
-     * 
-     * TODO At some point the parser should probably be moved into it's own
-     * module.
+     * Unpack a contexts $filter and $select terms.
      */
     private AccessProfile getAccessProfile(InteractionContext ctx) throws UnsupportedQueryOperationException {
         EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
-        List<RowFilter> filters = ODataParser.parseFilter(queryInfo.filter);
+        RowFilters filters = new RowFilters(queryInfo.filter);
         Set<FieldName> selects = ODataParser.parseSelect(queryInfo.select);
         return new AccessProfile(filters, selects);
     }
@@ -280,7 +276,7 @@ public class JdbcProducer {
      * This is probably untestable.
      */
     private ServerMode getServerMode() throws JdbcException {
-        // If a server compatability mode has been passed use it.
+        // If a server comparability mode has been passed use it.
         if (null != h2ServerMode) {
             return h2ServerMode;
         }

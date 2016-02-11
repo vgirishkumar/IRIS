@@ -31,12 +31,12 @@ import org.apache.solr.client.solrj.response.TermsResponse.Term;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 
-import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.odataext.odataparser.data.RowFilter;
 
 public abstract class AbstractSolrCommand {
 	

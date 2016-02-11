@@ -29,12 +29,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.OrderBy;
-import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.jdbc.JDBCProducerConstants;
 import com.temenos.interaction.jdbc.ServerMode;
+import com.temenos.interaction.jdbc.SqlRelation;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.OrderBy;
+import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 /**
  * Interface for writing multiple implementation of sql bilder
@@ -114,7 +115,7 @@ public abstract class SqlBuilder {
     }
 
     /**
-     * Add Selected coloumn names in query
+     * Add Selected column names to query
      * 
      * @param builder
      */
@@ -197,7 +198,7 @@ public abstract class SqlBuilder {
     protected void addWhereTerms(StringBuilder builder) {
 
         // If there are no filters or key return;
-        if (accessProfile.getRowFilters().isEmpty() && (null == keyValue)) {
+        if (accessProfile.getNewRowFilters().isEmpty() && (null == keyValue)) {
             return;
         }
 
@@ -210,15 +211,11 @@ public abstract class SqlBuilder {
             }
 
             // Add key as a filter
-            RowFilter keyFilter = new RowFilter(colTypesMap.getPrimaryKeyName(), RowFilter.Relation.EQ, keyValue);
-            addFilter(builder, keyFilter);
+            accessProfile.getNewRowFilters().addFilters(
+                    colTypesMap.getPrimaryKeyName() + " " + SqlRelation.EQ.getoDataString() + " '" + keyValue + "'");
         }
 
-        if (!accessProfile.getRowFilters().isEmpty()) {
-            // If we already had a key need to link with an 'AND'.
-            if (null != keyValue) {
-                addAnd(builder);
-            }
+        if (!accessProfile.getNewRowFilters().isEmpty()) {
             addFilters(builder);
         }
     }
@@ -234,45 +231,21 @@ public abstract class SqlBuilder {
     private void addFilters(StringBuilder builder) {
 
         // Add row filters
-        List<RowFilter> filters = accessProfile.getRowFilters();
+        RowFilters filters = accessProfile.getNewRowFilters();
         if (null == filters) {
             throw (new SecurityException("Cannot generate Sql command for null row filters list."));
         }
 
-        // Add AND separated list of filter terms. Need to detect the last
-        // operation so use old style iterator.
-        Iterator<RowFilter> iterator = filters.iterator();
-        while (iterator.hasNext()) {
-            RowFilter filter = iterator.next();
-
-            addFilter(builder, filter);
-
-            // If not the last entry
-            if (iterator.hasNext()) {
-                addAnd(builder);
-            }
+        // Create an OData4j visitor and use it to print out the filters. 
+        SQLExpressionVisitor v = new SQLExpressionVisitor();
+        filters.getOData4jExpression().visit(v);
+        String parameters = v.toString();
+        if (!parameters.isEmpty()) {
+            builder.append(" ");
+            builder.append(v.toString());
         }
     }
-
-    private void addFilter(StringBuilder builder, RowFilter filter) {
-        builder.append(" \"" + filter.getFieldName().getName() + "\"");
-        builder.append(filter.getRelation().getSqlSymbol());
-
-        // Extract the column type from the metadata. Text
-        // must be quoted but not numerics.
-        boolean numeric = colTypesMap.isNumeric(filter.getFieldName().getName());
-        if (numeric) {
-            String value = filter.getValue();
-            if (!isJdbcNumeric(value)) {
-                throw (new SecurityException("Jdbc column \"" + filter.getFieldName().getName()
-                        + "\" is numeric. Filter value \"" + value + "\" is non numeric."));
-            }
-            builder.append(value);
-        } else {
-            builder.append("'" + filter.getValue() + "'");
-        }
-    }
-
+    
     /*
      * Add order by term. If this is not present rows will be returned in a
      * random order.

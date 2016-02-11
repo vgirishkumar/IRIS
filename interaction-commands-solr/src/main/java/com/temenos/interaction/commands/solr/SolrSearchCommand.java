@@ -50,14 +50,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.command.AuthorizationAttributes;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.commands.solr.data.SolrConstants;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.EntityProperties;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.RowFilter;
 
 public class SolrSearchCommand extends AbstractSolrCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(SolrSearchCommand.class);

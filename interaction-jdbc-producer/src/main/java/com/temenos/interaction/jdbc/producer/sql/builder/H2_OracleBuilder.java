@@ -31,10 +31,10 @@ package com.temenos.interaction.jdbc.producer.sql.builder;
 
 import java.util.List;
 
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.jdbc.ServerMode;
 import com.temenos.interaction.jdbc.producer.sql.ColumnTypesMap;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.OrderBy;
 
 public class H2_OracleBuilder extends OracleBuilder {
 
