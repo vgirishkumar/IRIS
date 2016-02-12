@@ -119,7 +119,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		addColFilter(ctx, authSet, oldSelect);
 	}
 
-	private boolean addRowFilter(InteractionContext ctx, RowFilters newList, RowFilters oldFilter)
+	private boolean addRowFilter(InteractionContext ctx, RowFilters newFilter, RowFilters oldFilter)
 			throws UnsupportedQueryOperationException {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
@@ -129,15 +129,15 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 			// the same column. What if "a > b" and
 			// "a = c"? For now include both and let the database decide how it
 			// handles tests conditions.
-			newList.addFilters(oldFilter);
-		}
+		    oldFilter.addFilters(newFilter);
+		} 
 
 		// By the time we get here the target 'and' terms will be in newList.
-		if (newList.isEmpty()) {
+		if (oldFilter.isEmpty()) {
 			// No filtering, i.e. return everything. Delete any existing filter.
 			queryParams.remove(ODataParser.FILTER_KEY);
 		} else {
-			queryParams.putSingle(ODataParser.FILTER_KEY, ODataParser.toFilters(newList));
+			queryParams.putSingle(ODataParser.FILTER_KEY, ODataParser.toFilters(oldFilter));
 		}
 
 		// Return the entries specified by the filter.

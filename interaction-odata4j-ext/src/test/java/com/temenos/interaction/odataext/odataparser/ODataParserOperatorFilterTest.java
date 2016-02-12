@@ -38,6 +38,7 @@ import org.odata4j.expression.Expression;
 
 import com.temenos.interaction.odataext.odataparser.data.Relation;
 import com.temenos.interaction.odataext.odataparser.data.RowFilter;
+import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest {
 
@@ -307,6 +308,29 @@ public class ODataParserOperatorFilterTest extends AbstractODataParserFilterTest
         boolean threw = false;
         try {
             actual = ODataParser.toFilters(null);
+        } catch (Exception e) {
+            threw = true;
+        }
+
+        assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
+    }
+    
+    /**
+     * Test 'block all' filter.
+     */
+    @Test
+    public void testBlockAllFilter() {
+
+        String actual = null;
+        boolean threw = false;
+        
+        // Create a non-null, 'block all', filter.
+        RowFilters filter = new RowFilters();
+        filter.addFilters((RowFilters)null);
+        assertTrue(filter.isBlockAll());
+        
+        try {
+            actual = ODataParser.toFilters(filter);
         } catch (Exception e) {
             threw = true;
         }

@@ -25,14 +25,12 @@ package com.temenos.interaction.authorization;
  * #L%
  */
 
-import java.util.List;
 import java.util.Set;
 
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
 import com.temenos.interaction.odataext.odataparser.data.FieldName;
-import com.temenos.interaction.odataext.odataparser.data.RowFilter;
 import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 public interface IAuthorizationProvider {
@@ -51,16 +49,7 @@ public interface IAuthorizationProvider {
      * An empty list means do no filtering i.e. return all rows. This is
      * represented by a missing $filter term.
      */
-    public RowFilters getNewFilters(InteractionContext ctx) throws InteractionException;
-
-    /*
-     * Get the row filter for the current principle
-     * 
-     * An empty list means do no filtering i.e. return all rows. This is
-     * represented by a missing $filter term.
-     */
-    @Deprecated
-    public List<RowFilter> getFilters(InteractionContext ctx) throws InteractionException;
+    public RowFilters getFilters(InteractionContext ctx) throws InteractionException;
 
     /*
      * Get the select for the current principle.

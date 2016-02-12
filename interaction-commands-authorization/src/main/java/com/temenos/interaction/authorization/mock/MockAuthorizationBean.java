@@ -26,9 +26,7 @@ package com.temenos.interaction.authorization.mock;
  * #L%
  */
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -42,7 +40,6 @@ import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.odataext.odataparser.ODataParser;
 import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
 import com.temenos.interaction.odataext.odataparser.data.FieldName;
-import com.temenos.interaction.odataext.odataparser.data.RowFilter;
 import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 /**
@@ -60,7 +57,7 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 	public static String TEST_SELECT_KEY = "$testSelectKey";
 
 	// Somewhere to store dummy test arguments.
-	private List<RowFilter> testFilter = null;
+	private RowFilters testFilter = null;
 	private Set<FieldName> testSelect = null;
 
 	// Place to store an exception to be thrown on execute
@@ -78,41 +75,22 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 	// Constructors enabling dummy RowFilters to be passed in for testing.
 	// BREAKS AUTHORIZATION. DO NOT USE OTHER THAN FOR TESTING.
 	public MockAuthorizationBean(String filter, String select) {
-		CommonTestConstructor(stringToFilter(filter), stringToSelect(select));
+		CommonTestConstructor(filter, stringToSelect(select));
 	}
 
-	private void CommonTestConstructor(List<RowFilter> testFilter, Set<FieldName> testSelect) {
+	private void CommonTestConstructor(String testFilter, Set<FieldName> testSelect) {
 		// Store test arguments
-		this.testFilter = testFilter;
+	    try {
+	        this.testFilter = new RowFilters(testFilter);
+	    }
+	    catch (Exception e) {
+	        // If there was any problem create the 'no result' filter.
+	        this.testFilter = null;
+	    }
+	    
 		this.testSelect = testSelect;
 	}
-
-	// Helper to convert a filter string into a filter. Handles parsing and also
-	// the edge 'all' and 'none' cases.
-	private List<RowFilter> stringToFilter(String filter) {
-		if (null == filter) {
-			// A null string means return nothing. Represented by a null filter.
-			return (null);
-		}
-
-		if (filter.isEmpty()) {
-			// An empty string means do no filtering. Represented by an empty
-			// filter list.
-			return (new ArrayList<RowFilter>());
-		}
-
-		// If we get here parse the filter.
-		try {
-			List<RowFilter> filterList = ODataParser.parseFilter(filter);
-			return (filterList);
-		} catch (Exception e) {
-			logger.info("Could not parse test filter \"" + filter + "\" : ", e);
-
-			// Return the 'no output' case
-			return (null);
-		}
-	}
-
+	
 	// Helper to convert a select string into a select. Handles parsing and also
 	// the edge 'all' and 'none' cases.
 	private Set<FieldName> stringToSelect(String select) {
@@ -138,29 +116,6 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 			// Return the 'no output' case
 			return (new HashSet<FieldName>());
 		}
-	}
-
-	/*
-	 * Get the filter (row filter) for the current principle
-	 */
-	@Override
-    public List<RowFilter> getFilters(InteractionContext ctx) throws InteractionException {
-		if (null != exception) {
-			throw (exception);
-		}
-
-		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-
-		// If a filter was passed on the command line use that
-		if (null != queryParams) {
-			String passedFilter = queryParams.getFirst(TEST_FILTER_KEY);
-
-			if (null != passedFilter) {
-				return (stringToFilter(passedFilter));
-			}
-		}
-
-		return (testFilter);
 	}
 
 	/*
@@ -193,9 +148,27 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 		AccessProfile profile = new AccessProfile(getFilters(ctx), getSelect(ctx));
 		return (profile);
 	}
-
+    
+    /*
+     * Get the filters for the current principle
+     */
     @Override
-    public RowFilters getNewFilters(InteractionContext ctx) throws InteractionException {
-        return new RowFilters(getFilters(ctx));
+    public RowFilters getFilters(InteractionContext ctx) throws InteractionException {
+        if (null != exception) {
+            throw (exception);
+        }
+
+        MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+
+        // If a filter was passed on the command line use that
+        if (null != queryParams) {
+            String passedFilter = queryParams.getFirst(TEST_FILTER_KEY);
+
+            if (null != passedFilter) {
+                return (ODataParser.parseFilters(passedFilter));
+            }
+        }
+
+        return (testFilter);
     }
 }

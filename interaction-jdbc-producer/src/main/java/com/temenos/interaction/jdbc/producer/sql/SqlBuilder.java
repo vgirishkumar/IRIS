@@ -232,8 +232,8 @@ public abstract class SqlBuilder {
 
         // Add row filters
         RowFilters filters = accessProfile.getNewRowFilters();
-        if (null == filters) {
-            throw (new SecurityException("Cannot generate Sql command for null row filters list."));
+        if ((null == filters) || (filters.isBlockAll())) {
+            throw (new SecurityException("Cannot generate Sql command for 'block all' row filter."));
         }
 
         // Create an OData4j visitor and use it to print out the filters. 
