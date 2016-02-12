@@ -18,6 +18,11 @@ import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQuery
 
 /*
  * Classes containing information about a set of row filters.
+ * 
+ * An empty RowFilters (allow everything) has a null oData4jExpression;
+ * 
+ * A 'block everything' Rowfilters is represented by a either a null pointer or an oData4jExpression of BLOCK_ALL. The
+ * latter is required because if a null RowFilter is added to an existing RowFilter we can't null the parent object.
  */
 
 /*
@@ -44,12 +49,16 @@ import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQuery
 public class RowFilters {
     // Wrapped OData4j object. Null means an empty filter list.
     private BoolCommonExpression oData4jExpression;
-    
+
+    // Special oData object used to indicate a 'block all' access filter. Any
+    // BooleanCommonExpression will do.
+    private static BoolCommonExpression blockAllFilter = Expression.or(null, null);
+
     public RowFilters() {
-        // Empty list
+        // By default we have an empty list
         oData4jExpression = null;
     }
-    
+
     public RowFilters(String filterStr) {
         if (filterStr.isEmpty()) {
             // OData4j parser appears to throw on empty strings. Mark this as an
@@ -87,26 +96,42 @@ public class RowFilters {
         BoolCommonExpression newExpression = OptionsQueryParser.parseFilter(filterStr);
         addFilters(newExpression);
     }
-    
-    // Add (and) extra filters to the current filter.
-    public void addFilters(RowFilters addFilter) {
-        addFilters(addFilter.getOData4jExpression());
+
+    // Add (and) extra filters to the current filter. We would like a signature
+    // something like:
+    public void addFilters(RowFilters addFilters) {
+        if ((null == addFilters) || (blockAllFilter == addFilters.getOData4jExpression())) {
+            // One side blocks everything. So must null result.
+            oData4jExpression = blockAllFilter;
+        } else {
+            addFilters(addFilters.getOData4jExpression());
+        }
     }
 
-    // Add (and) a filter with the list. Where possible use the addFilter(RowFilters...) instead of this.
+    // Add (and) a filter with the list. Where possible use the
+    // addFilter(RowFilters...) instead of this.
     public void addFilters(BoolCommonExpression expr) {
         if (null == expr) {
-            // Nothing to add
+            // For an empty filter nothing to add.
             return;
         }
-        
+
         if (null == oData4jExpression) {
-            // This is the first expression. Just use it.
+            // Null oData4jExpression is 'allow everything'. So now allow the
+            // added filter.
             oData4jExpression = expr;
         } else {
-            // We become a new 'and' expression with the old expression and the added
-            // expression as leafs.
-            oData4jExpression = Expression.and(oData4jExpression, expr);
+            // If either expression is 'block all then the result is 'block
+            // all'.
+            if ((blockAllFilter == oData4jExpression) || (blockAllFilter == expr)) {
+                oData4jExpression = blockAllFilter;
+            } else {
+                // We become a new 'and' expression with the old expression and
+                // the
+                // added
+                // expression as leafs.
+                oData4jExpression = Expression.and(oData4jExpression, expr);
+            }
         }
     }
 
@@ -186,5 +211,9 @@ public class RowFilters {
 
     public boolean isEmpty() {
         return (null == getOData4jExpression());
+    }
+
+    public boolean isBlockAll() {
+        return (blockAllFilter == getOData4jExpression());
     }
 }

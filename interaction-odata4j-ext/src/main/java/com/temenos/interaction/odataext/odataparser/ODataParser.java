@@ -122,11 +122,19 @@ public class ODataParser {
 
     // Convert filter to an oData parameter.
     public static String toFilters(RowFilters filters) {
+        if ((null == filters) || (filters.isBlockAll())) {
+            // Can't print the block all filters,
+            throw new NullPointerException("Cannot print 'block all' filter.");
+        }
         return OData4jToFilters(filters.getOData4jExpression());
     }
 
     // Convert filter to an oData parameter using a custom visitor.
     public static String toFilters(RowFilters filters, PrintExpressionVisitor visitor) {
+        if ((null == filters) || (filters.isBlockAll())) {
+            // Can't print the block all filters,
+            throw new NullPointerException("Cannot print 'block all' filter.");
+        }
         return OData4jToFilters(filters.getOData4jExpression(), visitor);
     }
 

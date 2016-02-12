@@ -21,6 +21,7 @@ package com.temenos.interaction.odataext.odataparser.data;
  * #L%
  */
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -104,6 +105,7 @@ public class RowFiltersTest {
 
         RowFilters filters = new RowFilters(expectedStr1);
         RowFilters addFilters = new RowFilters(expectedStr2);
+        
         filters.addFilters(addFilters);
 
         assertEquals(expected, ODataParser.toFilters(filters));
@@ -115,11 +117,44 @@ public class RowFiltersTest {
 
         RowFilters filters = new RowFilters(expected);
         RowFilters addFilters = new RowFilters();
+        
         filters.addFilters(addFilters);
 
         assertEquals(expected, ODataParser.toFilters(filters));
     }
+    
+    @Test
+    public void testAddBlockAllFilters() {
+        String expected= "aname eq avalue";
 
+        RowFilters filters = new RowFilters(expected);
+        
+        // Not currently blocking all
+        assertFalse(filters.isBlockAll());
+        
+        filters.addFilters((RowFilters)null);
+        
+        // Now we are blocking all
+        assertTrue(filters.isBlockAll());
+    }
+    
+    @Test
+    public void testAddToBlockAllFilters() {
+        String expected= "aname eq avalue";
+
+        RowFilters filters = new RowFilters(expected);
+        filters.addFilters((RowFilters)null);
+        
+        // Now we are blocking all
+        assertTrue(filters.isBlockAll());
+        
+        RowFilters addFilters = new RowFilters("aname eq avalue");
+        filters.addFilters(addFilters);
+        
+        // Should still be blocking all
+        assertTrue(filters.isBlockAll());
+    }
+    
     @Test
     @Deprecated
     public void testAddFRowilter() {
