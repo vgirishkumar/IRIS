@@ -16,7 +16,18 @@
 
 	<dependencies>
    	    <!-- IRIS dependencies -->
-
+        <dependency>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>interaction-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>interaction-odata4j-ext</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>interaction-commands-odata</artifactId>
+        </dependency>
         <!-- SPRING dependencies-->
 
         <!-- TESTING -->
@@ -47,11 +58,7 @@
             <groupId>org.odata4j</groupId>
             <artifactId>odata4j-core</artifactId>
         </dependency>
-        <dependency>
-        	<groupId>com.temenos.interaction</groupId>
-        	<artifactId>interaction-commands-odata</artifactId>
-        	</dependency>
-	</dependencies>	
+    </dependencies>	
     
 <!-- SONAR TEST COVERAGE PROFILE-->
    <profiles>
