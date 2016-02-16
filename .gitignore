@@ -31,3 +31,4 @@ src-gen
 /interaction-examples/interaction-odata-airline/nbactions.xml
 /interaction-examples/interaction-odata-airline/nb-configuration.xml
 /nbactions.xml
+.metadata/
