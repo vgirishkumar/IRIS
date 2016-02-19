@@ -3,6 +3,8 @@
 */
 package com.temenos.interaction.rimdsl.validation;
 
+import javax.inject.Inject;
+
 import org.eclipse.xtext.naming.IQualifiedNameProvider;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.resource.IEObjectDescription;
@@ -12,7 +14,6 @@ import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.validation.CheckType;
 import org.eclipse.xtext.xbase.lib.IterableExtensions;
 
-import com.google.inject.Inject;
 import com.temenos.interaction.rimdsl.rim.RimPackage;
 
 /**

@@ -21,13 +21,13 @@ import com.temenos.interaction.rimdsl.rim.TransitionRedirect
 import com.temenos.interaction.rimdsl.rim.TransitionRef
 import com.temenos.interaction.rimdsl.rim.UriLink
 import java.util.Iterator
+import javax.inject.Inject
 import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.apache.commons.lang.StringEscapeUtils
-import com.google.inject.Inject
 
 class RIMDslGenerator implements IGenerator {
 	

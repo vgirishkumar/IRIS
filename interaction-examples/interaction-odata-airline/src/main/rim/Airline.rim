@@ -14,7 +14,6 @@ event DELETE {
 	method: DELETE
 }
 
-command GETTestController
 command GETServiceDocument
 command GETException
 command GETEntity

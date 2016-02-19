@@ -75,7 +75,7 @@
         <constructor-arg ref="resourceStateProvider" />
 	</bean>
 
-	<bean id="httpCache" class="com.temenos.interaction.core.cache.CacheHashMapImpl"/>
+	<bean id="httpCache" class="com.temenos.interaction.core.cache.HashMapCache" />
 
 
 	<!-- 
@@ -91,7 +91,7 @@
 		<property name="metadata" ref="metadata" />
 		<property name="transformer"><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></property>
 		<property name="resourceStateProvider" ref="resourceStateProvider" />
-		<property name="cache" ref="httpCache"/>
+ 		<property name="cacheImpl" ref="httpCache" />
 	</bean>
 
     <!-- Commands -->

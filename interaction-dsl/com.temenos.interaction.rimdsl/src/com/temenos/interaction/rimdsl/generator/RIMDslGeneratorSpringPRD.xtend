@@ -18,6 +18,7 @@ import com.temenos.interaction.rimdsl.rim.OKFunction;
 import com.temenos.interaction.rimdsl.rim.NotFoundFunction
 import com.temenos.interaction.rimdsl.rim.Function
 import com.temenos.interaction.rimdsl.rim.Expression
+import javax.inject.Inject
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import com.temenos.interaction.rimdsl.rim.ImplRef
 import com.temenos.interaction.rimdsl.rim.RelationConstant
@@ -27,7 +28,6 @@ import com.temenos.interaction.rimdsl.rim.TransitionRedirect
 import com.temenos.interaction.rimdsl.rim.TransitionRef
 import com.temenos.interaction.rimdsl.rim.MethodRef
 import com.temenos.interaction.rimdsl.rim.TransitionEmbeddedForEach
-import com.google.inject.Inject
 
 class RIMDslGeneratorSpringPRD implements IGenerator {
 	

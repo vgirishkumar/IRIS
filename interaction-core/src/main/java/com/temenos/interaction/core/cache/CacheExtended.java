@@ -1,8 +1,8 @@
-package com.temenos.interaction.translate.registrar;
+package com.temenos.interaction.core.cache;
 
 /*
  * #%L
- * interaction-translate
+ * interaction-core
  * %%
  * Copyright (C) 2012 - 2016 Temenos Holdings N.V.
  * %%
@@ -21,16 +21,27 @@ package com.temenos.interaction.translate.registrar;
  * #L%
  */
 
+import java.util.Map;
 
-import com.temenos.interaction.springdsl.DynamicRegistrationResourceStateProvider;
-import com.temenos.interaction.springdsl.StateRegisteration;
+/**
+ * Interface for caching objects with the option of specifying their life time.
+ * 
+ * @author kwieconkowski
+ * @author andres
+ * @author dgroves
+ */
+public interface CacheExtended<K, V> {
+    void put(K key, V value);
 
-public class DefaultDynamicRegistrar implements DynamicRegistrationResourceStateProvider {
+    void put(K key, V value, int ageInSeconds);
 
-	@Override
-	public void setStateRegisteration(StateRegisteration stateRegisteration) {
-		// TODO Auto-generated method stub
+    void putAll(Map<K, V> keyValueMap);
 
-	}
+    V get(K key);
 
+    void remove(K key);
+
+    void removeAll();
+
+    boolean isEmpty();
 }
