@@ -191,8 +191,8 @@ public class InteractionSDKTest {
     	public void run() {
     		try {
     	        // wait a little while until started
-    	        System.out.println("Waiting 30 seconds for server start..");
-    	        Thread.sleep(30000);
+    	        System.out.println("Waiting 10 seconds for server start..");
+    	        Thread.sleep(10000);
     	        // run the integration tests
     	        verifier.displayStreamBuffers();
     	        Properties airlineProps = new Properties();
