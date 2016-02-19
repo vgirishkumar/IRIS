@@ -21,8 +21,9 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
-import com.temenos.interaction.core.cache.Cache;
+import com.temenos.interaction.core.cache.CacheExtended;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.loader.ResourceStateLoadingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -33,8 +34,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
-import com.temenos.interaction.core.loader.ResourceStateLoader;
+import static com.temenos.interaction.core.loader.ResourceStateLoadingStrategy.ResourceStateResult;
 
 /**
  * Provider of ResourceState that loads all of them at instantiation time from
@@ -52,16 +52,16 @@ import com.temenos.interaction.core.loader.ResourceStateLoader;
 public class EagerSpringDSLResourceStateProvider extends SpringDSLResourceStateProvider {
     private final Logger logger = LoggerFactory.getLogger(EagerSpringDSLResourceStateProvider.class);
 
-    private final Cache<String, ResourceState> cache;
+    private final CacheExtended<String, ResourceState> cache;
     private final String antStylePattern;
     private Set<String> PRDconfigurationFileSources;
-    private ResourceStateLoader<String> loadingStrategy;
+    private ResourceStateLoadingStrategy<String> loadingStrategy;
 
-    public EagerSpringDSLResourceStateProvider(String antStylePattern, ResourceStateLoader<String> loadingStrategy, Cache<String, ResourceState> cache) {
+    public EagerSpringDSLResourceStateProvider(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, CacheExtended<String, ResourceState> cache) {
         this(antStylePattern, loadingStrategy, cache, null);
     }
 
-    public EagerSpringDSLResourceStateProvider(String antStylePattern, ResourceStateLoader<String> loadingStrategy, Cache<String, ResourceState> cache, Properties beanMap) {
+    public EagerSpringDSLResourceStateProvider(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, CacheExtended<String, ResourceState> cache, Properties beanMap) {
         super(beanMap);
         this.antStylePattern = antStylePattern;
         this.loadingStrategy = loadingStrategy;
@@ -71,7 +71,7 @@ public class EagerSpringDSLResourceStateProvider extends SpringDSLResourceStateP
         loadAllResourceStates();
     }
 
-    public void setLoadingStrategy(ResourceStateLoader<String> loadingStrategy) {
+    public void setLoadingStrategy(ResourceStateLoadingStrategy<String> loadingStrategy) {
         this.loadingStrategy = loadingStrategy;
     }
 

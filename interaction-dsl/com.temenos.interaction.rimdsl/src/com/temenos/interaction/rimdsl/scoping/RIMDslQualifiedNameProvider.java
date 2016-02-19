@@ -2,7 +2,6 @@ package com.temenos.interaction.rimdsl.scoping;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.naming.IQualifiedNameConverter;
-import org.eclipse.xtext.naming.IQualifiedNameProvider;
 import org.eclipse.xtext.naming.IQualifiedNameProvider.AbstractImpl;
 import org.eclipse.xtext.naming.QualifiedName;
 
