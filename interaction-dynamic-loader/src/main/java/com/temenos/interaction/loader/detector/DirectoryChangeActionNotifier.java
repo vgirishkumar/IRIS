@@ -63,9 +63,17 @@ public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Ac
     private Collection<? extends File> resources = new ArrayList();
     private Collection<? extends Action<FileEvent<File>>> listeners = new ArrayList();
     private WatchService watchService;
-    private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService executorService;
     private ScheduledFuture<?> scheduledTask = null;
     private long intervalSeconds = 10;
+    
+    public DirectoryChangeActionNotifier(){
+    	executorService = Executors.newSingleThreadScheduledExecutor();
+    }
+    
+    public DirectoryChangeActionNotifier(ScheduledExecutorService executorService){
+    	this.executorService = executorService;
+    }
 
     @Override
     public void setResources(Collection<? extends File> resources) {
@@ -150,7 +158,7 @@ public class DirectoryChangeActionNotifier implements DirectoryChangeDetector<Ac
      * @author trojanbug
      * @author cmclopes
      */
-    protected static class ListenerNotificationTask implements Runnable {
+    public static class ListenerNotificationTask implements Runnable {
 
         private WatchService watchService;
         private Collection<? extends Action<FileEvent<File>>> listeners;

@@ -21,15 +21,14 @@ package com.temenos.interaction.core.cache;
  * #L%
  */
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 /**
  * Dumbest possible cache implementation.
  * Doesn't even use a ConcurrentHashMap because get makes two accesses so needs to be locked anyway
@@ -37,12 +36,12 @@ import org.slf4j.LoggerFactory;
  * @author amcguinness
  *
  */
-public class HashMapCache implements Cache {
-	public HashMapCache() {
-		logger.debug( "HashMap Cache initialized" );
+public class CacheHashMapImpl implements CacheBasic<Object, javax.ws.rs.core.Response.ResponseBuilder> {
+	public CacheHashMapImpl() {
+		logger.debug("CacheHashMapImpl initialized");
 	}
 
-	private static final Logger logger = LoggerFactory.getLogger(HashMapCache.class);
+	private static final Logger logger = LoggerFactory.getLogger(CacheHashMapImpl.class);
 
 	private boolean checkKey(Object key) {
 		if ( key == null ) {
@@ -53,8 +52,10 @@ public class HashMapCache implements Cache {
 		return true;
 	}
 
-	/** Insert a value into the cache.
-	 *  @param maxAge the entry will be invalid after this many seconds
+	/** Insert into cache
+	 * @param key declared as Object since it can be Uri, etc. toString() is used internally as key
+	 * @param value
+	 * @param maxAge the entry will be invalid after this many seconds
 	 */
 	@Override
 	public synchronized void put(Object key, Response.ResponseBuilder value, int maxAge) {

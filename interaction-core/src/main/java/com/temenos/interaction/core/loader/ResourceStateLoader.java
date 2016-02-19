@@ -23,7 +23,11 @@ package com.temenos.interaction.core.loader;
 
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
-import static com.temenos.interaction.core.loader.ResourceStateLoadingStrategy.ResourceStateResult;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+import static com.temenos.interaction.core.loader.ResourceStateLoader.ResourceStateResult;
 
 /**
  * Interface for loading a list of ResourceStateResult from a source. Ideally,
@@ -35,14 +39,61 @@ import static com.temenos.interaction.core.loader.ResourceStateLoadingStrategy.R
  * @author andres
  * @author dgroves
  */
-public interface ResourceStateLoadingStrategy<S> extends LoadingStrategy<ResourceStateResult, S> {
+public interface ResourceStateLoader<S> extends Loader<List<ResourceStateResult>, S> {
     class ResourceStateResult {
         public final String resourceStateId;
         public final ResourceState resourceState;
+        public final String[] methods;
+        public final String path;
 
         public ResourceStateResult(String resourceStateId, ResourceState resourceState) {
+            this(resourceStateId, resourceState, null, null);
+        }
+
+        public ResourceStateResult(String resourceStateId, ResourceState resourceState, String[] methods, String path) {
             this.resourceStateId = resourceStateId;
             this.resourceState = resourceState;
+            this.methods = methods;
+            this.path = path;
         }
+        
+        public String getResourceStateId(){
+        	return resourceStateId;
+        }
+        
+        public ResourceState getResourceState(){
+        	return resourceState;
+        }
+        
+        public String[] getMethods(){
+        	return methods;
+        }
+        
+        public String getPath(){
+        	return path;
+        }
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(resourceStateId, resourceState, methods, path);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			ResourceStateResult other = (ResourceStateResult) obj;
+			return Objects.equals(resourceStateId, other.getResourceStateId()) &&
+					Objects.equals(resourceState, other.getResourceState()) &&
+					Objects.equals(methods, other.getMethods()) &&
+					Objects.equals(path, other.getPath());
+		}
     }
 }

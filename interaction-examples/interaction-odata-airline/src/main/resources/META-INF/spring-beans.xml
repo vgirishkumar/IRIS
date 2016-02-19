@@ -31,7 +31,18 @@
 		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
-
+	
+	<bean id="resourceStateCache" class="com.temenos.interaction.core.cache.CacheConcurrentImpl" />
+	<bean id="resourceStateMapper" class="com.temenos.interaction.translate.mapper.ResourceStateMapper" />
+	<bean id="resourceStateLoader" class="com.temenos.interaction.rimdsl.generator.launcher.RIMResourceStateLoader" />
+	
+	<bean id="myResourceStateProvider" class="com.temenos.interaction.translate.loader.RIMResourceStateProvider">
+		<constructor-arg value="classpath*:/**/*.rim" />
+		<constructor-arg ref="resourceStateCache" />
+		<constructor-arg ref="resourceStateMapper" />
+		<constructor-arg ref="resourceStateLoader" />
+	</bean>
+	
 	<!-- Read property files -->
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
@@ -83,7 +94,7 @@
 	<bean id="atomProvider" class="com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider">
     	<constructor-arg name="metadataOData4j" ref="metadataOData4j" />
 		<constructor-arg name="metadata" ref="metadata" />
-		<constructor-arg name="resourceStateProvider" ref="resourceStateProvider" />
+		<constructor-arg name="resourceStateProvider" ref="myResourceStateProvider" />
 		<constructor-arg name="serviceDocument" ref="serviceDocument" />
     	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
 	</bean>
@@ -104,16 +115,16 @@
 		Initialises the ResourceStateProvider and understands how to construct
 		ResourceState instances using Spring
 	-->
-	<import resource="classpath:IRIS-SpringDSL-main.xml" />
+	<!-- <import resource="classpath:IRIS-SpringDSL-main.xml" />-->
 
 	<bean id="serviceRootFactory" class="com.temenos.interaction.winkext.LazyServiceRootFactory">
 		<property name="commandController" ref="commands" />
 		<property name="metadata" ref="metadata" />
 		<property name="transformer" ref="entityTransformer" />
-		<property name="resourceStateProvider" ref="resourceStateProvider" />
+		<property name="resourceStateProvider" ref="myResourceStateProvider" />
 	</bean>
 
-	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
+	<bean id="serviceDocument" factory-bean="myResourceStateProvider" factory-method="getResourceState">
 		<constructor-arg type="java.lang.String" value="AirlineModel_Airline-ServiceDocument" />
 	</bean>
 	
@@ -123,7 +134,7 @@
     	<constructor-arg name="exceptionState"><null /></constructor-arg>
 		<constructor-arg name="transformer" ref="entityTransformer" />
     	<constructor-arg name="resourceLocatorProvider"><null /></constructor-arg>
-		<constructor-arg name="resourceStateProvider" ref="resourceStateProvider" />
+		<constructor-arg name="resourceStateProvider" ref="myResourceStateProvider" />
 	</bean>
 
     <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
@@ -173,6 +184,7 @@
 	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
+	<bean id="GETTestController" class="com.interaction.example.odata.airline.command.GETTestController" />
 	<bean id="CreateEntity" class="com.temenos.interaction.commands.odata.CreateEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
@@ -202,14 +214,23 @@
             <property name="parentChainingCommandController" ref="commands"/>
         </bean>
         
-        <bean id="dirWatchdog" class="com.temenos.interaction.loader.detector.DirectoryChangeActionNotifier">
-            <property name="resources">
-                <value>${hot.deploy.dir}</value>
-            </property>
-           <property name="listeners">
-                <ref bean="updateAfterChangeAction"/>
-            </property>
-        </bean>
+        <bean id="executorService" class="java.util.concurrent.Executors" factory-method="newSingleThreadScheduledExecutor" />
+        
+		<bean id="rimDirWatchdog" class="com.temenos.interaction.loader.detector.DirectoryChangeActionNotifier">
+		   <constructor-arg name="executorService" type="java.util.concurrent.ScheduledExecutorService" ref="executorService" />
+		   <property name="resources">
+		       <list>
+		           <value>${hot.deploy.dir}</value>
+		       </list>
+	       </property>
+		   <property name="listeners">
+		        <ref bean="updateAfterChangeRIMAction" />
+		    </property>
+		</bean>
+		
+		<bean id="updateAfterChangeRIMAction" class="com.temenos.interaction.translate.loader.ResourceSetGeneratorAction">
+			<property name="resourceStateProvider" ref="myResourceStateProvider" />
+		</bean>
 <!--       
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">

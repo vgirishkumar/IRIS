@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
  */
 public class TestCacheConcurrentImpl {
 
-    private CacheExtended<String, ResourceState> cache;
+    private Cache<String, ResourceState> cache;
 
     @Before
     public void setUp() throws Exception {

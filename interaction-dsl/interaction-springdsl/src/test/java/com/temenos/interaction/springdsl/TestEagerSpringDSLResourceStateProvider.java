@@ -21,12 +21,11 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
+import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.cache.CacheConcurrentImpl;
-import com.temenos.interaction.core.cache.CacheExtended;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
-import com.temenos.interaction.core.loader.ResourceStateLoadingStrategy;
-import com.temenos.interaction.core.loader.SpringResourceStateLoadingStrategy;
+import com.temenos.interaction.core.loader.SpringDSLResourceStateLoader;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +39,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
+import com.temenos.interaction.core.loader.ResourceStateLoader;
 
 /**
  * @author kwieconkowski
@@ -105,7 +105,7 @@ public class TestEagerSpringDSLResourceStateProvider extends TestSpringDSLResour
 
     @Test
     public void testSetLoadingStrategy_betterCodeCoverage() {
-        springDSLResourceStateProvider.setLoadingStrategy(new SpringResourceStateLoadingStrategy());
+        springDSLResourceStateProvider.setLoadingStrategy(new SpringDSLResourceStateLoader());
     }
 
     @Test
@@ -129,10 +129,10 @@ public class TestEagerSpringDSLResourceStateProvider extends TestSpringDSLResour
     }
 
     private EagerSpringDSLResourceStateProvider getDefaultClass(Properties properties) {
-        return getDefaultClass("classpath*:/**/IRIS-*-PRD.xml", new SpringResourceStateLoadingStrategy(), new CacheConcurrentImpl(), properties);
+        return getDefaultClass("classpath*:/**/IRIS-*-PRD.xml", new SpringDSLResourceStateLoader(), new CacheConcurrentImpl(), properties);
     }
 
-    private EagerSpringDSLResourceStateProvider getDefaultClass(String antStylePattern, ResourceStateLoadingStrategy<String> loadingStrategy, CacheExtended<String, ResourceState> cache, Properties properties) {
+    private EagerSpringDSLResourceStateProvider getDefaultClass(String antStylePattern, ResourceStateLoader<String> loadingStrategy, Cache<String, ResourceState> cache, Properties properties) {
         return new EagerSpringDSLResourceStateProvider(antStylePattern, loadingStrategy, cache, properties);
     }
 }

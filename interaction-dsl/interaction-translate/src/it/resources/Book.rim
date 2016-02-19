@@ -1,0 +1,24 @@
+rim test {
+
+event GET {
+	method: GET
+}
+
+command GETServiceDocument
+command GETTestController
+
+initial resource ServiceDocument {
+	type: item
+	entity: ServiceDocument
+	view: GETServiceDocument
+	path: "/"
+	GET -> World
+}
+
+resource World {
+	type: item
+	entity: Greeting
+	view: GETTestController
+}
+
+}

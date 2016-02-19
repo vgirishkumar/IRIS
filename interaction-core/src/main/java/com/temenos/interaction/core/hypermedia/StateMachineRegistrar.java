@@ -1,4 +1,4 @@
-package com.temenos.interaction.core.loader;
+package com.temenos.interaction.core.hypermedia;
 
 /*
  * #%L
@@ -21,15 +21,8 @@ package com.temenos.interaction.core.loader;
  * #L%
  */
 
-import java.util.List;
 
-/**
- * Interface for loading a list of elements from a source. 
- * 
- * @author kwieconkowski
- * @author andres
- * @author dgroves
- */
-public interface LoadingStrategy<T, S> {
-    public List<T> load(S source);
+public interface StateMachineRegistrar {
+	public void registerResourceStateResult(ResourceState resourceState, String method);
+	public void setResourceStateMachine(ResourceStateMachine resourceStateMachine);
 }

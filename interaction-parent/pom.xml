@@ -38,6 +38,7 @@
 		<module>../interaction-media-xhtml</module>
 		<module>../interaction-media-odata-xml</module>
 		<module>../interaction-dsl/interaction-springdsl</module>
+        <module>../interaction-dsl/interaction-translate</module>
 		<module>../interaction-dynamic-loader</module>	
 		<module>../interaction-commands-jdbc</module>
 		<module>../interaction-jdbc-producer</module>
@@ -119,8 +120,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<javadoc.aggregate>true</javadoc.aggregate>
 		<javadoc.exclude.patterns>com.temenos.interaction.core.*</javadoc.exclude.patterns>
-		<maven.compile.source>1.6</maven.compile.source>
-		<maven.compile.target>1.6</maven.compile.target>
+		<maven.compile.source>1.7</maven.compile.source>
+		<maven.compile.target>1.7</maven.compile.target>
 		<!--WINK-330 Change slf4j api import to a range to make it more user friendly. -->	
 		<slf4j.osgi.import.instruction>org.slf4j.*;version="[1.5,1.7)"</slf4j.osgi.import.instruction>
 
@@ -212,8 +213,8 @@
                                         <artifactId>maven-compiler-plugin</artifactId>
                                         <version>3.3</version>
                                         <configuration>
-                                            <source>1.6</source>
-                                            <target>1.6</target>
+                                            <source>1.7</source>
+                                            <target>1.7</target>
                                         </configuration>
                                 </plugin>
 				<plugin>
