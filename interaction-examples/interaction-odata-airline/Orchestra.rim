@@ -1,0 +1,65 @@
+rim test {
+
+event GET {
+	method: GET
+}
+
+command GETServiceDocument
+command GETTestController
+
+initial resource ServiceDocument {
+	type: item
+	entity: ServiceDocument
+	view: GETServiceDocument
+	path: "/"
+	GET -> Orchestra
+}
+
+resource Orchestra {
+	type: item
+	entity: Greeting
+	view: GETTestController
+    GET -> Strings
+    GET -> Brass
+    GET -> Wind
+}
+
+resource Strings {
+	type: item
+	entity: Greeting
+	view: GETTestController
+    GET -> Violin
+}
+
+resource Violin {
+	type: item
+	entity: Greeting
+	view: GETTestController
+}
+
+resource Brass {
+	type: item
+	entity: Greeting
+	view: GETTestController
+    GET -> Trumpet
+}
+
+resource Trumpet {
+	type: item
+	entity: Greeting
+	view: GETTestController
+}
+
+resource Wind {
+	type: item
+	entity: Greeting
+	view: GETTestController
+    GET -> Clarinet
+}
+
+resource Clarinet {
+	type: item
+	entity: Greeting
+	view: GETTestController
+}
+}
