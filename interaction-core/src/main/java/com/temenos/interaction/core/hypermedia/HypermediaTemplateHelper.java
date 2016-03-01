@@ -94,15 +94,19 @@ public class HypermediaTemplateHelper {
 	 */
 	public static String templateReplace(String template, Map<String, Object> properties) {
 		String result = template;
+		Map<String, Object> normalizedProperties = null;
 		try {
 			if (template != null && template.contains("{") && template.contains("}")) {
 				Matcher m = TEMPLATE_PATTERN.matcher(template);
+				
 				while(m.find()) {
 					String param = m.group(1);
-					properties = HypermediaTemplateHelper.normalizeProperties(properties);
-					if (properties.containsKey(param)) {
+					if(null == normalizedProperties || normalizedProperties.size() == 0) {
+					    normalizedProperties = HypermediaTemplateHelper.normalizeProperties(properties);
+					}
+					if (normalizedProperties.containsKey(param)) {
 						// replace template tokens
-						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", properties.get(param).toString());
+						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", normalizedProperties.get(param).toString());
 					}
 				}
 			}
