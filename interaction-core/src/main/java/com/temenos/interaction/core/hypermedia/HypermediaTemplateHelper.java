@@ -101,7 +101,7 @@ public class HypermediaTemplateHelper {
 				
 				while(m.find()) {
 					String param = m.group(1);
-					if(null == normalizedProperties || normalizedProperties.size() == 0) {
+					if(null == normalizedProperties) {
 					    normalizedProperties = HypermediaTemplateHelper.normalizeProperties(properties);
 					}
 					if (normalizedProperties.containsKey(param)) {
