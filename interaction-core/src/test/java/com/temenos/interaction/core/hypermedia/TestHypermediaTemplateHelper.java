@@ -24,10 +24,25 @@ package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+import org.odata4j.core.OCollection;
+import org.odata4j.core.OCollections;
+import org.odata4j.core.OComplexObjects;
+import org.odata4j.core.OProperties;
+import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmCollectionType;
+import org.odata4j.edm.EdmComplexType;
+import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmEntityType;
+import org.odata4j.edm.EdmProperty;
+import org.odata4j.edm.EdmSimpleType;
 
 public class TestHypermediaTemplateHelper {
 
@@ -126,5 +141,54 @@ public class TestHypermediaTemplateHelper {
 		assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/flights/{id}",
 				HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/flights/{id}", properties));
 	}
+	
+	@Test
+    public void testMultiValueTemplateReplace() {
+	    
+	    EdmEntitySet setType;
+	    EdmEntityType airportsType;
+	    EdmCollectionType airportCollectionType;
+	    EdmComplexType airportType;
+	    
+	    List<EdmProperty.Builder> subprops = new ArrayList<EdmProperty.Builder>();
+        subprops.add(EdmProperty.newBuilder("AirportName").setType(EdmSimpleType.STRING));
+        airportType = EdmComplexType.newBuilder().setNamespace("InteractionTest").setName("AirportsAirport").addProperties(subprops).build();
+        
+        List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
+        eprops.add(EdmProperty.newBuilder("airport").setType(new EdmCollectionType(EdmProperty.CollectionKind.Bag, airportType)));
+                   
+        EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("InteractionTest").setName("Airports").addKeys(Arrays.asList("ID")).addProperties(eprops);
+        EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName("Airports").setEntityType(eet);
 
+        setType = ees.build();
+        airportsType = (EdmEntityType)setType.getType();
+        airportCollectionType = (EdmCollectionType)airportsType.findDeclaredProperty("airport").getType();
+        airportType = (EdmComplexType)airportCollectionType.getItemType();
+        
+        List<OProperty<?>> oPropertiesCity1 = new ArrayList<OProperty<?>>();
+        oPropertiesCity1.add(OProperties.string("AirportName", "London"));
+        
+        List<OProperty<?>> oPropertiesCity2 = new ArrayList<OProperty<?>>();
+        oPropertiesCity2.add(OProperties.string("AirportName", "Lisbon"));
+        
+        List<OProperty<?>> oPropertiesCity3 = new ArrayList<OProperty<?>>();
+        oPropertiesCity3.add(OProperties.string("AirportName", "Madrid"));
+
+        OCollection<?> city1 = OCollections.newBuilder(airportCollectionType).
+            add(OComplexObjects.create(airportType, oPropertiesCity1)).build();
+        
+        OCollection<?> city2 = OCollections.newBuilder(airportCollectionType).
+            add(OComplexObjects.create(airportType, oPropertiesCity2)).build();
+        
+        OCollection<?> city3 = OCollections.newBuilder(airportCollectionType).
+            add(OComplexObjects.create(airportType, oPropertiesCity3)).build();
+	    
+        Map<String,Object> properties = new LinkedHashMap<String,Object>();
+        properties.put("multivaluegroup1", city1);
+        properties.put("multivaluegroup2", city2);
+        properties.put("multivaluegroup3", city3);
+        
+        assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/flights/London",
+                HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/flights/{AirportName}", properties));
+    }
 }
