@@ -24,6 +24,7 @@ package com.temenos.interaction.core.hypermedia;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -32,6 +33,10 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import org.odata4j.core.OCollection;
+import org.odata4j.core.OComplexObject;
+import org.odata4j.core.OObject;
+import org.odata4j.core.OProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +99,7 @@ public class HypermediaTemplateHelper {
 				Matcher m = TEMPLATE_PATTERN.matcher(template);
 				while(m.find()) {
 					String param = m.group(1);
+					properties = HypermediaTemplateHelper.normalizeProperties(properties);
 					if (properties.containsKey(param)) {
 						// replace template tokens
 						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", properties.get(param).toString());
@@ -167,4 +173,26 @@ public class HypermediaTemplateHelper {
 		//		return "((?<"+param+">[^\\/]+))";
 		return "([^\\/]*)";
 	}
+	
+    private static LinkedHashMap<String, Object> normalizeProperties(Map<String, Object> properties) {
+        LinkedHashMap<String, Object> propertiesNormalized = new LinkedHashMap <String, Object>();
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            if (entry.getValue() instanceof OCollection) {
+                OCollection<?> collection = (OCollection<?>) entry.getValue();
+                for (OObject each : collection) {
+                    OComplexObject ooComplex = (OComplexObject) each;
+                    for (OProperty<?> property : ooComplex.getProperties()) {
+                        if (!propertiesNormalized.containsKey(property.getName())) {
+                            propertiesNormalized.put(property.getName(), property.getValue());
+                        }
+                    }
+                }
+            } else {
+                if (!propertiesNormalized.containsKey(entry.getKey())) {
+                    propertiesNormalized.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return propertiesNormalized;
+    }
 }
