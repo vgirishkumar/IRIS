@@ -21,10 +21,19 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
-import com.temenos.interaction.core.hypermedia.Event;
-import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
-import com.temenos.interaction.core.resource.ConfigLoader;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -33,10 +42,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
-import java.io.File;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
+import com.temenos.interaction.core.resource.ConfigLoader;
 
 public class SpringDSLResourceStateProvider implements ResourceStateProvider, DynamicRegistrationResourceStateProvider {
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
@@ -384,7 +393,15 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 
 				if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {
 					File file = new File(irisResourceDir, beanXml);
-					String path = file.getAbsolutePath();
+					
+					
+					String path = "";
+                    try {
+                        path = file.toURL().toString();
+                    } catch (MalformedURLException e) {
+                        logger.error("Failed to load IRIS PRD file: " + file.getAbsolutePath(), e); 
+                    }
+                    
 					attempts.add(path);
 
 					if(file.exists()) {
