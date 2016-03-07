@@ -175,7 +175,6 @@ public class HypermediaTemplateHelper {
 	
 	private static String getUriTemplatePattern(String param) {
 		// works with Java 7
-		//		return "((?<"+param+">[^\\/]+))";
 		return "([^\\/]*)";
 	}
 	
@@ -206,7 +205,6 @@ public class HypermediaTemplateHelper {
                         for (OObject each : collection) {
                             OComplexObject ooComplex = (OComplexObject) each;
                             for (OProperty<?> property : ooComplex.getProperties()) {
-                                //String complexMvPropertyName = property.getName()+"."+fullyQualifiedTypeName+"("+groupId+")";
                                 StringBuilder complexMvPropertyName = new StringBuilder();
                                 complexMvPropertyName.append(fullyQualifiedTypeName).append("(").append(groupId).append(")");
                                 complexMvPropertyName.append(".");
