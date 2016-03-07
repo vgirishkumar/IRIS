@@ -1630,7 +1630,7 @@ public class TestResourceStateMachine {
 		assertEquals("Airports.airports>GET(destination)>Airport.airport", sortedLinks.get(0).getId());
 		assertEquals("/baseuri/Airports('LTN')", sortedLinks.get(0).getHref());
 		assertEquals("Airports.airports>GET(origin)>Airport.airport", sortedLinks.get(1).getId());
-		assertEquals("/baseuri/Airports('London%20Luton')", sortedLinks.get(1).getHref());
+		assertEquals("/baseuri/Airports('London+Luton')", sortedLinks.get(1).getHref());
 		assertEquals(2, links.size());
 	}
 

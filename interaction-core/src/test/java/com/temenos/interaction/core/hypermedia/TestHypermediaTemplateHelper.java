@@ -145,14 +145,28 @@ public class TestHypermediaTemplateHelper {
 	@Test
     public void testMultiValueTemplateReplace() {
 	    
-	    EdmEntitySet setType;
-	    EdmEntityType airportsType;
-	    EdmCollectionType airportCollectionType;
-	    EdmComplexType airportType;
+        Map<String,Object> properties = new LinkedHashMap<String,Object>();
+        String enquiryName = "Airports";
+        String enquiryMVName = "AirportMv";
+
+        properties.put("Airports_Airport1", createMultivalueAirport(enquiryName,enquiryMVName, 1, "London"));
+        properties.put("Airports_Airport2", createMultivalueAirport(enquiryName,enquiryMVName, 2, "Madrid"));
+        properties.put("Airports_Airport3", createMultivalueAirport(enquiryName,enquiryMVName, 3, "Lisbon"));
+        
+        assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/flights/Madrid",
+                HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/flights/{Airport(2).AirportName}", properties));
+    }
+	
+	private Object createMultivalueAirport(String enquiryName, String enquiryMVName, Integer mvId, String airportName) {
 	    
-	    List<EdmProperty.Builder> subprops = new ArrayList<EdmProperty.Builder>();
+	    EdmEntitySet setType;
+        EdmEntityType airportsType;
+        EdmCollectionType airportCollectionType;
+        EdmComplexType airportType;
+        
+        List<EdmProperty.Builder> subprops = new ArrayList<EdmProperty.Builder>();
         subprops.add(EdmProperty.newBuilder("AirportName").setType(EdmSimpleType.STRING));
-        airportType = EdmComplexType.newBuilder().setNamespace("InteractionTest").setName("AirportsAirport").addProperties(subprops).build();
+        airportType = EdmComplexType.newBuilder().setNamespace("InteractionTest").setName(enquiryName+"_"+enquiryMVName+mvId+"Group").addProperties(subprops).build();
         
         List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();
         eprops.add(EdmProperty.newBuilder("airport").setType(new EdmCollectionType(EdmProperty.CollectionKind.Bag, airportType)));
@@ -165,30 +179,13 @@ public class TestHypermediaTemplateHelper {
         airportCollectionType = (EdmCollectionType)airportsType.findDeclaredProperty("airport").getType();
         airportType = (EdmComplexType)airportCollectionType.getItemType();
         
-        List<OProperty<?>> oPropertiesCity1 = new ArrayList<OProperty<?>>();
-        oPropertiesCity1.add(OProperties.string("AirportName", "London"));
+        List<OProperty<?>> oPropertiesCity = new ArrayList<OProperty<?>>();
+        oPropertiesCity.add(OProperties.string("AirportName", airportName));
         
-        List<OProperty<?>> oPropertiesCity2 = new ArrayList<OProperty<?>>();
-        oPropertiesCity2.add(OProperties.string("AirportName", "Lisbon"));
+        OCollection<?> city = OCollections.newBuilder(airportCollectionType).
+            add(OComplexObjects.create(airportType, oPropertiesCity)).build();
         
-        List<OProperty<?>> oPropertiesCity3 = new ArrayList<OProperty<?>>();
-        oPropertiesCity3.add(OProperties.string("AirportName", "Madrid"));
-
-        OCollection<?> city1 = OCollections.newBuilder(airportCollectionType).
-            add(OComplexObjects.create(airportType, oPropertiesCity1)).build();
-        
-        OCollection<?> city2 = OCollections.newBuilder(airportCollectionType).
-            add(OComplexObjects.create(airportType, oPropertiesCity2)).build();
-        
-        OCollection<?> city3 = OCollections.newBuilder(airportCollectionType).
-            add(OComplexObjects.create(airportType, oPropertiesCity3)).build();
+        return city;
 	    
-        Map<String,Object> properties = new LinkedHashMap<String,Object>();
-        properties.put("multivaluegroup1", city1);
-        properties.put("multivaluegroup2", city2);
-        properties.put("multivaluegroup3", city3);
-        
-        assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/flights/London",
-                HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/flights/{AirportName}", properties));
-    }
+	}
 }

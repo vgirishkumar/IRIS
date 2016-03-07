@@ -22,6 +22,7 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -106,7 +107,7 @@ public class HypermediaTemplateHelper {
 					}
 					if (normalizedProperties.containsKey(param)) {
 						// replace template tokens
-						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", normalizedProperties.get(param).toString());
+						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", URLEncoder.encode(normalizedProperties.get(param).toString(), "UTF-8"));
 					}
 				}
 			}
@@ -183,11 +184,37 @@ public class HypermediaTemplateHelper {
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
             if (entry.getValue() instanceof OCollection) {
                 OCollection<?> collection = (OCollection<?>) entry.getValue();
-                for (OObject each : collection) {
-                    OComplexObject ooComplex = (OComplexObject) each;
-                    for (OProperty<?> property : ooComplex.getProperties()) {
-                        if (!propertiesNormalized.containsKey(property.getName())) {
-                            propertiesNormalized.put(property.getName(), property.getValue());
+                String fullyQualifiedTypeName = collection.getType().getFullyQualifiedTypeName();
+                if (null!=fullyQualifiedTypeName) {            
+                                                             
+                    //Regex to find the group number id of the Mv
+                    //Example:  GroupOfMultivalues_Mv1Group will return 1 - groupId = 1
+                    //          GroupOfMultivalues_Mv2Group will return 2 - groupId = 2
+                    //          GroupOfMultivalues_MvGroup will return null - use default groupId = 1
+                    String groupId = "1";
+                    Pattern reGroup = Pattern.compile("Mv.*(\\d)Group");
+                    Matcher mGroup = reGroup.matcher(fullyQualifiedTypeName);                    
+                    if(mGroup.find()){ groupId = mGroup.group(1); }
+                    
+                    //Regex to find the name of the Mv
+                    //Example:  GroupOfMultivalues_Mv1Group will return GroupOfMultivalues
+                    Pattern re = Pattern.compile("_(.*)Mv");
+                    Matcher m = re.matcher(fullyQualifiedTypeName);
+                    
+                    if(m.find()){
+                        fullyQualifiedTypeName = m.group(1);
+                        for (OObject each : collection) {
+                            OComplexObject ooComplex = (OComplexObject) each;
+                            for (OProperty<?> property : ooComplex.getProperties()) {
+                                //String complexMvPropertyName = property.getName()+"."+fullyQualifiedTypeName+"("+groupId+")";
+                                StringBuilder complexMvPropertyName = new StringBuilder();
+                                complexMvPropertyName.append(fullyQualifiedTypeName).append("(").append(groupId).append(")");
+                                complexMvPropertyName.append(".");
+                                complexMvPropertyName.append(property.getName());
+                                if (!propertiesNormalized.containsKey(complexMvPropertyName)) {
+                                    propertiesNormalized.put(complexMvPropertyName.toString(), property.getValue());
+                                }
+                            }
                         }
                     }
                 }
