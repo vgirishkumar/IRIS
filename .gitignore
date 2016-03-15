@@ -11,7 +11,6 @@
 /interaction-dsl/com.temenos.interaction.rimdsl/plugin.xml_gen
 /interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/RIMDslStandaloneSetup.java
 /interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/scoping/RIMDslScopeProvider.java
-/interaction-dsl/com.temenos.interaction.rimdsl/src/com/temenos/interaction/rimdsl/validation/RIMDslJavaValidator.java
 *.iml
 *.log
 *.ipr
@@ -26,3 +25,10 @@ bin
 target
 report
 src-gen
+*~
+/interaction-core/nb-configuration.xml
+/nb-configuration.xml
+/interaction-examples/interaction-odata-airline/nbactions.xml
+/interaction-examples/interaction-odata-airline/nb-configuration.xml
+/nbactions.xml
+.metadata/

@@ -83,12 +83,12 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 			oEntity = er.getEntity();
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("Failed to create entity [" + entityName + "]: " + ope.getMessage());
-			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+			logger.debug("Failed to create entity [" + entityName + "]: ", ope);
+			throw new InteractionException(ope.getHttpStatus(), ope);
 		}
 		catch(Exception e) {
-			logger.debug("Error while creating entity [" + entityName + "]: " + e.getMessage());
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			logger.debug("Error while creating entity [" + entityName + "]: ", e);
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		
 		ctx.setResource(CommandHelper.createEntityResource(oEntity));
@@ -128,7 +128,7 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 				return OEntities.createRequest(entitySet, eProps, null);
 			}
 		} catch (Exception e) {
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
     }
 }

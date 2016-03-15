@@ -90,7 +90,7 @@ public class ViewCommand implements InteractionCommand {
 				}
 				return Result.SUCCESS;
 			} else {
-				logger.error("Mule returned an exception [", result.getExceptionPayload().getMessage() + "]");
+				logger.error("Mule returned an exception:", result.getExceptionPayload().getException());
 			}
 		} catch (MuleException e) {
 			logger.error("A unexpected error occurred when calling Mule", e);

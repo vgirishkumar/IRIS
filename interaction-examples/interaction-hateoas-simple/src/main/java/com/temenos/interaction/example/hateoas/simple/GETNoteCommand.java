@@ -46,6 +46,13 @@ public class GETNoteCommand implements InteractionCommand {
 		// retrieve from a database, etc.
 		String id = ctx.getId();
 		Note note = persistence.getNote(new Long(id));
+		
+		try {
+			System.out.println("Sleeping 2s to demonstrate lack of caching");
+			Thread.sleep(2000);
+		}
+		catch (InterruptedException x) {}
+		
 		if (note != null) {
 			ctx.setResource(new EntityResource<Note>(note));
 			return Result.SUCCESS;

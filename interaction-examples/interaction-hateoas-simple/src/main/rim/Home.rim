@@ -40,6 +40,7 @@ resource profile {
 	entity: Profile
 	view: NoopGET
 	path: "/profile"
+	cache: 240
 }
 
 resource preferences {
@@ -47,6 +48,7 @@ resource preferences {
 	relations [ "http://relations.rimdsl.org/preferences" ]
 	entity: Preferences
     view: GETPreferences
+    cache: 120
 }
 
 }

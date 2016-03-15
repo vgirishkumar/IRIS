@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.springframework.core.io.Resource;
 
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.loader.xml.XmlChangedEvent;
+import com.temenos.interaction.loader.xml.XmlChangedEventImpl;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 
@@ -55,7 +55,7 @@ public class TestIRISMetadataChangedAction {
 		
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn("meta-test.xml");
-		XmlChangedEvent event = new XmlChangedEvent(resource);
+		XmlChangedEventImpl event = new XmlChangedEventImpl(resource);
 		
 		action.execute(event);
 		
@@ -64,7 +64,7 @@ public class TestIRISMetadataChangedAction {
 		
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("IRIS-test2.properties");
-		XmlChangedEvent event2 = new XmlChangedEvent(resource2);
+		XmlChangedEventImpl event2 = new XmlChangedEventImpl(resource2);
 		
 		action.execute(event2);
 		

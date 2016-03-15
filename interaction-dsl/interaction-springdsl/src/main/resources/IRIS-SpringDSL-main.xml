@@ -21,28 +21,43 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/util 
-		http://www.springframework.org/schema/util/spring-util-3.0.xsd
-		http://www.springframework.org/schema/beans
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 	<context:component-scan base-package="com.temenos.interaction.springdsl" />
 	
-	<bean id="defaultResources" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+	<bean id="defaultResources" class="com.temenos.interaction.springdsl.SpringDSLPropertiesFactoryBean">
+		<constructor-arg name="filenamePattern" value="IRIS-.*\.properties"/>
   		<property name="singleton" value="true"/>
   		<property name="ignoreResourceNotFound" value="true"/>
   		<property name="locations">
     		<list>
       			<value>classpath*:IRIS-*.properties</value>
+      			<value>classpath*:/META-INF/IRIS-*.properties</value>
     		</list>
   		</property>
 	</bean>
-	
-	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider">
+
+	<bean id="loadingStrategyDefault"
+		  class="com.temenos.interaction.core.loader.SpringResourceStateLoadingStrategy"/>
+
+	<bean id="cacheDefault" class="com.temenos.interaction.core.cache.CacheConcurrentImpl"/>
+
+	<bean id="lazyStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider"
+		  lazy-init="true">
 		<property name="resourceMap" ref="defaultResources"/>
-	</bean>		
+	</bean>
+
+	<bean id="eagerStateProvider" class="com.temenos.interaction.springdsl.EagerSpringDSLResourceStateProvider"
+		  lazy-init="true">
+		<constructor-arg name="antStylePattern" value="classpath*:/**/IRIS-*-PRD.xml"/>
+		<constructor-arg name="loadingStrategy" ref="loadingStrategyDefault"/>
+		<constructor-arg name="cache" ref="cacheDefault"/>
+		<constructor-arg name="beanMap" ref="defaultResources"/>
+	</bean>
+
+	<bean id="resourceStateProvider" parent="lazyStateProvider"/>
 </beans>

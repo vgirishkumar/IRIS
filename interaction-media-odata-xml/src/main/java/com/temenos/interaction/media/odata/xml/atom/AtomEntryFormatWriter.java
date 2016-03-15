@@ -23,6 +23,7 @@ package com.temenos.interaction.media.odata.xml.atom;
 
 
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -42,7 +43,6 @@ import org.odata4j.core.OLink;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmProperty;
-import org.odata4j.format.Entry;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
@@ -67,25 +67,6 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	public AtomEntryFormatWriter(ResourceState serviceDocument) {
 		this.serviceDocument = serviceDocument;
 	}
-
-  public void writeRequestEntry(Writer w, Entry entry) {
-
-    DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
-    String updated = InternalUtil.toString(utc);
-
-    XMLWriter2 writer = XMLFactoryProvider2.getInstance().newXMLWriterFactory2().createXMLWriter(w);
-    writer.startDocument();
-
-    writer.startElement(new QName2("entry"), atom);
-    writer.writeNamespace("d", d);
-    writer.writeNamespace("m", m);
-    
-    OEntity entity = entry.getEntity();
-    writeEntry(writer, null, entity.getProperties(), entity.getLinks(),
-        null, updated, entity.getEntitySet(), false);
-    writer.endDocument();
-
-  }
 
   @Override
   public String getContentType() {
@@ -273,7 +254,16 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     	  if(id != null && id.length() > 0 ) {
     		  writeElement(writer, "link", null, "rel", rel, "title", title, "href", href, "id", id);
     	  } else {
-    		  writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
+    	      
+    	      List<StringBuilder> profileAndHref = createProfileForStateName(href);
+    	      
+    	      if("self".equals(rel) && null!=profileAndHref) {
+    	          writeElement(writer, "link", null, "rel", rel, "profile" , profileAndHref.get(0).toString() , "title", title, "href", profileAndHref.get(1).toString()); 
+    	      } else {
+    	          writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
+    	      }
+    	      
+    	      profileAndHref = null;
     	  }
       }
   }
@@ -313,4 +303,23 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	    EdmEntitySet ees = target.getEntity().getEntitySet();
 	    write(uriInfo, w, target, ees, target.getEntity().getLinks());
   }
+  
+    private List<StringBuilder> createProfileForStateName(String href) {
+        
+        if (null!=href && href.contains("#@")) {
+            List<StringBuilder> list = new ArrayList<StringBuilder>();
+            String [] hrefSplit = href.split("#@");
+            
+            StringBuilder rel = new StringBuilder("http://schemas.microsoft.com/ado/2007/08/dataservices/related/");
+            rel.append(hrefSplit[1]);          
+            
+            StringBuilder cleanHref = new StringBuilder(hrefSplit[0]);
+            list.add(0, rel);
+            list.add(1, cleanHref);
+            
+            return list;
+        } else {
+            return null;
+        }
+    }
 }

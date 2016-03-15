@@ -28,6 +28,7 @@ import java.util.Set;
 
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
 
 /**
@@ -49,9 +50,9 @@ public class SimpleLogicalExpressionEvaluator implements Expression {
 	}
 	
 	@Override
-	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
+	public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx, EntityResource<?> resource) {
 		for (Expression e : expressions) {
-			if (!e.evaluate(rimHandler, ctx))
+			if (!e.evaluate(rimHandler, ctx, resource))
 				return false;
 		}
 		return true;

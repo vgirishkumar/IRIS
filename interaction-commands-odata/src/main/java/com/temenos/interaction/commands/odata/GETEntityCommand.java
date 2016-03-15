@@ -22,6 +22,8 @@ package com.temenos.interaction.commands.odata;
  */
 
 
+import java.util.Map;
+
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
@@ -82,12 +84,12 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 			ctx.setResource(oer);		
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("GET entity on [" + entityName + ", " + ctx.getId() + "] failed: " + ope.getMessage());
-			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+			logger.debug("GET entity on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
+			throw new InteractionException(ope.getHttpStatus(), ope);
 		}
 		catch(Exception e) {
-			logger.error("Failed to GET entity [" + entityName + ", " + ctx.getId() + "]: " + e.getMessage());
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			logger.error("Failed to GET entity [" + entityName + ", " + ctx.getId() + "]: ", e);
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		return Result.SUCCESS;
 	}
@@ -106,10 +108,13 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 		}
 		String expand = queryParams.getFirst("$expand");
 		String select = queryParams.getFirst("$select");
-	      
+		
+		// Capture all query parameters 
+		Map<String, String> customOptions = CommandHelper.populateCustomOptionsMap(ctx);
+			      
 		return new EntityQueryInfo(
 				OptionsQueryParser.parseFilter(filter),
-				null,
+				customOptions,
 				OptionsQueryParser.parseExpand(expand),
 				OptionsQueryParser.parseSelect(select));		
 	}

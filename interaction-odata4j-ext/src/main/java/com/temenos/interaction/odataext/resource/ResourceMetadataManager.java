@@ -102,8 +102,9 @@ public class ResourceMetadataManager extends com.temenos.interaction.core.resour
 		}
 		catch(Exception e) {
 			logger.error("Failed to create odata4j metadata", e);
-			throw new RuntimeException("Failed to create odata4j metadata: " + e.getMessage());
+			throw new RuntimeException("Failed to create odata4j metadata: ", e);
 		}
+		
 		return edmMetadata;
 	}
 }

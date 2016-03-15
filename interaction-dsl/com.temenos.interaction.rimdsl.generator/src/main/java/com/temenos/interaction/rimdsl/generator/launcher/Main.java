@@ -63,7 +63,7 @@ public class Main {
 		try {
 			line = parser.parse(options, args);
 		} catch (final ParseException exp) {
-			System.err.println("Parsing arguments failed.  Reason: " + exp.getMessage()); 
+			System.err.println("Parsing arguments failed.  Reason: " + exp); 
 			wrongCall(options); return;
 		}
 		

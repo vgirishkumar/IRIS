@@ -22,8 +22,10 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -32,6 +34,10 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import org.odata4j.core.OCollection;
+import org.odata4j.core.OComplexObject;
+import org.odata4j.core.OObject;
+import org.odata4j.core.OProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,14 +95,19 @@ public class HypermediaTemplateHelper {
 	 */
 	public static String templateReplace(String template, Map<String, Object> properties) {
 		String result = template;
+		Map<String, Object> normalizedProperties = null;
 		try {
 			if (template != null && template.contains("{") && template.contains("}")) {
 				Matcher m = TEMPLATE_PATTERN.matcher(template);
+				
 				while(m.find()) {
 					String param = m.group(1);
-					if (properties.containsKey(param)) {
+					if(null == normalizedProperties) {
+					    normalizedProperties = HypermediaTemplateHelper.normalizeProperties(properties);
+					}
+					if (normalizedProperties.containsKey(param)) {
 						// replace template tokens
-						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", properties.get(param).toString());
+						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", URLEncoder.encode(normalizedProperties.get(param).toString(), "UTF-8"));
 					}
 				}
 			}
@@ -164,7 +175,53 @@ public class HypermediaTemplateHelper {
 	
 	private static String getUriTemplatePattern(String param) {
 		// works with Java 7
-		//		return "((?<"+param+">[^\\/]+))";
 		return "([^\\/]*)";
 	}
+	
+    private static LinkedHashMap<String, Object> normalizeProperties(Map<String, Object> properties) {
+        LinkedHashMap<String, Object> propertiesNormalized = new LinkedHashMap <String, Object>();
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            if (entry.getValue() instanceof OCollection) {
+                OCollection<?> collection = (OCollection<?>) entry.getValue();
+                String fullyQualifiedTypeName = collection.getType().getFullyQualifiedTypeName();
+                if (null!=fullyQualifiedTypeName) {            
+                                                             
+                    //Regex to find the group number id of the Mv
+                    //Example:  GroupOfMultivalues_Mv1Group will return 1 - groupId = 1
+                    //          GroupOfMultivalues_Mv2Group will return 2 - groupId = 2
+                    //          GroupOfMultivalues_MvGroup will return null - use default groupId = 1
+                    String groupId = "1";
+                    Pattern reGroup = Pattern.compile("Mv.*(\\d)Group");
+                    Matcher mGroup = reGroup.matcher(fullyQualifiedTypeName);                    
+                    if(mGroup.find()){ groupId = mGroup.group(1); }
+                    
+                    //Regex to find the name of the Mv
+                    //Example:  GroupOfMultivalues_Mv1Group will return GroupOfMultivalues
+                    Pattern re = Pattern.compile("_(.*)Mv");
+                    Matcher m = re.matcher(fullyQualifiedTypeName);
+                    
+                    if(m.find()){
+                        fullyQualifiedTypeName = m.group(1);
+                        for (OObject each : collection) {
+                            OComplexObject ooComplex = (OComplexObject) each;
+                            for (OProperty<?> property : ooComplex.getProperties()) {
+                                StringBuilder complexMvPropertyName = new StringBuilder();
+                                complexMvPropertyName.append(fullyQualifiedTypeName).append("(").append(groupId).append(")");
+                                complexMvPropertyName.append(".");
+                                complexMvPropertyName.append(property.getName());
+                                if (!propertiesNormalized.containsKey(complexMvPropertyName)) {
+                                    propertiesNormalized.put(complexMvPropertyName.toString(), property.getValue());
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (!propertiesNormalized.containsKey(entry.getKey())) {
+                    propertiesNormalized.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return propertiesNormalized;
+    }
 }

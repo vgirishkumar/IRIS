@@ -33,8 +33,12 @@ import com.temenos.interaction.rimdsl.generator.RIMDslGeneratorSwagger;
  */
 public class RIMDslRuntimeModuleSwagger extends RIMDslRuntimeModule {
 
-	  public Class<? extends IGenerator> bindIGenerator() {
-	        return RIMDslGeneratorSwagger.class;
-	  }
-	  
+	public Class<? extends IGenerator> bindIGenerator() {
+		return RIMDslGeneratorSwagger.class;
+	}
+
+	@Override
+	public Class<? extends org.eclipse.xtext.resource.containers.IAllContainersState.Provider> bindIAllContainersState$Provider() {
+		return FasterResourceSetBasedAllContainersStateProvider.class;
+	}
 }

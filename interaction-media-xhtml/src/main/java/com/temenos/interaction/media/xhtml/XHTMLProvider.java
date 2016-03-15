@@ -129,10 +129,10 @@ public class XHTMLProvider implements MessageBodyReader<RESTResource>, MessageBo
 			writer.flush();
 		} catch(TemplateEvaluationException tee) {
 			String msg = "Failed to render XHTML response on tag " + tee.getTagName() + " [line " + tee.getLine() + ", column " + tee.getColumn() + "]";
-			logger.error(msg + ": " + tee.getMessage());
+			logger.error(msg + ": ", tee);
 			throw new WebApplicationException(createErrorResponse(mediaType, msg));
 		} catch(Exception e) {
-			logger.error("Failed to render XHTML response: " + e.getMessage());
+			logger.error("Failed to render XHTML response: ", e);
 			throw new WebApplicationException(createErrorResponse(mediaType, e.getMessage()));
 		}
 	}

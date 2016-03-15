@@ -27,6 +27,7 @@ import com.temenos.interaction.rimdsl.rim.TransitionEmbedded
 import com.temenos.interaction.rimdsl.rim.TransitionRedirect
 import com.temenos.interaction.rimdsl.rim.TransitionRef
 import com.temenos.interaction.rimdsl.rim.MethodRef
+import com.temenos.interaction.rimdsl.rim.TransitionEmbeddedForEach
 
 class RIMDslGeneratorSpringPRD implements IGenerator {
 	
@@ -42,13 +43,13 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	}
 		
 	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
-        // generate resource classes
-        for (resourceState : rim.states) {
-            val stateName = resourceState.fullyQualifiedName.toString("_")
-            fsa.generateFile("IRIS-" + stateName + "-PRD.xml", toSpringXML(rim, resourceState))
-        }
         val rimName = rim.fullyQualifiedName.toString("_")
-        fsa.generateFile("IRIS-" + rimName + ".properties", toBeanMap(rim))
+        		
+        // generate resource state files
+        
+        fsa.generateFile("IRIS-" + rimName + "-PRD.xml", toSpringXML(rim))
+
+        fsa.generateFile("META-INF/IRIS-" + rimName + ".properties", toBeanMap(rim))
 	}
 
 	
@@ -63,28 +64,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		«stateVariableName(state)»=«produceMethods(rim, state)» «producePath(rim, state)»
 		«ENDFOR»
 	'''
-    	
-	def toSpringXML(ResourceInteractionModel rim, State state) '''
-		<?xml version="1.0" encoding="UTF-8"?>
-		<!--
-		  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
-		 -->
-
-		<beans xmlns="http://www.springframework.org/schema/beans"
-			xmlns:context="http://www.springframework.org/schema/context"
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			xmlns:util="http://www.springframework.org/schema/util"
-			xsi:schemaLocation="
-				http://www.springframework.org/schema/util 
-				http://www.springframework.org/schema/util/spring-util-3.0.xsd
-				http://www.springframework.org/schema/beans
-				http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-				http://www.springframework.org/schema/context
-				http://www.springframework.org/schema/context/spring-context-3.0.xsd"
-				default-lazy-init="true">
-
+	
+	def toSpringBean(ResourceInteractionModel rim, State state)'''
 		<!-- Define Spring bean for resource : «state.name» -->
-		<!-- begin spring bean for resource : «stateVariableName(state)» -->
+		<!-- begin spring bean for state : «stateVariableName(state)» -->
 		<bean id="«stateVariableName(state)»" class="«produceResourceStateType(state)»">
 			<constructor-arg name="entityName" value="«state.entity.name»" />
 			<constructor-arg name="name" value="« state.name »" />
@@ -98,15 +81,17 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 				«produceRelations(state)»
 			</constructor-arg>
 			<constructor-arg name="uriSpec">«IF state.path != null »<bean class="com.temenos.interaction.core.hypermedia.UriSpecification"><constructor-arg name="name" value="«state.name»" /><constructor-arg name="template" value="«producePath(rim, state)»" /></bean>«ELSE»<null />«ENDIF»</constructor-arg>
-			<constructor-arg name="errorState"><null /></constructor-arg>
-
+			<constructor-arg name="errorState"«IF state.errorState != null»«IF rim.states.contains(state.errorState)» ref="«stateVariableName(state.errorState)»" />«ELSE»>«produceErrorState(state.errorState)»</constructor-arg>«ENDIF»«ELSE»><null /></constructor-arg>«ENDIF»
+			
 			«IF state.isInitial»
 			<property name="initial" value="true" />
 			«ENDIF»
 			«IF state.isException»
 			<property name="exception" value="true" />
 			«ENDIF»
-
+			«IF state.cache > 0»
+			<property name="maxAge" value="«state.cache»" />
+			«ENDIF»
 			<!-- Start property transitions list -->
 			<property name="transitions">
 				<list>
@@ -129,33 +114,78 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 					«IF t instanceof TransitionEmbedded»                
 					«produceTransitionsEmbedded(rim, state, t as TransitionEmbedded)»
 					«ENDIF»
+					«IF t instanceof TransitionEmbeddedForEach»
+					«produceTransitionsEmbeddedForEach(rim, state, t as TransitionEmbeddedForEach)»
+					«ENDIF»
 					<!-- end transition : «IF (t.locator != null)»«t.locator.name»«ELSE»«transitionTargetStateVariableName(t)»«ENDIF» -->
 				«ENDIF» 				
 			«ENDFOR»
 				</list>
 			</property>
-		</bean>
-		</beans><!-- end spring bean for resource : «stateVariableName(state)» -->
+		</bean>	
+		<!-- end spring bean for state : «stateVariableName(state)» -->		
+	'''
+    	
+	def toSpringXML(ResourceInteractionModel rim) '''
+		<?xml version="1.0" encoding="UTF-8"?>
+		<!--
+		  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+		 -->
+
+		<beans xmlns="http://www.springframework.org/schema/beans"
+			xmlns:context="http://www.springframework.org/schema/context"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns:util="http://www.springframework.org/schema/util"
+			xsi:schemaLocation="
+				http://www.springframework.org/schema/util 
+				http://www.springframework.org/schema/util/spring-util-3.0.xsd
+				http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+				http://www.springframework.org/schema/context
+				http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+				default-lazy-init="true">
+
+		«FOR state : rim.states»
+			«toSpringBean(rim, state)»
+		«ENDFOR»		
+		</beans>
 	'''
 
 	def String transitionTargetStateVariableName(TransitionRef t) {
 		if (t.state != null) {
 			return stateVariableName(t.state);
 		} else {
-       		return "" + (t.name).replaceAll("\\.", "_");
+			var targetState = "";
+			
+			if(t.name != null && t.name.length != 0 && t.name.lastIndexOf(".") > 1) {
+				// Construct string of format: domain_resource-state
+				targetState = t.name.substring(0, t.name.lastIndexOf(".")) + "-" + t.name.substring(t.name.lastIndexOf(".") + 1);
+				targetState = targetState.replaceAll("\\.", "_"); 
+			} else if(t.name != null) {
+				targetState = t.name;
+			}
+			
+       		return targetState;
 		}
 	}
-
+ 
 	def String stateVariableName(State state) {
 		if (state != null && state.name != null) {
-			return "" + (state.fullyQualifiedName).toString("_");
+			val stateNameStr = state.fullyQualifiedName.toString("_");
+			
+			val prefixEndIdx = stateNameStr.lastIndexOf("_" + state.name);
+			
+			var result = stateNameStr.substring(0, prefixEndIdx);
+			result = result + "-" + state.name;						
+			
+			return result;
 		}
 		return null;
 	}
 	
 	def produceResourceStateType(State state) '''«IF state.type.isCollection»com.temenos.interaction.core.hypermedia.CollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.ResourceState«ENDIF»'''
 
-	def produceLazyResourceStateType(State state) '''«IF state != null && state.type.isCollection»com.temenos.interaction.core.hypermedia.LazyCollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.LazyResourceState«ENDIF»'''
+	def produceLazyResourceStateType(State state) '''«IF state != null && state.type != null && state.type.isCollection»com.temenos.interaction.core.hypermedia.LazyCollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.LazyResourceState«ENDIF»'''
 	
 	def produceDynamicResourceStateType(State state) '''com.temenos.interaction.core.hypermedia.DynamicResourceState'''
 	
@@ -360,6 +390,27 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			<property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />
 		</bean>
 	'''
+	
+    def produceTransitionsEmbeddedForEach(ResourceInteractionModel rim, State fromState, TransitionEmbeddedForEach transition) '''
+        <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+            <property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.FOR_EACH_EMBEDDED"/></property>
+            <property name="method" value="« transition.event.httpMethod»" />
+            <property name="target">«produceTransitionTarget(fromState, transition)»</property>
+            
+            «IF transition.spec != null»
+            <property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
+            <property name="evaluation">
+                «produceEvaluation(rim, fromState, transition.spec.eval)»
+            </property>
+            «ENDIF»
+            «IF transition.spec == null»
+            <property name="uriParameters"><util:map></util:map></property>
+            «ENDIF»
+            <property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
+            <property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />            
+        </bean>
+    '''
+	
 		
 	def produceTransitionsAuto(ResourceInteractionModel rim, State fromState, TransitionAuto transition) '''
 		<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
@@ -420,6 +471,13 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		«ENDIF»
 		</util:map>
     '''
-
+    /**
+     * Produces a LAZY resource for error as it is in different RIM, 'ref' can not be used
+     */
+	def produceErrorState(State errorState) '''
+		<bean class="«produceLazyResourceStateType(errorState)»">
+			<constructor-arg name="name" value="«stateVariableName(errorState)»" />
+		</bean>
+	'''
 }
 

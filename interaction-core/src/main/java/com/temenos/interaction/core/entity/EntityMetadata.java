@@ -256,6 +256,9 @@ public class EntityMetadata  {
 	 */
 	public String getPropertyValueAsString( EntityProperty property )
 	{
+		if (property == null){
+			return null;   // a new ID ?
+		}
 		String propertyName = property.getFullyQualifiedName();
 		Object propertyValue = property.getValue();
 		return getPropertyValueAsString(propertyName, propertyValue);

@@ -33,7 +33,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
-import com.temenos.interaction.loader.xml.XmlChangedEvent;
+import com.temenos.interaction.loader.xml.XmlChangedEventImpl;
 import com.temenos.interaction.loader.xml.resource.action.ResourceModificationAction;
 
 public class TestXmlModificationNotifier {
@@ -55,7 +55,7 @@ public class TestXmlModificationNotifier {
 		
 		rmn.getPatterns(); // Simulate registration of the notifier with IRIS
 		
-		XmlChangedEvent event = mock(XmlChangedEvent.class);
+		XmlChangedEventImpl event = mock(XmlChangedEventImpl.class);
 		rmn.execute(event);
 		
 		verify(rma).notify(event);

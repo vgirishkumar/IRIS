@@ -61,6 +61,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.GETExceptionCommand;
 import com.temenos.interaction.core.command.HttpStatusTypes;
@@ -88,6 +89,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.web.RequestContext;
+import java.util.HashSet;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HTTPHypermediaRIM.class})
@@ -142,7 +144,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testGETCommandNotRegistered() {
 		// our empty command controller
-		NewCommandController mockCommandController = mock(NewCommandController.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
@@ -158,7 +160,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testPUTCommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		NewCommandController mockCommandController = mock(NewCommandController.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
@@ -169,7 +171,9 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
 	/*
@@ -179,7 +183,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testPOSTCommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		NewCommandController mockCommandController = mock(NewCommandController.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
@@ -190,7 +194,9 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
 	/*
@@ -200,7 +206,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@Test
 	public void testDELETECommandNotRegisteredNotAllowedHeader() {
 		// our empty command controller
-		NewCommandController mockCommandController = mock(NewCommandController.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 
 		ResourceState initialState = new ResourceState("entity", "state", new ArrayList<Action>(), "/path");
@@ -211,7 +217,9 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        assertEquals("GET, OPTIONS, HEAD", allowHeader.get(0));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
 	/*
@@ -239,7 +247,7 @@ public class TestResponseHTTPHypermediaRIM {
 		};
 		
 		// create mock command controller
-		NewCommandController mockCommandController = mock(NewCommandController.class);
+		CommandController mockCommandController = mock(CommandController.class);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
 		when(mockCommandController.isValidCommand("DO")).thenReturn(true);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
@@ -271,11 +279,11 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
 		initialState.addTransition(new Transition.Builder().method(HttpMethod.DELETE).target(initialState).build());
-		InteractionContext testContext = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
-		whenNew(InteractionContext.class).withParameterTypes(HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
-			.withArguments(any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
+			.withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
@@ -304,11 +312,11 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
 		initialState.addTransition(new Transition.Builder().method("DELETE").target(initialState).build());
-		InteractionContext testContext = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
-		whenNew(InteractionContext.class).withParameterTypes(HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
-			.withArguments(any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
+			.withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
@@ -371,11 +379,11 @@ public class TestResponseHTTPHypermediaRIM {
 		// the auto transition
 		deletedState.addTransition(new Transition.Builder().flags(Transition.REDIRECT).target(initialState).build());
 		
-		InteractionContext testContext = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
-		whenNew(InteractionContext.class).withParameterTypes(HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
-			.withArguments(any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
+			.withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
@@ -532,7 +540,7 @@ public class TestResponseHTTPHypermediaRIM {
 		mockPathParameters.add("id", "2");
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPathParameters(true)).thenReturn(mockPathParameters);
-		when(uriInfo.getQueryParameters(true)).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 		
 		// null resource
@@ -586,7 +594,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(uriInfo.getPathParameters(true)).thenReturn(mockPathParameters);
 		MultivaluedMap<String, String> mockQueryParameters = new MultivaluedMapImpl<String>();
 		mockQueryParameters.add("test", "123");
-		when(uriInfo.getQueryParameters(true)).thenReturn(mockQueryParameters);
+		when(uriInfo.getQueryParameters(false)).thenReturn(mockQueryParameters);
 		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 		
 		// null resource
@@ -632,7 +640,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(uriInfo.getPathParameters(true)).thenReturn(new MultivaluedMapImpl<String>());
 		MultivaluedMap<String, String> mockQueryParameters = new MultivaluedMapImpl<String>();
 		mockQueryParameters.add("id", "123");
-		when(uriInfo.getQueryParameters(true)).thenReturn(mockQueryParameters);
+		when(uriInfo.getQueryParameters(false)).thenReturn(mockQueryParameters);
 		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 		
 		// null resource
@@ -700,16 +708,19 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
 		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
+		ResourceState approvePsuedoState = new ResourceState(initialState, "approve", mockActions());
 		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
 		individualMachine.addTransition(new Transition.Builder().method("GET").target(initialState).build());
 		
 		// create new machine
 		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
-		// an auto transition to the new resource
-		Map<String, String> uriLinkageMap = new HashMap<String, String>();
-		uriLinkageMap.put("id", "{id}");
-		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
 		
+		// The state should transition from create -> approve -> machine; this tests multi state auto transitions  
+		Map<String, String> uriLinkageMap = new HashMap<String, String>();
+		uriLinkageMap.put("id", "{id}");		
+		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(approvePsuedoState).uriParameters(uriLinkageMap).build());
+		approvePsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
+				
 		// RIM with command controller that issues commands that always return SUCCESS
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
@@ -760,7 +771,7 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", mockCommand_SUCCESS());
 		commands.put("GET", mockCommand_FAILURE());
-		NewCommandController commandController = new NewCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
@@ -847,7 +858,7 @@ public class TestResponseHTTPHypermediaRIM {
 			}
 			
 		});
-		NewCommandController commandController = new NewCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Collection<ResourceInteractionModel> children = rim.getChildren();
 		// find the resource interaction model for the 'exists' state
@@ -862,7 +873,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(uriInfo.getPathParameters(true)).thenReturn(new MultivaluedMapImpl<String>());
 		MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
 		queryParameters.add("mytestparam", "123");
-		when(uriInfo.getQueryParameters(true)).thenReturn(queryParameters);
+		when(uriInfo.getQueryParameters(false)).thenReturn(queryParameters);
 		Response response = conditionStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 
 		@SuppressWarnings("rawtypes")
@@ -875,8 +886,8 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		EntityResource<?> createdResource = (EntityResource<?>) ((GenericEntity<?>)response.getEntity()).getEntity();
 		List<Link> links = new ArrayList<Link>(createdResource.getLinks());
-		assertEquals(2, links.size());
-		assertEquals("/baseuri/machines/123", links.get(1).getHref());
+		assertEquals(1, links.size());
+		assertEquals("/baseuri/machines/123", links.get(0).getHref());
 	}
 
 	private EntityResource<Object> mockEntityResourceWithId(final String id) {
@@ -888,11 +899,11 @@ public class TestResponseHTTPHypermediaRIM {
 	public void testBuildResponseWithLinks() throws Exception {
 		// construct an InteractionContext that simply mocks the result of loading a resource
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		InteractionContext testContext = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(new EntityResource<Object>(null));
 		// mock 'new InteractionContext()' in call to get
-		whenNew(InteractionContext.class).withParameterTypes(HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
-			.withArguments(any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
+			.withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		List<Link> links = new ArrayList<Link>();
 		links.add(new Link("id", "self", "href", null, null));
@@ -910,14 +921,52 @@ public class TestResponseHTTPHypermediaRIM {
 
 	@SuppressWarnings({ "unchecked" })
 	@Test
+	public void testBuildResponseWithDynamicLinkParams() throws Exception {
+		// construct an InteractionContext that simply mocks the result of loading a resource
+		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+
+        ResourceState b =  new ResourceState(initialState, "b", new ArrayList<Action>());
+        Transition t = new Transition.Builder().source(initialState).method("GET").target(b).build();
+        initialState.addTransition(t);
+
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
+		
+		Map<String,String> outQueryParameters = testContext.getOutQueryParameters();		
+		outQueryParameters.put("penguin", "emperor");
+		
+		testContext.setResource(new EntityResource<Object>(null));
+		// mock 'new InteractionContext()' in call to get
+		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
+			.withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		
+		List<Link> links = new ArrayList<Link>();
+		links.add(new Link("id", "self", "href", null, null));
+		
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
+		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+		
+		RESTResource resourceWithLinks = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
+		assertNotNull(resourceWithLinks.getLinks());
+		assertFalse(resourceWithLinks.getLinks().isEmpty());
+		assertEquals(2, resourceWithLinks.getLinks().size());
+		Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
+		assertEquals("self", link.getRel());
+		
+		link = (Link)resourceWithLinks.getLinks().toArray()[1];
+		assertEquals("item", link.getRel());
+		assertEquals("/baseuri/path?penguin=emperor", link.getHref());
+	}
+	
+	@SuppressWarnings({ "unchecked" })
+	@Test
 	public void testBuildResponseEntityName() throws Exception {
 		// construct an InteractionContext that simply mocks the result of loading a resource
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		InteractionContext testContext = new InteractionContext(null, mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), null, mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(new EntityResource<Object>(null));
 		// mock 'new InteractionContext()' in call to get
-		whenNew(InteractionContext.class).withParameterTypes(HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
-			.withArguments(any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
+			.withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
 		
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
 		Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
@@ -931,13 +980,13 @@ public class TestResponseHTTPHypermediaRIM {
 	private UriInfo mockEmptyUriInfo() {
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
-		when(uriInfo.getQueryParameters(true)).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		return uriInfo;
 	}
 	
-	private NewCommandController mockNoopCommandController() {
+	private CommandController mockNoopCommandController() {
 		// make sure command execution does nothing
-		NewCommandController commandController = mock(NewCommandController.class);
+		CommandController commandController = mock(CommandController.class);
 		InteractionCommand testCommand = mockCommand_SUCCESS();
 		when(commandController.isValidCommand(anyString())).thenReturn(true);
 		when(commandController.fetchCommand(anyString())).thenReturn(testCommand);
@@ -1083,7 +1132,7 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", getGenericErrorMockCommand(Result.FAILURE, "Resource manager: 5 fatal error and 2 warnings."));
 		commands.put("GET", mockCommand_SUCCESS());
-		NewCommandController commandController = new NewCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
@@ -1231,7 +1280,7 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", mockCommand_FAILURE());
 		commands.put("GET", mockCommand_SUCCESS());
-		NewCommandController commandController = new NewCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 
 		HTTPHypermediaRIM deleteInteraction = (HTTPHypermediaRIM) rim.getChildren().iterator().next();
@@ -1444,7 +1493,7 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Expression> conditionalExpressions1 = new ArrayList<Expression>();
 		conditionalExpressions1.add(new SimpleLogicalExpressionEvaluator(new ArrayList<Expression>()) {
 			@Override
-			public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
+			public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx, EntityResource<?> resource) {
 				return false;
 			}
 			
@@ -1455,7 +1504,7 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Expression> conditionalExpressions2 = new ArrayList<Expression>();
 		conditionalExpressions2.add(new SimpleLogicalExpressionEvaluator(new ArrayList<Expression>()) {
 			@Override
-			public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx) {
+			public boolean evaluate(HTTPHypermediaRIM rimHandler, InteractionContext ctx, EntityResource<?> resource) {
 				return true;
 			}
 			

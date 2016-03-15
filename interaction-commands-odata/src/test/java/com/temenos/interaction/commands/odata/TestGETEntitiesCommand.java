@@ -23,18 +23,26 @@ package com.temenos.interaction.commands.odata;
 
 
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 import org.odata4j.core.ImmutableList;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -44,9 +52,11 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmType;
+import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
+import org.odata4j.producer.QueryInfo;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -64,6 +74,7 @@ public class TestGETEntitiesCommand {
 		InteractionContext mockContext = createInteractionContext("MyEntity", queryParams);
 		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
 		GETEntitiesCommand command = new GETEntitiesCommand(mockProducer);
+		
 		try {
 			command.execute(mockContext);
 			fail("InteractionException must be thrown");
@@ -76,12 +87,48 @@ public class TestGETEntitiesCommand {
 		queryParams.add("$skip", "foo");
 		mockContext = createInteractionContext("MyEntity", queryParams);
 		command = new GETEntitiesCommand(mockProducer);
+		
 		try {
 			command.execute(mockContext);
 			fail("InteractionException must be thrown");
 		} catch (InteractionException e) {
 			assertEquals(Status.BAD_REQUEST,e.getHttpStatus());
 		}
+	}
+	
+	@Test	
+	public void testExecuteWithQueryParams() throws InteractionException {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("$filter", "a eq 'b'");
+		queryParams.add("MYPARAM", "MYVALUE");
+		
+		InteractionContext mockContext = createInteractionContext("MyEntity", queryParams);
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETEntitiesCommand command = new GETEntitiesCommand(mockProducer);
+			
+		command.execute(mockContext);
+		
+		verify(mockProducer).getEntities(any(String.class), argThat(new ArgumentMatcher<QueryInfo>() {
+		
+			@Override
+			public boolean matches(Object argument) {
+				boolean result = false;
+				
+				if(argument instanceof QueryInfo) {
+					QueryInfo queryInfo = (QueryInfo)argument;
+																	
+					Map<String,String> customOptions = queryInfo.customOptions;
+					
+					if("a eq 'b'".equals(customOptions.get("$filter"))) {
+						if("MYVALUE".equals(customOptions.get("MYPARAM"))) {
+							result = true;
+						}
+					}
+				}
+				
+				return result;
+			}			
+		}));	
 	}
 
 	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {
@@ -114,6 +161,11 @@ public class TestGETEntitiesCommand {
 		when(oe.getEntitySetName()).thenReturn(ees.build().getName());
 		when(mockEntityResponse.getEntity()).thenReturn(oe);
 		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
+		
+		EntitiesResponse mockEntityResponse2 = mock(EntitiesResponse.class);
+		
+		when(mockProducer.getEntities(any(String.class), any(QueryInfo.class))).thenReturn(mockEntityResponse2);
+		
         return mockProducer;
 	}
 	
@@ -121,7 +173,7 @@ public class TestGETEntitiesCommand {
 	private InteractionContext createInteractionContext(String entity, MultivaluedMap<String, String> queryParams) {
 		ResourceState resourceState = mock(ResourceState.class);
 		when(resourceState.getEntityName()).thenReturn(entity);
-        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), queryParams ,resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), queryParams ,resourceState, mock(Metadata.class));
         return ctx;
 	}
 

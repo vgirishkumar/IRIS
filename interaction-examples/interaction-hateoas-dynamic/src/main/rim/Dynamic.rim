@@ -19,9 +19,21 @@ rim Dynamic {
 	command NoopGET
 	command GETDynmcNotes
 	command GETDynmcNote
-	command DELETEDynmcNote 
+	command DELETEDynmcNote
+	command GETDynmcAuthor 
 
-initial resource notesDynmc {
+initial resource home {
+	type: item
+	entity: HOME
+	view: NoopGET
+    path: "/"
+	GET -> notesDynmc
+	GET -> authorLookup {
+		parameters [ id = "AU001" ]
+	}
+} 
+
+resource notesDynmc {
 	type: collection
 	
 	// reference:  'AU001' or 'SY001'
@@ -29,14 +41,10 @@ initial resource notesDynmc {
 	view: GETDynmcNotes
 	path: "/notesDynmc"
     POST -> createDynmcNote
-	/*GET *-> noteDynmc {
-		parameters [ id = "{noteID}" ]
-		title: "View note"		
-	}*/
 	GET *-> locator findsource("{reference}"){
 		parameters [ id = "{reference}" ]
 		title: "Who"		
-	}
+	}	
 		
 	DELETE *-> deletedDynmcNote
 }
@@ -45,14 +53,23 @@ resource noteDynmc {
 	type: item
 	entity: DynmcNote
 	view: GETDynmcNote
-	path: "/notesDynmc/{noteID}"
+	path: "/notesDynmc/{noteID}"	
 	DELETE -> deletedDynmcNote
+}
+
+resource authorLookup {
+	type: item
+	entity: DynmcNote
+	view: NoopGET
+	path: "/authors/lookup/{id}"
+	GET --> locator findauthor("{id}") {	
+	}
 }
 
 resource author {
 	type: item
-	entity: DynmcNote
-	view: GETDynmcNote
+	entity: DynmcAuthor
+	view: GETDynmcAuthor
 	path: "/authors/{id}"
 }
 

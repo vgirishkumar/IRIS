@@ -22,16 +22,14 @@ package com.temenos.interaction.loader.properties.resource.action;
  */
 
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.temenos.interaction.core.loader.PropertiesEvent;
+import com.temenos.interaction.springdsl.EagerSpringDSLResourceStateProvider;
+import com.temenos.interaction.springdsl.SpringDSLResourceStateProvider;
+import org.junit.Test;
 
 import java.util.Properties;
 
-import org.junit.Test;
-
-import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.springdsl.SpringDSLResourceStateProvider;
+import static org.mockito.Mockito.*;
 
 
 /**
@@ -59,4 +57,20 @@ public class TestIRISResourceChangedAction {
 		verify(resourceStateProvider).unload("test");		
 	}
 
+	@Test
+	public void testForEagerProvider() {
+		IRISResourceChangedAction action = new IRISResourceChangedAction();
+
+		SpringDSLResourceStateProvider resourceStateProvider = mock(EagerSpringDSLResourceStateProvider.class);
+		action.setResourceStateProvider(resourceStateProvider);
+
+		Properties props = new Properties();
+		props.put("test", "n/a");
+		PropertiesEvent event = mock(PropertiesEvent.class);
+		when(event.getNewProperties()).thenReturn(props);
+
+		action.execute(event);
+
+		verify(resourceStateProvider).unload("test");
+	}
 }

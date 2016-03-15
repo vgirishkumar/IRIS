@@ -23,7 +23,6 @@ package com.temenos.interaction.example.mashup.twitter;
 
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -33,10 +32,13 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import javax.persistence.Query;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.temenos.interaction.example.mashup.twitter.model.User;
 
 public class Persistence {
-    private final static Logger logger = Logger.getLogger(Persistence.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(Persistence.class);
 
     @PersistenceContext(unitName = "ResponderServiceHibernate", type = PersistenceContextType.EXTENDED)
     @Access(AccessType.FIELD) 
@@ -53,7 +55,7 @@ public class Persistence {
 			Query jpaQuery = entityManager.createQuery("SELECT n FROM user n");
 			entities = jpaQuery.getResultList();
 		} catch(Exception e) {
-			logger.severe("Error while loading entities: " + e.getMessage());
+			logger.error("Error while loading entities: ", e);
 		}
 		return entities;
     }
@@ -63,7 +65,7 @@ public class Persistence {
 		try {
 			user = entityManager.find(User.class, id);
 		} catch(Exception e) {
-			logger.severe("Error while loading entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while loading entity [" + id + "]: ", e);
 		}
 		return user;
     }

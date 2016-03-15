@@ -1,26 +1,27 @@
-Manifest-Version: 1.0
+xManifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: com.temenos.interaction.rimdsl
 Bundle-Vendor: IRIS
-Bundle-Version: 0.6.0.qualifier
+Bundle-Version: 0.9.0.qualifier
 Bundle-SymbolicName: com.temenos.interaction.rimdsl; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext;bundle-version="2.5";visibility:=reexport,
- org.eclipse.xtext.xbase;bundle-version="2.5";resolution:=optional;visibility:=reexport,
- org.eclipse.xtext.generator;bundle-version="2.5";resolution:=optional,
+Require-Bundle: org.eclipse.xtext;bundle-version="[2.8.3,2.9)";visibility:=reexport,
+ org.eclipse.xtext.xbase;bundle-version="[2.8.3,2.9)";resolution:=optional;visibility:=reexport,
+ org.eclipse.xtext.generator;bundle-version="[2.8.3,2.9)";resolution:=optional,
  org.apache.commons.logging;bundle-version="1.0.4";resolution:=optional,
+ org.apache.commons.lang;bundle-version="2.6",
  org.eclipse.emf.codegen.ecore;resolution:=optional,
  org.eclipse.emf.mwe.utils;resolution:=optional,
  org.eclipse.emf.mwe2.launch;resolution:=optional,
- org.eclipse.xtext.util;bundle-version="2.5",
+ org.eclipse.xtext.util;bundle-version="[2.8.3,2.9)",
  org.eclipse.emf.ecore,
  org.eclipse.emf.common,
  org.antlr.runtime,
- org.eclipse.xtext.common.types;bundle-version="2.5",
- org.objectweb.asm;bundle-version="[5.0.1,6.0.0)";resolution:=optional
+ org.eclipse.xtext.common.types;bundle-version="[2.8.3,2.9)",
+ org.objectweb.asm;bundle-version="[5.0.1,6.0.0)";resolution:=optional,
+ org.eclipse.xtext.xbase.lib;bundle-version="[2.8.3,2.9)"
 Import-Package: org.apache.log4j,
- org.eclipse.xtext.xbase.lib,
- org.eclipse.xtend2.lib
+ org.eclipse.xtext.xbase.lib
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.temenos.interaction.rimdsl,
  com.temenos.interaction.rimdsl.services,

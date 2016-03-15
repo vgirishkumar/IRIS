@@ -48,8 +48,7 @@ import com.theoryinpractise.halbuilder.api.RepresentationFactory;
 import com.theoryinpractise.halbuilder.standard.StandardRepresentationFactory;
 
 /**
- * This test ensures that we can navigate from one application state
- * to another using hypermedia (links).
+ * This test ensures that we can navigate from one application state to another using hypermedia (links).
  * 
  * @author aphethean
  */
@@ -69,12 +68,12 @@ public class HypermediaITCase extends JerseyTest {
 	public void tearDown() {}
 		
 	@Test
-	public void testServiceDocumentWithDynamicResource() {
+	public void tesResourceWithDynamicLink() {
 		ClientResponse response = webResource.path("/notesDynmc").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(MediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -124,6 +123,23 @@ public class HypermediaITCase extends JerseyTest {
 		}
 		
 		assertTrue(authorLinksFound);
-		assertTrue(systemLinksFound);					
-	}	
+		assertTrue(systemLinksFound);		
+	}
+	
+	@Test
+	public void testAutoTransionViaDynamicResource() {
+		ClientResponse response = webResource.path("/authors/lookup/AU002").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+        
+		RepresentationFactory representationFactory = new StandardRepresentationFactory();
+		ReadableRepresentation resource = representationFactory.readRepresentation(MediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
+        
+		List<Link> links = resource.getLinks();
+		
+		assertEquals(1, links.size());
+		
+		Link link = links.get(0);
+		assertTrue(link.getRel().contains("self"));
+		assertTrue(link.getHref().contains(Configuration.TEST_ENDPOINT_URI + "/authors/AU002"));
+	}
 }

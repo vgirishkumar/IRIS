@@ -72,6 +72,7 @@ import org.odata4j.producer.Responses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -97,7 +98,7 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})
-@Produces({MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
+@Produces({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private static final String UTF_8 = "UTF-8";
 	private final static Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
@@ -151,7 +152,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		if (mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE) 
+		if (mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE)
+				// good old Microsoft Excel 2013 has forced us to need to accept this media type (which is completely wrong) https://github.com/temenostech/IRIS/issues/154
+				|| mediaType.equals(ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE) 
 				|| mediaType.equals(MediaType.APPLICATION_XML_TYPE)) {
 			return 	ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
 					ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
@@ -234,7 +237,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					OEntity tempEntity = collectionEntity.getEntity();
 					List<OLink> olinks = formOLinks(collectionEntity);
 					Collection<Link> links = collectionEntity.getLinks();
-	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), olinks);
+	            	OEntity entity = OEntities.create(entitySet, null, tempEntity.getEntityKey(), tempEntity.getEntityTag(), tempEntity.getProperties(), olinks);
 					entities.add(entity);
 					linkId.put(entity, links);
 				}
@@ -545,8 +548,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			String httpMethod = requestContext.getMethod();
 			Event event = new Event(httpMethod, httpMethod);
 			state = resourceStateProvider.determineState(event, resourcePath);
+
 			if (state == null) {
-				logger.error("No state found, dropping back to path matching " + resourcePath);
+				logger.warn("No state found, dropping back to path matching " + resourcePath);
 				// escape the braces in the regex
 				resourcePath = Pattern.quote(resourcePath);
 				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();

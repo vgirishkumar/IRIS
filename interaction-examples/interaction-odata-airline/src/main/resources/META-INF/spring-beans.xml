@@ -40,7 +40,8 @@
 			</list>
 		</property>
 		<property name="ignoreUnresolvablePlaceholders" value="true"/>
-	</bean>
+                <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+        </bean>
 
 	<!-- Metadata -->	
 	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
@@ -113,7 +114,7 @@
 	</bean>
 
 	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
-		<constructor-arg type="java.lang.String" value="AirlineModel_Airline_ServiceDocument" />
+		<constructor-arg type="java.lang.String" value="AirlineModel_Airline-ServiceDocument" />
 	</bean>
 	
 	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
@@ -163,9 +164,12 @@
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
 	
-	<bean id="GETEntities" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
+	<bean id="GETEntities1" class="com.temenos.interaction.commands.odata.GETEntitiesCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
+        
+        <alias alias="GETEntities" name="GETEntities1"/>
+        
 	<bean id="GETNavProperty" class="com.temenos.interaction.commands.odata.GETNavPropertyCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
@@ -178,10 +182,35 @@
 	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
 	</bean>
-	<bean id="NoopGETCommand" class="com.temenos.interaction.core.command.NoopGETCommand" />
-	<bean id="GETExceptionCommand" class="com.temenos.interaction.core.command.GETExceptionCommand" />
+	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="GETException" class="com.temenos.interaction.core.command.GETExceptionCommand" />
 
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
+	
 	<!-- Command controller -->
+        <bean id="commands" class="com.temenos.interaction.core.command.ChainingCommandController">
+            <property name="commandControllers">
+                <list>
+                    <bean class="com.temenos.interaction.core.command.SpringContextAwareInteractionCommandController"/> 
+                </list>
+            </property>
+            
+        </bean>
+         
+        <bean id="updateAfterChangeAction" class="com.temenos.interaction.loader.detector.SpringBasedLoaderAction">
+            <property name="useCurrentContextAsParent" value="true"/>
+            <property name="parentChainingCommandController" ref="commands"/>
+        </bean>
+        
+        <bean id="dirWatchdog" class="com.temenos.interaction.loader.detector.DirectoryChangeActionNotifier">
+            <property name="resources">
+                <value>${hot.deploy.dir}</value>
+            </property>
+           <property name="listeners">
+                <ref bean="updateAfterChangeAction"/>
+            </property>
+        </bean>
+<!--       
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
 		<constructor-arg name="commands">
 			<util:map id="commandsMap" map-class="java.util.Hashtable">
@@ -197,6 +226,6 @@
 				<entry key="NoopGET" value-ref="NoopGETCommand" />
  			</util:map> 
 		</constructor-arg>
-	</bean>
+	</bean>-->
 </beans>
 

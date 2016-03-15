@@ -80,7 +80,7 @@ public class RetryWorkflowStrategyCommand implements InteractionCommand {
 					try {
 						Thread.sleep(nextRetry);
 					} catch (InterruptedException e) {
-						logger.error("InterruptedException: " + e.getMessage());
+						logger.error("InterruptedException: ", e);
 					}
 				} else { throw ex; }
 			}

@@ -126,7 +126,7 @@
 	</bean>
 
 	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
-		<constructor-arg type="java.lang.String" value="RestbucksModel_Restbucks_ServiceDocument" />
+		<constructor-arg type="java.lang.String" value="RestbucksModel_Restbucks-ServiceDocument" />
 	</bean>
 
 	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
@@ -203,7 +203,8 @@
 	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
 		<constructor-arg ref="producer" />
 	</bean>
-	
+
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>	
 	
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">

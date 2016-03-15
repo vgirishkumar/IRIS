@@ -60,7 +60,6 @@ import org.odata4j.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.adapter.EdmDataServicesAdapter;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.terms.AbstractOdataAnnotation;
@@ -107,6 +106,7 @@ public class MetadataOData4j {
 	private String SERVICE_DOCUMENT = "ServiceDocument";
 	private ODataVersion odataVersion = ODataVersion.V1;
 	private EdmDataServicesAdapter edmDataServicesAdapter;
+	private EdmDataServices edmDataServices;
 
 	/**
 	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
@@ -163,9 +163,42 @@ public class MetadataOData4j {
 	 * Returns EDM metadata ONLY - i.e. only meta data relating to resources in the service document
 	 * @return edmdataservices object
 	 */	
-	public EdmDataServices getEdmMetadata() {
-		return createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+	EdmDataServices getEdmMetadata() {
+		EdmDataServices result = null;
+		
+		synchronized(this) {
+			if(edmDataServices == null) {
+				edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+			}
+			
+			result = edmDataServices;
+		}
+		
+		return result;		
 	}
+	
+	public EdmComplexType findEdmComplexType(String typeName) {
+		EdmComplexType result = getEdmMetadata().findEdmComplexType(typeName);
+		
+		if(result == null && nonSrvDocEdmComplexTypeMap.containsKey(typeName)) {
+			// Check if the type is a complex type in non service document meta data
+			result = (EdmComplexType)nonSrvDocEdmComplexTypeMap.get(typeName);
+		}
+		
+		if(result == null) {
+			// Check if the type is non service document meta data  
+			String tmpTypeName = typeName.substring(typeName.indexOf(".") + 1, typeName.indexOf("_"));
+			
+			EdmEntitySet edmEntitySet = getEdmEntitySetFromNonSrvDocResrc(getEdmEntitySetName(tmpTypeName));
+			
+			if(edmEntitySet != null) {
+				result = (EdmComplexType)nonSrvDocEdmComplexTypeMap.get(typeName);
+			}
+		}
+		
+		return result;
+	}
+	
 	
 	public EdmType getEdmEntityTypeByTypeName(String typeName) {
 		// Check if type is in the service document / EDM meta data
@@ -221,7 +254,7 @@ public class MetadataOData4j {
 	public EdmEntitySet getEdmEntitySetByEntityName(String entityName) {
 		EdmEntitySet edmEntitySet = null;
 		try {
-			edmEntitySet = ODataHelper.getEntitySet(entityName, getMetadata());
+			edmEntitySet = ODataHelper.getEntitySet(entityName, getEdmMetadata());
 		} catch (Exception e) {
 			// Ignore.... as we will be try lazy loading after this
 			logger.debug("EntitySet for [" + entityName + "] not found in EdmDataServices, try loading it seperately...");
@@ -248,8 +281,15 @@ public class MetadataOData4j {
 			/* This may be a service document resource, if it is - Unload the internal reference to the real EDM data services 
 			 * so that it is completely rebuilt on the next request to it
 			 */
-			if(edmDataServicesAdapter != null) {
-				edmDataServicesAdapter.unload(entitySetName);
+			synchronized (this) {
+				if (edmDataServices != null) {
+					// EDM data services has already been initialized
+
+					if (edmDataServices.findEdmEntitySet(entitySetName) != null) {
+						// EDM data services, i.e. service document, contains entity set therefore it needs to be rebuilt
+						edmDataServices = null;
+					}
+				}
 			}
 		}
 	}
@@ -310,6 +350,7 @@ public class MetadataOData4j {
 			
 			// Append to the map
 			nonSrvDocEdmEntitySetMap.put(getEdmEntitySetName(entityName), edmEntitySet);
+			
 			return edmEntitySet;
 		} 
 		return null;
@@ -322,11 +363,13 @@ public class MetadataOData4j {
 	 */
 	private EdmEntitySet getEdmEntitySetFromEdmDataServices(String entitySetName) {
 		EdmEntitySet ees = null;
+		
 		try {
-			ees = getMetadata().findEdmEntitySet(entitySetName);
+			ees = getEdmMetadata().findEdmEntitySet(entitySetName);
 		} catch (Exception e) {
-			logger.warn(e.getMessage());
+			logger.warn("Failed to find EDM entity set", e);
 		}
+		
 		return ees;
 	}
 	
@@ -368,72 +411,82 @@ public class MetadataOData4j {
 			EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
 			if (bEntityType != null) {
 				bEntityTypeMap.put(state.getEntityName(), bEntityType);					
+			} else {
+				logger.warn("Entity name '" + state.getEntityName() + "' does not have type. " +
+							"entityMetadata=" + entityMetadata);
 			}
 		}
-			
+					
 		// Add Navigation Properties
+		
+		// build associations		
+		Map<EdmEntityType.Builder, Map<String, EdmAssociation.Builder>> entityTypeToStateAssociations = new HashMap<EdmEntityType.Builder, Map<String, EdmAssociation.Builder>>();
+		
 		for (EdmEntityType.Builder bEntityType : bEntityTypeMap.values()) {
-			// build associations
 			Map<String, EdmAssociation.Builder> bAssociationMap = buildAssociations(namespace, bEntityType, bEntityTypeMap, hypermediaEngine, serviceDocument);
+			entityTypeToStateAssociations.put(bEntityType, bAssociationMap);
 			bAssociations.addAll(bAssociationMap.values());
+		}
+		
+		Map<String,String> multiAssociation = new HashMap<String,String>();
+		int multipleAssoc = 0;
+		
+		for (ResourceState source : hypermediaEngine.getStates()) {
+			for (ResourceState target : source.getAllTargets()) {
+				Collection<Transition> entityTransitions = source.getTransitions(target);
+				if (entityTransitions != null) {
+					for(Transition entityTransition : entityTransitions) {
+						ResourceState sourceState = entityTransition.getSource();
+						ResourceState targetState = entityTransition.getTarget();
+						
+						EdmEntityType.Builder bEntityType = bEntityTypeMap.get(sourceState.getEntityName());
 
-			//add navigation properties
-			Map<String,String> multiAssociation = new HashMap<String,String>();
-			int multipleAssoc = 0;
-			String entityName = bEntityType.getName();
-			for (ResourceState s : hypermediaEngine.getStates()) {
-				for (ResourceState ts : s.getAllTargets()) {
-					Collection<Transition> entityTransitions = s.getTransitions(ts);
-					if (entityTransitions != null) {
-						for(Transition entityTransition : entityTransitions) {
-							ResourceState sourceState = entityTransition.getSource();
-							ResourceState targetState = entityTransition.getTarget();
-							if (sourceState.getEntityName().equals(entityName) 
-									&& !entityTransition.getTarget().isPseudoState()
-									&& !entityTransition.getTarget().equals(serviceDocument)
-									&& !(entityTransition.getSource() instanceof CollectionResourceState)) {
-								//We can have more than one navigation property for the same association
-								String navPropertyName = targetState.getName();
-								//We can have transitions to a resource state from multiple source states
-								if (entityTransition.getLabel() != null) {
-									navPropertyName = entityTransition.getLabel();
-								} else if (multiAssociation.get(navPropertyName) != null) {
-									navPropertyName = navPropertyName + "_" + multipleAssoc++;
-								}
-								multiAssociation.put(navPropertyName, targetState.getName());
-								
-								EdmAssociation.Builder relationship = bAssociationMap.get(targetState.getName());
-								bEntityType.addNavigationProperties(EdmNavigationProperty
-										.newBuilder(navPropertyName)
-										.setRelationship(relationship)
-										.setFromTo(relationship.getEnd1(), relationship.getEnd2()));
+						if (bEntityType != null 
+								&& !entityTransition.getTarget().isPseudoState()
+								&& !entityTransition.getTarget().equals(serviceDocument)
+								&& !(entityTransition.getSource() instanceof CollectionResourceState)) {
+							//We can have more than one navigation property for the same association
+							String navPropertyName = targetState.getName();
+							//We can have transitions to a resource state from multiple source states
+							if (entityTransition.getLabel() != null) {
+								navPropertyName = entityTransition.getLabel();
+							} else if (multiAssociation.get(navPropertyName) != null) {
+								navPropertyName = navPropertyName + "_" + multipleAssoc++;
 							}
+							multiAssociation.put(navPropertyName, targetState.getName());
+							
+							Map<String, EdmAssociation.Builder> bAssociationMap = entityTypeToStateAssociations.get(bEntityType);
+							
+							EdmAssociation.Builder relationship = bAssociationMap.get(targetState.getName());
+							bEntityType.addNavigationProperties(EdmNavigationProperty
+									.newBuilder(navPropertyName)
+									.setRelationship(relationship)
+									.setFromTo(relationship.getEnd1(), relationship.getEnd2()));
 						}
 					}
 				}
 			}
-		}
-
-		// Index EntitySets by Entity name
-		Collection<ResourceState> allTargets = hypermediaEngine.getStates();
-		for (ResourceState state : allTargets) {
-			if (state instanceof CollectionResourceState) {
-				EdmEntityType.Builder entityType = bEntityTypeMap.get(state.getEntityName());
+			
+			if (source instanceof CollectionResourceState) {
+				// Index EntitySets by Entity name
+				EdmEntityType.Builder entityType = bEntityTypeMap.get(source.getEntityName());
 				
 				if (entityType == null) 
-					throw new RuntimeException("Entity type not found for " + state.getEntityName());
-				Transition fromInitialState = serviceDocument.getTransition(state);
-				EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(state.getName()).setEntityType(entityType);
+					throw new RuntimeException("Entity type not found for " + source.getEntityName());
+				Transition fromInitialState = serviceDocument.getTransition(source);
+				EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(source.getName()).setEntityType(entityType);
 				if (fromInitialState != null) {
 					//Add entity set
-					bEntitySetMap.put(state.getEntityName(), bEntitySet);
+					bEntitySetMap.put(source.getEntityName(), bEntitySet);
 				} else {
-					logger.error("Not adding entity set ["+state.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
+					logger.error("Not adding entity set ["+source.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
 				}
-			}
+			}			
 		}
-
-		for (ResourceState state : hypermediaEngine.getStates()) {
+				
+		Collection<ResourceState> allTargets = hypermediaEngine.getStates();
+		
+		for (ResourceState state : allTargets) {
 			if (state instanceof CollectionResourceState) {
 				Transition fromInitialState = serviceDocument.getTransition(state);
 				if (fromInitialState == null) {
@@ -498,6 +551,7 @@ public class MetadataOData4j {
 		
 		String complexTypePrefix = new StringBuilder(entityMetadata.getEntityName()).append("_").toString();
 		for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
+			logger.debug("EdmTypeBuilder["+entityMetadata.getEntityName()+"] - " + propertyName);
 			//Entity properties, lets gather some information about the property
 			String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);							// Is vocabulary a group (Complex Type)
 			boolean termList = Boolean.parseBoolean(entityMetadata.getTermValue(propertyName, TermListType.TERM_NAME));	// Is vocabulary a List of (Complex Types)
@@ -559,7 +613,7 @@ public class MetadataOData4j {
 					if (termList) {
 						ep = EdmProperty.newBuilder(complexPropertyName).
 								setType(bComplexTypeMap.get(namespace + "." + complexPropertyName)).
-								setCollectionKind(CollectionKind.List).								
+								setCollectionKind(CollectionKind.Bag).								
 								setNullable(isNullable);
 					} else {
 						ep = EdmProperty.newBuilder(complexPropertyName).
@@ -774,7 +828,7 @@ public class MetadataOData4j {
 			if (isList) {
 				ep = EdmProperty.newBuilder(nestedComplexType)
 						.setType(bComplexTypeMap.get(nestComplexTypeFullName))
-						.setCollectionKind(CollectionKind.List)
+						.setCollectionKind(CollectionKind.Bag)
 						.setNullable(isNullable);
 			} else {
 				ep = EdmProperty.newBuilder(nestedComplexType)

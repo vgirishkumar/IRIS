@@ -1,8 +1,8 @@
 package com.temenos.interaction.core.hypermedia;
 
 import java.util.Map;
-import java.util.Objects;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.temenos.interaction.core.hypermedia.expression.Expression;
@@ -57,6 +57,11 @@ public class Transition {
 	 * in a 303 Redirect HTTP status at runtime.
 	 */
 	public static final int REDIRECT = 16;
+	
+    /**
+     * Add a sub resource to every item in collection
+     */	
+	public static final int FOR_EACH_EMBEDDED = 32;
 
 	private ResourceState source, target;
 	private ResourceLocator locator;
@@ -158,7 +163,7 @@ public class Transition {
 		return isSameStateName(source, otherTrans.source)
 				&& isSameStateName(target, otherTrans.target)
 				&& StringUtils.equals(label, otherTrans.label)
-				&& Objects.equals(command, otherTrans.command)
+				&& ObjectUtils.equals(command, otherTrans.command)
 				&& StringUtils.equals(linkId, otherTrans.linkId);
 	}
 
@@ -174,6 +179,10 @@ public class Transition {
 		}
 		
 		return same;
+	}
+	
+	public boolean isType(int type) {
+		return (command.getFlags() & type) == type;
 	}
 	
 	public int hashCode() {

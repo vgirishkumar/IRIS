@@ -6,7 +6,7 @@
 		<groupId>com.temenos.interaction</groupId>
 		<artifactId>com.temenos.interaction.rimdsl.parent</artifactId>
 		<!-- You should change this and the MANIFEST.MF to your versioning scheme -->
-		<version>0.6.0-SNAPSHOT</version>
+		<version>0.9.0-SNAPSHOT</version>
 		<relativePath>../com.temenos.interaction.rimdsl.parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>com.temenos.interaction.rimdsl</artifactId>
@@ -25,6 +25,11 @@
 				<artifactId>fornax-oaw-m2-plugin</artifactId>
 				<configuration>
 					<workflowDescriptor>src/com/temenos/interaction/rimdsl/GenerateRIMDsl.mwe2</workflowDescriptor>
+					<jvmSettings>
+						<jvmArgs>
+							<jvmArg>-Xmx4g</jvmArg>
+						</jvmArgs>
+					</jvmSettings>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -40,6 +45,13 @@
 						</goals>
 					</execution>
 				</executions>
+                                <dependencies>
+                                    <dependency>
+                                        <groupId>org.antlr</groupId>
+                                        <artifactId>antlr</artifactId>
+                                        <version>3.2</version>
+                                    </dependency>
+                                </dependencies>
 			</plugin>
 		</plugins>
 		<pluginManagement>
@@ -80,7 +92,7 @@
 											xtend-maven-plugin
 										</artifactId>
 										<versionRange>
-											[2.3.0,)
+											[2.8.3,2.9)
 										</versionRange>
 										<goals>
 											<goal>compile</goal>
@@ -158,4 +170,96 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<!-- SONAR TEST COVERAGE PROFILE-->
+   <profiles>
+    <profile>
+        <id>coverage</id>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.13</version>
+                    <configuration>
+                        <argLine>${jacoco.agent.ut.arg}</argLine>
+                        <!-- Specific to generate mapping between tests and covered code -->
+                        <properties>
+                            <property>
+                                <name>listener</name>
+                                <value>org.sonar.java.jacoco.JUnitListener</value>
+                            </property>
+                        </properties>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>2.16</version>
+                    <configuration>
+                        <argLine>-Xmx1024m -XX:MaxPermSize=256m ${jacoco.agent.it.arg}</argLine>
+                        <!-- Specific to generate mapping between tests and covered code -->
+                        <properties>
+                            <property>
+                                <name>listener</name>
+                                <value>org.sonar.java.jacoco.JUnitListener</value>
+                            </property>
+                        </properties>
+                        <!-- Let's put failsafe reports with surefire to have access to tests failures/success reports in sonar -->
+                        <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <!-- Prepares a variable, jacoco.agent.ut.arg, that contains the info to be passed to the JVM hosting the code
+being tested. -->
+                        <execution>
+                            <id>prepare-ut-agent</id>
+                            <phase>process-test-classes</phase>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>${sonar.jacoco.reportPath}</destFile>
+                                <propertyName>jacoco.agent.ut.arg</propertyName>
+                                <append>true</append>
+                            </configuration>
+                        </execution>
+                        <!-- Prepares a variable, jacoco.agent.it.arg, that contains the info to be passed to the JVM hosting the code
+being tested. -->
+                        <execution>
+                            <id>prepare-it-agent</id>
+                            <phase>pre-integration-test</phase>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>${sonar.jacoco.itReportPath}</destFile>
+                                <propertyName>jacoco.agent.it.arg</propertyName>
+                                <append>true</append>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </build>
+        <dependencies>
+            <dependency>
+                <groupId>org.codehaus.sonar-plugins.java</groupId>
+                <artifactId>sonar-jacoco-listeners</artifactId>
+                <version>${sonar-jacoco-listeners.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.sonar-plugins.java</groupId>
+                <artifactId>sonar-jacoco-plugin</artifactId>
+                <version>${sonar-jacoco-plugin.version}</version>
+            </dependency>
+        </dependencies>
+    </profile>
+</profiles>
+
 </project>

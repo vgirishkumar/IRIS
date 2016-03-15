@@ -20,6 +20,8 @@ rim Simple {
 	command GETNotes
 	command GETNote
 	command DELETENote
+	command MatchCommand
+	command GETMultipleNoteCommand
 
 resource notes {
 	type: collection
@@ -27,8 +29,10 @@ resource notes {
 	view: GETNotes
 	path: "/notes"
     POST -> createNote
-	GET *-> note
-	DELETE *-> deletedNote
+	GET *+> note
+	DELETE *-> deletedNote {
+		condition: NOT_FOUND(NoteImportant)
+	}
 }
 
 resource note {
@@ -37,6 +41,7 @@ resource note {
 	view: GETNote
 	path: "/notes/{noteID}"
 	DELETE -> deletedNote
+	cache: 120
 }
 
 resource deletedNote {
@@ -60,5 +65,24 @@ resource createNote {
 	}
 }
 
+		resource NoteImportant {
+		   type: item
+		   entity: Note 
+		   view: MatchCommand {
+		      properties [ Expression="{body}='IMPORTANT'" ]
+		   }
+		   path: "/notes/{noteID}/NoteImportant"
+		}
+	
+resource twiceGetNote {
+	type: item
+	entity: Note
+	// Call same command twice.
+	commands [ 
+				GET : GETMultipleNoteCommand,
+				GET : GETMultipleNoteCommand ]
+	path: "/twiceGetNote({noteID})"
+	cache: 120
+}
 }
 }

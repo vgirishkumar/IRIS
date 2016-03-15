@@ -69,12 +69,14 @@ public class TestMetadataOData4j {
 	public final static String METADATA_XML_FILE = "TestMetadataParser.xml";
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
 	public final static String METADATA_CUSTOMER_NON_EXP_XML_FILE = "CustomerNonExpandedMetadata.xml";
+	public final static String METADATA_LISTTOBAG_XML_FILE="issue126_metadata.xml";
 	
 	private static String AIRLINE_NAMESPACE = "FlightResponderModel";
 	private static Metadata metadataAirline;
 	private static MetadataOData4j metadataOdata4j;
 	private static MetadataOData4j metadataAirlineOdata4j;
 	private static MetadataOData4j metadataCustomerNonExpandableModelOdata4j;
+	private static MetadataOData4j metadataListToBagOdata4j;
 	
 	@BeforeClass
 	public static void setup()
@@ -93,10 +95,6 @@ public class TestMetadataOData4j {
 				}
 			}			
 		};
-		MetadataParser parser = new MetadataParser(termFactory);
-		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
-		Metadata metadata = parser.parse(is);
-		Assert.assertNotNull(metadata);
 		
 		// Create mock state machine with Customer entity sets
 		ResourceState defaultServiceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
@@ -104,39 +102,67 @@ public class TestMetadataOData4j {
 		defaultServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("CustomerWithTermList", "CustomerWithTermList", new ArrayList<Action>(), "/CustomerWithTermList")).build());
 		defaultServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("EntityWithRestriction", "EntityWithRestriction", new ArrayList<Action>(), "/EntityWithRestriction")).build());
 		ResourceStateMachine defaultHypermediaEngine = new ResourceStateMachine(defaultServiceRoot);
+		
+		
+		//Read the TestMetadataParser file
+		MetadataParser parser = new MetadataParser(termFactory);
+		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
+		Metadata metadata = parser.parse(is);
+		Assert.assertNotNull(metadata);
+
+		// Convert TestMetadataParser to odata4j metadata
 		metadataOdata4j = new MetadataOData4j(metadata, defaultHypermediaEngine);
 		metadataOdata4j.setOdataVersion(ODataVersion.V2);
-
+				
 		// Create mock state machine with Flight, Airport and FlightSchedule entity sets
 		ResourceState serviceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("FlightSchedule", "FlightSchedule", new ArrayList<Action>(), "/FlightSchedule")).build());
 		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Flight", "Flight", new ArrayList<Action>(), "/Flight")).build());
 		serviceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Airport", "Airport", new ArrayList<Action>(), "/Airline")).build());
 		ResourceStateMachine hypermediaEngine = new ResourceStateMachine(serviceRoot);
-
+		
+		
 		//Read the airline metadata file
 		MetadataParser parserAirline = new MetadataParser();
 		InputStream isAirline = parserAirline.getClass().getClassLoader().getResourceAsStream(METADATA_AIRLINE_XML_FILE);
 		metadataAirline = parserAirline.parse(isAirline);
 		Assert.assertNotNull(metadataAirline);
 		
-		//Convert metadata to odata4j metadata
+		//Convert airline metadata to odata4j metadata
 		metadataAirlineOdata4j = new MetadataOData4j(metadataAirline, hypermediaEngine);
 		metadataAirlineOdata4j.setOdataVersion(ODataVersion.V2);
 		
-		//Read the Complex metadata file
-		MetadataParser parserCustomerComplex = new MetadataParser();
-		InputStream isCustomer = parserCustomerComplex.getClass().getClassLoader().getResourceAsStream(METADATA_CUSTOMER_NON_EXP_XML_FILE);
-		Metadata complexMetadata = parserCustomerComplex.parse(isCustomer);
-		Assert.assertNotNull(complexMetadata);
 				
 		// Create mock state machine with Customer entity sets
 		ResourceState nonExpandableServiceRoot = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
 		nonExpandableServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("Customer", "Customer", new ArrayList<Action>(), "/Customer")).build());
 		nonExpandableServiceRoot.addTransition(new Transition.Builder().target(new CollectionResourceState("CustomerWithTermList", "CustomerWithTermList", new ArrayList<Action>(), "/CustomerWithTermList")).build());
 		ResourceStateMachine nonExpandableHypermediaEngine = new ResourceStateMachine(nonExpandableServiceRoot);
-			// Convert metadata to odata4j metadata
-			metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, nonExpandableHypermediaEngine);
+		
+		//Read the Complex metadata file
+		MetadataParser parserCustomerComplex = new MetadataParser();
+		InputStream isCustomer = parserCustomerComplex.getClass().getClassLoader().getResourceAsStream(METADATA_CUSTOMER_NON_EXP_XML_FILE);
+		Metadata complexMetadata = parserCustomerComplex.parse(isCustomer);
+		Assert.assertNotNull(complexMetadata);
+		
+		// Convert metadata to odata4j metadata
+		metadataCustomerNonExpandableModelOdata4j = new MetadataOData4j(complexMetadata, nonExpandableHypermediaEngine);
+		
+		// Create mock state machine with Customer entity sets to test List type converted to bag
+		ResourceState convertListToBag = new ResourceState("SD", "ServiceDocument", new ArrayList<Action>(), "/");
+		convertListToBag.addTransition(new Transition.Builder().target(new CollectionResourceState("Customer", "Customer", new ArrayList<Action>(), "/Customer")).build());
+		convertListToBag.addTransition(new Transition.Builder().target(new CollectionResourceState("CustomerWithTermList", "CustomerWithTermList", new ArrayList<Action>(), "/CustomerWithTermList")).build());
+		ResourceStateMachine listToBagHypermediaEngine = new ResourceStateMachine(convertListToBag);
+		
+		//Read the Complex metadata file
+		MetadataParser parserCustomerComplexList = new MetadataParser();
+		InputStream isCustomerTypeBag = parserCustomerComplexList.getClass().getClassLoader().getResourceAsStream(METADATA_LISTTOBAG_XML_FILE);
+		Metadata complexBagMetadata = parserCustomerComplexList.parse(isCustomerTypeBag);
+		Assert.assertNotNull(complexBagMetadata);
+		
+		// Convert metadata to odata4j metadata
+		metadataListToBagOdata4j = new MetadataOData4j(complexBagMetadata,listToBagHypermediaEngine);
+		metadataListToBagOdata4j.setOdataVersion(ODataVersion.V2);
 	}
 	
 	@Test(expected = RuntimeException.class)
@@ -241,6 +267,13 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(true, streetType.findProperty("streetType").getType().isSimple());
 	}
 	
+	@Test
+	public void testFindEdmComplexType() {
+		EdmComplexType complexType = metadataOdata4j.findEdmComplexType("CustomerServiceTestModel.NonSrvDocEntity_street");
+		Assert.assertEquals(true, complexType.findProperty("streetType").isNullable());
+		Assert.assertEquals(true, complexType.findProperty("streetType").getType().isSimple());
+	}
+	
 	
 	@Test
 	public void testCustomerWithListTypeTAGEntity()
@@ -255,7 +288,7 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
 		Assert.assertEquals(false, entityType.findProperty("CustomerWithTermList_address").getType().isSimple());//address should be Complex
-		Assert.assertEquals(CollectionKind.List, entityType.findProperty("CustomerWithTermList_address").getCollectionKind());//address should be List of Complex
+		Assert.assertEquals(CollectionKind.Bag, entityType.findProperty("CustomerWithTermList_address").getCollectionKind());//address should be List of Complex -- Changed collection kind from list to bag due to issue no. 126
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
 		
 		
@@ -286,6 +319,7 @@ public class TestMetadataOData4j {
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
 	}
 	
+	//NonExpandableMetadata()
 	@Test
 	public void testCustomerWithTermListWithNonExpandableMetadata() {
 		EdmDataServices edmDataServices = metadataCustomerNonExpandableModelOdata4j.getMetadata();
@@ -297,10 +331,27 @@ public class TestMetadataOData4j {
 		Assert.assertEquals("CustomerWithTermList", entityType.getName());
 		Assert.assertEquals(false, entityType.findProperty("name").isNullable());			//ID fields must not be nullable
 		Assert.assertEquals(false, entityType.findProperty("CustomerWithTermList_address").getType().isSimple());//address should be Complex
-		Assert.assertEquals(CollectionKind.List, entityType.findProperty("CustomerWithTermList_address").getCollectionKind());
+		Assert.assertEquals(CollectionKind.Bag, entityType.findProperty("CustomerWithTermList_address").getCollectionKind()); //Changed the test case due to issue126 fix
 		Assert.assertEquals(false, entityType.findProperty("dateOfBirth").isNullable());
 		Assert.assertEquals(null, entityType.findProperty("streetType"));					// This should not be part of EntityType
 	}
+	
+	@Test
+	//Issue126 verify metadata files does not contain CollectionKind="List"
+	public void testTermListTypeAsBag() {
+		EdmDataServices edmDataServices = metadataListToBagOdata4j.getMetadata();
+		EdmType type = edmDataServices.findEdmEntityType("CustomerServiceTestModel.CustomerWithTermList");
+		Assert.assertNotNull(type);
+		Assert.assertTrue(type.getFullyQualifiedTypeName().equals("CustomerServiceTestModel.CustomerWithTermList"));
+		Assert.assertTrue(type instanceof EdmEntityType);
+		EdmEntityType entityType = (EdmEntityType) type;
+		Assert.assertEquals("CustomerWithTermList", entityType.getName());
+		Assert.assertEquals(CollectionKind.Bag, entityType.findProperty("CustomerWithTermList_address").getCollectionKind());//address should be Bag of ComplexType	
+		EdmProperty proprty_type = entityType.findProperty("CustomerWithTermList_address");
+		EdmComplexType proprty_type_complex = (EdmComplexType) proprty_type.getType();
+		Assert.assertEquals(CollectionKind.Bag, proprty_type_complex.findProperty("CustomerWithTermList_street").getCollectionKind());//street should be Bag of ComplexType
+	}
+	
 	
 	@Test
 	public void testAirlineSchemaCount()
@@ -734,7 +785,7 @@ public class TestMetadataOData4j {
 		Assert.assertNotNull(annEl.getNamespace().getUri());
 		Assert.assertEquals("Geography:Country", ann.getValue());
 	}
-	
+		
 	@Test
 	public void testEntityWithDisplayAndFilterOnlyProperties()
 	{	

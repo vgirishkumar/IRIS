@@ -91,7 +91,8 @@ public class TestRetryWorkflowStrategyCommand {
 			w.execute(mockContext);
 		} finally {
 			long elapsedTime = System.currentTimeMillis() - startTime;
-			assertTrue(elapsedTime >= shouldWaitInMillis);
+			System.out.println("elapsedTime >= shouldWaitInMillis ["+elapsedTime+" >="+shouldWaitInMillis+"]");
+			assertTrue("elapsedTime >= shouldWaitInMillis", elapsedTime >= shouldWaitInMillis);
 		}
 	}
 	

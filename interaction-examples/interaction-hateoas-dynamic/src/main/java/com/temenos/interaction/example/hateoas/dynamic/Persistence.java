@@ -23,7 +23,6 @@ package com.temenos.interaction.example.hateoas.dynamic;
 
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -33,10 +32,14 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import javax.persistence.Query;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.temenos.interaction.example.hateoas.dynamic.model.Author;
 import com.temenos.interaction.example.hateoas.dynamic.model.Note;
 
 public class Persistence {
-    private final static Logger logger = Logger.getLogger(Persistence.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(Persistence.class);
 
     @PersistenceContext(unitName = "ResponderServiceHibernate", type = PersistenceContextType.EXTENDED)
     @Access(AccessType.FIELD) 
@@ -53,7 +56,7 @@ public class Persistence {
 			Query jpaQuery = entityManager.createQuery("SELECT n FROM note n");
 			entities = jpaQuery.getResultList();
 		} catch(Exception e) {
-			logger.severe("Error while loading entities: " + e.getMessage());
+			logger.error("Error while loading entities: ", e);
 		}
 		return entities;
     }
@@ -63,10 +66,10 @@ public class Persistence {
 		try {
 			note = entityManager.find(Note.class, id);
 		} catch(Exception e) {
-			logger.severe("Error while loading entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while loading entity [" + id + "]: ", e);
 		}
 		return note;
-    }
+    }	
 
 	public Note removeNote(Long id) {
 		Note note = null;
@@ -76,7 +79,7 @@ public class Persistence {
 			entityManager.remove(note);
     		entityManager.getTransaction().commit();    		
 		} catch(Exception e) {
-			logger.severe("Error while removing entity [" + id + "]: " + e.getMessage());
+			logger.error("Error while removing entity [" + id + "]: ", e);
 		}
 		return note;
     }
@@ -88,9 +91,18 @@ public class Persistence {
 			entityManager.persist(note);
     		entityManager.getTransaction().commit();    		
 		} catch(Exception e) {
-			logger.severe("Error while removing entity [" + note.getNoteID() + "]: " + e.getMessage());
+			logger.error("Error while removing entity [" + note.getNoteID() + "]: ", e);
 		}
 		return note;
     }
 
+	public Author getAuthor(String id) {
+		Author author = null;
+		try {
+			author = entityManager.find(Author.class, id);
+		} catch(Exception e) {
+			logger.error("Error while loading entity [" + id + "]: ", e);
+		}
+		return author;
+    }	
 }

@@ -27,6 +27,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +47,9 @@ import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.temenos.interaction.media.hal.MediaType;
 import com.theoryinpractise.halbuilder.api.Link;
@@ -81,7 +85,7 @@ public class HypermediaITCase extends JerseyTest {
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(MediaType.APPLICATION_HAL_JSON.toString(),new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(2, links.size());
@@ -102,14 +106,14 @@ public class HypermediaITCase extends JerseyTest {
 
 		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
-		ReadableRepresentation homeResource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation homeResource = representationFactory.readRepresentation(MediaType.APPLICATION_HAL_JSON.toString(),new InputStreamReader(response.getEntityInputStream()));
 		Link profileLink = homeResource.getLinkByRel("http://relations.rimdsl.org/profile");
 		assertNotNull(profileLink);
 		response.close();
 
 		ClientResponse profileResponse = webResource.uri(new URI(profileLink.getHref())).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(profileResponse.getStatus()).getFamily());
-		ReadableRepresentation profileResource = representationFactory.readRepresentation(new InputStreamReader(profileResponse.getEntityInputStream()));
+		ReadableRepresentation profileResource = representationFactory.readRepresentation(MediaType.APPLICATION_HAL_JSON.toString(),new InputStreamReader(profileResponse.getEntityInputStream()));
 		assertEquals("someone@somewhere.com", profileResource.getProperties().get("email"));
 		Link profileImageLink = profileResource.getLinkByRel("http://relations.rimdsl.org/image");
 		assertNotNull(profileImageLink);
@@ -143,4 +147,49 @@ public class HypermediaITCase extends JerseyTest {
         profileImageResponse.close();
 	}
 
+	@Test
+	public void testUploadImage() throws IOException, UniformInterfaceException, URISyntaxException {
+		String filename = "pdf-sample.pdf";		
+		File uploadedFile = new File(System.getProperty("java.io.tmpdir"), filename);
+		
+		if(uploadedFile.exists()) {
+			if(!uploadedFile.delete()) {
+				throw new IOException("Failed to delete existing uploaded file");
+			}
+		}
+		
+		RepresentationFactory representationFactory = new StandardRepresentationFactory();
+
+		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
+		ReadableRepresentation homeResource = representationFactory.readRepresentation(MediaType.APPLICATION_HAL_JSON.toString(),new InputStreamReader(response.getEntityInputStream()));
+		Link profileLink = homeResource.getLinkByRel("http://relations.rimdsl.org/profile");
+		assertNotNull(profileLink);
+		response.close();
+
+		ClientResponse profileResponse = webResource.uri(new URI(profileLink.getHref())).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(profileResponse.getStatus()).getFamily());
+		ReadableRepresentation profileResource = representationFactory.readRepresentation(MediaType.APPLICATION_HAL_JSON.toString(),new InputStreamReader(profileResponse.getEntityInputStream()));
+		assertEquals("someone@somewhere.com", profileResource.getProperties().get("email"));
+		Link profileImageUploadLink = profileResource.getLinkByRel("http://relations.rimdsl.org/imageUpload");
+		assertNotNull(profileImageUploadLink);
+		profileResponse.close();
+		
+		WebResource profileImageUpload = webResource.uri(new URI(profileImageUploadLink.getHref() + "?filename=" + filename));
+		FormDataMultiPart form = new FormDataMultiPart();
+
+		form.field("file", filename);
+		File dir = new File("src/test/resources");
+		File srcFile = new File(dir, filename);
+		InputStream content = new FileInputStream(srcFile);
+        FormDataBodyPart fdp = new FormDataBodyPart("content", content, javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        form.bodyPart(fdp);
+        
+        response = profileImageUpload.type(javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE).accept(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, form);
+        content.close();
+        assertEquals(200, response.getStatus());   
+        
+		assertNotNull(uploadedFile);
+		assertEquals(srcFile.length(), uploadedFile.length());
+	}	
 }

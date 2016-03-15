@@ -31,7 +31,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.temenos.interaction.loader.FileEvent;
+import com.temenos.interaction.core.loader.FileEvent;
 import com.temenos.interaction.loader.xml.resource.action.ResourceModificationAction;
 
 public class XmlModificationNotifier implements ApplicationContextAware {
@@ -59,7 +59,7 @@ public class XmlModificationNotifier implements ApplicationContextAware {
     
 	public void execute(FileEvent event) {
 		if(rmas == null) {
-			throw new IllegalStateException();
+			rmas = ctx.getBeansOfType(ResourceModificationAction.class).values();
 		}
 		
 		Iterator<ResourceModificationAction> rmaIter = rmas.iterator();

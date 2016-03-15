@@ -78,7 +78,8 @@
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
     	<constructor-arg ref="interaction" />
         <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
-        <constructor-arg ref="resourceLocatorProvider" />        
+        <constructor-arg ref="resourceLocatorProvider" />
+        <property name="parameterResolverProvider" ref="resourceParameterResolverProvider"/>      
     </bean>
     
     <bean id="authorState" class="DynamicModel.Dynamic.authorResourceState" />
@@ -98,12 +99,27 @@
 		</constructor-arg>			
 	</bean>
 	
-	<bean id="resourceLocatorProvider" class="com.temenos.interaction.example.hateoas.dynamic.NoteResourceLocatorProvider">
+	<bean id="resourceLocator2" class="com.temenos.interaction.example.hateoas.dynamic.AuthorResourceLocator">
+		<constructor-arg ref="authorState" />
+	</bean>	
+	
+	<bean id="resourceLocatorProvider" class="com.temenos.interaction.core.hypermedia.MapResourceLocatorProvider">
 		<constructor-arg>
 			<map>  
-				<entry key="findsource"  value-ref="resourceLocator"></entry>
+				<entry key="findsource"  value-ref="resourceLocator"/>
+				<entry key="findauthor"  value-ref="resourceLocator2"/>
 			</map> 
 		</constructor-arg>	
+	</bean>
+	
+	<bean id="authorParameterResolver" class="com.temenos.interaction.example.hateoas.dynamic.AuthorResourceParameterResolver"/>
+	
+	<bean id="resourceParameterResolverProvider" class="com.temenos.interaction.core.hypermedia.MapResourceParameterResolverProvider">
+		<constructor-arg>
+			<map>
+				<entry key="findauthor"  value-ref="authorParameterResolver"/>
+			</map>		
+		</constructor-arg>
 	</bean>    
 
     <!-- Resources -->
@@ -134,6 +150,9 @@
 	<bean id="CREATEDynmcNote" class="com.temenos.interaction.example.hateoas.dynamic.CREATENoteCommand">
 		<constructor-arg ref="persistence" />
 	</bean>
+	<bean id="GETDynmcAuthor" class="com.temenos.interaction.example.hateoas.dynamic.GETAuthorCommand">
+		<constructor-arg ref="persistence" />
+	</bean>	
 
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -147,6 +166,7 @@
 				<entry key="GETDynmcNote" value-ref="GETDynmcNote" />
 				<entry key="DELETEDynmcNote" value-ref="DELETEDynmcNote" />
 				<entry key="CREATEDynmcNote" value-ref="CREATEDynmcNote" />
+				<entry key="GETDynmcAuthor" value-ref="GETDynmcAuthor" />
 			</util:map> 
 		</constructor-arg>
 	</bean>

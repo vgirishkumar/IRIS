@@ -22,6 +22,8 @@ package com.temenos.interaction.commands.odata;
  */
 
 
+import java.util.Map;
+
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
@@ -72,14 +74,14 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			ctx.setResource(cr);
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: " + ope.getMessage());
-			throw new InteractionException(ope.getHttpStatus(), ope.getMessage());
+			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
+			throw new InteractionException(ope.getHttpStatus(), ope);
 		} catch (InteractionException e) {
 			throw e;
 		}
 		catch(Exception e) {
-			logger.error("Failed to GET entities [" + entityName + ", " + ctx.getId() + "]: " + e.getMessage());
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			logger.error("Failed to GET entities [" + entityName + ", " + ctx.getId() + "]: ", e);
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		return Result.SUCCESS;
 	}
@@ -105,7 +107,9 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		String skipToken = queryParams.getFirst("$skiptoken");
 		String expand = queryParams.getFirst("$expand");
 		String select = queryParams.getFirst("$select");
-
+		
+		Map<String, String> customOptions = CommandHelper.populateCustomOptionsMap(ctx);
+		
 		try {
 			return new QueryInfo(
 					OptionsQueryParser.parseInlineCount(inlineCount),
@@ -114,12 +118,12 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 					OptionsQueryParser.parseFilter(filter),
 					OptionsQueryParser.parseOrderBy(orderBy),
 					OptionsQueryParser.parseSkipToken(skipToken),
-					null,
+					customOptions,
 					OptionsQueryParser.parseExpand(expand),
 					OptionsQueryParser.parseSelect(select));
 		} catch (RuntimeException e) {
 			// all runtime exceptions are due to failure in parsing the query options
-			throw new InteractionException(Status.BAD_REQUEST,"Invalid query option in '" + queryParams + "'. Error: " + e.getMessage());
+			throw new InteractionException(Status.BAD_REQUEST,"Invalid query option in '" + queryParams + "'. Error: ", e);
 		}
 	}
 }

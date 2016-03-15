@@ -44,6 +44,8 @@ import org.odata4j.core.OAtomEntity;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
 import org.odata4j.internal.InternalUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
@@ -67,6 +69,7 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
  * 
  */
 public class AtomEntityEntryFormatWriter {
+	private final static Logger logger = LoggerFactory.getLogger(AtomEntityEntryFormatWriter.class);
 	// Constants for OData
 	public static final String d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 	public static final String m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
@@ -89,7 +92,8 @@ public class AtomEntityEntryFormatWriter {
 			Collection<Link> links, 
 			Map<Transition,RESTResource> embeddedResources) {
 		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
-		String absoluteId = uriInfo.getBaseUri() + uriInfo.getPath();
+		
+		String absoluteId = getAbsoluteId(uriInfo, links);
 		
 		DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
 		String updated = InternalUtil.toString(utc);
@@ -97,7 +101,6 @@ public class AtomEntityEntryFormatWriter {
 		Abdera abdera = new Abdera();
 		StreamWriter writer = abdera.newStreamWriter();
 		writer.setOutputStream(new WriterOutputStream(w));
-		//writer.setOutputStream(System.out,"UTF-8");
 		writer.setAutoflush(false);
 		writer.setAutoIndent(true);
 		writer.startDocument();
@@ -110,6 +113,28 @@ public class AtomEntityEntryFormatWriter {
 		writer.endEntry();
 		writer.endDocument();
 		writer.flush();
+	}
+
+	/**
+	 * @param uriInfo
+	 * @param links
+	 * @return
+	 */
+	private String getAbsoluteId(UriInfo uriInfo, Collection<Link> links) {
+		String absoluteId = "";
+		
+		for(Link link: links) {
+			if("self".equals(link.getRel())) {
+				absoluteId = link.getHref();
+				break; 
+			}
+		}
+		
+		if(absoluteId.isEmpty()) {
+			absoluteId = uriInfo.getBaseUri() + uriInfo.getPath();
+		}
+		
+		return absoluteId;
 	}
 
 	public void writeEntry(StreamWriter writer, String entitySetName, String entityName, Entity entity,
@@ -164,6 +189,12 @@ public class AtomEntityEntryFormatWriter {
 			    String href = link.getRelativeHref(baseUri);
 			    String rel = link.getRel();
 	            writer.startLink(href, rel);
+	            
+	            if("self".equals(link.getRel())) {
+	            	ResourceState target = link.getTransition().getTarget();	            	
+	            	writer.writeAttribute("profile", target.getRel());
+	            }
+	            
 	            if (!"self".equals(link.getRel()) &&
 	            		!"edit".equals(link.getRel())) {
 		            writer.writeAttribute("type", type);
@@ -195,6 +226,19 @@ public class AtomEntityEntryFormatWriter {
 		writer.endContent();
 	}
 
+	private void writeEntityResource(StreamWriter writer, EntityResource<Entity> entityResource, String baseUri, String absoluteId, String updated) {
+		Entity entity = null;
+		try {
+				entity = entityResource.getEntity();
+		} catch(Exception e) { 
+			logger.error("Failed to get entity", e);
+		}
+
+		writer.startEntry();
+		writeEntry(writer, entityResource.getEntityName(), entity, entityResource.getLinks(), entityResource.getEmbedded(), baseUri, absoluteId, updated);
+		writer.endEntry();
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected void writeLinkInline(StreamWriter writer, Metadata metadata, Link linkToInline, RESTResource embeddedResource,
 			String href, String baseUri, String absoluteId, String updated) {
@@ -214,21 +258,13 @@ public class AtomEntityEntryFormatWriter {
 				writer.endLink();
 				
 				for (EntityResource<Entity> entityResource : entities) {
-					writer.startEntry();
-					writeEntry(writer, entityResource.getEntityName(), entityResource.getEntity(), entityResource.getLinks(), entityResource.getEmbedded(),
-							baseUri, absoluteId, updated);
-					writer.endEntry();
+					writeEntityResource(writer, entityResource, baseUri, absoluteId, updated);
 				}
 				writer.endFeed();
 			}
 		} else if (embeddedResource instanceof EntityResource) {
 			EntityResource<Entity> entityResource = (EntityResource<Entity>) embeddedResource;
-			Entity entity = entityResource.getEntity();
-			writer.startEntry();
-			writeEntry(writer, entityResource.getEntityName(), entity, entityResource.getLinks(), entityResource.getEmbedded(),
-					baseUri, absoluteId, updated);
-
-			writer.endEntry();
+			writeEntityResource(writer, entityResource, baseUri, absoluteId, updated);
 		} else {
 			throw new RuntimeException("Unknown OLink type " + linkToInline.getClass());
 		}
@@ -252,13 +288,14 @@ public class AtomEntityEntryFormatWriter {
 	}
 	
 	private void writeProperties(StreamWriter writer, EntityMetadata entityMetadata, EntityProperties entityProperties, String modelName) {
-		assert(entityMetadata != null);
+		if ( entityMetadata == null ) logger.error( "No entityMetadata" );
 		// Loop round all properties writing out fields and MV and SV sets
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 		
-		for (String propertyName:properties.keySet()) {
+		for (String propertyName : properties.keySet()) {
 			// Work out what the property looks like by looking at the metadata
 			EntityProperty property = (EntityProperty) properties.get(propertyName);
+			if ( property == null ) logger.error( "Property " + propertyName + " listed but missing" );
 			boolean isComplex = entityMetadata.isPropertyComplex(property.getFullyQualifiedName());
 	   		if( !isComplex ) {
 	   			// Simple field
@@ -329,7 +366,7 @@ public class AtomEntityEntryFormatWriter {
 			writer.endElement();
 		}
 		// For List<ComplexTypes> we should end the complex node here
-		if (entityMetadata.isPropertyList(property.getFullyQualifiedName())) {
+		if (!propertiesList.isEmpty() && entityMetadata.isPropertyList(property.getFullyQualifiedName())) {
 			writer.endElement();
 		}
 	}

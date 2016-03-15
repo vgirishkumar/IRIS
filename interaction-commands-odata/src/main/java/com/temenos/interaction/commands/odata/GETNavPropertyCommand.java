@@ -74,7 +74,7 @@ public class GETNavPropertyCommand extends AbstractODataCommand implements Inter
 		try {
 			key = CommandHelper.createEntityKey(getEdmMetadata(), entity, ctx.getId());
 		} catch(Exception e) {
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());	
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);	
 		}
 
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();

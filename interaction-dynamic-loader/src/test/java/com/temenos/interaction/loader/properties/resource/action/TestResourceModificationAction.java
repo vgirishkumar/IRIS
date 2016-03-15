@@ -31,11 +31,10 @@ import static org.mockito.Mockito.when;
 import org.junit.Test;
 import org.springframework.core.io.Resource;
 
-import com.temenos.interaction.loader.properties.PropertiesChangedEvent;
-import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.properties.PropertiesLoadedEvent;
-import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
-import com.temenos.interaction.loader.resource.action.Action;
+import com.temenos.interaction.core.loader.Action;
+import com.temenos.interaction.core.loader.PropertiesEvent;
+import com.temenos.interaction.loader.properties.PropertiesChangedEventImpl;
+import com.temenos.interaction.loader.properties.PropertiesLoadedEventImpl;
 
 public class TestResourceModificationAction {
 
@@ -51,7 +50,7 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn(resourcePattern);
 		
-		PropertiesChangedEvent event = new PropertiesChangedEvent(null, resource, null);
+		PropertiesChangedEventImpl event = new PropertiesChangedEventImpl(null, resource, null);
 		
 		rma.notify(event);
 		
@@ -60,7 +59,7 @@ public class TestResourceModificationAction {
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("myfile2.properties");
 		
-		PropertiesChangedEvent event2 = new PropertiesChangedEvent(null, resource2, null);
+		PropertiesChangedEventImpl event2 = new PropertiesChangedEventImpl(null, resource2, null);
 
 		rma.notify(event2);
 		
@@ -80,7 +79,7 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn("IRIS-blah.properties");
 		
-		PropertiesChangedEvent event = new PropertiesChangedEvent(null, resource, null);
+		PropertiesChangedEventImpl event = new PropertiesChangedEventImpl(null, resource, null);
 		
 		rma.notify(event);
 		
@@ -89,7 +88,7 @@ public class TestResourceModificationAction {
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("metadata-blah.properties");
 		
-		PropertiesChangedEvent event2 = new PropertiesChangedEvent(null, resource2, null);
+		PropertiesChangedEventImpl event2 = new PropertiesChangedEventImpl(null, resource2, null);
 				
 		rma.notify(event2);
 		
@@ -111,13 +110,13 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn("IRIS-blah.properties");				
 		
-		PropertiesEvent event = new PropertiesChangedEvent(null, resource, null);
+		PropertiesEvent event = new PropertiesChangedEventImpl(null, resource, null);
 				
 		rma.notify(event);
 		
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("IRIS-blah.properties");
-		PropertiesEvent event2 = new PropertiesLoadedEvent(null, resource2, null);		
+		PropertiesEvent event2 = new PropertiesLoadedEventImpl(null, resource2, null);		
 		
 		rma.notify(event2);
 		
@@ -140,7 +139,7 @@ public class TestResourceModificationAction {
 		Resource resource = mock(Resource.class);
 		when(resource.getFilename()).thenReturn("IRIS-blah.properties");
 		
-		PropertiesEvent event = new PropertiesLoadedEvent(null, resource, null);
+		PropertiesEvent event = new PropertiesLoadedEventImpl(null, resource, null);
 		
 		rma.notify(event);
 		
@@ -149,7 +148,7 @@ public class TestResourceModificationAction {
 		Resource resource2 = mock(Resource.class);
 		when(resource2.getFilename()).thenReturn("metadata-blah.properties");
 		
-		PropertiesEvent event2 = new PropertiesLoadedEvent(null, resource2, null);
+		PropertiesEvent event2 = new PropertiesLoadedEventImpl(null, resource2, null);
 		
 		rma.notify(event2);
 		

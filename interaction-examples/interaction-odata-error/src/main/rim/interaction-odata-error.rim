@@ -553,5 +553,14 @@ resource errorHandler {
 	view: GETException
 }
 
+resource error404WithOtherErrorHandler {
+	type: item
+	entity: Flight
+	view: ThrowInteractionExceptionCommand {
+		properties [ status="404", message="Resource manager: entity not found or currently unavailable. For ErrorHanlder in seperate RIM" ]
+	}
+	path: "/Extended({id})/error404WithOtherErrorHandler"
+	onerror --> Anything.Something.otherErrorHandler
+}
 }
 }

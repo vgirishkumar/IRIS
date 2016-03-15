@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 public class ResourceState implements Comparable<ResourceState> {
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
+    private static final String[] DEFAULT_ITEM_RELATIONS = new String[] { "item" };
+
 	
 	/* the parent state (same entity, pseudo state is same path) */
 	private final ResourceState parent;
@@ -59,6 +61,8 @@ public class ResourceState implements Comparable<ResourceState> {
 	private final List<Action> actions;
 	/* the UriSpecification is used to append the path parameter template to the path */
 	private final UriSpecification uriSpecification;
+	/* The max-age to impose on fetched entities */
+	private int maxAge;
 	
 	private List<Transition> transitions = new ArrayList<Transition>();
 
@@ -155,7 +159,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		this.actions = actions;
 		this.uriSpecification = uriSpec;
 		if (rels == null) {
-			this.rels = "item".split(" ");
+			this.rels = DEFAULT_ITEM_RELATIONS;
 		} else {
 			this.rels = rels;
 		}
@@ -227,6 +231,14 @@ public class ResourceState implements Comparable<ResourceState> {
 	public void setException(boolean flag) {
 		exception = flag;
 	}
+
+	public void setMaxAge(int age) {
+		maxAge = age;
+	}
+	
+	public int getMaxAge() {
+		return maxAge;
+	}
 	
 	public ResourceState getErrorState() {
 		return errorState;
@@ -293,7 +305,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	 */
 	public void addTransition(Transition transition) {
 		assert(transition != null);
-		assert(transition.getSource() == null);
+		assert(transition.getSource() == null || transition.getSource() == this);
 		transition.setSource(this);
 		ResourceState targetState = transition.getTarget();
 		assert(targetState != null);
@@ -405,11 +417,11 @@ public class ResourceState implements Comparable<ResourceState> {
 	public Transition getTransition(ResourceState targetState) {
 		Transition foundTransition = null;
 		for (Transition t : transitions) {
-			if (t.getTarget().equals(targetState)) {
-				if (foundTransition != null)
-					logger.error("Duplicate transition definition [" + t + "]");
-				assert(foundTransition == null);  // transition must be defined more than once
+			ResourceState currTarget = t.getTarget();
+			
+			if (currTarget != null && currTarget == targetState) {
 				foundTransition = t;
+				break; // We've found what we're looking for so stop searching
 			}
 		}
 		return foundTransition;
@@ -423,7 +435,7 @@ public class ResourceState implements Comparable<ResourceState> {
 	public List<Transition> getTransitions(ResourceState targetState) {
 		List<Transition> transitionList = new ArrayList<Transition>();
 		for (Transition t : transitions) {
-			if (t.getTarget() != null && t.getTarget().equals(targetState)) {
+			if (t.getTarget() != null && t.getTarget() == targetState) {
 				transitionList.add(t);
 			}
 		}
@@ -432,12 +444,23 @@ public class ResourceState implements Comparable<ResourceState> {
 	
 	public Collection<ResourceState> getAllTargets() {
 		List<ResourceState> result = new ArrayList<ResourceState>();
+		
 		for (Transition t : transitions) {
 			ResourceState targetState = t.getTarget();
-			if(!result.contains(targetState)) {
+			
+			boolean contains = false;
+			
+			for(ResourceState tmpState: result) {
+				if(tmpState == targetState) {
+					contains = true;
+				}
+			}
+			
+			if(!contains) {
 				result.add(targetState);
 			}
 		}
+				
 		return result;
 	}
 	

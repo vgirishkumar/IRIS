@@ -117,11 +117,11 @@
 	</bean>
 
 	<bean id="serviceDocument" factory-bean="resourceStateProvider" factory-method="getResourceState">
-		<constructor-arg type="java.lang.String" value="AirlineModel_Airline_ServiceDocument" />
+		<constructor-arg type="java.lang.String" value="AirlineModel_Airline-ServiceDocument" />
 	</bean>
 
 	<bean id="exceptionState" factory-bean="resourceStateProvider" factory-method="getResourceState">
-		<constructor-arg type="java.lang.String" value="AirlineModel_Airline_AirlineException" />
+		<constructor-arg type="java.lang.String" value="AirlineModel_Airline-AirlineException" />
 	</bean>
 
 	<!-- Create a complete state machine for the OData ServiceDocument and Metadata -->
@@ -203,6 +203,7 @@
 	<bean id="GETGenericErrorCommand" class="com.interaction.example.odata.error.command.GETGenericErrorCommand" />
 	<bean id="ThrowInteractionExceptionCommand" class="com.interaction.example.odata.error.command.ThrowInteractionExceptionCommand" />
 	
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>	
 	
 	<!-- Command controller -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">

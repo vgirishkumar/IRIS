@@ -21,10 +21,13 @@ package com.temenos.interaction.springdsl;
  * #L%
  */
 
-
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -34,95 +37,112 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
+import com.temenos.interaction.core.resource.ConfigLoader;
 
 public class SpringDSLResourceStateProvider implements ResourceStateProvider, DynamicRegistrationResourceStateProvider {
 	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
 	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
+
+	protected StateRegisteration stateRegisteration;
 	
-	private StateRegisteration stateRegisteration;	
+	private ConfigLoader configLoader = new ConfigLoader();
 
     /**
      * Map of ResourceState bean names, to paths.
      */
-	private Properties beanMap;
-	
-	private boolean initialised = false;
+	protected Properties beanMap;
+
+	protected boolean initialised = false;
 	/**
 	 * Map of paths to state names
 	 */
-	private Map<String, Set<String>> resourceStatesByPath = new HashMap<String, Set<String>>();
+	protected Map<String, Set<String>> resourceStatesByPath = new HashMap<String, Set<String>>();
 	/**
 	 * Map of request to state names
 	 */
-	private Map<String, String> resourceStatesByRequest = new HashMap<String, String>();
+	protected Map<String, String> resourceStatesByRequest = new HashMap<String, String>();
 	/**
 	 * Map of resource methods where state name is the key
 	 */
-	private Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
+	protected Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
 	/**
 	 * Map to a resource path where the state name is the key
 	 */
-	private Map<String, String> resourcePathsByState = new HashMap<String, String>();
-	
+	protected Map<String, String> resourcePathsByState = new HashMap<String, String>();
+
 	public SpringDSLResourceStateProvider() {}
 	public SpringDSLResourceStateProvider(Properties beanMap) {
 		this.beanMap = beanMap;
 	}
-	
+
 	public void setResourceMap(Properties beanMap) {
 		this.beanMap = beanMap;
 	}
 	
-	private void initialise() {
+	@Autowired(required = false)
+	public void setConfigLoader(ConfigLoader configLoader) {
+		this.configLoader = configLoader;
+	}
+
+	protected void initialise() {
 		if (initialised)
 			return;
 		for (Object stateObj : beanMap.keySet()) {
-			String stateName = stateObj.toString();
-			// binding is [GET,PUT /thePath]
-			String binding = beanMap.getProperty(stateName.toString());
-			// split into methods and path
-			String[] strs = binding.split(" ");
-			String methodPart = strs[0];
-			String path = strs[1];
-			// methods
-			String[] methodsStrs = methodPart.split(",");
-			// path
-			resourcePathsByState.put(stateName, path);
-			// methods
-			Set<String> methods = resourceMethodsByState.get(stateName);
-			if (methods == null) {
-				methods = new HashSet<String>();
-			}
-			for (String method : methodsStrs) {
-				methods.add(method);
-			}
-			resourceMethodsByState.put(stateName, methods);
-			for (String method : methods) {
-				String request = method + " " + path;
-				logger.debug("Binding ["+stateName+"] to ["+request+"]");
-				String found = resourceStatesByRequest.get(request);
-				if (found != null) {
-					logger.error("Multiple states bound to the same request ["+request+"], overriding ["+found+"] with ["+stateName+"]");
-				}
-				resourceStatesByRequest.put(request, stateName);
-			}
-			
-			Set<String> stateNames = resourceStatesByPath.get(path);
-			if (stateNames == null) {
-				stateNames = new HashSet<String>();
-			}
-			stateNames.add(stateName.toString());
-			resourceStatesByPath.put(path, stateNames);
+			storeState(stateObj, null);
 		}
 		initialised = true;
 	}
-	
+
+	protected void storeState(Object stateObj, String binding) {
+		String stateName = stateObj.toString();
+		// binding is [GET,PUT /thePath]
+		if (binding == null){
+			binding = beanMap.getProperty(stateName.toString());
+		}
+		// split into methods and path
+		String[] strs = binding.split(" ");
+		String methodPart = strs[0];
+		String path = strs[1];
+		// methods
+		String[] methodsStrs = methodPart.split(",");
+		// path
+		resourcePathsByState.put(stateName, path);
+		// methods
+		Set<String> methods = resourceMethodsByState.get(stateName);
+		if (methods == null) {
+			methods = new HashSet<String>();
+		}
+		for (String method : methodsStrs) {
+			methods.add(method);
+		}
+		resourceMethodsByState.put(stateName, methods);
+		for (String method : methods) {
+			String request = method + " " + path;
+			logger.debug("Binding ["+stateName+"] to ["+request+"]");
+			String found = resourceStatesByRequest.get(request);
+			if (found != null) {
+				logger.error("Multiple states bound to the same request ["+request+"], overriding ["+found+"] with ["+stateName+"]");
+			}
+			resourceStatesByRequest.put(request, stateName);
+		}
+
+		Set<String> stateNames = resourceStatesByPath.get(path);
+		if (stateNames == null) {
+			stateNames = new HashSet<String>();
+		}
+		stateNames.add(stateName.toString());
+		resourceStatesByPath.put(path, stateNames);
+	}
+
 	public void addState(String stateObj, Properties properties) {
 		if (initialised) {
 			String stateName = stateObj.toString();
@@ -141,40 +161,53 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path
 					+ " using: " + stateRegisteration);
 
-			this.stateRegisteration.register(stateName, path, new HashSet<String>(Arrays.asList(methods)));
+			/*
+			 * Thierry : Let's load it here. There is a lot of chance that if someone is
+			 * adding a new state, he will then browse it.
+			 * This will speed up the first call to this resource.
+			 */
+			ResourceState state = getResourceState(stateName);
+			if (state != null){
+				storeState(stateName, binding);
+				this.stateRegisteration.register(stateName, path, new HashSet<String>(Arrays.asList(methods)));
+			}
 		}
 	}
-	
+
 	public void unload(String name) {
 		resources.remove(name);
 	}
-	
+
 	@Override
 	public boolean isLoaded(String name) {
 		return resources.containsKey(name);
 	}
 
 	@Override
-	public ResourceState getResourceState(String name) {
+	public ResourceState getResourceState(String resourceStateName) {
+		ResourceState result = null;
+
 		try {
-			if (name != null) {				
-				ResourceState resource = resources.get(name);
-				if (resource == null) {
-					String beanXml = "IRIS-"+name+"-PRD.xml";
-					if (this.getClass().getClassLoader().getResource(beanXml) != null) {
-						ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] {beanXml});
-						resource = (ResourceState) context.getBean(name);
-						resources.putIfAbsent(name, resource);
+			if (resourceStateName != null) {
+				// Try to retrieve the resource state
+				result = resources.get(resourceStateName);
+
+				if (result == null) {
+					// Resource state has not already been loaded so attempt to load it
+					ResourceStateLoad newState = new ResourceStateLoad(resourceStateName);
+					newState.load();
+					if ( newState.isLoaded() ) {
+						result = newState.loaded();
 					} else {
-						logger.error("Unable to load resource ["+beanXml+"] not found");
+						logger.error( newState.toString() );
 					}
 				}
-				return resource;
 			}
 		} catch (BeansException e) {
-			logger.error("Failed to load ["+name+"]", e);
+			logger.error("Failed to load ["+resourceStateName+"]", e);
 		}
-		return null;
+
+		return result;
 	}
 
 	@Override
@@ -182,8 +215,13 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		initialise();
 		String request = event.getMethod() + " " + resourcePath;
 		String stateName = resourceStatesByRequest.get(request);
-		logger.debug("Found state ["+stateName+"] for ["+request+"]");
-		return getResourceState(stateName);
+		if (stateName != null){
+			logger.debug("Found state ["+stateName+"] for ["+request+"]");
+			return getResourceState(stateName);
+		}else{
+			logger.warn("NOT Found state ["+stateName+"] for ["+request+"]");
+			return null;
+		}
 	}
 
 	@Override
@@ -206,9 +244,175 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		initialise();
 		return resourceStatesByPath;
 	}
-		
+
 	@Override
 	public void setStateRegisteration(StateRegisteration registerState) {
-		this.stateRegisteration = registerState;		
-	}	
+		this.stateRegisteration = registerState;
+	}
+
+
+	/** Load a Resource State from the appropriate location (file or classpath).
+	 *  There are likely to be several possibilities for where the requested
+	 *  resource could be: this tracks all of them so that they can be logged
+	 *  if the resource is not found.
+	 */
+	private class ResourceStateLoad {
+
+		private String state;
+		private List<String> attempts = new ArrayList<String>(2);
+		private String foundFile;
+		private ResourceState result;
+
+		/** Define a resource state to load. Must call load() to actually load it. */
+		public ResourceStateLoad( String resourceStateName ) {
+			state = resourceStateName;
+		}
+
+		/** Was the load operation successful?
+		 */
+		public boolean isLoaded() {
+			return ( result != null );
+		}
+
+		/** Get the Resource State from a successful load
+		 */
+		public ResourceState loaded() {
+			return result;
+		}
+
+		/** Description of the state of this load, intended for logging
+		 */
+		public String toString() {
+			if ( isLoaded() ) {
+				return "Loaded Resource State " + state + " from " + foundFile;
+			} else if (attempts.size()==0) {
+				return "Not-loaded Resource State " + state;
+			} else if (foundFile != null ) {
+				return "State " + state + " not found in " + foundFile;
+			}
+
+			StringBuilder msg = new StringBuilder( "Failed to load resource state " );
+			msg.append( state );
+			msg.append( ". Attempted to load from " );
+			for ( int i = 0 ; i < attempts.size() ; ++i ) {
+				if ( i > 0 ) msg.append(", ");
+				msg.append("[");
+				msg.append(attempts.get(i));
+				msg.append("]");
+			}
+			return msg.toString();
+		}
+
+		/** Load the configured resource state.
+		 *  Use this method only once.
+		 *  call isLoaded() to discover success or failure
+		 */
+		public void load() {
+			// check that this has not been called before
+			if ( attempts.size() > 0 )
+				throw new IllegalStateException( "repeated call to load()" );
+
+			String tmpResourceStateName = state;
+			String tmpResourceName = tmpResourceStateName;
+
+			if(tmpResourceName.contains("-")) {
+				tmpResourceName = tmpResourceName.substring(0, tmpResourceName.indexOf("-"));
+			}
+
+			String beanXml = "IRIS-" + tmpResourceName + "-PRD.xml";
+
+			// Attempt to create Spring context based on current resource filename pattern
+			ApplicationContext context = createApplicationContext(beanXml);
+
+			if (context == null) {
+				// Failed to create Spring context using current resource filename pattern so use old pattern
+				int pos = tmpResourceName.lastIndexOf("_");
+
+				if (pos > 3){
+					tmpResourceName = tmpResourceName.substring(0, pos);
+					beanXml = "IRIS-" + tmpResourceName + "-PRD.xml";
+
+					context = createApplicationContext(beanXml);
+
+					if (context != null) {
+						// Successfully created Spring context using old resource filename pattern
+
+						// Convert resource state name to old resource name format
+						pos = tmpResourceStateName.lastIndexOf("-");
+
+						if (pos < 0){
+							pos = tmpResourceStateName.lastIndexOf("_");
+
+							if (pos > 0){
+								tmpResourceStateName = tmpResourceStateName.substring(0, pos) + "-" + tmpResourceStateName.substring(pos+1);
+							}
+						}
+					}
+				}
+			}
+
+			if(context != null) {
+				result = loadAllResourceStatesFromFile(context, tmpResourceStateName);
+			}
+		}
+
+		private ResourceState loadAllResourceStatesFromFile(ApplicationContext context, String resourceState) {
+			Map<String,ResourceState> tmpResources = context.getBeansOfType(ResourceState.class);
+
+			// Save all the loaded resources into the main resource state cache
+			resources.putAll(tmpResources);
+
+			ResourceState result = null;
+
+			if(tmpResources.containsKey(resourceState)) {
+				result = tmpResources.get(resourceState);
+			}
+
+			return result;
+		}
+
+
+		/**
+		 * @param beanXml the filename to locate
+		 * @return a Spring ApplicationContext
+		 */
+		private ApplicationContext createApplicationContext(String beanXml) {
+			ApplicationContext result = null;
+
+			String irisResourceDirPath = configLoader.getIrisConfigDirPath();
+			
+			if(irisResourceDirPath == null) {
+				// Try and load the resource from the classpath
+				String description = "classpath:" + beanXml;
+				attempts.add(description);
+				result = new ClassPathXmlApplicationContext(new String[] {beanXml});
+				if ( result != null ) foundFile = description;
+			} else {
+				// Try and load the resource from the file system as a resource directory has been specified
+				File irisResourceDir = new File(irisResourceDirPath);
+
+				if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {
+					File file = new File(irisResourceDir, beanXml);
+					
+					
+					String path = "";
+                    try {
+                        path = file.toURL().toString();
+                    } catch (MalformedURLException e) {
+                        logger.error("Failed to load IRIS PRD file: " + file.getAbsolutePath(), e); 
+                    }
+                    
+					attempts.add(path);
+
+					if(file.exists()) {
+						// Only attempt to create an application context if the file exists
+						foundFile = path;
+						result = new FileSystemXmlApplicationContext( new String[] { path });
+					}
+				}
+			}
+
+			return result;
+		}
+	}
 }

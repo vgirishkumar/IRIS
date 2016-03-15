@@ -31,12 +31,12 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.temenos.interaction.loader.properties.PropertiesEvent;
-import com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction;
+import com.temenos.interaction.core.loader.PropertiesEvent;
+import com.temenos.interaction.core.loader.PropertiesResourceModificationAction;
 
 public class PropertiesModificationNotifier implements ApplicationContextAware {
     private ApplicationContext ctx;
-    private Collection<ResourceModificationAction> rmas;
+    private Collection<PropertiesResourceModificationAction> rmas;
     
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -47,10 +47,10 @@ public class PropertiesModificationNotifier implements ApplicationContextAware {
     	Set<String> resourcePatterns = new HashSet<String>();
     	
 		if(rmas == null) {
-			rmas = ctx.getBeansOfType(ResourceModificationAction.class).values();
+			rmas = ctx.getBeansOfType(PropertiesResourceModificationAction.class).values();
 		}
     	    	
-	    for(ResourceModificationAction rma: rmas) {
+	    for(PropertiesResourceModificationAction rma: rmas) {
 	    	resourcePatterns.add(rma.getResourcePattern());
 		}
 		
@@ -59,10 +59,10 @@ public class PropertiesModificationNotifier implements ApplicationContextAware {
     
 	public void execute(PropertiesEvent event) {
 		if(rmas == null) {
-			throw new IllegalStateException();
+			rmas = ctx.getBeansOfType(PropertiesResourceModificationAction.class).values();
 		}
 		
-		Iterator<ResourceModificationAction> rmaIter = rmas.iterator();
+		Iterator<PropertiesResourceModificationAction> rmaIter = rmas.iterator();
 		
 		while(rmaIter.hasNext()) {
 			rmaIter.next().notify(event);

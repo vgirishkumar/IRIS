@@ -49,8 +49,11 @@ import com.temenos.interaction.core.resource.RESTResource;
 public class SequentialResourceRequestHandler implements ResourceRequestHandler {
 
 	@Override
-	public Map<Transition, ResourceRequestResult> getResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, 
-			InteractionContext ctx, EntityResource<?> resource, ResourceRequestConfig config) {
+	public Map<Transition, ResourceRequestResult> getResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, InteractionContext ctx, EntityResource<?> resource, ResourceRequestConfig config) {
+		return getResources(rimHandler, headers, ctx, resource, null, config);
+	}
+
+	public Map<Transition, ResourceRequestResult> getResources(HTTPHypermediaRIM rimHandler, HttpHeaders headers, InteractionContext ctx, EntityResource<?> resource, Object entity, ResourceRequestConfig config) {	
 		assert(config != null);
 		assert(config.getTransitions() != null);
 		ResourceStateMachine hypermediaEngine = rimHandler.getHypermediaEngine();
@@ -58,7 +61,7 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 		for (Transition t : config.getTransitions()) {
 			String method = t.getCommand().getMethod();
 			if ((t.getCommand().getFlags() & Transition.AUTO) == Transition.AUTO) {
-				method = "GET";
+				method = t.getCommand().getMethod();
 			}
 	    	Event event = new Event("", method);
 			// determine action
@@ -68,18 +71,39 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 				t.setTarget(targetState);
 			}
 	    	
-	    	InteractionCommand action = hypermediaEngine.buildWorkflow(targetState.getActions());
+	    	InteractionCommand action = hypermediaEngine.buildWorkflow(event, targetState.getActions());
+	    	
 			MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
 			newPathParameters.putAll(ctx.getPathParameters());
-			RESTResource currentResource = ctx.getResource();
-			if (currentResource != null) {
-				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(t, currentResource.getGenericEntity().getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
+			
+			if (resource != null) {
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(t, ((EntityResource<?>)resource).getEntity(), ctx.getPathParameters(), ctx.getQueryParameters());
+				
 				for (String key : transitionProperties.keySet()) {
-					if (transitionProperties.get(key) != null)
+					if (transitionProperties.get(key) != null) {
 						newPathParameters.add(key, transitionProperties.get(key).toString());
+					}
+				}				
+			}
+
+			MultivaluedMap<String, String> newQueryParameters = new MultivaluedMapImpl<String>();
+			newQueryParameters.putAll(ctx.getQueryParameters());
+						
+			if (entity != null) {
+				/* Handle cases where we may be embedding a resource that has filter criteria whose values are contained in the current resource's 
+				 * entity properties.				
+				 */				
+				Map<String,Object> transitionProperties = hypermediaEngine.getTransitionProperties(t, entity, ctx.getPathParameters(), ctx.getQueryParameters());
+				
+				for (String key : transitionProperties.keySet()) {
+					if (transitionProperties.get(key) != null) {
+						newQueryParameters.add(key, transitionProperties.get(key).toString());
+					}
 				}
 			}
-	    	InteractionContext newCtx = new InteractionContext(ctx, null, newPathParameters, null, targetState);
+			
+			
+	    	InteractionContext newCtx = new InteractionContext(ctx, null, newPathParameters, newQueryParameters, targetState);
 	    	newCtx.setResource(null);
 			Response response = rimHandler.handleRequest(headers, 
 					newCtx, 
