@@ -444,102 +444,30 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	/** populate a Map from a java bean
 	 *  TODO implement nested structures and collections
 	 */
-    protected void buildFromBean(Map<String, Object> map, Object bean, String entityName) {
-        EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
-        if (entityMetadata == null)
-            throw new IllegalStateException("Entity metadata could not be found [" + entityName + "]");
+	protected void buildFromBean(Map<String, Object> map, Object bean, String entityName) {
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+		if (entityMetadata == null)
+			throw new IllegalStateException("Entity metadata could not be found [" + entityName + "]");
 
-        try {
-            if (bean instanceof Entity) {
-                populateMapForEntity(map, entityMetadata, (Entity) bean);
-            } else if (bean instanceof OEntity) {
-                populateMapForOEntity(map, entityMetadata, (OEntity) bean);
-            } else if (bean instanceof CollectionResource) {
-                populateMapForCollectionResource(map, entityMetadata, (CollectionResource<?>) bean);
-                //CollectionResource<?> collectionResource = (CollectionResource<?>) bean;
-                //map.put(collectionResource.getEntityName(), collectionResource);
-            } else {
-                populateMapForBean(map, entityMetadata, bean);
-            }
-        } catch (IllegalArgumentException e) {
-            logger.error("Error accessing bean property", e);
-        } catch (IntrospectionException e) {
-            logger.error("Error accessing bean property", e);
-        } catch (IllegalAccessException e) {
-            logger.error("Error accessing bean property", e);
-        } catch (InvocationTargetException e) {
-            logger.error("Error accessing bean property", e);
-        }
-    }
-
-    private Map<String, Object> populateMapForEntity(Map<String, Object> map, EntityMetadata entityMetadata,
-            Entity entity) {
-
-        EntityProperties entityProperties = entity.getProperties();
-
-        for (Map.Entry<String, EntityProperty> entry : entityProperties.getProperties().entrySet()) {
-            if (logger.isInfoEnabled())
-                logger.info(entry.getKey() + "/" + entry.getValue());
-            if (entityMetadata.getPropertyVocabulary(entry.getKey()) != null) {
-                map.put(entry.getKey(), entry.getValue());
-            }
-        }
-
-        return map;
-    }
-    
-    private Map<String, Object> populateMapForCollectionResource(Map<String, Object> map, EntityMetadata entityMetadata,
-            CollectionResource<?> collectionResource) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
-
-        Collection<?> collectionEntityResource = collectionResource.getEntities();
-
-        for (Object collObject : collectionEntityResource) {
-
-            if (collObject instanceof Entity) {
-                populateMapForEntity(map, entityMetadata, (Entity) collObject);
-            } else if (collObject instanceof OEntity) {
-                populateMapForOEntity(map, entityMetadata, (OEntity) collObject);
-            } else if (collObject instanceof CollectionResource) {
-                populateMapForCollectionResource(map, entityMetadata, (CollectionResource<?>) collObject);
-            } else {
-                populateMapForBean(map, entityMetadata, collObject);
-            }
-        }
-
-        return map;
-    }
-
-    private Map<String, Object> populateMapForOEntity(Map<String, Object> map, EntityMetadata entityMetadata,
-            OEntity oentity) {
-
-        List<OProperty<?>> oProperties = oentity.getProperties();
-
-        for (OProperty<?> oProperty : oProperties) {
-            if (logger.isInfoEnabled())
-                logger.info(oProperty.getName() + "/" + oProperty.getValue());
-            if (entityMetadata.getPropertyVocabulary(oProperty.getName()) != null) {
-                map.put(oProperty.getName(), oProperty.getValue());
-            }
-        }
-
-        return map;
-    }
-    
-    private Map<String, Object> populateMapForBean(Map<String, Object> map, EntityMetadata entityMetadata,
-            Object object) throws IntrospectionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        BeanInfo beanInfo = Introspector.getBeanInfo(object.getClass());
-        for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
-            String propertyName = propertyDesc.getName();
-            if (entityMetadata.getPropertyVocabulary(propertyName) != null) {
-                Object value = propertyDesc.getReadMethod().invoke(object);
-                map.put(propertyName, value);               
-            }
-        }
-        return map;
-    }
-    
-    
-    
+		try {
+			BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
+			for (PropertyDescriptor propertyDesc : beanInfo.getPropertyDescriptors()) {
+			    String propertyName = propertyDesc.getName();
+				if (entityMetadata.getPropertyVocabulary(propertyName) != null) {
+				    Object value = propertyDesc.getReadMethod().invoke(bean);
+					map.put(propertyName, value);				
+				}
+			}
+		} catch (IllegalArgumentException e) {
+			logger.error("Error accessing bean property", e);
+		} catch (IntrospectionException e) {
+			logger.error("Error accessing bean property", e);
+		} catch (IllegalAccessException e) {
+			logger.error("Error accessing bean property", e);
+		} catch (InvocationTargetException e) {
+			logger.error("Error accessing bean property", e);
+		}
+	}
 
   // Populate a Representation with the links and properties
   void collectLinksAndProperties(Representation resource, Iterable<Link> links,
