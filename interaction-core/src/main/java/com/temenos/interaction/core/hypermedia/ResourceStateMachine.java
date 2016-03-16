@@ -1405,8 +1405,9 @@ public class ResourceStateMachine {
                         }
 					}
 				}
-
-                href = linkTemplate.buildFromMap(transitionProperties);
+                // Links in the transition properties are already encoded so 
+                // build the href using encoded map.
+                href = linkTemplate.buildFromEncodedMap(transitionProperties);
 			} else {
 				// We are NOT dealing with a dynamic target
 
@@ -1421,7 +1422,9 @@ public class ResourceStateMachine {
 					logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
 					href = linkTemplate.build(entity);
                 } else {
-					href = linkTemplate.buildFromMap(transitionProperties);
+                    // Links in the transition properties are already encoded so 
+                    // build the href using encoded map.
+                     href = linkTemplate.buildFromEncodedMap(transitionProperties);
 			}
             }
 
