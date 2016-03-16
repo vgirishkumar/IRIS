@@ -2048,4 +2048,81 @@ public class TestResourceStateMachine {
             fail("Registration failed with unexpected exception: " + e); 
         } 
     }  	
+    
+    /**
+     * Creates a Resource State Machine for Note with one transition 
+     * and Injects Links with the supplied resource entity name  
+     * @param resourceEntityName
+     * @return List of sorted links 
+     */
+    private List<Link> createResourceStateMachineForNotes(String resourceEntityName)
+    {
+        String entityName = "Note";
+        ResourceState initialState = new ResourceState(entityName, "note", new ArrayList<Action>(), "/notes({noteId})");
+        initialState.setInitial(true);
+        Map<String, String> uriLinkageMap = new HashMap<String, String>();
+        uriLinkageMap.put("id", "{noteId}");
+        ResourceState noteEditState = new ResourceState(entityName, "note_edit", new ArrayList<Action>(), "/edit");
+        initialState.addTransition(new Transition.Builder().target(noteEditState).uriParameters(uriLinkageMap).build());
+        
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState, new BeanTransformer());
+        HTTPHypermediaRIM rimHandler = mockRIMHandler(stateMachine);
+        HttpHeaders headers = mock(HttpHeaders.class);      
+        Metadata metadata = mock(Metadata.class); 
+        
+        Collection<Link> unsortedLinks = stateMachine.injectLinks(rimHandler, createMockInteractionContext(initialState), new EntityResource<Object>(createTestNote(resourceEntityName)), headers, metadata);
+        List<Link> links = new ArrayList<Link>(unsortedLinks);
+        // sort the links so we have a predictable order for this test
+        Collections.sort(links, new Comparator<Link>() {
+            @Override
+            public int compare(Link o1, Link o2) {
+                return o1.getId().compareTo(o2.getId());
+            }
+            
+        });
+        return links;
+    }
+    /**
+     * Unit test to verify processing of hypermedia links containing HTTP character entities
+     * as specified in RFC 3986.  
+     */
+    @Test
+    public void testGetLinksContainingReservedCharacters(){
+        // (":", "/", "?", "#", "[", "]", "@") 
+        assertForUrlParamWithReservedChar("123:456", "123%3A456");
+        assertForUrlParamWithReservedChar("123/456", "123%2F456");
+        assertForUrlParamWithReservedChar("123?456", "123%3F456");
+        assertForUrlParamWithReservedChar("123#456", "123%23456");
+        assertForUrlParamWithReservedChar("123[456]", "123%5B456%5D");
+        assertForUrlParamWithReservedChar("123@456", "123%40456");
+        assertForUrlParamWithReservedChar(":1/2?3#4[5]6@", "%3A1%2F2%3F3%234%5B5%5D6%40");
+        
+        // "!" / "$" / "&" / "'" / "(" / ")"
+        // "*" / "+" / "," / ";" / "="
+        assertForUrlParamWithReservedChar("123!456", "123%21456");
+        assertForUrlParamWithReservedChar("123$456", "123%24456");
+        assertForUrlParamWithReservedChar("123&456", "123%26456");
+        assertForUrlParamWithReservedChar("123'456", "123%27456");
+        assertForUrlParamWithReservedChar("123(456)", "123%28456%29");
+        // assertForUrlParamWithReservedChar("123*456", "123%2A456"); //not supported by URLEncoder
+        assertForUrlParamWithReservedChar("123+456", "123%2B456");
+        assertForUrlParamWithReservedChar("123,456", "123%2C456");
+        assertForUrlParamWithReservedChar("123;456", "123%3B456");
+        assertForUrlParamWithReservedChar("123=456", "123%3D456");
+        assertForUrlParamWithReservedChar("!1$2&3'4(5)6+7,8;9=", "%211%242%263%274%285%296%2B7%2C8%3B9%3D");
+    }
+    
+    /**
+     * @param resourceEntityName 
+     * @param expectedName
+     */
+    private void assertForUrlParamWithReservedChar(String resourceEntityName, String expectedName) { 
+        List<Link> links = createResourceStateMachineForNotes(resourceEntityName);
+        // self
+        assertEquals("self", links.get(0).getRel());
+        assertEquals("/baseuri/notes("+expectedName+")", links.get(0).getHref());
+        // item
+        assertEquals("item", links.get(1).getRel());
+        assertEquals("/baseuri/edit?id="+expectedName, links.get(1).getHref());
+    }
 }
