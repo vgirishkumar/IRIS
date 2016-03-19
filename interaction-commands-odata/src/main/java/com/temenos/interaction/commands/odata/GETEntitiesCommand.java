@@ -22,13 +22,21 @@ package com.temenos.interaction.commands.odata;
  */
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
+import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OLink;
+import org.odata4j.core.OProperties;
+import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.ODataProducer;
@@ -40,7 +48,9 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.InteractionProducerException;
 import com.temenos.interaction.core.resource.CollectionResource;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class GETEntitiesCommand extends AbstractODataCommand implements InteractionCommand {
@@ -72,8 +82,35 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			    
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 			ctx.setResource(cr);
-		}
-		catch(ODataProducerException ope) {
+		} catch (InteractionProducerException ipe) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ipe.getMessage());
+			}
+	
+			String entitySetName = ipe.getEntitySetName();
+			EdmEntitySet entitySet = EdmEntitySet.newBuilder().setName(entitySetName).setEntityTypeName(entitySetName).build();			
+			
+			for (Map.Entry<String, List<String>> entry : ipe.getEntityPropertiesValues().entrySet())
+			{
+				String entityPropertyId = entry.getKey();
+				List<String> entityPropertyValues = entry.getValue();
+				
+				for (String value : entityPropertyValues) {
+					List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+					properties.add(OProperties.parseSimple(entityPropertyId, EdmSimpleType.getSimple("Edm.String"), value));
+					
+					OEntityKey entityKey = OEntityKey.create(entityPropertyId);
+					OEntity entity = OEntities.create(entitySet, entitySet.getType(), entityKey, "", properties, new ArrayList<OLink>());
+					
+					EntityResource<OEntity> entityResource = new EntityResource<OEntity>(entity) {};
+					entityResource.setEntityName(entitySetName);
+					ctx.setResource(entityResource);
+				}
+			}
+			
+	
+			throw new InteractionException(ipe.getHttpStatus(), ipe);
+		} catch (ODataProducerException ope) {
 			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
 			throw new InteractionException(ope.getHttpStatus(), ope);
 		} catch (InteractionException e) {
@@ -123,6 +160,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 					OptionsQueryParser.parseSelect(select));
 		} catch (RuntimeException e) {
 			// all runtime exceptions are due to failure in parsing the query options
+		    logger.error("Invalid query option in '" + queryParams + "'. Error: ", e);
 			throw new InteractionException(Status.BAD_REQUEST,"Invalid query option in '" + queryParams + "'. Error: ", e);
 		}
 	}
