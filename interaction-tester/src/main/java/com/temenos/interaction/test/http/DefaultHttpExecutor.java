@@ -40,14 +40,14 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 	}
 
 	private ResponseData get() {
-		HttpRequest request = new PayloadRequest(input.header());
+		HttpRequest request = new HttpRequestImpl(input.header());
 		HttpClient client = HttpClientFactory.newClient();
 		HttpResponse response = client.get(url, request);
 		return buildResponse(response);
 	}
 
 	private ResponseData post() {
-		HttpRequest request = new PayloadRequest(input.header(),
+		HttpRequest request = new HttpRequestImpl(input.header(),
 				getPayload(input));
 		HttpClient client = HttpClientFactory.newClient();
 		HttpResponse response = client.post(url, request);
@@ -55,7 +55,7 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 	}
 
 	private ResponseData put() {
-		HttpRequest request = new PayloadRequest(input.header(),
+		HttpRequest request = new HttpRequestImpl(input.header(),
 				getPayload(input));
 		HttpClient client = HttpClientFactory.newClient();
 		HttpResponse response = client.put(url, request);
@@ -65,6 +65,7 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 	private ResponseData buildResponse(HttpResponse response) {
 		String contentType = response.headers().get("Content-Type");
 		PayloadHandlerFactory factory = ContextFactory
+				.get()
 				.getContext()
 				.entityHandlersRegistry()
 				.getPayloadHandlerFactory(HttpUtil.removeParameter(contentType));
@@ -73,7 +74,7 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 					"Content type handler factory not registered for content type '"
 							+ contentType + "'");
 		}
-		PayloadHandler handler = factory.entityWrapper(response.payload());
+		PayloadHandler handler = factory.createHandler(response.payload());
 		handler.setParameter(HttpUtil.extractParameter(contentType));
 		PayloadWrapper payload = new DefaultPayloadWrapper();
 		payload.setHandler(handler);

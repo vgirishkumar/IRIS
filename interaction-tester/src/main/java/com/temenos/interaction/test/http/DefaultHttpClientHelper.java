@@ -22,8 +22,21 @@ import com.temenos.interaction.test.Result;
 import com.temenos.interaction.test.context.ConnectionConfig;
 import com.temenos.interaction.test.context.ContextFactory;
 
-public class HttpClientHelper {
+/**
+ * Helper for the Http Client operations.
+ * 
+ * @author ssethupathi
+ *
+ */
+public class DefaultHttpClientHelper {
 
+	/**
+	 * Builds and returns the {@link HttpMessage http message} with the request
+	 * headers.
+	 * 
+	 * @param request
+	 * @param message
+	 */
 	public static void buildRequestHeaders(HttpRequest request,
 			HttpMessage message) {
 		HttpHeader header = request.headers();
@@ -31,6 +44,16 @@ public class HttpClientHelper {
 			message.addHeader(name, header.get(name));
 		}
 	}
+
+	/**
+	 * Builds and returns the {@link HttpHeader http header} from the response
+	 * message.
+	 * 
+	 * @param response
+	 *            message
+	 * @param http
+	 *            header
+	 */
 
 	public static HttpHeader buildResponseHeaders(
 			CloseableHttpResponse httpResponse) {
@@ -41,24 +64,45 @@ public class HttpClientHelper {
 		return header;
 	}
 
+	/**
+	 * Builds and returns http interaction execution result.
+	 * 
+	 * @param httpResponse
+	 * @return interaction execution result
+	 */
 	public static Result buildResult(CloseableHttpResponse httpResponse) {
 		StatusLine statusLine = httpResponse.getStatusLine();
 		return new HttpResult(statusLine.getStatusCode(),
 				statusLine.getReasonPhrase());
 	}
 
+	/**
+	 * Builds and returns the basic authentication provider.
+	 * 
+	 * @return
+	 */
 	public static CredentialsProvider getBasicCredentialProvider() {
 		CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+		ConnectionConfig config = ContextFactory.get().getContext()
+				.connectionCongfig();
 		credentialsProvider.setCredentials(
 				AuthScope.ANY,
-				new UsernamePasswordCredentials(ContextFactory.getContext()
-						.connectionProperties()
-						.getValue(ConnectionConfig.USER_NAME), ContextFactory
-						.getContext().connectionProperties()
+				new UsernamePasswordCredentials(config
+						.getValue(ConnectionConfig.USER_NAME), config
 						.getValue(ConnectionConfig.PASSWORD)));
 		return credentialsProvider;
 	}
 
+	/**
+	 * Builds the pretty print XML for logging.
+	 * <p>
+	 * This method is safe for non XML content as it returns the invalid XML
+	 * content as-is.
+	 * </p>
+	 * 
+	 * @param xmlDoc
+	 * @return pretty print XML
+	 */
 	public static String prettyPrintXml(String xmlDoc) {
 		try {
 			Source xmlInput = new StreamSource(new StringReader(xmlDoc));
@@ -72,7 +116,7 @@ public class HttpClientHelper {
 			transformer.transform(xmlInput, xmlOutput);
 			return xmlOutput.getWriter().toString();
 		} catch (Exception e) {
-			// Not a valid XML
+			// Not a valid XML document so return as-is
 			return xmlDoc;
 		}
 	}

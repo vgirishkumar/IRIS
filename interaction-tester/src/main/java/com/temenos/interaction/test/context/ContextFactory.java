@@ -1,90 +1,85 @@
 package com.temenos.interaction.test.context;
 
-import java.util.Properties;
-
 import com.temenos.interaction.test.mediatype.AtomFeedHandler;
 import com.temenos.interaction.test.mediatype.PlainTextHandler;
 
+/**
+ * Factory for accessing the {@link Context context}.
+ * 
+ * @author ssethupathi
+ *
+ */
 public class ContextFactory {
 
-	private static Properties testConnProperties = new Properties();
-	private static Properties testServProperties = new Properties();
+	private static ThreadLocal<ContextFactory> currentContextFactory = new ThreadLocal<ContextFactory>() {
+		@Override
+		protected ContextFactory initialValue() {
+			return new ContextFactory();
+		}
+	};
 
-	public static void setConnectionProperty(String name, String value) {
-		testConnProperties.put(name, value);
-	}
+	private ContextImpl context;
 
-	public static void setServiceProperties(String name, String value) {
-		testServProperties.put(name, value);
-	}
-
-	// TODO: make upto sys config read-only downstream
-	public static Context getContext() {
-		BaseConnectionConfig baseConnConfig = new BaseConnectionConfig(
-				getBaseConnectionProperties());
+	private ContextFactory() {
+		BaseConnectionConfig baseConnConfig = new BaseConnectionConfig();
 		SystemConnectionConfig sysConnConfig = new SystemConnectionConfig(
 				baseConnConfig);
-		BaseServiceConfig baseServConfig = new BaseServiceConfig(
-				getBaseServiceProperties());
-		SystemServiceConfig sysServConfig = new SystemServiceConfig(
-				baseServConfig);
-		return new ContextImpl(sysConnConfig, sysServConfig);
+		context = new ContextImpl(sysConnConfig);
 	}
 
-	// TODO: replace with the spring bean
-	private static Properties getBaseConnectionProperties() {
-		Properties baseConnprops = new Properties();
-		baseConnprops
-				.setProperty(ConnectionConfig.ENDPOINT_URI,
-						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc");
-		baseConnprops.setProperty(ConnectionConfig.SERVICE_ROOT, "GB0010001");
-		baseConnprops.setProperty(ConnectionConfig.USER_NAME, "INPUTT");
-		baseConnprops.setProperty(ConnectionConfig.PASSWORD, "123456");
-		return baseConnprops;
+	/**
+	 * Returns the {@link ContextFactory context factory} associated to the
+	 * current thread.
+	 * 
+	 * @return context factory
+	 */
+	public static ContextFactory get() {
+		return currentContextFactory.get();
 	}
 
-	// TODO: replace with the spring bean
-	private static Properties getBaseServiceProperties() {
-		Properties baseServProps = new Properties();
-		baseServProps.setProperty(ServiceConfig.HTTP_HEADER_CONTENT_TYPE,
-				"application/atom+xml");
-		baseServProps.setProperty(ServiceConfig.HTTP_HEADER_ACCEPT,
-				"application/atom+xml");
-		return baseServProps;
+	/**
+	 * Sets the connection property for the session.
+	 * 
+	 * @param name
+	 * @param value
+	 */
+	public void setConnectionProperty(String name, String value) {
+		context.setSessionProperty(name, value);
+	}
+
+	/**
+	 * Returns the execution {@link Context context}.
+	 * 
+	 * @return context
+	 */
+	public Context getContext() {
+		return context;
 	}
 
 	public static class ContextImpl implements Context {
-		private ConnectionConfig connectionConfig;
-		private ServiceConfig serviceConfig;
+		private SessionConnectionConfig connectionConfig;
 
-		private ContextImpl(ConnectionConfig connConfig,
-				ServiceConfig servConfig) {
-			this.connectionConfig = connConfig;
-			this.serviceConfig = servConfig;
+		private ContextImpl(ConnectionConfig connConfig) {
+			this.connectionConfig = new SessionConnectionConfig(connConfig);
 		}
 
 		@Override
-		public ConnectionConfig connectionProperties() {
+		public ConnectionConfig connectionCongfig() {
 			return connectionConfig;
-		}
-
-		@Override
-		public ServiceConfig serviceProperties() {
-			return serviceConfig;
 		}
 
 		@Override
 		public ContentTypeHandlers entityHandlersRegistry() {
 			ContentTypeHandlers registry = new ContentTypeHandlers();
-			// registry.registerForEntity("application/atom+xml",
-			// AtomEntryTransformer.class);
 			registry.registerForPayload("application/atom+xml",
 					AtomFeedHandler.class);
-			registry.registerForPayload("text/plain",
-					PlainTextHandler.class);
-			registry.registerForPayload("text/html",
-					PlainTextHandler.class);
+			registry.registerForPayload("text/plain", PlainTextHandler.class);
+			registry.registerForPayload("text/html", PlainTextHandler.class);
 			return registry;
+		}
+
+		private void setSessionProperty(String name, String value) {
+			connectionConfig.setValue(name, value);
 		}
 	}
 }

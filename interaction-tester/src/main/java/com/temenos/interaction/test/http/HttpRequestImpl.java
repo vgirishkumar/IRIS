@@ -1,16 +1,16 @@
 package com.temenos.interaction.test.http;
 
-public class PayloadRequest implements HttpRequest {
+public class HttpRequestImpl implements HttpRequest {
 
 	private HttpHeader header;
 	private String payload;
 
-	public PayloadRequest(HttpHeader header, String payload) {
+	public HttpRequestImpl(HttpHeader header, String payload) {
 		this.header = header;
 		this.payload = payload;
 	}
 
-	public PayloadRequest(HttpHeader header) {
+	public HttpRequestImpl(HttpHeader header) {
 		this.header = header;
 		this.payload = "";
 	}

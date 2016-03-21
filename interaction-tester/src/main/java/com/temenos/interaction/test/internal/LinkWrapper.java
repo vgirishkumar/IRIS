@@ -43,12 +43,12 @@ public class LinkWrapper implements ActionableLink {
 	}
 
 	@Override
-	public String urlStr() {
-		return link.urlStr();
+	public String baseUrl() {
+		return link.baseUrl();
 	}
 
 	@Override
 	public Url url() {
-		return new UrlWrapper(urlStr(), sessionCallback);
+		return new UrlWrapper(baseUrl() + href(), sessionCallback);
 	}
 }

@@ -10,6 +10,13 @@ import com.temenos.interaction.test.internal.ActionableLink;
 import com.temenos.interaction.test.internal.LinkWrapper;
 import com.temenos.interaction.test.internal.SessionCallback;
 
+/**
+ * This class maps {@link Link links} against some of their attributes to
+ * provide convenient access.
+ * 
+ * @author ssethupathi
+ *
+ */
 public class Links {
 
 	private List<Link> links = new ArrayList<Link>();
@@ -22,27 +29,56 @@ public class Links {
 
 	private Links(List<Link> links, SessionCallback sessionCallback) {
 		this.sessionCallback = sessionCallback;
-		this.links = links; // TODO deep copy
+		for (Link link : links) {
+			this.links.add(link);
+		}
 	}
 
 	private Links() {
 	}
 
+	/**
+	 * Returns a {@link ActionableLink link} from the mapping for a supplied
+	 * attribute <i>rel</i>.
+	 * 
+	 * @param rel
+	 * @return {@link ActionableLink link}
+	 * @throws IllegalStateException
+	 *             if no mapping found for the supplied attribute
+	 */
 	public ActionableLink byRel(String rel) {
 		if (linksNotYetMapped) {
 			mapLinks();
 		}
-		return buildLink(linksByRel.get(rel), rel);
+		return buildLink(linksByRel.get(rel), "rel", rel);
 
 	}
 
+	/**
+	 * Returns a {@link ActionableLink link} from the mapping for a supplied
+	 * attribute <i>href</i>.
+	 * 
+	 * @param href
+	 * @return {@link ActionableLink link}
+	 * @throws IllegalStateException
+	 *             if no mapping found for the supplied attribute
+	 */
 	public ActionableLink byHref(String href) {
 		if (linksNotYetMapped) {
 			mapLinks();
 		}
-		return buildLink(linksByHref.get(href), href);
+		return buildLink(linksByHref.get(href), "href", href);
 	}
 
+	/**
+	 * Returns a {@link ActionableLink link} from the mapping for a matching
+	 * supplied attribute <i>title</i>.
+	 * 
+	 * @param regex
+	 * @return {@link ActionableLink link}
+	 * @throws IllegalStateException
+	 *             if no mapping found for the supplied attribute
+	 */
 	public ActionableLink byTitle(String regex) {
 		if (linksNotYetMapped) {
 			mapLinks();
@@ -52,16 +88,31 @@ public class Links {
 				return new LinkWrapper(linksByTitle.get(title), sessionCallback);
 			}
 		}
-		throw new IllegalStateException("No link found for '" + regex + "'");
+		throw new IllegalStateException("No link found matching title '"
+				+ regex + "'");
 	}
 
+	/**
+	 * Returns a {@link ActionableLink link} from the mapping for a supplied
+	 * attribute <i>id</i>.
+	 * 
+	 * @param id
+	 * @return {@link ActionableLink link}
+	 * @throws IllegalStateException
+	 *             if no mapping found for the supplied attribute
+	 */
 	public ActionableLink byId(String id) {
 		if (linksNotYetMapped) {
 			mapLinks();
 		}
-		return new LinkWrapper(linksById.get(id), sessionCallback);
+		return buildLink(linksById.get(id), "id", id);
 	}
 
+	/**
+	 * Returns all {@link Link links} from this mapping.
+	 * 
+	 * @return all links
+	 */
 	public List<Link> all() {
 		return links; // TODO defensive copy
 	}
@@ -76,19 +127,28 @@ public class Links {
 
 	private void mapLinks() {
 		for (Link link : links) {
-			linksByRel.put(link.rel(), link);
+			if (!link.rel().isEmpty()) {
+				linksByRel.put(link.rel(), link);
+			}
 			if (!link.id().isEmpty()) {
 				linksById.put(link.id(), link);
+			}
+			if (!link.title().isEmpty()) {
+				linksByTitle.put(link.title(), link);
+			}
+			if (!link.href().isEmpty()) {
+				linksByHref.put(link.href(), link);
 			}
 		}
 		linksNotYetMapped = false;
 	}
 
-	private ActionableLink buildLink(Link link, String key) {
+	private ActionableLink buildLink(Link link, String attribute, String value) {
 		if (link != null) {
 			return new LinkWrapper(link, sessionCallback);
 		} else {
-			throw new IllegalStateException("No link found for '" + key + "'");
+			throw new IllegalStateException("No link found for " + attribute
+					+ " '" + value + "'");
 		}
 	}
 }

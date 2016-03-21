@@ -1,11 +1,24 @@
 package com.temenos.interaction.test.context;
 
-
+/**
+ * Defines the interaction execution context.
+ * 
+ * @author ssethupathi
+ *
+ */
 public interface Context {
 
-	ConnectionConfig connectionProperties();
+	/**
+	 * Returns the connection configuration.
+	 * 
+	 * @return connection configuration
+	 */
+	ConnectionConfig connectionCongfig();
 
-	ServiceConfig serviceProperties();
-	
+	/**
+	 * Returns the registry for content handlers.
+	 * 
+	 * @return content handlers.
+	 */
 	ContentTypeHandlers entityHandlersRegistry();
 }

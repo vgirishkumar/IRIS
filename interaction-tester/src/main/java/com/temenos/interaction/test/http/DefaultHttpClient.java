@@ -14,29 +14,35 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class implements {@link HttpClient http client} using Apache
+ * HttpComponents {@linkplain https://hc.apache.org/}
+ * 
+ * @author ssethupathi
+ *
+ */
 public class DefaultHttpClient implements HttpClient {
 
 	private Logger logger = LoggerFactory.getLogger(DefaultHttpClient.class);
 
 	@Override
 	public HttpResponse get(String url, HttpRequest request) {
-		logger.info("\nURL: {}\nHEADERS: {}\nREQUEST: {}", url,
-				request.headers(), request.payload());
+		logHttpRequest(url, request);
 		CloseableHttpClient client = HttpClientBuilder
 				.create()
 				.setDefaultCredentialsProvider(
-						HttpClientHelper.getBasicCredentialProvider()).build();
+						DefaultHttpClientHelper.getBasicCredentialProvider())
+				.build();
 		HttpGet getRequest = new HttpGet(url);
-		HttpClientHelper.buildRequestHeaders(request, getRequest);
+		DefaultHttpClientHelper.buildRequestHeaders(request, getRequest);
 		try {
 			CloseableHttpResponse httpResponse = client.execute(getRequest);
 			InputStream contentStream = httpResponse.getEntity().getContent();
 			HttpResponse response = new HttpResponseImpl(
-					HttpClientHelper.buildResponseHeaders(httpResponse),
+					DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
 					IOUtils.toString(contentStream, "UTF-8"),
-					HttpClientHelper.buildResult(httpResponse));
-			logger.info("\nHEADERS: {}\nRESPONSE: {}", response.headers(),
-					HttpClientHelper.prettyPrintXml(response.payload()));
+					DefaultHttpClientHelper.buildResult(httpResponse));
+			logHttpResponse(response);
 			return response;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -45,24 +51,23 @@ public class DefaultHttpClient implements HttpClient {
 
 	@Override
 	public HttpResponse post(String url, HttpRequest request) {
-		logger.info("\nURL: {}\nHEADERS: {}\nREQUEST: {}", url,
-				request.headers(), request.payload());
+		logHttpRequest(url, request);
 		CloseableHttpClient client = HttpClientBuilder
 				.create()
 				.setDefaultCredentialsProvider(
-						HttpClientHelper.getBasicCredentialProvider()).build();
+						DefaultHttpClientHelper.getBasicCredentialProvider())
+				.build();
 		HttpPost postRequest = new HttpPost(url);
-		HttpClientHelper.buildRequestHeaders(request, postRequest);
+		DefaultHttpClientHelper.buildRequestHeaders(request, postRequest);
 		postRequest.setEntity(new StringEntity(request.payload(), "UTF-8"));
 		try {
 			CloseableHttpResponse httpResponse = client.execute(postRequest);
 			InputStream contentStream = httpResponse.getEntity().getContent();
 			HttpResponse response = new HttpResponseImpl(
-					HttpClientHelper.buildResponseHeaders(httpResponse),
+					DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
 					IOUtils.toString(contentStream, "UTF-8"),
-					HttpClientHelper.buildResult(httpResponse));
-			logger.info("\nHEADERS: {}\nRESPONSE: {}", response.headers(),
-					HttpClientHelper.prettyPrintXml(response.payload()));
+					DefaultHttpClientHelper.buildResult(httpResponse));
+			logHttpResponse(response);
 			return response;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -71,27 +76,37 @@ public class DefaultHttpClient implements HttpClient {
 
 	@Override
 	public HttpResponse put(String url, HttpRequest request) {
-		logger.info("\nURL: {}\nHEADERS: {}\nREQUEST: {}", url,
-				request.headers(), request.payload());
+		logHttpRequest(url, request);
 		CloseableHttpClient client = HttpClientBuilder
 				.create()
 				.setDefaultCredentialsProvider(
-						HttpClientHelper.getBasicCredentialProvider()).build();
+						DefaultHttpClientHelper.getBasicCredentialProvider())
+				.build();
 		HttpPut putRequest = new HttpPut(url);
-		HttpClientHelper.buildRequestHeaders(request, putRequest);
+		DefaultHttpClientHelper.buildRequestHeaders(request, putRequest);
 		putRequest.setEntity(new StringEntity(request.payload(), "UTF-8"));
 		try {
 			CloseableHttpResponse httpResponse = client.execute(putRequest);
 			InputStream contentStream = httpResponse.getEntity().getContent();
 			HttpResponse response = new HttpResponseImpl(
-					HttpClientHelper.buildResponseHeaders(httpResponse),
+					DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
 					IOUtils.toString(contentStream, "UTF-8"),
-					HttpClientHelper.buildResult(httpResponse));
-			logger.info("\nHEADERS: {}\nRESPONSE: {}", response.headers(),
-					response.payload());
+					DefaultHttpClientHelper.buildResult(httpResponse));
+			logHttpResponse(response);
 			return response;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void logHttpRequest(String url, HttpRequest request) {
+		logger.info("\nURL: {}\nHEADERS: {}\nREQUEST: {}", url,
+				request.headers(),
+				DefaultHttpClientHelper.prettyPrintXml(request.payload()));
+	}
+
+	private void logHttpResponse(HttpResponse response) {
+		logger.info("\nHEADERS: {}\nRESPONSE: {}", response.headers(),
+				DefaultHttpClientHelper.prettyPrintXml(response.payload()));
 	}
 }

@@ -6,6 +6,12 @@ import java.util.Map;
 import com.temenos.interaction.test.PayloadHandler;
 import com.temenos.interaction.test.internal.PayloadHandlerFactory;
 
+/**
+ * This class contains the content handlers for the registered media types.
+ * 
+ * @author ssethupathi
+ *
+ */
 public class ContentTypeHandlers {
 
 	private Map<String, PayloadHandlerFactory<? extends PayloadHandler>> payloadHandlersFactory;

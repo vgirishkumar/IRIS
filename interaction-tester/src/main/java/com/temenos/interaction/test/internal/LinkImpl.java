@@ -62,8 +62,8 @@ public class LinkImpl implements Link {
 	}
 
 	@Override
-	public String urlStr() {
-		return baseUrl + href;
+	public String baseUrl() {
+		return baseUrl;
 	}
 
 	@Override

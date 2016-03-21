@@ -2,11 +2,13 @@ package com.temenos.interaction.test;
 
 import static org.junit.Assert.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.temenos.interaction.test.internal.SessionWrapper;
 import com.temenos.interaction.test.mediatype.AtomFeedHandler;
 
+@Ignore
 //TODO: to be replaced with integration tests against services contained within this project.
 public class TestUpdateInput {
 
@@ -163,5 +165,6 @@ public class TestUpdateInput {
 				.byRel("http://temenostech.temenos.com/rels/input").url()
 				.post();
 		assertEquals(201, holdSession.result().code());
+		
 	}
 }

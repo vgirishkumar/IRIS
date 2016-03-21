@@ -74,12 +74,13 @@ public class AtomLinkHandler {
 			}
 		}
 		PayloadHandlerFactory<? extends PayloadHandler> factory = ContextFactory
+				.get()
 				.getContext()
 				.entityHandlersRegistry()
 				.getPayloadHandlerFactory(
 						HttpUtil.removeParameter(abderaLink
 								.getAttributeValue("type")));
-		PayloadHandler handler = factory.entityWrapper(content);
+		PayloadHandler handler = factory.createHandler(content);
 		PayloadWrapper wrapper = new DefaultPayloadWrapper();
 		wrapper.setHandler(handler);
 		return wrapper;

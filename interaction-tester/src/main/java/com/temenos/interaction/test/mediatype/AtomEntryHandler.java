@@ -35,7 +35,7 @@ public class AtomEntryHandler implements EntityHandler {
 
 	public String getId() {
 		String fullPath = entry.getId().getPath();
-		// TODO strong logic
+		// TODO confirm logic?
 		if (fullPath.contains("('") && fullPath.endsWith("')")) {
 			return fullPath.substring(fullPath.indexOf("'") + 1,
 					fullPath.lastIndexOf("'"));

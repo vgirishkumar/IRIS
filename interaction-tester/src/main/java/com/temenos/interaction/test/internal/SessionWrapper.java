@@ -35,7 +35,7 @@ public class SessionWrapper implements Session {
 	@Override
 	public Session registerHandler(String contentType,
 			Class<? extends PayloadHandler> handler) {
-		ContextFactory.getContext().entityHandlersRegistry()
+		ContextFactory.get().getContext().entityHandlersRegistry()
 				.registerForPayload(contentType, handler);
 		return this;
 	}
@@ -93,14 +93,14 @@ public class SessionWrapper implements Session {
 
 	@Override
 	public Session basicAuthUser(String username) {
-		ContextFactory.setConnectionProperty(ConnectionConfig.USER_NAME,
+		ContextFactory.get().setConnectionProperty(ConnectionConfig.USER_NAME,
 				username);
 		return this;
 	}
 
 	@Override
 	public Session basicAuthPassword(String password) {
-		ContextFactory.setConnectionProperty(ConnectionConfig.PASSWORD,
+		ContextFactory.get().setConnectionProperty(ConnectionConfig.PASSWORD,
 				password);
 		return this;
 	}

@@ -15,7 +15,7 @@ public class PayloadHandlerFactory<T extends PayloadHandler> {
 		return new PayloadHandlerFactory<T>(handlerClass);
 	}
 
-	public PayloadHandler entityWrapper(String payload) {
+	public PayloadHandler createHandler(String payload) {
 		try {
 			PayloadHandler handler = handlerClass.newInstance();
 			handler.setPayload(payload);
