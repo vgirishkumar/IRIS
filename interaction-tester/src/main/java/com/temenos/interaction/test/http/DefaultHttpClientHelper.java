@@ -94,6 +94,48 @@ public class DefaultHttpClientHelper {
 	}
 
 	/**
+	 * Removes the optional parameter part of the content type and returns the
+	 * type and subtype part.
+	 * <p>
+	 * For example, returns <i>application/atom+xml</i> from
+	 * <i>application/atom+xml;type=entry</i>
+	 * </p>
+	 * 
+	 * @param content
+	 *            type with optional parameter
+	 * @return content type without parameter
+	 */
+	public static String removeParameter(String contentType) {
+		int parameterSeparatorIndex = contentType.indexOf(";");
+		if (parameterSeparatorIndex > 0) {
+			return contentType.substring(0, parameterSeparatorIndex).trim();
+		} else {
+			return contentType;
+		}
+	}
+
+	/**
+	 * Extracts and returns the optional parameter part of the content type.
+	 * <p>
+	 * For example, returns <i>type=entry</i> from
+	 * <i>application/atom+xml;type=entry</i>
+	 * </p>
+	 * 
+	 * @param content
+	 *            type with optional parameter
+	 * @return optional parameter, if present
+	 */
+
+	public static String extractParameter(String contentType) {
+		int parameterSeparatorIndex = contentType.indexOf(";");
+		if (parameterSeparatorIndex > 0) {
+			return contentType.substring(parameterSeparatorIndex).trim();
+		} else {
+			return "";
+		}
+	}
+
+	/**
 	 * Builds the pretty print XML for logging.
 	 * <p>
 	 * This method is safe for non XML content as it returns the invalid XML

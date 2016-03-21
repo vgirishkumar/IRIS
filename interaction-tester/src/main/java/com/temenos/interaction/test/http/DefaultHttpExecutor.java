@@ -68,14 +68,16 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 				.get()
 				.getContext()
 				.entityHandlersRegistry()
-				.getPayloadHandlerFactory(HttpUtil.removeParameter(contentType));
+				.getPayloadHandlerFactory(
+						DefaultHttpClientHelper.removeParameter(contentType));
 		if (factory == null) {
 			throw new IllegalStateException(
 					"Content type handler factory not registered for content type '"
 							+ contentType + "'");
 		}
 		PayloadHandler handler = factory.createHandler(response.payload());
-		handler.setParameter(HttpUtil.extractParameter(contentType));
+		handler.setParameter(DefaultHttpClientHelper
+				.extractParameter(contentType));
 		PayloadWrapper payload = new DefaultPayloadWrapper();
 		payload.setHandler(handler);
 		PayloadResponse.Builder responseBuilder = new PayloadResponse.Builder(

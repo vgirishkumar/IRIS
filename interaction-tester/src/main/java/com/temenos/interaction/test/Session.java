@@ -1,7 +1,6 @@
 package com.temenos.interaction.test;
 
 import com.temenos.interaction.test.internal.EntityWrapper;
-import com.temenos.interaction.test.internal.Url;
 
 /**
  * Defines a session through which interactions to an IRIS service are

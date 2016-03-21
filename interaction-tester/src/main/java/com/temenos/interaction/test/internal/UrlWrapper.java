@@ -1,5 +1,6 @@
 package com.temenos.interaction.test.internal;
 
+import com.temenos.interaction.test.Url;
 import com.temenos.interaction.test.http.DefaultHttpExecutor;
 import com.temenos.interaction.test.http.HttpMethod;
 import com.temenos.interaction.test.http.HttpMethodExecutor;

@@ -11,6 +11,7 @@ import com.temenos.interaction.test.Links;
 import com.temenos.interaction.test.PayloadHandler;
 import com.temenos.interaction.test.Result;
 import com.temenos.interaction.test.Session;
+import com.temenos.interaction.test.Url;
 import com.temenos.interaction.test.context.ConnectionConfig;
 import com.temenos.interaction.test.context.ContextFactory;
 import com.temenos.interaction.test.http.HttpHeader;

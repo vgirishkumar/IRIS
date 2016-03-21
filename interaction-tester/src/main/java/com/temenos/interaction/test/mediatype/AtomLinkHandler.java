@@ -14,7 +14,7 @@ import org.apache.abdera.model.Link;
 
 import com.temenos.interaction.test.PayloadHandler;
 import com.temenos.interaction.test.context.ContextFactory;
-import com.temenos.interaction.test.http.HttpUtil;
+import com.temenos.interaction.test.http.DefaultHttpClientHelper;
 import com.temenos.interaction.test.internal.DefaultPayloadWrapper;
 import com.temenos.interaction.test.internal.Payload;
 import com.temenos.interaction.test.internal.PayloadHandlerFactory;
@@ -78,7 +78,7 @@ public class AtomLinkHandler {
 				.getContext()
 				.entityHandlersRegistry()
 				.getPayloadHandlerFactory(
-						HttpUtil.removeParameter(abderaLink
+						DefaultHttpClientHelper.removeParameter(abderaLink
 								.getAttributeValue("type")));
 		PayloadHandler handler = factory.createHandler(content);
 		PayloadWrapper wrapper = new DefaultPayloadWrapper();
