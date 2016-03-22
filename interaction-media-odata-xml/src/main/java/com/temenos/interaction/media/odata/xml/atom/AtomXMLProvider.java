@@ -29,8 +29,10 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PushbackInputStream;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -522,6 +524,17 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	protected ResourceState getCurrentState(ResourceState serviceDocument, String resourcePath) {
 		ResourceState state = null;
 		if (resourcePath != null) {
+		    
+		    /*
+		     * transform the encoded resourcePath putting back the original characters
+		     */
+		    try {
+                resourcePath = URLDecoder.decode(resourcePath, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                logger.warn("Cannot decode the resourcePath:" + resourcePath);
+            }
+		    
+		    
 			/*
 			 * add a leading '/' if it needs it (when defining resources we must use a 
 			 * full path, but requests can be relative, i.e. without a '/'
