@@ -31,16 +31,16 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 /**
- * TODO: Document me!
+ * A simple class just to be able to provide the path decoded from utf8 to the providers
  *
  * @author clopes
  *
  */
-public class ExUriInfoImpl implements UriInfo {
+public class UriInfoImpl implements UriInfo {
     
     private UriInfo uriInfo;
     
-    public ExUriInfoImpl(UriInfo uriInfo) {
+    public UriInfoImpl(UriInfo uriInfo) {
         this.uriInfo = uriInfo;
     }
 

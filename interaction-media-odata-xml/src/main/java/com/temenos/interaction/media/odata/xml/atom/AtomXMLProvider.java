@@ -72,7 +72,7 @@ import org.odata4j.producer.Responses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.ExUriInfoImpl;
+import com.temenos.interaction.core.UriInfoImpl;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
@@ -439,7 +439,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		try {
 			OEntityKey entityKey = null;
 			
-			uriInfo = new ExUriInfoImpl(uriInfo);
+			uriInfo = new UriInfoImpl(uriInfo);
 
 			// work out the entity name using resource path from UriInfo
 			String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
@@ -659,9 +659,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		return baseUri;
 	}
 	
-    public static String getAbsolutePath(UriInfo uriInfo) {
-        return uriInfo.getBaseUri() + uriInfo.getPath();
-    }
+	public static String getAbsolutePath(UriInfo uriInfo) {
+		return uriInfo.getBaseUri() + uriInfo.getPath();
+	}
 	
 	private EdmDataServices getEdmDataService() {
 		return metadataOData4j.getMetadata();
