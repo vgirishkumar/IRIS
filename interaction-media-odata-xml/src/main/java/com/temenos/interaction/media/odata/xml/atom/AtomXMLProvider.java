@@ -29,10 +29,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PushbackInputStream;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -74,6 +72,7 @@ import org.odata4j.producer.Responses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.ExUriInfoImpl;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
@@ -439,6 +438,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		
 		try {
 			OEntityKey entityKey = null;
+			
+			uriInfo = new ExUriInfoImpl(uriInfo);
 
 			// work out the entity name using resource path from UriInfo
 			String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
@@ -524,17 +525,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	protected ResourceState getCurrentState(ResourceState serviceDocument, String resourcePath) {
 		ResourceState state = null;
 		if (resourcePath != null) {
-		    
-		    /*
-		     * transform the encoded resourcePath putting back the original characters
-		     */
-		    try {
-                resourcePath = URLDecoder.decode(resourcePath, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                logger.warn("Cannot decode the resourcePath:" + resourcePath);
-            }
-		    
-		    
 			/*
 			 * add a leading '/' if it needs it (when defining resources we must use a 
 			 * full path, but requests can be relative, i.e. without a '/'
@@ -669,9 +659,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		return baseUri;
 	}
 	
-	public static String getAbsolutePath(UriInfo uriInfo) {
-		return uriInfo.getBaseUri() + uriInfo.getPath();
-	}
+    public static String getAbsolutePath(UriInfo uriInfo) {
+        return uriInfo.getBaseUri() + uriInfo.getPath();
+    }
 	
 	private EdmDataServices getEdmDataService() {
 		return metadataOData4j.getMetadata();

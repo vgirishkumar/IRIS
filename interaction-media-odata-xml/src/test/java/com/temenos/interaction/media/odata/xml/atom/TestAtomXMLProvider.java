@@ -25,6 +25,7 @@ package com.temenos.interaction.media.odata.xml.atom;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -38,6 +39,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -1690,5 +1692,36 @@ public class TestAtomXMLProvider {
 		assertEquals("123456", debitLink.getLinkId());
 		assertEquals("654321", creditLink.getLinkId());
 	}
-
+	
+	@Test
+    public void testGetAbsolutePath() throws URISyntaxException, UnsupportedEncodingException {
+	    
+	    String pathDecoded = "resourceTest('1234://ABC')";
+	    String pathEncodedUTF8 = new String(pathDecoded.getBytes("UTF-8"), "UTF-8");
+	    String pathEncodedWrong = new String(pathDecoded.getBytes("UTF-8"), "x-UTF-16LE-BOM");
+	    
+	    String absPath = null;
+	    
+	    UriInfo uriInfo = mock(UriInfo.class);
+	    URI uri = new URI("");
+	    when(uriInfo.getBaseUri()).thenReturn(uri);
+	    
+	    // Test encoded string utf8
+	    when(uriInfo.getPath()).thenReturn(pathEncodedUTF8);	    
+	    absPath = AtomXMLProvider.getAbsolutePath(uriInfo);
+	    assertNotNull(absPath);
+	    assertEquals(pathDecoded, absPath);
+	    
+	    // Test encoded string utf16
+	    when(uriInfo.getPath()).thenReturn(pathEncodedWrong);
+        absPath = AtomXMLProvider.getAbsolutePath(uriInfo);
+        assertNotNull(absPath);
+        assertNotSame(pathDecoded, absPath);
+        
+        // Test encoded null string
+        when(uriInfo.getPath()).thenReturn(null);
+        absPath = AtomXMLProvider.getAbsolutePath(uriInfo);
+        assertNotNull(absPath);
+        assertEquals("null", absPath);
+	}
 }
