@@ -24,6 +24,7 @@ package com.temenos.interaction.core;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
@@ -100,7 +101,19 @@ public class UriInfoImpl implements UriInfo {
 
     @Override
     public MultivaluedMap<String, String> getPathParameters() {
-        return uriInfo.getPathParameters();
+        try {
+            for (Map.Entry<String, List<String>> entry : uriInfo.getPathParameters().entrySet()) {
+                // remove the encoded parameters from the object
+                uriInfo.getPathParameters().remove(entry.getKey());
+                for(int i = 0; i<entry.getValue().size(); i++) {
+                    // add the parameters decoded again to the object
+                    uriInfo.getPathParameters().add(entry.getKey(), URLDecoder.decode(entry.getValue().get(i), "UTF-8"));
+                }
+            }
+            return uriInfo.getPathParameters();
+        } catch (Exception e) {
+            return uriInfo.getPathParameters();
+        }
     }
 
     @Override
