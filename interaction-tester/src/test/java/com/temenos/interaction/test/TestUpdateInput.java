@@ -14,8 +14,7 @@ public class TestUpdateInput {
 	public void testCreateNewEntityAndUpdate() {
 		InteractionSession session = HypermediaInteractionSession.newSession();
 		session.registerHandler("application/atom+xml", AtomFeedHandler.class)
-				.basicAuthUser("INPUTT")
-				.basicAuthPassword("123456")
+				.basicAuth("INPUTT", "123456")
 				.header("Content-Type", "application/atom+xml")
 				.url()
 				.baseuri(
@@ -36,9 +35,9 @@ public class TestUpdateInput {
 
 		assertEquals(201, session.result().code());
 
-		session.reuse().basicAuthUser("AUTHOR").basicAuthPassword("123456")
-				.links().byRel("http://temenostech.temenos.com/rels/authorise")
-				.url().put();
+		session.reuse().basicAuth("AUTHOR", "123456").links()
+				.byRel("http://temenostech.temenos.com/rels/authorise").url()
+				.put();
 
 		assertEquals(200, session.result().code());
 	}
@@ -46,7 +45,8 @@ public class TestUpdateInput {
 	@Test
 	public void testForConflictWithConcurrentModificationOfAResource() {
 
-		InteractionSession setupSession = HypermediaInteractionSession.newSession();
+		InteractionSession setupSession = HypermediaInteractionSession
+				.newSession();
 		setupSession
 				.header("Content-Type", "application/atom+xml")
 				.url()
@@ -67,8 +67,7 @@ public class TestUpdateInput {
 				.post();
 		assertEquals(201, setupSession.result().code());
 
-		setupSession.reuse().basicAuthUser("AUTHOR")
-				.basicAuthPassword("123456").links()
+		setupSession.reuse().basicAuth("AUTHOR", "123456").links()
 				.byRel("http://temenostech.temenos.com/rels/authorise").url()
 				.put();
 		assertEquals(200, setupSession.result().code());
@@ -109,7 +108,8 @@ public class TestUpdateInput {
 
 	@Test
 	public void testForConflictOnReInputOfHeldResource() {
-		InteractionSession setupSession = HypermediaInteractionSession.newSession();
+		InteractionSession setupSession = HypermediaInteractionSession
+				.newSession();
 		setupSession
 				.header("Content-Type", "application/atom+xml")
 				.url()
@@ -130,13 +130,13 @@ public class TestUpdateInput {
 				.post();
 		assertEquals(201, setupSession.result().code());
 
-		setupSession.reuse().basicAuthUser("AUTHOR")
-				.basicAuthPassword("123456").links()
+		setupSession.reuse().basicAuth("AUTHOR", "123456").links()
 				.byRel("http://temenostech.temenos.com/rels/authorise").url()
 				.put();
 		assertEquals(200, setupSession.result().code());
 
-		InteractionSession holdSession = HypermediaInteractionSession.newSession();
+		InteractionSession holdSession = HypermediaInteractionSession
+				.newSession();
 		holdSession
 				.url()
 				.baseuri(
@@ -148,21 +148,20 @@ public class TestUpdateInput {
 				.byRel("http://temenostech.temenos.com/rels/hold").url().post();
 		assertEquals(201, holdSession.result().code());
 
-		InteractionSession inputSession = HypermediaInteractionSession.newSession();
+		InteractionSession inputSession = HypermediaInteractionSession
+				.newSession();
 		inputSession
 				.url()
 				.baseuri(
 						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001")
 				.path("verCustomer_Inputs('" + id + "')").get();
 
-		inputSession.reuse().basicAuthPassword("123456")
-				.basicAuthUser("AUTHOR")
+		inputSession.reuse().basicAuth("AUTHOR", "123456")
 				.header("If-Match", inputSession.header("ETag"))
 				.header("Content-Type", "application/atom+xml")
 				.set("Gender", "FEMALE").set("Title", "MS").links()
 				.byRel("http://temenostech.temenos.com/rels/input").url()
 				.post();
 		assertEquals(201, holdSession.result().code());
-
 	}
 }

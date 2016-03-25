@@ -131,13 +131,5 @@ public interface InteractionSession {
 	 * @param username
 	 * @return this session
 	 */
-	InteractionSession basicAuthUser(String username);
-
-	/**
-	 * Sets password for the Http Basic Authentication.
-	 * 
-	 * @param password
-	 * @return this session
-	 */
-	InteractionSession basicAuthPassword(String password);
+	InteractionSession basicAuth(String username, String password);
 }

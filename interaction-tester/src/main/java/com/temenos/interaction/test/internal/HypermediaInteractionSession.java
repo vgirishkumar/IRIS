@@ -94,16 +94,10 @@ public class HypermediaInteractionSession implements InteractionSession {
 	}
 
 	@Override
-	public InteractionSession basicAuthUser(String username) {
-		ContextFactory.get().setConnectionProperty(ConnectionConfig.USER_NAME,
-				username);
-		return this;
-	}
-
-	@Override
-	public InteractionSession basicAuthPassword(String password) {
-		ContextFactory.get().setConnectionProperty(ConnectionConfig.PASSWORD,
-				password);
+	public InteractionSession basicAuth(String username, String password) {
+		ContextFactory factory = ContextFactory.get();
+		factory.setConnectionProperty(ConnectionConfig.USER_NAME, username);
+		factory.setConnectionProperty(ConnectionConfig.PASSWORD, password);
 		return this;
 	}
 
