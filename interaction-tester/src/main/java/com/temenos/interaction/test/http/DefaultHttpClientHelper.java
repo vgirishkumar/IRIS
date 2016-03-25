@@ -127,9 +127,10 @@ public class DefaultHttpClientHelper {
 	 */
 
 	public static String extractParameter(String contentType) {
-		int parameterSeparatorIndex = contentType.indexOf(";");
-		if (parameterSeparatorIndex > 0) {
-			return contentType.substring(parameterSeparatorIndex).trim();
+		int parameterStartIndex = contentType.indexOf(";") + 1;
+		if (parameterStartIndex > 0
+				&& (parameterStartIndex) < contentType.length()) {
+			return contentType.substring(parameterStartIndex).trim();
 		} else {
 			return "";
 		}

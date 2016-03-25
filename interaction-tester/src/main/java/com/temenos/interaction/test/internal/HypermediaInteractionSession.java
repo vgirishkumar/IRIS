@@ -10,18 +10,19 @@ import com.temenos.interaction.test.Link;
 import com.temenos.interaction.test.Links;
 import com.temenos.interaction.test.PayloadHandler;
 import com.temenos.interaction.test.Result;
-import com.temenos.interaction.test.Session;
+import com.temenos.interaction.test.InteractionSession;
 import com.temenos.interaction.test.Url;
 import com.temenos.interaction.test.context.ConnectionConfig;
 import com.temenos.interaction.test.context.ContextFactory;
 import com.temenos.interaction.test.http.HttpHeader;
 
-public class SessionWrapper implements Session {
+public class HypermediaInteractionSession implements InteractionSession {
 
 	private HttpHeader header;
 	private Map<String, String> properties;
 	private EntityWrapper entity;
 	private SessionCallbackImpl callback;
+	private UrlWrapper url = new UrlWrapper(callback);
 
 	@Override
 	public Url url(String url) {
@@ -34,7 +35,7 @@ public class SessionWrapper implements Session {
 	}
 
 	@Override
-	public Session registerHandler(String contentType,
+	public InteractionSession registerHandler(String contentType,
 			Class<? extends PayloadHandler> handler) {
 		ContextFactory.get().getContext().entityHandlersRegistry()
 				.registerForPayload(contentType, handler);
@@ -42,13 +43,13 @@ public class SessionWrapper implements Session {
 	}
 
 	@Override
-	public Session header(String name, String... values) {
+	public InteractionSession header(String name, String... values) {
 		header.set(name, values[0]);
 		return this;
 	}
 
 	@Override
-	public Session set(String propertyName, String propertyValue) {
+	public InteractionSession set(String propertyName, String propertyValue) {
 		properties.put(propertyName, propertyValue);
 		return this;
 	}
@@ -64,7 +65,7 @@ public class SessionWrapper implements Session {
 	}
 
 	@Override
-	public Session reuse() {
+	public InteractionSession reuse() {
 		// TODO deep copy of sort
 		entity = callback.getResponse().body().entity();
 		entity.setSessionCallback(callback);
@@ -72,7 +73,7 @@ public class SessionWrapper implements Session {
 	}
 
 	@Override
-	public Session clear() {
+	public InteractionSession clear() {
 		initialiseToDefaults();
 		return this;
 	}
@@ -93,31 +94,31 @@ public class SessionWrapper implements Session {
 	}
 
 	@Override
-	public Session basicAuthUser(String username) {
+	public InteractionSession basicAuthUser(String username) {
 		ContextFactory.get().setConnectionProperty(ConnectionConfig.USER_NAME,
 				username);
 		return this;
 	}
 
 	@Override
-	public Session basicAuthPassword(String password) {
+	public InteractionSession basicAuthPassword(String password) {
 		ContextFactory.get().setConnectionProperty(ConnectionConfig.PASSWORD,
 				password);
 		return this;
 	}
 
 	@Override
-	public Session use(EntityWrapper entity) {
+	public InteractionSession use(EntityWrapper entity) {
 		this.entity = entity;
 		this.entity.setSessionCallback(callback);
 		return this;
 	}
 
-	public static Session newSession() {
-		return new SessionWrapper();
+	public static InteractionSession newSession() {
+		return new HypermediaInteractionSession();
 	}
 
-	private SessionWrapper() {
+	private HypermediaInteractionSession() {
 		initialiseToDefaults();
 	}
 
@@ -138,10 +139,10 @@ public class SessionWrapper implements Session {
 
 	private static class SessionCallbackImpl implements SessionCallback {
 
-		private SessionWrapper parent;
+		private HypermediaInteractionSession parent;
 		private ResponseData output;
 
-		private SessionCallbackImpl(SessionWrapper parent) {
+		private SessionCallbackImpl(HypermediaInteractionSession parent) {
 			this.parent = parent;
 		}
 

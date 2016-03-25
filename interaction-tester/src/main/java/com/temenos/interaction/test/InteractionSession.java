@@ -9,7 +9,7 @@ import com.temenos.interaction.test.internal.EntityWrapper;
  * @author ssethupathi
  *
  */
-public interface Session {
+public interface InteractionSession {
 
 	/**
 	 * Returns the header value for the name from the current session.
@@ -59,7 +59,7 @@ public interface Session {
 	 *            to the header property
 	 * @return this session
 	 */
-	Session header(String name, String... values);
+	InteractionSession header(String name, String... values);
 
 	/**
 	 * Registers a {@link PayloadHandler payload handler} to handle the payload
@@ -71,7 +71,7 @@ public interface Session {
 	 *            to handle the payload of the media type
 	 * @return this session
 	 */
-	Session registerHandler(String mediaType,
+	InteractionSession registerHandler(String mediaType,
 			Class<? extends PayloadHandler> handler);
 
 	/**
@@ -82,7 +82,7 @@ public interface Session {
 	 * @param propertyValue
 	 * @return this session
 	 */
-	Session set(String propertyName, String propertyValue);
+	InteractionSession set(String propertyName, String propertyValue);
 
 	/**
 	 * Returns a {@link Url url} instance associated to this session with any
@@ -107,7 +107,7 @@ public interface Session {
 	 * 
 	 * @return this session
 	 */
-	Session reuse();
+	InteractionSession reuse();
 
 	/**
 	 * Uses the given {@link Entity entity} for future interactions in this
@@ -116,14 +116,14 @@ public interface Session {
 	 * @param {@link Entity entity} to be used in future interactions
 	 * @return this session
 	 */
-	Session use(EntityWrapper entity);
+	InteractionSession use(EntityWrapper entity);
 
 	/**
 	 * Clears this session to reset to it's creation state.
 	 * 
 	 * @return this session
 	 */
-	Session clear();
+	InteractionSession clear();
 
 	/**
 	 * Sets user name for the Http Basic Authentication.
@@ -131,7 +131,7 @@ public interface Session {
 	 * @param username
 	 * @return this session
 	 */
-	Session basicAuthUser(String username);
+	InteractionSession basicAuthUser(String username);
 
 	/**
 	 * Sets password for the Http Basic Authentication.
@@ -139,6 +139,5 @@ public interface Session {
 	 * @param password
 	 * @return this session
 	 */
-	Session basicAuthPassword(String password);
-
+	InteractionSession basicAuthPassword(String password);
 }

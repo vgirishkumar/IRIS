@@ -2,22 +2,20 @@ package com.temenos.interaction.test;
 
 import static org.junit.Assert.*;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.temenos.interaction.test.internal.SessionWrapper;
+import com.temenos.interaction.test.internal.HypermediaInteractionSession;
 import com.temenos.interaction.test.mediatype.AtomFeedHandler;
 
-@Ignore
 //TODO: to be replaced with integration tests against services contained within this project.
 public class TestUpdateInput {
 
 	@Test
 	public void testCreateNewEntityAndUpdate() {
-		Session session = SessionWrapper.newSession();
+		InteractionSession session = HypermediaInteractionSession.newSession();
 		session.registerHandler("application/atom+xml", AtomFeedHandler.class)
 				.basicAuthUser("INPUTT")
-				.basicAuthPassword("12345")
+				.basicAuthPassword("123456")
 				.header("Content-Type", "application/atom+xml")
 				.url()
 				.baseuri(
@@ -48,7 +46,7 @@ public class TestUpdateInput {
 	@Test
 	public void testForConflictWithConcurrentModificationOfAResource() {
 
-		Session setupSession = SessionWrapper.newSession();
+		InteractionSession setupSession = HypermediaInteractionSession.newSession();
 		setupSession
 				.header("Content-Type", "application/atom+xml")
 				.url()
@@ -75,14 +73,14 @@ public class TestUpdateInput {
 				.put();
 		assertEquals(200, setupSession.result().code());
 
-		Session session1 = SessionWrapper.newSession();
+		InteractionSession session1 = HypermediaInteractionSession.newSession();
 		session1.url()
 				.baseuri(
 						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001")
 				.path("verCustomer_Inputs('" + id + "')").get();
 		String session1Etag = session1.header("ETag");
 
-		Session session2 = SessionWrapper.newSession();
+		InteractionSession session2 = HypermediaInteractionSession.newSession();
 		session2.url()
 				.baseuri(
 						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001")
@@ -111,7 +109,7 @@ public class TestUpdateInput {
 
 	@Test
 	public void testForConflictOnReInputOfHeldResource() {
-		Session setupSession = SessionWrapper.newSession();
+		InteractionSession setupSession = HypermediaInteractionSession.newSession();
 		setupSession
 				.header("Content-Type", "application/atom+xml")
 				.url()
@@ -138,7 +136,7 @@ public class TestUpdateInput {
 				.put();
 		assertEquals(200, setupSession.result().code());
 
-		Session holdSession = SessionWrapper.newSession();
+		InteractionSession holdSession = HypermediaInteractionSession.newSession();
 		holdSession
 				.url()
 				.baseuri(
@@ -150,7 +148,7 @@ public class TestUpdateInput {
 				.byRel("http://temenostech.temenos.com/rels/hold").url().post();
 		assertEquals(201, holdSession.result().code());
 
-		Session inputSession = SessionWrapper.newSession();
+		InteractionSession inputSession = HypermediaInteractionSession.newSession();
 		inputSession
 				.url()
 				.baseuri(
@@ -165,6 +163,6 @@ public class TestUpdateInput {
 				.byRel("http://temenostech.temenos.com/rels/input").url()
 				.post();
 		assertEquals(201, holdSession.result().code());
-		
+
 	}
 }
