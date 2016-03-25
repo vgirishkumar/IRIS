@@ -27,8 +27,9 @@ import static org.junit.Assert.*;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.temenos.interaction.test.internal.HypermediaInteractionSession;
-import com.temenos.interaction.test.mediatype.AtomFeedHandler;
+import com.temenos.useragent.generic.InteractionSession;
+import com.temenos.useragent.generic.internal.HypermediaInteractionSession;
+import com.temenos.useragent.generic.mediatype.AtomFeedHandler;
 
 @Ignore
 //TODO: to be replaced with integration tests against services contained within this project.

@@ -30,8 +30,8 @@ import org.apache.abdera.model.Link;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.test.internal.Payload;
-import com.temenos.interaction.test.mediatype.AtomLinkHandler;
+import com.temenos.useragent.generic.internal.Payload;
+import com.temenos.useragent.generic.mediatype.AtomLinkHandler;
 
 public class AtomLinkHandlerTest {
 

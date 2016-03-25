@@ -29,10 +29,10 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import com.temenos.interaction.test.Entity;
-import com.temenos.interaction.test.Link;
-import com.temenos.interaction.test.internal.EntityWrapper;
-import com.temenos.interaction.test.mediatype.AtomFeedHandler;
+import com.temenos.useragent.generic.Entity;
+import com.temenos.useragent.generic.Link;
+import com.temenos.useragent.generic.internal.EntityWrapper;
+import com.temenos.useragent.generic.mediatype.AtomFeedHandler;
 
 public class AtomFeedHandlerTest {
 

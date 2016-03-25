@@ -28,8 +28,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.temenos.interaction.test.Link;
-import com.temenos.interaction.test.mediatype.AtomEntryHandler;
+import com.temenos.useragent.generic.Link;
+import com.temenos.useragent.generic.mediatype.AtomEntryHandler;
 
 public class AtomEntryHandlerTest {
 

@@ -29,6 +29,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.temenos.useragent.generic.http.DefaultHttpClientHelper;
+import com.temenos.useragent.generic.http.HttpHeader;
+import com.temenos.useragent.generic.http.HttpRequest;
+import com.temenos.useragent.generic.http.HttpRequestImpl;
+
 public class DefaultHttpClientHelperTest {
 
 	@Test
