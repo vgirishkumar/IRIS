@@ -10,7 +10,6 @@
 	</parent>
 
 	<artifactId>useragent-generic-java</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>useragent-generic-java</name>
 
 	<dependencies>
@@ -35,6 +34,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-io</artifactId>
+			<version>1.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -44,10 +44,12 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+			<version>1.7.12</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
+			<version>1.6.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
