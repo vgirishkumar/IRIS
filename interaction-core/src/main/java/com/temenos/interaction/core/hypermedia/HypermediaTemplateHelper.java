@@ -209,7 +209,7 @@ public class HypermediaTemplateHelper {
                                 complexMvPropertyName.append(fullyQualifiedTypeName).append("(").append(groupId).append(")");
                                 complexMvPropertyName.append(".");
                                 complexMvPropertyName.append(property.getName());
-                                if (!propertiesNormalized.containsKey(complexMvPropertyName)) {
+                                if (!propertiesNormalized.containsKey(complexMvPropertyName.toString())) {
                                     propertiesNormalized.put(complexMvPropertyName.toString(), property.getValue());
                                 }
                             }
