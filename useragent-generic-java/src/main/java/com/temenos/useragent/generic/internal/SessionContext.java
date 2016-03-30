@@ -22,11 +22,14 @@ package com.temenos.useragent.generic.internal;
  */
 
 
+import com.temenos.useragent.generic.http.HttpClient;
 import com.temenos.useragent.generic.http.HttpHeader;
 
-public interface SessionCallback {
+public interface SessionContext {
 
 	HttpHeader header();
+	
+	HttpClient httpClient();
 
 	EntityWrapper entity();
 

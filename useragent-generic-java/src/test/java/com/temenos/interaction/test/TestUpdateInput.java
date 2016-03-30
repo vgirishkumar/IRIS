@@ -28,7 +28,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.temenos.useragent.generic.InteractionSession;
-import com.temenos.useragent.generic.internal.HypermediaInteractionSession;
+import com.temenos.useragent.generic.internal.InteractionSessionImpl;
 import com.temenos.useragent.generic.mediatype.AtomFeedHandler;
 
 @Ignore
@@ -37,7 +37,7 @@ public class TestUpdateInput {
 
 	@Test
 	public void testCreateNewEntityAndUpdate() {
-		InteractionSession session = HypermediaInteractionSession.newSession();
+		InteractionSession session = InteractionSessionImpl.newSession();
 		session.registerHandler("application/atom+xml", AtomFeedHandler.class)
 				.basicAuth("INPUTT", "123456")
 				.header("Content-Type", "application/atom+xml")
@@ -70,7 +70,7 @@ public class TestUpdateInput {
 	@Test
 	public void testForConflictWithConcurrentModificationOfAResource() {
 
-		InteractionSession setupSession = HypermediaInteractionSession
+		InteractionSession setupSession = InteractionSessionImpl
 				.newSession();
 		setupSession
 				.header("Content-Type", "application/atom+xml")
@@ -97,14 +97,14 @@ public class TestUpdateInput {
 				.put();
 		assertEquals(200, setupSession.result().code());
 
-		InteractionSession session1 = HypermediaInteractionSession.newSession();
+		InteractionSession session1 = InteractionSessionImpl.newSession();
 		session1.url()
 				.baseuri(
 						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001")
 				.path("verCustomer_Inputs('" + id + "')").get();
 		String session1Etag = session1.header("ETag");
 
-		InteractionSession session2 = HypermediaInteractionSession.newSession();
+		InteractionSession session2 = InteractionSessionImpl.newSession();
 		session2.url()
 				.baseuri(
 						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001")
@@ -133,7 +133,7 @@ public class TestUpdateInput {
 
 	@Test
 	public void testForConflictOnReInputOfHeldResource() {
-		InteractionSession setupSession = HypermediaInteractionSession
+		InteractionSession setupSession = InteractionSessionImpl
 				.newSession();
 		setupSession
 				.header("Content-Type", "application/atom+xml")
@@ -160,7 +160,7 @@ public class TestUpdateInput {
 				.put();
 		assertEquals(200, setupSession.result().code());
 
-		InteractionSession holdSession = HypermediaInteractionSession
+		InteractionSession holdSession = InteractionSessionImpl
 				.newSession();
 		holdSession
 				.url()
@@ -173,7 +173,7 @@ public class TestUpdateInput {
 				.byRel("http://temenostech.temenos.com/rels/hold").url().post();
 		assertEquals(201, holdSession.result().code());
 
-		InteractionSession inputSession = HypermediaInteractionSession
+		InteractionSession inputSession = InteractionSessionImpl
 				.newSession();
 		inputSession
 				.url()

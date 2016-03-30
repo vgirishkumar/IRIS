@@ -30,7 +30,7 @@ public interface EntityWrapper extends Entity {
 
 	void setHandler(EntityHandler handler);
 	
-	void setSessionCallback(SessionCallback sessionCallback);
+	void setSessionCallback(SessionContext sessionCallback);
 	
 	void setValue(String fqPropertyName, String value);
 	

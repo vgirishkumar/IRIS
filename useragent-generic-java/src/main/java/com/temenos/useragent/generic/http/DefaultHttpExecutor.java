@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.http;
  * #L%
  */
 
-
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
@@ -35,12 +34,22 @@ import com.temenos.useragent.generic.internal.PayloadWrapper;
 import com.temenos.useragent.generic.internal.RequestData;
 import com.temenos.useragent.generic.internal.ResponseData;
 
+/**
+ * Implements a {@link HttpMethodExecutor http method executor} using Apache
+ * HttpComponents {@linkplain https://hc.apache.org/}
+ * 
+ * @author ssethupathi
+ *
+ */
 public class DefaultHttpExecutor implements HttpMethodExecutor {
 
+	private HttpClient httpClient;
 	private String url;
 	private RequestData input;
 
-	public DefaultHttpExecutor(String url, RequestData input) {
+	public DefaultHttpExecutor(HttpClient httpClient, String url,
+			RequestData input) {
+		this.httpClient = httpClient;
 		this.url = url;
 		this.input = input;
 	}
@@ -63,24 +72,21 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 
 	private ResponseData get() {
 		HttpRequest request = new HttpRequestImpl(input.header());
-		HttpClient client = HttpClientFactory.newClient();
-		HttpResponse response = client.get(url, request);
+		HttpResponse response = httpClient.get(url, request);
 		return buildResponse(response);
 	}
 
 	private ResponseData post() {
 		HttpRequest request = new HttpRequestImpl(input.header(),
 				getPayload(input));
-		HttpClient client = HttpClientFactory.newClient();
-		HttpResponse response = client.post(url, request);
+		HttpResponse response = httpClient.post(url, request);
 		return buildResponse(response);
 	}
 
 	private ResponseData put() {
 		HttpRequest request = new HttpRequestImpl(input.header(),
 				getPayload(input));
-		HttpClient client = HttpClientFactory.newClient();
-		HttpResponse response = client.put(url, request);
+		HttpResponse response = httpClient.put(url, request);
 		return buildResponse(response);
 	}
 

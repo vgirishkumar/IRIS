@@ -1,4 +1,4 @@
-package com.temenos.interaction.test.http;
+package com.temenos.useragent.generic.http;
 
 /*
  * #%L

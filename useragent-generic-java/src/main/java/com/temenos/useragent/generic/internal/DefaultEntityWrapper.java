@@ -35,7 +35,7 @@ public class DefaultEntityWrapper implements EntityWrapper {
 
 	private Map<String, Link> namedLinks;
 	private EntityHandler transformer;
-	private SessionCallback sessionCallback;
+	private SessionContext sessionCallback;
 
 	public DefaultEntityWrapper() {
 	}
@@ -96,7 +96,7 @@ public class DefaultEntityWrapper implements EntityWrapper {
 	}
 
 	@Override
-	public void setSessionCallback(SessionCallback sessionCallback) {
+	public void setSessionCallback(SessionContext sessionCallback) {
 		this.sessionCallback = sessionCallback;
 	}
 }

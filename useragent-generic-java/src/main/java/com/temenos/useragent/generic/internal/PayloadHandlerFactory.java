@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.internal;
  * #L%
  */
 
-
 import com.temenos.useragent.generic.PayloadHandler;
 
 public class PayloadHandlerFactory<T extends PayloadHandler> {
@@ -34,6 +33,10 @@ public class PayloadHandlerFactory<T extends PayloadHandler> {
 
 	public static <T extends PayloadHandler> PayloadHandlerFactory<T> createFactory(
 			final Class<? extends PayloadHandler> handlerClass) {
+		if (handlerClass == null) {
+			throw new IllegalArgumentException(
+					"Illegal payload handler class 'null'");
+		}
 		return new PayloadHandlerFactory<T>(handlerClass);
 	}
 

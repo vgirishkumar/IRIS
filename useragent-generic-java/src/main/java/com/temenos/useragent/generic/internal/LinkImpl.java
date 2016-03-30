@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.internal;
  * #L%
  */
 
-
 import com.temenos.useragent.generic.Link;
 
 public class LinkImpl implements Link {
@@ -35,11 +34,11 @@ public class LinkImpl implements Link {
 	private Payload embeddedPayload;
 
 	private LinkImpl(Builder builder) {
-		this.baseUrl = builder.baseUrl;
-		this.rel = builder.rel;
-		this.href = builder.href;
-		this.title = builder.title;
-		this.id = builder.id;
+		this.baseUrl = builder.baseUrl == null ? "" : builder.baseUrl;
+		this.rel = builder.rel == null ? "" : builder.rel;
+		this.href = builder.href == null ? "" : builder.href;
+		this.title = builder.title == null ? "" : builder.title;
+		this.id = builder.id == null ? "" : builder.id;
 		this.embeddedPayload = builder.embeddedPayload;
 		this.hasEmbeddedPayload = this.embeddedPayload == null ? false : true;
 	}
@@ -57,25 +56,6 @@ public class LinkImpl implements Link {
 	@Override
 	public Payload embedded() {
 		return embeddedPayload;
-	}
-
-	private LinkImpl(String baseUrl, String rel, String href) {
-		this.baseUrl = baseUrl;
-		this.rel = rel;
-		this.href = href;
-		this.hasEmbeddedPayload = false;
-		this.embeddedPayload = null;
-	}
-
-	private LinkImpl(String baseUrl, String rel, String href,
-			Payload embeddedPayload) {
-		this.baseUrl = baseUrl;
-		this.rel = rel;
-		this.href = href;
-		this.embeddedPayload = embeddedPayload;
-		if (embeddedPayload != null) {
-			this.hasEmbeddedPayload = true;
-		}
 	}
 
 	@Override

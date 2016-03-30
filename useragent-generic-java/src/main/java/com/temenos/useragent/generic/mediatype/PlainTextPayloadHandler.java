@@ -21,19 +21,18 @@ package com.temenos.useragent.generic.mediatype;
  * #L%
  */
 
-
 import java.util.Collections;
 import java.util.List;
 
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.PayloadHandler;
+import com.temenos.useragent.generic.internal.DefaultEntityWrapper;
+import com.temenos.useragent.generic.internal.EntityHandler;
 import com.temenos.useragent.generic.internal.EntityWrapper;
-import com.temenos.useragent.generic.internal.NullEntityWrapper;
 
-public class PlainTextHandler implements PayloadHandler {
+public class PlainTextPayloadHandler implements PayloadHandler {
 
 	private String plainText = null;
-	private String parameter;
 
 	@Override
 	public boolean isCollection() {
@@ -52,7 +51,10 @@ public class PlainTextHandler implements PayloadHandler {
 
 	@Override
 	public EntityWrapper entity() {
-		return new NullEntityWrapper();
+		EntityWrapper plainTextWrapper = new DefaultEntityWrapper();
+		EntityHandler handler = new PlainTextEntityHandler(plainText);
+		plainTextWrapper.setHandler(handler);
+		return plainTextWrapper;
 	}
 
 	@Override
@@ -62,6 +64,6 @@ public class PlainTextHandler implements PayloadHandler {
 
 	@Override
 	public void setParameter(String parameter) {
-		this.parameter = parameter;
+		// parameter not handed yet
 	}
 }
