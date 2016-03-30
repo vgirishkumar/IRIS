@@ -1,4 +1,4 @@
-package com.temenos.interaction.test.atom;
+package com.temenos.useragent.generic.mediatype;
 
 /*
  * #%L

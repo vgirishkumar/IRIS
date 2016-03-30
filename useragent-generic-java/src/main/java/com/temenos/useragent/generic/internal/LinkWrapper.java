@@ -28,9 +28,9 @@ import com.temenos.useragent.generic.Url;
 public class LinkWrapper implements ActionableLink {
 
 	private Link link;
-	private SessionCallback sessionCallback;
+	private SessionContext sessionCallback;
 
-	public LinkWrapper(Link link, SessionCallback sessionCallback) {
+	public LinkWrapper(Link link, SessionContext sessionCallback) {
 		this.link = link;
 		this.sessionCallback = sessionCallback;
 	}

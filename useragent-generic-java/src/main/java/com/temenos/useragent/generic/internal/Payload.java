@@ -24,7 +24,6 @@ package com.temenos.useragent.generic.internal;
 
 import java.util.List;
 
-import com.temenos.useragent.generic.Entity;
 import com.temenos.useragent.generic.Link;
 
 public interface Payload {

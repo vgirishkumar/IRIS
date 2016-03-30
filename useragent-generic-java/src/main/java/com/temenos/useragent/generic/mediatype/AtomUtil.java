@@ -39,11 +39,11 @@ public class AtomUtil {
 	public final static String REGX_ELEMENT_WITH_INDEX = "[a-zA-Z0-9_]+(\\(\\d+\\))+";
 
 	public static String extractRel(String relAttributeValue) {
-		int spaceIndex = relAttributeValue.indexOf(" ");
+		int spaceIndex = relAttributeValue.trim().indexOf(" ");
 		if (spaceIndex > 0) {
 			return relAttributeValue.substring(spaceIndex).trim();
 		} else {
-			return relAttributeValue;
+			return relAttributeValue.trim();
 		}
 	}
 	

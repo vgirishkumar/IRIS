@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 import com.temenos.useragent.generic.internal.ActionableLink;
 import com.temenos.useragent.generic.internal.LinkWrapper;
-import com.temenos.useragent.generic.internal.SessionCallback;
+import com.temenos.useragent.generic.internal.SessionContext;
 
 /**
  * This class maps {@link Link links} against some of their attributes to
@@ -47,9 +47,9 @@ public class Links {
 	private Map<String, Link> linksByHref = new HashMap<String, Link>();
 	private Map<String, Link> linksByTitle = new HashMap<String, Link>();
 	private Map<String, Link> linksById = new HashMap<String, Link>();
-	private SessionCallback sessionCallback;
+	private SessionContext sessionCallback;
 
-	private Links(List<Link> links, SessionCallback sessionCallback) {
+	private Links(List<Link> links, SessionContext sessionCallback) {
 		this.sessionCallback = sessionCallback;
 		for (Link link : links) {
 			this.links.add(link);
@@ -139,7 +139,7 @@ public class Links {
 		return links; // TODO defensive copy
 	}
 
-	public static Links create(List<Link> links, SessionCallback sessionCallback) {
+	public static Links create(List<Link> links, SessionContext sessionCallback) {
 		return new Links(links, sessionCallback);
 	}
 

@@ -21,7 +21,7 @@ package com.temenos.useragent.generic;
  * #L%
  */
 
-
+import com.temenos.useragent.generic.http.HttpClient;
 import com.temenos.useragent.generic.internal.EntityWrapper;
 
 /**
@@ -154,4 +154,13 @@ public interface InteractionSession {
 	 * @return this session
 	 */
 	InteractionSession basicAuth(String username, String password);
+
+	/**
+	 * Sets a {@linl HttpClient http client} instance to be used by this
+	 * session.
+	 * 
+	 * @param httpClient
+	 *            http client
+	 */
+	void useHttpClient(HttpClient httpClient);
 }

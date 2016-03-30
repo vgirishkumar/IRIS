@@ -23,7 +23,7 @@ package com.temenos.useragent.generic.context;
 
 
 import com.temenos.useragent.generic.mediatype.AtomFeedHandler;
-import com.temenos.useragent.generic.mediatype.PlainTextHandler;
+import com.temenos.useragent.generic.mediatype.PlainTextPayloadHandler;
 
 /**
  * Factory for accessing the {@link Context context}.
@@ -95,8 +95,8 @@ public class ContextFactory {
 			ContentTypeHandlers registry = new ContentTypeHandlers();
 			registry.registerForPayload("application/atom+xml",
 					AtomFeedHandler.class);
-			registry.registerForPayload("text/plain", PlainTextHandler.class);
-			registry.registerForPayload("text/html", PlainTextHandler.class);
+			registry.registerForPayload("text/plain", PlainTextPayloadHandler.class);
+			registry.registerForPayload("text/html", PlainTextPayloadHandler.class);
 			return registry;
 		}
 
