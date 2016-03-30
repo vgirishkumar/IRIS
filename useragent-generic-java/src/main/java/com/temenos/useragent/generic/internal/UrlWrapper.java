@@ -23,7 +23,6 @@ package com.temenos.useragent.generic.internal;
 
 import com.temenos.useragent.generic.Url;
 import com.temenos.useragent.generic.http.DefaultHttpExecutor;
-import com.temenos.useragent.generic.http.HttpClient;
 import com.temenos.useragent.generic.http.HttpMethod;
 import com.temenos.useragent.generic.http.HttpMethodExecutor;
 
@@ -33,16 +32,16 @@ public class UrlWrapper implements Url {
 	private String baseuri = "";
 	private String path = "";
 	private String queryParam = "";
-	private SessionContext sessionCallback;
+	private SessionContext sessionContext;
 	private boolean noBody;
 
-	public UrlWrapper(SessionContext callback) {
-		this.sessionCallback = callback;
+	public UrlWrapper(SessionContext sessionContext) {
+		this.sessionContext = sessionContext;
 	}
 
 	public UrlWrapper(String url, SessionContext callback) {
 		this.url = url;
-		this.sessionCallback = callback;
+		this.sessionContext = callback;
 	}
 
 	@Override
@@ -72,36 +71,36 @@ public class UrlWrapper implements Url {
 	@Override
 	public void get() {
 		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionCallback.httpClient(), url(), new RequestDataImpl(
-						sessionCallback.header(), null));
+				sessionContext.httpClient(), url(), new RequestDataImpl(
+						sessionContext.header(), null));
 		ResponseData output = executor.execute(HttpMethod.GET);
-		sessionCallback.setResponse(output);
+		sessionContext.setResponse(output);
 	}
 
 	@Override
 	public void post() {
-		EntityWrapper entity = sessionCallback.entity();
+		EntityWrapper entity = sessionContext.entity();
 		if (noBody) {
 			entity = null; // TODO remove null
 		}
 		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionCallback.httpClient(), url(), new RequestDataImpl(
-						sessionCallback.header(), entity));
+				sessionContext.httpClient(), url(), new RequestDataImpl(
+						sessionContext.header(), entity));
 		ResponseData output = executor.execute(HttpMethod.POST);
-		sessionCallback.setResponse(output);
+		sessionContext.setResponse(output);
 	}
 
 	@Override
 	public void put() {
-		EntityWrapper entity = sessionCallback.entity();
+		EntityWrapper entity = sessionContext.entity();
 		if (noBody) {
 			entity = null; // TODO remove null
 		}
 		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionCallback.httpClient(), url(), new RequestDataImpl(
-						sessionCallback.header(), entity));
+				sessionContext.httpClient(), url(), new RequestDataImpl(
+						sessionContext.header(), entity));
 		ResponseData output = executor.execute(HttpMethod.PUT);
-		sessionCallback.setResponse(output);
+		sessionContext.setResponse(output);
 	}
 
 	@Override
