@@ -23,6 +23,12 @@ package com.temenos.useragent.generic.internal;
 
 import com.temenos.useragent.generic.Link;
 
+/**
+ * Implements a hypermedia link.
+ * 
+ * @author ssethupathi
+ *
+ */
 public class LinkImpl implements Link {
 
 	private String baseUrl;

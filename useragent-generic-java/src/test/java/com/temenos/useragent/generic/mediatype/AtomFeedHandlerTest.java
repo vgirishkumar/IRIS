@@ -32,22 +32,22 @@ import org.junit.Test;
 import com.temenos.useragent.generic.Entity;
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.internal.EntityWrapper;
-import com.temenos.useragent.generic.mediatype.AtomFeedHandler;
+import com.temenos.useragent.generic.mediatype.AtomPayloadHandler;
 
 public class AtomFeedHandlerTest {
 
-	private AtomFeedHandler transformer = new AtomFeedHandler();
+	private AtomPayloadHandler transformer = new AtomPayloadHandler();
 
 	@Test
 	public void testIsCollectionForTrue() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomFeedHandler.class
+		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
 		assertTrue(transformer.isCollection());
 	}
 
 	@Test
 	public void testIsCollectionForFalse() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomFeedHandler.class
+		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_entry_with_xml_content.txt")));
 		assertFalse(transformer.isCollection());
 	}
@@ -85,14 +85,14 @@ public class AtomFeedHandlerTest {
 
 	@Test
 	public void testSetPayloadForValidFeed() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomFeedHandler.class
+		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
 		assertTrue(transformer.isCollection());
 	}
 
 	@Test
 	public void testGetLinks() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomFeedHandler.class
+		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
 		List<Link> links = transformer.links();
 		assertEquals(2, links.size());
@@ -112,7 +112,7 @@ public class AtomFeedHandlerTest {
 
 	@Test
 	public void testEntities() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomFeedHandler.class
+		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
 		List<EntityWrapper> entities = transformer.entities();
 		assertEquals(1, entities.size());

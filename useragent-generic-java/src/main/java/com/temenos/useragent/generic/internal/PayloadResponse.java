@@ -72,7 +72,7 @@ public class PayloadResponse implements ResponseData {
 		}
 
 		public ResponseData build() {
-			// validate data?
+			// TODO validate data?
 			return new PayloadResponse(this);
 		}
 	}

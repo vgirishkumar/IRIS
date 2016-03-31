@@ -21,10 +21,16 @@ package com.temenos.useragent.generic.internal;
  * #L%
  */
 
-
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.Url;
 
+/**
+ * An actionable link with the {@link SessionContext} which would let the user
+ * agent follow by executing a http method on it.
+ * 
+ * @author ssethupathi
+ *
+ */
 public class LinkWrapper implements ActionableLink {
 
 	private Link link;

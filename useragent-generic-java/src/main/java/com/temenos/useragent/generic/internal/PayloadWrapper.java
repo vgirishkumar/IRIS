@@ -21,11 +21,20 @@ package com.temenos.useragent.generic.internal;
  * #L%
  */
 
-
 import com.temenos.useragent.generic.PayloadHandler;
 
-
+/**
+ * Defines a wrapper to {@link Payload payload} with a handler.
+ * 
+ * @author ssethupathi
+ *
+ */
 public interface PayloadWrapper extends Payload {
 
-	void setHandler(PayloadHandler transformer);
+	/**
+	 * Sets the appropriate handler for the payload.
+	 * 
+	 * @param handler
+	 */
+	void setHandler(PayloadHandler handler);
 }

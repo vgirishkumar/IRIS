@@ -30,6 +30,12 @@ import com.temenos.useragent.generic.internal.DefaultEntityWrapper;
 import com.temenos.useragent.generic.internal.EntityHandler;
 import com.temenos.useragent.generic.internal.EntityWrapper;
 
+/**
+ * A payload hanlder for <i>text/plain</i> media type.
+ * 
+ * @author ssethupathi
+ *
+ */
 public class PlainTextPayloadHandler implements PayloadHandler {
 
 	private String plainText = null;

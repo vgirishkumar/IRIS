@@ -11,6 +11,7 @@
 
 	<artifactId>useragent-generic-java</artifactId>
 	<name>useragent-generic-java</name>
+	<description>A generic user agent library in Java</description>
 
 	<dependencies>
 		<dependency>
