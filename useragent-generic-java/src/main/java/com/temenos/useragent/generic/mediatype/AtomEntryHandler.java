@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.mediatype;
  * #L%
  */
 
-
 import static com.temenos.useragent.generic.mediatype.AtomUtil.*;
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +42,18 @@ import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.internal.EntityHandler;
 import com.temenos.useragent.generic.internal.LinkImpl;
 
+/**
+ * An {@link EntityHandler entity handler} implementation for Atom Entry type in
+ * <i>application/atom+xml</i> media type.
+ * <p>
+ * 
+ * @see <a
+ *      href="https://tools.ietf.org/html/rfc4287#section-4.1.2">atom:entry</a>
+ *      element.
+ *      </p>
+ * @author ssethupathi
+ *
+ */
 public class AtomEntryHandler implements EntityHandler {
 
 	private Entry entry;
@@ -57,7 +68,6 @@ public class AtomEntryHandler implements EntityHandler {
 
 	public String getId() {
 		String fullPath = entry.getId().getPath();
-		// TODO confirm logic?
 		if (fullPath.contains("('") && fullPath.endsWith("')")) {
 			return fullPath.substring(fullPath.indexOf("'") + 1,
 					fullPath.lastIndexOf("'"));
@@ -157,6 +167,9 @@ public class AtomEntryHandler implements EntityHandler {
 
 	private Element getSpecificChild(Element parent, String childName,
 			int expectedIndex) {
+		if (parent == null) {
+			return null;
+		}
 		Element child = parent.getFirstChild(new QName(NS_ODATA, childName));
 		if (expectedIndex == 0) {
 			return child;
@@ -169,7 +182,6 @@ public class AtomEntryHandler implements EntityHandler {
 				}
 			}
 		}
-		// TODO WARN
 		return null;
 	}
 
@@ -178,7 +190,8 @@ public class AtomEntryHandler implements EntityHandler {
 		List<Link> links = new ArrayList<Link>();
 		for (org.apache.abdera.model.Link abderaLink : abderaLinks) {
 			AtomLinkHandler linkHandler = new AtomLinkHandler(abderaLink);
-			links.add(new LinkImpl.Builder(abderaLink.getAttributeValue("href")).baseUrl(linkHandler.getBaseUri())
+			links.add(new LinkImpl.Builder(abderaLink.getAttributeValue("href"))
+					.baseUrl(linkHandler.getBaseUri())
 					.rel(linkHandler.getRel()).id(getId())
 					.payload(linkHandler.getEmbeddedPayload()).build());
 		}

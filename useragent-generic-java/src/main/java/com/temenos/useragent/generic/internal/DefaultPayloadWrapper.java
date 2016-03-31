@@ -66,11 +66,6 @@ public class DefaultPayloadWrapper implements PayloadWrapper {
 	}
 
 	@Override
-	public EntityWrapper entity(String id) {
-		return entities.get(id);
-	}
-
-	@Override
 	public void setHandler(PayloadHandler transformer) {
 		this.transformer = transformer;
 	}

@@ -25,8 +25,8 @@ import com.temenos.useragent.generic.http.HttpClient;
 import com.temenos.useragent.generic.internal.EntityWrapper;
 
 /**
- * Defines a session through which interactions to an IRIS service are
- * performed.
+ * Defines a session through which interactions to an IRIS service on behalf of
+ * a user agent are performed.
  * 
  * @author ssethupathi
  *

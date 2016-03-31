@@ -39,7 +39,7 @@ import com.temenos.useragent.generic.http.HttpClient;
 import com.temenos.useragent.generic.http.HttpClientFactory;
 import com.temenos.useragent.generic.http.HttpHeader;
 
-public class InteractionSessionImpl implements InteractionSession {
+public class DefaultInteractionSession implements InteractionSession {
 
 	private HttpHeader header;
 	private Map<String, String> properties;
@@ -132,10 +132,10 @@ public class InteractionSessionImpl implements InteractionSession {
 	}
 
 	public static InteractionSession newSession() {
-		return new InteractionSessionImpl();
+		return new DefaultInteractionSession();
 	}
 
-	private InteractionSessionImpl() {
+	private DefaultInteractionSession() {
 		initialiseToDefaults();
 	}
 
@@ -157,10 +157,10 @@ public class InteractionSessionImpl implements InteractionSession {
 
 	private static class SessionContextImpl implements SessionContext {
 
-		private InteractionSessionImpl parent;
+		private DefaultInteractionSession parent;
 		private ResponseData output;
 
-		private SessionContextImpl(InteractionSessionImpl parent) {
+		private SessionContextImpl(DefaultInteractionSession parent) {
 			this.parent = parent;
 		}
 
@@ -179,12 +179,12 @@ public class InteractionSessionImpl implements InteractionSession {
 		}
 
 		@Override
-		public HttpHeader header() {
+		public HttpHeader getRequestHeader() {
 			return parent.header;
 		}
 
 		@Override
-		public EntityWrapper entity() {
+		public EntityWrapper getRequestEntity() {
 			// TODO build/modify the entity and return
 			EntityWrapper wrapper = parent.entity;
 			for (String key : parent.properties.keySet()) {
@@ -194,7 +194,7 @@ public class InteractionSessionImpl implements InteractionSession {
 		}
 
 		@Override
-		public HttpClient httpClient() {
+		public HttpClient getHttpClient() {
 			return parent.httpClient;
 		}
 	}

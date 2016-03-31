@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.mediatype;
  * #L%
  */
 
-
 import static com.temenos.useragent.generic.mediatype.AtomUtil.*;
 
 import java.io.ByteArrayOutputStream;
@@ -42,6 +41,12 @@ import com.temenos.useragent.generic.internal.Payload;
 import com.temenos.useragent.generic.internal.PayloadHandlerFactory;
 import com.temenos.useragent.generic.internal.PayloadWrapper;
 
+/**
+ * Handler for links in Atom models.
+ * 
+ * @author ssethupathi
+ *
+ */
 public class AtomLinkHandler {
 
 	private Link abderaLink;
@@ -74,14 +79,18 @@ public class AtomLinkHandler {
 	}
 
 	public Payload getEmbeddedPayload() {
-		return buildEmbeddedPayload();
+		if (embeddedPayload == null) {
+			buildEmbeddedPayload();
+		}
+		return embeddedPayload;
 	}
 
-	private Payload buildEmbeddedPayload() {
+	private void buildEmbeddedPayload() {
 		Element inlineElement = abderaLink.getFirstChild(new QName(
 				NS_ODATA_METADATA, "inline"));
 		if (inlineElement == null) {
-			return null; // TODO null payload
+			embeddedPayload = null; // TODO null payload
+			return;
 		}
 		Element feedElement = inlineElement.getFirstChild(new QName(NS_ATOM,
 				"feed"));
@@ -105,7 +114,7 @@ public class AtomLinkHandler {
 		PayloadHandler handler = factory.createHandler(content);
 		PayloadWrapper wrapper = new DefaultPayloadWrapper();
 		wrapper.setHandler(handler);
-		return wrapper;
+		embeddedPayload = wrapper;
 	}
 
 	private String getContent(Element element) {

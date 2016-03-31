@@ -26,6 +26,13 @@ import com.temenos.useragent.generic.http.DefaultHttpExecutor;
 import com.temenos.useragent.generic.http.HttpMethod;
 import com.temenos.useragent.generic.http.HttpMethodExecutor;
 
+/**
+ * Implements a {@link Url url} wrapping the {@link SessionContext session
+ * context} to be able to support invoking Http methods.
+ * 
+ * @author ssethupathi
+ *
+ */
 public class UrlWrapper implements Url {
 
 	private String url = "";
@@ -71,34 +78,34 @@ public class UrlWrapper implements Url {
 	@Override
 	public void get() {
 		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionContext.httpClient(), url(), new RequestDataImpl(
-						sessionContext.header(), null));
+				sessionContext.getHttpClient(), url(), new RequestDataImpl(
+						sessionContext.getRequestHeader(), null));
 		ResponseData output = executor.execute(HttpMethod.GET);
 		sessionContext.setResponse(output);
 	}
 
 	@Override
 	public void post() {
-		EntityWrapper entity = sessionContext.entity();
+		EntityWrapper entity = sessionContext.getRequestEntity();
 		if (noBody) {
 			entity = null; // TODO remove null
 		}
 		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionContext.httpClient(), url(), new RequestDataImpl(
-						sessionContext.header(), entity));
+				sessionContext.getHttpClient(), url(), new RequestDataImpl(
+						sessionContext.getRequestHeader(), entity));
 		ResponseData output = executor.execute(HttpMethod.POST);
 		sessionContext.setResponse(output);
 	}
 
 	@Override
 	public void put() {
-		EntityWrapper entity = sessionContext.entity();
+		EntityWrapper entity = sessionContext.getRequestEntity();
 		if (noBody) {
 			entity = null; // TODO remove null
 		}
 		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionContext.httpClient(), url(), new RequestDataImpl(
-						sessionContext.header(), entity));
+				sessionContext.getHttpClient(), url(), new RequestDataImpl(
+						sessionContext.getRequestHeader(), entity));
 		ResponseData output = executor.execute(HttpMethod.PUT);
 		sessionContext.setResponse(output);
 	}

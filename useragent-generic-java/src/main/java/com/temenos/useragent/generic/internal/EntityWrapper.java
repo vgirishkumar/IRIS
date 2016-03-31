@@ -21,18 +21,25 @@ package com.temenos.useragent.generic.internal;
  * #L%
  */
 
-
 import java.io.InputStream;
 
 import com.temenos.useragent.generic.Entity;
 
+/**
+ * Defines a wrapper to the {@link Entity entity} with the possibility of
+ * setting the appropriate {@link EntityHandler handler} and the current
+ * {@link SessionContext session context}.
+ * 
+ * @author ssethupathi
+ *
+ */
 public interface EntityWrapper extends Entity {
 
 	void setHandler(EntityHandler handler);
-	
+
 	void setSessionCallback(SessionContext sessionCallback);
-	
+
 	void setValue(String fqPropertyName, String value);
-	
+
 	InputStream getContent();
 }

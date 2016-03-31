@@ -22,7 +22,7 @@ package com.temenos.useragent.generic.context;
  */
 
 
-import com.temenos.useragent.generic.mediatype.AtomFeedHandler;
+import com.temenos.useragent.generic.mediatype.AtomPayloadHandler;
 import com.temenos.useragent.generic.mediatype.PlainTextPayloadHandler;
 
 /**
@@ -94,7 +94,7 @@ public class ContextFactory {
 		public ContentTypeHandlers entityHandlersRegistry() {
 			ContentTypeHandlers registry = new ContentTypeHandlers();
 			registry.registerForPayload("application/atom+xml",
-					AtomFeedHandler.class);
+					AtomPayloadHandler.class);
 			registry.registerForPayload("text/plain", PlainTextPayloadHandler.class);
 			registry.registerForPayload("text/html", PlainTextPayloadHandler.class);
 			return registry;
