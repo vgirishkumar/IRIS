@@ -132,7 +132,7 @@ public class TestHTTPHypermediaRIM {
                 initialState), createMockMetadata());
 
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
+        when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
         MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl<String>();
         queryMap.add("$filter", "this+that");
         when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(queryMap);
@@ -155,6 +155,98 @@ public class TestHTTPHypermediaRIM {
         }
     }
 
+    /*
+     * We decode the query parameters containing escaped '%' to workaround an
+     * issue in Wink
+     */
+    @SuppressWarnings({ "unchecked" })
+    @Test
+    public void testDecodeQueryParametersPercent() throws InteractionException {
+        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+        // this test simply mocks a command to test the context query parameters
+        // is initialised properly
+        InteractionCommand mockCommand = mock(InteractionCommand.class);
+        when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+        // RIM with command controller that issues commands that always return
+        // SUCCESS
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(
+                initialState), createMockMetadata());
+
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+        MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl<String>();
+        queryMap.add("$filter", "this%25that");
+        when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(queryMap);
+
+        rim.get(mock(HttpHeaders.class), "id", uriInfo);
+        verify(mockCommand).execute((InteractionContext) argThat(new InteractionContextArgumentMatcherPercent()));
+    }
+
+    class InteractionContextArgumentMatcherPercent extends ArgumentMatcher<InteractionContext> {
+        public boolean matches(Object o) {
+            if (o instanceof InteractionContext) {
+                InteractionContext ctx = (InteractionContext) o;
+                MultivaluedMap<String, String> mvmap = ctx.getQueryParameters();
+                if (!mvmap.getFirst("$filter").equals("this%that")) {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /*
+     * We decode the path parameters containing escaped '%' to workaround an
+     * issue in Wink.
+     * 
+     * Because Wink itself decodes path parameters in the UriInfo we do NOT want
+     * to decode a second time. Expect the 'encoded' value back.
+     */
+    @SuppressWarnings({ "unchecked" })
+    @Test
+    public void testDecodePathParametersPercent() throws InteractionException {
+        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+        // this test simply mocks a command to test the context query parameters
+        // is initialised properly
+        InteractionCommand mockCommand = mock(InteractionCommand.class);
+        when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+        // RIM with command controller that issues commands that always return
+        // SUCCESS
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(
+                initialState), createMockMetadata());
+
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+
+        // Mock decoded path map.
+        MultivaluedMap<String, String> decodedPathMap = new MultivaluedMapImpl<String>();
+        decodedPathMap.add("id", "ab%cd");
+        when(uriInfo.getPathParameters(true)).thenReturn(decodedPathMap);
+
+        // Mock encoded path map.
+        MultivaluedMap<String, String> encodedPathMap = new MultivaluedMapImpl<String>();
+        encodedPathMap.add("id", "ab%25cd");
+        when(uriInfo.getPathParameters(false)).thenReturn(encodedPathMap);
+
+        rim.get(mock(HttpHeaders.class), "id", uriInfo);
+        verify(mockCommand).execute((InteractionContext) argThat(new InteractionContextArgumentPathMatcherPercent()));
+    }
+
+    class InteractionContextArgumentPathMatcherPercent extends ArgumentMatcher<InteractionContext> {
+        public boolean matches(Object o) {
+            if (o instanceof InteractionContext) {
+                InteractionContext ctx = (InteractionContext) o;
+                MultivaluedMap<String, String> mvmap = ctx.getPathParameters();
+                if (!mvmap.getFirst("id").equals("ab%25cd")) {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
     /* We decode the query parameters to workaround an issue in Wink */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
@@ -166,7 +258,7 @@ public class TestHTTPHypermediaRIM {
                 createMockMetadata());
 
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
+        when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
         MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl();
         queryMap.add(null, null);
         when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(queryMap);
@@ -728,7 +820,7 @@ public class TestHTTPHypermediaRIM {
     @SuppressWarnings({ "unchecked" })
     private UriInfo mockEmptyUriInfo() {
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
+        when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
         return uriInfo;
     }

@@ -555,11 +555,23 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     }
 
     private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, Event event) {
+
+        /*
+         * Wink passes query parameters without decoding them. So we have to
+         * decode them here. Note call to decodeQueryParameters().
+         * 
+         * However wink is found to have already decoded path parameters
+         * (possibly because it uses them internally. So we do NOT have to
+         * decode them again here. If we did two levels of decoding would be
+         * done and, for example, 'ab%2530' would end up as 'ab0' instead of the
+         * expected 'ab%30'.
+         */
         MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(false) : null;
-        MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
+        MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(false) : null;
         // work around an issue in wink, wink does not decode query parameters
         // in 1.1.3
         decodeQueryParams(queryParameters);
+
         // create the interaction context
         ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
         InteractionContext ctx = new InteractionContext(uriInfo, headers, pathParameters, queryParameters,

@@ -29,6 +29,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -89,7 +91,6 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.web.RequestContext;
-import java.util.HashSet;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HTTPHypermediaRIM.class})
@@ -539,7 +540,7 @@ public class TestResponseHTTPHypermediaRIM {
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		UriInfo uriInfo = mock(UriInfo.class);
-		when(uriInfo.getPathParameters(true)).thenReturn(mockPathParameters);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mockPathParameters);
 		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 		
@@ -591,7 +592,7 @@ public class TestResponseHTTPHypermediaRIM {
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		UriInfo uriInfo = mock(UriInfo.class);
-		when(uriInfo.getPathParameters(true)).thenReturn(mockPathParameters);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mockPathParameters);
 		MultivaluedMap<String, String> mockQueryParameters = new MultivaluedMapImpl<String>();
 		mockQueryParameters.add("test", "123");
 		when(uriInfo.getQueryParameters(false)).thenReturn(mockQueryParameters);
@@ -637,7 +638,7 @@ public class TestResponseHTTPHypermediaRIM {
 		}
 		// mock the Link header
 		UriInfo uriInfo = mock(UriInfo.class);
-		when(uriInfo.getPathParameters(true)).thenReturn(new MultivaluedMapImpl<String>());
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(new MultivaluedMapImpl<String>());
 		MultivaluedMap<String, String> mockQueryParameters = new MultivaluedMapImpl<String>();
 		mockQueryParameters.add("id", "123");
 		when(uriInfo.getQueryParameters(false)).thenReturn(mockQueryParameters);
@@ -870,7 +871,7 @@ public class TestResponseHTTPHypermediaRIM {
 		}
 		
 		UriInfo uriInfo = mock(UriInfo.class);
-		when(uriInfo.getPathParameters(true)).thenReturn(new MultivaluedMapImpl<String>());
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(new MultivaluedMapImpl<String>());
 		MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
 		queryParameters.add("mytestparam", "123");
 		when(uriInfo.getQueryParameters(false)).thenReturn(queryParameters);
@@ -979,7 +980,7 @@ public class TestResponseHTTPHypermediaRIM {
 	@SuppressWarnings({ "unchecked" })
 	private UriInfo mockEmptyUriInfo() {
 		UriInfo uriInfo = mock(UriInfo.class);
-		when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
 		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		return uriInfo;
 	}
