@@ -1,4 +1,4 @@
-package com.temenos.useragent.generic.internal;
+package com.temenos.useragent.generic;
 
 /*
  * #%L
@@ -25,19 +25,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.temenos.useragent.generic.Entities;
-import com.temenos.useragent.generic.Entity;
-import com.temenos.useragent.generic.InteractionSession;
-import com.temenos.useragent.generic.Link;
-import com.temenos.useragent.generic.Links;
-import com.temenos.useragent.generic.PayloadHandler;
-import com.temenos.useragent.generic.Result;
-import com.temenos.useragent.generic.Url;
 import com.temenos.useragent.generic.context.ConnectionConfig;
 import com.temenos.useragent.generic.context.ContextFactory;
 import com.temenos.useragent.generic.http.HttpClient;
 import com.temenos.useragent.generic.http.HttpClientFactory;
 import com.temenos.useragent.generic.http.HttpHeader;
+import com.temenos.useragent.generic.internal.EntityWrapper;
+import com.temenos.useragent.generic.internal.NullEntityWrapper;
+import com.temenos.useragent.generic.internal.Payload;
+import com.temenos.useragent.generic.internal.ResponseData;
+import com.temenos.useragent.generic.internal.SessionContext;
+import com.temenos.useragent.generic.internal.UrlWrapper;
 
 public class DefaultInteractionSession implements InteractionSession {
 
@@ -78,13 +76,19 @@ public class DefaultInteractionSession implements InteractionSession {
 	}
 
 	@Override
-	public Entity entity() {
-		return entity;
+	public InteractionSession unset(String propertyName) {
+		properties.remove(propertyName);
+		return this;
 	}
 
 	@Override
 	public Entities entities() {
-		return new Entities(callback.getResponse().body().entities());
+		Payload response = callback.getResponse().body();
+		if (response.isCollection()) {
+			return new Entities(response.entities());
+		} else {
+			return new Entities(response.entity());
+		}
 	}
 
 	@Override

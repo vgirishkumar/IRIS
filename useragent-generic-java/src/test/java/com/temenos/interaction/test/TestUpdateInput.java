@@ -26,8 +26,8 @@ import static org.junit.Assert.*;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.temenos.useragent.generic.DefaultInteractionSession;
 import com.temenos.useragent.generic.InteractionSession;
-import com.temenos.useragent.generic.internal.DefaultInteractionSession;
 import com.temenos.useragent.generic.mediatype.AtomPayloadHandler;
 
 @Ignore
@@ -42,7 +42,11 @@ public class TestUpdateInput {
 				.url()
 				.baseuri(
 						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001")
-				.path("verFundsTransfers()").get();
+				.path("verCustomers()").get();
+		assertTrue(session.entities().isCollection());
+		assertFalse(session.entities().collection().isEmpty());
+		assertEquals("12345",
+				session.entities().byId("12345").get("CustomerCode"));
 	}
 
 	@Test
@@ -59,13 +63,13 @@ public class TestUpdateInput {
 
 		assertEquals(201, session.result().code());
 
-		String id = session.reuse().entity().get("CustomerCode");
+		String id = session.entities().item().get("CustomerCode");
 		session.set("Mnemonic", "C" + id)
 				.set("verCustomer_Input_Name1MvGroup/Name1",
 						"Mr Robin Peterson" + id)
 				.set("verCustomer_Input_ShortNameMvGroup/ShortName", "Rob" + id)
 				.set("Sector", "1001").set("Gender", "MALE").set("Title", "MR")
-				.set("FamilyName", "Peterson" + id).entity().links()
+				.set("FamilyName", "Peterson" + id).entities().item().links()
 				.byRel("http://temenostech.temenos.com/rels/input").url()
 				.post();
 
@@ -91,14 +95,14 @@ public class TestUpdateInput {
 				.path("verCustomer_Inputs()/new").post();
 		assertEquals(201, setupSession.result().code());
 
-		String id = setupSession.reuse().entity().get("CustomerCode");
+		String id = setupSession.entities().item().get("CustomerCode");
 		setupSession
 				.set("Mnemonic", "C" + id)
 				.set("verCustomer_Input_Name1MvGroup/Name1",
 						"Mr Robin Peterson" + id)
 				.set("verCustomer_Input_ShortNameMvGroup/ShortName", "Rob" + id)
 				.set("Sector", "1001").set("Gender", "MALE").set("Title", "MR")
-				.set("FamilyName", "Peterson" + id).entity().links()
+				.set("FamilyName", "Peterson" + id).entities().item().links()
 				.byRel("http://temenostech.temenos.com/rels/input").url()
 				.post();
 		assertEquals(201, setupSession.result().code());
@@ -154,14 +158,14 @@ public class TestUpdateInput {
 				.path("verCustomer_Inputs()/new").post();
 		assertEquals(201, setupSession.result().code());
 
-		String id = setupSession.reuse().entity().get("CustomerCode");
+		String id = setupSession.reuse().entities().item().get("CustomerCode");
 		setupSession
 				.set("Mnemonic", "C" + id)
 				.set("verCustomer_Input_Name1MvGroup/Name1",
 						"Mr Robin Peterson" + id)
 				.set("verCustomer_Input_ShortNameMvGroup/ShortName", "Rob" + id)
 				.set("Sector", "1001").set("Gender", "MALE").set("Title", "MR")
-				.set("FamilyName", "Peterson" + id).entity().links()
+				.set("FamilyName", "Peterson" + id).entities().item().links()
 				.byRel("http://temenostech.temenos.com/rels/input").url()
 				.post();
 		assertEquals(201, setupSession.result().code());
@@ -179,7 +183,7 @@ public class TestUpdateInput {
 				.path("verCustomer_Inputs('" + id + "')").get();
 		holdSession.reuse().header("If-Match", holdSession.header("ETag"))
 				.header("Content-Type", "application/atom+xml")
-				.set("FamilyName", "Peter" + id).entity().links()
+				.set("FamilyName", "Peter" + id).entities().item().links()
 				.byRel("http://temenostech.temenos.com/rels/hold").url().post();
 		assertEquals(201, holdSession.result().code());
 

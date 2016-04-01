@@ -21,7 +21,6 @@ package com.temenos.useragent.generic;
  * #L%
  */
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,14 +37,31 @@ import com.temenos.useragent.generic.internal.EntityWrapper;
  */
 public class Entities {
 
-	private List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
-	private boolean entitiesNotMapped = false;
-	private Map<String, EntityWrapper> entitiesById = new HashMap<String, EntityWrapper>();
+	private EntityWrapper item;
+	private List<EntityWrapper> collection;
+	private boolean entitiesNotMapped = true;
+	private Map<String, EntityWrapper> collectionEntitiesById = new HashMap<String, EntityWrapper>();
 
-	public Entities(List<EntityWrapper> entities) {
-		for (EntityWrapper entity : entities) {
-			this.entities.add(entity);
+	/**
+	 * Builds the instance for a response with collection of entities.
+	 * 
+	 * @param collection
+	 *            of entities
+	 */
+	public Entities(List<EntityWrapper> collection) {
+		this.collection = new ArrayList<EntityWrapper>();
+		for (EntityWrapper entity : collection) {
+			this.collection.add(entity);
 		}
+	}
+
+	/**
+	 * Builds the instance for a response with a single entity.
+	 * 
+	 * @param item
+	 */
+	public Entities(EntityWrapper item) {
+		this.item = item;
 	}
 
 	/**
@@ -53,26 +69,99 @@ public class Entities {
 	 * 
 	 * @param id
 	 * @return entity
+	 * @throws IllegalStateException
+	 *             if the underlying response is not a collection type
+	 * @see #isCollection()
 	 */
 	public EntityWrapper byId(String id) {
 		if (entitiesNotMapped) {
 			mapEntities();
 		}
-		return entitiesById.get(id);
+		return collectionEntitiesById.get(id);
+	}
+
+	/**
+	 * Returns the {@link EntityWrapper entity} for the supplied <i>index</i>.
+	 * 
+	 * @param index
+	 * @return entity
+	 * @throws IllegalStateException
+	 *             if the underlying response is not a collection type
+	 * @see #isCollection()
+	 */
+	public EntityWrapper byIndex(int index) {
+		if (isCollection()) {
+			if (index >= 0 && index < collection.size()) {
+				return collection.get(index);
+			} else {
+				throw new IllegalStateException("Invalid index '" + index
+						+ "' for collection of size '" + collection.size()
+						+ "'");
+			}
+		} else {
+			throw new IllegalStateException("Not a collection response");
+		}
 	}
 
 	/**
 	 * Returns all {@link Entity entities} from this mapping.
 	 * 
 	 * @return entities
+	 * @throws IllegalStateException
+	 *             if the underlying response is not a collection type
+	 * @see #isCollection()
 	 */
-	public List<? extends Entity> all() {
-		return entities;
+	public List<? extends Entity> collection() {
+		if (isCollection()) {
+			return collection;
+		} else {
+			throw new IllegalStateException("Not a collection response");
+		}
+	}
+
+	/**
+	 * Returns the single {@link Entity entity} from the response.
+	 * 
+	 * @return item
+	 * @throws IllegalStateException
+	 *             if the underlying response is not an item type
+	 * @see #isItem()
+	 */
+	public Entity item() {
+		if (isItem()) {
+			return item;
+		} else {
+			throw new IllegalStateException("Not a single item response");
+		}
+	}
+
+	/**
+	 * Returns whether or not the response contains an item entity.
+	 * 
+	 * @return true if response contains an item entity, false otherwise
+	 */
+	public boolean isItem() {
+		return item != null;
+	}
+
+	/**
+	 * Returns whether or not the response contains an collection of entities.
+	 * 
+	 * @return true if response contains a collection of entities, false
+	 *         otherwise
+	 */
+	public boolean isCollection() {
+		return collection != null;
 	}
 
 	private void mapEntities() {
-		for (EntityWrapper entity : entities) {
-			entitiesById.put(entity.id(), entity);
+		if (isCollection()) {
+			for (EntityWrapper entity : collection) {
+				collectionEntitiesById.put(entity.id(), entity);
+			}
+			entitiesNotMapped = false;
+		} else {
+			throw new IllegalStateException("Not a collection response");
 		}
 	}
 }
