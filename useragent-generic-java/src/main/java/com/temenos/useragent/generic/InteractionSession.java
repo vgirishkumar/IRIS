@@ -51,13 +51,6 @@ public interface InteractionSession {
 	Links links();
 
 	/**
-	 * Returns the {@link Entity entity} associated to this session.
-	 * 
-	 * @return {@link Entity entity}
-	 */
-	Entity entity();
-
-	/**
 	 * Returns the {@link Entities entities} associated to this session.
 	 * 
 	 * @return {@link Entities entities}
@@ -105,6 +98,15 @@ public interface InteractionSession {
 	 * @return this session
 	 */
 	InteractionSession set(String propertyName, String propertyValue);
+
+	/**
+	 * Removes the value for the property in the {@link Entity entity}
+	 * associated to this session.
+	 * 
+	 * @param propertyName
+	 * @return this session
+	 */
+	InteractionSession unset(String propertyName);
 
 	/**
 	 * Returns a {@link Url url} instance associated to this session with any
