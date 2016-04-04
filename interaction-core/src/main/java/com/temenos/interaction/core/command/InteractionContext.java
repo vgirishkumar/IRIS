@@ -93,11 +93,9 @@ public class InteractionContext {
 		this.inQueryParameters = queryParameters;		
 		this.currentState = currentState;
 		this.metadata = metadata;
-		assert(pathParameters != null);
-		assert(queryParameters != null);
-// TODO, should be able to enable this assertion, its just that a lot of tests currently mock this 'new InteractionContext'
-//		assert(currentState != null);
-		assert(metadata != null);
+		assert pathParameters != null;
+		assert queryParameters != null;
+		assert metadata != null;
 	}
 
 	/**
@@ -130,7 +128,7 @@ public class InteractionContext {
 	 * @return
 	 */
 	public Object getRequestUri() {
-		return (this.uriInfo==null?null:this.uriInfo.getRequestUri());
+		return this.uriInfo==null ? null : this.uriInfo.getRequestUri();
 	}
 	
 	/**
@@ -225,7 +223,7 @@ public class InteractionContext {
             		if (entityMetadata != null) {
             			List<String> idFields = entityMetadata.getIdFields();
             			// TODO add support for composite ids
-            			assert(idFields.size() == 1) : "ERROR we currently only support simple ids";
+            			assert idFields.size() == 1 : "ERROR we currently only support simple ids";
             			if ( idFields.size() == 1 )
             				id = pathParameters.getFirst(idFields.get(0));
             		}

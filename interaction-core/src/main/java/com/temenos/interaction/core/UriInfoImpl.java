@@ -40,6 +40,7 @@ import javax.ws.rs.core.UriInfo;
 public class UriInfoImpl implements UriInfo {
     
     private UriInfo uriInfo;
+    private MultivaluedMap<String,String> pathParameters = new MultivaluedMapImpl<String>();
     
     public UriInfoImpl(UriInfo uriInfo) {
         this.uriInfo = uriInfo;
@@ -101,24 +102,25 @@ public class UriInfoImpl implements UriInfo {
 
     @Override
     public MultivaluedMap<String, String> getPathParameters() {
-        try {
-            for (Map.Entry<String, List<String>> entry : uriInfo.getPathParameters().entrySet()) {
-                // remove the encoded parameters from the object
-                uriInfo.getPathParameters().remove(entry.getKey());
-                for(int i = 0; i<entry.getValue().size(); i++) {
-                    // add the parameters decoded again to the object
-                    uriInfo.getPathParameters().add(entry.getKey(), URLDecoder.decode(entry.getValue().get(i), "UTF-8"));
-                }
-            }
-            return uriInfo.getPathParameters();
-        } catch (Exception e) {
-            return uriInfo.getPathParameters();
-        }
+    	return pathParameters;
     }
 
     @Override
     public MultivaluedMap<String, String> getPathParameters(boolean decode) {
-        return uriInfo.getPathParameters(decode);
+        try {
+            for (Map.Entry<String, List<String>> entry : pathParameters.entrySet()) {
+                // remove the encoded parameters from the object
+                pathParameters.remove(entry.getKey());
+                for(int i = 0; i<entry.getValue().size(); i++) {
+                    // add the parameters decoded again to the object
+                    pathParameters.add(entry.getKey(), URLDecoder.decode(entry.getValue().get(i), "UTF-8"));
+                }
+            }
+            return pathParameters;
+        } catch (Exception e) {
+            return pathParameters;
+        }
+
     }
 
     @Override

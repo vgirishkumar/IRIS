@@ -1,10 +1,13 @@
-package com.temenos.interaction.winkext;
+package com.temenos.interaction.core.hypermedia;
+
+import java.util.Collections;
+import java.util.Set;
 
 /*
  * #%L
- * interaction-winkext
+ * interaction-core
  * %%
- * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2016 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,11 +24,14 @@ package com.temenos.interaction.winkext;
  * #L%
  */
 
+public final class MethodNotAllowedException extends Exception {
+	private final Set<String> allowedMethods;
 
-import java.util.Set;
-
-import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
-
-public interface ServiceRootFactory {
-	public Set<HTTPResourceInteractionModel> getServiceRoots();	
+	public MethodNotAllowedException(Set<String> allowedMethods) {
+		this.allowedMethods = Collections.unmodifiableSet(allowedMethods);
+	}
+	
+	public Set<String> getAllowedMethods() {
+		return allowedMethods;
+	}
 }

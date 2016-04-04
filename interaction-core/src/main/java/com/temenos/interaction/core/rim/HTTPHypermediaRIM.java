@@ -44,8 +44,6 @@ import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import com.temenos.interaction.core.hypermedia.LinkGenerator;
-import com.temenos.interaction.core.hypermedia.LinkGeneratorImpl;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.apache.wink.common.model.multipart.InPart;
 import org.slf4j.Logger;
@@ -68,6 +66,8 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.DynamicResourceState;
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.LinkGenerator;
+import com.temenos.interaction.core.hypermedia.LinkGeneratorImpl;
 import com.temenos.interaction.core.hypermedia.LinkHeader;
 import com.temenos.interaction.core.hypermedia.ParameterAndValue;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
@@ -227,13 +227,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     }
 
     public String getFQResourcePath() {
-        String result = "";
+	    
+		String result = getResourcePath();
 
         if (getParent() != null) {
-            result = getParent().getResourcePath();
+			result = getParent().getResourcePath() + result;
         }
 
-        return result + getResourcePath();
+		return result;
     }
 
     @Override
@@ -289,7 +290,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
         // handle request
         return handleRequest(headers, uriInfo, event, null);
-    }
+    }    
 
     private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event,
             EntityResource<?> resource) {
@@ -557,6 +558,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     }
 
     private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, Event event) {
+        ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
+        
+        if(uriInfo.getPath() != null && currentState != null) {        	
+            // Extract values of placeholders defined in the resource state's path from the uri, such as id
+	        String[] uriSegments = uriInfo.getPath().split("/");        
+	        String[] pathSegments = currentState.getPath().substring(1).split("/");
+	
+	        new URLHelper().extractPathParameters(uriInfo, uriSegments, pathSegments);
+        }
 
         /*
          * Wink passes query parameters without decoding them. So we have to
@@ -575,7 +585,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         decodeQueryParams(queryParameters);
 
         // create the interaction context
-        ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
         InteractionContext ctx = new InteractionContext(uriInfo, headers, pathParameters, queryParameters,
                 currentState, metadata);
         return ctx;

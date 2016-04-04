@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,8 +78,8 @@ import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
-import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
@@ -649,23 +650,39 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					wrappedStream.unread(firstByte);
 
 					//Parse hal+json into an Entity object
-					Entity entity = buildEntityFromHal(wrappedStream, mediaType);
+					Entity entity;
+					try {
+						entity = buildEntityFromHal(wrappedStream, mediaType);
+					} catch (MethodNotAllowedException e) {
+						StringBuilder allowHeader = new StringBuilder();
+
+						Set<String> allowedMethods = new HashSet<String>(e.getAllowedMethods());
+						allowedMethods.add("HEAD");
+						allowedMethods.add("OPTIONS");
+						
+						for(String method: allowedMethods) {
+							allowHeader.append(method);
+							allowHeader.append(", ");
+						}
+						
+						Response response = Response.status(405).header("Allow", allowHeader.toString().substring(0, allowHeader.length() - 2)).build();
+						
+						throw new WebApplicationException(response);
+					}
 					return new EntityResource<Entity>(entity);
 			}
 	}
 
-	private Entity buildEntityFromHal(InputStream entityStream, MediaType mediaType) {
+	private Entity buildEntityFromHal(InputStream entityStream, MediaType mediaType) throws MethodNotAllowedException {
 		try {
 			// create the hal resource
-			String baseUri = uriInfo.getBaseUri().toASCIIString();
+			String baseUri = uriInfo.getBaseUri().toString();
 			ReadableRepresentation halResource = representationFactory.readRepresentation(mediaType.toString(), new InputStreamReader(entityStream));
 			// assume the client providing the representation knows something we don't
-			String resourcePath = halResource.getResourceLink() != null ? halResource.getResourceLink().getHref() : null;
-			if (resourcePath == null) {
-				// work out the resource path from UriInfo
-				String path = uriInfo.getPath();
-				resourcePath = path;
-			}
+			String halresourcePath = halResource.getResourceLink() != null ? halResource.getResourceLink().getHref() : null;
+			
+			String resourcePath = uriInfo.getPath();
+						
 			logger.info("Reading HAL content for [" + resourcePath + "]");
 			if (resourcePath == null)
 				throw new IllegalStateException("No resource found");
@@ -679,6 +696,13 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			if (!resourcePath.startsWith("/")) {
 				resourcePath = "/" + resourcePath;
 			}
+			
+			if (halresourcePath != null) {
+				if(!halresourcePath.endsWith(resourcePath)) {
+					throw new IllegalStateException();
+				}
+			}
+			
 			// get the entity name
 			String entityName = getEntityName(resourcePath);
 			
@@ -719,23 +743,30 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 	
-	
-	
-	private String getEntityName(String resourcePath) {
-		String entityName = null;
+	protected ResourceState getCurrentState(String baseUri, String resourcePath) throws MethodNotAllowedException {
+		ResourceState state = null;
 		if (resourcePath != null) {
-			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
-			if (pathParameters != null) {
-				for (String key : pathParameters.keySet()) {
-					List<String> values = pathParameters.get(key);
-					for (String value : values) {
-						resourcePath = resourcePath.replace(value, "{" + key + "}");
-					}
-				}
+		    String tmpResourcePath = resourcePath;
+		    
+		    if(resourcePath.charAt(0) != '/') {
+		        tmpResourcePath = '/' + tmpResourcePath;
 			}
-			String httpMethod = requestContext.getMethod();
-			Event event = new Event(httpMethod, httpMethod);
-			ResourceState state = resourceStateProvider.determineState(event, resourcePath);
+		    
+		    state = resourceStateProvider.getResourceState(requestContext.getMethod(), tmpResourcePath);
+		}
+		return state;
+	}	
+	
+	private String getEntityName(String resourcePath) throws MethodNotAllowedException {
+		String entityName = null;
+		
+		if (resourcePath != null) {
+			String absoluteUri = uriInfo.getBaseUri() + uriInfo.getPath();
+			
+			String tmpResourcePath = absoluteUri.substring(uriInfo.getBaseUri().toString().length());
+						
+			ResourceState state = getCurrentState(uriInfo.getBaseUri().toString(), tmpResourcePath);
+
 			if (state != null) {
 				entityName = state.getEntityName();
 			} else {
@@ -763,6 +794,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				}
 			}
 		}
+		
 		return entityName;
 	}
 	

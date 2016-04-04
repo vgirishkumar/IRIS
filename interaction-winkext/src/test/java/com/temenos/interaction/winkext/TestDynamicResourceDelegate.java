@@ -22,7 +22,7 @@ package com.temenos.interaction.winkext;
  */
 
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.junit.Test;
 
+import com.temenos.interaction.core.UriInfoImpl;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.rim.HTTPHypermediaRIM;
@@ -56,7 +57,7 @@ public class TestDynamicResourceDelegate {
 		
 		delegate.post(headers, id, uriInfo, entityResource);
 		
-		verify(resource).post(headers, id, uriInfo, entityResource);
+		verify(resource).post(eq(headers), eq(id), any(UriInfoImpl.class), eq(entityResource));
 	}
 
 	@Test
@@ -72,7 +73,7 @@ public class TestDynamicResourceDelegate {
 		
 		delegate.post(headers, uriInfo, inMP);
 		
-		verify(resource).post(headers, uriInfo, inMP);
+		verify(resource).post(eq(headers), any(UriInfoImpl.class), eq(inMP));
 	}
 	
 	@Test
@@ -89,7 +90,7 @@ public class TestDynamicResourceDelegate {
 		
 		delegate.put(headers, id, uriInfo, entityResource);
 		
-		verify(resource).put(headers, id, uriInfo, entityResource);
+		verify(resource).put(eq(headers), eq(id), any(UriInfoImpl.class), eq(entityResource));
 	}
 	
 	@Test
@@ -105,6 +106,6 @@ public class TestDynamicResourceDelegate {
 		
 		delegate.put(headers, uriInfo, inMP);
 		
-		verify(resource).put(headers, uriInfo, inMP);
+		verify(resource).put(eq(headers), any(UriInfoImpl.class), eq(inMP));
 	}	
 }

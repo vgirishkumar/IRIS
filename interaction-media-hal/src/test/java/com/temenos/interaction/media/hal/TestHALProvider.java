@@ -23,9 +23,9 @@ package com.temenos.interaction.media.hal;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLAssert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
@@ -60,26 +60,18 @@ import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OLink;
 import org.odata4j.core.OProperties;
 import org.odata4j.core.OProperty;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
-import org.springframework.beans.BeanUtils;
-import org.springframework.core.GenericCollectionTypeResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
-import com.temenos.interaction.core.entity.EntityProperty;
-import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.entity.MetadataParser;
-import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
-import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.hypermedia.Action;
@@ -90,14 +82,9 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
-import com.temenos.interaction.core.resource.ConfigLoader;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
-import ch.qos.logback.classic.gaffer.NestingType;
-import ch.qos.logback.classic.gaffer.PropertyUtil;
-
-import java.util.Collections;
 
 public class TestHALProvider {
 
@@ -131,7 +118,8 @@ public class TestHALProvider {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/children");
 		hp.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -159,7 +147,8 @@ public class TestHALProvider {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/children");		
 		hp.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -180,7 +169,8 @@ public class TestHALProvider {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/children");		
 		hp.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -203,7 +193,8 @@ public class TestHALProvider {
 										 new com.theoryinpractise.halbuilder.standard.StandardRepresentationFactory().withReader(javax.ws.rs.core.MediaType.APPLICATION_JSON, com.theoryinpractise.halbuilder.json.JsonRepresentationReader.class)
 										 );
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/children");		
 		hp.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -224,7 +215,8 @@ public class TestHALProvider {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("students", "initial", new ArrayList<Action>(), "/students"));
 		HALProvider hp = new HALProvider(createNestedMockStudentsVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/students");		
 		hp.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -249,7 +241,8 @@ public class TestHALProvider {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("students", "initial", new ArrayList<Action>(), "/students"));
 		HALProvider hp = new HALProvider(createMoreComplexNestedMockStudentVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/students");		
 		hp.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -312,9 +305,9 @@ public class TestHALProvider {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children/{id}", "id", null));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/children/123");
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
-		mockPathParameters.add("id", "123");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
 		hp.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
@@ -336,7 +329,8 @@ public class TestHALProvider {
 		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children({id})/updated", "id", null));
 		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/children(123)/updated");		
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "123");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
