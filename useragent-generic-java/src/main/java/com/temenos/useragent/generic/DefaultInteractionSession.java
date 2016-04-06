@@ -21,6 +21,7 @@ package com.temenos.useragent.generic;
  * #L%
  */
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,17 +43,17 @@ public class DefaultInteractionSession implements InteractionSession {
 	private HttpHeader header;
 	private Map<String, String> properties;
 	private EntityWrapper entity;
-	private SessionContextImpl callback;
+	private SessionContextImpl sessionContext;
 	private HttpClient httpClient;
 
 	@Override
 	public Url url(String url) {
-		return new UrlWrapper(url, callback);
+		return new UrlWrapper(url, sessionContext);
 	}
 
 	@Override
 	public Url url() {
-		return new UrlWrapper(callback);
+		return new UrlWrapper(sessionContext);
 	}
 
 	@Override
@@ -83,19 +84,25 @@ public class DefaultInteractionSession implements InteractionSession {
 
 	@Override
 	public Entities entities() {
-		Payload response = callback.getResponse().body();
+		Payload response = sessionContext.getResponse().body();
 		if (response.isCollection()) {
-			return new Entities(response.entities());
+			List<EntityWrapper> entitiesWithSessionContext = new ArrayList<EntityWrapper>();
+			for (EntityWrapper entity : response.entities()) {
+				entity.setSessionContext(sessionContext);
+				entitiesWithSessionContext.add(entity);
+			}
+			return new Entities(entitiesWithSessionContext);
 		} else {
-			return new Entities(response.entity());
+			EntityWrapper entity = response.entity();
+			entity.setSessionContext(sessionContext);
+			return new Entities(entity);
 		}
 	}
 
 	@Override
 	public InteractionSession reuse() {
-		// TODO deep copy of sort
-		entity = callback.getResponse().body().entity();
-		entity.setSessionCallback(callback);
+		entity = sessionContext.getResponse().body().entity();
+		entity.setSessionContext(sessionContext);
 		return this;
 	}
 
@@ -107,17 +114,17 @@ public class DefaultInteractionSession implements InteractionSession {
 
 	@Override
 	public Result result() {
-		return callback.getResponse().result();
+		return sessionContext.getResponse().result();
 	}
 
 	@Override
 	public String header(String name) {
-		return callback.getResponse().header().get(name);
+		return sessionContext.getResponse().header().get(name);
 	}
 
 	@Override
 	public Links links() {
-		return Links.create(payloadLinks(), callback);
+		return Links.create(payloadLinks(), sessionContext);
 	}
 
 	@Override
@@ -131,10 +138,16 @@ public class DefaultInteractionSession implements InteractionSession {
 	@Override
 	public InteractionSession use(EntityWrapper entity) {
 		this.entity = entity;
-		this.entity.setSessionCallback(callback);
+		this.entity.setSessionContext(sessionContext);
 		return this;
 	}
 
+	/**
+	 * Creates and returns a new {@link InteractionSession interaction session}
+	 * instance.
+	 * 
+	 * @return interaction session
+	 */
 	public static InteractionSession newSession() {
 		return new DefaultInteractionSession();
 	}
@@ -144,8 +157,8 @@ public class DefaultInteractionSession implements InteractionSession {
 	}
 
 	private List<Link> payloadLinks() {
-		if (callback.getResponse().body().isCollection()) {
-			return callback.getResponse().body().links();
+		if (sessionContext.getResponse().body().isCollection()) {
+			return sessionContext.getResponse().body().links();
 		} else {
 			return entity.links().all();
 		}
@@ -155,7 +168,7 @@ public class DefaultInteractionSession implements InteractionSession {
 		header = new HttpHeader();
 		properties = new HashMap<String, String>();
 		entity = new NullEntityWrapper();
-		callback = new SessionContextImpl(this);
+		sessionContext = new SessionContextImpl(this);
 		httpClient = HttpClientFactory.newClient();
 	}
 
