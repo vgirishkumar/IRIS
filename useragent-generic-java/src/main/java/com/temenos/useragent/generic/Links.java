@@ -21,8 +21,8 @@ package com.temenos.useragent.generic;
  * #L%
  */
 
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,26 +42,26 @@ import com.temenos.useragent.generic.internal.SessionContext;
 public class Links {
 
 	private List<Link> links = new ArrayList<Link>();
-	private boolean linksNotYetMapped = true;
-	private Map<String, Link> linksByRel = new HashMap<String, Link>();
-	private Map<String, Link> linksByHref = new HashMap<String, Link>();
-	private Map<String, Link> linksByTitle = new HashMap<String, Link>();
-	private Map<String, Link> linksById = new HashMap<String, Link>();
-	private SessionContext sessionCallback;
+	private Map<String, List<Link>> linksByRel = new HashMap<String, List<Link>>();
+	private Map<String, List<Link>> linksByHref = new HashMap<String, List<Link>>();
+	private Map<String, List<Link>> linksByTitle = new HashMap<String, List<Link>>();
+	private Map<String, List<Link>> linksById = new HashMap<String, List<Link>>();
+	private SessionContext sessionContext;
 
 	private Links(List<Link> links, SessionContext sessionCallback) {
-		this.sessionCallback = sessionCallback;
+		this.sessionContext = sessionCallback;
 		for (Link link : links) {
 			this.links.add(link);
 		}
+		mapLinks();
 	}
 
 	private Links() {
 	}
 
 	/**
-	 * Returns a {@link ActionableLink link} from the mapping for a supplied
-	 * attribute <i>rel</i>.
+	 * Returns the first {@link ActionableLink link} from the mapping for a
+	 * supplied attribute <i>rel</i>.
 	 * 
 	 * @param rel
 	 * @return {@link ActionableLink link}
@@ -69,16 +69,24 @@ public class Links {
 	 *             if no mapping found for the supplied attribute
 	 */
 	public ActionableLink byRel(String rel) {
-		if (linksNotYetMapped) {
-			mapLinks();
-		}
-		return buildLink(linksByRel.get(rel), "rel", rel);
+		return buildFromFirstLink(linksByRel.get(rel), "rel", rel);
 
 	}
 
 	/**
-	 * Returns a {@link ActionableLink link} from the mapping for a supplied
-	 * attribute <i>href</i>.
+	 * Returns all the {@link ActionableLink links} from the mapping for a
+	 * supplied attribute <i>rel</i>.
+	 * 
+	 * @param rel
+	 * @return {@link ActionableLink links} list
+	 */
+	public List<ActionableLink> allByRel(String rel) {
+		return buildFromAllLinks(linksByRel.get(rel));
+	}
+
+	/**
+	 * Returns the first {@link ActionableLink link} from the mapping for a
+	 * supplied attribute <i>href</i>.
 	 * 
 	 * @param href
 	 * @return {@link ActionableLink link}
@@ -86,15 +94,23 @@ public class Links {
 	 *             if no mapping found for the supplied attribute
 	 */
 	public ActionableLink byHref(String href) {
-		if (linksNotYetMapped) {
-			mapLinks();
-		}
-		return buildLink(linksByHref.get(href), "href", href);
+		return buildFromFirstLink(linksByHref.get(href), "href", href);
 	}
 
 	/**
-	 * Returns a {@link ActionableLink link} from the mapping for a matching
-	 * supplied attribute <i>title</i>.
+	 * Returns all the {@link ActionableLink links} from the mapping for a
+	 * supplied attribute <i>href</i>.
+	 * 
+	 * @param href
+	 * @return {@link ActionableLink links} list
+	 */
+	public List<ActionableLink> allByHref(String href) {
+		return buildFromAllLinks(linksByHref.get(href));
+	}
+
+	/**
+	 * Returns the first {@link ActionableLink link} from the mapping for a
+	 * matching supplied attribute <i>title</i>.
 	 * 
 	 * @param regex
 	 * @return {@link ActionableLink link}
@@ -102,12 +118,12 @@ public class Links {
 	 *             if no mapping found for the supplied attribute
 	 */
 	public ActionableLink byTitle(String regex) {
-		if (linksNotYetMapped) {
-			mapLinks();
-		}
 		for (String title : linksByTitle.keySet()) {
 			if (Pattern.compile(regex).matcher(title).matches()) {
-				return new LinkWrapper(linksByTitle.get(title), sessionCallback);
+				List<Link> matchingLinks = linksByTitle.get(title);
+				if (!matchingLinks.isEmpty()) {
+					return new LinkWrapper(matchingLinks.get(0), sessionContext);
+				}
 			}
 		}
 		throw new IllegalStateException("No link found matching title '"
@@ -115,8 +131,24 @@ public class Links {
 	}
 
 	/**
-	 * Returns a {@link ActionableLink link} from the mapping for a supplied
-	 * attribute <i>id</i>.
+	 * Returns all the {@link ActionableLink links} from the mapping for a
+	 * supplied attribute <i>title</i>.
+	 * 
+	 * @param regex
+	 * @return {@link ActionableLink links} list
+	 */
+	public List<ActionableLink> allByTitle(String regex) {
+		for (String title : linksByTitle.keySet()) {
+			if (Pattern.compile(regex).matcher(title).matches()) {
+				return buildFromAllLinks(linksByTitle.get(title));
+			}
+		}
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Returns the first {@link ActionableLink link} from the mapping for a
+	 * supplied attribute <i>id</i>.
 	 * 
 	 * @param id
 	 * @return {@link ActionableLink link}
@@ -124,23 +156,31 @@ public class Links {
 	 *             if no mapping found for the supplied attribute
 	 */
 	public ActionableLink byId(String id) {
-		if (linksNotYetMapped) {
-			mapLinks();
-		}
-		return buildLink(linksById.get(id), "id", id);
+		return buildFromFirstLink(linksById.get(id), "id", id);
 	}
 
 	/**
-	 * Returns all {@link Link links} from this mapping.
+	 * Returns all the {@link ActionableLink links} from the mapping for a
+	 * supplied attribute <i>id</i>.
+	 * 
+	 * @param id
+	 * @return {@link ActionableLink links} list
+	 */
+	public List<ActionableLink> allById(String id) {
+		return buildFromAllLinks(linksById.get(id));
+	}
+
+	/**
+	 * Returns "read-only" view of all {@link Link links} from this mapping.
 	 * 
 	 * @return all links
 	 */
 	public List<Link> all() {
-		return links; // TODO defensive copy
+		return Collections.unmodifiableList(links);
 	}
 
-	public static Links create(List<Link> links, SessionContext sessionCallback) {
-		return new Links(links, sessionCallback);
+	public static Links create(List<Link> links, SessionContext sessionContext) {
+		return new Links(links, sessionContext);
 	}
 
 	public static Links empty() {
@@ -149,28 +189,46 @@ public class Links {
 
 	private void mapLinks() {
 		for (Link link : links) {
-			if (!link.rel().isEmpty()) {
-				linksByRel.put(link.rel(), link);
-			}
-			if (!link.id().isEmpty()) {
-				linksById.put(link.id(), link);
-			}
-			if (!link.title().isEmpty()) {
-				linksByTitle.put(link.title(), link);
-			}
-			if (!link.href().isEmpty()) {
-				linksByHref.put(link.href(), link);
-			}
+			mapLinksByAttribute(link.rel(), linksByRel, link);
+			mapLinksByAttribute(link.id(), linksById, link);
+			mapLinksByAttribute(link.title(), linksByTitle, link);
+			mapLinksByAttribute(link.href(), linksByHref, link);
 		}
-		linksNotYetMapped = false;
 	}
 
-	private ActionableLink buildLink(Link link, String attribute, String value) {
-		if (link != null) {
-			return new LinkWrapper(link, sessionCallback);
+	private void mapLinksByAttribute(String attributeValue,
+			Map<String, List<Link>> mapping, Link link) {
+		if (attributeValue.isEmpty()) {
+			return;
+		}
+		List<Link> links = mapping.get(attributeValue);
+		if (links == null) {
+			links = new ArrayList<Link>();
+			links.add(link);
+			mapping.put(attributeValue, links);
 		} else {
+			mapping.get(attributeValue).add(link);
+		}
+	}
+
+	private ActionableLink buildFromFirstLink(List<Link> links,
+			String attribute, String value) {
+		if (links == null || links.isEmpty()) {
 			throw new IllegalStateException("No link found for " + attribute
 					+ " '" + value + "'");
+		} else {
+			return new LinkWrapper(links.get(0), sessionContext);
 		}
+	}
+
+	private List<ActionableLink> buildFromAllLinks(List<Link> links) {
+		List<ActionableLink> allActionableLinks = new ArrayList<ActionableLink>();
+		if (links == null) {
+			return allActionableLinks;
+		}
+		for (Link link : links) {
+			allActionableLinks.add(new LinkWrapper(link, sessionContext));
+		}
+		return allActionableLinks;
 	}
 }
