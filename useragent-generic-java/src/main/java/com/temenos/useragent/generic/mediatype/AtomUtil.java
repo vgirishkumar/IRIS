@@ -47,6 +47,15 @@ public class AtomUtil {
 		}
 	}
 	
+	public static String extractDescription(String relAttributeValue) {
+		int spaceIndex = relAttributeValue.trim().indexOf(" ");
+		if (spaceIndex > 0) {
+			return relAttributeValue.substring(0, spaceIndex + 1).trim();
+		} else {
+			return "";
+		}
+	}
+	
 	public static String getBaseUrl(Element element) {
 		try {
 			return element.getBaseUri().toURL().toString();
