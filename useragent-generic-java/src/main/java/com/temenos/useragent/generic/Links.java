@@ -46,6 +46,7 @@ public class Links {
 	private Map<String, List<Link>> linksByHref = new HashMap<String, List<Link>>();
 	private Map<String, List<Link>> linksByTitle = new HashMap<String, List<Link>>();
 	private Map<String, List<Link>> linksById = new HashMap<String, List<Link>>();
+	private Map<String, List<Link>> linksByDesc = new HashMap<String, List<Link>>();
 	private SessionContext sessionContext;
 
 	private Links(List<Link> links, SessionContext sessionCallback) {
@@ -138,12 +139,13 @@ public class Links {
 	 * @return {@link ActionableLink links} list
 	 */
 	public List<ActionableLink> allByTitle(String regex) {
+		List<ActionableLink> allLinks = new ArrayList<ActionableLink>();
 		for (String title : linksByTitle.keySet()) {
 			if (Pattern.compile(regex).matcher(title).matches()) {
-				return buildFromAllLinks(linksByTitle.get(title));
+				allLinks.addAll(buildFromAllLinks(linksByTitle.get(title)));
 			}
 		}
-		return Collections.emptyList();
+		return allLinks;
 	}
 
 	/**
@@ -171,6 +173,45 @@ public class Links {
 	}
 
 	/**
+	 * Returns the first {@link ActionableLink link} from the mapping for a
+	 * matching supplied attribute <i>description</i>.
+	 * 
+	 * @param regex
+	 * @return {@link ActionableLink link}
+	 * @throws IllegalStateException
+	 *             if no mapping found for the supplied attribute
+	 */
+	public ActionableLink byDescription(String regex) {
+		for (String description : linksByDesc.keySet()) {
+			if (Pattern.compile(regex).matcher(description).matches()) {
+				List<Link> matchingLinks = linksByDesc.get(description);
+				if (!matchingLinks.isEmpty()) {
+					return new LinkWrapper(matchingLinks.get(0), sessionContext);
+				}
+			}
+		}
+		throw new IllegalStateException("No link found matching description '"
+				+ regex + "'");
+	}
+
+	/**
+	 * Returns all the {@link ActionableLink links} from the mapping for a
+	 * supplied attribute <i>description</i>.
+	 * 
+	 * @param regex
+	 * @return {@link ActionableLink links} list
+	 */
+	public List<ActionableLink> allByDescription(String regex) {
+		List<ActionableLink> allLinks = new ArrayList<ActionableLink>();
+		for (String description : linksByDesc.keySet()) {
+			if (Pattern.compile(regex).matcher(description).matches()) {
+				allLinks.addAll(buildFromAllLinks(linksByDesc.get(description)));
+			}
+		}
+		return allLinks;
+	}	
+	
+	/**
 	 * Returns "read-only" view of all {@link Link links} from this mapping.
 	 * 
 	 * @return all links
@@ -193,6 +234,7 @@ public class Links {
 			mapLinksByAttribute(link.id(), linksById, link);
 			mapLinksByAttribute(link.title(), linksByTitle, link);
 			mapLinksByAttribute(link.href(), linksByHref, link);
+			mapLinksByAttribute(link.description(), linksByDesc, link);
 		}
 	}
 

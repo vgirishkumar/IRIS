@@ -36,6 +36,7 @@ public class LinkImpl implements Link {
 	private String href;
 	private String title;
 	private String id;
+	private String desc;
 	private boolean hasEmbeddedPayload;
 	private Payload embeddedPayload;
 
@@ -45,6 +46,7 @@ public class LinkImpl implements Link {
 		this.href = builder.href == null ? "" : builder.href;
 		this.title = builder.title == null ? "" : builder.title;
 		this.id = builder.id == null ? "" : builder.id;
+		this.desc = builder.desc == null ? "" : builder.desc;
 		this.embeddedPayload = builder.embeddedPayload;
 		this.hasEmbeddedPayload = this.embeddedPayload == null ? false : true;
 	}
@@ -83,6 +85,11 @@ public class LinkImpl implements Link {
 	public String id() {
 		return id;
 	}
+	
+	@Override
+	public String description() {
+		return desc;
+	}
 
 	@Override
 	public String toString() {
@@ -96,6 +103,7 @@ public class LinkImpl implements Link {
 		private String rel = "";
 		private String title = "";
 		private String href = "";
+		private String desc = "";
 		private String baseUrl = "";
 		private Payload embeddedPayload;
 
@@ -122,6 +130,11 @@ public class LinkImpl implements Link {
 			this.id = id;
 			return this;
 		}
+		
+		public Builder description(String description) {
+			this.desc = description;
+			return this;
+		}		
 
 		public Builder payload(Payload payload) {
 			this.embeddedPayload = payload;

@@ -21,7 +21,6 @@ package com.temenos.useragent.generic;
  * #L%
  */
 
-
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -209,6 +208,51 @@ public class LinksTest {
 		List<ActionableLink> actionableLinks = links.allByTitle("foo");
 		assertTrue(actionableLinks.isEmpty());
 	}
+	
+	@Test
+	public void testByDescriptionForMultipleLinks() {
+		List<Link> linksList = new ArrayList<Link>();
+		linksList.add(new TestLink().description("description1"));
+		linksList.add(new TestLink().description("description1"));
+		linksList.add(new TestLink().description("description2"));
+		Links links = Links.create(linksList, mockSessionContext);
+		assertEquals("description1", links.byDescription(".*ription1").description());
+	}
+
+	@Test
+	public void testByDescriptionForSingleLink() {
+		List<Link> linksList = new ArrayList<Link>();
+		linksList.add(new TestLink().description("description1"));
+		Links links = Links.create(linksList, mockSessionContext);
+		assertEquals("description1", links.byDescription(".*descrip.*").description());
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testByDescriptionForNoLink() {
+		Links.create(new ArrayList<Link>(), mockSessionContext).byDescription("foo");
+	}
+
+	@Test
+	public void testAllByDescriptionForMultipleLinks() {
+		List<Link> linksList = new ArrayList<Link>();
+		linksList.add(new TestLink().description("description1"));
+		linksList.add(new TestLink().description("description1"));
+		linksList.add(new TestLink().description("description2"));
+		Links links = Links.create(linksList, mockSessionContext);
+		List<ActionableLink> actionableLinks = links.allByDescription(".*ription.*");
+		assertEquals(3, actionableLinks.size());
+		assertEquals("description1", actionableLinks.get(0).description());
+		assertEquals("description1", actionableLinks.get(1).description());
+		assertEquals("description2", actionableLinks.get(2).description());
+	}
+
+	@Test
+	public void testAllByDescriptionForNoLinks() {
+		Links links = Links.create(new ArrayList<Link>(), mockSessionContext);
+		List<ActionableLink> actionableLinks = links.allByDescription("foo");
+		assertTrue(actionableLinks.isEmpty());
+	}
+	
 
 	@Test
 	public void testAllForMultipleLinks() {
@@ -236,6 +280,7 @@ public class LinksTest {
 		private String href = "";
 		private String rel = "";
 		private String id = "";
+		private String description = "";
 
 		@Override
 		public String title() {
@@ -262,6 +307,11 @@ public class LinksTest {
 			return id;
 		}
 
+		@Override
+		public String description() {
+			return description;
+		}
+
 		public TestLink title(String title) {
 			this.title = title;
 			return this;
@@ -282,6 +332,11 @@ public class LinksTest {
 			return this;
 		}
 
+		public TestLink description(String description) {
+			this.description = description;
+			return this;
+		}
+		
 		public boolean hasEmbeddedPayload() {
 			return false;
 		}

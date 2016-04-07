@@ -60,6 +60,11 @@ public class LinkWrapper implements ActionableLink {
 	public String id() {
 		return link.id();
 	}
+	
+	@Override
+	public String description() {
+		return link.description();
+	}
 
 	@Override
 	public boolean hasEmbeddedPayload() {

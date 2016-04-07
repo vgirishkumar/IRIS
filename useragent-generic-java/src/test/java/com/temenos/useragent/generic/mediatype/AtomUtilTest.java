@@ -42,6 +42,15 @@ public class AtomUtilTest {
 	}
 
 	@Test
+	public void testExtractDescription() {
+		assertEquals("", AtomUtil.extractDescription(""));
+		assertEquals("foo", AtomUtil.extractDescription("foo bar"));
+		assertEquals("", AtomUtil.extractDescription("foo"));
+		assertEquals("foo", AtomUtil.extractDescription(" foo bar "));
+		assertEquals("foo", AtomUtil.extractDescription(" foo bar whatever"));
+	}
+	
+	@Test
 	public void testGetBaseUrl() {
 		Entry newEntry = new Abdera().newEntry();
 		newEntry.setBaseUri(new IRI("http://myserver:8080/myservice/Test.svc"));
