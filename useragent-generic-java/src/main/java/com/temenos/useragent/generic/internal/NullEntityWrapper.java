@@ -57,7 +57,7 @@ public class NullEntityWrapper implements EntityWrapper {
 	}
 
 	@Override
-	public void setSessionCallback(SessionContext sessionCallback) {
+	public void setSessionContext(SessionContext sessionCallback) {
 		// TODO
 	}
 

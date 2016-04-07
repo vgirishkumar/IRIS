@@ -68,6 +68,10 @@ public class AtomLinkHandler {
 		return AtomUtil.extractRel(abderaLink.getAttributeValue("rel"));
 	}
 
+	public String getDescription() {
+		return AtomUtil.extractDescription(abderaLink.getAttributeValue("rel"));
+	}
+
 	public String getBaseUri() {
 		try {
 			return abderaLink.getBaseUri().toURL().toString();

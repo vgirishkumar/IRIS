@@ -66,6 +66,13 @@ public interface Link {
 	 * @return id
 	 */
 	String id();
+	
+	/**
+	 * Returns the description of this link.
+	 * 
+	 * @return description
+	 */
+	String description();	
 
 	/**
 	 * Returns whether or not this link has embedded payload.
