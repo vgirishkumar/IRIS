@@ -148,6 +148,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 		feedWriter = new AtomFeedFormatWriter(serviceDocument);
 		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+		this.uriInfo = new UriInfoImpl(uriInfo);
 	}
 
 	@Override
@@ -438,8 +439,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		
 		try {
 			OEntityKey entityKey = null;
-			
-			uriInfo = new UriInfoImpl(uriInfo);
 
 			// work out the entity name using resource path from UriInfo
 			String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
