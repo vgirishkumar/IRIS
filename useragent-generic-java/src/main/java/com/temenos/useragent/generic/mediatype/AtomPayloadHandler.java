@@ -69,7 +69,11 @@ public class AtomPayloadHandler implements PayloadHandler {
 			links.add(new LinkImpl.Builder(abderaLink.getAttributeValue("href"))
 					.baseUrl(AtomUtil.getBaseUrl(feed))
 					.rel(AtomUtil.extractRel(abderaLink
-							.getAttributeValue("rel"))).build());
+							.getAttributeValue("rel")))
+					.title(abderaLink.getAttributeValue("title"))
+					.description(
+							AtomUtil.extractDescription(abderaLink
+									.getAttributeValue("rel"))).build());
 		}
 		return links;
 	}

@@ -33,52 +33,60 @@ import com.temenos.useragent.generic.mediatype.AtomEntryHandler;
 
 public class AtomEntryHandlerTest {
 
-	private AtomEntryHandler transformer = new AtomEntryHandler();
+	private AtomEntryHandler handler = new AtomEntryHandler();
 
 	@Test
 	public void testGetLinks() {
-		transformer.setContent(AtomEntryHandler.class
+		handler.setContent(AtomEntryHandler.class
 				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
-		List<Link> links = transformer.getLinks();
+		List<Link> links = handler.getLinks();
 		assertEquals(4, links.size());
 
 		// first 'self' link
 		Link firstLink = links.get(0);
 		assertEquals("self", firstLink.rel());
 		assertEquals("Customers('100974')", firstLink.href());
+		assertEquals("Customer",firstLink.title());
+		assertEquals("",firstLink.description());
 		assertFalse(firstLink.hasEmbeddedPayload());
 
 		// second 'see' link
 		Link secondLink = links.get(1);
 		assertEquals("http://mybank/rels/see", secondLink.rel());
 		assertEquals("Customers('100974')/see", secondLink.href());
+		assertEquals("see record",secondLink.title());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customer",secondLink.description());
 		assertFalse(secondLink.hasEmbeddedPayload());
 
 		// third 'see' link
 		Link thirdLink = links.get(2);
 		assertEquals("http://mybank/rels/input", thirdLink.rel());
 		assertEquals("Customers('100974')/input", thirdLink.href());
+		assertEquals("input deal",thirdLink.title());
+		assertEquals("",thirdLink.description());
 		assertFalse(thirdLink.hasEmbeddedPayload());
 
 		// fourth 'see' link
 		Link fourthLink = links.get(3);
 		assertEquals("http://mybank/rels/review", fourthLink.rel());
 		assertEquals("Customers('100974')/review", fourthLink.href());
+		assertEquals("audit deal", fourthLink.title());
+		assertEquals("",fourthLink.description());
 		assertFalse(fourthLink.hasEmbeddedPayload());
 	}
 
 	@Test
 	public void testGetId() {
-		transformer.setContent(AtomEntryHandler.class
+		handler.setContent(AtomEntryHandler.class
 				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
-		assertEquals("100974", transformer.getId());
+		assertEquals("100974", handler.getId());
 	}
 
 	@Test
 	public void testGetCount() {
-		transformer.setContent(AtomEntryHandler.class
+		handler.setContent(AtomEntryHandler.class
 				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
-		assertEquals(1, transformer.getCount("GivenNames"));
+		assertEquals(1, handler.getCount("GivenNames"));
 //		assertEquals(2, transformer.getCount("Customer_LegalIdGroup/LegalId"));
 	}
 
