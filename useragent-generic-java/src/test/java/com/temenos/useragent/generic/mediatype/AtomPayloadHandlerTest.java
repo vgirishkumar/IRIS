@@ -34,28 +34,28 @@ import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.internal.EntityWrapper;
 import com.temenos.useragent.generic.mediatype.AtomPayloadHandler;
 
-public class AtomFeedHandlerTest {
+public class AtomPayloadHandlerTest {
 
-	private AtomPayloadHandler transformer = new AtomPayloadHandler();
+	private AtomPayloadHandler handler = new AtomPayloadHandler();
 
 	@Test
 	public void testIsCollectionForTrue() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
+		handler.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
-		assertTrue(transformer.isCollection());
+		assertTrue(handler.isCollection());
 	}
 
 	@Test
 	public void testIsCollectionForFalse() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
+		handler.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_entry_with_xml_content.txt")));
-		assertFalse(transformer.isCollection());
+		assertFalse(handler.isCollection());
 	}
 
 	@Test
 	public void testSetPayloadForNull() {
 		try {
-			transformer.setPayload(null);
+			handler.setPayload(null);
 			fail("Should have thrown IllegalArgumentException");
 		} catch (Exception e) {
 			assertTrue(e instanceof IllegalArgumentException);
@@ -65,7 +65,7 @@ public class AtomFeedHandlerTest {
 	@Test
 	public void testSetPayloadForInvalidXmlContent() {
 		try {
-			transformer
+			handler
 					.setPayload("<some><valid><xml><but><invalid><atom-xml>foo</atom-xml></invalid></but></xml></valid></some>");
 			fail("Should have thrown IllegalArgumentException");
 		} catch (Exception e) {
@@ -76,7 +76,7 @@ public class AtomFeedHandlerTest {
 	@Test
 	public void testSetPayloadForInvalidTextContent() {
 		try {
-			transformer.setPayload("foo");
+			handler.setPayload("foo");
 			fail("Should have thrown IllegalArgumentException");
 		} catch (Exception e) {
 			assertTrue(e instanceof IllegalArgumentException);
@@ -85,36 +85,40 @@ public class AtomFeedHandlerTest {
 
 	@Test
 	public void testSetPayloadForValidFeed() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
+		handler.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
-		assertTrue(transformer.isCollection());
+		assertTrue(handler.isCollection());
 	}
 
 	@Test
 	public void testGetLinks() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
+		handler.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
-		List<Link> links = transformer.links();
+		List<Link> links = handler.links();
 		assertEquals(2, links.size());
 
 		// first 'self' link
 		Link firstLink = links.get(0);
 		assertEquals("self", firstLink.rel());
 		assertEquals("Customers()", firstLink.href());
+		assertEquals("Customers", firstLink.title());
+		assertEquals("", firstLink.description());
 		assertFalse(firstLink.hasEmbeddedPayload());
 
 		// second 'new' link
 		Link secondLink = links.get(1);
 		assertEquals("http://mybank/rels/new", secondLink.rel());
 		assertEquals("Customers()/new", secondLink.href());
+		assertEquals("create new deal", secondLink.title());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customer", secondLink.description());
 		assertFalse(secondLink.hasEmbeddedPayload());
 	}
 
 	@Test
 	public void testEntities() throws Exception {
-		transformer.setPayload(IOUtils.toString(AtomPayloadHandler.class
+		handler.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
-		List<EntityWrapper> entities = transformer.entities();
+		List<EntityWrapper> entities = handler.entities();
 		assertEquals(1, entities.size());
 		Entity entity = entities.get(0);
 //		assertEquals(4, entity.links().all().size());

@@ -83,11 +83,9 @@ public class AtomEntryHandler implements EntityHandler {
 		if (parent != null) {
 			Element child = parent.getFirstChild(new QName(NS_ODATA,
 					propertyName));
-			if (child != null) {
-				do {
-					count++;
-				} while (child
-						.getNextSibling(new QName(NS_ODATA, propertyName)) != null);
+			while (child != null) {
+				count++;
+				child = child.getNextSibling(new QName(NS_ODATA, propertyName));
 			}
 		}
 		return count;
@@ -192,7 +190,12 @@ public class AtomEntryHandler implements EntityHandler {
 			AtomLinkHandler linkHandler = new AtomLinkHandler(abderaLink);
 			links.add(new LinkImpl.Builder(abderaLink.getAttributeValue("href"))
 					.baseUrl(linkHandler.getBaseUri())
-					.rel(linkHandler.getRel()).id(getId())
+					.rel(linkHandler.getRel())
+					.id(getId())
+					.title(abderaLink.getAttributeValue("title"))
+					.description(
+							AtomUtil.extractDescription(abderaLink
+									.getAttributeValue("rel")))
 					.payload(linkHandler.getEmbeddedPayload()).build());
 		}
 		return links;
