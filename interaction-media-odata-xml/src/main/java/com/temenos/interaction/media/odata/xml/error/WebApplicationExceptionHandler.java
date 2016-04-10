@@ -57,15 +57,10 @@ public class WebApplicationExceptionHandler extends InteractionExceptionHandler<
     
     @Override
     public Response toResponse(WebApplicationException exception) {
-        String code = Integer.toString(exception.getResponse().getStatus());
-        String message = new StringBuilder("HTTP ")
-            .append(code)
-            .append(" ")
-            .append(HttpStatus.getStatusText(exception.getResponse().getStatus()))
-            .toString();
-        logger.error(message, exception);
-        EntityResource<?> er = CommandHelper.createEntityResource(new GenericError(code, 
-                getStackTraceAsString(exception)), GenericError.class);
+        int code = exception.getResponse().getStatus();
+        String stackTrace = generateLogMessage(exception, code);
+        EntityResource<?> er = CommandHelper.createEntityResource(new GenericError(Integer.toString(code), 
+                stackTrace), GenericError.class);
         return Response.status(exception.getResponse().getStatus())
             .entity(er.getGenericEntity()).build();
     }

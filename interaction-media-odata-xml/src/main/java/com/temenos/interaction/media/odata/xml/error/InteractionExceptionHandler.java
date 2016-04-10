@@ -26,6 +26,11 @@ import java.io.Writer;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.commons.httpclient.HttpStatus;
+
 /**
  * Base class for all Interaction Framework exception handlers.
  * 
@@ -33,9 +38,22 @@ import java.io.StringWriter;
  */
 public class InteractionExceptionHandler<T extends Exception> {
     
+    private final Logger logger = LoggerFactory.getLogger(InteractionExceptionHandler.class);
+    
     public InteractionExceptionHandler(){}
     
-    protected String getStackTraceAsString(RuntimeException exception){
+    protected String generateLogMessage(T exception, int code){
+        String message = new StringBuilder("HTTP ")
+            .append(code)
+            .append(" ")
+            .append(HttpStatus.getStatusText(code))
+            .toString();
+        String stackTrace = getStackTraceAsString(exception);
+        logger.error(message, stackTrace);
+        return stackTrace;
+    }
+    
+    private String getStackTraceAsString(T exception){
         Writer writer = new StringWriter();
         exception.printStackTrace(new PrintWriter(writer));
         String stackTrace = writer.toString();

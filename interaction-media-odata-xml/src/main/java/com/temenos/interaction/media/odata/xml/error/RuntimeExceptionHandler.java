@@ -56,15 +56,10 @@ public class RuntimeExceptionHandler extends InteractionExceptionHandler<Runtime
     
     @Override
     public Response toResponse(RuntimeException exception) {
-        String code = Integer.toString(500);
-        String message = new StringBuilder("HTTP ")
-            .append(code)
-            .append(" ")
-            .append(HttpStatus.getStatusText(HttpStatus.SC_INTERNAL_SERVER_ERROR))
-            .toString();
-        logger.error(message, exception);
-        EntityResource<?> er = CommandHelper.createEntityResource(new GenericError(code, 
-                getStackTraceAsString(exception)), GenericError.class);
+        int code = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+        String stackTrace = generateLogMessage(exception, code);
+        EntityResource<?> er = CommandHelper.createEntityResource(new GenericError(Integer.toString(code), 
+                stackTrace), GenericError.class);
         return Response.serverError().entity(er.getGenericEntity()).build();
     }
 }
