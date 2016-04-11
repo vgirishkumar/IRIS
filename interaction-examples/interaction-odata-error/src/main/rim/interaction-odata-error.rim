@@ -25,6 +25,7 @@ rim Airline {
 	command UpdateEntity
 	command GETGenericErrorCommand
 	command ThrowInteractionExceptionCommand
+    command ThrowARuntimeExceptionCommand
 
 initial resource ServiceDocument {
 	type: item
@@ -503,10 +504,8 @@ resource error504 {
 
 resource error500RuntimeException {
 	type: item
-	entity: Flight
-	view: ThrowInteractionExceptionCommand {
-		properties [ status="500", message="Unexpected error." ]
-	}
+    entity: Flight
+	commands [ GET : ThrowARuntimeExceptionCommand ]
 	path: "/Extended({id})/error500RuntimeException"
 }
 

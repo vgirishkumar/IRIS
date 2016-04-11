@@ -56,6 +56,9 @@
     
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
+    
+    <bean id="exceptionMapper" class="com.temenos.interaction.media.odata.xml.error.RuntimeExceptionHandler" />
+    <bean id="webAppExceptionMapper" class="com.temenos.interaction.media.odata.xml.error.WebApplicationExceptionHandler" />
 	
 	<!-- An extension of org.apache.wink.spring.Registrar with support for singletons -->
 	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
@@ -66,6 +69,8 @@
 				<ref local="serviceDocumentProvider" />
 				<ref local="errorProvider" />
 				<ref local="xhtmlProvider" />
+                <ref local="exceptionMapper" />
+                <ref local="webAppExceptionMapper" />
  			</list>
    		</property>
 		<property name="serviceRootFactory" ref="serviceRootFactory" />
@@ -168,9 +173,8 @@
 		<constructor-arg value="Metadata" />
 		<constructor-arg ref="metadataOData4j" />
 	</bean>
-	
-	<bean id="GETException" class="com.temenos.interaction.core.command.GETExceptionCommand">
-	</bean>
+    
+    <bean id="GETException" class="com.temenos.interaction.core.command.GETExceptionCommand" />
 	
 	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand">
 	</bean>
@@ -202,6 +206,7 @@
 	<!-- Commands for this integration test project -->
 	<bean id="GETGenericErrorCommand" class="com.interaction.example.odata.error.command.GETGenericErrorCommand" />
 	<bean id="ThrowInteractionExceptionCommand" class="com.interaction.example.odata.error.command.ThrowInteractionExceptionCommand" />
+    <bean id="ThrowARuntimeExceptionCommand" class="com.interaction.example.odata.error.command.ThrowARuntimeExceptionCommand" />
 	
 	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>	
 	
@@ -221,6 +226,7 @@
 				<entry key="DeleteEntity" value-ref="DeleteEntity" />
 				<entry key="GETGenericErrorCommand" value-ref="GETGenericErrorCommand" />
 				<entry key="ThrowInteractionExceptionCommand" value-ref="ThrowInteractionExceptionCommand" />
+                <entry key="ThrowARuntimeExceptionCommand" value-ref="ThrowARuntimeExceptionCommand" />
 			</util:map> 
 		</constructor-arg>
 	</bean>
