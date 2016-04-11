@@ -688,6 +688,7 @@ public class TestAtomXMLProvider {
 					.title("title")
 					.rel("self")
 					.href("href")
+					.id("id")
 					.build());
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
 		entityResource.setLinks(links);
@@ -701,6 +702,7 @@ public class TestAtomXMLProvider {
 					.title("title")
 					.rel("edit")
 					.href("href")
+					.id("id")
 					.build());
 		entityResource.setLinks(links);
 		provider.processLinks(entityResource);

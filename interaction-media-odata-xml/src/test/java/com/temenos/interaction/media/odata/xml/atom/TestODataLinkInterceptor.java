@@ -383,7 +383,7 @@ public class TestODataLinkInterceptor {
 
 	@Test
 	/*
-	 * When two links have the same rel and the same href we should remove all but the first link
+	 * When two links have the same rel, id and href we should remove all but the first link
 	 */
 	public void testLinkRemoveDuplicates() {
 		ResourceState sourceState = createMockResourceState("account", "Account", false);
@@ -392,6 +392,7 @@ public class TestODataLinkInterceptor {
 		when(targetStateUpdate.getName()).thenReturn("FundsTransfers_new");
 		when(targetStateUpdate.getEntityName()).thenReturn("FundsTransfer");
 		when(targetStateUpdate.getRel()).thenReturn("edit");
+		when(targetStateUpdate.getId()).thenReturn("id");
 		Transition editTransition = createMockTransition(
 				sourceState, 
 				targetStateUpdate);
@@ -401,6 +402,7 @@ public class TestODataLinkInterceptor {
 		when(targetStateDelete.getName()).thenReturn("FundsTransfers_delete");
 		when(targetStateDelete.getEntityName()).thenReturn("FundsTransfer");
 		when(targetStateDelete.getRel()).thenReturn("edit");
+		when(targetStateDelete.getId()).thenReturn("id");
 		Transition edit2Transition = createMockTransition(
 				sourceState, 
 				targetStateDelete);
@@ -412,11 +414,55 @@ public class TestODataLinkInterceptor {
 		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
-		
+
 		Link resultEdit = linkInterceptor.addingLink(mockResource, editLink);
 		assertEquals("edit", resultEdit.getRel());
+
+		// Because it has same rel, id and href second link should not be present.
 		Link resultEdit2 = linkInterceptor.addingLink(mockResource, edit2Link);
 		assertNull(resultEdit2);
+	}
+	
+	@Test
+	/*
+	 * When two links have the same rel and href but different id we should NOT remove all but the first link
+	 */
+	public void testLinkNoRemoveNonDuplicates() {
+		ResourceState sourceState = createMockResourceState("account", "Account", false);
+		// edit
+		ResourceState targetStateUpdate = mock(ResourceState.class);
+		when(targetStateUpdate.getName()).thenReturn("FundsTransfers_new");
+		when(targetStateUpdate.getEntityName()).thenReturn("FundsTransfer");
+		when(targetStateUpdate.getRel()).thenReturn("aRelation");
+		when(targetStateUpdate.getId()).thenReturn("id");
+		Transition editTransition = createMockTransition(
+			sourceState, 
+			targetStateUpdate);
+		Link editLink = new Link(editTransition, editTransition.getTarget().getRel(), "/FundsTransfers('123')", HttpMethod.POST);
+		// edit2
+		ResourceState targetStateDelete = mock(ResourceState.class);
+		when(targetStateDelete.getName()).thenReturn("FundsTransfers_delete");
+		when(targetStateDelete.getEntityName()).thenReturn("FundsTransfer");
+		when(targetStateDelete.getRel()).thenReturn("aRelation");
+		when(targetStateDelete.getId()).thenReturn("anotherId");
+		Transition edit2Transition = createMockTransition(
+			sourceState, 
+			targetStateDelete);
+		Link edit2Link = new Link(edit2Transition, edit2Transition.getTarget().getRel(), "/FundsTransfers('123')", HttpMethod.DELETE);
+
+		List<Link> mockLinks = new ArrayList<Link>();
+		mockLinks.add(editLink);
+		mockLinks.add(edit2Link);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+		RESTResource mockResource = mock(RESTResource.class);
+		when(mockResource.getLinks()).thenReturn(mockLinks);
+
+		Link resultEdit = linkInterceptor.addingLink(mockResource, editLink);
+		assertEquals("aRelation", resultEdit.getRel());
+
+		// Because it has a different id second link should be present.
+		Link resultEdit2 = linkInterceptor.addingLink(mockResource, edit2Link);
+		assertEquals("aRelation", resultEdit2.getRel());
 	}
 
 	@Test
