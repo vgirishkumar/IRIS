@@ -39,13 +39,23 @@
                                 <d:LanguageCode>en</d:LanguageCode>
                                 <d:Address>18</d:Address>
                             </d:element>
-                        </d:Customer_AddressSubGroup>
-                        <d:Customer_AddressSubGroup m:type="Bag(restservice-modelsModel.Customer_AddressSubGroup)">
                             <d:element>
                                 <d:LanguageCode>en</d:LanguageCode>
                                 <d:Address>Redds</d:Address>
+                            </d:element>                            
+                        </d:Customer_AddressSubGroup>                     
+                    </d:element>
+                    <d:element>
+                        <d:Customer_AddressSubGroup m:type="Bag(restservice-modelsModel.Customer_AddressSubGroup)">
+                            <d:element>
+                                <d:LanguageCode>fr</d:LanguageCode>
+                                <d:Address>18</d:Address>
                             </d:element>
-                        </d:Customer_AddressSubGroup>                        
+                            <d:element>
+                                <d:LanguageCode>fr</d:LanguageCode>
+                                <d:Address>Redes</d:Address>
+                            </d:element>                            
+                        </d:Customer_AddressSubGroup>                     
                     </d:element>
                 </d:Customer_AddressGroup>
                 <d:Customer_LegalIdGroup m:type="Bag(restservice-modelsModel.Customer_LegalIdGroup)">
@@ -57,8 +67,6 @@
                         <d:LegalIssDate>2000-01-02</d:LegalIssDate>
                         <d:LegalExpDate>2020-01-01</d:LegalExpDate>
                     </d:element>
-                </d:Customer_LegalIdGroup>
-                <d:Customer_LegalIdGroup m:type="Bag(restservice-modelsModel.Customer_LegalIdGroup)">
                     <d:element>
                         <d:LegalId>2</d:LegalId>
                         <d:LegalDocName>DRIVING LICENSE</d:LegalDocName>
@@ -66,7 +74,7 @@
                         <d:LegalIssAuth>DVLA</d:LegalIssAuth>
                         <d:LegalIssDate>2000-01-02</d:LegalIssDate>
                         <d:LegalExpDate>2010-01-01</d:LegalExpDate>
-                    </d:element>
+                    </d:element>                    
                 </d:Customer_LegalIdGroup>                
                  <d:Language>1</d:Language>
             </m:properties>
