@@ -76,17 +76,31 @@ public class AtomEntryHandler implements EntityHandler {
 	}
 
 	public int getCount(String fqPropertyName) {
-		String[] pathParts = validateAndParsePath(fqPropertyName);
+		String[] pathParts = validateAndParsePropertyName(fqPropertyName);
 		Element parent = getParent(pathParts);
 		String propertyName = pathParts[pathParts.length - 1];
+		if (parent == null) {
+			return 0;
+		}
+		Element propertyElement = parent.getFirstChild(new QName(NS_ODATA,
+				buildElementName(propertyName)));
+		return countSiblings(propertyElement);
+	}
+
+	private int countSiblings(Element propertyElement) {
+		if (propertyElement == null) {
+			return 0;
+		}
 		int count = 0;
-		if (parent != null) {
-			Element child = parent.getFirstChild(new QName(NS_ODATA,
-					propertyName));
-			while (child != null) {
-				count++;
-				child = child.getNextSibling(new QName(NS_ODATA, propertyName));
-			}
+		Element elementChild = propertyElement.getFirstChild(new QName(
+				NS_ODATA, "element"));
+		if (elementChild == null) {
+			return 1;
+		}
+		while (elementChild != null) {
+			count++;
+			elementChild = elementChild.getNextSibling(new QName(NS_ODATA,
+					"element"));
 		}
 		return count;
 	}
@@ -94,7 +108,11 @@ public class AtomEntryHandler implements EntityHandler {
 	public String getValue(String fqPropertyName) {
 		Element property = getProperty(fqPropertyName);
 		if (property != null) {
-			return property.getText();
+			if (property.getFirstChild() == null) {
+				return property.getText();
+			} else {
+				return getContent(property);
+			}
 		} else {
 			return "";
 		}
@@ -106,13 +124,12 @@ public class AtomEntryHandler implements EntityHandler {
 		if (property != null) {
 			property.setText(value);
 		} else {
-			// setNewValue(fqPropertyName, value);
 			throw new RuntimeException("New value addition not supported");
 		}
 	}
 
 	private Element getProperty(String fqPropertyName) {
-		String[] pathParts = validateAndParsePath(fqPropertyName);
+		String[] pathParts = validateAndParsePropertyName(fqPropertyName);
 		Element parent = getParent(pathParts);
 		String propertyName = pathParts[pathParts.length - 1];
 		if (parent != null) {
@@ -137,7 +154,7 @@ public class AtomEntryHandler implements EntityHandler {
 	}
 
 	private int extractIndex(String path) {
-		if (path.matches(REGX_ELEMENT_WITH_INDEX)) {
+		if (path.matches(REGX_VALID_PART_WITH_INDEX)) {
 			String indexStr = path.substring(path.indexOf("(") + 1,
 					path.indexOf(")"));
 			return Integer.parseInt(indexStr);
@@ -146,19 +163,30 @@ public class AtomEntryHandler implements EntityHandler {
 	}
 
 	private String buildElementName(String path) {
-		if (path.matches(REGX_ELEMENT_WITH_INDEX)) {
+		if (path.matches(REGX_VALID_PART_WITH_INDEX)) {
 			return path.substring(0, path.indexOf("("));
 		}
 		return path;
 	}
 
-	private String[] validateAndParsePath(String fqName) {
+	private String[] validateAndParsePropertyName(String fqName) {
+		if (fqName == null || fqName.isEmpty()) {
+			throw new IllegalArgumentException(
+					"Invalid fully qualified property name '" + fqName);
+		}
 		String[] pathParts = fqName.split("/");
-		for (String pathPart : pathParts) {
-			if (!pathPart.matches(REGX_VALID_ELEMENT)) {
+		int lastPartIndex = pathParts.length - 1;
+		for (int index = 0; index < lastPartIndex; index++) {
+			String pathPart = pathParts[index];
+			if (!pathPart.matches(REGX_VALID_PART_WITH_INDEX)) {
 				throw new IllegalArgumentException("Invalid part '" + pathPart
-						+ "' in fully qualified property name");
+						+ "' in fully qualified property name '" + fqName + "'");
 			}
+		}
+		String elementPart = pathParts[lastPartIndex];
+		if (!elementPart.matches(REGX_VALID_ELEMENT)) {
+			throw new IllegalArgumentException("Invalid property name '"
+					+ elementPart + "'");
 		}
 		return pathParts;
 	}
