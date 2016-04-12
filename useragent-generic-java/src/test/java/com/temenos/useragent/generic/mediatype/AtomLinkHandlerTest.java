@@ -36,7 +36,6 @@ import com.temenos.useragent.generic.mediatype.AtomLinkHandler;
 public class AtomLinkHandlerTest {
 
 	private Entry testEntry;
-	private Link abderaLink;
 
 	@Before
 	public void setUp() {
@@ -89,7 +88,7 @@ public class AtomLinkHandlerTest {
 		assertNotNull(embeddedErrors);
 		// with no index
 		assertEquals("NO SPECIFIED VALUE",
-				embeddedErrors.entity().get("Errors_ErrorsMvGroup/Code"));
+				embeddedErrors.entity().get("Errors_ErrorsMvGroup(0)/Code"));
 		// with index 0
 		assertEquals("NON_FATAL_ERROR",
 				embeddedErrors.entity().get("Errors_ErrorsMvGroup(0)/Type"));
