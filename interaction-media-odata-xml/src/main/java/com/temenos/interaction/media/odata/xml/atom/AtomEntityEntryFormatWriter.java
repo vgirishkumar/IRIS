@@ -22,12 +22,9 @@ package com.temenos.interaction.media.odata.xml.atom;
  */
 
 import java.io.Writer;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -322,10 +319,7 @@ public class AtomEntityEntryFormatWriter {
 		}
 		//Write the property text
 		if(type.equals(EdmSimpleType.DATETIME) && !elementText.isEmpty()) {
-			//Write dates in UTC format
-			SimpleDateFormat formatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-			formatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-			writer.writeElementText(formatUTC.format((Date) property.getValue()));
+			writer.writeElementText(AtomXMLProviderHelper.checkAndConvertDateTimeToUTC(property));
 		}		
 		else if (elementText != null) {
 			writer.writeElementText(elementText);
@@ -395,4 +389,5 @@ public class AtomEntityEntryFormatWriter {
 			}
 		};
 	}
+	
 }
