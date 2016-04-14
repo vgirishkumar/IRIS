@@ -34,5 +34,6 @@ Export-Package: com.temenos.interaction.rimdsl,
  com.temenos.interaction.rimdsl.validation,
  com.temenos.interaction.rimdsl.scoping,
  com.temenos.interaction.rimdsl.generator,
- com.temenos.interaction.rimdsl.formatting
+ com.temenos.interaction.rimdsl.formatting,
+ com.temenos.interaction.rimdsl.encoding
 
