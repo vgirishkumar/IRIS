@@ -282,7 +282,16 @@ public class TestHypermediaTemplateHelper {
 		assertNull(
 				normalizedProperties.get("foo(0).bar(0)"));		
 	}
-	
+
+	@Test
+	public void testExtractSimplePropertyName() {
+		assertEquals(null, HypermediaTemplateHelper.extractSimplePropertyName(null));
+		assertEquals(null, HypermediaTemplateHelper.extractSimplePropertyName(""));
+		assertEquals("bar", HypermediaTemplateHelper.extractSimplePropertyName("bar"));
+		assertEquals("bar", HypermediaTemplateHelper.extractSimplePropertyName("foo_bar"));
+		assertEquals("bar_hello", HypermediaTemplateHelper.extractSimplePropertyName("foo_bar_hello"));
+	}
+
 	private OComplexObject create(OProperty<?>... properties) {
 		List<OProperty<?>> propertyList = new ArrayList<OProperty<?>>();
 		for (OProperty<?> property : properties) {
