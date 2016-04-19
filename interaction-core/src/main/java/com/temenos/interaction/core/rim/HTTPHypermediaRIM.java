@@ -44,6 +44,8 @@ import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import com.temenos.interaction.core.hypermedia.LinkGenerator;
+import com.temenos.interaction.core.hypermedia.LinkGeneratorImpl;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.apache.wink.common.model.multipart.InPart;
 import org.slf4j.Logger;
@@ -90,7 +92,7 @@ import com.temenos.interaction.core.resource.RESTResource;
  * operation to create a new resource (POST) and two operations to change an
  * individual resources state (PUT and DELETE).
  * </P>
- * 
+ *
  * @author aphethean
  *
  */
@@ -110,7 +112,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
      * <p>
      * Create a new resource for HTTP interaction.
      * </p>
-     * 
+     *
      * @param commandController
      *            All commands for all resources.
      * @param hypermediaEngine
@@ -128,7 +130,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
      * <p>
      * Create a new resource for HTTP interaction.
      * </p>
-     * 
+     *
      * @param commandController
      *            All commands for all resources.
      * @param hypermediaEngine
@@ -145,14 +147,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     /*
      * Create a child resource. This constructor is used to create resources
      * where there are sub states of the same entity.
-     * 
+     *
      * @param parent This resources parent interaction model.
-     * 
+     *
      * @param commandController All commands for all resources.
-     * 
+     *
      * @param hypermediaEngine All application states, responsible for creating
      * links from one state to another.
-     * 
+     *
      * @param currentState The current application state when accessing this
      * resource.
      */
@@ -272,7 +274,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
     /**
      * GET a resource representation.
-     * 
+     *
      * @precondition a valid GET command for this resourcePath + id must be
      *               registered with the command controller
      * @postcondition a Response with non null Status must be returned
@@ -447,62 +449,62 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         StatusType status = null;
 
         switch (result) {
-        case INVALID_REQUEST:
-            status = Status.BAD_REQUEST;
-            break;
-        case FAILURE: {
-            if (event.getMethod().equals(HttpMethod.GET) || event.getMethod().equals(HttpMethod.DELETE)) {
-                status = Status.NOT_FOUND;
+            case INVALID_REQUEST:
+                status = Status.BAD_REQUEST;
                 break;
-            } else {
-                status = Status.INTERNAL_SERVER_ERROR;
-                break;
+            case FAILURE: {
+                if (event.getMethod().equals(HttpMethod.GET) || event.getMethod().equals(HttpMethod.DELETE)) {
+                    status = Status.NOT_FOUND;
+                    break;
+                } else {
+                    status = Status.INTERNAL_SERVER_ERROR;
+                    break;
+                }
             }
-        }
-        case CONFLICT:
-            status = Status.PRECONDITION_FAILED;
-            break;
-        case SUCCESS: {
+            case CONFLICT:
+                status = Status.PRECONDITION_FAILED;
+                break;
+            case SUCCESS: {
 
-            status = Status.INTERNAL_SERVER_ERROR;
+                status = Status.INTERNAL_SERVER_ERROR;
 
-            if (event.getMethod().equals(HttpMethod.GET)) {
-                String ifNoneMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_NONE_MATCH);
-                String etag = ctx.getResource() != null ? ctx.getResource().getEntityTag() : null;
-                ResourceState targetState = ctx.getTargetState();
-                if (result == Result.SUCCESS && etag != null && etag.equals(ifNoneMatch)) {
-                    // Response etag matches IfNoneMatch precondition
-                    status = Status.NOT_MODIFIED;
-                } else if (result == Result.SUCCESS) {
-                    boolean hasRedirect = false;
-                    for (ResourceState target : targetState.getAllTargets()) {
-                        for (Transition transition : targetState.getTransitions(target)) {
-                            if ((transition.getCommand().getFlags() & Transition.REDIRECT) == Transition.REDIRECT)
-                                hasRedirect = true;
+                if (event.getMethod().equals(HttpMethod.GET)) {
+                    String ifNoneMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_NONE_MATCH);
+                    String etag = ctx.getResource() != null ? ctx.getResource().getEntityTag() : null;
+                    ResourceState targetState = ctx.getTargetState();
+                    if (result == Result.SUCCESS && etag != null && etag.equals(ifNoneMatch)) {
+                        // Response etag matches IfNoneMatch precondition
+                        status = Status.NOT_MODIFIED;
+                    } else if (result == Result.SUCCESS) {
+                        boolean hasRedirect = false;
+                        for (ResourceState target : targetState.getAllTargets()) {
+                            for (Transition transition : targetState.getTransitions(target)) {
+                                if ((transition.getCommand().getFlags() & Transition.REDIRECT) == Transition.REDIRECT)
+                                    hasRedirect = true;
+                            }
+                        }
+                        if (hasRedirect) {
+                            status = Status.SEE_OTHER;
+                        } else {
+                            status = Status.OK;
                         }
                     }
-                    if (hasRedirect) {
-                        status = Status.SEE_OTHER;
-                    } else {
-                        status = Status.OK;
+                } else if (event.getMethod().equals(HttpMethod.POST)) {
+                    // TODO need to add support for differed create (ACCEPTED) and
+                    // actually created (CREATED)
+                    ResourceState currentState = ctx.getCurrentState();
+                    if (result == Result.SUCCESS) {
+                        if (currentState != null && currentState.getAllTargets() != null
+                                && currentState.getAllTargets().size() > 0 && ctx.getResource() != null) {
+                            status = Status.CREATED;
+                        } else if (ctx.getResource() == null) {
+                            status = Status.NO_CONTENT;
+                        } else {
+                            logger.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
+                            status = Status.OK;
+                        }
                     }
-                }
-            } else if (event.getMethod().equals(HttpMethod.POST)) {
-                // TODO need to add support for differed create (ACCEPTED) and
-                // actually created (CREATED)
-                ResourceState currentState = ctx.getCurrentState();
-                if (result == Result.SUCCESS) {
-                    if (currentState != null && currentState.getAllTargets() != null
-                            && currentState.getAllTargets().size() > 0 && ctx.getResource() != null) {
-                        status = Status.CREATED;
-                    } else if (ctx.getResource() == null) {
-                        status = Status.NO_CONTENT;
-                    } else {
-                        logger.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
-                        status = Status.OK;
-                    }
-                }
-            } else if (event.getMethod().equals(HttpMethod.PUT)) {
+                } else if (event.getMethod().equals(HttpMethod.PUT)) {
                 /*
                  * The resource manager must return an error result code or have
                  * stored this resource in a consistent state (conceptually a
@@ -512,43 +514,43 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                  * TODO add support for PUTs that create (CREATED) and PUTs that
                  * replace (OK)
                  */
-                if (result == Result.SUCCESS && ctx.getResource() == null) {
-                    status = Status.NO_CONTENT;
-                } else if (result == Result.SUCCESS) {
-                    status = Status.OK;
-                }
-            } else if (event.getMethod().equals(HttpMethod.DELETE)) {
-                if (result == Result.SUCCESS) {
-                    // We do not support a delete command that returns a
-                    // resource (HTTP does permit this)
-                    assert (ctx.getResource() == null);
-                    ResourceState targetState = ctx.getTargetState();
-                    Link linkUsed = ctx.getLinkUsed();
-                    if (targetState.isTransientState()) {
-                        Transition autoTransition = targetState.getRedirectTransition();
-                        if (autoTransition.getTarget().getPath().equals(ctx.getCurrentState().getPath())
-                                || (linkUsed != null && autoTransition.getTarget() == linkUsed.getTransition()
-                                        .getSource())) {
-                            // this transition has been configured to reset
-                            // content
-                            status = HttpStatusTypes.RESET_CONTENT;
-                        } else {
-                            status = Status.SEE_OTHER;
-                        }
-                    } else if (targetState.isPseudoState()
-                            || targetState.getPath().equals(ctx.getCurrentState().getPath())) {
-                        // did we delete ourselves or pseudo final state, both
-                        // are transitions to No Content
-                        status = Response.Status.NO_CONTENT;
-                    } else {
-                        throw new IllegalArgumentException("Resource interaction exception, should not be "
-                                + "possible to use a link where target state is not our current state");
+                    if (result == Result.SUCCESS && ctx.getResource() == null) {
+                        status = Status.NO_CONTENT;
+                    } else if (result == Result.SUCCESS) {
+                        status = Status.OK;
                     }
-                } else {
-                    assert (false) : "Unhandled result from Command";
+                } else if (event.getMethod().equals(HttpMethod.DELETE)) {
+                    if (result == Result.SUCCESS) {
+                        // We do not support a delete command that returns a
+                        // resource (HTTP does permit this)
+                        assert (ctx.getResource() == null);
+                        ResourceState targetState = ctx.getTargetState();
+                        Link linkUsed = ctx.getLinkUsed();
+                        if (targetState.isTransientState()) {
+                            Transition autoTransition = targetState.getRedirectTransition();
+                            if (autoTransition.getTarget().getPath().equals(ctx.getCurrentState().getPath())
+                                    || (linkUsed != null && autoTransition.getTarget() == linkUsed.getTransition()
+                                    .getSource())) {
+                                // this transition has been configured to reset
+                                // content
+                                status = HttpStatusTypes.RESET_CONTENT;
+                            } else {
+                                status = Status.SEE_OTHER;
+                            }
+                        } else if (targetState.isPseudoState()
+                                || targetState.getPath().equals(ctx.getCurrentState().getPath())) {
+                            // did we delete ourselves or pseudo final state, both
+                            // are transitions to No Content
+                            status = Response.Status.NO_CONTENT;
+                        } else {
+                            throw new IllegalArgumentException("Resource interaction exception, should not be "
+                                    + "possible to use a link where target state is not our current state");
+                        }
+                    } else {
+                        assert (false) : "Unhandled result from Command";
+                    }
                 }
             }
-        }
         }
 
         return status;
@@ -559,7 +561,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         /*
          * Wink passes query parameters without decoding them. So we have to
          * decode them here. Note call to decodeQueryParameters().
-         * 
+         *
          * However wink is found to have already decoded path parameters
          * (possibly because it uses them internally. So we do NOT have to
          * decode them again here. If we did two levels of decoding would be
@@ -629,8 +631,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             } else {
                 ResourceState targetState = ctx.getTargetState();
                 Transition redirectTransition = targetState.getRedirectTransition();
-                Link target = hypermediaEngine.createLink(redirectTransition, entity, pathParameters,
-                        ctx.getQueryParameters(), true);
+
+                LinkGenerator linkGenerator = new LinkGeneratorImpl(hypermediaEngine, redirectTransition, null).setAllQueryParameters(true);
+                Collection<Link> links = linkGenerator.createLink(pathParameters, ctx.getQueryParameters(), entity);
+                Link target = (!links.isEmpty()) ? links.iterator().next() : null;
                 responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
             }
         } else if (status.equals(Response.Status.CREATED)) {
@@ -644,8 +648,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                     logger.warn("Resource state [" + currentState.getName()
                             + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
                 assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
-                Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>) resource).getEntity(),
-                        pathParameters);
+
+                LinkGenerator linkGenerator = new LinkGeneratorImpl(hypermediaEngine, autoTransition, null);
+                Collection<Link> links = linkGenerator.createLink(pathParameters, null, ((EntityResource<?>)resource).getEntity());
+                Link target = (!links.isEmpty()) ? links.iterator().next() : null;
                 responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
                 Response autoResponse = getResource(headers, autoTransition, ctx);
                 if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
@@ -679,8 +685,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                         logger.warn("Resource state [" + currentState.getName()
                                 + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
 
-                    Link target = hypermediaEngine.createLink(autoTransition,
-                            ((EntityResource<?>) resource).getEntity(), pathParameters);
+                    LinkGenerator linkGenerator = new LinkGeneratorImpl(hypermediaEngine, autoTransition, null);
+                    Collection<Link> links = linkGenerator.createLink(pathParameters, null, ((EntityResource<?>)resource).getEntity());
+                    Link target = (!links.isEmpty()) ? links.iterator().next() : null;
                     responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
                     Response autoResponse = getResource(headers, autoTransition, ctx);
                     if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
@@ -941,8 +948,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
     private boolean isSuccessful(Response result) {
         return result.getStatus() / 100 == 2; // Work out whether the result
-                                              // HTTP status code was within the
-                                              // 2XX range
+        // HTTP status code was within the
+        // 2XX range
     }
 
     /**
@@ -974,7 +981,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
     /**
      * POST a document to a resource.
-     * 
+     *
      * @precondition a valid POST command for this resourcePath + id must be
      *               registered with the command controller
      * @postcondition a Response with non null Status must be returned
@@ -993,7 +1000,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
     /**
      * PUT a resource.
-     * 
+     *
      * @precondition a valid PUT command for this resourcePath + id must be
      *               registered with the command controller
      * @postcondition a Response with non null Status must be returned
@@ -1014,7 +1021,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
     /**
      * DELETE a resource.
-     * 
+     *
      * @precondition a valid DELETE command for this resourcePath + id must be
      *               registered with the command controller
      * @postcondition a Response with non null Status must be returned
@@ -1034,7 +1041,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
     /**
      * OPTIONS for a resource.
-     * 
+     *
      * @precondition a valid GET command for this resourcePath must be
      *               registered with the command controller
      * @postcondition a Response with non null Status must be returned
@@ -1055,7 +1062,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
     /**
      * Get the valid methods for interacting with this resource.
-     * 
+     *
      * @return
      */
     public Set<String> getInteractions() {
