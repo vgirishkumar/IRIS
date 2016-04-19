@@ -55,8 +55,8 @@ public class Link {
 	//LinkId
 	private String linkId;
 	
-	//Source entity value
-	private String sourceEntityValue;
+	//Source property name
+	private String sourcePropertyName;
 
 	/**
 	 * Construct a simple link used for GET operations.
@@ -87,11 +87,11 @@ public class Link {
 	 * Construct a link from a transition having a uri with a multivalue drill-down
 	 * @param transition
 	 */
-	public Link(Transition transition, String rel, String href, String method, String sourceEntityValue) {
+	public Link(Transition transition, String rel, String href, String method, String sourcePropertyName) {
 		this(transition, transition.getLabel() != null
 				&& !transition.getLabel().equals("") ? transition.getLabel()
 				: transition.getTarget().getName(), rel, href, null, null,
-				method, null, sourceEntityValue);
+				method, null, sourcePropertyName);
 	}
 
 	public Link(Transition transition, String title, String rel, String href,
@@ -102,7 +102,7 @@ public class Link {
 	
 	public Link(Transition transition, String title, String rel, String href,
 			String[] consumes, String[] produces, String method,
-			MultivaluedMap<String, String> extensions, String sourceEntityValue) {
+			MultivaluedMap<String, String> extensions, String sourcePropertyName) {
 		this.transition = transition;
 		if (title == null && transition != null) {
 			title = transition.getId();
@@ -116,7 +116,7 @@ public class Link {
 		this.method = method;
 		this.extensions = extensions;
 		this.linkId = transition != null ? transition.getLinkId() : null;
-		this.sourceEntityValue = sourceEntityValue;
+		this.sourcePropertyName = sourcePropertyName;
 	}
 
 	public Transition getTransition() {
@@ -139,8 +139,8 @@ public class Link {
 		return href;
 	}
 	
-	public String getSourceEntityValue() {
-		return sourceEntityValue;
+	public String getSourcePropertyName() {
+		return sourcePropertyName;
 	}
 
 	public String getLinkId() {
@@ -211,8 +211,8 @@ public class Link {
 			buf.append("; linkId=\"").append(linkId).append("\"");
 		}
 		
-		if (sourceEntityValue != null) {
-			buf.append("; sourceEntityValue=\"").append(sourceEntityValue).append("\"");
+		if (sourcePropertyName != null) {
+			buf.append("; sourcePropertyName=\"").append(sourcePropertyName).append("\"");
 		}
 		return buf.toString();
 	}
@@ -243,7 +243,7 @@ public class Link {
 		private String[] consumes;
 		private MultivaluedMap<String, String> extensions;
 		private String linkId;
-		private String sourceEntityValue;
+		private String sourcePropertyName;
 
 		public Builder transition(Transition transition) {
 			this.transition = transition;
@@ -295,8 +295,8 @@ public class Link {
 			return this;
 		}
 		
-		public Builder sourceEntityValue(String sourceEntityValue) {
-			this.sourceEntityValue = sourceEntityValue;
+		public Builder sourcePropertyName(String sourcePropertyName) {
+			this.sourcePropertyName = sourcePropertyName;
 			return this;
 		}
 
@@ -320,6 +320,6 @@ public class Link {
 		} else {
 			this.linkId = builder.linkId;
 		}
-		this.sourceEntityValue = builder.sourceEntityValue;		
+		this.sourcePropertyName = builder.sourcePropertyName;
 	}
 }

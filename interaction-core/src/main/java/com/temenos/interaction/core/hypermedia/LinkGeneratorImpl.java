@@ -147,7 +147,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
     }
 
     private Link createLink(Map<String, Object> transitionProperties,
-            MultivaluedMap<String, String> queryParameters, Object entity, String sourceEntityValue) {
+            MultivaluedMap<String, String> queryParameters, Object entity, String sourcePropertyName) {
         assert (RequestContext.getRequestContext() != null);
         ResourceStateProvider resourceStateProvider = resourceStateMachine.getResourceStateProvider();
         try {
@@ -278,7 +278,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
                 link = new Link(transition, rel, href.toASCIIString()+"#@"+createLinkForProfile(transition), method);
             } else {
                 //Create link as normal behaviour
-                link = new Link(transition, rel, href.toASCIIString(), method, sourceEntityValue);
+                link = new Link(transition, rel, href.toASCIIString(), method, sourcePropertyName);
             }
 
             logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId() + ", rel="

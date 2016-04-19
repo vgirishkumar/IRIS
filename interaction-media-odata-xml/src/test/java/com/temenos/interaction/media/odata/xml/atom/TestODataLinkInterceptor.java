@@ -567,18 +567,18 @@ public class TestODataLinkInterceptor {
 	}
 	
 	@Test
-	public void testLinkWithSourceEntityValuePresent() {
+	public void testLinkWithSourcePropertyNamePresent() {
 	    Transition t = createMockTransition(
                 createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
                 createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
 
         ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
-        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourceEntityValue"));
-        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourceEntityValue/FundsTransfers", result.getRel());	            
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourcePropertyName"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourcePropertyName/FundsTransfers", result.getRel());
 	}
 	
 	@Test
-    public void testLinkWithSourceEntityValueSetToNull() {
+    public void testLinkWithSourcePropertyNameSetToNull() {
         Transition t = createMockTransition(
                 createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
                 createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
@@ -636,8 +636,8 @@ public class TestODataLinkInterceptor {
                 createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", rels));
 
         ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
-        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourceEntityValue"));
-        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourceEntityValue/FundsTransfers " + targetRel, result.getRel());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourcePropertyName"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourcePropertyName/FundsTransfers " + targetRel, result.getRel());
     }
 	
 	@Test
@@ -647,8 +647,8 @@ public class TestODataLinkInterceptor {
                 createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", null));
 
         ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
-        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourceEntityValue"));
-        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourceEntityValue/FundsTransfers", result.getRel());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourcePropertyName"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourcePropertyName/FundsTransfers", result.getRel());
     }
 
 	@Test
@@ -699,8 +699,8 @@ public class TestODataLinkInterceptor {
 		checkODataLinkRelationRetrieval(transitionMock, null, "self", "test", "self");
 	}
 
-	private void checkODataLinkRelationRetrieval(Transition transition, String sourceEntityValue, String rel, String entitySetName, String expected) {
-		checkODataLinkRelationRetrieval(new Link(transition, rel, null, null, sourceEntityValue), entitySetName, expected);
+	private void checkODataLinkRelationRetrieval(Transition transition, String sourcePropertyName, String rel, String entitySetName, String expected) {
+		checkODataLinkRelationRetrieval(new Link(transition, rel, null, null, sourcePropertyName), entitySetName, expected);
 	}
 
 	private void checkODataLinkRelationRetrieval(Link link, String entitySetName, String expected) {

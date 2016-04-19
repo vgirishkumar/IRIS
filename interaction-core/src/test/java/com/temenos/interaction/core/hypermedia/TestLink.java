@@ -249,19 +249,19 @@ public class TestLink {
 	}
 	
 	@Test
-	public void testSourceEntityValueEquals() {
+	public void testSourcePropertyNameEquals() {
 	    Link aLink = new Link.Builder()
         .id("id")
         .href("href")
         .title("title")
-        .sourceEntityValue("ABCD")
+        .sourcePropertyName("ABCD")
         .build();
 	    
 	    Link aNOtherLink = new Link.Builder()
         .id("id")
         .href("href")
         .title("title")
-        .sourceEntityValue("ABCD")
+        .sourcePropertyName("ABCD")
         .build();
 	    assertEquals(aLink, aNOtherLink);
 

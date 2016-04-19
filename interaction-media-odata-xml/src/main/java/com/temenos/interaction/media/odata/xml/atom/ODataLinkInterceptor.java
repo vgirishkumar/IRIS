@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.RESTResource;
 
 public class ODataLinkInterceptor implements LinkInterceptor {
@@ -159,8 +158,8 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 	}
 
 	private String resolveRelationIdentifier(Link link, String entitySetName) {
-		if (link.getSourceEntityValue() != null) {//For multivalue drilldown collection resource
-			return link.getTransition().getSource().getEntityName() + "_" + link.getSourceEntityValue() + "/" + entitySetName;
+		if (link.getSourcePropertyName() != null) {//For multivalue drilldown collection resource
+			return link.getTransition().getSource().getEntityName() + "_" + link.getSourcePropertyName() + "/" + entitySetName;
 		}
 		return entitySetName;
 	}
@@ -172,7 +171,7 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 		if (link.getRel().equals("item") || link.getRel().equals("collection") || link.getRel().isEmpty()) {
 			return false;
 		}
-		if (link.getTransition() == null || (link.getSourceEntityValue() == null)) {
+		if (link.getTransition() == null || (link.getSourcePropertyName() == null)) {
 			return true;
 		}
 		return false;
