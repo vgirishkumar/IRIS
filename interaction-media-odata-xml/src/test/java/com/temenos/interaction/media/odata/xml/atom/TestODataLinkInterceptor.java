@@ -658,6 +658,7 @@ public class TestODataLinkInterceptor {
 		String descriptionRel = XmlFormatWriter.related + "/DESCRIPTION";
 		String targetRel = "http://temenostech.com/ado/2007/08/TARGET";
 
+		//From ResourceState to CollectionResourceState - No SourcePropertyName
 		Transition transitionMock = createMockTransition(
 				createMockResourceState("FundsTransfersIAuth", "SourceFundsTransfer", true),
 				createMockCollectionResourceStateWithRel("FundsTransfersIHold", "TargetFundsTransfer", null));
@@ -669,6 +670,7 @@ public class TestODataLinkInterceptor {
 		checkODataLinkRelationRetrieval(transitionMock, null, "self", "test", "self");
 		checkODataLinkRelationRetrieval(transitionMock, null, "", "", XmlFormatWriter.related);
 
+		//From ResourceState to CollectionResourceState - SourcePropertyName provided
 		checkODataLinkRelationRetrieval(transitionMock, "sev", targetRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/test " + targetRel);
 		checkODataLinkRelationRetrieval(transitionMock, "sev", descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/test");
 		checkODataLinkRelationRetrieval(transitionMock, "sev", targetRel + " " + descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/test " + targetRel);
@@ -677,6 +679,7 @@ public class TestODataLinkInterceptor {
 		checkODataLinkRelationRetrieval(transitionMock, "sev", "self", "test", "self");
 		checkODataLinkRelationRetrieval(transitionMock, "sev", "", "", XmlFormatWriter.related + "SourceFundsTransfer_sev/");
 
+		//From ResourceState to ResourceState - No SourcePropertyName and source same as target
 		transitionMock = createMockTransition(
 				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true),
 				createMockResourceState("FundsTransfersIHold", "FundsTransfer", false));
@@ -688,6 +691,7 @@ public class TestODataLinkInterceptor {
 		checkODataLinkRelationRetrieval(transitionMock, null, "collection", "test", "self");
 		checkODataLinkRelationRetrieval(transitionMock, null, "self", "test", "self");
 
+		//From ResourceState to ResourceState - No SourcePropertyName and source different from target
 		transitionMock = createMockTransition(
 				createMockResourceState("FundsTransfersIAuth", "SourceFundsTransfer", false),
 				createMockResourceState("FundsTransfersIHold", "TargetFundsTransfer", false));
@@ -697,6 +701,17 @@ public class TestODataLinkInterceptor {
 		checkODataLinkRelationRetrieval(transitionMock, null, "item", "test", XmlFormatWriter.related + "TargetFundsTransfer");
 		checkODataLinkRelationRetrieval(transitionMock, null, "collection", "test", XmlFormatWriter.related + "TargetFundsTransfer");
 		checkODataLinkRelationRetrieval(transitionMock, null, "self", "test", "self");
+		
+		//From ResourceState to ResourceState - SourcePropertyName provided and source different from target
+		transitionMock = createMockTransition(
+				createMockResourceState("FundsTransfersIAuth", "SourceFundsTransfer", false),
+				createMockResourceState("FundsTransfersIHold", "TargetFundsTransfer", false));
+		checkODataLinkRelationRetrieval(transitionMock, "sev", targetRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer " + targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, "sev", descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", targetRel + " " + descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer " + targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "item", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "collection", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "self", "test", "self");
 	}
 
 	private void checkODataLinkRelationRetrieval(Transition transition, String sourcePropertyName, String rel, String entitySetName, String expected) {
