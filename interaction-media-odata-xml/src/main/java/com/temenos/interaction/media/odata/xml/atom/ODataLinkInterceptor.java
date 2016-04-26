@@ -146,14 +146,13 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 		}
 
 		if (link.getTransition().getTarget() instanceof CollectionResourceState) {
-			return getRelFromCollectionResourceState(link, entitySetName, relValue);
-		} else {// (link.getTransition().getTarget() instanceof ResourceState) {
-			//entry type relations should use the entityType name
-			return buildRel(XmlFormatWriter.related + link.getTransition().getTarget().getEntityName(), relValue);
+			return getRelFromResourceState(link, entitySetName, relValue);
+		} else {
+			return getRelFromResourceState(link, link.getTransition().getTarget().getEntityName(), relValue);
 		}
 	}
 
-	private String getRelFromCollectionResourceState(Link link, String entitySetName, String relValue) {
+	private String getRelFromResourceState(Link link, String entitySetName, String relValue) {
 		return buildRel(XmlFormatWriter.related + resolveRelationIdentifier(link, entitySetName), relValue);
 	}
 
