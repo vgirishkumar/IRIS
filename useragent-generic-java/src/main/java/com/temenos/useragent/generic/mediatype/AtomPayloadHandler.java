@@ -63,19 +63,11 @@ public class AtomPayloadHandler implements PayloadHandler {
 	}
 
 	public List<Link> links() {
-		List<Link> links = new ArrayList<Link>();
-		List<org.apache.abdera.model.Link> abderaLinks = feed.getLinks();
-		for (org.apache.abdera.model.Link abderaLink : abderaLinks) {
-			links.add(new LinkImpl.Builder(abderaLink.getAttributeValue("href"))
-					.baseUrl(AtomUtil.getBaseUrl(feed))
-					.rel(AtomUtil.extractRel(abderaLink
-							.getAttributeValue("rel")))
-					.title(abderaLink.getAttributeValue("title"))
-					.description(
-							AtomUtil.extractDescription(abderaLink
-									.getAttributeValue("rel"))).build());
+		if (isCollection()) {
+			return buildLinks(feed.getLinks());
+		} else {
+			return entityTransformer.getLinks();
 		}
-		return links;
 	}
 
 	@Override
@@ -134,5 +126,20 @@ public class AtomPayloadHandler implements PayloadHandler {
 	@Override
 	public void setParameter(String parameter) {
 		this.parameter = parameter;
+	}
+
+	private List<Link> buildLinks(List<org.apache.abdera.model.Link> abderaLinks) {
+		List<Link> links = new ArrayList<Link>();
+		for (org.apache.abdera.model.Link abderaLink : abderaLinks) {
+			links.add(new LinkImpl.Builder(abderaLink.getAttributeValue("href"))
+					.baseUrl(AtomUtil.getBaseUrl(feed))
+					.rel(AtomUtil.extractRel(abderaLink
+							.getAttributeValue("rel")))
+					.title(abderaLink.getAttributeValue("title"))
+					.description(
+							AtomUtil.extractDescription(abderaLink
+									.getAttributeValue("rel"))).build());
+		}
+		return links;
 	}
 }

@@ -157,11 +157,7 @@ public class DefaultInteractionSession implements InteractionSession {
 	}
 
 	private List<Link> payloadLinks() {
-		if (sessionContext.getResponse().body().isCollection()) {
-			return sessionContext.getResponse().body().links();
-		} else {
-			return entity.links().all();
-		}
+		return sessionContext.getResponse().body().links();
 	}
 
 	private void initialiseToDefaults() {
