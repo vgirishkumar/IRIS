@@ -91,7 +91,7 @@ public class AtomPayloadHandlerTest {
 	}
 
 	@Test
-	public void testGetLinks() throws Exception {
+	public void testGetLinksForCollection() throws Exception {
 		handler.setPayload(IOUtils.toString(AtomPayloadHandler.class
 				.getResourceAsStream("/atom_feed_with_single_entry.txt")));
 		List<Link> links = handler.links();
@@ -112,6 +112,46 @@ public class AtomPayloadHandlerTest {
 		assertEquals("create new deal", secondLink.title());
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customer", secondLink.description());
 		assertFalse(secondLink.hasEmbeddedPayload());
+	}
+
+	@Test
+	public void testGetLinksForEntity() throws Exception {
+		handler.setPayload(IOUtils.toString(AtomPayloadHandler.class
+				.getResourceAsStream("/atom_entry_with_xml_content.txt")));
+		List<Link> links = handler.links();
+		assertEquals(4, links.size());
+
+		// first 'self' link
+		Link firstLink = links.get(0);
+		assertEquals("self", firstLink.rel());
+		assertEquals("Customers('100974')", firstLink.href());
+		assertEquals("Customer", firstLink.title());
+		assertEquals("", firstLink.description());
+		assertFalse(firstLink.hasEmbeddedPayload());
+
+		// second 'see' link
+		Link secondLink = links.get(1);
+		assertEquals("http://mybank/rels/see", secondLink.rel());
+		assertEquals("Customers('100974')/see", secondLink.href());
+		assertEquals("see record", secondLink.title());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/Customer", secondLink.description());
+		assertFalse(secondLink.hasEmbeddedPayload());
+
+		// third 'input' link
+		Link thirdLink = links.get(2);
+		assertEquals("http://mybank/rels/input", thirdLink.rel());
+		assertEquals("Customers('100974')/input", thirdLink.href());
+		assertEquals("input deal", thirdLink.title());
+		assertEquals("", thirdLink.description());
+		assertFalse(thirdLink.hasEmbeddedPayload());
+
+		// fourth 'review' link
+		Link fourthLink = links.get(3);
+		assertEquals("http://mybank/rels/review", fourthLink.rel());
+		assertEquals("Customers('100974')/review", fourthLink.href());
+		assertEquals("audit deal", fourthLink.title());
+		assertEquals("", fourthLink.description());
+		assertFalse(fourthLink.hasEmbeddedPayload());
 	}
 
 	@Test
