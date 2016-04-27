@@ -468,14 +468,13 @@ public class ResourceStateMachine {
 		// don't do anything if the state is not registered
 		if(!resourceStatesByName.containsKey(state.getName())) return;
 
-		// remove transitions originating in state for this method only
         for (Transition transition : state.getTransitions()) {
+
+			// remove transitions originating in state for this method only
             if(transition.getCommand().getMethod() == method)
                 transitionsById.remove(transition.getId());
-        }
 
-        // remove transitions originating in state for this method only
-        for (Transition transition : state.getTransitions()) {
+	        // remove transitions originating in state for this method only
             if (transition.getTarget() != null) {
                 if(transition.getCommand().getMethod() == method)
                     transitionsByRel.remove(transition.getTarget().getRel());
@@ -499,7 +498,7 @@ public class ResourceStateMachine {
 
 		// only remove if there are no methods associated with the state
 		if(stateInteractions != null)
-			if(stateInteractions.size() == 0)
+			if(stateInteractions.isEmpty())
 		        resourceStatesByName.remove(state.getName());
 	}
 
