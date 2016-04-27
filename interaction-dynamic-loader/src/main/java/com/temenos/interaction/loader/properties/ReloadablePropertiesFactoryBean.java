@@ -330,8 +330,8 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 				String sFileName = location.getFilename();
 
 				if (sFileName.endsWith(".xml")) {
-					if (sFileName.startsWith("IRIS-T24-")) {
-						logger.info("Refreshing : " + location.getFilename());
+					if (sFileName.startsWith("IRIS-") || sFileName.startsWith("metadata-")) {
+						logger.info("Refreshing : " + sFileName);
 						xmlNotifier.execute(new XmlChangedEventImpl(location));
 					}
 				} else {

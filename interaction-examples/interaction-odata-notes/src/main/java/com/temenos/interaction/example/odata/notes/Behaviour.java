@@ -92,7 +92,7 @@ public class Behaviour {
 
 	public ResourceState getNotes() {
 		CollectionResourceState notes = new CollectionResourceState(NOTE, "Notes", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), NOTES_PATH);
-		ResourceState pseudoCreated = new ResourceState(notes, "PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState pseudoCreated = new ResourceState(notes, "Note.PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 1 for configuring the interaction - use another state as a parent
 		ResourceState note = new ResourceState(notes, 
 				"note", 
@@ -150,7 +150,7 @@ public class Behaviour {
 
 	public ResourceState getPersons() {
 		CollectionResourceState persons = new CollectionResourceState(PERSON, "Persons", createActionList(new Action("GETEntities", Action.TYPE.VIEW), null), PERSONS_PATH);
-		ResourceState pseudo = new ResourceState(persons, "PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
+		ResourceState pseudo = new ResourceState(persons, "Person.PseudoCreated", createActionList(null, new Action("CreateEntity", Action.TYPE.ENTRY)));
 		// Option 2 for configuring the interaction - specify the entity, state, and fully qualified path
 		ResourceState person = new ResourceState(PERSON, 
 				"person", 

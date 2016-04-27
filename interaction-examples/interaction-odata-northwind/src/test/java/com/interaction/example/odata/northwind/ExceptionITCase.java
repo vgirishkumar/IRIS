@@ -51,9 +51,9 @@ public class ExceptionITCase extends AbstractNorthwindRuntimeTest {
 	public void test500InvalidKey() {
 		ODataConsumer consumer = getConsumer();
 		OEntity customer = null;
-		boolean exceptionThrown = true;
+		boolean exceptionThrown = false;
 		try {
-			customer = consumer.getEntity("Customers", 1).execute();
+			customer = consumer.getEntity("InvalidKey", 1).execute();
 		} catch (Exception e) {
 			exceptionThrown = true;
 		}

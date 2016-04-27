@@ -261,17 +261,34 @@ public class TestResourceStateMachine {
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(exists, "end", new ArrayList<Action>());
-	
+
 		begin.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 		exists.addTransition(new Transition.Builder().method("PUT").target(exists).build());
 		exists.addTransition(new Transition.Builder().method("DELETE").target(end).build());
-		
+
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		Collection<ResourceState> states = sm.getStates();
 		assertEquals("Number of states", 3, states.size());
 		assertTrue(states.contains(begin));
 		assertTrue(states.contains(exists));
 		assertTrue(states.contains(end));
+	}
+
+	@Test
+	public void testGetStatesWithStateNameCollisions() {
+		String ENTITY_NAME_1 = "Person";
+		String ENTITY_NAME_2 = "Note";
+
+		ResourceState state_1 = new ResourceState(ENTITY_NAME_1, "state", new ArrayList<Action>(), "{id}");
+		ResourceState state_2 = new ResourceState(ENTITY_NAME_2, "state", new ArrayList<Action>(), "{id}");
+
+		state_1.addTransition(new Transition.Builder().method("PUT").target(state_2).build());
+
+		ResourceStateMachine sm = new ResourceStateMachine(state_1);
+
+		// there should only be ONE state, which one is undefined
+		Collection<ResourceState> states = sm.getStates();
+		assertEquals("Number of states", 1, states.size());
 	}
 
 	@Test
@@ -575,8 +592,9 @@ public class TestResourceStateMachine {
 		ResourceStateMachine sm = new ResourceStateMachine(initial);
 
 		Map<String, Set<ResourceState>> stateMap = sm.getResourceStatesByPath(draft);
-		assertEquals("Number of states", 2, stateMap.size());
+		assertEquals("Number of states", 3, stateMap.size());
 		Set<String> entrySet = stateMap.keySet();
+	    assertTrue(entrySet.contains("/entity"));
 		assertTrue(entrySet.contains("/entity/published"));
 		assertTrue(entrySet.contains("/entity/draft"));
 		assertEquals(2, stateMap.get("/entity/published").size());
@@ -627,6 +645,348 @@ public class TestResourceStateMachine {
 		assertTrue(methods.contains("DELETE"));		
 	}
 
+	/*
+ 	* The state machine is built with a default GET interaction for the initial state.
+ 	*/
+	@Test
+	public void testDefaultMethodForInitState() {
+		String entityName = "EN";
+		ResourceState A = new ResourceState(entityName, "A", new ArrayList<Action>(), "/A");
+		ResourceState B = new ResourceState(entityName, "B", new ArrayList<Action>(), "/B");
+		ResourceState C = new ResourceState(entityName, "C", new ArrayList<Action>(), "/C");
+		B.addTransition(new Transition.Builder().method("POST").target(C).build());
+
+		// initialised with state A
+		ResourceStateMachine smInitA = new ResourceStateMachine(A);
+
+		// only the one state is present
+		assertEquals("Number of states", 1, smInitA.getStates().size());
+		// GET interaction is registered by default
+		assertEquals("Number of interactions for A", 1, smInitA.getInteractions(A).size());
+		assertTrue("GET interactions for A", smInitA.getInteractions(A).contains("GET"));
+
+		// initialised with state B
+		ResourceStateMachine smInitB = new ResourceStateMachine(B);
+
+		// states B and C are present
+		assertEquals("Number of states", 2, smInitB.getStates().size());
+		// GET interaction is registered by default
+		assertEquals("Number of interactions for B", 1, smInitB.getInteractions(B).size());
+		assertTrue("GET interactions for B", smInitB.getInteractions(B).contains("GET"));
+		// check tha no GET interaction was added for state C
+		assertEquals("Number of interactions for C", 1, smInitB.getInteractions(C).size());
+		assertTrue("POST interactions for C", smInitB.getInteractions(C).contains("POST"));
+	}
+
+	/*
+	 * Create state machine with transitions: B>POST>A; C>POST>A
+	 * The pair (A,POST) should be registered only once (the resource
+	 * state machine doesn't care from which resource it comes from).
+	 */
+	@Test
+	public void testRegisterDuplicateMethodForState() {
+		String entityName = "EN";
+		ResourceState A = new ResourceState(entityName, "A", new ArrayList<Action>(), "/A");
+		ResourceState B = new ResourceState(entityName, "B", new ArrayList<Action>(), "/B");
+		ResourceState C = new ResourceState(entityName, "C", new ArrayList<Action>(), "/C");
+
+		ResourceStateMachine stateMachine = new ResourceStateMachine(A);
+
+		// only the one state is present
+		assertEquals("Number of states", 1, stateMachine.getStates().size());
+		// GET interaction is registered by default
+		assertEquals("Number of interactions for A", 1, stateMachine.getInteractions(A).size());
+
+		B.addTransition(new Transition.Builder().method("POST").target(A).build());
+		C.addTransition(new Transition.Builder().method("POST").target(A).build());
+
+		// B should not be registered
+		assertFalse(stateMachine.getResourceStateByName().containsKey(B.getName()));
+		// C should not be registered
+		assertFalse(stateMachine.getResourceStateByName().containsKey(C.getName()));
+
+		// now register the state with the method
+		stateMachine.register(A, "POST");
+
+		// we still have the same number of states
+		assertEquals("Number of states", 1, stateMachine.getStates().size());
+		assertTrue(stateMachine.getResourceStateByName().containsKey(A.getName()));
+		// A can be reached by the default GET method and the registered POST method
+		assertEquals("Number of interactions for A", 2, stateMachine.getInteractions(A).size());
+	}
+
+	/*
+ 	* Create state machine with transitions: D>GET>B; D>GET>C; B>POST>A; C>POST>A
+ 	* Unregister (A,POST) and check that it is no longer possible
+ 	* to reach A with a POST method.
+ 	*/
+	@Test
+	public void testUnregisterDuplicateMethodForState() {
+		String entityName = "EN";
+		ResourceState A = new ResourceState(entityName, "A", new ArrayList<Action>(), "/A");
+		ResourceState B = new ResourceState(entityName, "B", new ArrayList<Action>(), "/B");
+		ResourceState C = new ResourceState(entityName, "C", new ArrayList<Action>(), "/C");
+		// we use D to have all states registered by initialising the state machine
+		ResourceState D = new ResourceState(entityName, "D", new ArrayList<Action>(), "/D");
+
+		B.addTransition(new Transition.Builder().method("POST").target(A).build());
+		C.addTransition(new Transition.Builder().method("POST").target(A).build());
+		D.addTransition(new Transition.Builder().method("GET").target(B).build());
+		D.addTransition(new Transition.Builder().method("GET").target(B).build());
+
+		ResourceStateMachine stateMachine = new ResourceStateMachine(D);
+
+		// A can be reached by the POST method
+		assertEquals("Number of interactions for A", 1, stateMachine.getInteractions(A).size());
+		assertTrue("State A can be reached by the POST interaction", stateMachine.getInteractions(A).contains("POST"));
+
+		// now unregistered POST for A
+		stateMachine.unregister(A, "POST");
+
+		// state A is not present anymore
+		assertFalse(stateMachine.getResourceStateByName().containsKey(A.getName()));
+	}
+
+	@Test
+    public void testRegisterEmbeddedTransitions() {
+        String entityName = "Note";
+        ResourceState initialState = new ResourceState(entityName, "notes", new ArrayList<Action>(), "/notes");
+        ResourceState noteState = new ResourceState(entityName, "note", new ArrayList<Action>(), "/notes('{id}')");
+        initialState.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(noteState).build());
+
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+
+        assertEquals("Number of states", 2, stateMachine.getStates().size());
+        assertEquals("Number of interactions for noteState", 1, stateMachine.getInteractions(noteState).size());
+        assertEquals("Number of states for noteState's path", 1,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+
+        // add a transition for a new method without registering it
+        initialState.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("POST").target(noteState).build());
+
+        // all results should be the same
+        assertEquals("Number of states", 2, stateMachine.getStates().size());
+        assertEquals("Number of interactions for noteState", 1, stateMachine.getInteractions(noteState).size());
+        assertEquals("Number of states for noteState's path", 1,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+
+        // now register the state with the new method
+        stateMachine.register(noteState, "POST");
+
+        // one interaction should have been added for noteState
+        assertEquals("Number of states", 2, stateMachine.getStates().size());
+        assertEquals("Number of interactions for noteState", 2, stateMachine.getInteractions(noteState).size());
+        assertEquals("Number of states for noteState's path", 1,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+
+        // create a state with the same path as noteState
+        ResourceState samePathState = new ResourceState(entityName, "noteCopy", new ArrayList<Action>(), "/notes('{id}')");
+        samePathState.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(noteState).build());
+
+        // no changes YET when getting the resource states by path
+        assertEquals("Number of states for noteState's path", 1,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+        // only one resource registered under the path
+        assertEquals("Number of states under \"/notes('{id}')\" path", 1, stateMachine.getResourceStatesForPath("/notes('{id}')")
+                .size());
+        // the new state should NOT be found in the resource state machine
+        assertFalse(stateMachine.getResourceStateByName().containsKey(samePathState.getName()));
+
+        // now register
+        stateMachine.register(samePathState, "GET");
+
+        // check that a new state has been registered 
+        assertEquals("Number of states", 3, stateMachine.getStates().size());
+        assertEquals("Number of interactions for noteState", 2, stateMachine.getInteractions(noteState).size());
+        // the path of the latest added state is the same as that of noteState
+        assertEquals("Number of states for noteState's path", 2,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+        // now two resources registered under the path
+        assertEquals("Number of states under \"/notes('{id}')\" path", 2, stateMachine.getResourceStatesForPath("/notes('{id}')").size());
+        // check that the new state is found in the resource state machine
+        assertTrue(stateMachine.getResourceStateByName().containsKey(samePathState.getName()));
+    }
+
+    @Test
+    public void testRegisterRegularTransitions() {
+        String entityName = "Note";
+        ResourceState initialState = new ResourceState(entityName, "notes", new ArrayList<Action>(), "/notes");
+
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+
+        // only the initial state is present
+        assertEquals("Number of states", 1, stateMachine.getStates().size());
+        // GET interaction is registered by default
+        assertEquals("Number of interactions for initialStates", 1, stateMachine.getInteractions(initialState).size());
+        assertEquals("Number of states for initialState's path", 1,
+                stateMachine.getResourceStatesByPath().get(initialState.getPath()).size());
+
+        ResourceState noteState = new ResourceState(entityName, "note", new ArrayList<Action>(), "/notes('{id}')");
+        initialState.addTransition(new Transition.Builder().method("GET").target(noteState).build());
+
+        // noteState should not be registered
+        assertFalse(stateMachine.getResourceStateByName().containsKey(noteState.getName()));
+        
+        // now register the state with the method
+        stateMachine.register(noteState, "GET");
+
+        // noteState is added
+        assertEquals("Number of states", 2, stateMachine.getStates().size());
+        assertTrue(stateMachine.getResourceStateByName().containsKey(noteState.getName()));
+        // check number of interactions
+        assertEquals("Number of interactions for initialStates", 1, stateMachine.getInteractions(noteState).size());
+        assertEquals("Number of interactions for noteState", 1, stateMachine.getInteractions(noteState).size());
+        assertEquals("Number of states for noteState's path", 1,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+    }
+
+	@Test
+	public void testRegisterNullState() {
+		String entityName = "Note";
+		ResourceState initialState = new ResourceState(entityName, "notes", new ArrayList<Action>(), "/notes");
+
+		ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+
+		// state machine should contain only one state
+		assertEquals("Number of states", 1, stateMachine.getStates().size());
+		assertTrue(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
+
+		// try to register a null state
+		stateMachine.register(null, "GET");
+
+		// state machine should contain only one state
+		assertEquals("Number of states", 1, stateMachine.getStates().size());
+		assertTrue(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
+	}
+
+	@Test
+    public void testRegisterAllStates() {
+        String entityName = "Note";
+        ResourceState initialState = new ResourceState(entityName, "notes", new ArrayList<Action>(), "/notes");
+
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+        
+        ResourceState noteState = new ResourceState(entityName, "note", new ArrayList<Action>(), "/notes('{id}')");
+        initialState.addTransition(new Transition.Builder().method("GET").target(noteState).build());
+        initialState.addTransition(new Transition.Builder().method("POST").target(noteState).build());
+        ResourceState samePathState = new ResourceState(entityName, "noteCopy", new ArrayList<Action>(), "/notes('{id}')");
+        noteState.addTransition(new Transition.Builder().method("GET").target(samePathState).build());
+
+        // only the initial state is present
+        assertEquals("Number of states", 1, stateMachine.getStates().size());
+        assertTrue(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
+        
+        // register all states starting with initial, BUT violating the function's precondition
+        stateMachine.registerAllStartingFromState(initialState, "GET");
+
+        // this shouldn't add any state as initialState/GET is already registered when the state machine is built
+        assertEquals("Number of states", 1, stateMachine.getStates().size());
+
+        // first we unregister the initial state
+        stateMachine.unregister(initialState, "GET");
+        
+        // state machine should be emtpy
+        assertEquals("Number of states", 0, stateMachine.getStates().size());
+        
+        // register all states starting with initial
+        stateMachine.registerAllStartingFromState(initialState, "GET");
+        
+        // all states should be registered
+        assertEquals("Number of states", 3, stateMachine.getStates().size());
+        assertTrue(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
+        assertTrue(stateMachine.getResourceStateByName().containsKey(noteState.getName()));
+        assertTrue(stateMachine.getResourceStateByName().containsKey(samePathState.getName()));
+    }
+
+	@Test
+	public void testRegisterAllStatesWithLoops() {
+		String ENTITY_NAME = "";
+		ResourceState A = new ResourceState(ENTITY_NAME, "A", new ArrayList<Action>(), "{id}");
+		ResourceState J = new ResourceState(ENTITY_NAME, "J", new ArrayList<Action>(), "{id}");
+		ResourceState E = new ResourceState(ENTITY_NAME, "E", new ArrayList<Action>(), "{id}");
+		ResourceState F = new ResourceState(ENTITY_NAME, "F", new ArrayList<Action>(), "{id}");
+		ResourceState K = new ResourceState(ENTITY_NAME, "K", new ArrayList<Action>(), "{id}");
+		ResourceState B = new ResourceState(ENTITY_NAME, "B", new ArrayList<Action>(), "{id}");
+
+		A.addTransition(new Transition.Builder().method("GET").target(E).build());
+		A.addTransition(new Transition.Builder().method("POST").target(J).build());
+		J.addTransition(new Transition.Builder().method(null).target(E).build());
+		E.addTransition(new Transition.Builder().method("PUT").target(F).build());
+		E.addTransition(new Transition.Builder().method("DELETE").target(K).build());
+		E.addTransition(new Transition.Builder().method("GET").target(B).build());
+
+		ResourceStateMachine sm = new ResourceStateMachine(A);
+
+		Collection<ResourceState> states = sm.getStates();
+		assertEquals("Number of states", 6, states.size());
+	}
+
+	@Test
+    public void testUnregister() {
+        String entityName = "Note";
+        ResourceState initialState = new ResourceState(entityName, "notes", new ArrayList<Action>(), "/notes");
+        ResourceState noteState = new ResourceState(entityName, "note", new ArrayList<Action>(), "/notes('{id}')");
+        initialState.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(noteState).build());
+        initialState.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("POST").target(noteState).build());
+        ResourceState samePathState = new ResourceState(entityName, "noteCopy", new ArrayList<Action>(), "/notes('{id}')");
+        noteState.addTransition(new Transition.Builder().flags(Transition.EMBEDDED).method("GET").target(samePathState).build());
+
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+
+        assertEquals("Number of states", 3, stateMachine.getStates().size());
+        assertEquals("Number of interactions for noteState", 2, stateMachine.getInteractions(noteState).size());
+        assertEquals("Number of states for noteState's path", 2,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+        // two resources registered under the path
+        assertEquals("Number of states under \"/notes('{id}')\" path", 2, stateMachine.getResourceStatesForPath("/notes('{id}')").size());
+        // check that noteState is present in the resource state machine
+        assertTrue(stateMachine.getResourceStateByName().containsKey(noteState.getName()));
+        assertEquals("Number of interactions for initialState", 1, stateMachine.getInteractions(initialState).size());
+        
+        // unregister the POST method
+        stateMachine.unregister(noteState, "POST");
+        
+        // no changes in the number of states, since noteState still has one method registered
+        assertEquals("Number of states", 3, stateMachine.getStates().size());
+        assertEquals("Number of interactions for noteState", 1, stateMachine.getInteractions(noteState).size());
+        assertEquals("Number of states for noteState's path", 2,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+        // two resources registered under the path
+        assertEquals("Number of states under \"/notes('{id}')\" path", 2, stateMachine.getResourceStatesForPath("/notes('{id}')").size());
+        // check that noteState is STILL present in the resource state machine
+        assertTrue(stateMachine.getResourceStateByName().containsKey(noteState.getName()));
+         
+        // unregister the GET method for noteState
+        stateMachine.unregister(noteState, "GET");
+        
+        // noteState should be unregistered now
+        assertEquals("Number of states", 2, stateMachine.getStates().size());
+        // one resource registered under the path
+        assertEquals("Number of states under \"/notes('{id}')\" path", 1, stateMachine.getResourceStatesForPath("/notes('{id}')").size());
+        // check that noteState is NOT present in the resource state machine
+        assertFalse(stateMachine.getResourceStateByName().containsKey(noteState.getName()));
+        
+        // try to unregister a resource with an inexistent method 
+        stateMachine.unregister(initialState, "POST");
+
+        // we expect no changes
+        assertEquals("Number of states", 2, stateMachine.getStates().size());
+        assertEquals("Number of interactions for initialState", 1, stateMachine.getInteractions(initialState).size());
+        assertTrue(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
+
+        // unregister initial state 
+        stateMachine.unregister(initialState, "GET");
+
+        // check for changes
+        assertEquals("Number of states", 1, stateMachine.getStates().size());
+        assertFalse(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
+        
+        // clean-up
+        stateMachine.unregister(samePathState, "GET");
+
+        assertEquals("Number of states", 0, stateMachine.getStates().size());
+    }
+    
 	@Test
 	public void testGetResourceStatesByPathRegex() {
 		String ENTITY_NAME = "";
@@ -634,7 +994,7 @@ public class TestResourceStateMachine {
   		ResourceState notesRegex = new ResourceState(ENTITY_NAME, "notesRegex", new ArrayList<Action>(), "/notes()");
   		ResourceState notesEntity = new ResourceState(ENTITY_NAME, "notesEntity", new ArrayList<Action>(), "/notes({id})");
   		ResourceState notesEntityQuoted = new ResourceState(ENTITY_NAME, "notesEntityQuoted", new ArrayList<Action>(), "/notes('{id}')");
-  		ResourceState notesNavProperty = new ResourceState(ENTITY_NAME, "notesEntity", new ArrayList<Action>(), "/notes({id})/{navproperty}");
+  		ResourceState notesNavProperty = new ResourceState(ENTITY_NAME, "notesNavProperty", new ArrayList<Action>(), "/notes({id})/{navproperty}");
   		ResourceState duffnotes = new ResourceState(ENTITY_NAME, "duffnotes", new ArrayList<Action>(), "/duff/notes");
 	
   		// create transitions
@@ -690,7 +1050,8 @@ public class TestResourceStateMachine {
 
 	@Test(expected=AssertionError.class)
 	public void testInteractionsInvalidState() {
-		String ENTITY_NAME = "";
+		
+	    String ENTITY_NAME = "";
 		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
 		ResourceState exists = new ResourceState(ENTITY_NAME, "exists", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState(ENTITY_NAME, "end", new ArrayList<Action>(), "{id}");
@@ -703,6 +1064,27 @@ public class TestResourceStateMachine {
 
 		ResourceState other = new ResourceState("other", "initial", new ArrayList<Action>(), "/other");
 		sm.getInteractions(other);
+	}
+
+	@Test
+	public void testInteractionsFromDifferentStatesWithSameMethod() {
+
+		String ENTITY_NAME = "";
+		ResourceState begin = new ResourceState(ENTITY_NAME, "begin", new ArrayList<Action>(), "{id}");
+		ResourceState source1 = new ResourceState(ENTITY_NAME, "source1", new ArrayList<Action>(), "{id}");
+		ResourceState source2 = new ResourceState(ENTITY_NAME, "source2", new ArrayList<Action>(), "{id}");
+
+		begin.addTransition(new Transition.Builder().method(null).target(source1).build());
+		begin.addTransition(new Transition.Builder().method(null).target(source2).build());
+		source1.addTransition(new Transition.Builder().method(null).target(source2).build());
+
+		ResourceStateMachine stateMachine = new ResourceStateMachine(begin);
+
+		// all results should be the same
+		assertEquals("Number of states", 3, stateMachine.getStates().size());
+		assertEquals("Number of interactions for begin", 1, stateMachine.getInteractions(begin).size());
+		assertEquals("Number of interactions for source1", 1, stateMachine.getInteractions(source1).size());
+		assertEquals("Number of interactions for source2", 1, stateMachine.getInteractions(source2).size());
 	}
 
 	@Test

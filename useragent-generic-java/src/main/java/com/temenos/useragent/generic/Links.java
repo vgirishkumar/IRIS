@@ -24,6 +24,7 @@ package com.temenos.useragent.generic;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -46,7 +47,7 @@ public class Links {
 	private Map<String, List<Link>> linksByHref = new HashMap<String, List<Link>>();
 	private Map<String, List<Link>> linksByTitle = new HashMap<String, List<Link>>();
 	private Map<String, List<Link>> linksById = new HashMap<String, List<Link>>();
-	private Map<String, List<Link>> linksByDesc = new HashMap<String, List<Link>>();
+	private Map<String, List<Link>> linksByDesc = new LinkedHashMap<String, List<Link>>();
 	private SessionContext sessionContext;
 
 	private Links(List<Link> links, SessionContext sessionCallback) {

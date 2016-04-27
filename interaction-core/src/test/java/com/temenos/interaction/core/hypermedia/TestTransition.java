@@ -272,6 +272,22 @@ public class TestTransition {
 	}
 
 	@Test
+	public void testIsAnyOfTypes() {
+		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "/begin");
+		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "/end");
+
+		Transition.Builder tb = new Transition.Builder();
+		tb.source(begin)
+				.target(end)
+				.method("PUT")
+				.flags(Transition.FOR_EACH);
+		Transition t = tb.build();
+		assertFalse(t.isAnyOfTypes(Transition.AUTO, Transition.EMBEDDED, Transition.FOR_EACH_EMBEDDED));
+		assertTrue(t.isAnyOfTypes(Transition.AUTO, Transition.EMBEDDED, Transition.FOR_EACH));
+		assertTrue(t.isAnyOfTypes(Transition.FOR_EACH));
+	}
+
+	@Test
 	public void testGetLabel() {
 		ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
 		ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
