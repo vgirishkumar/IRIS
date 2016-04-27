@@ -53,7 +53,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -905,7 +904,26 @@ public class TestResourceStateMachine {
                 stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
     }
 
-    @Test
+	@Test
+	public void testRegisterNullState() {
+		String entityName = "Note";
+		ResourceState initialState = new ResourceState(entityName, "notes", new ArrayList<Action>(), "/notes");
+
+		ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+
+		// state machine should contain only one state
+		assertEquals("Number of states", 1, stateMachine.getStates().size());
+		assertTrue(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
+
+		// try to register a null state
+		stateMachine.register(null, "GET");
+
+		// state machine should contain only one state
+		assertEquals("Number of states", 1, stateMachine.getStates().size());
+		assertTrue(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
+	}
+
+	@Test
     public void testRegisterAllStates() {
         String entityName = "Note";
         ResourceState initialState = new ResourceState(entityName, "notes", new ArrayList<Action>(), "/notes");
