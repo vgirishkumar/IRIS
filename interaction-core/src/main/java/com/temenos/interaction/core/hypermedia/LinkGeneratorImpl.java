@@ -133,7 +133,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         while (entryItr.hasNext()) {
             Map.Entry<String,Object> entry = entryItr.next();
             String entryKey = entry.getKey();
-            if (collectionName.equals(entryKey.replaceAll("[()0-9]", ""))) {
+            if (collectionName.equals(entryKey.replaceAll("\\((\\d+)\\)", ""))) { 
                 Map<String, Object> transitionPropsCopy = createUriPropertyMap(transitionProperties, entry);
                 Link link = createLink(transitionPropsCopy, queryParameters, entity, entryKey);
 
@@ -205,86 +205,11 @@ public class LinkGeneratorImpl implements LinkGenerator {
                 }
             }
 
-            TransitionCommandSpec cs = transition.getCommand();
-            String method = cs.getMethod();
-
-            URI href;
-            String rel = "";
-
             if (targetState instanceof DynamicResourceState) {
-                // We are dealing with a dynamic target
-
-                // Identify real target state
-                ResourceStateAndParameters stateAndParams = resourceStateMachine.resolveDynamicState((DynamicResourceState) targetState,
-                        transitionProperties, interactionContext);
-
-                if (stateAndParams.getState() == null) {
-                    // Bail out as we failed to resolve resource
-                    return null;
-                } else {
-                    targetState = stateAndParams.getState();
-                }
-
-                if (targetState.getRel().contains("http://temenostech.temenos.com/rels/new")) {
-                    method = "POST";
-                }
-
-                rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
-
-                if ("item".equals(rel) || "collection".equals(rel)) {
-                    rel = createLinkForState(targetState);
-                }
-                if (stateAndParams.getParams() != null) {
-                    // Add query parameters
-                    for (ParameterAndValue paramAndValue : stateAndParams.getParams()) {
-                        String param = paramAndValue.getParameter();
-                        String value = paramAndValue.getValue();
-
-                        if ("id".equalsIgnoreCase(param)) {
-                            transitionProperties.put(param, value);
+            	return createLinkForDynamicResource(linkTemplate, transitionProperties, targetState, entity, sourcePropertyName);
                         } else {
-                            linkTemplate.queryParam(param, value);
-                        }
+            	return createLinkForResource(linkTemplate, transitionProperties, targetState, queryParameters, entity, sourcePropertyName);
                     }
-                }
-                // Links in the transition properties are already encoded so
-                // build the href using encoded map.
-                href = linkTemplate.buildFromEncodedMap(transitionProperties);
-            } else {
-                // We are NOT dealing with a dynamic target
-
-                rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
-
-                // Pass any query parameters
-                addQueryParams(queryParameters, allQueryParameters, linkTemplate, targetState.getPath(), transition
-                        .getCommand().getUriParameters());
-
-                // Build href from template
-                if (entity != null && resourceStateMachine.getTransformer() == null) {
-                    logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
-                    href = linkTemplate.build(entity);
-                } else {
-                    // Links in the transition properties are already encoded so
-                    // build the href using encoded map.
-                    href = linkTemplate.buildFromEncodedMap(transitionProperties);
-                }
-            }
-
-            // Create the link
-            Link link;
-
-            if (transitionProperties.containsKey("profileOEntity") && "self".equals(rel) && entity instanceof OEntity) {
-                //Create link adding profile to href to be resolved later on AtomXMLProvider
-                link = new Link(transition, rel, href.toASCIIString()+"#@"+createLinkForProfile(transition), method);
-            } else {
-                //Create link as normal behaviour
-                link = new Link(transition, rel, href.toASCIIString(), method, sourcePropertyName);
-            }
-
-            logger.debug("Created link for transition [" + transition + "] [title=" + transition.getId() + ", rel="
-                    + rel + ", method=" + method + ", href=" + href.toString() + "(ASCII=" + href.toASCIIString()
-                    + ")]");
-            return link;
         } catch (IllegalArgumentException e) {
             logger.warn("Dead link [" + transition + "]", e);
 
@@ -384,4 +309,103 @@ public class LinkGeneratorImpl implements LinkGenerator {
         }
     }
 
+    private Link createLinkForDynamicResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, Object entity, String sourcePropertyName) {
+    	// We are dealing with a dynamic target
+        // Identify real target state
+        ResourceStateAndParameters stateAndParams = resourceStateMachine.resolveDynamicState((DynamicResourceState) targetState,
+                transitionProperties, interactionContext);
+
+        if (stateAndParams.getState() == null) {
+            // Bail out as we failed to resolve resource
+            return null;
+        } else {
+            targetState = stateAndParams.getState();
+        }
+        
+        String method = transition.getCommand().getMethod();
+        if (targetState.getRel().contains("http://temenostech.temenos.com/rels/new")) {
+            method = "POST";
+        }
+
+        String rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
+
+        if ("item".equals(rel) || "collection".equals(rel)) {
+            rel = createLinkForState(targetState);
+        }
+        if (stateAndParams.getParams() != null) {
+            // Add query parameters
+            for (ParameterAndValue paramAndValue : stateAndParams.getParams()) {
+                String param = paramAndValue.getParameter();
+                String value = paramAndValue.getValue();
+
+                if ("id".equalsIgnoreCase(param)) {
+                    transitionProperties.put(param, value);
+                } else {
+                    linkTemplate.queryParam(param, value);
+                }
+            }
+        }
+        // Links in the transition properties are already encoded so
+        // build the href using encoded map.
+        URI href = linkTemplate.buildFromEncodedMap(transitionProperties);
+        
+        Transition linkTransition = rebuildTransitionWithResolvedTarget(targetState);        
+        return buildLink(linkTransition, transitionProperties, entity, rel, href, method, sourcePropertyName);
+    }
+    
+    private Link createLinkForResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, MultivaluedMap<String, String> queryParameters, Object entity, String sourcePropertyName) {
+    	// We are NOT dealing with a dynamic target
+        String rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
+
+        // Pass any query parameters
+        addQueryParams(queryParameters, allQueryParameters, linkTemplate, targetState.getPath(), transition
+                .getCommand().getUriParameters());
+
+        // Build href from template
+        URI href;
+        if (entity != null && resourceStateMachine.getTransformer() == null) {
+            logger.debug("Building link with entity (No Transformer) [" + entity + "] [" + transition + "]");
+            href = linkTemplate.build(entity);
+        } else {
+            // Links in the transition properties are already encoded so
+            // build the href using encoded map.
+            href = linkTemplate.buildFromEncodedMap(transitionProperties);
+        }
+        
+        return buildLink(transition, transitionProperties, entity, rel, href, transition.getCommand().getMethod(), sourcePropertyName);
+    }
+    
+    private Link buildLink(Transition linkTransition, Map<String, Object> transitionProperties, Object entity, String rel, URI href, String method, String sourcePropertyName) {
+    	Link link;        
+        if (transitionProperties.containsKey("profileOEntity") && "self".equals(rel) && entity instanceof OEntity) {
+            //Create link adding profile to href to be resolved later on AtomXMLProvider
+            link = new Link(linkTransition, rel, href.toASCIIString()+"#@"+createLinkForProfile(linkTransition), method);
+        } else {
+            //Create link as normal behaviour
+            link = new Link(linkTransition, rel, href.toASCIIString(), method, sourcePropertyName);
+        }
+        
+        logger.debug("Created link for transition [" + linkTransition + "] [title=" + linkTransition.getId() + ", rel="
+                + rel + ", method=" + method + ", href=" + href.toString() + "(ASCII=" + href.toASCIIString()
+                + ")]");
+        
+        return link;
+    }
+    
+
+    private Transition rebuildTransitionWithResolvedTarget(ResourceState resolvedTarget) {
+    	Transition updatedtransition = new Transition.Builder()
+    							.source(this.transition.getSource())
+    							.target(resolvedTarget)
+    							.label(this.transition.getLabel())
+    							.method(this.transition.getCommand().getMethod())
+    							.flags(this.transition.getCommand().getFlags())
+    							.evaluation(this.transition.getCommand().getEvaluation())
+    							.locator(this.transition.getLocator())
+    							.uriParameters(this.transition.getCommand().getUriParameters())
+    							.linkId(this.transition.getLinkId())
+    							.build(); 
+    	
+    	return updatedtransition;
+    }
 }

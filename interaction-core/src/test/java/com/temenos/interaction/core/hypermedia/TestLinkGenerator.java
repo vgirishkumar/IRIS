@@ -22,23 +22,36 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
-import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.hypermedia.*;
-import com.temenos.interaction.core.web.RequestContext;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.odata4j.core.*;
-import org.odata4j.edm.EdmComplexType;
-import org.odata4j.edm.EdmEntitySet;
-
-import javax.ws.rs.core.MultivaluedMap;
-import java.util.*;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.odata4j.core.OCollection;
+import org.odata4j.core.OCollections;
+import org.odata4j.core.OComplexObject;
+import org.odata4j.core.OComplexObjects;
+import org.odata4j.core.OEntities;
+import org.odata4j.core.OEntity;
+import org.odata4j.core.OProperties;
+import org.odata4j.core.OProperty;
+import org.odata4j.edm.EdmComplexType;
+import org.odata4j.edm.EdmEntitySet;
+
+import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.web.RequestContext;
 
 
 /**
@@ -141,7 +154,7 @@ public class TestLinkGenerator {
     public void testCreateLinkFromDynamicResource() {
         ResourceStateMachine engineMock = Mockito.mock(ResourceStateMachine.class);
         ResourceStateAndParameters resourceStateAndParameters = new ResourceStateAndParameters();
-        resourceStateAndParameters.setState(mockTarget("/testDynamic"));
+        resourceStateAndParameters.setState(mockTarget("/testDynamic", "resolvedTargetEntityName", "resolvedTargetName"));
         resourceStateAndParameters.setParams(new ParameterAndValue[] {new ParameterAndValue("filter2", "564")});
         DynamicResourceState dynamicResourceStateMock = mockDynamicTarget(null);
         Map<String,String> uriParameters = new HashMap<String,String>();
@@ -167,6 +180,8 @@ public class TestLinkGenerator {
         Collection<Link> links = linkGenerator.createLink(new MultivaluedMapImpl<String>(), queryParameters, null);
         Link result = (!links.isEmpty()) ? links.iterator().next() : null;
         assertEquals("/baseuri/testDynamic?filter=123&filter2=564", result.getHref());
+        assertEquals("resolvedTargetEntityName", result.getTransition().getTarget().getEntityName());
+        assertEquals("resolvedTargetName", result.getTransition().getTarget().getName());
     }
 
     @Test
@@ -277,6 +292,39 @@ public class TestLinkGenerator {
         assertEquals("/baseuri/contact()?test=John+and+smithEmailAddr", result.getHref());
         assertEquals("collection", result.getRel());
     }
+    
+    @Test
+    public void testCreateLinkForCollectionEntityWithFieldContainingNumber() {
+        Link result = null;
+        Map<String,String> uriParameters = new HashMap<String,String>();
+        uriParameters.put("test", "{Contact.Email8}");
+        CollectionResourceState customerState = new CollectionResourceState("customer", "customer", new ArrayList<Action>(), "/customer()", null, null);
+        CollectionResourceState contactState = new CollectionResourceState("contact", "contact", new ArrayList<Action>(), "/contact()", null, null);
+        customerState.addTransition(new Transition.Builder().method("GET").target(contactState).uriParameters(uriParameters).flags(Transition.FOR_EACH).build());
+        OCollection<?> contactColl = OCollections.newBuilder(null)
+                .add(createComplexObject("Email8","johnEmailAddr","Tel","12345"))
+                .add(createComplexObject("Email8","smithEmailAddr","Tel","66778")).build();
+        ResourceStateMachine engine = new ResourceStateMachine(customerState, getOEntityTransformer(contactColl));
+
+        OProperty<?> contactProp =  OProperties.collection("source_Contact", null, contactColl);
+        List<OProperty<?>> contactPropList = new ArrayList<OProperty<?>>();
+        contactPropList.add(contactProp);
+        OEntity entity = OEntities.createRequest(EdmEntitySet.newBuilder().build(), contactPropList, null);
+        Transition t = customerState.getTransitions().get(0);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
+        Collection<Link> links = linkGenerator.createLink(null, null, entity);
+        Iterator<Link> iterator = links.iterator();
+
+        assertEquals(2, links.size());
+
+        result = iterator.next();
+        assertEquals("/baseuri/contact()?test=johnEmailAddr", result.getHref());
+        assertEquals("collection", result.getRel());
+
+        result = iterator.next();
+        assertEquals("/baseuri/contact()?test=smithEmailAddr", result.getHref());
+        assertEquals("collection", result.getRel());
+    }
 
     private OComplexObject createComplexObject(String... values) {
         List<OProperty<?>> propertyList = new ArrayList<OProperty<?>>();
@@ -319,6 +367,13 @@ public class TestLinkGenerator {
         public String getNoteId() {
             return noteId;
         }
+    }
+    
+    private ResourceState mockTarget(String path, String entityName, String name) {
+        ResourceState target = mockTarget(path);  
+        when(target.getEntityName()).thenReturn(entityName);
+        when(target.getName()).thenReturn(name);        
+        return target;
     }
 
 }
