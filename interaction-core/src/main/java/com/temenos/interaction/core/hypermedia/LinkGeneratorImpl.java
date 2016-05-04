@@ -309,17 +309,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         }
     }
 
-    /**
-     * 
-     * @param linkTemplate
-     * @param transitionProperties
-     * @param targetState
-     * @param entity
-     * @param sourcePropertyName
-     * @return
-     */
-    private Link createLinkForDynamicResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, Object entity, String sourcePropertyName)
-    {
+    private Link createLinkForDynamicResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, Object entity, String sourcePropertyName) {
     	// We are dealing with a dynamic target
         // Identify real target state
         ResourceStateAndParameters stateAndParams = resourceStateMachine.resolveDynamicState((DynamicResourceState) targetState,
@@ -363,18 +353,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         return buildLink(linkTransition, transitionProperties, entity, rel, href, method, sourcePropertyName);
     }
     
-    /**
-     * 
-     * @param linkTemplate
-     * @param transitionProperties
-     * @param targetState
-     * @param queryParameters
-     * @param entity
-     * @param sourcePropertyName
-     * @return
-     */
-    private Link createLinkForResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, MultivaluedMap<String, String> queryParameters, Object entity, String sourcePropertyName)
-    {
+    private Link createLinkForResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, MultivaluedMap<String, String> queryParameters, Object entity, String sourcePropertyName) {
     	// We are NOT dealing with a dynamic target
         String rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
 
@@ -396,19 +375,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         return buildLink(transition, transitionProperties, entity, rel, href, transition.getCommand().getMethod(), sourcePropertyName);
     }
     
-    /**
-     * 
-     * @param linkTransition
-     * @param transitionProperties
-     * @param entity
-     * @param rel
-     * @param href
-     * @param method
-     * @param sourcePropertyName
-     * @return
-     */
-    private Link buildLink(Transition linkTransition, Map<String, Object> transitionProperties, Object entity, String rel, URI href, String method, String sourcePropertyName)
-    {
+    private Link buildLink(Transition linkTransition, Map<String, Object> transitionProperties, Object entity, String rel, URI href, String method, String sourcePropertyName) {
     	Link link;        
         if (transitionProperties.containsKey("profileOEntity") && "self".equals(rel) && entity instanceof OEntity) {
             //Create link adding profile to href to be resolved later on AtomXMLProvider
@@ -425,13 +392,8 @@ public class LinkGeneratorImpl implements LinkGenerator {
         return link;
     }
     
-    /**
-     * 
-     * @param resolvedTarget
-     * @return
-     */
-    private Transition rebuildTransitionWithResolvedTarget(ResourceState resolvedTarget)
-    {
+
+    private Transition rebuildTransitionWithResolvedTarget(ResourceState resolvedTarget) {
     	Transition updatedtransition = new Transition.Builder()
     							.source(this.transition.getSource())
     							.target(resolvedTarget)
