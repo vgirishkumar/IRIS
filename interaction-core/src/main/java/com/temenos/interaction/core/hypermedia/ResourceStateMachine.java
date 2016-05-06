@@ -27,9 +27,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,6 +99,11 @@ public class ResourceStateMachine {
 	private Map<String, Set<String>> resourceStateNamesByPath = new HashMap<String, Set<String>>();
 	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
 
+	// lock needed for hashmap resourceStateNamesByPath
+    private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock read = readWriteLock.readLock();
+    protected final Lock write = readWriteLock.writeLock();
+	           
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null, null, null);
 	}
@@ -347,10 +356,14 @@ public class ResourceStateMachine {
 	 * @param state
 	 */
 	private void collectResourceStatesByPathForState(ResourceState state) {
+	    read.lock();
 		Set<String> resourceStateNames = resourceStateNamesByPath.get(state.getResourcePath());
+		read.unlock();
 		if (resourceStateNames == null) {
 		    resourceStateNames = new HashSet<String>();
+		    write.lock();
 		    resourceStateNamesByPath.put(state.getResourcePath(), resourceStateNames);
+		    write.unlock();
 		}
 
 		resourceStateNames.add(state.getName());
@@ -488,9 +501,14 @@ public class ResourceStateMachine {
             stateInteractions.remove(method);
 
         // Process resource states by path
+        read.lock();
         final Set<String> pathStateNames = resourceStateNamesByPath.get(state.getResourcePath());
-        if (pathStateNames != null)
+        read.unlock();
+        if (pathStateNames != null) {
+            write.lock();
             pathStateNames.remove(state);
+            write.unlock();
+        }
 
 		// only remove if there are no methods associated with the state
 		if(stateInteractions != null)
@@ -585,13 +603,15 @@ public class ResourceStateMachine {
 	 */
 	public Set<ResourceState> getResourceStatesForPathRegex(Pattern pattern) {
 		Set<ResourceState> matchingStates = new HashSet<ResourceState>();
-		Set<String> paths = resourceStateNamesByPath.keySet();
-		for (String path : paths) {
-			Matcher m = pattern.matcher(path);
-			if (m.matches()) {
-				matchingStates.addAll(getResourceStatesForPath(path));
-			}
-		}
+        Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPathIteratorWithReadLock();
+        while (it.hasNext()) {
+            Entry<String, Set<String>> pair = it.next();
+            String path = pair.getKey();
+            Matcher m = pattern.matcher(path);
+            if (m.matches()) {
+                matchingStates.addAll(getResourceStatesForPath(path));
+            }
+        }
 		return matchingStates;
 	}
 
@@ -603,7 +623,10 @@ public class ResourceStateMachine {
 	 */
 	public Map<String, Set<ResourceState>> getResourceStatesByPath() {
         Map<String, Set<ResourceState>> stateMap = new HashMap<String, Set<ResourceState>>();
-        for(String path : resourceStateNamesByPath.keySet()) {
+        Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPathIteratorWithReadLock();
+        while (it.hasNext()) {
+            Entry<String, Set<String>> pair = it.next();
+            String path = pair.getKey();
             Set<ResourceState> resourceStateSet = new HashSet<ResourceState>();
             Set<String> resourceStateNamesForPath = resourceStateNamesByPath.get(path);
             for(String resourceStateName : resourceStateNamesForPath) {
@@ -615,6 +638,35 @@ public class ResourceStateMachine {
         return stateMap;
 	}
 
+	protected Iterator<Entry<String, Set<String>>> resourceStateNamesByPathIteratorWithReadLock() {
+	    read.lock();
+	    final Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPath.entrySet().iterator();
+	    Iterator<Entry<String, Set<String>>> wit = new Iterator<Entry<String, Set<String>>>() {
+
+            @Override
+            public boolean hasNext() {
+                if(!it.hasNext()) {
+                    read.unlock();
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            @Override
+            public Entry<String, Set<String>> next() {
+                return it.next();
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+        
+        return wit;
+    }
+	
 	/**
 	 * Return a map of all the paths to the sub states from the supplied
 	 * ResourceState.
