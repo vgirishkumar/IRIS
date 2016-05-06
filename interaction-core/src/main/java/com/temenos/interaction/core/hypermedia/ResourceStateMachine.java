@@ -603,6 +603,8 @@ public class ResourceStateMachine {
 	 */
 	public Set<ResourceState> getResourceStatesForPathRegex(Pattern pattern) {
 		Set<ResourceState> matchingStates = new HashSet<ResourceState>();
+        // this iterator acquires a read lock and it doesn't release it until
+        // resourceStateNamesByPath.hasNext() evaluates to false
         Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPathIteratorWithReadLock();
         while (it.hasNext()) {
             Entry<String, Set<String>> pair = it.next();
@@ -612,6 +614,7 @@ public class ResourceStateMachine {
                 matchingStates.addAll(getResourceStatesForPath(path));
             }
         }
+        // the read lock should be released by now
 		return matchingStates;
 	}
 
@@ -623,6 +626,8 @@ public class ResourceStateMachine {
 	 */
 	public Map<String, Set<ResourceState>> getResourceStatesByPath() {
         Map<String, Set<ResourceState>> stateMap = new HashMap<String, Set<ResourceState>>();
+        // this iterator acquires a read lock and it doesn't release it until
+        // resourceStateNamesByPath.hasNext() evaluates to false
         Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPathIteratorWithReadLock();
         while (it.hasNext()) {
             Entry<String, Set<String>> pair = it.next();
@@ -635,9 +640,17 @@ public class ResourceStateMachine {
             }
             stateMap.put(path, resourceStateSet);
         }
+        // the read lock should be released by now
         return stateMap;
 	}
 
+    /**
+     * Iterator for the map resourceStateNamesByPath that acquires a read lock
+     * when called and DOES NOT RELEASE IT UNLESS hasNext from
+     * resourceStateNamesByPath evaluates to false.
+     * 
+     * @invariant resourceStateNamesByPath is not modified
+     */
 	protected Iterator<Entry<String, Set<String>>> resourceStateNamesByPathIteratorWithReadLock() {
 	    read.lock();
 	    final Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPath.entrySet().iterator();
