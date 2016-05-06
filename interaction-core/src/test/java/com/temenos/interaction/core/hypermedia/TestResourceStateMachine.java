@@ -614,10 +614,10 @@ public class TestResourceStateMachine {
         }
         
         public Iterator<Entry<String, Set<String>>> iteratorWithReadLock() {
-            return resourceStateNamesByPathIteratorWithReadLock();
+            return resourceStateNamesByPath.iterator();
         }
         
-        public boolean tryWriteLock() { return write.tryLock(); }
+        public boolean tryWriteLock() { return resourceStateNamesByPath.tryWriteLock(); }
     }
     
     /*

@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +46,7 @@ import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.MapWithReadWriteLock;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.CommandController;
@@ -96,14 +95,9 @@ public class ResourceStateMachine {
 	private Map<String, Transition> transitionsByRel = new HashMap<String, Transition>();
 	private Map<String, Set<String>> interactionsByPath = new HashMap<String, Set<String>>();
 	private Map<String, Set<String>> interactionsByState = new HashMap<String, Set<String>>();
-	private Map<String, Set<String>> resourceStateNamesByPath = new HashMap<String, Set<String>>();
+    protected MapWithReadWriteLock<String, Set<String>> resourceStateNamesByPath = new MapWithReadWriteLock<String, Set<String>>();
 	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
 
-	// lock needed for hashmap resourceStateNamesByPath
-    private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private final Lock read = readWriteLock.readLock();
-    protected final Lock write = readWriteLock.writeLock();
-	           
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null, null, null);
 	}
@@ -356,14 +350,10 @@ public class ResourceStateMachine {
 	 * @param state
 	 */
 	private void collectResourceStatesByPathForState(ResourceState state) {
-	    read.lock();
 		Set<String> resourceStateNames = resourceStateNamesByPath.get(state.getResourcePath());
-		read.unlock();
 		if (resourceStateNames == null) {
 		    resourceStateNames = new HashSet<String>();
-		    write.lock();
 		    resourceStateNamesByPath.put(state.getResourcePath(), resourceStateNames);
-		    write.unlock();
 		}
 
 		resourceStateNames.add(state.getName());
@@ -501,13 +491,9 @@ public class ResourceStateMachine {
             stateInteractions.remove(method);
 
         // Process resource states by path
-        read.lock();
         final Set<String> pathStateNames = resourceStateNamesByPath.get(state.getResourcePath());
-        read.unlock();
         if (pathStateNames != null) {
-            write.lock();
             pathStateNames.remove(state);
-            write.unlock();
         }
 
 		// only remove if there are no methods associated with the state
@@ -605,7 +591,7 @@ public class ResourceStateMachine {
 		Set<ResourceState> matchingStates = new HashSet<ResourceState>();
         // this iterator acquires a read lock and it doesn't release it until
         // resourceStateNamesByPath.hasNext() evaluates to false
-        Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPathIteratorWithReadLock();
+        Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPath.iterator();
         while (it.hasNext()) {
             Entry<String, Set<String>> pair = it.next();
             String path = pair.getKey();
@@ -628,7 +614,7 @@ public class ResourceStateMachine {
         Map<String, Set<ResourceState>> stateMap = new HashMap<String, Set<ResourceState>>();
         // this iterator acquires a read lock and it doesn't release it until
         // resourceStateNamesByPath.hasNext() evaluates to false
-        Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPathIteratorWithReadLock();
+        Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPath.iterator();
         while (it.hasNext()) {
             Entry<String, Set<String>> pair = it.next();
             String path = pair.getKey();
@@ -644,42 +630,6 @@ public class ResourceStateMachine {
         return stateMap;
 	}
 
-    /**
-     * Iterator for the map resourceStateNamesByPath that acquires a read lock
-     * when called and DOES NOT RELEASE IT UNLESS hasNext from
-     * resourceStateNamesByPath evaluates to false.
-     * 
-     * @invariant resourceStateNamesByPath is not modified
-     */
-	protected Iterator<Entry<String, Set<String>>> resourceStateNamesByPathIteratorWithReadLock() {
-	    read.lock();
-	    final Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPath.entrySet().iterator();
-	    Iterator<Entry<String, Set<String>>> wit = new Iterator<Entry<String, Set<String>>>() {
-
-            @Override
-            public boolean hasNext() {
-                if(!it.hasNext()) {
-                    read.unlock();
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-
-            @Override
-            public Entry<String, Set<String>> next() {
-                return it.next();
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
-        
-        return wit;
-    }
-	
 	/**
 	 * Return a map of all the paths to the sub states from the supplied
 	 * ResourceState.
@@ -694,12 +644,12 @@ public class ResourceStateMachine {
 		return getResourceStatesByPath();
 	}
 
-	private void collectResourceStatesByPath(Map<String, Set<String>> result, ResourceState begin) {
+	private void collectResourceStatesByPath(MapWithReadWriteLock<String, Set<String>> resourceStateNamesByPath2, ResourceState begin) {
 		List<ResourceState> states = new ArrayList<ResourceState>();
-		collectResourceStatesByPath(result, states, begin);
+		collectResourceStatesByPath(resourceStateNamesByPath2, states, begin);
 	}
 
-	private void collectResourceStatesByPath(Map<String, Set<String>> result, Collection<ResourceState> states,
+	private void collectResourceStatesByPath(MapWithReadWriteLock<String, Set<String>> resourceStateNamesByPath2, Collection<ResourceState> states,
 			ResourceState currentState) {
 
 		if (currentState == null) {
@@ -713,28 +663,28 @@ public class ResourceStateMachine {
 
 		states.add(currentState);
 		// add current state to results
-		Set<String> thisStateSet = result.get(currentState.getResourcePath());
+		Set<String> thisStateSet = resourceStateNamesByPath2.get(currentState.getResourcePath());
 		if (thisStateSet == null)
 			thisStateSet = new HashSet<String>();
 		thisStateSet.add(currentState.getName());
-		result.put(currentState.getResourcePath(), thisStateSet);
+		resourceStateNamesByPath2.put(currentState.getResourcePath(), thisStateSet);
 		for (ResourceState next : currentState.getAllTargets()) {
 			if (next != null && next != currentState) {
 				String path = next.getResourcePath();
-				if (result.get(path) != null) {
-					if (!result.get(path).contains(next.getName())) {
-						logger.debug("Adding to existing ResourceState[" + path + "] set (" + result.get(path) + "): "
+				if (resourceStateNamesByPath2.get(path) != null) {
+					if (!resourceStateNamesByPath2.get(path).contains(next.getName())) {
+						logger.debug("Adding to existing ResourceState[" + path + "] set (" + resourceStateNamesByPath2.get(path) + "): "
 								+ next);
-						result.get(path).add(next.getName());
+						resourceStateNamesByPath2.get(path).add(next.getName());
 					}
 				} else {
 					logger.debug("Putting a ResourceState[" + path + "]: " + next);
 					Set<String> set = new HashSet<String>();
 					set.add(next.getName());
-					result.put(path, set);
+					resourceStateNamesByPath2.put(path, set);
 				}
 			}
-			collectResourceStatesByPath(result, states, next);
+			collectResourceStatesByPath(resourceStateNamesByPath2, states, next);
 		}
 	}
 
