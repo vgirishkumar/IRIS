@@ -79,11 +79,11 @@ public class HashMapWithReadWriteLock<K, V> extends HashMap<K, V> {
 
         Iterator<Entry<K, V>> wit = new Iterator<Entry<K, V>>() {
 
-            final Iterator<Entry<K, V>> it = map.entrySet().iterator();
             // acquire a read lock
             {
                 read.lock();
             }
+            final Iterator<Entry<K, V>> it = map.entrySet().iterator();
 
             public boolean hasNext() {
                 if(!it.hasNext()) {
