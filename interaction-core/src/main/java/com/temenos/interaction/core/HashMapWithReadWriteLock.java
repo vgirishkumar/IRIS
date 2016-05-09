@@ -1,5 +1,26 @@
 package com.temenos.interaction.core;
 
+/*
+ * #%L
+ * interaction-core
+ * %%
+ * Copyright (C) 2012 - 2016 Temenos Holdings N.V.
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -14,7 +35,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 * 
 * @author aburgos
 */
-public class MapWithReadWriteLock<K, V> {
+public class HashMapWithReadWriteLock<K, V> extends HashMap<K, V> {
 
     private Map<K, V> map = new HashMap<K, V>();
 
@@ -22,7 +43,7 @@ public class MapWithReadWriteLock<K, V> {
     final private Lock read = rwl.readLock();
     final private Lock write = rwl.writeLock();
 
-    public MapWithReadWriteLock() {
+    public HashMapWithReadWriteLock() {
     }
 
     public V get(Object k) {

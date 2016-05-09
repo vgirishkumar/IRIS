@@ -46,7 +46,7 @@ import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.MapWithReadWriteLock;
+import com.temenos.interaction.core.HashMapWithReadWriteLock;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.CommandController;
@@ -95,7 +95,7 @@ public class ResourceStateMachine {
 	private Map<String, Transition> transitionsByRel = new HashMap<String, Transition>();
 	private Map<String, Set<String>> interactionsByPath = new HashMap<String, Set<String>>();
 	private Map<String, Set<String>> interactionsByState = new HashMap<String, Set<String>>();
-    protected MapWithReadWriteLock<String, Set<String>> resourceStateNamesByPath = new MapWithReadWriteLock<String, Set<String>>();
+    protected HashMapWithReadWriteLock<String, Set<String>> resourceStateNamesByPath = new HashMapWithReadWriteLock<String, Set<String>>();
 	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
 
 	public ResourceStateMachine(ResourceState initialState) {
@@ -644,12 +644,12 @@ public class ResourceStateMachine {
 		return getResourceStatesByPath();
 	}
 
-	private void collectResourceStatesByPath(MapWithReadWriteLock<String, Set<String>> resourceStateNamesByPath2, ResourceState begin) {
+	private void collectResourceStatesByPath(HashMapWithReadWriteLock<String, Set<String>> result, ResourceState begin) {
 		List<ResourceState> states = new ArrayList<ResourceState>();
-		collectResourceStatesByPath(resourceStateNamesByPath2, states, begin);
+		collectResourceStatesByPath(result, states, begin);
 	}
 
-	private void collectResourceStatesByPath(MapWithReadWriteLock<String, Set<String>> resourceStateNamesByPath2, Collection<ResourceState> states,
+	private void collectResourceStatesByPath(HashMapWithReadWriteLock<String, Set<String>> result, Collection<ResourceState> states,
 			ResourceState currentState) {
 
 		if (currentState == null) {
@@ -663,28 +663,28 @@ public class ResourceStateMachine {
 
 		states.add(currentState);
 		// add current state to results
-		Set<String> thisStateSet = resourceStateNamesByPath2.get(currentState.getResourcePath());
+		Set<String> thisStateSet = result.get(currentState.getResourcePath());
 		if (thisStateSet == null)
 			thisStateSet = new HashSet<String>();
 		thisStateSet.add(currentState.getName());
-		resourceStateNamesByPath2.put(currentState.getResourcePath(), thisStateSet);
+		result.put(currentState.getResourcePath(), thisStateSet);
 		for (ResourceState next : currentState.getAllTargets()) {
 			if (next != null && next != currentState) {
 				String path = next.getResourcePath();
-				if (resourceStateNamesByPath2.get(path) != null) {
-					if (!resourceStateNamesByPath2.get(path).contains(next.getName())) {
-						logger.debug("Adding to existing ResourceState[" + path + "] set (" + resourceStateNamesByPath2.get(path) + "): "
+				if (result.get(path) != null) {
+					if (!result.get(path).contains(next.getName())) {
+						logger.debug("Adding to existing ResourceState[" + path + "] set (" + result.get(path) + "): "
 								+ next);
-						resourceStateNamesByPath2.get(path).add(next.getName());
+						result.get(path).add(next.getName());
 					}
 				} else {
 					logger.debug("Putting a ResourceState[" + path + "]: " + next);
 					Set<String> set = new HashSet<String>();
 					set.add(next.getName());
-					resourceStateNamesByPath2.put(path, set);
+					result.put(path, set);
 				}
 			}
-			collectResourceStatesByPath(resourceStateNamesByPath2, states, next);
+			collectResourceStatesByPath(result, states, next);
 		}
 	}
 
