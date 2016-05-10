@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,7 +45,7 @@ import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.HashMapWithReadWriteLock;
+import com.temenos.interaction.core.MapWithReadWriteLock;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.CommandController;
@@ -91,12 +90,12 @@ public class ResourceStateMachine {
 	ResourceParameterResolverProvider parameterResolverProvider;
 	
 	// optimised access
-	private Map<String, Transition> transitionsById = new HashMap<String, Transition>();
-	private Map<String, Transition> transitionsByRel = new HashMap<String, Transition>();
-	private Map<String, Set<String>> interactionsByPath = new HashMap<String, Set<String>>();
-	private Map<String, Set<String>> interactionsByState = new HashMap<String, Set<String>>();
-    protected HashMapWithReadWriteLock<String, Set<String>> resourceStateNamesByPath = new HashMapWithReadWriteLock<String, Set<String>>();
-	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
+	private Map<String, Transition> transitionsById = new MapWithReadWriteLock<String, Transition>();
+	private Map<String, Transition> transitionsByRel = new MapWithReadWriteLock<String, Transition>();
+	private Map<String, Set<String>> interactionsByPath = new MapWithReadWriteLock<String, Set<String>>();
+	private Map<String, Set<String>> interactionsByState = new MapWithReadWriteLock<String, Set<String>>();
+    private Map<String, Set<String>> resourceStateNamesByPath = new MapWithReadWriteLock<String, Set<String>>();
+	private Map<String, ResourceState> resourceStatesByName = new MapWithReadWriteLock<String, ResourceState>();
 
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null, null, null);
@@ -585,48 +584,41 @@ public class ResourceStateMachine {
 	}
 
 	/**
+	 * Return a set of resources based on a pattern, without
+     * ensuring consistency between the returned set and the state
+     * of the internal maps.
+     * 
 	 * @see {@link ResourceStateMachine#getResourceStatesForPathRegex(String)}
 	 */
 	public Set<ResourceState> getResourceStatesForPathRegex(Pattern pattern) {
 		Set<ResourceState> matchingStates = new HashSet<ResourceState>();
-        // this iterator acquires a read lock and it doesn't release it until
-        // resourceStateNamesByPath.hasNext() evaluates to false
-        Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPath.iterator();
-        while (it.hasNext()) {
-            Entry<String, Set<String>> pair = it.next();
-            String path = pair.getKey();
+		for (String path : resourceStateNamesByPath.keySet()) {
             Matcher m = pattern.matcher(path);
             if (m.matches()) {
                 matchingStates.addAll(getResourceStatesForPath(path));
             }
         }
-        // the read lock should be released by now
 		return matchingStates;
 	}
 
 	/**
-	 * Return a map of all the paths to the various ResourceState's
+	 * Return a map of all the paths to the various resources, without
+	 * ensuring consistency between the returned map and the state
+	 * of the internal maps.
 	 * 
 	 * @invariant initial state not null
 	 * @return
 	 */
 	public Map<String, Set<ResourceState>> getResourceStatesByPath() {
         Map<String, Set<ResourceState>> stateMap = new HashMap<String, Set<ResourceState>>();
-        // this iterator acquires a read lock and it doesn't release it until
-        // resourceStateNamesByPath.hasNext() evaluates to false
-        Iterator<Entry<String, Set<String>>> it = resourceStateNamesByPath.iterator();
-        while (it.hasNext()) {
-            Entry<String, Set<String>> pair = it.next();
-            String path = pair.getKey();
+        for (Entry<String, Set<String>> entry : resourceStateNamesByPath.entrySet()) {
             Set<ResourceState> resourceStateSet = new HashSet<ResourceState>();
-            Set<String> resourceStateNamesForPath = resourceStateNamesByPath.get(path);
-            for(String resourceStateName : resourceStateNamesForPath) {
+            for(String resourceStateName : entry.getValue()) {
                 ResourceState state = resourceStatesByName.get(resourceStateName);
                 if(state != null) resourceStateSet.add(state);
             }
-            stateMap.put(path, resourceStateSet);
+            stateMap.put(entry.getKey(), resourceStateSet);
         }
-        // the read lock should be released by now
         return stateMap;
 	}
 
@@ -644,12 +636,12 @@ public class ResourceStateMachine {
 		return getResourceStatesByPath();
 	}
 
-	private void collectResourceStatesByPath(HashMapWithReadWriteLock<String, Set<String>> result, ResourceState begin) {
+	private void collectResourceStatesByPath(Map<String, Set<String>> result, ResourceState begin) {
 		List<ResourceState> states = new ArrayList<ResourceState>();
 		collectResourceStatesByPath(result, states, begin);
 	}
 
-	private void collectResourceStatesByPath(HashMapWithReadWriteLock<String, Set<String>> result, Collection<ResourceState> states,
+	private void collectResourceStatesByPath(Map<String, Set<String>> result, Collection<ResourceState> states,
 			ResourceState currentState) {
 
 		if (currentState == null) {

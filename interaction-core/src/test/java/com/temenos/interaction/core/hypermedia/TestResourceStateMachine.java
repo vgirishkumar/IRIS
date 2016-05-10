@@ -43,10 +43,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -606,74 +604,6 @@ public class TestResourceStateMachine {
 		assertTrue(stateMap.get("/entity/draft").contains(draft));
 		assertTrue(stateMap.get("/entity/draft").contains(draftDeleted));
 	}
-	
-	// wrapper class to have public methods to iterate with read lock and acquire write lock
-    public class ResourceStateMachineWrapper extends ResourceStateMachine {
-        public ResourceStateMachineWrapper(ResourceState resource) {
-            super(resource);
-        }
-        
-        public Iterator<Entry<String, Set<String>>> iteratorWithReadLock() {
-            return resourceStateNamesByPath.iterator();
-        }
-        
-        public boolean tryWriteLock() { return resourceStateNamesByPath.tryWriteLock(); }
-    }
-    
-    /*
-     * Try to write the map used to get resources by path while it is being iterated on.
-     */
-    @Test
-    public void testConcurrencyInGetResourceStatesByPath() throws InterruptedException {
-        String ENTITY_NAME = "";
-        ResourceState initial = new ResourceState(ENTITY_NAME, "initial", new ArrayList<Action>(), "/entity");
-        ResourceState published = new ResourceState(initial, "published", new ArrayList<Action>(), "/published");
-        ResourceState publishedDeleted = new ResourceState(published, "publishedDeleted", new ArrayList<Action>());
-        ResourceState draft = new ResourceState(initial, "draft", new ArrayList<Action>(), "/draft");
-        ResourceState draftDeleted = new ResourceState(draft, "draftDeleted", new ArrayList<Action>());
-
-        // create draft
-        initial.addTransition(new Transition.Builder().method("PUT").target(draft).build());
-        // updated draft
-        draft.addTransition(new Transition.Builder().method("PUT").target(draft).build());
-        // publish
-        draft.addTransition(new Transition.Builder().method("PUT").target(published).build());
-        // delete draft
-        draft.addTransition(new Transition.Builder().method("DELETE").target(draftDeleted).build());
-        // delete published
-        published.addTransition(new Transition.Builder().method("DELETE").target(publishedDeleted).build());
-
-        final ResourceStateMachineWrapper sm = new ResourceStateMachineWrapper(initial);
-
-        assertEquals("Number of states", 5, sm.getStates().size());
-
-        ResourceState resource = new ResourceState(ENTITY_NAME, "lock", new ArrayList<Action>(), "/entity/lock");
-        
-        Iterator<Entry<String, Set<String>>> it = sm.iteratorWithReadLock();
-
-        // iterate through states
-        while(it.hasNext()) {
-            // try to acquire the write lock
-            assertFalse(sm.tryWriteLock());
-            it.next();
-        }
-
-        // we should be able to acquire the write lock now
-        assertTrue(sm.tryWriteLock());
-
-        // the read lock should be released by now and we should be able to register 
-        sm.register(resource, "GET");
-        // state should be registered
-        assertEquals("Number of states", 6, sm.getStates().size());
-        // the resource should be in the state machine
-        assertTrue(sm.getResourceStateByName().containsKey(resource.getName()));   
-        // we also should be able to unregister it
-        sm.unregister(resource, "GET");
-        // state should not be registered anymore
-        assertEquals("Number of states", 5, sm.getStates().size());
-        // the resource should NOT be in the state machine
-        assertFalse(sm.getResourceStateByName().containsKey(resource.getName()));
-    }
 
 	@Test
 	public void testGetInteractionsByState() {
