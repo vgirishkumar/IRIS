@@ -604,7 +604,7 @@ public class TestResourceStateMachine {
 		assertTrue(stateMap.get("/entity/draft").contains(draft));
 		assertTrue(stateMap.get("/entity/draft").contains(draftDeleted));
 	}
-	
+
 	@Test
 	public void testGetInteractionsByState() {
 		String entityName = "Note";

@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,6 +45,7 @@ import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.MapWithReadWriteLock;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.CommandController;
@@ -88,12 +90,12 @@ public class ResourceStateMachine {
 	ResourceParameterResolverProvider parameterResolverProvider;
 	
 	// optimised access
-	private Map<String, Transition> transitionsById = new HashMap<String, Transition>();
-	private Map<String, Transition> transitionsByRel = new HashMap<String, Transition>();
-	private Map<String, Set<String>> interactionsByPath = new HashMap<String, Set<String>>();
-	private Map<String, Set<String>> interactionsByState = new HashMap<String, Set<String>>();
-	private Map<String, Set<String>> resourceStateNamesByPath = new HashMap<String, Set<String>>();
-	private Map<String, ResourceState> resourceStatesByName = new HashMap<String, ResourceState>();
+	private Map<String, Transition> transitionsById = new MapWithReadWriteLock<String, Transition>();
+	private Map<String, Transition> transitionsByRel = new MapWithReadWriteLock<String, Transition>();
+	private Map<String, Set<String>> interactionsByPath = new MapWithReadWriteLock<String, Set<String>>();
+	private Map<String, Set<String>> interactionsByState = new MapWithReadWriteLock<String, Set<String>>();
+    private Map<String, Set<String>> resourceStateNamesByPath = new MapWithReadWriteLock<String, Set<String>>();
+	private Map<String, ResourceState> resourceStatesByName = new MapWithReadWriteLock<String, ResourceState>();
 
 	public ResourceStateMachine(ResourceState initialState) {
 		this(initialState, null, null, null);
@@ -489,8 +491,9 @@ public class ResourceStateMachine {
 
         // Process resource states by path
         final Set<String> pathStateNames = resourceStateNamesByPath.get(state.getResourcePath());
-        if (pathStateNames != null)
+        if (pathStateNames != null) {
             pathStateNames.remove(state);
+        }
 
 		// only remove if there are no methods associated with the state
 		if(stateInteractions != null)
@@ -581,36 +584,40 @@ public class ResourceStateMachine {
 	}
 
 	/**
+	 * Return a set of resources based on a pattern, without
+     * ensuring consistency between the returned set and the state
+     * of the internal maps.
+     * 
 	 * @see {@link ResourceStateMachine#getResourceStatesForPathRegex(String)}
 	 */
 	public Set<ResourceState> getResourceStatesForPathRegex(Pattern pattern) {
 		Set<ResourceState> matchingStates = new HashSet<ResourceState>();
-		Set<String> paths = resourceStateNamesByPath.keySet();
-		for (String path : paths) {
-			Matcher m = pattern.matcher(path);
-			if (m.matches()) {
-				matchingStates.addAll(getResourceStatesForPath(path));
-			}
-		}
+		for (String path : resourceStateNamesByPath.keySet()) {
+            Matcher m = pattern.matcher(path);
+            if (m.matches()) {
+                matchingStates.addAll(getResourceStatesForPath(path));
+            }
+        }
 		return matchingStates;
 	}
 
 	/**
-	 * Return a map of all the paths to the various ResourceState's
+	 * Return a map of all the paths to the various resources, without
+	 * ensuring consistency between the returned map and the state
+	 * of the internal maps.
 	 * 
 	 * @invariant initial state not null
 	 * @return
 	 */
 	public Map<String, Set<ResourceState>> getResourceStatesByPath() {
         Map<String, Set<ResourceState>> stateMap = new HashMap<String, Set<ResourceState>>();
-        for(String path : resourceStateNamesByPath.keySet()) {
+        for (Entry<String, Set<String>> entry : resourceStateNamesByPath.entrySet()) {
             Set<ResourceState> resourceStateSet = new HashSet<ResourceState>();
-            Set<String> resourceStateNamesForPath = resourceStateNamesByPath.get(path);
-            for(String resourceStateName : resourceStateNamesForPath) {
+            for(String resourceStateName : entry.getValue()) {
                 ResourceState state = resourceStatesByName.get(resourceStateName);
                 if(state != null) resourceStateSet.add(state);
             }
-            stateMap.put(path, resourceStateSet);
+            stateMap.put(entry.getKey(), resourceStateSet);
         }
         return stateMap;
 	}
