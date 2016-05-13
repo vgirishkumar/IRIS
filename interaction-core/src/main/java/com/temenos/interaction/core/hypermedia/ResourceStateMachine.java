@@ -966,8 +966,8 @@ public class ResourceStateMachine {
 				results = resourceRequestHandler.getResources(rimHandler, headers, ctx, null, config);
 			}
 
-			if (config.getTransitions() != null && config.getTransitions().size() > 0
-					&& config.getTransitions().size() != results.keySet().size()) {
+			if (config.getTransitions() != null && !config.getTransitions().isEmpty()
+					&& new HashSet(config.getTransitions()).size() != results.keySet().size()) {
 				throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Resource state ["
 						+ ctx.getCurrentState().getId() + "] did not return correct number of embedded resources.");
 			}
