@@ -24,16 +24,14 @@ package com.temenos.useragent.generic.internal;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.Links;
 
 public class DefaultEntityWrapper implements EntityWrapper {
 
-	private Map<String, Link> namedLinks;
+	private List<Link> namedLinks;
 	private EntityHandler transformer;
 	private SessionContext sessionCallback;
 
@@ -66,7 +64,7 @@ public class DefaultEntityWrapper implements EntityWrapper {
 
 	private List<Link> entityLinks() {
 		checkAndBuildLinks();
-		return new ArrayList<Link>(namedLinks.values());
+		return namedLinks;
 	}
 
 	private void checkAndBuildLinks() {
@@ -74,10 +72,10 @@ public class DefaultEntityWrapper implements EntityWrapper {
 			return;
 		}
 		List<Link> links = transformer.getLinks();
-		namedLinks = new HashMap<String, Link>();
-		for (Link link : links) {
-			namedLinks.put(link.rel(), link);
-		}
+		namedLinks = new ArrayList<Link>();
+        for (Link link : links) {
+            namedLinks.add(link);
+        }
 	}
 
 	@Override

@@ -309,6 +309,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		«ENDIF»
 
 				<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
+		«IF transition.spec != null && transition.spec.field != null && transition.spec.field.name != null && transition.spec.field.name.length() > 0 »
+                <property name="sourceField" value="«transition.spec.field.name»" />
+        «ENDIF»
 			</bean>
 	'''
 
@@ -388,6 +391,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«ENDIF»
 			<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
 			<property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />
+			«IF transition.spec != null && transition.spec.field != null && transition.spec.field.name != null && transition.spec.field.name.length() > 0 »
+            <property name="sourceField" value="«transition.spec.field.name»" />
+            «ENDIF»
 		</bean>
 	'''
 	
@@ -407,7 +413,10 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             <property name="uriParameters"><util:map></util:map></property>
             «ENDIF»
             <property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
-            <property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />            
+            <property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />
+            «IF transition.spec != null && transition.spec.field != null && transition.spec.field.name != null && transition.spec.field.name.length() > 0 »
+            <property name="sourceField" value="«transition.spec.field.name»" />
+            «ENDIF»            
         </bean>
     '''
 	
@@ -425,6 +434,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF transition.spec == null»
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
+			«IF transition.spec != null && transition.spec.field != null && transition.spec.field.name != null && transition.spec.field.name.length() > 0 »
+            <property name="sourceField" value="«transition.spec.field.name»" />
+            «ENDIF»
 		</bean>
     '''
 
@@ -442,6 +454,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF transition.spec == null»
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
+			«IF transition.spec != null && transition.spec.field != null && transition.spec.field.name != null && transition.spec.field.name.length() > 0 »
+            <property name="sourceField" value="«transition.spec.field.name»" />
+            «ENDIF»
 		</bean>
     '''
 
@@ -460,6 +475,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
 			<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
+			«IF transition.spec != null && transition.spec.field != null && transition.spec.field.name != null && transition.spec.field.name.length() > 0 »
+            <property name="sourceField" value="«transition.spec.field.name»" />
+            «ENDIF»
 		</bean>
     '''
 	def addUriMapValues(EList<UriLink> uriLinks) ''' 

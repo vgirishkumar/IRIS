@@ -179,6 +179,8 @@ TransitionSpec:
                 & title=Title?
                 // MAY define an image id
                 & id=LinkId?
+                // MAY define a source field
+                & field=SourceField?
         )
     '}'
     )
@@ -239,6 +241,10 @@ Title:
 
 LinkId:
 	'id:' name=DQ_STRING
+;
+
+SourceField:
+    'field:' name=DQ_STRING
 ;
 
 terminal URISTRING	: 
