@@ -27,6 +27,7 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -119,6 +120,30 @@ public class DefaultHttpClient implements HttpClient {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	@Override
+	public HttpResponse delete(String url, HttpRequest request) {
+	    logHttpRequest(url, request);
+        CloseableHttpClient client = HttpClientBuilder
+                .create()
+                .setDefaultCredentialsProvider(
+                        DefaultHttpClientHelper.getBasicCredentialProvider())
+                .build();
+        HttpDelete getRequest = new HttpDelete(url);
+        DefaultHttpClientHelper.buildRequestHeaders(request, getRequest);
+        try {
+            CloseableHttpResponse httpResponse = client.execute(getRequest);
+            InputStream contentStream = httpResponse.getEntity().getContent();
+            HttpResponse response = new HttpResponseImpl(
+                    DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
+                    IOUtils.toString(contentStream, "UTF-8"),
+                    DefaultHttpClientHelper.buildResult(httpResponse));
+            logHttpResponse(response);
+            return response;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 	}
 
 	private void logHttpRequest(String url, HttpRequest request) {

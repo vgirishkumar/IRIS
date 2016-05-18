@@ -83,4 +83,9 @@ public interface Url {
 	 * Executes Http PUT operation.
 	 */
 	void put();
+	
+	/**
+	 * Executes Http DELETE operation
+	 */
+	void delete();
 }

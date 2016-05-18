@@ -22,15 +22,24 @@ package com.temenos.useragent.generic.internal;
  */
 
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.useragent.generic.http.HttpClient;
 import com.temenos.useragent.generic.http.HttpHeader;
+import com.temenos.useragent.generic.http.HttpMethod;
+import com.temenos.useragent.generic.http.HttpMethodExecutor;
 import com.temenos.useragent.generic.http.HttpRequest;
 import com.temenos.useragent.generic.http.HttpResponse;
 
@@ -40,6 +49,7 @@ public class UrlWrapperTest {
 	private SessionContext mockSessionContext;
 	private HttpResponse mockResponse;
 	private HttpHeader mockHeader;
+	private HttpMethodExecutor mockExecutor;
 
 	@Before
 	public void setUp() {
@@ -47,6 +57,7 @@ public class UrlWrapperTest {
 		mockSessionContext = mock(SessionContext.class);
 		mockResponse = mock(HttpResponse.class);
 		mockHeader = mock(HttpHeader.class);
+		mockExecutor = mock(HttpMethodExecutor.class);
 		when(mockSessionContext.getHttpClient()).thenReturn(mockHttpClient);
 	}
 
@@ -149,6 +160,20 @@ public class UrlWrapperTest {
 		verify(mockHttpClient, times(1)).put(eq("foo/bar('y')"),
 				any(HttpRequest.class));
 	}
+	
+	@Test
+    public void testDelete(){
+        //given
+        UrlWrapper wrapper = spy(new UrlWrapper("foo/bar('y')", mockSessionContext));
+        doReturn(mockExecutor).when(wrapper).getExecutor(any(EntityWrapper.class));
+        
+        //when
+        wrapper.delete();
+        
+        //then
+        verify(mockExecutor).execute(eq(HttpMethod.DELETE));
+        verify(mockSessionContext, times(0)).getRequestEntity();
+    }
 
 	@Test
 	public void testUrl() {
@@ -162,4 +187,5 @@ public class UrlWrapperTest {
 		wrapper.path("bar('123')");// ignores path
 		assertEquals("foo/bar('x')", wrapper.url());
 	}
+	
 }
