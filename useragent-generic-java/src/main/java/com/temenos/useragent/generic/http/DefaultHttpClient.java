@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -59,14 +60,9 @@ public class DefaultHttpClient implements HttpClient {
 		HttpGet getRequest = new HttpGet(url);
 		DefaultHttpClientHelper.buildRequestHeaders(request, getRequest);
 		try {
-			CloseableHttpResponse httpResponse = client.execute(getRequest);
-			InputStream contentStream = httpResponse.getEntity().getContent();
-			HttpResponse response = new HttpResponseImpl(
-					DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
-					IOUtils.toString(contentStream, "UTF-8"),
-					DefaultHttpClientHelper.buildResult(httpResponse));
-			logHttpResponse(response);
-			return response;
+		    CloseableHttpResponse httpResponse = client.execute(getRequest);
+            HttpEntity responseEntity = httpResponse.getEntity();
+            return handleResponse(httpResponse, responseEntity);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -84,14 +80,9 @@ public class DefaultHttpClient implements HttpClient {
 		DefaultHttpClientHelper.buildRequestHeaders(request, postRequest);
 		postRequest.setEntity(new StringEntity(request.payload(), "UTF-8"));
 		try {
-			CloseableHttpResponse httpResponse = client.execute(postRequest);
-			InputStream contentStream = httpResponse.getEntity().getContent();
-			HttpResponse response = new HttpResponseImpl(
-					DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
-					IOUtils.toString(contentStream, "UTF-8"),
-					DefaultHttpClientHelper.buildResult(httpResponse));
-			logHttpResponse(response);
-			return response;
+		    CloseableHttpResponse httpResponse = client.execute(postRequest);
+            HttpEntity responseEntity = httpResponse.getEntity();
+            return handleResponse(httpResponse, responseEntity);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -109,14 +100,9 @@ public class DefaultHttpClient implements HttpClient {
 		DefaultHttpClientHelper.buildRequestHeaders(request, putRequest);
 		putRequest.setEntity(new StringEntity(request.payload(), "UTF-8"));
 		try {
-			CloseableHttpResponse httpResponse = client.execute(putRequest);
-			InputStream contentStream = httpResponse.getEntity().getContent();
-			HttpResponse response = new HttpResponseImpl(
-					DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
-					IOUtils.toString(contentStream, "UTF-8"),
-					DefaultHttpClientHelper.buildResult(httpResponse));
-			logHttpResponse(response);
-			return response;
+		    CloseableHttpResponse httpResponse = client.execute(putRequest);
+            HttpEntity responseEntity = httpResponse.getEntity();
+            return handleResponse(httpResponse, responseEntity);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -130,21 +116,35 @@ public class DefaultHttpClient implements HttpClient {
                 .setDefaultCredentialsProvider(
                         DefaultHttpClientHelper.getBasicCredentialProvider())
                 .build();
-        HttpDelete getRequest = new HttpDelete(url);
-        DefaultHttpClientHelper.buildRequestHeaders(request, getRequest);
+        HttpDelete deleteRequest = new HttpDelete(url);
+        DefaultHttpClientHelper.buildRequestHeaders(request, deleteRequest);
         try {
-            CloseableHttpResponse httpResponse = client.execute(getRequest);
-            InputStream contentStream = httpResponse.getEntity().getContent();
-            HttpResponse response = new HttpResponseImpl(
-                    DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
-                    IOUtils.toString(contentStream, "UTF-8"),
-                    DefaultHttpClientHelper.buildResult(httpResponse));
-            logHttpResponse(response);
-            return response;
+            CloseableHttpResponse httpResponse = client.execute(deleteRequest);
+            HttpEntity responseEntity = httpResponse.getEntity();
+            return handleResponse(httpResponse, responseEntity);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 	}
+
+    private HttpResponse handleResponse(CloseableHttpResponse httpResponse, HttpEntity responseEntity)
+            throws IOException {
+        HttpResponse response;
+        if(responseEntity != null){ 
+            InputStream contentStream = httpResponse.getEntity().getContent();
+            response = new HttpResponseImpl(
+                    DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
+                    IOUtils.toString(contentStream, "UTF-8"),
+                    DefaultHttpClientHelper.buildResult(httpResponse));
+        }else{ //e.g. HTTP 204
+            response = new HttpResponseImpl(
+                    DefaultHttpClientHelper.buildResponseHeaders(httpResponse),
+                    "",
+                    DefaultHttpClientHelper.buildResult(httpResponse));
+        }
+        logHttpResponse(response);
+        return response;
+    }
 
 	private void logHttpRequest(String url, HttpRequest request) {
 		logger.info("\nURL: {}\nHEADERS: {}\nREQUEST: {}", url,
