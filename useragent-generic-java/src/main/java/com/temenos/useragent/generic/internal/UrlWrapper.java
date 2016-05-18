@@ -77,9 +77,7 @@ public class UrlWrapper implements Url {
 
 	@Override
 	public void get() {
-		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionContext.getHttpClient(), url(), new RequestDataImpl(
-						sessionContext.getRequestHeader(), null));
+		HttpMethodExecutor executor = getExecutor(null);
 		ResponseData output = executor.execute(HttpMethod.GET);
 		sessionContext.setResponse(output);
 	}
@@ -90,9 +88,7 @@ public class UrlWrapper implements Url {
 		if (noBody) {
 			entity = null; // TODO remove null
 		}
-		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionContext.getHttpClient(), url(), new RequestDataImpl(
-						sessionContext.getRequestHeader(), entity));
+		HttpMethodExecutor executor = getExecutor(entity);
 		ResponseData output = executor.execute(HttpMethod.POST);
 		sessionContext.setResponse(output);
 	}
@@ -103,11 +99,16 @@ public class UrlWrapper implements Url {
 		if (noBody) {
 			entity = null; // TODO remove null
 		}
-		HttpMethodExecutor executor = new DefaultHttpExecutor(
-				sessionContext.getHttpClient(), url(), new RequestDataImpl(
-						sessionContext.getRequestHeader(), entity));
+		HttpMethodExecutor executor = getExecutor(entity);
 		ResponseData output = executor.execute(HttpMethod.PUT);
 		sessionContext.setResponse(output);
+	}
+	
+	@Override
+	public void delete() {
+	    HttpMethodExecutor executor = getExecutor(null);
+	    ResponseData output = executor.execute(HttpMethod.DELETE);
+	    sessionContext.setResponse(output);
 	}
 
 	@Override
@@ -121,5 +122,13 @@ public class UrlWrapper implements Url {
 			return url;
 		}
 		return url + "?" + queryParam;
+	}
+	
+	protected HttpMethodExecutor getExecutor(EntityWrapper entity){
+	    return new DefaultHttpExecutor(
+            sessionContext.getHttpClient(), url(), new RequestDataImpl(
+                    sessionContext.getRequestHeader(), entity
+            )
+        );
 	}
 }

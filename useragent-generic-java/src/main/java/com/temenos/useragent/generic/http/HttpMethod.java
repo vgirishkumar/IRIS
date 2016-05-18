@@ -24,5 +24,5 @@ package com.temenos.useragent.generic.http;
 
 public enum HttpMethod {
 
-	GET, POST, PUT
+	GET, POST, PUT, DELETE
 }

@@ -57,4 +57,12 @@ public interface HttpClient {
 	 * @return response
 	 */
 	HttpResponse put(String url, HttpRequest request);
+	
+	/**
+	 * HTTP DELETE method executes {@link HttpRequest request}.
+	 * @param url
+	 * @param request
+	 * @return response
+	 */
+	HttpResponse delete(String url, HttpRequest request);
 }

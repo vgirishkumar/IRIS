@@ -65,6 +65,9 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 
 		case PUT:
 			return put();
+			
+		case DELETE:
+	        return delete();
 		}
 		throw new RuntimeException("Http method '" + method + "' not supported");
 
@@ -89,10 +92,16 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 		HttpResponse response = httpClient.put(url, request);
 		return buildResponse(response);
 	}
+	
+	private ResponseData delete(){
+	    HttpRequest request = new HttpRequestImpl(input.header());
+	    HttpResponse response = httpClient.delete(url, request);
+	    return buildResponse(response);
+	}
 
 	private ResponseData buildResponse(HttpResponse response) {
 		String contentType = response.headers().get("Content-Type");
-		PayloadHandlerFactory factory = ContextFactory
+		PayloadHandlerFactory<?> factory = ContextFactory
 				.get()
 				.getContext()
 				.entityHandlersRegistry()
