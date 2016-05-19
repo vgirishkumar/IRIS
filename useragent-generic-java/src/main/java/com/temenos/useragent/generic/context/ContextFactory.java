@@ -97,6 +97,7 @@ public class ContextFactory {
 					AtomPayloadHandler.class);
 			registry.registerForPayload("text/plain", PlainTextPayloadHandler.class);
 			registry.registerForPayload("text/html", PlainTextPayloadHandler.class);
+			registry.registerForPayload("", PlainTextPayloadHandler.class);
 			return registry;
 		}
 

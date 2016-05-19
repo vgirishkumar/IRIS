@@ -101,12 +101,15 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 
 	private ResponseData buildResponse(HttpResponse response) {
 		String contentType = response.headers().get("Content-Type");
+		if(contentType == null)
+		    contentType = "";
 		PayloadHandlerFactory<?> factory = ContextFactory
 				.get()
 				.getContext()
 				.entityHandlersRegistry()
 				.getPayloadHandlerFactory(
-						DefaultHttpClientHelper.removeParameter(contentType));
+				        DefaultHttpClientHelper.removeParameter(contentType)
+	             );
 		if (factory == null) {
 			throw new IllegalStateException(
 					"Content type handler factory not registered for content type '"
