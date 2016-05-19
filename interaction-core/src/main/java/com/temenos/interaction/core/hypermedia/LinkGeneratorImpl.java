@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -53,14 +52,14 @@ import com.temenos.interaction.core.web.RequestContext;
  */
 public class LinkGeneratorImpl implements LinkGenerator {
 
-    protected static final String PARAM_REPLACEMENT_REGEX = "\\((\\d+)\\)";
     private final Logger logger = LoggerFactory.getLogger(LinkGeneratorImpl.class);
+
     private ResourceStateMachine resourceStateMachine;
     private Transition transition;
     private InteractionContext interactionContext;
     private String collectionName;
+
     private boolean allQueryParameters;
-    private LinkToFieldAssociation linkToFieldAssociation;
 
     public LinkGeneratorImpl(ResourceStateMachine resourceStateMachine,
             Transition transition, InteractionContext interactionContext) {
@@ -68,7 +67,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
         this.transition = transition;
         this.interactionContext = interactionContext;
         this.collectionName = extractCollectionParamName(transition.getCommand().getUriParameters());
-        this.linkToFieldAssociation = new LinkToFieldAssociationImpl(transition.getSourceField(), collectionName);
     }
 
     public LinkGeneratorImpl setAllQueryParameters(boolean allQueryParameters) {
@@ -86,21 +84,11 @@ public class LinkGeneratorImpl implements LinkGenerator {
                 pathParameters,
                 queryParameters
         );
-        
-        if(linkToFieldAssociation.generateOneLinkPerField()) {
-            eLinks.addAll(createMultiLink(transitionProperties, queryParameters, entity, null));
+        if (collectionName != null) {
+            eLinks.addAll(createMultiLink(transitionProperties, queryParameters, entity));
+        } else {
+            eLinks.add(createLink(transitionProperties, queryParameters, entity, null));
         }
-        else {
-            List<String> targetFieldLabelList = linkToFieldAssociation.getFullyQualifiedFieldNames(HypermediaTemplateHelper.normalizeProperties(transitionProperties));
-            for(String targetFieldLabel : targetFieldLabelList) {
-                if (collectionName != null) {
-                    eLinks.addAll(createMultiLink(transitionProperties, queryParameters, entity, targetFieldLabel));
-                } else {
-                    eLinks.add(createLink(transitionProperties, queryParameters, entity, targetFieldLabel));
-                }
-            }
-        }
-        
         return eLinks;
     }
 
@@ -137,7 +125,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
     }
 
     private Collection<Link> createMultiLink(Map<String, Object> transitionProperties,
-            MultivaluedMap<String, String> queryParameters, Object entity, String targetFieldLabel) {
+            MultivaluedMap<String, String> queryParameters, Object entity) {
         Collection<Link> eLinks = new ArrayList<Link>();
         Map<String, Object> normalizedProperties = HypermediaTemplateHelper.normalizeProperties(transitionProperties);
 
@@ -145,21 +133,21 @@ public class LinkGeneratorImpl implements LinkGenerator {
         while (entryItr.hasNext()) {
             Map.Entry<String,Object> entry = entryItr.next();
             String entryKey = entry.getKey();
-            if (collectionName.equals(entryKey.replaceAll(LinkGeneratorImpl.PARAM_REPLACEMENT_REGEX, ""))) {
+            if (collectionName.equals(entryKey.replaceAll("\\((\\d+)\\)", ""))) { 
                 Map<String, Object> transitionPropsCopy = createUriPropertyMap(transitionProperties, entry);
-                String resolvedFieldLabel = linkToFieldAssociation.determineTargetFieldName(targetFieldLabel, entryKey, normalizedProperties);
-                Link link = createLink(transitionPropsCopy, queryParameters, entity, resolvedFieldLabel);
+                Link link = createLink(transitionPropsCopy, queryParameters, entity, entryKey);
+
                 if (link != null) {
                     eLinks.add(link);
                 }
             }
         }
+
         return eLinks;
     }
-    
-    
+
     private Link createLink(Map<String, Object> transitionProperties,
-            MultivaluedMap<String, String> queryParameters, Object entity, String fieldLabel) {
+            MultivaluedMap<String, String> queryParameters, Object entity, String sourcePropertyName) {
         assert (RequestContext.getRequestContext() != null);
         ResourceStateProvider resourceStateProvider = resourceStateMachine.getResourceStateProvider();
         try {
@@ -218,9 +206,9 @@ public class LinkGeneratorImpl implements LinkGenerator {
             }
 
             if (targetState instanceof DynamicResourceState) {
-                return createLinkForDynamicResource(linkTemplate, transitionProperties, targetState, entity, fieldLabel);
+            	return createLinkForDynamicResource(linkTemplate, transitionProperties, targetState, entity, sourcePropertyName);
                         } else {
-                return createLinkForResource(linkTemplate, transitionProperties, targetState, queryParameters, entity, fieldLabel);
+            	return createLinkForResource(linkTemplate, transitionProperties, targetState, queryParameters, entity, sourcePropertyName);
                     }
         } catch (IllegalArgumentException e) {
             logger.warn("Dead link [" + transition + "]", e);
@@ -321,8 +309,8 @@ public class LinkGeneratorImpl implements LinkGenerator {
         }
     }
 
-    private Link createLinkForDynamicResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, Object entity, String fieldLabel) {
-        // We are dealing with a dynamic target
+    private Link createLinkForDynamicResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, Object entity, String sourcePropertyName) {
+    	// We are dealing with a dynamic target
         // Identify real target state
         ResourceStateAndParameters stateAndParams = resourceStateMachine.resolveDynamicState((DynamicResourceState) targetState,
                 transitionProperties, interactionContext);
@@ -362,11 +350,11 @@ public class LinkGeneratorImpl implements LinkGenerator {
         URI href = linkTemplate.buildFromEncodedMap(transitionProperties);
         
         Transition linkTransition = rebuildTransitionWithResolvedTarget(targetState);        
-        return buildLink(linkTransition, transitionProperties, entity, rel, href, method, fieldLabel);
+        return buildLink(linkTransition, transitionProperties, entity, rel, href, method, sourcePropertyName);
     }
     
-    private Link createLinkForResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, MultivaluedMap<String, String> queryParameters, Object entity, String fieldLabel) {
-        // We are NOT dealing with a dynamic target
+    private Link createLinkForResource(UriBuilder linkTemplate, Map<String, Object> transitionProperties, ResourceState targetState, MultivaluedMap<String, String> queryParameters, Object entity, String sourcePropertyName) {
+    	// We are NOT dealing with a dynamic target
         String rel = configureLink(linkTemplate, transition, transitionProperties, targetState);
 
         // Pass any query parameters
@@ -384,22 +372,17 @@ public class LinkGeneratorImpl implements LinkGenerator {
             href = linkTemplate.buildFromEncodedMap(transitionProperties);
         }
         
-        return buildLink(transition, transitionProperties, entity, rel, href, transition.getCommand().getMethod(), fieldLabel);
+        return buildLink(transition, transitionProperties, entity, rel, href, transition.getCommand().getMethod(), sourcePropertyName);
     }
     
-    private Link buildLink(Transition linkTransition, Map<String, Object> transitionProperties, Object entity, String rel, URI href, String method, String fieldLabel) {
-        Link link;        
+    private Link buildLink(Transition linkTransition, Map<String, Object> transitionProperties, Object entity, String rel, URI href, String method, String sourcePropertyName) {
+    	Link link;        
         if (transitionProperties.containsKey("profileOEntity") && "self".equals(rel) && entity instanceof OEntity) {
             //Create link adding profile to href to be resolved later on AtomXMLProvider
             link = new Link(linkTransition, rel, href.toASCIIString()+"#@"+createLinkForProfile(linkTransition), method);
         } else {
             //Create link as normal behaviour
-            String linkFieldLabel = fieldLabel;
-            if(fieldLabel!=null && fieldLabel.contains("."))
-            {
-                linkFieldLabel = transition.getSource().getEntityName() + "_" +fieldLabel;
-            }
-            link = new Link(linkTransition, rel, href.toASCIIString(), method, linkFieldLabel);
+            link = new Link(linkTransition, rel, href.toASCIIString(), method, sourcePropertyName);
         }
         
         logger.debug("Created link for transition [" + linkTransition + "] [title=" + linkTransition.getId() + ", rel="
@@ -411,19 +394,18 @@ public class LinkGeneratorImpl implements LinkGenerator {
     
 
     private Transition rebuildTransitionWithResolvedTarget(ResourceState resolvedTarget) {
-        Transition updatedtransition = new Transition.Builder()
-                                .source(this.transition.getSource())
-                                .target(resolvedTarget)
-                                .label(this.transition.getLabel())
-                                .method(this.transition.getCommand().getMethod())
-                                .flags(this.transition.getCommand().getFlags())
-                                .evaluation(this.transition.getCommand().getEvaluation())
-                                .locator(this.transition.getLocator())
-                                .uriParameters(this.transition.getCommand().getUriParameters())
-                                .linkId(this.transition.getLinkId())
-                                .sourceField(this.transition.getSourceField())
-                                .build(); 
-        
-        return updatedtransition;
+    	Transition updatedtransition = new Transition.Builder()
+    							.source(this.transition.getSource())
+    							.target(resolvedTarget)
+    							.label(this.transition.getLabel())
+    							.method(this.transition.getCommand().getMethod())
+    							.flags(this.transition.getCommand().getFlags())
+    							.evaluation(this.transition.getCommand().getEvaluation())
+    							.locator(this.transition.getLocator())
+    							.uriParameters(this.transition.getCommand().getUriParameters())
+    							.linkId(this.transition.getLinkId())
+    							.build(); 
+    	
+    	return updatedtransition;
     }
 }

@@ -34,7 +34,6 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 	private ResourceState source, target;
 	private String label;
 	private String linkId;
-	private String sourceField;
 
 	// TransitionCommand parameters
 	private String method;
@@ -54,7 +53,6 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 		builder.evaluation(evaluation);
 		builder.uriParameters(uriParameters);
 		builder.linkId(linkId);
-		builder.sourceField(sourceField);
 		return builder.build();
 	}
 
@@ -131,12 +129,4 @@ public class TransitionFactoryBean implements FactoryBean<Transition> {
 	public void setLinkId(String linkId) {
 		this.linkId = linkId;
 	}
-	
-	public String getSourceField() {
-        return sourceField;
-    }
-
-    public void setSourceField(String sourceField) {
-        this.sourceField = sourceField;
-    }
 }
